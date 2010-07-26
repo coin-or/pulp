@@ -1,0 +1,35 @@
+Roadmap for Pulp-or
+===================
+
+Version 1.0
+-----------
+Original Pulp version written and conceived by Jean-Sebastien Roy js@jeannot.org
+
+Version 1.1
+-----------
+Contributed by Stuart Mitchell s.mitchell@auckland.ac.nz.
+Contains dll solvers that are accessed with the ctypes library.
+Can use the CoinMP.dll solver from the coin-or project.
+Added column-wise modelling and resolve capabilities.
+Wiki added with plenty of examples  aphi038@ec.auckland.ac.nz
+
+Version 1.20
+------------
+Certified for inclusion in Coin-Or
+Spilt the solver and constant definitions into separate files
+Unit Tests make more explicit
+Included external definitions for CoinMP.dll
+No Makefile
+
+Version 1.3
+------------
+Added GUROBI solver
+Removed the older MEM solvers
+
+Future
+------
+Remove dependance on CoinMP.Dll and move towards OSI and CLP
+Discuss language syntax looking towards removing C alike constructs and make 
+ better use of Python namespace conventions
+Integrate branch and cut within Pulp
+Integrate with other python OR projects eg Pyomo wehart@sandia.gov and POAMS leo@sie.arizona.edu
