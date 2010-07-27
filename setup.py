@@ -46,6 +46,7 @@ problems.
       entry_points = ("""
       [console_scripts]
       pulptest = pulp:pulpTestAll
+      pulpdoctest = pulp:pulpDoctest
       """
       )
 )
