@@ -2155,7 +2155,8 @@ def pulpTestAll():
                GLPK_CMD,
                XPRESS, 
                GUROBI,
-               PYGLPK
+               PYGLPK,
+               YAPOSIB
                ]
 
     for s in solvers:
