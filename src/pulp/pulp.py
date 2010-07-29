@@ -510,11 +510,6 @@ class LpAffineExpression(_DICT_TYPE):
        >>> c = LpAffineExpression([ (x[0],1), (x[1],-3), (x[2],4)])
        >>> c
        1*x_0 + -3*x_1 + 4*x_2 + 0
-       >>> c == d
-       1*x_0 + -3*x_1 + 4*x_2 + -1*x_0 + 3*x_1 + -4*x_2 + 0 = 0
-       >>> ( c == d) == LpConstraint(0)
-       <class 'pulp.pulp.LpConstraint'>
-
     """
     #to remove illegal characters from the names
     trans = string.maketrans("-+[] ","_____")
@@ -602,7 +597,7 @@ class LpAffineExpression(_DICT_TYPE):
         
     def __str__(self, constant = 1):
         s = ""
-        for v in self:
+        for v in sorted(self.keys()):
             val = self[v]
             if val<0:
                 if s != "": s += " - "
@@ -2087,7 +2082,7 @@ def splitDict(Data):
     return tuple(output)
 
 def read_table(data, coerce_type, transpose=False):
-    """
+    '''
     Reads in data from a simple table and forces it to be a particular type
 
     This is a helper function that allows data to be easily constained in a 
@@ -2099,21 +2094,21 @@ def read_table(data, coerce_type, transpose=False):
     ::param transpose: reverses the data if needed
 
     Example:
-    >>> table_data = '''
-        L1      L2      L3      L4      L5      L6 
-C1      6736    42658   70414   45170   184679  111569
-C2      217266  227190  249640  203029  153531  117487
-C3      35936   28768   126316  2498    130317  74034
-C4      73446   52077   108368  75011   49827   62850
-C5      174664  177461  151589  153300  59916   135162
-C6      186302  189099  147026  164938  149836  286307
-'''
+    >>> table_data = """
+    ...         L1      L2      L3      L4      L5      L6 
+    ... C1      6736    42658   70414   45170   184679  111569
+    ... C2      217266  227190  249640  203029  153531  117487
+    ... C3      35936   28768   126316  2498    130317  74034
+    ... C4      73446   52077   108368  75011   49827   62850
+    ... C5      174664  177461  151589  153300  59916   135162
+    ... C6      186302  189099  147026  164938  149836  286307
+    ... """
     >>> table = read_table(table_data, int)
-    >>> table[("L1","C1")]
+    >>> table[("C1","L1")]
     6736
-    >>> table[("L5","C6")]
+    >>> table[("C6","L5")]
     149836
-    """
+    '''
     lines = data.splitlines()
     headings = lines[1].split()
     result = {}
@@ -2170,9 +2165,19 @@ def pulpTestAll():
         else:
             print "Solver", s, "unavailable."
 
+def pulpDoctest():
+    """
+    runs all doctests
+    """
+    import doctest
+    if __name__ != '__main__':
+        import pulp
+        doctest.testmod(pulp)
+    else:
+        doctest.testmod()
+
 
 if __name__ == '__main__':
     # Tests
     pulpTestAll()
-    import doctest
-    doctest.testmod()
+    pulpDoctest()
