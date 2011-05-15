@@ -355,6 +355,7 @@ class GLPK_CMD(LpSolver_CMD):
         statusString = f.readline()[12:-1]
         glpkStatus = {
             "INTEGER OPTIMAL":LpStatusOptimal,
+            "INTEGER NON-OPTIMAL":LpStatusOptimal,
             "OPTIMAL":LpStatusOptimal,
             "INFEASIBLE (FINAL)":LpStatusInfeasible,
             "INTEGER UNDEFINED":LpStatusUndefined,
@@ -366,7 +367,7 @@ class GLPK_CMD(LpSolver_CMD):
         if statusString not in glpkStatus:
             raise PulpSolverError, "Unknown status returned by GLPK"
         status = glpkStatus[statusString]
-        isInteger = statusString in ["INTEGER OPTIMAL","INTEGER UNDEFINED"]
+         isInteger = statusString in ["INTEGER NON-OPTIMAL","INTEGER OPTIMAL","INTEGER UNDEFINED"]
         values = {}
         for i in range(4): f.readline()
         for i in range(rows):
