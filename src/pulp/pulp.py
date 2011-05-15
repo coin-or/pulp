@@ -104,8 +104,7 @@ from types import GeneratorType
 _DICT_TYPE = dict
 
 try:
-    #python 2.4 and above with collective.ordereddict
-    from collective.ordereddict import OrderedDict
+    from odict import OrderedDict
     _DICT_TYPE = OrderedDict
 except ImportError:
     pass
@@ -272,7 +271,7 @@ class LpVariable(LpElement):
         self.expression = e
         self.addVariableToConstraints(e)
 
-    def matrix(self, name, indexs, lowBound = None, upBound = None, cat = 0,
+    def matrix(self, name, indexs, lowBound = None, upBound = None, cat = LpContinuous,
             indexStart = []):
         if not isinstance(indexs, tuple): indexs = (indexs,)
         if "%" not in name: name += "_%s" * len(indexs)
@@ -502,9 +501,6 @@ class LpAffineExpression(_DICT_TYPE):
        >>> f=LpAffineExpression(LpElement('x'))
        >>> f
        1*x + 0
-       >>> d = LpAffineExpression(dict(x_0=1, x_1=-3, x_2=4))
-       >>> d
-       1*x_0 + -3*x_1 + 4*x_2 + 0
        >>> x_name = ['x_0', 'x_1', 'x_2']
        >>> x = [LpVariable(x_name[i], lowBound = 0, upBound = 10) for i in range(3) ]
        >>> c = LpAffineExpression([ (x[0],1), (x[1],-3), (x[2],4)])
@@ -532,10 +528,10 @@ class LpAffineExpression(_DICT_TYPE):
         if isinstance(e, LpAffineExpression):
             # Will not copy the name
             self.constant = e.constant
-            super(LpAffineExpression, self).__init__(e)
-        elif isinstance(e, dict) :
+            super(LpAffineExpression, self).__init__(e.items())
+        elif isinstance(e, dict):
             self.constant = constant
-            super(LpAffineExpression, self).__init__(e)
+            super(LpAffineExpression, self).__init__(e.items())
         elif isinstance(e, list) or isinstance(e, GeneratorType):
             self.constant = constant
             super(LpAffineExpression, self).__init__(e)
@@ -580,10 +576,7 @@ class LpAffineExpression(_DICT_TYPE):
             y = self.get(key, 0)
             if y:
                 y += value
-                if y:
-                    self[key] = y
-                else:
-                    del self[key]
+                self[key] = y
             else:
                 self[key] = value
 
@@ -597,7 +590,7 @@ class LpAffineExpression(_DICT_TYPE):
         
     def __str__(self, constant = 1):
         s = ""
-        for v in sorted(self.keys()):
+        for v in self.sorted_keys():
             val = self[v]
             if val<0:
                 if s != "": s += " - "
@@ -615,10 +608,19 @@ class LpAffineExpression(_DICT_TYPE):
         elif s == "":
             s = "0"
         return s
-        
+
+    def sorted_keys(self):
+        """
+        returns the list of keys sorted by name
+        """
+        result = [(v.name, v) for v in self.keys()]
+        result.sort()
+        result = [v for _, v in result]
+        return result
+
     def __repr__(self):
         l = [str(self[v]) + "*" + str(v) 
-                        for v in sorted(self.keys())]
+                        for v in self.sorted_keys()]
         l.append(str(self.constant))
         s = " + ".join(l)
         return s
@@ -839,7 +841,7 @@ class LpConstraint(LpAffineExpression):
 
     def changeRHS(self, RHS):
         """
-        alters the RHS of a constraint so that it can be modefied in a resolve
+        alters the RHS of a constraint so that it can be modified in a resolve
         """
         self.constant = -RHS
         self.modified = True
@@ -1440,6 +1442,20 @@ class LpProblem(object):
             f.write(self.constraints[k].asCplexLpConstraint(k))
         vs = list(self.variables())
         vs.sort()
+        # check if any names are longer than 100 characters
+        long_names = [v.name for v in vs if len(v.name) > 100]
+        if long_names:
+            raise PulpError('Variable names too long for Lp format\n' 
+                                + str(long_names))
+        # check for repeated names
+        repeated_names = {}
+        for v in vs:
+            repeated_names[v.name] = repeated_names.get(v.name, 0) + 1
+        repeated_names = [(key, value) for key, value in repeated_names.items()
+                            if value >= 2]
+        if repeated_names:
+            raise PulpError('Repeated variable names in Lp format\n' 
+                                + str(repeated_names))
         # Bounds on non-"positive" variables
         # Note: XPRESS and CPLEX do not interpret integer variables without 
         # explicit bounds
@@ -2139,7 +2155,7 @@ def configSolvers():
         if value:
             configdict[key] = value
     setConfigInformation(**configdict)
-    
+
 
 def pulpTestAll():
     from tests import pulpTestSolver

@@ -11,8 +11,10 @@ Description = open('README').read()
 
 License = open('LICENSE').read()
 
+Version = open('VERSION').read().strip()
+
 setup(name="PuLP",
-      version="1.4.8",
+      version=Version,
       description="""
 PuLP is an LP modeler written in python. PuLP can generate MPS or LP files
 and call GLPK, COIN CLP/CBC, CPLEX, and GUROBI to solve linear
@@ -42,7 +44,7 @@ problems.
                                 "README.CoinMP.txt",
                                 ],
                       'pulp.solverdir' : ['*.*']},
-      requires = ['pyparsing(>=1.5.2)'],
+      install_requires = ['pyparsing>=1.5.2'],
       entry_points = ("""
       [console_scripts]
       pulptest = pulp:pulpTestAll
