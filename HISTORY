@@ -2,6 +2,10 @@
 #       Copyright S.A.Mitchell (s.mitchell@auckland.ac.nz), 2007-
 # See the LICENSE file for copyright information.
 # @(#) $Jeannot: HISTORY,v 1.8 2005/05/05 09:23:51 js Exp $
+1.4.8, 2011-03-30
+    Overdue fix for zero coeff issue
+    bugfix for default cat for LpVariable.dicts
+    moved tests to a different file
 1.4.6, 2010-01-25
     Bugfix
 1.4.4, 2010-01-24

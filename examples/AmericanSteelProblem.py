@@ -81,7 +81,7 @@ prob += lpSum([vars[a]* costs[a] for a in Arcs]), "Total Cost of Transport"
 # Creates all problem constraints - this ensures the amount going into each node is at least equal to the amount leaving
 for n in Nodes:
     prob += (supply[n]+ lpSum([vars[(i,j)] for (i,j) in Arcs if j == n]) >=
-             demand[n]+ lpSum([vars[(i,j)] for (i,j) in Arcs if i == n])), "Steel Flow Conservation in Node:%s"%n
+             demand[n]+ lpSum([vars[(i,j)] for (i,j) in Arcs if i == n])), "Steel Flow Conservation in Node %s"%n
 
 # The problem data is written to an .lp file
 prob.writeLP("AmericanSteelProblem.lp")
