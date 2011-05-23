@@ -60,6 +60,16 @@ def initialize(filename):
     except ConfigParser.NoOptionError:
         cplex_dll_path = 'libcplex110.so'
     try:
+        ilm_cplex_license = config.get("licenses",
+                "ilm_cplex_license").decode("string-escape").replace('"','')
+    except ConfigParser.NoOptionError:
+        ilm_cplex_license = ''
+    try:
+        ilm_cplex_license_signature = config.getint("licenses",
+                "ilm_cplex_license_signature")
+    except ConfigParser.NoOptionError:
+        ilm_cplex_license_signature = 0
+    try:
         coinMP_path = config.get("locations", "CoinMPPath").split(', ')
     except ConfigParser.NoOptionError:
         coinMP_path = ['libCoinMP.so']
@@ -78,8 +88,9 @@ def initialize(filename):
     for i,path in enumerate(coinMP_path):
         if not os.path.dirname(path):
             #if no pathname is supplied assume the file is in the same directory
-            coinMP_path[i] = os.path.join(os.path.dirname(config_filename),path) 
-    return cplex_dll_path, coinMP_path, gurobi_path, cbc_path, glpk_path
+            coinMP_path[i] = os.path.join(os.path.dirname(config_filename),path)
+    return cplex_dll_path, ilm_cplex_license, ilm_cplex_license_signature,\
+        coinMP_path, gurobi_path, cbc_path, glpk_path
 
 #pick up the correct config file depending on operating system
 PULPCFGFILE = "pulp.cfg"
@@ -97,7 +108,8 @@ else: #run as a script
     DIRNAME = os.path.dirname(fname)
     config_filename = os.path.join(DIRNAME,
                                    PULPCFGFILE)
-cplex_dll_path, coinMP_path, gurobi_path, cbc_path, glpk_path = \
+cplex_dll_path, ilm_cplex_license, ilm_cplex_license_signature, \
+        coinMP_path, gurobi_path, cbc_path, glpk_path = \
         initialize(config_filename)
 
 
@@ -367,7 +379,7 @@ class GLPK_CMD(LpSolver_CMD):
         if statusString not in glpkStatus:
             raise PulpSolverError, "Unknown status returned by GLPK"
         status = glpkStatus[statusString]
-         isInteger = statusString in ["INTEGER NON-OPTIMAL","INTEGER OPTIMAL","INTEGER UNDEFINED"]
+        isInteger = statusString in ["INTEGER NON-OPTIMAL","INTEGER OPTIMAL","INTEGER UNDEFINED"]
         values = {}
         for i in range(4): f.readline()
         for i in range(rows):
@@ -664,9 +676,25 @@ try:
             The licence is kept until releaseLicence() is called.
             """
             status = ctypes.c_int()
+            # If the config file allows to do so (non null params), try to
+            # grab a runtime license.
+            if ilm_cplex_license and ilm_cplex_license_signature:
+                runtime_status = CPLEX_DLL.lib.CPXsetstaringsol(
+                        ilm_cplex_license,
+                        ilm_cplex_license_signature)
+                # if runtime_status is not zero, running with a runtime
+                # license will fail. However, no error is thrown (yet)
+                # because the second call might still succeed if the user
+                # has another license. Let us forgive bad user
+                # configuration:
+                if not (runtime_status == 0) and self.msg:
+                    print (
+                    "CPLEX library failed to load the runtime license" +
+                    "the call returned status=%s" % str(runtime_status) +
+                    "Please check the pulp config file.")
             self.env = CPLEX_DLL.lib.CPXopenCPLEX(ctypes.byref(status))
             if not(status.value == 0):
-                raise PulpSolverError, ("CPLEX library failed on " + 
+                raise PulpSolverError, ("CPLEX library failed on " +
                                     "CPXopenCPLEX status=" + str(status))
             
 
@@ -1676,7 +1704,7 @@ class YAPOSIB(LpSolver):
         def findSolutionValues(self, lp):
             model = lp.solverModel
             solutionStatus = model.status
-            glpkLpStatus = {"optimal": LpStatusOptimal,
+            yaposibLpStatus = {"optimal": LpStatusOptimal,
                                    "undefined": LpStatusUndefined,
                                    "abandoned": LpStatusInfeasible,
                                    "infeasible": LpStatusInfeasible,
@@ -1695,7 +1723,7 @@ class YAPOSIB(LpSolver):
             lp.resolveOK = True
             for var in lp.variables():
                 var.isModified = False
-            lp.status = glpkLpStatus.get(solutionStatus,
+            lp.status = yaposibLpStatus.get(solutionStatus,
                     LpStatusUndefined)
             return lp.status
 
