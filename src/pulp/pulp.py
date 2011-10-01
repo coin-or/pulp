@@ -49,7 +49,7 @@ Use LpProblem() to create new problems. Create "myProblem"
 >>> prob = LpProblem("myProblem", LpMinimize)
 
 Combine variables to create expressions and constraints and add them to the
-problem. 
+problem.
 >>> prob += x + y <= 2
 
 If you add an expression (not a constraint), it will
@@ -70,17 +70,17 @@ You can get the value of the variables using value(). ex:
 Exported Classes:
     - LpProblem -- Container class for a Linear programming problem
     - LpVariable -- Variables that are added to constraints in the LP
-    - LpConstraint -- A constraint of the general form 
-      a1x1+a2x2 ...anxn (<=, =, >=) b 
-    - LpConstraintVar -- Used to construct a column of the model in column-wise 
+    - LpConstraint -- A constraint of the general form
+      a1x1+a2x2 ...anxn (<=, =, >=) b
+    - LpConstraintVar -- Used to construct a column of the model in column-wise
       modelling
 
 Exported Functions:
     - value() -- Finds the value of a variable or expression
-    - lpSum() -- given a list of the form [a1*x1, a2x2, ..., anxn] will construct 
+    - lpSum() -- given a list of the form [a1*x1, a2x2, ..., anxn] will construct
       a linear expression to be used as a constraint or variable
-    - lpDot() --given two lists of the form [a1, a2, ..., an] and 
-      [ x1, x2, ..., xn] will construct a linear epression to be used 
+    - lpDot() --given two lists of the form [a1, a2, ..., an] and
+      [ x1, x2, ..., xn] will construct a linear epression to be used
       as a constraint or variable
 
 Comments, bug reports, patches and suggestions are welcome.
@@ -125,7 +125,7 @@ class PulpError(Exception):
 def setConfigInformation(**keywords):
     """
     set the data in the configuration file
-    at the moment will only edit things in [locations] 
+    at the moment will only edit things in [locations]
     the keyword value pairs come from the keywords dictionary
     """
     #TODO: extend if we ever add another section in the config file
@@ -139,22 +139,22 @@ def setConfigInformation(**keywords):
     fp = open(config_filename,"w")
     config.write(fp)
     fp.close()
-    
+
 
 # Default solver selection
 if COINMP_DLL().available():
     LpSolverDefault = COINMP_DLL()
-elif CPLEX_CMD().available():
-    LpSolverDefault = CPLEX_CMD()
-elif COIN_CMD().available():
-    LpSolverDefault = COIN_CMD()
+elif PULP_CBC_CMD().available():
+    LpSolverDefault = PULP_CBC_CMD()
 elif GLPK_CMD().available():
     LpSolverDefault = GLPK_CMD()
+elif COIN_CMD().available():
+    LpSolverDefault = COIN_CMD()
 else:
     LpSolverDefault = None
 
 class LpElement(object):
-    """Base class for LpVariable and LpConstraintVar 
+    """Base class for LpVariable and LpConstraintVar
     """
     #to remove illegal characters from the names
     trans = string.maketrans("-+[] ->/","________")
@@ -166,7 +166,7 @@ class LpElement(object):
     def getname(self):
         return self.__name
     name = property(fget = getname,fset = setname)
-    
+
     def __init__(self, name):
         self.name = name
          # self.hash MUST be different for each variable
@@ -184,7 +184,7 @@ class LpElement(object):
 
     def __neg__(self):
         return - LpAffineExpression(self)
-        
+
     def __pos__(self):
         return self
 
@@ -196,10 +196,10 @@ class LpElement(object):
 
     def __radd__(self, other):
         return LpAffineExpression(self) + other
-        
+
     def __sub__(self, other):
         return LpAffineExpression(self) - other
-        
+
     def __rsub__(self, other):
         return other - LpAffineExpression(self)
 
@@ -208,7 +208,7 @@ class LpElement(object):
 
     def __rmul__(self, other):
         return LpAffineExpression(self) * other
-        
+
     def __div__(self, other):
         return LpAffineExpression(self)/other
 
@@ -235,19 +235,19 @@ class LpElement(object):
         else:
             return 1
 
-  
+
 class LpVariable(LpElement):
     """
     This class models an LP Variable with the specified associated parameters
-        
+
     :param name: The name of the variable used in the output .lp file
-    :param lowbound: The lower bound on this variable's range. 
+    :param lowbound: The lower bound on this variable's range.
         Default is negative infinity
-    :param upBound: The upper bound on this variable's range. 
+    :param upBound: The upper bound on this variable's range.
         Default is positive infinity
-    :param cat: The category this variable is in, Integer, Binary or 
+    :param cat: The category this variable is in, Integer, Binary or
         Continuous(default)
-    :param e: Used for column based modelling: relates to the variable's 
+    :param e: Used for column based modelling: relates to the variable's
         existence in the objective function and constraints
     """
     def __init__(self, name, lowBound = None, upBound = None,
@@ -258,7 +258,7 @@ class LpVariable(LpElement):
         self.cat = cat
         self.varValue = None
         self.init = 0
-        #code to add a variable to constraints for column based 
+        #code to add a variable to constraints for column based
         # modelling
         if cat == LpBinary:
             self.lowBound = 0
@@ -288,14 +288,14 @@ class LpVariable(LpElement):
                        for i in index]
     matrix = classmethod(matrix)
 
-    def dicts(self, name, indexs, lowBound = None, upBound = None, cat = LpContinuous, 
+    def dicts(self, name, indexs, lowBound = None, upBound = None, cat = LpContinuous,
         indexStart = []):
         """
         Creates a dictionary of LP variables
-        
-        This function creates a dictionary of LP Variables with the specified 
+
+        This function creates a dictionary of LP Variables with the specified
             associated parameters.
-            
+
         :param name: The prefix to the name of each LP variable created
         :param indexs: A list of strings of the keys to the dictionary of LP
             variables, and the main part of the variable name itself
@@ -305,7 +305,7 @@ class LpVariable(LpElement):
             positive infinity
         :param cat: The category these variables are in, Integer or
             Continuous(default)
-                                 
+
         :return: A dictionary of LP Variables
         """
         if not isinstance(indexs, tuple): indexs = (indexs,)
@@ -367,7 +367,7 @@ class LpVariable(LpElement):
 
     def value(self):
         return self.varValue
-    
+
     def round(self, epsInt = 1e-5, eps = 1e-7):
         if self.varValue is not None:
             if self.upBound != None and self.varValue > self.upBound and self.varValue <= self.upBound + eps:
@@ -376,14 +376,14 @@ class LpVariable(LpElement):
                 self.varValue = self.lowBound
             if self.cat == LpInteger and abs(round(self.varValue) - self.varValue) <= epsInt:
                 self.varValue = round(self.varValue)
-    
+
     def roundedValue(self, eps = 1e-5):
         if self.cat == LpInteger and self.varValue != None \
             and abs(self.varValue - round(self.varValue)) <= eps:
             return round(self.varValue)
         else:
             return self.varValue
-        
+
     def valueOrDefault(self):
         if self.varValue != None:
             return self.varValue
@@ -446,7 +446,7 @@ class LpVariable(LpElement):
         if self.isConstant(): return self.name + " = %.12g" % self.lowBound
         if self.lowBound == None:
             s= "-inf <= "
-        # Note: XPRESS and CPLEX do not interpret integer variables without 
+        # Note: XPRESS and CPLEX do not interpret integer variables without
         # explicit bounds
         elif (self.lowBound == 0 and self.cat == LpContinuous):
             s = ""
@@ -470,18 +470,18 @@ class LpVariable(LpElement):
                 return 1
         else:
             return 1
-        
+
     def addVariableToConstraints(self,e):
         """adds a variable to the constraints indicated by
         the LpConstraintVars in e
         """
         for constraint, coeff in e.items():
             constraint.addVariable(self,coeff)
-            
+
     def setInitialValue(self,val):
         """sets the initial value of the Variable to val
         may of may not be supported by the solver
-        """ 
+        """
         raise NotImplementedError
 
 
@@ -489,7 +489,7 @@ class LpAffineExpression(_DICT_TYPE):
     """
     A linear combination of :class:`LpVariables<LpVariable>`.
     Can be initialised with the following:
-  
+
     #.   e = None: an empty Expression
     #.   e = dict: gives an expression with the values being the coefficients of the keys (order of terms is undetermined)
     #.   e = list or generator of 2-tuples: equivalent to dict.items()
@@ -514,10 +514,10 @@ class LpAffineExpression(_DICT_TYPE):
             self.__name = str(name).translate(self.trans)
         else:
             self.__name = None
-        
+
     def getname(self):
         return self.__name
-        
+
     name = property(fget = getname,fset = setname)
 
     def __init__(self, e = None, constant = 0, name = None):
@@ -565,13 +565,13 @@ class LpAffineExpression(_DICT_TYPE):
                 return None
             s += v.varValue * x
         return s
-        
+
     def valueOrDefault(self):
         s = self.constant
         for v,x in self.iteritems():
             s += v.valueOrDefault() * x
         return s
-        
+
     def addterm(self, key, value):
             y = self.get(key, 0)
             if y:
@@ -582,12 +582,12 @@ class LpAffineExpression(_DICT_TYPE):
 
     def emptyCopy(self):
         return LpAffineExpression()
-        
+
     def copy(self):
         """Make a copy of self except the name which is reset"""
         # Will not copy the name
         return LpAffineExpression(self)
-        
+
     def __str__(self, constant = 1):
         s = ""
         for v in self.sorted_keys():
@@ -619,7 +619,7 @@ class LpAffineExpression(_DICT_TYPE):
         return result
 
     def __repr__(self):
-        l = [str(self[v]) + "*" + str(v) 
+        l = [str(self[v]) + "*" + str(v)
                         for v in self.sorted_keys()]
         l.append(str(self.constant))
         s = " + ".join(l)
@@ -666,7 +666,7 @@ class LpAffineExpression(_DICT_TYPE):
         if other is None: return self
         if isinstance(other,LpElement):
             self.addterm(other, 1)
-        elif (isinstance(other,list) 
+        elif (isinstance(other,list)
               or isinstance(other,types.GeneratorType)):
            for e in other:
                 self.addInPlace(e)
@@ -686,7 +686,7 @@ class LpAffineExpression(_DICT_TYPE):
         if other is None: return self
         if isinstance(other,LpElement):
             self.addterm(other, -1)
-        elif (isinstance(other,list) 
+        elif (isinstance(other,list)
               or isinstance(other,types.GeneratorType)):
             for e in other:
                 self.subInPlace(e)
@@ -700,14 +700,14 @@ class LpAffineExpression(_DICT_TYPE):
         else:
             self.constant -= other
         return self
-        
+
     def __neg__(self):
         e = self.emptyCopy()
         e.constant = - self.constant
         for v,x in self.iteritems():
             e[v] = - x
         return e
-        
+
     def __pos__(self):
         return self
 
@@ -716,10 +716,10 @@ class LpAffineExpression(_DICT_TYPE):
 
     def __radd__(self, other):
         return self.copy().addInPlace(other)
-        
+
     def __sub__(self, other):
         return self.copy().subInPlace(other)
-        
+
     def __rsub__(self, other):
         return (-self).addInPlace(other)
 
@@ -751,7 +751,7 @@ class LpAffineExpression(_DICT_TYPE):
 
     def __rmul__(self, other):
         return self * other
-        
+
     def __div__(self, other):
         if isinstance(other,LpAffineExpression) or isinstance(other,LpVariable):
             if len(other):
@@ -792,7 +792,7 @@ class LpConstraint(LpAffineExpression):
         """
         :param e: an instance of :class:`LpAffineExpression`
         :param sense: one of :data:`~pulp.constants.LpConstraintEQ`, :data:`~pulp.constants.LpConstraintGE`, :data:`~pulp.constants.LpConstraintLE` (0, 1, -1 respectively)
-        :param name: identifying string 
+        :param name: identifying string
         :param rhs: numerical value of constraint target
         """
         LpAffineExpression.__init__(self, e, name = name)
@@ -845,27 +845,27 @@ class LpConstraint(LpAffineExpression):
         """
         self.constant = -RHS
         self.modified = True
-        
+
     def __repr__(self):
         s = LpAffineExpression.__repr__(self)
         if self.sense is not None:
             s += " " + LpConstraintSenses[self.sense] + " 0"
         return s
-        
+
     def copy(self):
         """Make a copy of self"""
         return LpConstraint(self, self.sense)
-        
+
     def emptyCopy(self):
         return LpConstraint(sense = self.sense)
 
     def addInPlace(self, other):
         if isinstance(other,LpConstraint):
             if self.sense * other.sense >= 0:
-                LpAffineExpression.addInPlace(self, other)  
+                LpAffineExpression.addInPlace(self, other)
                 self.sense |= other.sense
             else:
-                LpAffineExpression.subInPlace(self, other)  
+                LpAffineExpression.subInPlace(self, other)
                 self.sense |= - other.sense
         elif isinstance(other,list):
             for e in other:
@@ -878,10 +878,10 @@ class LpConstraint(LpAffineExpression):
     def subInPlace(self, other):
         if isinstance(other,LpConstraint):
             if self.sense * other.sense <= 0:
-                LpAffineExpression.subInPlace(self, other)  
+                LpAffineExpression.subInPlace(self, other)
                 self.sense |= - other.sense
             else:
-                LpAffineExpression.addInPlace(self, other)  
+                LpAffineExpression.addInPlace(self, other)
                 self.sense |= other.sense
         elif isinstance(other,list):
             for e in other:
@@ -890,7 +890,7 @@ class LpConstraint(LpAffineExpression):
             LpAffineExpression.subInPlace(self, other)
             #raise TypeError, "Constraints and Expressions cannot be added"
         return self
-        
+
     def __neg__(self):
         c = LpAffineExpression.__neg__(self)
         c.sense = - c.sense
@@ -898,7 +898,7 @@ class LpConstraint(LpAffineExpression):
 
     def __add__(self, other):
         return self.copy().addInPlace(other)
-        
+
     def __radd__(self, other):
         return self.copy().addInPlace(other)
 
@@ -918,7 +918,7 @@ class LpConstraint(LpAffineExpression):
             return c
         else:
             return LpAffineExpression.__mul__(self, other)
-        
+
     def __rmul__(self, other):
         return self * other
 
@@ -961,15 +961,15 @@ class LpFractionConstraint(LpConstraint):
     """
     Creates a constraint that enforces a fraction requirement a/b = c
     """
-    def __init__(self, numerator, denominator = None, sense = LpConstraintEQ, 
+    def __init__(self, numerator, denominator = None, sense = LpConstraintEQ,
                  RHS = 1.0, name = None,
                  complement = None):
         """
         creates a fraction Constraint to model constraints of
-        the nature 
-        numerator/denominator {==, >=, <=} RHS        
+        the nature
+        numerator/denominator {==, >=, <=} RHS
         numerator/(numerator + complement) {==, >=, <=} RHS
-        
+
         :param numerator: the top of the fraction
         :param denominator: as described above
         :param sense: the sense of the relation of the constraint
@@ -990,7 +990,7 @@ class LpFractionConstraint(LpConstraint):
         LpConstraint.__init__(self, lhs,
               sense = sense, rhs = 0, name = name)
         self.RHS = RHS
-        
+
     def findLHSValue(self):
         """
         Determines the value of the fraction in the constraint after solution
@@ -1003,10 +1003,10 @@ class LpFractionConstraint(LpConstraint):
                 return 1.0
             else:
                 raise ZeroDivisionError
-            
+
     def makeElasticSubProblem(self, *args, **kwargs):
         """
-        Builds an elastic subproblem by adding variables and splitting the 
+        Builds an elastic subproblem by adding variables and splitting the
         hard constraint
 
         uses FractionElasticSubProblem
@@ -1017,19 +1017,19 @@ class LpConstraintVar(LpElement):
     """A Constraint that can be treated as a variable when constructing
     a LpProblem by columns
     """
-    def __init__(self, name = None ,sense = None, 
+    def __init__(self, name = None ,sense = None,
                  rhs = None, e = None):
         LpElement.__init__(self,name)
         self.constraint = LpConstraint(name = self.name, sense = sense,
                                        rhs = rhs , e = e)
-        
+
     def addVariable(self, var, coeff):
         """
         Adds a variable to the constraint with the
         activity coeff
         """
         self.constraint.addterm(var, coeff)
-        
+
     def value(self):
         return self.constraint.value()
 
@@ -1038,9 +1038,9 @@ class LpProblem(object):
     def __init__(self, name = "NoName", sense = LpMinimize):
         """
         Creates an LP Problem
-        
+
         This function creates a new LP Problem  with the specified associated parameters
-            
+
         :param name: name of the problem used in the output .lp file
         :param sense: of the LP problem objective.  \
                 Either :data:`~pulp.constants.LpMinimize` (default) \
@@ -1062,7 +1062,7 @@ class LpProblem(object):
         self.resolveOK = False
         self._variables = set()
 
-        
+
         # locals
         self.lastUnused = 0
 
@@ -1125,10 +1125,10 @@ class LpProblem(object):
     def roundSolution(self, epsInt = 1e-5, eps = 1e-7):
         """
         Rounds the lp variables
-        
+
         Inputs:
             - none
-        
+
         Side Effects:
             - The lp variables are rounded
         """
@@ -1163,7 +1163,7 @@ class LpProblem(object):
     def addVariable(self, variable):
         """
         Adds a variable to the problem before a constraint is added
-        
+
         @param variable: the variable to be added
         """
         self._variables.add(variable)
@@ -1171,18 +1171,18 @@ class LpProblem(object):
     def addVariables(self, variables):
         """
         Adds variables to the problem before a constraint is added
-        
+
         @param variables: the variables to be added
         """
         self._variables.update(variables)
-        
+
     def variables(self):
         """
         Returns a list of the problem variables
-        
+
         Inputs:
             - none
-        
+
         Returns:
             - A list of the problem variables
         """
@@ -1204,7 +1204,7 @@ class LpProblem(object):
             for v in c:
                 variables[v.name] = v
         return variables
-    
+
     def add(self, constraint, name = None):
         self.addConstraint(constraint, name)
 
@@ -1212,14 +1212,14 @@ class LpProblem(object):
         if not isinstance(constraint, LpConstraint):
             raise TypeError, "Can only add LpConstraint objects"
         if name:
-            constraint.name = name 
+            constraint.name = name
         try:
             if constraint.name:
                 name = constraint.name
             else:
                 name = self.unusedConstraintName()
         except AttributeError:
-            raise TypeError, "Can only add LpConstraint objects"            
+            raise TypeError, "Can only add LpConstraint objects"
             #removed as this test fails for empty constraints
 #        if len(constraint) == 0:
 #            if not constraint.valid():
@@ -1236,9 +1236,9 @@ class LpProblem(object):
     def setObjective(self,obj):
         """
         Sets the input variable as the objective function. Used in Columnwise Modelling
-        
+
         :param obj: the objective function of type :class:`LpConstraintVar`
-            
+
         Side Effects:
             - The objective function is set
         """
@@ -1271,12 +1271,12 @@ class LpProblem(object):
         else:
             raise TypeError, "Can only add LpConstraintVar, LpConstraint, LpAffineExpression or True objects"
         return self
-    
+
     def extend(self, other, use_objective = True):
         """
         extends an LpProblem by adding constraints either from a dictionary
         a tuple or another LpProblem object.
-        
+
         @param use_objective: determines whether the objective is imported from
         the other problem
 
@@ -1319,7 +1319,7 @@ class LpProblem(object):
                 cst = self.constraints[c]
                 coefs.extend([(translation[v.name], ctr, cst[v]) for v in cst])
         return coefs
-        
+
     def writeMPS(self, filename, mpsSense = 0, rename = 0, mip = 1):
         wasNone, dummyVar = self.fixObjective()
         f = file(filename, "w")
@@ -1348,7 +1348,7 @@ class LpProblem(object):
         # matrix
         f.write("COLUMNS\n")
         # Creation of a dict of dict:
-        # coefs[nomVariable][nomContrainte] = coefficient       
+        # coefs[nomVariable][nomContrainte] = coefficient
         coefs = {}
         for k,c in self.constraints.iteritems():
             if rename: k = constraintsNames[k]
@@ -1359,7 +1359,7 @@ class LpProblem(object):
                     coefs[n][k] = c[v]
                 else:
                     coefs[n] = {k:c[v]}
-        
+
         for v in vs:
             if mip and v.cat == LpInteger:
                 f.write("    MARK      'MARKER'                 'INTORG'\n")
@@ -1412,16 +1412,16 @@ class LpProblem(object):
             return vs
         else:
             return vs, variablesNames, constraintsNames, cobj.name
-        
+
     def writeLP(self, filename, writeSOS = 1, mip = 1):
         """
         Write the given Lp problem to a .lp file.
-        
+
         This function writes the specifications (objective function,
         constraints, variables) of the defined Lp problem to a file.
-        
-        :param filename:  the name of the file to be created.          
-                
+
+        :param filename:  the name of the file to be created.
+
         Side Effects:
             - The file is created.
         """
@@ -1445,7 +1445,7 @@ class LpProblem(object):
         # check if any names are longer than 100 characters
         long_names = [v.name for v in vs if len(v.name) > 100]
         if long_names:
-            raise PulpError('Variable names too long for Lp format\n' 
+            raise PulpError('Variable names too long for Lp format\n'
                                 + str(long_names))
         # check for repeated names
         repeated_names = {}
@@ -1454,10 +1454,10 @@ class LpProblem(object):
         repeated_names = [(key, value) for key, value in repeated_names.items()
                             if value >= 2]
         if repeated_names:
-            raise PulpError('Repeated variable names in Lp format\n' 
+            raise PulpError('Repeated variable names in Lp format\n'
                                 + str(repeated_names))
         # Bounds on non-"positive" variables
-        # Note: XPRESS and CPLEX do not interpret integer variables without 
+        # Note: XPRESS and CPLEX do not interpret integer variables without
         # explicit bounds
         if mip:
             vg = [v for v in vs if not (v.isPositive() and v.cat == LpContinuous) \
@@ -1495,21 +1495,21 @@ class LpProblem(object):
         f.write("End\n")
         f.close()
         self.restoreObjective(wasNone, dummyVar)
-        
+
     def assignVarsVals(self, values):
         variables = self.variablesDict()
         for name in values:
             variables[name].varValue = values[name]
-            
+
     def assignVarsDj(self,values):
         variables = self.variablesDict()
         for name in values:
             variables[name].dj = values[name]
-            
+
     def assignConsPi(self, values):
         for name in values:
             self.constraints[name].pi = values[name]
-            
+
     def assignConsSlack(self, values):
         for name in values:
             self.constraints[name].slack = float(values[name])
@@ -1538,18 +1538,18 @@ class LpProblem(object):
     def solve(self, solver = None, **kwargs):
         """
         Solve the given Lp problem.
-        
+
         This function changes the problem to make it suitable for solving
         then calls the solver.actualSolve() method to find the solution
-        
-        :param solver:  Optional: the specific solver to be used, defaults to the 
+
+        :param solver:  Optional: the specific solver to be used, defaults to the
               default solver.
-                
+
         Side Effects:
-            - The attributes of the problem object are changed in 
+            - The attributes of the problem object are changed in
               :meth:`~pulp.solver.LpSolver.actualSolve()` to reflect the Lp solution
         """
-        
+
         if not(solver): solver = self.solver
         if not(solver): solver = LpSolverDefault
         wasNone, dummyVar = self.fixObjective()
@@ -1565,20 +1565,20 @@ class LpProblem(object):
                         relativeTols = None, solver = None, debug = False):
         """
         Solve the given Lp problem with several objective functions.
-        
+
         This function sequentially changes the objective of the problem
         and then adds the objective function as a constraint
-        
+
         :param objectives: the list of objectives to be used to solve the problem
-        :param absoluteTols: the list of absolute tolerances to be applied to 
+        :param absoluteTols: the list of absolute tolerances to be applied to
            the constraints should be +ve for a minimise objective
         :param relativeTols: the list of relative tolerances applied to the constraints
         :param solver: the specific solver to be used, defaults to the default solver.
-        
+
         """
         #TODO Add a penalty variable to make problems elastic
         #TODO add the ability to accept different status values i.e. infeasible etc
-        
+
         if not(solver): solver = self.solver
         if not(solver): solver = LpSolverDefault
         if not(absoluteTols):
@@ -1588,22 +1588,22 @@ class LpProblem(object):
         #time it
         self.solutionTime = -clock()
         statuses = []
-        for i,(obj,absol,rel) in enumerate(zip(objectives, 
+        for i,(obj,absol,rel) in enumerate(zip(objectives,
                                                absoluteTols, relativeTols)):
             self.setObjective(obj)
             status = solver.actualSolve(self)
             statuses.append(status)
-            if debug: self.writeLP("%sSequence.lp"%i)          
+            if debug: self.writeLP("%sSequence.lp"%i)
             if self.sense == LpMinimize:
-                self += obj <= value(obj)*rel + absol,"%s_Sequence_Objective"%i 
+                self += obj <= value(obj)*rel + absol,"%s_Sequence_Objective"%i
             elif self.sense == LpMaximize:
                 self += obj >= value(obj)*rel + absol,"%s_Sequence_Objective"%i
         self.solutionTime += clock()
         self.solver = solver
         return statuses
-    
+
     def resolve(self, solver = None, **kwargs):
-        """ 
+        """
         resolves an Problem using the same solver as previously
         """
         if not(solver): solver = self.solver
@@ -1611,25 +1611,25 @@ class LpProblem(object):
             return self.solver.actualResolve(self, **kwargs)
         else:
             return self.solve(solver = solver, **kwargs)
-        
+
     def setSolver(self,solver = LpSolverDefault):
-        """Sets the Solver for this problem useful if you are using 
+        """Sets the Solver for this problem useful if you are using
         resolve
         """
         self.solver = solver
-    
+
     def setInitial(self,values):
         self.initialValues = values
-    
+
 class FixedElasticSubProblem(LpProblem):
     """
-    Contains the subproblem generated by converting a fixed constraint 
+    Contains the subproblem generated by converting a fixed constraint
     :math:`\sum_{i}a_i x_i = b` into an elastic constraint.
 
     :param constraint: The LpConstraint that the elastic constraint is based on
     :param penalty: penalty applied for violation (+ve or -ve) of the constraints
-    :param proportionFreeBound: 
-        the proportional bound (+ve and -ve) on 
+    :param proportionFreeBound:
+        the proportional bound (+ve and -ve) on
         constraint violation that is free from penalty
     :param proportionFreeBoundList: the proportional bound on \
         constraint violation that is free from penalty, expressed as a list\
@@ -1655,12 +1655,12 @@ class FixedElasticSubProblem(LpProblem):
                                  upBound = 0, lowBound = 0)
         constraint.addInPlace(self.freeVar + self.lowVar + self.upVar)
         if proportionFreeBound:
-            proportionFreeBoundList = [proportionFreeBound, proportionFreeBound]  
+            proportionFreeBoundList = [proportionFreeBound, proportionFreeBound]
         if proportionFreeBoundList:
-            #add a costless variable  
-            self.freeVar.upBound = abs(constraint.constant * 
+            #add a costless variable
+            self.freeVar.upBound = abs(constraint.constant *
                                         proportionFreeBoundList[0])
-            self.freeVar.lowBound = -abs(constraint.constant * 
+            self.freeVar.lowBound = -abs(constraint.constant *
                                        proportionFreeBoundList[1])
             # Note the reversal of the upbound and lowbound due to the nature of the
             # variable
@@ -1668,7 +1668,7 @@ class FixedElasticSubProblem(LpProblem):
             #activate these variables
             self.upVar.upBound = None
             self.lowVar.lowBound = None
-            self.objective = penalty*self.upVar - penalty*self.lowVar      
+            self.objective = penalty*self.upVar - penalty*self.lowVar
 
     def _findValue(self, attrib):
         """
@@ -1681,7 +1681,7 @@ class FixedElasticSubProblem(LpProblem):
             else:
                 return 0.0
         else:
-            return 0.0            
+            return 0.0
 
     def isViolated(self):
         """
@@ -1707,7 +1707,7 @@ class FixedElasticSubProblem(LpProblem):
 
     def findLHSValue(self):
         """
-        for elastic constraints finds the LHS value of the constraint without 
+        for elastic constraints finds the LHS value of the constraint without
         the free variable and or penalty variable assumes the constant is on the
         rhs
         """
@@ -1734,7 +1734,7 @@ class FixedElasticSubProblem(LpProblem):
     def alterName(self, name):
         """
         Alters the name of anonymous parts of the problem
-        
+
         """
         self.name = "%s_elastic_SubProblem" % name
         if hasattr(self, 'freeVar'):
@@ -1743,20 +1743,20 @@ class FixedElasticSubProblem(LpProblem):
             self.upVar.name = self.name + "_pos_penalty_var"
         if hasattr(self, 'lowVar'):
             self.lowVar.name = self.name + "_neg_penalty_var"
-        
+
 
 class FractionElasticSubProblem(FixedElasticSubProblem):
     """
-    Contains the subproblem generated by converting a Fraction constraint 
+    Contains the subproblem generated by converting a Fraction constraint
     numerator/(numerator+complement) = b
     into an elastic constraint
-    
+
     :param name: The name of the elastic subproblem
     :param penalty: penalty applied for violation (+ve or -ve) of the constraints
-    :param proportionFreeBound: the proportional bound (+ve and -ve) on 
+    :param proportionFreeBound: the proportional bound (+ve and -ve) on
         constraint violation that is free from penalty
-    :param proportionFreeBoundList: the proportional bound on 
-        constraint violation that is free from penalty, expressed as a list 
+    :param proportionFreeBoundList: the proportional bound on
+        constraint violation that is free from penalty, expressed as a list
         where [-ve, +ve]
     """
     def __init__(self, name, numerator, RHS, sense,
@@ -1785,7 +1785,7 @@ class FractionElasticSubProblem(FixedElasticSubProblem):
         self.lowVar = LpVariable("_neg_penalty_var",
                                  upBound = 0, lowBound = 0)
         if proportionFreeBound:
-            proportionFreeBoundList = [proportionFreeBound, proportionFreeBound]  
+            proportionFreeBoundList = [proportionFreeBound, proportionFreeBound]
         if proportionFreeBoundList:
             upProportionFreeBound, lowProportionFreeBound = \
                     proportionFreeBoundList
@@ -1797,8 +1797,8 @@ class FractionElasticSubProblem(FixedElasticSubProblem):
         if sense in [LpConstraintEQ, LpConstraintLE]:
             #create a constraint the sets the upper bound of target
             self.upTarget = RHS + upProportionFreeBound
-            self.upConstraint = LpFractionConstraint(self.numerator, 
-                                    self.complement, 
+            self.upConstraint = LpFractionConstraint(self.numerator,
+                                    self.complement,
                                     LpConstraintLE,
                                     self.upTarget,
                                     denominator = self.denominator)
@@ -1810,8 +1810,8 @@ class FractionElasticSubProblem(FixedElasticSubProblem):
         if sense in [LpConstraintEQ, LpConstraintGE]:
             #create a constraint the sets the lower bound of target
             self.lowTarget = RHS - lowProportionFreeBound
-            self.lowConstraint = LpFractionConstraint(self.numerator, 
-                                                 self.complement, 
+            self.lowConstraint = LpFractionConstraint(self.numerator,
+                                                 self.complement,
                                                 LpConstraintGE,
                                                 self.lowTarget,
                                                 denominator = self.denominator)
@@ -1820,10 +1820,10 @@ class FractionElasticSubProblem(FixedElasticSubProblem):
                 self.objective += penalty * self.upVar
                 self.lowConstraint += self.upVar
             self += self.lowConstraint, '_lower_constraint'
-        
+
     def findLHSValue(self):
         """
-        for elastic constraints finds the LHS value of the constraint without 
+        for elastic constraints finds the LHS value of the constraint without
         the free variable and or penalty variable assumes the constant is on the
         rhs
         """
@@ -1836,7 +1836,7 @@ class FractionElasticSubProblem(FixedElasticSubProblem):
                 return 1.0
             else:
                 raise ZeroDivisionError
-    
+
     def isViolated(self):
         """
         returns true if the penalty variables are non-zero
@@ -1851,13 +1851,13 @@ class FractionElasticSubProblem(FixedElasticSubProblem):
         else:
             #if the denominator is zero the constraint is satisfied
             return False
-        
+
 class LpVariableDict(dict):
     """An LP variable generator"""
     def __init__(self, name, data = {}, lowBound = None, upBound = None, cat = LpContinuous):
         self.name = name
         dict.__init__(self, data)
-        
+
     def __getitem__(self, key):
         if key in self:
             return dict.__getitem__(self, key)
@@ -1870,7 +1870,7 @@ class LpVariableDict(dict):
 def lpSum(vector):
     """
     Calculate the sum of a list of linear expressions
-    
+
     :param vector: A list of linear expressions
     """
     return LpAffineExpression().addInPlace(vector)
@@ -1897,23 +1897,23 @@ def value(x):
 
 def valueOrDefault(x):
     """Returns the value of the variable/expression x, or x if it is a number
-    Variable without value (None) are affected a possible value (within their 
+    Variable without value (None) are affected a possible value (within their
     bounds)."""
     if isNumber(x): return x
     else: return x.valueOrDefault()
 
 def combination(orgset, k = None):
     """
-    returns an iterator that lists the combinations of orgset of 
+    returns an iterator that lists the combinations of orgset of
     length k
-    
+
     :param orgset: the list to be iterated
     :param k: the cardinality of the subsets
-    
+
     :return: an iterator of the subsets
-    
+
     example:
-    
+
     >>> c = combination([1,2,3,4],2)
     >>> for s in c:
     ...     print s
@@ -1946,16 +1946,16 @@ def __combination(orgset,k):
 
 def permutation(orgset, k = None):
     """
-    returns an iterator that lists the permutations of orgset of 
+    returns an iterator that lists the permutations of orgset of
     length k
-    
+
     :param orgset: the list to be iterated
     :param k: the cardinality of the subsets
-    
+
     :return: an iterator of the subsets
-    
+
     example:
-    
+
     >>> c = permutation([1,2,3,4],2)
     >>> for s in c:
     ...     print s
@@ -1977,7 +1977,7 @@ def permutation(orgset, k = None):
         return probstat.Permutation(orgset, k)
     except(ImportError):
         return __permutation(orgset, k)
-        
+
 def __permutation(orgset, k):
     """
     fall back if probstat is not installed note it is GPL so cannot
@@ -1995,14 +1995,14 @@ def __permutation(orgset, k):
 def allpermutations(orgset,k):
     """
     returns all permutations of orgset with up to k items
-    
+
     :param orgset: the list to be iterated
     :param k: the maxcardinality of the subsets
-    
+
     :return: an iterator of the subsets
-    
+
     example:
-    
+
     >>> c = allpermutations([1,2,3,4],2)
     >>> for s in c:
     ...     print s
@@ -2028,14 +2028,14 @@ def allpermutations(orgset,k):
 def allcombinations(orgset,k):
     """
     returns all permutations of orgset with up to k items
-    
+
     :param orgset: the list to be iterated
     :param k: the maxcardinality of the subsets
-    
+
     :return: an iterator of the subsets
-    
+
     example:
-    
+
     >>> c = allcombinations([1,2,3,4],2)
     >>> for s in c:
     ...     print s
@@ -2070,7 +2070,7 @@ def __makeDict(headers, array, default = None):
         defaultvalue = default
     else:
         for i,h in enumerate(headers[0]):
-            result[h],defaultvalue = __makeDict(headers[1:],array[i],default)          
+            result[h],defaultvalue = __makeDict(headers[1:],array[i],default)
     if default != None:
         f = lambda :defaultvalue
         defresult = collections.defaultdict(f)
@@ -2078,14 +2078,14 @@ def __makeDict(headers, array, default = None):
         result = defresult
         returndefaultvalue = collections.defaultdict(f)
     return result, returndefaultvalue
-        
+
 def splitDict(Data):
     """
     Split a dictionary with lists as the data, into smaller dictionaries
-    
+
     :param Data: A dictionary with lists as the values
-        
-    :return: A tuple of dictionaries each containing the data separately, 
+
+    :return: A tuple of dictionaries each containing the data separately,
             with the same dictionary keys
     """
     # find the maximum number of items in the dictionary
@@ -2094,14 +2094,14 @@ def splitDict(Data):
     for key, values in Data.items():
         for i, val in enumerate(values):
             output[i][key] = val
-             
+
     return tuple(output)
 
 def read_table(data, coerce_type, transpose=False):
     '''
     Reads in data from a simple table and forces it to be a particular type
 
-    This is a helper function that allows data to be easily constained in a 
+    This is a helper function that allows data to be easily constained in a
     simple script
     ::return: a dictionary of with the keys being a tuple of the strings
        in the first row and colum of the table
@@ -2111,7 +2111,7 @@ def read_table(data, coerce_type, transpose=False):
 
     Example:
     >>> table_data = """
-    ...         L1      L2      L3      L4      L5      L6 
+    ...         L1      L2      L3      L4      L5      L6
     ... C1      6736    42658   70414   45170   184679  111569
     ... C2      217266  227190  249640  203029  153531  117487
     ... C3      35936   28768   126316  2498    130317  74034
@@ -2141,8 +2141,8 @@ def read_table(data, coerce_type, transpose=False):
 def configSolvers():
     """
     Configure the path the the solvers on the command line
-    
-    Designed to configure the file locations of the solvers from the 
+
+    Designed to configure the file locations of the solvers from the
     command line after installation
     """
     configlist = [(cplex_dll_path,"cplexpath","CPLEX: "),
@@ -2159,12 +2159,13 @@ def configSolvers():
 
 def pulpTestAll():
     from tests import pulpTestSolver
-    solvers = [CPLEX_DLL, 
+    solvers = [PULP_CBC_CMD,
+               CPLEX_DLL,
                CPLEX_CMD,
-               COIN_CMD, 
+               COIN_CMD,
                COINMP_DLL,
                GLPK_CMD,
-               XPRESS, 
+               XPRESS,
                GUROBI,
                PYGLPK,
                YAPOSIB

@@ -2,6 +2,10 @@
 #       Copyright S.A.Mitchell (s.mitchell@auckland.ac.nz), 2007-
 # See the LICENSE file for copyright information.
 # @(#) $Jeannot: HISTORY,v 1.8 2005/05/05 09:23:51 js Exp $
+1.4.9, 2011-03-30
+    Added support for cplex runtime licenses
+    Made PULP_CBC_CMD the default LP solver for linux
+    Included 32 and 64 bit versions of cbc
 1.4.8, 2011-03-30
     Overdue fix for zero coeff issue
     bugfix for default cat for LpVariable.dicts
@@ -62,12 +66,12 @@
 1.9, 2007/08/06:
     Stuart Mitchell
     Added support for cplex 10.1.0 using ctypes library
-    Added support for the CoinMP.dll using ctypes library 
-    Added distutils setup 
+    Added support for the CoinMP.dll using ctypes library
+    Added distutils setup
     Added a configuaration file pulp.cfg
 1.1, 2005/05/03:
-	Fix an strange interpretation of unbounded integer variables by COIN and CPLEX
-	LP return codes are simplified.
-	C interface modules for GLPK, COIN and CPLEX
-	Windows compatibility
+    Fix an strange interpretation of unbounded integer variables by COIN and CPLEX
+    LP return codes are simplified.
+    C interface modules for GLPK, COIN and CPLEX
+    Windows compatibility
 1.0, 2004/02/29: First release

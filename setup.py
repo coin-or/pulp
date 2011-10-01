@@ -20,7 +20,7 @@ PuLP is an LP modeler written in python. PuLP can generate MPS or LP files
 and call GLPK, COIN CLP/CBC, CPLEX, and GUROBI to solve linear
 problems.
 """,
-      long_description = Description, 
+      long_description = Description,
       license = License,
       keywords = ["Optimization", "Linear Programming", "Operations Research"],
       author="J.S. Roy and S.A. Mitchell",
@@ -37,20 +37,19 @@ problems.
       #ext_modules = [pulpCOIN],
       package_dir={'':'src'},
       packages = ['pulp', 'pulp.solverdir'],
-      package_data = {'pulp' : ["AUTHORS","LICENSE","pulp.cfg.linux",
+      package_data = {'pulp' : ["AUTHORS","LICENSE",
+                                "pulp.cfg.linux",
                                 "pulp.cfg.win",
                                 "LICENSE.CoinMP.txt",
                                 "AUTHORS.CoinMP.txt",
                                 "README.CoinMP.txt",
                                 ],
-                      'pulp.solverdir' : ['*.*']},
+                      'pulp.solverdir' : ['*','*.*']},
       install_requires = ['pyparsing>=1.5.2'],
       entry_points = ("""
       [console_scripts]
       pulptest = pulp:pulpTestAll
       pulpdoctest = pulp:pulpDoctest
       """
-      )
+      ),
 )
-
-
