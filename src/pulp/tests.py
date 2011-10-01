@@ -9,7 +9,7 @@ def pulpTestCheck(prob, solver, okstatus, sol = {},
                    slacks = None,
                    eps = 10**-3,
                    status = None):
-    
+
     if status is None:
         status = prob.solve(solver)
     if status not in okstatus:
@@ -50,7 +50,7 @@ def pulpTestCheck(prob, solver, okstatus, sol = {},
                 print ("Test failed: constraint.slack", cname , "==",
                         c.slack, "!=", slack)
                 raise PulpError, "Tests failed for solver %s"%solver
-        
+
 def pulpTest001(solver):
     """
     Test that a variable is deleted when it is suptracted to 0
@@ -135,7 +135,7 @@ def pulpTest013(solver):
     prob += -y+z == 7, "c3"
     prob += w >= 0, "c4"
     print "\t Testing Long Names"
-    if solver.__class__ in [COIN_CMD, CPLEX_CMD, GLPK_CMD]:
+    if solver.__class__ in [COIN_CMD, PULP_CBC_CMD, CPLEX_CMD, GLPK_CMD]:
         try:
             pulpTestCheck(prob, solver, [LpStatusOptimal], {x:4, y:-1, z:6, w:0})
         except PulpError:
@@ -157,7 +157,7 @@ def pulpTest014(solver):
     prob += -y+z == 7, "c3"
     prob += w >= 0, "c4"
     print "\t Testing repeated Names"
-    if solver.__class__ in [COIN_CMD, CPLEX_CMD, GLPK_CMD]:
+    if solver.__class__ in [COIN_CMD, PULP_CBC_CMD, CPLEX_CMD, GLPK_CMD]:
         try:
             pulpTestCheck(prob, solver, [LpStatusOptimal], {x:4, y:-1, z:6, w:0})
         except PulpError:
@@ -236,7 +236,7 @@ def pulpTest060(solver):
     prob += x+z >= 10.3, "c2"
     prob += -y+z == 7.4, "c3"
     print "\t Testing an integer infeasible problem"
-    if solver.__class__ in [GLPK_CMD, COIN_CMD]:
+    if solver.__class__ in [GLPK_CMD, COIN_CMD, PULP_CBC_CMD]:
         # GLPK_CMD returns InfeasibleOrUnbounded
         pulpTestCheck(prob, solver, [LpStatusInfeasible, LpStatusUndefined])
     elif solver.__class__ in [COINMP_DLL]:
@@ -299,18 +299,18 @@ def pulpTest080(solver):
     c1 = x+y <= 5
     c2 = x+z >= 10
     c3 = -y+z == 7
-    
+
     prob += x + 4*y + 9*z, "obj"
     prob += c1, "c1"
     prob += c2,"c2"
     prob += c3,"c3"
-    
+
     if solver.__class__ in [CPLEX_DLL, CPLEX_CMD, COINMP_DLL]:
         print "\t Testing dual variables and slacks reporting"
         pulpTestCheck(prob, solver, [LpStatusOptimal],
-                  sol = {x:4, y:-1, z:6}, 
+                  sol = {x:4, y:-1, z:6},
                   reducedcosts = {x:0, y:12, z:0},
-                  duals = {"c1":0, "c2":1, "c3":8}, 
+                  duals = {"c1":0, "c2":1, "c3":8},
                   slacks = {"c1":2, "c2":0, "c3":0})
 
 def pulpTest090(solver):
@@ -326,7 +326,7 @@ def pulpTest090(solver):
     prob += a
     prob += b
     prob += c
-    
+
     prob.setSolver(solver)# Variables
     x = LpVariable("x", 0, 4, LpContinuous, obj + a + b)
     y = LpVariable("y", -1, 1, LpContinuous, 4*obj + a - c)
@@ -335,7 +335,7 @@ def pulpTest090(solver):
     if solver.__class__ in [CPLEX_DLL, COINMP_DLL]:
         print "\t Testing resolve of problem"
         prob.resolve()
-        #difficult to check this is doing what we want as the resolve is 
+        #difficult to check this is doing what we want as the resolve is
         #over ridden if it is not implemented
         #pulpTestCheck(prob, solver, [LpStatusOptimal], {x:4, y:-1, z:6})
 
@@ -348,16 +348,16 @@ def pulpTest100(solver):
     x = LpVariable("x", 0, 1)
     y = LpVariable("y", 0, 1)
     z = LpVariable("z", 0, 1)
-    
+
     obj1 = x+0*y+0*z
     obj2 = 0*x-1*y+0*z
     prob += x <= 1, "c1"
-    
+
     if solver.__class__ in [CPLEX_DLL, COINMP_DLL, GUROBI]:
         print "\t Testing Sequential Solves"
         status = prob.sequentialSolve([obj1,obj2], solver = solver)
         pulpTestCheck(prob, solver, [[LpStatusOptimal,LpStatusOptimal]],
-                  sol = {x:0, y:1}, 
+                  sol = {x:0, y:1},
                   status = status)
 
 def pulpTest110(solver):
@@ -376,7 +376,7 @@ def pulpTest110(solver):
     prob += w >= 0, "c4"
     prob += LpFractionConstraint(x, z, LpConstraintEQ, 0.5, name = 'c5')
     print "\t Testing fractional constraints"
-    pulpTestCheck(prob, solver, [LpStatusOptimal], 
+    pulpTestCheck(prob, solver, [LpStatusOptimal],
                     {x:10/3.0, y:-1/3.0, z:20/3.0, w:0})
 
 def pulpTest120(solver):
@@ -394,7 +394,7 @@ def pulpTest120(solver):
     prob += -y+z == 7, "c3"
     prob.extend((w >= -1).makeElasticSubProblem())
     print "\t Testing elastic constraints (no change)"
-    pulpTestCheck(prob, solver, [LpStatusOptimal], 
+    pulpTestCheck(prob, solver, [LpStatusOptimal],
                     {x:4, y:-1, z:6, w:-1})
 
 def pulpTest121(solver):
@@ -412,7 +412,7 @@ def pulpTest121(solver):
     prob += -y+z == 7, "c3"
     prob.extend((w >= -1).makeElasticSubProblem(proportionFreeBound = 0.1))
     print "\t Testing elastic constraints (freebound)"
-    pulpTestCheck(prob, solver, [LpStatusOptimal], 
+    pulpTestCheck(prob, solver, [LpStatusOptimal],
                     {x:4, y:-1, z:6, w:-1.1})
 
 def pulpTest122(solver):
@@ -431,7 +431,7 @@ def pulpTest122(solver):
     prob.extend((w >= -1).makeElasticSubProblem(penalty = 1.1))
     print "\t Testing elastic constraints (penalty unchanged)"
     prob.writeLP('debug.lp')
-    pulpTestCheck(prob, solver, [LpStatusOptimal], 
+    pulpTestCheck(prob, solver, [LpStatusOptimal],
                     {x:4, y:-1, z:6, w:-1.0})
 
 def pulpTest123(solver):
@@ -466,16 +466,16 @@ def pulpTest123(solver):
 def pulpTestSolver(solver, msg = 0):
     tests = [pulpTest001,
             pulpTest010, pulpTest011, pulpTest012, pulpTest013, pulpTest014,
-            pulpTest020, 
-            pulpTest030, 
+            pulpTest020,
+            pulpTest030,
             pulpTest040,
-            pulpTest050, 
-            pulpTest060, 
+            pulpTest050,
+            pulpTest060,
             pulpTest070, pulpTest075,
-            pulpTest080, 
-            pulpTest090, 
-            pulpTest100, 
-            pulpTest110, 
+            pulpTest080,
+            pulpTest090,
+            pulpTest100,
+            pulpTest110,
             pulpTest120, pulpTest121, pulpTest122, pulpTest123
             ]
     for t in tests:

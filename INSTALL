@@ -1,19 +1,19 @@
 Installation
 ------------
 
-Note that to install PuLP you must first have a working python installation as 
-described in `installing python`_. 
+Note that to install PuLP you must first have a working python installation as
+described in `installing python`_.
 
 PuLP requires Python >= 2.5. Though it can be made to work with Python 2.4
 
 The latest version of PuLP can be freely obtained from coin-or_.
-Please note that this version of PuLP has not been tested with operating systems 
+Please note that this version of PuLP has not been tested with operating systems
 other than Microsoft Windows and Ubuntu Linux.
 
 Easy install and pypi installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-By far the easiest way to install pulp is through the use of EasyInstall_ and 
+By far the easiest way to install pulp is through the use of EasyInstall_ and
 CheeseShop_.
 
 * Install EasyInstall
@@ -24,6 +24,7 @@ CheeseShop_.
     * In Linux::
 
         $ sudo easy_install -U pulp
+        $ sudo pulptest             #needed to get the default solver to work
 
 * Then follow the instructions below to test your installation
 
@@ -41,12 +42,12 @@ Windows installation from source
    * Navigate to the extracted folder with the setup file in it. [Do this by typing 'cd foldername' at the prompt, where 'cd' stands for current directory and the 'foldername' is the name of the folder to open in the path already listed to the left of the prompt. To return back to a root drive, type 'cd C:\']
    * Type 'setup.py install' at the command prompt. This will install all the PuLP functions into Python's site-packages directory.
 
-The PuLP function library is now able to be imported from any python command line. Go to IDLE or PyDev and type 
+The PuLP function library is now able to be imported from any python command line. Go to IDLE or PyDev and type
 
 >>> from pulp import *
 
-to load in the functions. (You need to re-import the functions each time after 
-you close the GUI) PuLP is written in a programming language called Python, and 
+to load in the functions. (You need to re-import the functions each time after
+you close the GUI) PuLP is written in a programming language called Python, and
 to use PuLP you must write Python code to describe your optimization problem.
 
 Linux Installation
@@ -54,14 +55,14 @@ Linux Installation
 
 * Extract the `PuLP zipfile`_ folder to a suitable location (such as your home directory - the folder will be no longer required after installation)
 * Open a command line navigate to the extracted zipfile with the setup file in it. [Do this by typing 'cd foldername' at the prompt]
-* Type the following at the command prompt. This will install all the PuLP functions into Python's callable modules.    
+* Type the following at the command prompt. This will install all the PuLP functions into Python's callable modules.
 
 .. code-block:: sh
 
-    $ sudo python setup.py install 
+    $ sudo python setup.py install
 
 * install a solver for pulp to use either
-    * use the included 32-bit binaries CoinMP_
+    * use the included 64 or 32-bit binaries cbc-32 and cbc-64
     * install glpk_  debain based distributions may use the following
 
     .. code-block:: sh
@@ -86,9 +87,9 @@ Linux Installation
 
 Testing your PuLP installation
 ------------------------------
-To test that that you pulp installation is working correctly please type the 
-following into a python interpreter and note that the output should be similar. 
-The output below is what you would expect if you have not installed any other 
+To test that that you pulp installation is working correctly please type the
+following into a python interpreter and note that the output should be similar.
+The output below is what you would expect if you have not installed any other
 solvers and the CoinMP_ solver bundled with pulp works.
 
 >>> import pulp
@@ -116,7 +117,7 @@ Solver pulp.pulp.COIN_CMD unavailable.
 * Solver pulp.pulp.COINMP_DLL passed.
 Solver pulp.pulp.GLPK_MEM unavailable.
 Solver pulp.pulp.GLPK_CMD unavailable.
-Solver pulp.pulp.XPRESS unavailable. 
+Solver pulp.pulp.XPRESS unavailable.
 
 .. _`installing python`: http://www.diveintopython.org/installing_python/index.html
 .. _coin-or: https://projects.coin-or.org/PuLP

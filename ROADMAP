@@ -28,8 +28,7 @@ Removed the older MEM solvers
 
 Future
 ------
-Remove dependance on CoinMP.Dll and move towards OSI and CLP
-Discuss language syntax looking towards removing C alike constructs and make 
+Discuss language syntax looking towards removing C alike constructs and make
  better use of Python namespace conventions
 Integrate branch and cut within Pulp
 Integrate with other python OR projects eg Pyomo wehart@sandia.gov and POAMS leo@sie.arizona.edu
