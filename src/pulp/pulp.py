@@ -116,12 +116,6 @@ except ImportError:
     pass
 
 
-class PulpError(Exception):
-    """
-    Pulp Exception Class
-    """
-    pass
-
 def setConfigInformation(**keywords):
     """
     set the data in the configuration file
@@ -142,9 +136,7 @@ def setConfigInformation(**keywords):
 
 
 # Default solver selection
-if COINMP_DLL().available():
-    LpSolverDefault = COINMP_DLL()
-elif PULP_CBC_CMD().available():
+if PULP_CBC_CMD().available():
     LpSolverDefault = PULP_CBC_CMD()
 elif GLPK_CMD().available():
     LpSolverDefault = GLPK_CMD()
@@ -2162,6 +2154,7 @@ def pulpTestAll():
     solvers = [PULP_CBC_CMD,
                CPLEX_DLL,
                CPLEX_CMD,
+               CPLEX_PY,
                COIN_CMD,
                COINMP_DLL,
                GLPK_CMD,

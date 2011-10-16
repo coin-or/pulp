@@ -35,7 +35,7 @@ EPS = 1e-7
 LpContinuous = "Continuous"
 LpInteger = "Integer"
 LpBinary = "Binary"
-LpCategories = {LpContinuous: "Continuous", LpInteger: "Integer", 
+LpCategories = {LpContinuous: "Continuous", LpInteger: "Integer",
                 LpBinary: "Binary"}
 
 # objective sense
@@ -69,3 +69,9 @@ def isiterable(obj):
     try: obj=iter(obj)
     except: return False
     else: return True
+
+class PulpError(Exception):
+    """
+    Pulp Exception Class
+    """
+    pass
