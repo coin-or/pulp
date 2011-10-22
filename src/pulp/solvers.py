@@ -1016,7 +1016,11 @@ else:
             for name,constraint in lp.constraints.items():
                 #build the expression
                 expr = [(var.name, float(coeff)) for var, coeff in constraint.items()]
-                rows.append(zip(*expr))
+                if not expr:
+                    #if the constraint is empty
+                    rows.append(([],[]))
+                else:
+                    rows.append(zip(*expr))
                 if constraint.sense == LpConstraintLE:
                     senses.append('L')
                 elif constraint.sense == LpConstraintGE:
