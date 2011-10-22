@@ -821,7 +821,7 @@ class LpConstraint(LpAffineExpression):
                 sl = ns
             else:
                 sl += ns
-        if not self: sl += "0"
+        if not self.keys(): sl += "0"
         c = -self.constant
         if c == 0: c = 0 # Supress sign
         ns = " %s %.12g" % (LpConstraintSenses[self.sense], c)
@@ -1053,6 +1053,7 @@ class LpProblem(object):
         self.modifiedConstraints = []
         self.resolveOK = False
         self._variables = set()
+        self.dummyVar = None
 
 
         # locals
@@ -1431,7 +1432,11 @@ class LpProblem(object):
         ks = self.constraints.keys()
         ks.sort()
         for k in ks:
-            f.write(self.constraints[k].asCplexLpConstraint(k))
+            constraint = self.constraints[k]
+            if not constraint.keys():
+                #empty constraint add the dummyVar
+                constraint += self.get_dummyVar()
+            f.write(constraint.asCplexLpConstraint(k))
         vs = list(self.variables())
         vs.sort()
         # check if any names are longer than 100 characters
@@ -1491,12 +1496,14 @@ class LpProblem(object):
     def assignVarsVals(self, values):
         variables = self.variablesDict()
         for name in values:
-            variables[name].varValue = values[name]
+            if name != '__dummy':
+                variables[name].varValue = values[name]
 
     def assignVarsDj(self,values):
         variables = self.variablesDict()
         for name in values:
-            variables[name].dj = values[name]
+            if name != '__dummy':
+                variables[name].dj = values[name]
 
     def assignConsPi(self, values):
         for name in values:
@@ -1505,6 +1512,11 @@ class LpProblem(object):
     def assignConsSlack(self, values):
         for name in values:
             self.constraints[name].slack = float(values[name])
+
+    def get_dummyVar(self):
+        if self.dummyVar is None:
+            self.dummyVar = LpVariable("__dummy", 0, 0)
+        return self.dummyVar
 
     def fixObjective(self):
         if self.objective is None:
@@ -1515,7 +1527,7 @@ class LpProblem(object):
         if not isinstance(self.objective, LpAffineExpression):
             self.objective = LpAffineExpression(self.objective)
         if self.objective.isNumericalConstant():
-            dummyVar = LpVariable("__dummy", 0, 0)
+            dummyVar = self.get_dummyVar()
             self.objective += dummyVar
         else:
             dummyVar = None
