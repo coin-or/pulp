@@ -1745,7 +1745,7 @@ class PYGLPK(LpSolver):
     try:
         #import the model into the global scope
         global glpk
-        import glpk
+        import glpk.glpkpi as glpk
     except ImportError:
         def available(self):
             """True if the solver is available"""
@@ -1765,42 +1765,41 @@ class PYGLPK(LpSolver):
 
             @param mip: if False the solver will solve a MIP as an LP
             @param msg: displays information from the solver to stdout
-            @param timeLimit: not handled by glpk
-            @param epgap: sets the integer bound gap
+            @param timeLimit: not handled
+            @param epgap: not handled
             @param solverParams: not handled
             """
             LpSolver.__init__(self, mip, msg)
-            self.timeLimit = timeLimit # time limits are not handled
-            self.epgap = epgap
             if not self.msg:
-                glpk.env.term_on = False
+                glpk.glp_term_out(glpk.GLP_OFF)
 
         def findSolutionValues(self, lp):
-            model = lp.solverModel
-            solutionStatus = model.status
-            glpkLpStatus = {"opt": LpStatusOptimal,
-                                   "undef": LpStatusUndefined,
-                                   "feas": LpStatusNotSolved,
-                                   "infeas": LpStatusInfeasible,
-                                   "nofeas": LpStatusInfeasible,
-                                   "unbnd": LpStatusUnbounded
+            prob = lp.solverModel
+            if self.mip and self.hasMIPConstraints(lp.solverModel):
+                solutionStatus = glpk.glp_mip_status(prob)
+            else:
+                solutionStatus = glpk.glp_get_status(prob)
+            glpkLpStatus = {glpk.GLP_OPT: LpStatusOptimal,
+                                   glpk.GLP_UNDEF: LpStatusUndefined,
+                                   glpk.GLP_FEAS: LpStatusNotSolved,
+                                   glpk.GLP_INFEAS: LpStatusInfeasible,
+                                   glpk.GLP_NOFEAS: LpStatusInfeasible,
+                                   glpk.GLP_UNBND: LpStatusUnbounded
                                    }
             #populate pulp solution values
             for var in lp.variables():
-                var.varValue = var.solverVar.primal
-                try:
-                    var.dj = var.solverVar.dual
-                except RuntimeError:
-                    var.dj = None
+                if self.mip and self.hasMIPConstraints(lp.solverModel):
+                    var.varValue = glpk.glp_mip_col_val(prob, var.glpk_index)
+                else:
+                    var.varValue = glpk.glp_get_col_prim(prob, var.glpk_index)
+                var.dj = glpk.glp_get_col_dual(prob, var.glpk_index)
             #put pi and slack variables against the constraints
             for constr in lp.constraints.values():
-                try:
-                    constr.pi = constr.solverConstraint.dual
-                except RuntimeError:
-                    constr.pi = None
-                constr.slack = constr.solverConstraint.primal
-            if self.msg:
-                print "glpk status=", solutionStatus
+                if self.mip and self.hasMIPConstraints(lp.solverModel):
+                    constr.slack = glpk.glp_mip_row_val(prob, constr.glpk_index)
+                else:
+                    constr.slack = glpk.glp_get_row_prim(prob, constr.glpk_index)
+                constr.pi = glpk.glp_get_row_dual(prob, constr.glpk_index)
             lp.resolveOK = True
             for var in lp.variables():
                 var.isModified = False
@@ -1812,17 +1811,20 @@ class PYGLPK(LpSolver):
             """True if the solver is available"""
             return True
 
+        def hasMIPConstraints(self, solverModel):
+            return (glpk.glp_get_num_int(solverModel) > 0 or
+                    glpk.glp_get_num_bin(solverModel) > 0)
+
         def callSolver(self, lp, callback = None):
             """Solves the problem with glpk
             """
             self.solveTime = -clock()
-            lp.solverModel.simplex()
-            if self.mip:
-                if (lp.solverModel.status != "infeas"
-                        and lp.solverModel.status != "nofeas"
-                        and lp.solverModel.status != "unbnd"
-                        ):
-                    lp.solverModel.integer()
+            glpk.glp_adv_basis(lp.solverModel, 0)
+            glpk.glp_simplex(lp.solverModel, None)
+            if self.mip and self.hasMIPConstraints(lp.solverModel):
+                status = glpk.glp_get_status(lp.solverModel)
+                if status in (glpk.GLP_OPT, glpk.GLP_UNDEF, glpk.GLP_FEAS):
+                    glpk.glp_intopt(lp.solverModel, None)
             self.solveTime += clock()
 
         def buildSolverModel(self, lp):
@@ -1830,45 +1832,69 @@ class PYGLPK(LpSolver):
             Takes the pulp lp model and translates it into a glpk model
             """
             log.debug("create the glpk model")
-            lp.solverModel = glpk.LPX()
-            lp.solverModel.name = lp.name
+            prob = glpk.glp_create_prob()
+            glpk.glp_set_prob_name(prob, lp.name)
             log.debug("set the sense of the problem")
             if lp.sense == LpMaximize:
-                lp.solverModel.obj.maximize = True
-            log.debug("add the Constraints to the problem")
-            lp.solverModel.rows.add(len(lp.constraints.keys()))
-            i = 0
-            for name, constraint in lp.constraints.items():
-                row = lp.solverModel.rows[i]
-                row.name = name
+                glpk.glp_set_obj_dir(prob, glpk.GLP_MAX)
+            log.debug("add the constraints to the problem")
+            glpk.glp_add_rows(prob, len(lp.constraints.keys()))
+            for i, v in enumerate(lp.constraints.items(), start=1):
+                name, constraint = v
+                glpk.glp_set_row_name(prob, i, name)
                 if constraint.sense == LpConstraintLE:
-                    row.bounds = None,-constraint.constant
+                    glpk.glp_set_row_bnds(prob, i, glpk.GLP_UP,
+                            0.0, -constraint.constant)
                 elif constraint.sense == LpConstraintGE:
-                    row.bounds = -constraint.constant, None
+                    glpk.glp_set_row_bnds(prob, i, glpk.GLP_LO,
+                            -constraint.constant, 0.0)
                 elif constraint.sense == LpConstraintEQ:
-                    row.bounds = -constraint.constant,-constraint.constant
+                    glpk.glp_set_row_bnds(prob, i, glpk.GLP_FX,
+                            -constraint.constant, -constraint.constant)
                 else:
                     raise PulpSolverError, 'Detected an invalid constraint type'
-                i += 1
-                constraint.solverConstraint = row
+                constraint.glpk_index = i
             log.debug("add the variables to the problem")
-            lp.solverModel.cols.add(len(lp.variables()))
-            j = 0
-            for var in lp.variables():
-                col = lp.solverModel.cols[j]
-                col.name = var.name
-                col.bounds = var.lowBound,var.upBound
+            glpk.glp_add_cols(prob, len(lp.variables()))
+            for j, var in enumerate(lp.variables(), start=1):
+                glpk.glp_set_col_name(prob, j, var.name)
+                lb = 0.0
+                ub = 0.0
+                t = glpk.GLP_FR
+                if not var.lowBound is None:
+                    lb = var.lowBound
+                    t = glpk.GLP_LO
+                if not var.upBound is None:
+                    ub = var.upBound
+                    t = glpk.GLP_UP
+                if not var.upBound is None and not var.lowBound is None:
+                    if ub == lb:
+                        t = glpk.GLP_FX
+                    else:
+                        t = glpk.GLP_DB
+                glpk.glp_set_col_bnds(prob, j, t, lb, ub)
                 if var.cat == LpInteger:
-                    col.kind = int
-                var.solverVar = col
-                j += 1
+                    glpk.glp_set_col_kind(prob, j, glpk.GLP_IV)
+                    assert glpk.glp_get_col_kind(prob, j) == glpk.GLP_IV
+                var.glpk_index = j
             log.debug("set the objective function")
-            lp.solverModel.obj[:] = [lp.objective.get(var, 0.0) for var in
-                    lp.variables()]
+            for var in lp.variables():
+                value = lp.objective.get(var)
+                if value:
+                    glpk.glp_set_obj_coef(prob, var.glpk_index, value)
             log.debug("set the problem matrix")
-            for name,constraint in lp.constraints.items():
-                constraint.solverConstraint.matrix =[(var.solverVar.index,
-                    value ) for var, value in constraint.items()]
+            for constraint in lp.constraints.values():
+                l = len(constraint.items())
+                ind = glpk.intArray(l + 1)
+                val = glpk.doubleArray(l + 1)
+                for j, v in enumerate(constraint.items(), start=1):
+                    var, value = v
+                    ind[j] = var.glpk_index
+                    val[j] = value
+                glpk.glp_set_mat_row(prob, constraint.glpk_index, l, ind,
+                        val)
+            lp.solverModel = prob
+            glpk.glp_write_lp(prob, None, "glpk.lp")
 
         def actualSolve(self, lp, callback = None):
             """
@@ -1898,14 +1924,17 @@ class PYGLPK(LpSolver):
             """
             log.debug("Resolve the Model using glpk")
             for constraint in lp.constraints.values():
-                row = constraint.solverConstraint
+                i = constraint.glpk_index
                 if constraint.modified:
                     if constraint.sense == LpConstraintLE:
-                        row.bounds = None,-constraint.constant
+                        glpk.glp_set_row_bnds(prob, i, glpk.GLP_UP,
+                                0.0, -constraint.constant)
                     elif constraint.sense == LpConstraintGE:
-                        row.bounds = -constraint.constant, None
+                        glpk.glp_set_row_bnds(prob, i, glpk.GLP_LO,
+                                -constraint.constant, 0.0)
                     elif constraint.sense == LpConstraintEQ:
-                        row.bounds = -constraint.constant,-constraint.constant
+                        glpk.glp_set_row_bnds(prob, i, glpk.GLP_FX,
+                                -constraint.constant, -constraint.constant)
                     else:
                         raise PulpSolverError, 'Detected an invalid constraint type'
             self.callSolver(lp, callback = callback)
