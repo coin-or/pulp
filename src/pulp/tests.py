@@ -116,8 +116,9 @@ def pulpTest012(solver):
     elif solver.__class__ is GLPK_CMD:
         # GLPK_CMD Does not report unbounded problems, correctly
          pulpTestCheck(prob, solver, [LpStatusUndefined])
-    elif solver.__class__ in [CPLEX_DLL,]:
+    elif solver.__class__ in [CPLEX_DLL, GUROBI_CMD]:
         # CPLEX_DLL Does not report unbounded problems, correctly
+        # GUROBI_CMD has a very simple interface
          pulpTestCheck(prob, solver, [LpStatusNotSolved])
     else:
         pulpTestCheck(prob, solver, [LpStatusUnbounded])
@@ -135,7 +136,7 @@ def pulpTest013(solver):
     prob += -y+z == 7, "c3"
     prob += w >= 0, "c4"
     print "\t Testing Long Names"
-    if solver.__class__ in [COIN_CMD, PULP_CBC_CMD, CPLEX_CMD, GLPK_CMD]:
+    if solver.__class__ in [COIN_CMD, PULP_CBC_CMD, CPLEX_CMD, GLPK_CMD, GUROBI_CMD]:
         try:
             pulpTestCheck(prob, solver, [LpStatusOptimal], {x:4, y:-1, z:6, w:0})
         except PulpError:
@@ -158,7 +159,7 @@ def pulpTest014(solver):
     prob += w >= 0, "c4"
     print "\t Testing repeated Names"
     if solver.__class__ in [COIN_CMD, PULP_CBC_CMD, CPLEX_CMD, CPLEX_PY,
-            GLPK_CMD]:
+            GLPK_CMD, GUROBI_CMD]:
         try:
             pulpTestCheck(prob, solver, [LpStatusOptimal], {x:4, y:-1, z:6, w:0})
         except PulpError:
@@ -223,7 +224,11 @@ def pulpTest030(solver):
     prob += -y+z == 7.5, "c3"
     solver.mip = 0
     print "\t Testing MIP relaxation"
-    pulpTestCheck(prob, solver, [LpStatusOptimal], {x:3.5, y:-1, z:6.5})
+    if solver.__class__ in [GUROBI_CMD]:
+        #gurobi command does not let the problem be relaxed
+        pulpTestCheck(prob, solver, [LpStatusOptimal], {x:3.0, y:-0.5, z:7})
+    else:
+        pulpTestCheck(prob, solver, [LpStatusOptimal], {x:3.5, y:-1, z:6.5})
 
 
 def pulpTest040(solver):
@@ -252,7 +257,7 @@ def pulpTest050(solver):
     if solver.__class__ is GLPK_CMD:
         # GLPK_CMD return codes are not informative enough
         pulpTestCheck(prob, solver, [LpStatusUndefined])
-    elif solver.__class__ is CPLEX_DLL:
+    elif solver.__class__ in [CPLEX_DLL, GUROBI_CMD]:
         # CPLEX_DLL Does not solve the problem
         pulpTestCheck(prob, solver, [LpStatusNotSolved])
     else:
@@ -276,6 +281,8 @@ def pulpTest060(solver):
         #presolve eliminates too many variables
         print "\t\t Error in CoinMP to be fixed, reports Optimal"
         pulpTestCheck(prob, solver, [LpStatusOptimal])
+    elif solver.__class__ in [GUROBI_CMD]:
+        pulpTestCheck(prob, solver, [LpStatusNotSolved])
     else:
         pulpTestCheck(prob, solver, [LpStatusInfeasible])
 
@@ -488,7 +495,7 @@ def pulpTest123(solver):
     elif solver.__class__ is GLPK_CMD:
         # GLPK_CMD Does not report unbounded problems, correctly
          pulpTestCheck(prob, solver, [LpStatusUndefined])
-    elif solver.__class__ in [CPLEX_DLL]:
+    elif solver.__class__ in [CPLEX_DLL, GUROBI_CMD]:
         # GLPK_CMD Does not report unbounded problems, correctly
          pulpTestCheck(prob, solver, [LpStatusNotSolved])
     else:

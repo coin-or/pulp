@@ -2172,6 +2172,7 @@ def pulpTestAll():
                GLPK_CMD,
                XPRESS,
                GUROBI,
+               GUROBI_CMD,
                PYGLPK,
                YAPOSIB
                ]
