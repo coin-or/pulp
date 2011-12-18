@@ -37,6 +37,7 @@ from time import clock
 import ConfigParser
 import sparse
 import collections
+import warnings
 from tempfile import mktemp
 from constants import *
 
@@ -250,7 +251,7 @@ class LpSolver:
 
 class LpSolver_CMD(LpSolver):
     """A generic command line LP Solver"""
-    def __init__(self, path = None, keepFiles = 0, mip = 1, msg = 1, options = []):
+    def __init__(self, path=None, keepFiles=0, mip=1, msg=1, options=[]):
         LpSolver.__init__(self, mip, msg, options)
         if path is None:
             self.path = self.defaultPath()
@@ -1731,6 +1732,92 @@ class GUROBI(LpSolver):
             for constraint in lp.constraints.values():
                 constraint.modified = False
             return solutionStatus
+
+class GUROBI_CMD(LpSolver_CMD):
+    """The GUROBI_CMD solver"""
+    def defaultPath(self):
+        return self.executableExtension("gurobi_cl")
+
+    def available(self):
+        """True if the solver is available"""
+        return self.executable(self.path)
+
+    def actualSolve(self, lp):
+        """Solve a well formulated lp problem"""
+        if not self.executable(self.path):
+            raise PulpSolverError, "PuLP: cannot execute "+self.path
+        if not self.keepFiles:
+            pid = os.getpid()
+            tmpLp = os.path.join(self.tmpDir, "%d-pulp.lp" % pid)
+            tmpSol = os.path.join(self.tmpDir, "%d-pulp.sol" % pid)
+        else:
+            tmpLp = lp.name+"-pulp.lp"
+            tmpSol = lp.name+"-pulp.sol"
+        lp.writeLP(tmpLp, writeSOS = 1)
+        try: os.remove(tmpSol)
+        except: pass
+        cmd = self.path
+        cmd += ' ' + ' '.join(['%s=%s' % (key, value)
+                    for key, value in self.options])
+        cmd += ' ResultFile=%s' % tmpSol
+        if lp.isMIP():
+            if not self.mip:
+                warnings.warn('GUROBI_CMD does not allow a problem to be relaxed')
+        cmd += ' %s' % tmpLp
+        if self.msg:
+            pipe = None
+        else:
+            pipe = open(os.devnull, 'w')
+
+        return_code = subprocess.call(cmd.split(), stdout = pipe, stderr = pipe)
+
+        if return_code != 0:
+            raise PulpSolverError, "PuLP: Error while trying to execute "+self.path
+        if not self.keepFiles:
+            try: os.remove(tmpLp)
+            except: pass
+        if not os.path.exists(tmpSol):
+            warnings.warn('GUROBI_CMD does provide good solution status of non optimal solutions')
+            status = LpStatusNotSolved
+        else:
+            status, values, reducedCosts, shadowPrices, slacks = self.readsol(tmpSol)
+        if not self.keepFiles:
+            try: os.remove(tmpSol)
+            except: pass
+            try: os.remove("gurobi.log")
+            except: pass
+        if status != LpStatusInfeasible:
+            lp.assignVarsVals(values)
+            lp.assignVarsDj(reducedCosts)
+            lp.assignConsPi(shadowPrices)
+            lp.assignConsSlack(slacks)
+        lp.status = status
+        return status
+
+    def readsol(self, filename):
+        """Read a Gurobi solution file"""
+        my_file = open(filename)
+        try:
+            my_file.next() # skip the objective value
+        except StopIteration:
+            # Empty file not solved
+            warnings.warn('GUROBI_CMD does provide good solution status of non optimal solutions')
+            status = LpStatusNotSolved
+            return status, {}, {}, {}, {}
+        #We have no idea what the status is assume optimal
+        status = LpStatusOptimal
+
+        shadowPrices = {}
+        slacks = {}
+        shadowPrices = {}
+        slacks = {}
+        values = {}
+        reducedCosts = {}
+        for line in my_file:
+                name, value  = line.split()
+                values[name] = float(value)
+        my_file.close()
+        return status, values, reducedCosts, shadowPrices, slacks
 
 #get the glpk name in global scope
 glpk = None
