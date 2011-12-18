@@ -99,7 +99,7 @@ def initialize(filename):
 
 #pick up the correct config file depending on operating system
 PULPCFGFILE = "pulp.cfg"
-if sys.platform == 'win32':
+if sys.platform in ['win32', 'cli']:
     PULPCFGFILE += ".win"
 else:
     PULPCFGFILE += ".linux"
@@ -301,10 +301,11 @@ class LpSolver_CMD(LpSolver):
         And returns the actual path to it."""
 
         if os.path.isabs(command):
-            if os.access(command, os.X_OK):
+            if os.path.exists(command) and os.access(command, os.X_OK):
                 return command
         for path in os.environ.get("PATH", []).split(os.pathsep):
-            if os.access(os.path.join(path, command), os.X_OK):
+            new_path = os.path.join(path, command)
+            if os.path.exists(new_path) and os.access(new_path, os.X_OK):
                 return os.path.join(path, command)
         return False
     executable = staticmethod(executable)

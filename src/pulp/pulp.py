@@ -103,17 +103,17 @@ from types import GeneratorType
 
 _DICT_TYPE = dict
 
-try:
-    from odict import OrderedDict
-    _DICT_TYPE = OrderedDict
-except ImportError:
-    pass
-try:
-    #python 2.7 or 3.1
-    from collections import OrderedDict
-    _DICT_TYPE = OrderedDict
-except ImportError:
-    pass
+#try:
+#    from odict import OrderedDict
+#    _DICT_TYPE = OrderedDict
+#except ImportError:
+#    pass
+#try:
+#    #python 2.7 or 3.1
+#    from collections import OrderedDict
+#    _DICT_TYPE = OrderedDict
+#except ImportError:
+#    pass
 
 
 def setConfigInformation(**keywords):
@@ -622,7 +622,7 @@ class LpAffineExpression(_DICT_TYPE):
         s = ""
         sl = name + ":"
         notFirst = 0
-        variables = sorted(self.keys())
+        variables = self.sorted_keys()
         for v in variables:
             val = self[v]
             if val<0:
@@ -804,7 +804,8 @@ class LpConstraint(LpAffineExpression):
         s = ""
         sl = name + ":"
         notFirst = 0
-        for v in sorted(self.keys()):
+        variables = self.sorted_keys()
+        for v in variables:
             val = self[v]
             if val<0:
                 ns = " - "
@@ -1052,7 +1053,8 @@ class LpProblem(object):
         self.modifiedVariables = []
         self.modifiedConstraints = []
         self.resolveOK = False
-        self._variables = set()
+        self._variables = []
+        self._variable_names = set()
         self.dummyVar = None
 
 
@@ -1072,7 +1074,7 @@ class LpProblem(object):
             for n, c in self.constraints.iteritems():
                 string += c.asCplexLpConstraint(n) +"\n"
         string += "VARIABLES\n"
-        for v in sorted(self.variables()):
+        for v in self.variables():
             string += v.asCplexLpVariable() + " " + LpCategories[v.cat] + "\n"
         return string
 
@@ -1159,7 +1161,8 @@ class LpProblem(object):
 
         @param variable: the variable to be added
         """
-        self._variables.add(variable)
+        if variable.name not in self._variable_names:
+            self._variables.append(variable)
 
     def addVariables(self, variables):
         """
@@ -1167,7 +1170,8 @@ class LpProblem(object):
 
         @param variables: the variables to be added
         """
-        self._variables.update(variables)
+        for v in variables:
+            self.addVariable(v)
 
     def variables(self):
         """
@@ -1179,13 +1183,15 @@ class LpProblem(object):
         Returns:
             - A list of the problem variables
         """
-        variables = self._variables
         if self.objective:
-            variables.update(self.objective)
+            self.addVariables(self.objective.keys())
         for c in self.constraints.itervalues():
-            variables.update(c)
-        variables = list(variables)
+            self.addVariables(c.keys())
+        variables = self._variables
+        #sort the varibles DSU
+        variables = [[v.name, v] for v in variables]
         variables.sort()
+        variables = [v for _, v in variables]
         return variables
 
     def variablesDict(self):
@@ -1224,7 +1230,7 @@ class LpProblem(object):
                 print "Warning: overlapping constraint names:", name
         self.constraints[name] = constraint
         self.modifiedConstraints.append(constraint)
-        self._variables.update(constraint)
+        self.addVariables(constraint.keys())
 
     def setObjective(self,obj):
         """
@@ -1437,8 +1443,7 @@ class LpProblem(object):
                 #empty constraint add the dummyVar
                 constraint += self.get_dummyVar()
             f.write(constraint.asCplexLpConstraint(k))
-        vs = list(self.variables())
-        vs.sort()
+        vs = self.variables()
         # check if any names are longer than 100 characters
         long_names = [v.name for v in vs if len(v.name) > 100]
         if long_names:
@@ -1491,6 +1496,7 @@ class LpProblem(object):
                         f.write(" %s: %.12g\n" % (v.name, val))
         f.write("End\n")
         f.close()
+        print 'done'
         self.restoreObjective(wasNone, dummyVar)
 
     def assignVarsVals(self, values):
