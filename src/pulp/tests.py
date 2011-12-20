@@ -136,7 +136,7 @@ def pulpTest013(solver):
     prob += -y+z == 7, "c3"
     prob += w >= 0, "c4"
     print "\t Testing Long Names"
-    if solver.__class__ in [COIN_CMD, PULP_CBC_CMD, CPLEX_CMD, GLPK_CMD, GUROBI_CMD]:
+    if solver.__class__ in [CPLEX_CMD, GLPK_CMD, GUROBI_CMD]:
         try:
             pulpTestCheck(prob, solver, [LpStatusOptimal], {x:4, y:-1, z:6, w:0})
         except PulpError:
