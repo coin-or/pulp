@@ -1054,7 +1054,7 @@ class LpProblem(object):
         self.modifiedConstraints = []
         self.resolveOK = False
         self._variables = []
-        self._variable_names = set()
+        self._variable_names = {}  #old school using dict.keys() for a set
         self.dummyVar = None
 
 
@@ -1163,6 +1163,7 @@ class LpProblem(object):
         """
         if variable.name not in self._variable_names:
             self._variables.append(variable)
+            self._variable_names[variable.name] = variable
 
     def addVariables(self, variables):
         """
@@ -1496,7 +1497,6 @@ class LpProblem(object):
                         f.write(" %s: %.12g\n" % (v.name, val))
         f.write("End\n")
         f.close()
-        print 'done'
         self.restoreObjective(wasNone, dummyVar)
 
     def assignVarsVals(self, values):

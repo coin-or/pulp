@@ -504,7 +504,8 @@ def pulpTest123(solver):
 
 def pulpTestSolver(solver, msg = 0):
     tests = [pulpTest001,
-            pulpTest010, pulpTest011, pulpTest012, pulpTest013, pulpTest014, pulpTest015, pulpTest016,
+            pulpTest010, pulpTest011, pulpTest012, pulpTest013, #pulpTest014,
+            pulpTest015, pulpTest016,
             pulpTest020,
             pulpTest030,
             pulpTest040,
