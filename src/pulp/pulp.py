@@ -349,6 +349,15 @@ class LpVariable(LpElement):
         return d
     dict = classmethod(dict)
 
+    def getName(self):
+        return self.name
+
+    def getLb(self):
+        return self.lowBound
+
+    def getUb(self):
+        return self.upBound
+
     def bounds(self, low, up):
         self.lowBound = low
         self.upBound = up
@@ -423,6 +432,9 @@ class LpVariable(LpElement):
 
     def isBinary(self):
         return self.cat == LpInteger and self.lowBound == 0 and self.upBound == 1
+
+    def isInteger(self):
+        return self.cat == LpInteger
 
     def isFree(self):
         return self.lowBound == None and self.upBound == None
@@ -501,16 +513,16 @@ class LpAffineExpression(_DICT_TYPE):
     """
     #to remove illegal characters from the names
     trans = string.maketrans("-+[] ","_____")
-    def setname(self,name):
+    def setName(self,name):
         if name:
             self.__name = str(name).translate(self.trans)
         else:
             self.__name = None
 
-    def getname(self):
+    def getName(self):
         return self.__name
 
-    name = property(fget = getname,fset = setname)
+    name = property(fget=getName, fset=setName)
 
     def __init__(self, e = None, constant = 0, name = None):
         self.name = name
@@ -792,6 +804,23 @@ class LpConstraint(LpAffineExpression):
             self.constant = - rhs
         self.sense = sense
         self.modified = True
+
+    def getName(self):
+        return self.name
+
+    def getLb(self):
+        if ( (self.sense == LpConstraintGE) or
+             (self.sense == LpConstraintEQ) ):
+            return -self.constant
+        else:
+            return None
+
+    def getUb(self):
+        if ( (self.sense == LpConstraintLE) or
+             (self.sense == LpConstraintEQ) ):
+            return -self.constant
+        else:
+            return None
 
     def __str__(self):
         s = LpAffineExpression.__str__(self, 0)
@@ -1235,6 +1264,9 @@ class LpProblem(object):
         Side Effects:
             - The objective function is set
         """
+        if isinstance(obj, LpVariable):
+            # allows the user to add a LpVariable as an objective
+            obj = obj + 0.0
         try:
             obj = obj.constraint
             name = obj.name
