@@ -199,6 +199,23 @@ def pulpTest016(solver):
     print "\t Testing zero objective"
     pulpTestCheck(prob, solver, [LpStatusOptimal])
 
+def pulpTest017(solver):
+    # variable as objective
+    prob = LpProblem("test016", LpMinimize)
+    x = LpVariable("x", 0, 4)
+    y = LpVariable("y", -1, 1)
+    z = LpVariable("z", 0)
+    w = LpVariable("w", 0)
+    prob.setObjective(x)
+    prob += x+y <= 5, "c1"
+    prob += x+z >= 10, "c2"
+    prob += -y+z == 7, "c3"
+    prob += w >= 0, "c4"
+    prob += lpSum([0, 0]) <= 0, "c5"
+    print "\t Testing LpVariable (not LpAffineExpression) objective"
+    pulpTestCheck(prob, solver, [LpStatusOptimal])
+
+
 def pulpTest020(solver):
     # MIP
     prob = LpProblem("test020", LpMinimize)
@@ -504,7 +521,7 @@ def pulpTest123(solver):
 
 def pulpTestSolver(solver, msg = 0):
     tests = [pulpTest001,
-            pulpTest010, pulpTest011, pulpTest012, pulpTest013, pulpTest014, pulpTest015, pulpTest016,
+            pulpTest010, pulpTest011, pulpTest012, pulpTest013, pulpTest014, pulpTest015, pulpTest016, pulpTest017,
             pulpTest020,
             pulpTest030,
             pulpTest040,
