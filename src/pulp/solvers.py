@@ -1230,7 +1230,7 @@ class COIN_CMD(LpSolver_CMD):
         """True if the solver is available"""
         return self.executable(self.path)
 
-    def solve_CBC(self, lp):
+    def solve_CBC(self, lp, use_mps=True):
         """Solve a MIP problem using CBC"""
         if not self.executable(self.path):
             raise PulpSolverError, "Pulp: cannot execute %s cwd: %s"%(self.path,
@@ -1238,12 +1238,21 @@ class COIN_CMD(LpSolver_CMD):
         if not self.keepFiles:
             pid = os.getpid()
             tmpLp = os.path.join(self.tmpDir, "%d-pulp.lp" % pid)
+            tmpMps = os.path.join(self.tmpDir, "%d-pulp.mps" % pid)
             tmpSol = os.path.join(self.tmpDir, "%d-pulp.sol" % pid)
         else:
             tmpLp = lp.name+"-pulp.lp"
+            tmpMps = lp.name+"-pulp.mps"
             tmpSol = lp.name+"-pulp.sol"
-        lp.writeLP(tmpLp)
-        cmds = ' '+tmpLp+" "
+        if use_mps:
+            vs, variablesNames, constraintsNames, objectiveName = lp.writeMPS(
+                        tmpMps, rename = 1)
+            cmds = ' '+tmpMps+" "
+            if lp.sense == LpMaximize:
+                cmds += 'max '
+        else:
+            lp.writeLP(tmpLp)
+            cmds = ' '+tmpLp+" "
         if self.threads:
             cmds += "threads %s "%self.threads
         if self.fracGap is not None:
@@ -1278,7 +1287,11 @@ class COIN_CMD(LpSolver_CMD):
                                     self.path
         if not os.path.exists(tmpSol):
             raise PulpSolverError, "Pulp: Error while executing "+self.path
-        lp.status, values = self.readsol_CBC(tmpSol, lp, lp.variables())
+        if use_mps:
+            lp.status, values = self.readsol_MPS(tmpSol, lp, lp.variables(),
+                        variablesNames, constraintsNames, objectiveName)
+        else:
+            lp.status, values = self.readsol_LP(tmpSol, lp, lp.variables())
         lp.assignVarsVals(values)
         if not self.keepFiles:
             try:
@@ -1291,8 +1304,40 @@ class COIN_CMD(LpSolver_CMD):
                 pass
         return lp.status
 
-    def readsol_CBC(self, filename, lp, vs):
-        """Read a CBC solution file"""
+    def readsol_MPS(self, filename, lp, vs, variablesNames, constraintsNames,
+                objectiveName):
+        """
+        Read a CBC solution file generated from an mps file (different names)
+        """
+        values = {}
+
+        reverseVn = {}
+        for k,n in variablesNames.iteritems():
+            reverseVn[n] = k
+
+        for v in vs:
+            values[v.name] = 0.0
+
+        cbcStatus = {'Optimal': LpStatusOptimal,
+                    'Infeasible': LpStatusInfeasible,
+                    'Unbounded': LpStatusUnbounded,
+                    'Stopped': LpStatusNotSolved}
+        f = file(filename)
+        statusstr = f.readline().split()[0]
+        status = cbcStatus.get(statusstr, LpStatusUndefined)
+        for l in f:
+            if len(l)<=2:
+                break
+            l = l.split()
+            vn = l[1]
+            if vn in reverseVn:
+                values[reverseVn[vn]] = float(l[2])
+        return status, values
+
+    def readsol_LP(self, filename, lp, vs):
+        """
+        Read a CBC solution file generated from an lp (good names)
+        """
         values = {}
         for v in vs:
             values[v.name] = 0.0

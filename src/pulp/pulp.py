@@ -103,17 +103,19 @@ from types import GeneratorType
 
 _DICT_TYPE = dict
 
-#try:
-#    from odict import OrderedDict
-#    _DICT_TYPE = OrderedDict
-#except ImportError:
-#    pass
-#try:
-#    #python 2.7 or 3.1
-#    from collections import OrderedDict
-#    _DICT_TYPE = OrderedDict
-#except ImportError:
-#    pass
+if sys.platform not in ['cli']:
+    # iron python does not like an OrderedDict
+    try:
+        from odict import OrderedDict
+        _DICT_TYPE = OrderedDict
+    except ImportError:
+        pass
+    try:
+        #python 2.7 or 3.1
+        from collections import OrderedDict
+        _DICT_TYPE = OrderedDict
+    except ImportError:
+        pass
 
 
 def setConfigInformation(**keywords):
@@ -349,6 +351,15 @@ class LpVariable(LpElement):
         return d
     dict = classmethod(dict)
 
+    def getName(self):
+        return self.name
+
+    def getLb(self):
+        return self.lowBound
+
+    def getUb(self):
+        return self.upBound
+
     def bounds(self, low, up):
         self.lowBound = low
         self.upBound = up
@@ -423,6 +434,9 @@ class LpVariable(LpElement):
 
     def isBinary(self):
         return self.cat == LpInteger and self.lowBound == 0 and self.upBound == 1
+
+    def isInteger(self):
+        return self.cat == LpInteger
 
     def isFree(self):
         return self.lowBound == None and self.upBound == None
@@ -501,16 +515,16 @@ class LpAffineExpression(_DICT_TYPE):
     """
     #to remove illegal characters from the names
     trans = string.maketrans("-+[] ","_____")
-    def setname(self,name):
+    def setName(self,name):
         if name:
             self.__name = str(name).translate(self.trans)
         else:
             self.__name = None
 
-    def getname(self):
+    def getName(self):
         return self.__name
 
-    name = property(fget = getname,fset = setname)
+    name = property(fget=getName, fset=setName)
 
     def __init__(self, e = None, constant = 0, name = None):
         self.name = name
@@ -617,41 +631,64 @@ class LpAffineExpression(_DICT_TYPE):
         s = " + ".join(l)
         return s
 
-    def asCplexLpAffineExpression(self, name, constant = 1):
-        # Ugly.
-        s = ""
-        sl = name + ":"
+    @staticmethod
+    def _count_characters(line):
+        #counts the characters in a list of strings
+        return sum(len(t) for t in line)
+
+    def asCplexVariablesOnly(self, name):
+        """
+        helper for asCplexLpAffineExpression
+        """
+        result = []
+        line = ["%s:" % name]
         notFirst = 0
         variables = self.sorted_keys()
         for v in variables:
             val = self[v]
-            if val<0:
-                ns = " - "
+            if val < 0:
+                sign = " -"
                 val = -val
             elif notFirst:
-                ns = " + "
+                sign = " +"
             else:
-                ns = " "
+                sign = ""
             notFirst = 1
-            if val == 1: ns += v.name
-            else: ns += "%.12g %s" % (val, v.name)
-            if len(sl)+len(ns) > LpCplexLPLineSize:
-                s += sl+"\n"
-                sl = ns
+            if val == 1:
+                term = "%s %s" %(sign, v.name)
             else:
-                sl += ns
+                term = "%s %.12g %s" % (sign, val, v.name)
+
+            if self._count_characters(line) + len(term) > LpCplexLPLineSize:
+                result += ["".join(line)]
+                line = [term]
+            else:
+                line += [term]
+        return result, line
+
+    def asCplexLpAffineExpression(self, name, constant = 1):
+        """
+        returns a string that represents the Affine Expression in lp format
+        """
+        #refactored to use a list for speed in iron python
+        result, line = self.asCplexVariablesOnly(name)
         if not self:
-            ns = " " + str(self.constant)
+            term = " %s" % self.constant
         else:
-            ns = ""
+            term = ""
             if constant:
-                if self.constant < 0: ns = " - " + str(-self.constant)
-                elif self.constant > 0: ns = " + " + str(self.constant)
-        if len(sl)+len(ns) > LpCplexLPLineSize:
-            s += sl+"\n"+ns+"\n"
+                if self.constant < 0:
+                    term = " - %s" % (-self.constant)
+                elif self.constant > 0:
+                    term = " + %s" % self.constant
+        if self._count_characters(line) + len(term) > LpCplexLPLineSize:
+            result += ["".join(line)]
+            line = [term]
         else:
-            s += sl+ns+"\n"
-        return s
+            line += [term]
+        result += ["".join(line)]
+        result = "%s\n" % "\n".join(result)
+        return result
 
     def addInPlace(self, other):
         if other is 0: return self
@@ -793,6 +830,23 @@ class LpConstraint(LpAffineExpression):
         self.sense = sense
         self.modified = True
 
+    def getName(self):
+        return self.name
+
+    def getLb(self):
+        if ( (self.sense == LpConstraintGE) or
+             (self.sense == LpConstraintEQ) ):
+            return -self.constant
+        else:
+            return None
+
+    def getUb(self):
+        if ( (self.sense == LpConstraintLE) or
+             (self.sense == LpConstraintEQ) ):
+            return -self.constant
+        else:
+            return None
+
     def __str__(self):
         s = LpAffineExpression.__str__(self, 0)
         if self.sense:
@@ -800,37 +854,24 @@ class LpConstraint(LpAffineExpression):
         return s
 
     def asCplexLpConstraint(self, name):
-        # Immonde.
-        s = ""
-        sl = name + ":"
-        notFirst = 0
-        variables = self.sorted_keys()
-        for v in variables:
-            val = self[v]
-            if val<0:
-                ns = " - "
-                val = -val
-            elif notFirst:
-                ns = " + "
-            else:
-                ns = " "
-            notFirst = 1
-            if val == 1: ns += v.name
-            else: ns += "%.12g %s" % (val , v.name)
-            if len(sl)+len(ns) > LpCplexLPLineSize:
-                s += sl+"\n"
-                sl = ns
-            else:
-                sl += ns
-        if not self.keys(): sl += "0"
+        """
+        Returns a constraint as a string
+        """
+        result, line = self.asCplexVariablesOnly(name)
+        if not self.keys():
+            line += ["0"]
         c = -self.constant
-        if c == 0: c = 0 # Supress sign
-        ns = " %s %.12g" % (LpConstraintSenses[self.sense], c)
-        if len(sl)+len(ns) > LpCplexLPLineSize:
-            s += sl + "\n" + ns + "\n"
+        if c == 0:
+            c = 0 # Supress sign
+        term = " %s %.12g" % (LpConstraintSenses[self.sense], c)
+        if self._count_characters(line)+len(term) > LpCplexLPLineSize:
+            line = "".join(line)
+            line = [term]
         else:
-            s += sl + ns + "\n"
-        return s
+            line += [term]
+        result += ["".join(line)]
+        result = "%s\n" % "\n".join(result)
+        return result
 
     def changeRHS(self, RHS):
         """
@@ -1054,7 +1095,7 @@ class LpProblem(object):
         self.modifiedConstraints = []
         self.resolveOK = False
         self._variables = []
-        self._variable_names = {}  #old school using dict.keys() for a set
+        self._variable_ids = {}  #old school using dict.keys() for a set
         self.dummyVar = None
 
 
@@ -1161,9 +1202,9 @@ class LpProblem(object):
 
         @param variable: the variable to be added
         """
-        if variable.name not in self._variable_names:
+        if id(variable) not in self._variable_ids:
             self._variables.append(variable)
-            self._variable_names[variable.name] = variable
+            self._variable_ids[id(variable)] = variable
 
     def addVariables(self, variables):
         """
@@ -1242,6 +1283,9 @@ class LpProblem(object):
         Side Effects:
             - The objective function is set
         """
+        if isinstance(obj, LpVariable):
+            # allows the user to add a LpVariable as an objective
+            obj = obj + 0.0
         try:
             obj = obj.constraint
             name = obj.name
@@ -2185,12 +2229,12 @@ def pulpTestAll():
 
     for s in solvers:
         if s().available():
-            try:
+            #~ try:
                 pulpTestSolver(s)
                 print "* Solver", s, "passed."
-            except Exception, e:
-                print e
-                print "* Solver", s, "failed."
+            #~ except Exception, e:
+                #~ print e
+                #~ print "* Solver", s, "failed."
         else:
             print "Solver", s, "unavailable."
 
