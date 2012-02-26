@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 # PuLP : Python LP Modeler
-# Version 1.4.8
+# Version 1.5.1
 
 # Copyright (c) 2002-2005, Jean-Sebastien Roy (js@jeannot.org)
 # Modifications Copyright (c) 2007- Stuart Anthony Mitchell (s.mitchell@auckland.ac.nz)
@@ -152,14 +152,14 @@ class LpElement(object):
     """
     #to remove illegal characters from the names
     trans = string.maketrans("-+[] ->/","________")
-    def setname(self,name):
+    def setName(self,name):
         if name:
             self.__name = str(name).translate(self.trans)
         else:
             self.__name = None
-    def getname(self):
+    def getName(self):
         return self.__name
-    name = property(fget = getname,fset = setname)
+    name = property(fget = getName,fset = setName)
 
     def __init__(self, name):
         self.name = name
@@ -350,9 +350,6 @@ class LpVariable(LpElement):
          d[i] = self(name % i, lowBound, upBound, cat)
         return d
     dict = classmethod(dict)
-
-    def getName(self):
-        return self.name
 
     def getLb(self):
         return self.lowBound
@@ -829,9 +826,6 @@ class LpConstraint(LpAffineExpression):
             self.constant = - rhs
         self.sense = sense
         self.modified = True
-
-    def getName(self):
-        return self.name
 
     def getLb(self):
         if ( (self.sense == LpConstraintGE) or
