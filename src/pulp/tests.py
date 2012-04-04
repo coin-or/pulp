@@ -340,7 +340,8 @@ def pulpTest075(solver):
     x = LpVariable("x", 0, 4, LpContinuous, obj + b)
     y = LpVariable("y", -1, 1, LpContinuous, 4*obj - c)
     z = LpVariable("z", 0, None, LpContinuous, 9*obj + b + c)
-    if solver.__class__ in [CPLEX_DLL, CPLEX_CMD, COINMP_DLL]:
+    if solver.__class__ in [CPLEX_DLL, CPLEX_CMD, COINMP_DLL, YAPOSIB,
+            PYGLPK]:
         print "\t Testing column based modelling with empty constraints"
         pulpTestCheck(prob, solver, [LpStatusOptimal], {x:4, y:-1, z:6})
 
