@@ -1,0 +1,127 @@
+Installation
+------------
+
+Note that to install PuLP you must first have a working python installation as
+described in `installing python`_.
+
+PuLP requires Python >= 2.5. Though it can be made to work with Python 2.4
+
+The latest version of PuLP can be freely obtained from coin-or_.
+Please note that this version of PuLP has not been tested with operating systems
+other than Microsoft Windows and Ubuntu Linux.
+
+Easy install and pypi installation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By far the easiest way to install pulp is through the use of EasyInstall_ and
+CheeseShop_.
+
+* Install EasyInstall
+    * In  windows (please make sure easy_install is on your path)::
+
+        c:\Python26\Scripts\> easy_install -U pulp
+
+    * In Linux::
+
+        $ sudo easy_install -U pulp
+        $ sudo pulptest             #needed to get the default solver to work
+
+* Then follow the instructions below to test your installation
+
+To access the examples and pulp source code use the instructions below
+to install from source
+
+
+Windows installation from source
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* Install python (`installing python`_)
+* Download the `PuLP zipfile`_
+* Extract the zipfile to a suitable location (such as the desktop - the folder will be no longer required after installation)
+   * Open a command prompt by clicking "Run" in the Start Menu, and type 'cmd' in the window and push enter.
+   * Navigate to the extracted folder with the setup file in it. [Do this by typing 'cd foldername' at the prompt, where 'cd' stands for current directory and the 'foldername' is the name of the folder to open in the path already listed to the left of the prompt. To return back to a root drive, type 'cd C:\']
+   * Type 'setup.py install' at the command prompt. This will install all the PuLP functions into Python's site-packages directory.
+
+The PuLP function library is now able to be imported from any python command line. Go to IDLE or PyDev and type
+
+>>> from pulp import *
+
+to load in the functions. (You need to re-import the functions each time after
+you close the GUI) PuLP is written in a programming language called Python, and
+to use PuLP you must write Python code to describe your optimization problem.
+
+Linux Installation
+~~~~~~~~~~~~~~~~~~
+
+* Extract the `PuLP zipfile`_ folder to a suitable location (such as your home directory - the folder will be no longer required after installation)
+* Open a command line navigate to the extracted zipfile with the setup file in it. [Do this by typing 'cd foldername' at the prompt]
+* Type the following at the command prompt. This will install all the PuLP functions into Python's callable modules.
+
+.. code-block:: sh
+
+    $ sudo python setup.py install
+
+* install a solver for pulp to use either
+    * use the included 64 or 32-bit binaries cbc-32 and cbc-64
+    * install glpk_  debain based distributions may use the following
+
+    .. code-block:: sh
+
+        $ sudo apt-get install glpk
+
+    * install gurobi_ (free academic licenses)
+    * install cplex_ (and pay $$)
+    * or compile coinMP_ and pulp from source using buildout and copy the files
+
+    .. code-block:: sh
+
+        $ python bootstrap.py
+        $ bin/buildout -c solvers.cfg
+        $ cp parts/lib/* src/pulp/
+        $ sudo setup.py install
+
+.. _glpk: http://www.gnu.org/software/glpk/
+.. _CoinMP: http://projects.coin-or.org/CoinMP
+.. _cplex: http://cplex.com
+.. _gurobi: http://gurobi.com
+
+Testing your PuLP installation
+------------------------------
+To test that that you pulp installation is working correctly please type the
+following into a python interpreter and note that the output should be similar.
+The output below is what you would expect if you have not installed any other
+solvers and the CoinMP_ solver bundled with pulp works.
+
+>>> import pulp
+>>> pulp.pulpTestAll()
+Solver pulp.pulp.COIN_MEM unavailable.
+Solver pulp.pulp.COIN_CMD unavailable.
+     Testing continuous LP solution
+     Testing maximize continuous LP solution
+     Testing unbounded continuous LP solution
+     Testing MIP solution
+     Testing MIP relaxation
+     Testing feasibility problem (no objective)
+     Testing an infeasible problem
+     Testing an integer infeasible problem (Error to be fixed)
+     Testing column based modelling
+     Testing column based modelling with empty constraints
+     Testing dual variables and slacks reporting
+     Testing resolve of problem
+     Testing Sequential Solves
+     Testing fractional constraints
+     Testing elastic constraints (no change)
+     Testing elastic constraints (freebound)
+     Testing elastic constraints (penalty unchanged)
+     Testing elastic constraints (penalty unbounded)
+* Solver pulp.pulp.COINMP_DLL passed.
+Solver pulp.pulp.GLPK_MEM unavailable.
+Solver pulp.pulp.GLPK_CMD unavailable.
+Solver pulp.pulp.XPRESS unavailable.
+
+.. _`installing python`: http://www.diveintopython.org/installing_python/index.html
+.. _coin-or: https://projects.coin-or.org/PuLP
+.. _EasyInstall: http://pypi.python.org/pypi/setuptools
+.. _CheeseShop: http://pypi.python.org
+.. _`PuLP zipfile`: http://www.coin-or.org/download/source/PuLP/
+
