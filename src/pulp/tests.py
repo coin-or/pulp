@@ -361,7 +361,8 @@ def pulpTest080(solver):
     prob += c2,"c2"
     prob += c3,"c3"
 
-    if solver.__class__ in [CPLEX_DLL, CPLEX_CMD, COINMP_DLL]:
+    if solver.__class__ in [CPLEX_DLL, CPLEX_CMD, COINMP_DLL, YAPOSIB,
+            PYGLPK]:
         print "\t Testing dual variables and slacks reporting"
         pulpTestCheck(prob, solver, [LpStatusOptimal],
                   sol = {x:4, y:-1, z:6},
@@ -521,7 +522,7 @@ def pulpTest123(solver):
 
 def pulpTestSolver(solver, msg = 0):
     tests = [pulpTest001,
-            pulpTest010, pulpTest011, pulpTest012, pulpTest013, pulpTest014, 
+            pulpTest010, pulpTest011, pulpTest012, pulpTest013, pulpTest014,
             pulpTest015, pulpTest016, pulpTest017,
             pulpTest020,
             pulpTest030,

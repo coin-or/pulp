@@ -956,7 +956,7 @@ else:
             """
             Solve a well formulated lp problem
 
-            creates a gurobi model, variables and constraints and attaches
+            creates a cplex model, variables and constraints and attaches
             them to the lp model which it then solves
             """
             self.buildSolverModel(lp)
@@ -1929,9 +1929,10 @@ class PYGLPK(LpSolver):
             #put pi and slack variables against the constraints
             for constr in lp.constraints.values():
                 if self.mip and self.hasMIPConstraints(lp.solverModel):
-                    constr.slack = glpk.glp_mip_row_val(prob, constr.glpk_index)
+                    row_val = glpk.glp_mip_row_val(prob, constr.glpk_index)
                 else:
-                    constr.slack = glpk.glp_get_row_prim(prob, constr.glpk_index)
+                    row_val = glpk.glp_get_row_prim(prob, constr.glpk_index)
+                constr.slack = -constr.constant - row_val
                 constr.pi = glpk.glp_get_row_dual(prob, constr.glpk_index)
             lp.resolveOK = True
             for var in lp.variables():
@@ -2137,7 +2138,7 @@ class YAPOSIB(LpSolver):
             #put pi and slack variables against the constraints
             for constr in lp.constraints.values():
                 constr.pi = constr.solverConstraint.dual
-                constr.slack = constr.solverConstraint.activity
+                constr.slack = -constr.constant - constr.solverConstraint.activity
             if self.msg:
                 print "yaposib status=", solutionStatus
             lp.resolveOK = True
