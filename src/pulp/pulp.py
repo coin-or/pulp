@@ -680,7 +680,7 @@ class LpAffineExpression(_DICT_TYPE):
                     term = " + %s" % self.constant
         if self._count_characters(line) + len(term) > LpCplexLPLineSize:
             result += ["".join(line)]
-            line = [term]
+            line += [term]
         else:
             line += [term]
         result += ["".join(line)]
@@ -859,7 +859,7 @@ class LpConstraint(LpAffineExpression):
             c = 0 # Supress sign
         term = " %s %.12g" % (LpConstraintSenses[self.sense], c)
         if self._count_characters(line)+len(term) > LpCplexLPLineSize:
-            line = "".join(line)
+            result += ["".join(line)]
             line = [term]
         else:
             line += [term]
