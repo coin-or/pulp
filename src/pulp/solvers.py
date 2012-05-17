@@ -1222,9 +1222,9 @@ class COIN_CMD(LpSolver_CMD):
         aCopy.strong = self.strong
         return aCopy
 
-    def actualSolve(self, lp):
+    def actualSolve(self, lp, **kwargs):
         """Solve a well formulated lp problem"""
-        return self.solve_CBC(lp)
+        return self.solve_CBC(lp, **kwargs)
 
     def available(self):
         """True if the solver is available"""
