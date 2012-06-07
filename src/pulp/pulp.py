@@ -1553,9 +1553,14 @@ class LpProblem(object):
         for name in values:
             self.constraints[name].pi = values[name]
 
-    def assignConsSlack(self, values):
+    def assignConsSlack(self, values, activity=False):
         for name in values:
-            self.constraints[name].slack = float(values[name])
+            if activity:
+                #reports the activitynot the slack
+                self.constraints[name].slack = -1 * (
+                        self.constraints[name].constant + float(values[name]))
+            else:
+                self.constraints[name].slack = float(values[name])
 
     def get_dummyVar(self):
         if self.dummyVar is None:
