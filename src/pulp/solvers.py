@@ -1410,7 +1410,7 @@ class PULP_CBC_CMD(COIN_CMD):
             return False
         def actualSolve(self, lp, callback = None):
             """Solve a well formulated lp problem"""
-            raise PulpSolverError, "GUROBI: Not Available"
+            raise PulpSolverError, "PULP_CBC_CMD: Not Available (check permissions on %s)" % arch_pulp_cbc_path
     else:
         def __init__(self, path=None, *args, **kwargs):
             """
