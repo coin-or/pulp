@@ -1222,9 +1222,9 @@ class COIN_CMD(LpSolver_CMD):
         aCopy.strong = self.strong
         return aCopy
 
-    def actualSolve(self, lp):
+    def actualSolve(self, lp, **kwargs):
         """Solve a well formulated lp problem"""
-        return self.solve_CBC(lp)
+        return self.solve_CBC(lp, **kwargs)
 
     def available(self):
         """True if the solver is available"""
@@ -1274,6 +1274,8 @@ class COIN_CMD(LpSolver_CMD):
             cmds += "branch "
         else:
             cmds += "initialSolve "
+        if lp.isMIP:
+            cmds += "printingOptions rows "
         cmds += "solution "+tmpSol+" "
         if self.msg:
             pipe = None
@@ -1288,11 +1290,16 @@ class COIN_CMD(LpSolver_CMD):
         if not os.path.exists(tmpSol):
             raise PulpSolverError, "Pulp: Error while executing "+self.path
         if use_mps:
-            lp.status, values = self.readsol_MPS(tmpSol, lp, lp.variables(),
+            lp.status, values, reducedCosts, shadowPrices, slacks = self.readsol_MPS(
+                        tmpSol, lp, lp.variables(),
                         variablesNames, constraintsNames, objectiveName)
         else:
-            lp.status, values = self.readsol_LP(tmpSol, lp, lp.variables())
+            lp.status, values, reducedCosts, shadowPrices, slacks = self.readsol_LP(
+                    tmpSol, lp, lp.variables())
         lp.assignVarsVals(values)
+        lp.assignVarsDj(reducedCosts)
+        lp.assignConsPi(shadowPrices)
+        lp.assignConsSlack(slacks, activity=True)
         if not self.keepFiles:
             try:
                 os.remove(tmpLp)
@@ -1312,12 +1319,19 @@ class COIN_CMD(LpSolver_CMD):
         values = {}
 
         reverseVn = {}
-        for k,n in variablesNames.iteritems():
+        for k, n in variablesNames.iteritems():
             reverseVn[n] = k
+        reverseCn = {}
+        for k, n in constraintsNames.iteritems():
+            reverseCn[n] = k
+
 
         for v in vs:
             values[v.name] = 0.0
 
+        reducedCosts = {}
+        shadowPrices = {}
+        slacks = {}
         cbcStatus = {'Optimal': LpStatusOptimal,
                     'Infeasible': LpStatusInfeasible,
                     'Unbounded': LpStatusUnbounded,
@@ -1330,15 +1344,24 @@ class COIN_CMD(LpSolver_CMD):
                 break
             l = l.split()
             vn = l[1]
+            val = l[2]
+            dj = l[3]
             if vn in reverseVn:
-                values[reverseVn[vn]] = float(l[2])
-        return status, values
+                values[reverseVn[vn]] = float(val)
+                reducedCosts[reverseVn[vn]] = float(dj)
+            if vn in reverseCn:
+                slacks[reverseCn[vn]] = float(val)
+                shadowPrices[reverseCn[vn]] = float(dj)
+        return status, values, reducedCosts, shadowPrices, slacks
 
     def readsol_LP(self, filename, lp, vs):
         """
         Read a CBC solution file generated from an lp (good names)
         """
         values = {}
+        reducedCosts = {}
+        shadowPrices = {}
+        slacks = {}
         for v in vs:
             values[v.name] = 0.0
         cbcStatus = {'Optimal': LpStatusOptimal,
@@ -1353,9 +1376,15 @@ class COIN_CMD(LpSolver_CMD):
                 break
             l = l.split()
             vn = l[1]
+            val = l[2]
+            dj = l[3]
             if vn in values:
-                values[vn] = float(l[2])
-        return status, values
+                values[vn] = float(val)
+                reducedCosts[vn] = float(dj)
+            if vn in lp.constraints:
+                slacks[vn] = float(val)
+                shadowPrices[vn] = float(dj)
+        return status, values, reducedCosts, shadowPrices, slacks
 
 COIN = COIN_CMD
 
@@ -1381,7 +1410,7 @@ class PULP_CBC_CMD(COIN_CMD):
             return False
         def actualSolve(self, lp, callback = None):
             """Solve a well formulated lp problem"""
-            raise PulpSolverError, "PULP_CBC_CMD: Not Available"
+            raise PulpSolverError, "PULP_CBC_CMD: Not Available (check permissions on %s)" % arch_pulp_cbc_path
     else:
         def __init__(self, path=None, *args, **kwargs):
             """

@@ -8,10 +8,11 @@ def pulpTestCheck(prob, solver, okstatus, sol = {},
                    duals = None,
                    slacks = None,
                    eps = 10**-3,
-                   status = None):
+                   status = None,
+                   **kwargs):
 
     if status is None:
-        status = prob.solve(solver)
+        status = prob.solve(solver, **kwargs)
     if status not in okstatus:
         prob.writeLP("debug.lp")
         prob.writeMPS("debug.mps")
@@ -215,6 +216,22 @@ def pulpTest017(solver):
     print "\t Testing LpVariable (not LpAffineExpression) objective"
     pulpTestCheck(prob, solver, [LpStatusOptimal])
 
+def pulpTest018(solver):
+    # Long name in lp
+    prob = LpProblem("test013", LpMinimize)
+    x = LpVariable("x"*90, 0, 4)
+    y = LpVariable("y"*90, -1, 1)
+    z = LpVariable("z"*90, 0)
+    w = LpVariable("w"*90, 0)
+    prob += x + 4*y + 9*z, "obj"
+    prob += x+y <= 5, "c1"
+    prob += x+z >= 10, "c2"
+    prob += -y+z == 7, "c3"
+    prob += w >= 0, "c4"
+    if solver.__class__ in [COIN_CMD]:
+        print "\t Testing Long lines in LP"
+        pulpTestCheck(prob, solver, [LpStatusOptimal], {x:4, y:-1, z:6, w:0},
+                    use_mps=False)
 
 def pulpTest020(solver):
     # MIP
@@ -362,8 +379,8 @@ def pulpTest080(solver):
     prob += c2,"c2"
     prob += c3,"c3"
 
-    if solver.__class__ in [CPLEX_DLL, CPLEX_CMD, COINMP_DLL, YAPOSIB,
-            PYGLPK]:
+    if solver.__class__ in [CPLEX_DLL, CPLEX_CMD, COINMP_DLL,
+            PULP_CBC_CMD, YAPOSIB, PYGLPK]:
         print "\t Testing dual variables and slacks reporting"
         pulpTestCheck(prob, solver, [LpStatusOptimal],
                   sol = {x:4, y:-1, z:6},
@@ -522,9 +539,11 @@ def pulpTest123(solver):
 
 
 def pulpTestSolver(solver, msg = 0):
-    tests = [pulpTest001,
+    tests = [
+            pulpTest001,
             pulpTest010, pulpTest011, pulpTest012, pulpTest013, pulpTest014,
             pulpTest015, pulpTest016, pulpTest017,
+            pulpTest018,
             pulpTest020,
             pulpTest030,
             pulpTest040,

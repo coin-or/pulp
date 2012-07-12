@@ -20,7 +20,7 @@ for i in range(3):
     for j in range(3):
         Boxes += [[(Rows[3*i+k],Cols[3*j+l]) for k in range(3) for l in range(3)]]
 
-# The prob variable is created to contain the problem data        
+# The prob variable is created to contain the problem data
 prob = LpProblem("Sudoku Problem",LpMinimize)
 
 # The problem variables are created
@@ -38,14 +38,14 @@ for r in Rows:
 for v in Vals:
     for r in Rows:
         prob += lpSum([choices[v][r][c] for c in Cols]) == 1,""
-        
+
     for c in Cols:
         prob += lpSum([choices[v][r][c] for r in Rows]) == 1,""
 
     for b in Boxes:
         prob += lpSum([choices[v][r][c] for (r,c) in b]) == 1,""
-                        
-# The starting numbers are entered as constraints                
+
+# The starting numbers are entered as constraints
 prob += choices["5"]["1"]["1"] == 1,""
 prob += choices["6"]["2"]["1"] == 1,""
 prob += choices["8"]["4"]["1"] == 1,""
@@ -88,7 +88,7 @@ while True:
     print "Status:", LpStatus[prob.status]
     # The solution is printed if it was deemed "optimal" i.e met the constraints
     if LpStatus[prob.status] == "Optimal":
-        # The solution is written to the sudokuout.txt file 
+        # The solution is written to the sudokuout.txt file
         for r in Rows:
             if r == "1" or r == "4" or r == "7":
                 sudokuout.write("+-------+-------+-------+\n")
@@ -105,8 +105,8 @@ while True:
         prob += lpSum([choices[v][r][c] for v in Vals
                                         for r in Rows
                                         for c in Cols
-                                        if value(vars[v][r][c])==1]) <= 80
-    # If a new optimal solution cannot be found, we end the program    
+                                        if value(choices[v][r][c])==1]) <= 80
+    # If a new optimal solution cannot be found, we end the program
     else:
         break
 sudokuout.close()
