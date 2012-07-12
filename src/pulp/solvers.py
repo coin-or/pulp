@@ -1900,6 +1900,8 @@ class PYGLPK(LpSolver):
     """
     The glpk LP/MIP solver (via its python interface)
 
+    Copyright Christophe-Marie Duquesne 2012
+
     The glpk variables are available (after a solve) in var.solverVar
     The glpk constraints are available in constraint.solverConstraint
     The Model is in prob.solverModel
@@ -2113,6 +2115,8 @@ yaposib = None
 class YAPOSIB(LpSolver):
     """
     COIN OSI (via its python interface)
+
+    Copyright Christophe-Marie Duquesne 2012
 
     The yaposib variables are available (after a solve) in var.solverVar
     The yaposib constraints are available in constraint.solverConstraint
