@@ -2139,7 +2139,7 @@ class YAPOSIB(LpSolver):
                     msg = True,
                     timeLimit = None,
                     epgap = None,
-                    solverName = "Clp",
+                    solverName = None,
                     **solverParams):
             """
             Initializes the yaposib solver.
@@ -2153,7 +2153,10 @@ class YAPOSIB(LpSolver):
             @param solverParams: not supported
             """
             LpSolver.__init__(self, mip, msg)
-            self.solverName = solverName
+            if solverName:
+                self.solverName = solverName
+            else:
+                self.solverName = yaposib.available_solvers()[0]
 
         def findSolutionValues(self, lp):
             model = lp.solverModel
