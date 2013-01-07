@@ -56,39 +56,40 @@ def initialize(filename):
     here = os.path.dirname(filename)
     config = ConfigParser.SafeConfigParser({'here':here})
     config.read(filename)
+
     try:
         cplex_dll_path = config.get("locations", "CplexPath")
-    except ConfigParser.NoOptionError:
+    except ConfigParser.Error:
         cplex_dll_path = 'libcplex110.so'
     try:
         ilm_cplex_license = config.get("licenses",
                 "ilm_cplex_license").decode("string-escape").replace('"','')
-    except ConfigParser.NoOptionError:
+    except ConfigParser.Error:
         ilm_cplex_license = ''
     try:
         ilm_cplex_license_signature = config.getint("licenses",
                 "ilm_cplex_license_signature")
-    except ConfigParser.NoOptionError:
+    except ConfigParser.Error:
         ilm_cplex_license_signature = 0
     try:
         coinMP_path = config.get("locations", "CoinMPPath").split(', ')
-    except ConfigParser.NoOptionError:
+    except ConfigParser.Error:
         coinMP_path = ['libCoinMP.so']
     try:
         gurobi_path = config.get("locations", "GurobiPath")
-    except ConfigParser.NoOptionError:
+    except ConfigParser.Error:
         gurobi_path = '/opt/gurobi201/linux32/lib/python2.5'
     try:
         cbc_path = config.get("locations", "CbcPath")
-    except ConfigParser.NoOptionError:
+    except ConfigParser.Error:
         cbc_path = 'cbc'
     try:
         glpk_path = config.get("locations", "GlpkPath")
-    except ConfigParser.NoOptionError:
+    except ConfigParser.Error:
         glpk_path = 'glpsol'
     try:
         pulp_cbc_path = config.get("locations", "PulpCbcPath")
-    except ConfigParser.NoOptionError:
+    except ConfigParser.Error:
         pulp_cbc_path = 'cbc'
     for i,path in enumerate(coinMP_path):
         if not os.path.dirname(path):
