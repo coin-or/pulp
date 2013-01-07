@@ -571,7 +571,7 @@ try:
             if epgap is not None:
                 self.changeEpgap(epgap)
             if timeLimit is not None:
-                self.changeTimeLimit(timeLimit)
+                self.setTimeLimit(timeLimit)
             if logfilename is not None:
                 self.setlogfile(logfilename)
             else:
@@ -1049,7 +1049,7 @@ else:
             if self.epgap is not None:
                 self.changeEpgap(self.epgap)
             if self.timeLimit is not None:
-                self.changeTimeLimit(self.timeLimit)
+                self.setTimeLimit(self.timeLimit)
 
         def setlogfile(self, filename):
             """
@@ -1061,13 +1061,13 @@ else:
             """
             Change cplex solver integer bound gap tolerence
             """
-            raise NotImplementedError("Changing Epgap in CPLEX_PY")
+            self.solverModel.parameters.mip.tolerances.mipgap.set(epgap)
 
         def setTimeLimit(self, timeLimit = 0.0):
             """
             Make cplex limit the time it takes --added CBM 8/28/09
             """
-            raise NotImplementedError("Changing TimeLimit in CPLEX_PY")
+            self.solverModel.parameters.timelimit.set(timeLimit)
 
         def callSolver(self, isMIP):
             """Solves the problem with cplex
