@@ -102,6 +102,8 @@ def initialize(filename):
 PULPCFGFILE = "pulp.cfg"
 if sys.platform in ['win32', 'cli']:
     PULPCFGFILE += ".win"
+elif sys.platform in ['darwin']:
+    PULPCFGFILE += ".osx"
 else:
     PULPCFGFILE += ".linux"
 
