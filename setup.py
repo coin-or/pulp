@@ -40,6 +40,7 @@ problems.
       package_data = {'pulp' : ["AUTHORS","LICENSE",
                                 "pulp.cfg.linux",
                                 "pulp.cfg.win",
+                                "pulp.cfg.osx",
                                 "LICENSE.CoinMP.txt",
                                 "AUTHORS.CoinMP.txt",
                                 "README.CoinMP.txt",
