@@ -14,6 +14,7 @@ include solvers.cfg
 include examples/*.py
 include src/pulp/*.cfg.linux
 include src/pulp/*.cfg.win
+include src/pulp/*.cfg.osx
 include src/pulp/*.cfg.buildout
 include src/pulp/*.py
 include src/pulp/solverdir/*
