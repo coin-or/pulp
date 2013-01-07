@@ -357,7 +357,8 @@ def pulpTest075(solver):
     x = LpVariable("x", 0, 4, LpContinuous, obj + b)
     y = LpVariable("y", -1, 1, LpContinuous, 4*obj - c)
     z = LpVariable("z", 0, None, LpContinuous, 9*obj + b + c)
-    if solver.__class__ in [CPLEX_DLL, CPLEX_CMD, COINMP_DLL]:
+    if solver.__class__ in [CPLEX_DLL, CPLEX_CMD, COINMP_DLL, YAPOSIB,
+            PYGLPK]:
         print "\t Testing column based modelling with empty constraints"
         pulpTestCheck(prob, solver, [LpStatusOptimal], {x:4, y:-1, z:6})
 
@@ -378,7 +379,8 @@ def pulpTest080(solver):
     prob += c2,"c2"
     prob += c3,"c3"
 
-    if solver.__class__ in [CPLEX_DLL, CPLEX_CMD, COINMP_DLL, PULP_CBC_CMD]:
+    if solver.__class__ in [CPLEX_DLL, CPLEX_CMD, COINMP_DLL,
+            PULP_CBC_CMD, YAPOSIB, PYGLPK]:
         print "\t Testing dual variables and slacks reporting"
         pulpTestCheck(prob, solver, [LpStatusOptimal],
                   sol = {x:4, y:-1, z:6},
