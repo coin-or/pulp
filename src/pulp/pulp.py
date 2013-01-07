@@ -1915,7 +1915,7 @@ class LpVariableDict(dict):
         if key in self:
             return dict.__getitem__(self, key)
         else:
-            self[key] = LpVariable(name % key, lowBound, upBound, cat)
+            self[key] = LpVariable(self.name % key, lowBound, upBound, cat)
             return self[key]
 
 # Utility functions
