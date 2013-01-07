@@ -251,6 +251,7 @@ class LpVariable(LpElement):
         self.upBound = upBound
         self.cat = cat
         self.varValue = None
+        self.dj = None
         self.init = 0
         #code to add a variable to constraints for column based
         # modelling
@@ -825,6 +826,8 @@ class LpConstraint(LpAffineExpression):
         if rhs is not None:
             self.constant = - rhs
         self.sense = sense
+        self.pi = None
+        self.slack = None
         self.modified = True
 
     def getLb(self):
