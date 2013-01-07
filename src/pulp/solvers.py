@@ -536,6 +536,7 @@ try:
         CPX_PARAM_EPGAP = 2009
         CPX_PARAM_MEMORYEMPHASIS = 1082 # from Cplex 11.0 manual
         CPX_PARAM_TILIM = 1039
+        CPX_PARAM_LPMETHOD = 1062
         #argtypes for CPLEX functions
         lib.CPXsetintparam.argtypes = [ctypes.c_void_p,
                          ctypes.c_int, ctypes.c_int]
@@ -590,6 +591,18 @@ try:
             """
             CPLEX_DLL.lib.CPXsetdblparam(self.env,CPLEX_DLL.CPX_PARAM_EPGAP,
                                             epgap)
+
+        def setLpAlgorithm(self, algo):
+            """
+            Select the LP algorithm to use.
+
+            See your CPLEX manual for valid values of algo.  For CPLEX
+            12.1 these are 0 for "automatic", 1 primal, 2 dual, 3 network, 4
+            barrier, 5 sifting and 6 concurrent.  Currently the default setting
+            0 always choooses dual simplex.
+            """
+            CPLEX_DLL.lib.CPXsetintparam(self.env,CPLEX_DLL.CPX_PARAM_LPMETHOD,
+                                         algo)
 
         def setTimeLimit(self, timeLimit = 0.0):
             """
@@ -876,6 +889,35 @@ try:
                 startsBase, lenBase, indBase, \
                 elemBase, lowerBounds, upperBounds, initValues, colNames, \
                 columnType
+
+        def objSa(self, vars = None):
+            """Objective coefficient sensitivity analysis.
+
+            Called after a problem has been solved, this function
+            returns a dict mapping variables to pairs (lo, hi) indicating
+            that the objective coefficient of the variable can vary
+            between lo and hi without changing the optimal basis
+            (if other coefficients remain constant).  If an iterable
+            vars is given, results are returned only for variables in vars.
+            """
+            if vars is None:
+                v2n = self.v2n
+            else:
+                v2n = dict((v, self.v2n[v]) for v in vars)
+            ifirst = min(v2n.itervalues())
+            ilast = max(v2n.itervalues())
+
+            row_t = ctypes.c_double * (ilast - ifirst + 1)
+            lo = row_t()
+            hi = row_t()
+            status = ctypes.c_int()
+            status.value = CPLEX_DLL.lib.CPXobjsa(self.env, self.hprob,
+                                                  ifirst, ilast, lo, hi)
+            if status.value != 0:
+                raise PulpSolverError, ("Error in CPXobjsa, status="
+                                        + str(status))
+            return dict((v, (lo[i - ifirst], hi[i - ifirst]))
+                        for v, i in v2n.iteritems())
 
 
 
