@@ -360,10 +360,10 @@ class LpVariable(LpElement):
     def bounds(self, low, up):
         self.lowBound = low
         self.upBound = up
+        self.modified = True
 
     def positive(self):
-        self.lowBound = 0
-        self.upBound = None
+        self.bounds(0, None)
 
     def value(self):
         return self.varValue
