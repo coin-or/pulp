@@ -715,6 +715,7 @@ try:
                     "the call returned status=%s" % str(runtime_status) +
                     "Please check the pulp config file.")
             self.env = CPLEX_DLL.lib.CPXopenCPLEX(ctypes.byref(status))
+            self.hprob = None
             if not(status.value == 0):
                 raise PulpSolverError, ("CPLEX library failed on " +
                                     "CPXopenCPLEX status=" + str(status))
@@ -724,6 +725,7 @@ try:
             """Release a previously obtained CPLEX licence"""
             if getattr(self,"env",False):
                 status=CPLEX_DLL.lib.CPXcloseCPLEX(self.env)
+                self.env = self.hprob = None
             else:
                 raise PulpSolverError, "No CPLEX enviroment to close"
 
@@ -749,6 +751,8 @@ try:
             #TODO alter so that msg parameter is handled correctly
             status = ctypes.c_int()
             byref = ctypes.byref   #shortcut to function
+            if self.hprob is not None:
+                CPLEX_DLL.lib.CPXfreeprob(self.env, self.hprob)
             self.hprob = CPLEX_DLL.lib.CPXcreateprob(self.env,
                                                     byref(status), lp.name)
             if status.value != 0:
