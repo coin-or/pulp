@@ -46,7 +46,7 @@ problems.
                                 "README.CoinMP.txt",
                                 ],
                       'pulp.solverdir' : ['*','*.*']},
-      install_requires = ['pyparsing>=1.5.2'],
+      install_requires = ['pyparsing<=1.9.9'],
       entry_points = ("""
       [console_scripts]
       pulptest = pulp:pulpTestAll
