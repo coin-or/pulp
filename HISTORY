@@ -1,7 +1,8 @@
 # PuLP, Copyright J.S. Roy (js@jeannot.org), 2002-2005
 #       Copyright S.A.Mitchell (s.mitchell@auckland.ac.nz), 2007-
 # See the LICENSE file for copyright information.
-# @(#) $Jeannot: HISTORY,v 1.8 2005/05/05 09:23:51 js Exp $
+1.5.4, 2013-03-18
+    Added cbc support for osx (hopefully)
 1.4.9, 2011-03-30
     Added support for cplex runtime licenses
     Made PULP_CBC_CMD the default LP solver for linux
