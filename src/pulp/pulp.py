@@ -1981,9 +1981,9 @@ def combination(orgset, k = None):
     (3, 4)
     """
     try:
-        import probstat
-        return probstat.Combination(orgset,k)
-    except(ImportError):
+        from itertools import combination as _it_combination
+        return _it_combination(orgset, k)
+    except ImportError:
         return __combination(orgset,k)
 
 def __combination(orgset,k):
@@ -2029,9 +2029,9 @@ def permutation(orgset, k = None):
     (4, 3)
     """
     try:
-        import probstat
-        return probstat.Permutation(orgset, k)
-    except(ImportError):
+        from itertools import permutation as _it_permutation
+        return _it_permutation(orgset, k)
+    except ImportError:
         return __permutation(orgset, k)
 
 def __permutation(orgset, k):
