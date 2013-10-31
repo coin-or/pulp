@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 # PuLP : Python LP Modeler
-# Version 1.5.1
+
 
 # Copyright (c) 2002-2005, Jean-Sebastien Roy (js@jeannot.org)
 # Modifications Copyright (c) 2007- Stuart Anthony Mitchell (s.mitchell@auckland.ac.nz)
@@ -681,7 +681,7 @@ class LpAffineExpression(_DICT_TYPE):
                     term = " + %s" % self.constant
         if self._count_characters(line) + len(term) > LpCplexLPLineSize:
             result += ["".join(line)]
-            line += [term]
+            line = [term]
         else:
             line += [term]
         result += ["".join(line)]
