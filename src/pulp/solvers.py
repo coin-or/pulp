@@ -1323,8 +1323,7 @@ class COIN_CMD(LpSolver_CMD):
             cmds += "branch "
         else:
             cmds += "initialSolve "
-        if lp.isMIP:
-            cmds += "printingOptions rows "
+        cmds += "printingOptions rows "
         cmds += "solution "+tmpSol+" "
         if self.msg:
             pipe = None
@@ -1459,7 +1458,7 @@ class PULP_CBC_CMD(COIN_CMD):
             return False
         def actualSolve(self, lp, callback = None):
             """Solve a well formulated lp problem"""
-            raise PulpSolverError, "PULP_CBC_CMD: Not Available (check permissions on %s)" % arch_pulp_cbc_path
+            raise PulpSolverError, "PULP_CBC_CMD: Not Available (check permissions on %s)" % self.arch_pulp_cbc_path
     else:
         def __init__(self, path=None, *args, **kwargs):
             """
