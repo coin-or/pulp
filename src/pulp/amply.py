@@ -38,10 +38,10 @@ Usage:
 
     Symbols that are defined can be accessed as attributes or items.
 
-    >>> print a.T
-    3
-    >>> print a['T']
-    3
+    >>> print(a.T)
+    3.0
+    >>> print(a['T'])
+    3.0
 
     The load_string and load_file methods can be used to parse additional data
 
@@ -152,10 +152,10 @@ else:
         Transpose a matrix represented as a dict of dicts
         """
 
-        rows = data.keys()
+        rows = list(data.keys())
         cols = set()
-        for d in data.values():
-            cols.update(d.keys())
+        for d in list(data.values()):
+            cols.update(list(d.keys()))
 
         d = {}
 
@@ -337,7 +337,7 @@ else:
 
             old = self.next
             try:
-                self.next = self.it.next()
+                self.next = next(self.it)
             except StopIteration:
                 self.empty = True
             return old
@@ -445,7 +445,7 @@ else:
                 elif isinstance(record, TabularRecord):
                     record_data = record.data()
                     for row_symbol in record_data:
-                        for col_symbol, value in record_data[row_symbol].items():
+                        for col_symbol, value in list(record_data[row_symbol].items()):
                             self.setValue((row_symbol, col_symbol), _v(value))
 
         def _setSlice(self, slice):

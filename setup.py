@@ -3,6 +3,7 @@
 Setup script for PuLP added by Stuart Mitchell 2007
 Copyright 2007 Stuart Mitchell
 """
+import sys
 from ez_setup import use_setuptools
 use_setuptools()
 from setuptools import setup
@@ -12,6 +13,12 @@ Description = open('README').read()
 License = open('LICENSE').read()
 
 Version = open('VERSION').read().strip()
+
+#hack because pyparsing made version 2 python 3 specific
+if sys.version_info[0] <= 2:
+    pyparsing_ver = 'pyparsing<=1.9.9'
+else:
+    pyparsing_ver = 'pyparsing>=2.0.0'
 
 setup(name="PuLP",
       version=Version,
@@ -46,7 +53,7 @@ problems.
                                 "README.CoinMP.txt",
                                 ],
                       'pulp.solverdir' : ['*','*.*']},
-      install_requires = ['pyparsing<=1.9.9'],
+      install_requires = [pyparsing_ver],
       entry_points = ("""
       [console_scripts]
       pulptest = pulp:pulpTestAll

@@ -26,6 +26,6 @@ prob.writeLP("furniture.lp")
 prob.solve()
 # Each of the variables is printed with it's value
 for v in prob.variables():
-    print v.name, "=", v.varValue
+    print(v.name, "=", v.varValue)
 # The optimised objective function value is printed to the screen    
-print "Total Revenue from Production = ", value(prob.objective)
+print("Total Revenue from Production = ", value(prob.objective))

@@ -20,7 +20,11 @@ use the -c option to specify an alternate configuration file.
 $Id$
 """
 
-import os, shutil, sys, tempfile, urllib2
+import os, shutil, sys, tempfile
+try:
+    from urllib.request import urlopen
+except ImportError:
+    from urllib2 import urlopen
 from optparse import OptionParser
 
 tmpeggs = tempfile.mkdtemp()
@@ -54,16 +58,23 @@ try:
 except ImportError:
     ez = {}
     if USE_DISTRIBUTE:
-        exec urllib2.urlopen('http://python-distribute.org/distribute_setup.py'
-                         ).read() in ez
+        exec(urlopen('http://python-distribute.org/distribute_setup.py'
+                         ).read(), ez)
         ez['use_setuptools'](to_dir=tmpeggs, download_delay=0, no_fake=True)
     else:
-        exec urllib2.urlopen('http://peak.telecommunity.com/dist/ez_setup.py'
-                             ).read() in ez
+        try:
+            exec(urlopen('http://peak.telecommunity.com/dist/ez_setup.py')
+                 .read(), ez)
+        except SyntaxError:
+            exec(urlopen('http://python-distribute.org/distribute_setup.py')
+                 .read(), ez)
         ez['use_setuptools'](to_dir=tmpeggs, download_delay=0)
 
     if to_reload:
-        reload(pkg_resources)
+        try:
+            reload(pkg_resources)
+        except NameError:  # distribute is deprecated by now
+            pass
     else:
         import pkg_resources
 

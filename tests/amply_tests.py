@@ -1,5 +1,5 @@
 from pulp.amply import Amply, AmplyError
-from StringIO import StringIO
+from io import StringIO
 
 from nose.tools import assert_raises
 
@@ -38,7 +38,10 @@ def test_attr_access():
     assert result == 4
 
 def test_from_file():
-    s = StringIO("param T:= 4;")
+    try:
+        s = StringIO("param T:= 4;")
+    except TypeError:
+        s = StringIO(u"param T:= 4;")
     assert Amply.from_file(s).T == 4
 
 def test_load_string():
@@ -50,7 +53,10 @@ def test_load_string():
 
 def test_load_file():
     a = Amply("param T:= 4; param X{foo};")
-    s = StringIO("param S := 6; param X := 1 2;")
+    try:
+        s = StringIO("param S := 6; param X := 1 2;")
+    except TypeError:
+        s = StringIO(u"param S := 6; param X := 1 2;")
     a.load_file(s)
     assert a.T == 4
     assert a.S == 6

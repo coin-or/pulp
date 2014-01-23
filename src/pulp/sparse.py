@@ -46,19 +46,19 @@ class Matrix(dict):
                 self.rowdict[row][col] = item
                 self.coldict[col][row] = item
             else:
-                print self.cols
-                raise RuntimeError, "col %s is not in the matrix columns"%col
+                print(self.cols)
+                raise RuntimeError("col %s is not in the matrix columns"%col)
         else:
-            raise RuntimeError, "row %s is not in the matrix rows"%row
+            raise RuntimeError("row %s is not in the matrix rows"%row)
     
     def addcol(self,col,rowitems):
         """adds a column
         """
         if col in self.cols:
-            for row,item in rowitems.iteritems():
+            for row,item in rowitems.items():
                 self.add(row, col, item, colcheck = False)
         else:
-            raise RuntimeError, "col is not in the matrix columns"
+            raise RuntimeError("col is not in the matrix columns")
             
         
         
@@ -73,8 +73,8 @@ class Matrix(dict):
         lenBase = []
         for i,col in enumerate(self.cols):
             startsBase.append(len(elemBase))
-            elemBase.extend(self.coldict[col].values())
-            indBase.extend(self.coldict[col].keys())
+            elemBase.extend(list(self.coldict[col].values()))
+            indBase.extend(list(self.coldict[col].keys()))
             lenBase.append(len(elemBase) - startsBase[-1])
         startsBase.append(len(elemBase))
         return numEls, startsBase, lenBase, indBase, elemBase
@@ -82,11 +82,11 @@ class Matrix(dict):
 if __name__ == "__main__":
     """ unit test
     """
-    rows = range(10)
-    cols = range(50,60)
+    rows = list(range(10))
+    cols = list(range(50,60))
     mat = Matrix(rows,cols)
     mat.add(1,52,"item")
     mat.add(2,54,"stuff")
-    print mat.col_based_arrays()
+    print(mat.col_based_arrays())
 
 

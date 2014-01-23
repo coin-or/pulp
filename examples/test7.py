@@ -23,13 +23,13 @@ prob.writeLP("test7.lp")
 
 prob.solve()
 
-print "Status:", LpStatus[prob.status]
+print("Status:", LpStatus[prob.status])
 
 for v in prob.variables():
-	print v.name, "=", v.varValue, "\tReduced Cost =", v.dj
+	print(v.name, "=", v.varValue, "\tReduced Cost =", v.dj)
 
-print "objective=", value(prob.objective)
+print("objective=", value(prob.objective))
 
-print "\nSensitivity Analysis\nConstraint\t\tShadow Price\tSlack"
-for name, c in prob.constraints.items():
-	print name, ":", c, "\t", c.pi, "\t\t", c.slack
+print("\nSensitivity Analysis\nConstraint\t\tShadow Price\tSlack")
+for name, c in list(prob.constraints.items()):
+	print(name, ":", c, "\t", c.pi, "\t\t", c.slack)

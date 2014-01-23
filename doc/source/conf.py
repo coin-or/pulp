@@ -41,8 +41,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'PuLP'
-copyright = u'2009-, pulp documentation team.'
+project = 'PuLP'
+copyright = '2009-, pulp documentation team.'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -176,8 +176,8 @@ htmlhelp_basename = 'pulpdoc'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'pulp.tex', u'pulp Documentation',
-   u'pulp documentation team', 'manual'),
+  ('index', 'pulp.tex', 'pulp Documentation',
+   'pulp documentation team', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of

@@ -4,18 +4,18 @@ The Full Sponge Roll Problem using Classes for the PuLP Modeller
 Authors: Antony Phillips, Dr Stuart Mitchell    2007
 """
 
-def calculatePatterns(totalRollLength,lenOpts,head): 
+def calculatePatterns(totalRollLength,lenOpts,head):
     """
      Recursively calculates the list of options lists for a cutting stock problem. The input
      'tlist' is a pointer, and will be the output of the function call.
-    
+
      The inputs are:
      totalRollLength - the length of the roll
      lenOpts - a list of the sizes of remaining cutting options
      head - the current list that has been passed down though the recusion
-    
+
      Returns the list of patterns
-    
+
      Authors: Bojan Blazevic, Dr Stuart Mitchell    2007
     """
     if lenOpts:
@@ -24,10 +24,10 @@ def calculatePatterns(totalRollLength,lenOpts,head):
         opt = lenOpts[0]
         for rep in range(int(totalRollLength/opt)+1):
             #reduce the length
-            l = totalRollLength - rep*opt 
+            l = totalRollLength - rep*opt
             h = head[:]
             h.append(rep)
-            
+
             patterns.extend(calculatePatterns(l, lenOpts[1:], h))
     else:
         #end of the recursion
@@ -37,33 +37,33 @@ def calculatePatterns(totalRollLength,lenOpts,head):
 def makePatterns(totalRollLength,lenOpts):
     """
      Makes the different cutting patterns for a cutting stock problem.
-    
+
      The inputs are:
      totalRollLength : the length of the roll
      lenOpts: a list of the sizes of cutting options as strings
-    
+
      Authors: Antony Phillips, Dr Stuart Mitchell    2007
     """
-            
+
     # calculatePatterns is called to create a list of the feasible cutting options in 'tlist'
     patternslist = calculatePatterns(totalRollLength,lenOpts,[])
-    
-    # The list 'PatternNames' is created 
+
+    # The list 'PatternNames' is created
     PatternNames = []
     for i in range(len(patternslist)):
         PatternNames += ["P"+str(i)]
-        
+
     #Patterns = [0 for i in range(len(PatternNames))]
-    Patterns = [] 
-            
+    Patterns = []
+
     for i,j in enumerate(PatternNames):
         Patterns += [Pattern(j, patternslist[i])]
-    
+
     # The different cutting lengths are printed, and the number of each roll of that length in each
     # pattern is printed below. This is so the user can see what each pattern contains.
-    print "Lens: %s" %lenOpts 
+    print("Lens: %s" %lenOpts)
     for i in Patterns:
-        print i, " = %s"%[i.lengthsdict[j] for j in lenOpts]
+        print(i, " = %s"%[i.lengthsdict[j] for j in lenOpts])
 
     return Patterns
 
@@ -76,18 +76,18 @@ class Pattern:
     trimValue = 0.04
     totalRollLength = 20
     lenOpts = [5, 7, 9]
-    
+
     def __init__(self,name,lengths = None):
-        self.name = name        
+        self.name = name
         self.lengthsdict = dict(zip(self.lenOpts,lengths))
-        
+
     def __str__(self):
         return self.name
-    
+
     def trim(self):
         return Pattern.totalRollLength - sum([int(i)*self.lengthsdict[i] for i in self.lengthsdict])
-    
-    
+
+
 # Import PuLP modeler functions
 from pulp import *
 
@@ -97,7 +97,7 @@ rollData = {#Length Demand SalePrice
               9:   [300,   0.40]}
 
 # The pattern names and the patterns are created as lists, and the associated trim with each pattern
-# is created as a dictionary. The inputs are the total roll length and the list (as integers) of 
+# is created as a dictionary. The inputs are the total roll length and the list (as integers) of
 # cutting options.
 Patterns = makePatterns(Pattern.totalRollLength,Pattern.lenOpts)
 
@@ -119,7 +119,7 @@ prob += lpSum([pattVars[i]*Pattern.cost for i in Patterns]) - lpSum([surplusVars
 # The demand minimum constraint is entered
 for j in Pattern.lenOpts:
     prob += lpSum([pattVars[i]*i.lengthsdict[j] for i in Patterns]) - surplusVars[j] >= rollDemand[j],"Ensuring enough %s cm rolls"%j
-    
+
 # The problem data is written to an .lp file
 prob.writeLP("SpongeRollProblem.lp")
 
@@ -127,11 +127,11 @@ prob.writeLP("SpongeRollProblem.lp")
 prob.solve()
 
 # The status of the solution is printed to the screen
-print "Status:", LpStatus[prob.status]
+print("Status:", LpStatus[prob.status])
 
 # Each of the variables is printed with it's resolved optimum value
 for v in prob.variables():
-    print v.name, "=", v.varValue
+    print(v.name, "=", v.varValue)
 
 # The optimised objective function value is printed to the screen
-print "Production Costs = ", value(prob.objective)
+print("Production Costs = ", value(prob.objective))

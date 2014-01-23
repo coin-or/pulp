@@ -16,8 +16,8 @@ B = 500 # Resources available for the two years
 s = 20 # Number of scenarios
 n = 10 # Number of projects
 
-N = range(n)
-S = range(s)
+N = list(range(n))
+S = list(range(s))
 
 # First year costs
 c = [randint(0,C) for i in N]
@@ -56,4 +56,4 @@ lp.solve()
 
 # Solution printing
 for i in N:
-	print x[i], "=", x[i].value()
+	print(x[i], "=", x[i].value())

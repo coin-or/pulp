@@ -25,11 +25,11 @@ D = 100
 n = 10*(m-1)
 
 # A vector of n binary variables
-x = LpVariable.matrix("x", range(n), 0, 1, LpInteger)
+x = LpVariable.matrix("x", list(range(n)), 0, 1, LpInteger)
 
 # Slacks
-s = LpVariable.matrix("s", range(m), 0)
-w = LpVariable.matrix("w", range(m), 0)
+s = LpVariable.matrix("s", list(range(m)), 0)
+w = LpVariable.matrix("w", list(range(m)), 0)
 
 # Objective
 prob += lpSum(s) + lpSum(w)
@@ -43,11 +43,11 @@ for j in range(m):
 prob.solve()
 
 # Print the status of the solved LP
-print "Status:", LpStatus[prob.status]
+print("Status:", LpStatus[prob.status])
 
 # Print the value of the variables at the optimum
 for v in prob.variables():
-	print v.name, "=", v.varValue
+	print(v.name, "=", v.varValue)
 
 # Print the value of the objective
-print "objective=", value(prob.objective)
+print("objective=", value(prob.objective))
