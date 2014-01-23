@@ -19,7 +19,7 @@ n = 15
 k = floor(log(n)/log(2));
 
 # A vector of n binary variables
-x = LpVariable.matrix("x", range(n), 0, 1, LpInteger)
+x = LpVariable.matrix("x", list(range(n)), 0, 1, LpInteger)
 
 # A vector of weights
 a = [pow(2,k + n + 1) + pow(2,k + n + 1 - j) + 1 for j in range(1,n+1)]
@@ -38,11 +38,11 @@ prob += weight <= b
 prob.solve()
 
 # Print the status of the solved LP
-print "Status:", LpStatus[prob.status]
+print("Status:", LpStatus[prob.status])
 
 # Print the value of the variables at the optimum
 for v in prob.variables():
-	print v.name, "=", v.varValue
+	print(v.name, "=", v.varValue)
 
 # Print the value of the objective
-print "objective=", value(prob.objective)
+print("objective=", value(prob.objective))

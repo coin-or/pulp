@@ -97,9 +97,14 @@ import types
 import string
 import itertools
 
-from constants import *
-from solvers import *
+from .constants import *
+from .solvers import *
 from types import GeneratorType
+
+try:  # allow Python 2/3 compatibility
+    maketrans = str.maketrans
+except AttributeError:
+    from string import maketrans
 
 _DICT_TYPE = dict
 
@@ -151,7 +156,7 @@ class LpElement(object):
     """Base class for LpVariable and LpConstraintVar
     """
     #to remove illegal characters from the names
-    trans = string.maketrans("-+[] ->/","________")
+    trans = maketrans("-+[] ->/","________")
     def setName(self,name):
         if name:
             self.__name = str(name).translate(self.trans)
@@ -182,7 +187,7 @@ class LpElement(object):
     def __pos__(self):
         return self
 
-    def __nonzero__(self):
+    def __bool__(self):
         return 1
 
     def __add__(self, other):
@@ -207,7 +212,7 @@ class LpElement(object):
         return LpAffineExpression(self)/other
 
     def __rdiv__(self, other):
-        raise TypeError, "Expressions cannot be divided by a variable"
+        raise TypeError("Expressions cannot be divided by a variable")
 
     def __le__(self, other):
         return LpAffineExpression(self) <= other
@@ -421,7 +426,7 @@ class LpVariable(LpElement):
         return True
 
     def infeasibilityGap(self, mip = 1):
-        if self.varValue == None: raise ValueError, "variable value is None"
+        if self.varValue == None: raise ValueError("variable value is None")
         if self.upBound != None and self.varValue > self.upBound:
             return self.varValue - self.upBound
         if self.lowBound != None and self.varValue < self.lowBound:
@@ -512,7 +517,7 @@ class LpAffineExpression(_DICT_TYPE):
        1*x_0 + -3*x_1 + 4*x_2 + 0
     """
     #to remove illegal characters from the names
-    trans = string.maketrans("-+[] ","_____")
+    trans = maketrans("-+[] ","_____")
     def setName(self,name):
         if name:
             self.__name = str(name).translate(self.trans)
@@ -532,10 +537,10 @@ class LpAffineExpression(_DICT_TYPE):
         if isinstance(e, LpAffineExpression):
             # Will not copy the name
             self.constant = e.constant
-            super(LpAffineExpression, self).__init__(e.items())
+            super(LpAffineExpression, self).__init__(list(e.items()))
         elif isinstance(e, dict):
             self.constant = constant
-            super(LpAffineExpression, self).__init__(e.items())
+            super(LpAffineExpression, self).__init__(list(e.items()))
         elif isinstance(e, list) or isinstance(e, GeneratorType):
             self.constant = constant
             super(LpAffineExpression, self).__init__(e)
@@ -549,22 +554,22 @@ class LpAffineExpression(_DICT_TYPE):
     # Proxy functions for variables
 
     def isAtomic(self):
-        return len(self) == 1 and self.constant == 0 and self.values()[0] == 1
+        return len(self) == 1 and self.constant == 0 and list(self.values())[0] == 1
 
     def isNumericalConstant(self):
         return len(self) == 0
 
     def atom(self):
-        return self.keys()[0]
+        return list(self.keys())[0]
 
     # Functions on expressions
 
-    def __nonzero__(self):
-        return float(self.constant) != 0 or len(self)
+    def __bool__(self):
+        return (float(self.constant) != 0.0) or (len(self) > 0)
 
     def value(self):
         s = self.constant
-        for v,x in self.iteritems():
+        for v,x in self.items():
             if v.varValue is None:
                 return None
             s += v.varValue * x
@@ -572,7 +577,7 @@ class LpAffineExpression(_DICT_TYPE):
 
     def valueOrDefault(self):
         s = self.constant
-        for v,x in self.iteritems():
+        for v,x in self.items():
             s += v.valueOrDefault() * x
         return s
 
@@ -699,10 +704,10 @@ class LpAffineExpression(_DICT_TYPE):
                 self.addInPlace(e)
         elif isinstance(other,LpAffineExpression):
             self.constant += other.constant
-            for v,x in other.iteritems():
+            for v,x in other.items():
                 self.addterm(v, x)
         elif isinstance(other,dict):
-            for e in other.itervalues():
+            for e in other.values():
                 self.addInPlace(e)
         else:
             self.constant += other
@@ -719,10 +724,10 @@ class LpAffineExpression(_DICT_TYPE):
                 self.subInPlace(e)
         elif isinstance(other,LpAffineExpression):
             self.constant -= other.constant
-            for v,x in other.iteritems():
+            for v,x in other.items():
                 self.addterm(v, -x)
         elif isinstance(other,dict):
-            for e in other.itervalues():
+            for e in other.values():
                 self.subInPlace(e)
         else:
             self.constant -= other
@@ -731,7 +736,7 @@ class LpAffineExpression(_DICT_TYPE):
     def __neg__(self):
         e = self.emptyCopy()
         e.constant = - self.constant
-        for v,x in self.iteritems():
+        for v,x in self.items():
             e[v] = - x
         return e
 
@@ -756,23 +761,23 @@ class LpAffineExpression(_DICT_TYPE):
             e.constant = self.constant * other.constant
             if len(other):
                 if len(self):
-                    raise TypeError, "Non-constant expressions cannot be multiplied"
+                    raise TypeError("Non-constant expressions cannot be multiplied")
                 else:
                     c = self.constant
                     if c != 0:
-                        for v,x in other.iteritems():
+                        for v,x in other.items():
                             e[v] = c * x
             else:
                 c = other.constant
                 if c != 0:
-                    for v,x in self.iteritems():
+                    for v,x in self.items():
                         e[v] = c * x
         elif isinstance(other,LpVariable):
             return self * LpAffineExpression(other)
         else:
             if other != 0:
                 e.constant = self.constant * other
-                for v,x in self.iteritems():
+                for v,x in self.items():
                     e[v] = other * x
         return e
 
@@ -782,22 +787,22 @@ class LpAffineExpression(_DICT_TYPE):
     def __div__(self, other):
         if isinstance(other,LpAffineExpression) or isinstance(other,LpVariable):
             if len(other):
-                raise TypeError, "Expressions cannot be divided by a non-constant expression"
+                raise TypeError("Expressions cannot be divided by a non-constant expression")
             other = other.constant
         e = self.emptyCopy()
         e.constant = self.constant / other
-        for v,x in self.iteritems():
+        for v,x in self.items():
             e[v] = x / other
         return e
 
     def __rdiv__(self, other):
         e = self.emptyCopy()
         if len(self):
-            raise TypeError, "Expressions cannot be divided by a non-constant expression"
+            raise TypeError("Expressions cannot be divided by a non-constant expression")
         c = self.constant
         if isinstance(other,LpAffineExpression):
             e.constant = other.constant / c
-            for v,x in other.iteritems():
+            for v,x in other.items():
                 e[v] = x / c
         else:
             e.constant = other / c
@@ -855,7 +860,7 @@ class LpConstraint(LpAffineExpression):
         Returns a constraint as a string
         """
         result, line = self.asCplexVariablesOnly(name)
-        if not self.keys():
+        if not list(self.keys()):
             line += ["0"]
         c = -self.constant
         if c == 0:
@@ -1109,7 +1114,7 @@ class LpProblem(object):
 
         if self.constraints:
             string += "SUBJECT TO\n"
-            for n, c in self.constraints.iteritems():
+            for n, c in self.constraints.items():
                 string += c.asCplexLpConstraint(n) +"\n"
         string += "VARIABLES\n"
         for v in self.variables():
@@ -1131,7 +1136,7 @@ class LpProblem(object):
         if lpcopy.objective is not None:
             lpcopy.objective = self.objective.copy()
         lpcopy.constraints = {}
-        for k,v in self.constraints.iteritems():
+        for k,v in self.constraints.items():
             lpcopy.constraints[k] = v.copy()
         lpcopy.sos1 = self.sos1.copy()
         lpcopy.sos2 = self.sos2.copy()
@@ -1179,7 +1184,7 @@ class LpProblem(object):
     def valid(self, eps = 0):
         for v in self.variables():
             if not v.valid(eps): return False
-        for c in self.constraints.itervalues():
+        for c in self.constraints.values():
             if not c.valid(eps): return False
         else:
             return True
@@ -1188,7 +1193,7 @@ class LpProblem(object):
         gap = 0
         for v in self.variables():
             gap = max(abs(v.infeasibilityGap(mip)), gap)
-        for c in self.constraints.itervalues():
+        for c in self.constraints.values():
             if not c.valid(0):
                 gap = max(abs(c.value()), gap)
         return gap
@@ -1223,9 +1228,9 @@ class LpProblem(object):
             - A list of the problem variables
         """
         if self.objective:
-            self.addVariables(self.objective.keys())
-        for c in self.constraints.itervalues():
-            self.addVariables(c.keys())
+            self.addVariables(list(self.objective.keys()))
+        for c in self.constraints.values():
+            self.addVariables(list(c.keys()))
         variables = self._variables
         #sort the varibles DSU
         variables = [[v.name, v] for v in variables]
@@ -1238,7 +1243,7 @@ class LpProblem(object):
         if self.objective:
             for v in self.objective:
                 variables[v.name] = v
-        for c in self.constraints.values():
+        for c in list(self.constraints.values()):
             for v in c:
                 variables[v.name] = v
         return variables
@@ -1248,7 +1253,7 @@ class LpProblem(object):
 
     def addConstraint(self, constraint, name = None):
         if not isinstance(constraint, LpConstraint):
-            raise TypeError, "Can only add LpConstraint objects"
+            raise TypeError("Can only add LpConstraint objects")
         if name:
             constraint.name = name
         try:
@@ -1257,19 +1262,19 @@ class LpProblem(object):
             else:
                 name = self.unusedConstraintName()
         except AttributeError:
-            raise TypeError, "Can only add LpConstraint objects"
+            raise TypeError("Can only add LpConstraint objects")
             #removed as this test fails for empty constraints
 #        if len(constraint) == 0:
 #            if not constraint.valid():
 #                raise ValueError, "Cannot add false constraints"
         if name in self.constraints:
             if self.noOverlap:
-                raise PulpError, "overlapping constraint names: " + name
+                raise PulpError("overlapping constraint names: " + name)
             else:
-                print "Warning: overlapping constraint names:", name
+                print("Warning: overlapping constraint names:", name)
         self.constraints[name] = constraint
         self.modifiedConstraints.append(constraint)
-        self.addVariables(constraint.keys())
+        self.addVariables(list(constraint.keys()))
 
     def setObjective(self,obj):
         """
@@ -1310,7 +1315,7 @@ class LpProblem(object):
             self.objective = LpAffineExpression(other)
             self.objective.name = name
         else:
-            raise TypeError, "Can only add LpConstraintVar, LpConstraint, LpAffineExpression or True objects"
+            raise TypeError("Can only add LpConstraintVar, LpConstraint, LpAffineExpression or True objects")
         return self
 
     def extend(self, other, use_objective = True):
@@ -1332,7 +1337,7 @@ class LpProblem(object):
         elif isinstance(other, LpProblem):
             for v in set(other.variables()).difference(self.variables()):
                 v.name = other.name + v.name
-            for name,c in other.constraints.iteritems():
+            for name,c in other.constraints.items():
                 c.name = other.name + name
                 self.addConstraint(c)
             if use_objective:
@@ -1363,7 +1368,7 @@ class LpProblem(object):
 
     def writeMPS(self, filename, mpsSense = 0, rename = 0, mip = 1):
         wasNone, dummyVar = self.fixObjective()
-        f = file(filename, "w")
+        f = open(filename, "w")
         if mpsSense == 0: mpsSense = self.sense
         cobj = self.objective
         if mpsSense != self.sense:
@@ -1383,7 +1388,7 @@ class LpProblem(object):
         if not objName: objName = "OBJ"
         f.write(" N  %s\n" % objName)
         mpsConstraintType = {LpConstraintLE:"L", LpConstraintEQ:"E", LpConstraintGE:"G"}
-        for k,c in self.constraints.iteritems():
+        for k,c in self.constraints.items():
             if rename: k = constraintsNames[k]
             f.write(" "+mpsConstraintType[c.sense]+"  "+k+"\n")
         # matrix
@@ -1391,7 +1396,7 @@ class LpProblem(object):
         # Creation of a dict of dict:
         # coefs[nomVariable][nomContrainte] = coefficient
         coefs = {}
-        for k,c in self.constraints.iteritems():
+        for k,c in self.constraints.items():
             if rename: k = constraintsNames[k]
             for v in c:
                 n = v.name
@@ -1417,7 +1422,7 @@ class LpProblem(object):
                 f.write("    MARK      'MARKER'                 'INTEND'\n")
         # right hand side
         f.write("RHS\n")
-        for k,c in self.constraints.iteritems():
+        for k,c in self.constraints.items():
             c = -c.constant
             if rename: k = constraintsNames[k]
             if c == 0: c = 0
@@ -1466,7 +1471,7 @@ class LpProblem(object):
         Side Effects:
             - The file is created.
         """
-        f = file(filename, "w")
+        f = open(filename, "w")
         f.write("\\* "+self.name+" *\\\n")
         if self.sense == 1:
             f.write("Minimize\n")
@@ -1477,11 +1482,11 @@ class LpProblem(object):
         if not objName: objName = "OBJ"
         f.write(self.objective.asCplexLpAffineExpression(objName, constant = 0))
         f.write("Subject To\n")
-        ks = self.constraints.keys()
+        ks = list(self.constraints.keys())
         ks.sort()
         for k in ks:
             constraint = self.constraints[k]
-            if not constraint.keys():
+            if not list(constraint.keys()):
                 #empty constraint add the dummyVar
                 constraint += self.get_dummyVar()
             f.write(constraint.asCplexLpConstraint(k))
@@ -1495,7 +1500,7 @@ class LpProblem(object):
         repeated_names = {}
         for v in vs:
             repeated_names[v.name] = repeated_names.get(v.name, 0) + 1
-        repeated_names = [(key, value) for key, value in repeated_names.items()
+        repeated_names = [(key, value) for key, value in list(repeated_names.items())
                             if value >= 2]
         if repeated_names:
             raise PulpError('Repeated variable names in Lp format\n'
@@ -1527,14 +1532,14 @@ class LpProblem(object):
         if writeSOS and (self.sos1 or self.sos2):
             f.write("SOS\n")
             if self.sos1:
-                for sos in self.sos1.itervalues():
+                for sos in self.sos1.values():
                     f.write("S1:: \n")
-                    for v,val in sos.iteritems():
+                    for v,val in sos.items():
                         f.write(" %s: %.12g\n" % (v.name, val))
             if self.sos2:
-                for sos in self.sos2.itervalues():
+                for sos in self.sos2.values():
                     f.write("S2:: \n")
-                    for v,val in sos.iteritems():
+                    for v,val in sos.items():
                         f.write(" %s: %.12g\n" % (v.name, val))
         f.write("End\n")
         f.close()
@@ -1830,7 +1835,7 @@ class FractionElasticSubProblem(FixedElasticSubProblem):
             self.denominator = denominator
             self.complement = denominator - numerator
         else:
-            raise PulpError, 'only one of denominator and complement must be specified'
+            raise PulpError('only one of denominator and complement must be specified')
         self.RHS = RHS
         self.lowTarget = self.upTarget = None
         LpProblem.__init__(self, subProblemName, LpMinimize)
@@ -1972,7 +1977,7 @@ def combination(orgset, k = None):
 
     >>> c = combination([1,2,3,4],2)
     >>> for s in c:
-    ...     print s
+    ...     print(s)
     (1, 2)
     (1, 3)
     (1, 4)
@@ -2014,7 +2019,7 @@ def permutation(orgset, k = None):
 
     >>> c = permutation([1,2,3,4],2)
     >>> for s in c:
-    ...     print s
+    ...     print(s)
     (1, 2)
     (1, 3)
     (1, 4)
@@ -2061,7 +2066,7 @@ def allpermutations(orgset,k):
 
     >>> c = allpermutations([1,2,3,4],2)
     >>> for s in c:
-    ...     print s
+    ...     print(s)
     (1,)
     (2,)
     (3,)
@@ -2094,7 +2099,7 @@ def allcombinations(orgset,k):
 
     >>> c = allcombinations([1,2,3,4],2)
     >>> for s in c:
-    ...     print s
+    ...     print(s)
     (1,)
     (2,)
     (3,)
@@ -2203,18 +2208,18 @@ def configSolvers():
     """
     configlist = [(cplex_dll_path,"cplexpath","CPLEX: "),
                   (coinMP_path, "coinmppath","CoinMP dll (windows only): ")]
-    print ("Please type the full path including filename and extension \n" +
+    print("Please type the full path including filename and extension \n" +
            "for each solver available")
     configdict = {}
     for (default, key, msg) in configlist:
-        value = raw_input(msg + "[" + str(default) +"]")
+        value = input(msg + "[" + str(default) +"]")
         if value:
             configdict[key] = value
     setConfigInformation(**configdict)
 
 
 def pulpTestAll():
-    from tests import pulpTestSolver
+    from .tests import pulpTestSolver
     solvers = [PULP_CBC_CMD,
                CPLEX_DLL,
                CPLEX_CMD,
@@ -2231,14 +2236,14 @@ def pulpTestAll():
 
     for s in solvers:
         if s().available():
-            #~ try:
+            try:
                 pulpTestSolver(s)
-                print "* Solver", s, "passed."
-            #~ except Exception, e:
-                #~ print e
-                #~ print "* Solver", s, "failed."
+                print("* Solver %s passed." % s)
+            except Exception as e:
+                print(e)
+                print("* Solver", s, "failed.")
         else:
-            print "Solver", s, "unavailable."
+            print("Solver %s unavailable" % s)
 
 def pulpDoctest():
     """
@@ -2246,7 +2251,7 @@ def pulpDoctest():
     """
     import doctest
     if __name__ != '__main__':
-        import pulp
+        from . import pulp
         doctest.testmod(pulp)
     else:
         doctest.testmod()

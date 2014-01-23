@@ -63,9 +63,9 @@ def makePatterns(totalRollLength,lenOpts):
         trim[name] = totalRollLength - ssum
     # The different cutting lengths are printed, and the number of each roll of that length in each
     # pattern is printed below. This is so the user can see what each pattern contains.
-    print "Lens: %s" %lenOpts 
+    print("Lens: %s" %lenOpts) 
     for name,pattern in zip(PatternNames,patterns):
-        print name + "  = %s"%pattern  
+        print(name + "  = %s"%pattern)  
 
     return (PatternNames,patterns,trim)
 
@@ -125,11 +125,11 @@ prob.writeLP("SpongeRollProblem.lp")
 prob.solve()
 
 # The status of the solution is printed to the screen
-print "Status:", LpStatus[prob.status]
+print("Status:", LpStatus[prob.status])
 
 # Each of the variables is printed with it's resolved optimum value
 for v in prob.variables():
-    print v.name, "=", v.varValue
+    print(v.name, "=", v.varValue)
 
 # The optimised objective function value is printed to the screen
-print "Production Costs = ", value(prob.objective)
+print("Production Costs = ", value(prob.objective))

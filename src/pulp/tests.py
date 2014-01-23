@@ -1,7 +1,7 @@
 """
 Tests for pulp
 """
-from pulp import *
+from .pulp import *
 
 def pulpTestCheck(prob, solver, okstatus, sol = {},
                    reducedcosts = None,
@@ -16,41 +16,41 @@ def pulpTestCheck(prob, solver, okstatus, sol = {},
     if status not in okstatus:
         prob.writeLP("debug.lp")
         prob.writeMPS("debug.mps")
-        print "Failure: status ==", status, "not in", okstatus
-        print "Failure: status ==", LpStatus[status], "not in", \
-                                [LpStatus[s] for s in okstatus]
-        raise PulpError, "Tests failed for solver %s"%solver
+        print("Failure: status ==", status, "not in", okstatus)
+        print("Failure: status ==", LpStatus[status], "not in", \
+                                [LpStatus[s] for s in okstatus])
+        raise PulpError("Tests failed for solver %s"%solver)
     if sol:
-        for v,x in sol.iteritems():
+        for v,x in sol.items():
             if abs(v.varValue - x) > eps:
                 prob.writeLP("debug.lp")
                 prob.writeMPS("debug.mps")
-                print "Test failed: var", v, "==", v.varValue, "!=", x
-                raise PulpError, "Tests failed for solver %s"%solver
+                print("Test failed: var", v, "==", v.varValue, "!=", x)
+                raise PulpError("Tests failed for solver %s"%solver)
     if reducedcosts:
-        for v,dj in reducedcosts.iteritems():
+        for v,dj in reducedcosts.items():
             if abs(v.dj - dj) > eps:
                 prob.writeLP("debug.lp")
                 prob.writeMPS("debug.mps")
-                print "Test failed: var.dj", v, "==", v.dj, "!=", dj
-                raise PulpError, "Tests failed for solver %s"%solver
+                print("Test failed: var.dj", v, "==", v.dj, "!=", dj)
+                raise PulpError("Tests failed for solver %s"%solver)
     if duals:
-        for cname,p in duals.iteritems():
+        for cname,p in duals.items():
             c = prob.constraints[cname]
             if abs(c.pi - p) > eps:
                 prob.writeLP("debug.lp")
                 prob.writeMPS("debug.mps")
-                print "Test failed: constraint.pi", cname , "==", c.pi, "!=", p
-                raise PulpError, "Tests failed for solver %s"%solver
+                print("Test failed: constraint.pi", cname , "==", c.pi, "!=", p)
+                raise PulpError("Tests failed for solver %s"%solver)
     if slacks:
-        for cname,slack in slacks.iteritems():
+        for cname,slack in slacks.items():
             c = prob.constraints[cname]
             if abs(c.slack - slack) > eps:
                 prob.writeLP("debug.lp")
                 prob.writeMPS("debug.mps")
-                print ("Test failed: constraint.slack", cname , "==",
-                        c.slack, "!=", slack)
-                raise PulpError, "Tests failed for solver %s"%solver
+                print(("Test failed: constraint.slack", cname , "==",
+                        c.slack, "!=", slack))
+                raise PulpError("Tests failed for solver %s"%solver)
 
 def pulpTest001(solver):
     """
@@ -61,7 +61,7 @@ def pulpTest001(solver):
     z = LpVariable("z", 0)
     c1 = x+y <= 5
     c2 = c1 + z -z
-    print "\t Testing zero subtraction"
+    print("\t Testing zero subtraction")
     assert str(c2)  #will raise an exception
 
 def pulpTest010(solver):
@@ -76,7 +76,7 @@ def pulpTest010(solver):
     prob += x+z >= 10, "c2"
     prob += -y+z == 7, "c3"
     prob += w >= 0, "c4"
-    print "\t Testing continuous LP solution"
+    print("\t Testing continuous LP solution")
     pulpTestCheck(prob, solver, [LpStatusOptimal], {x:4, y:-1, z:6, w:0})
 
 def pulpTest011(solver):
@@ -91,7 +91,7 @@ def pulpTest011(solver):
     prob += x+z >= 10, "c2"
     prob += -y+z == 7, "c3"
     prob += w >= 0, "c4"
-    print "\t Testing maximize continuous LP solution"
+    print("\t Testing maximize continuous LP solution")
     pulpTestCheck(prob, solver, [LpStatusOptimal], {x:4, y:1, z:8, w:0})
 
 def pulpTest012(solver):
@@ -106,13 +106,13 @@ def pulpTest012(solver):
     prob += x+z >= 10, "c2"
     prob += -y+z == 7, "c3"
     prob += w >= 0, "c4"
-    print "\t Testing unbounded continuous LP solution"
+    print("\t Testing unbounded continuous LP solution")
     if solver.__class__ in [GUROBI, CPLEX_CMD, YAPOSIB, CPLEX_PY]:
         # These solvers report infeasible or unbounded
         pulpTestCheck(prob, solver, [LpStatusInfeasible])
     elif solver.__class__ in [COINMP_DLL,]:
         # COINMP_DLL is just plain wrong
-        print '\t\t Error in CoinMP it reports Optimal'
+        print('\t\t Error in CoinMP it reports Optimal')
         pulpTestCheck(prob, solver, [LpStatusOptimal])
     elif solver.__class__ is GLPK_CMD:
         # GLPK_CMD Does not report unbounded problems, correctly
@@ -136,7 +136,7 @@ def pulpTest013(solver):
     prob += x+z >= 10, "c2"
     prob += -y+z == 7, "c3"
     prob += w >= 0, "c4"
-    print "\t Testing Long Names"
+    print("\t Testing Long Names")
     if solver.__class__ in [CPLEX_CMD, GLPK_CMD, GUROBI_CMD]:
         try:
             pulpTestCheck(prob, solver, [LpStatusOptimal], {x:4, y:-1, z:6, w:0})
@@ -158,7 +158,7 @@ def pulpTest014(solver):
     prob += x+z >= 10, "c2"
     prob += -y+z == 7, "c3"
     prob += w >= 0, "c4"
-    print "\t Testing repeated Names"
+    print("\t Testing repeated Names")
     if solver.__class__ in [COIN_CMD, PULP_CBC_CMD, CPLEX_CMD, CPLEX_PY,
             GLPK_CMD, GUROBI_CMD]:
         try:
@@ -182,7 +182,7 @@ def pulpTest015(solver):
     prob += -y+z == 7, "c3"
     prob += w >= 0, "c4"
     prob += lpSum([0, 0]) <= 0, "c5"
-    print "\t Testing zero constraint"
+    print("\t Testing zero constraint")
     pulpTestCheck(prob, solver, [LpStatusOptimal], {x:4, y:-1, z:6, w:0})
 
 def pulpTest016(solver):
@@ -197,7 +197,7 @@ def pulpTest016(solver):
     prob += -y+z == 7, "c3"
     prob += w >= 0, "c4"
     prob += lpSum([0, 0]) <= 0, "c5"
-    print "\t Testing zero objective"
+    print("\t Testing zero objective")
     pulpTestCheck(prob, solver, [LpStatusOptimal])
 
 def pulpTest017(solver):
@@ -213,7 +213,7 @@ def pulpTest017(solver):
     prob += -y+z == 7, "c3"
     prob += w >= 0, "c4"
     prob += lpSum([0, 0]) <= 0, "c5"
-    print "\t Testing LpVariable (not LpAffineExpression) objective"
+    print("\t Testing LpVariable (not LpAffineExpression) objective")
     pulpTestCheck(prob, solver, [LpStatusOptimal])
 
 def pulpTest018(solver):
@@ -229,7 +229,7 @@ def pulpTest018(solver):
     prob += -y+z == 7, "c3"
     prob += w >= 0, "c4"
     if solver.__class__ in [COIN_CMD]:
-        print "\t Testing Long lines in LP"
+        print("\t Testing Long lines in LP")
         pulpTestCheck(prob, solver, [LpStatusOptimal], {x:4, y:-1, z:6, w:0},
                     use_mps=False)
 
@@ -243,7 +243,7 @@ def pulpTest020(solver):
     prob += x+y <= 5, "c1"
     prob += x+z >= 10, "c2"
     prob += -y+z == 7.5, "c3"
-    print "\t Testing MIP solution"
+    print("\t Testing MIP solution")
     pulpTestCheck(prob, solver, [LpStatusOptimal], {x:3, y:-0.5, z:7})
 
 def pulpTest030(solver):
@@ -257,7 +257,7 @@ def pulpTest030(solver):
     prob += x+z >= 10, "c2"
     prob += -y+z == 7.5, "c3"
     solver.mip = 0
-    print "\t Testing MIP relaxation"
+    print("\t Testing MIP relaxation")
     if solver.__class__ in [GUROBI_CMD]:
         #gurobi command does not let the problem be relaxed
         pulpTestCheck(prob, solver, [LpStatusOptimal], {x:3.0, y:-0.5, z:7})
@@ -274,7 +274,7 @@ def pulpTest040(solver):
     prob += x+y <= 5, "c1"
     prob += x+z >= 10, "c2"
     prob += -y+z == 7.5, "c3"
-    print "\t Testing feasibility problem (no objective)"
+    print("\t Testing feasibility problem (no objective)")
     pulpTestCheck(prob, solver, [LpStatusOptimal])
 
 
@@ -287,7 +287,7 @@ def pulpTest050(solver):
     prob += x+y <= 5.2, "c1"
     prob += x+z >= 10.3, "c2"
     prob += -y+z == 17.5, "c3"
-    print "\t Testing an infeasible problem"
+    print("\t Testing an infeasible problem")
     if solver.__class__ is GLPK_CMD:
         # GLPK_CMD return codes are not informative enough
         pulpTestCheck(prob, solver, [LpStatusUndefined])
@@ -306,14 +306,14 @@ def pulpTest060(solver):
     prob += x+y <= 5.2, "c1"
     prob += x+z >= 10.3, "c2"
     prob += -y+z == 7.4, "c3"
-    print "\t Testing an integer infeasible problem"
+    print("\t Testing an integer infeasible problem")
     if solver.__class__ in [GLPK_CMD, COIN_CMD, PULP_CBC_CMD]:
         # GLPK_CMD returns InfeasibleOrUnbounded
         pulpTestCheck(prob, solver, [LpStatusInfeasible, LpStatusUndefined])
     elif solver.__class__ in [COINMP_DLL]:
         #Currently there is an error in COINMP for problems where
         #presolve eliminates too many variables
-        print "\t\t Error in CoinMP to be fixed, reports Optimal"
+        print("\t\t Error in CoinMP to be fixed, reports Optimal")
         pulpTestCheck(prob, solver, [LpStatusOptimal])
     elif solver.__class__ in [GUROBI_CMD]:
         pulpTestCheck(prob, solver, [LpStatusNotSolved])
@@ -337,7 +337,7 @@ def pulpTest070(solver):
     x = LpVariable("x", 0, 4, LpContinuous, obj + a + b)
     y = LpVariable("y", -1, 1, LpContinuous, 4*obj + a - c)
     z = LpVariable("z", 0, None, LpContinuous, 9*obj + b + c)
-    print "\t Testing column based modelling"
+    print("\t Testing column based modelling")
     pulpTestCheck(prob, solver, [LpStatusOptimal], {x:4, y:-1, z:6})
 
 def pulpTest075(solver):
@@ -359,7 +359,7 @@ def pulpTest075(solver):
     z = LpVariable("z", 0, None, LpContinuous, 9*obj + b + c)
     if solver.__class__ in [CPLEX_DLL, CPLEX_CMD, COINMP_DLL, YAPOSIB,
             PYGLPK]:
-        print "\t Testing column based modelling with empty constraints"
+        print("\t Testing column based modelling with empty constraints")
         pulpTestCheck(prob, solver, [LpStatusOptimal], {x:4, y:-1, z:6})
 
 def pulpTest080(solver):
@@ -381,7 +381,7 @@ def pulpTest080(solver):
 
     if solver.__class__ in [CPLEX_DLL, CPLEX_CMD, COINMP_DLL,
             PULP_CBC_CMD, YAPOSIB, PYGLPK]:
-        print "\t Testing dual variables and slacks reporting"
+        print("\t Testing dual variables and slacks reporting")
         pulpTestCheck(prob, solver, [LpStatusOptimal],
                   sol = {x:4, y:-1, z:6},
                   reducedcosts = {x:0, y:12, z:0},
@@ -408,7 +408,7 @@ def pulpTest090(solver):
     prob.resolve()
     z = LpVariable("z", 0, None, LpContinuous, 9*obj + b + c)
     if solver.__class__ in [CPLEX_DLL, COINMP_DLL]:
-        print "\t Testing resolve of problem"
+        print("\t Testing resolve of problem")
         prob.resolve()
         #difficult to check this is doing what we want as the resolve is
         #over ridden if it is not implemented
@@ -429,7 +429,7 @@ def pulpTest100(solver):
     prob += x <= 1, "c1"
 
     if solver.__class__ in [CPLEX_DLL, COINMP_DLL, GUROBI]:
-        print "\t Testing Sequential Solves"
+        print("\t Testing Sequential Solves")
         status = prob.sequentialSolve([obj1,obj2], solver = solver)
         pulpTestCheck(prob, solver, [[LpStatusOptimal,LpStatusOptimal]],
                   sol = {x:0, y:1},
@@ -450,7 +450,7 @@ def pulpTest110(solver):
     prob += -y+z == 7, "c3"
     prob += w >= 0, "c4"
     prob += LpFractionConstraint(x, z, LpConstraintEQ, 0.5, name = 'c5')
-    print "\t Testing fractional constraints"
+    print("\t Testing fractional constraints")
     pulpTestCheck(prob, solver, [LpStatusOptimal],
                     {x:10/3.0, y:-1/3.0, z:20/3.0, w:0})
 
@@ -468,7 +468,7 @@ def pulpTest120(solver):
     prob += x+z >= 10, "c2"
     prob += -y+z == 7, "c3"
     prob.extend((w >= -1).makeElasticSubProblem())
-    print "\t Testing elastic constraints (no change)"
+    print("\t Testing elastic constraints (no change)")
     pulpTestCheck(prob, solver, [LpStatusOptimal],
                     {x:4, y:-1, z:6, w:-1})
 
@@ -486,7 +486,7 @@ def pulpTest121(solver):
     prob += x+z >= 10, "c2"
     prob += -y+z == 7, "c3"
     prob.extend((w >= -1).makeElasticSubProblem(proportionFreeBound = 0.1))
-    print "\t Testing elastic constraints (freebound)"
+    print("\t Testing elastic constraints (freebound)")
     pulpTestCheck(prob, solver, [LpStatusOptimal],
                     {x:4, y:-1, z:6, w:-1.1})
 
@@ -504,7 +504,7 @@ def pulpTest122(solver):
     prob += x+z >= 10, "c2"
     prob += -y+z == 7, "c3"
     prob.extend((w >= -1).makeElasticSubProblem(penalty = 1.1))
-    print "\t Testing elastic constraints (penalty unchanged)"
+    print("\t Testing elastic constraints (penalty unchanged)")
     prob.writeLP('debug.lp')
     pulpTestCheck(prob, solver, [LpStatusOptimal],
                     {x:4, y:-1, z:6, w:-1.0})
@@ -523,7 +523,7 @@ def pulpTest123(solver):
     prob += x+z >= 10, "c2"
     prob += -y+z == 7, "c3"
     prob.extend((w >= -1).makeElasticSubProblem(penalty = 0.9))
-    print "\t Testing elastic constraints (penalty unbounded)"
+    print("\t Testing elastic constraints (penalty unbounded)")
     prob.writeLP('debug.lp')
     if solver.__class__ in [COINMP_DLL, GUROBI, CPLEX_CMD, CPLEX_PY, YAPOSIB]:
         # COINMP_DLL Does not report unbounded problems, correctly

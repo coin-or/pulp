@@ -31,11 +31,11 @@ prob.writeLP("WhiskasModel.lp")
 prob.solve()
 
 # The status of the solution is printed to the screen
-print "Status:", LpStatus[prob.status]
+print("Status:", LpStatus[prob.status])
 
 # Each of the variables is printed with it's resolved optimum value
 for v in prob.variables():
-    print v.name, "=", v.varValue
+    print(v.name, "=", v.varValue)
     
 # The optimised objective function value is printed to the screen
-print "Total Cost of Ingredients per can = ", value(prob.objective)
+print("Total Cost of Ingredients per can = ", value(prob.objective))

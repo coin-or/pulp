@@ -85,7 +85,7 @@ sudokuout = open('sudokuout.txt','w')
 while True:
     prob.solve()
     # The status of the solution is printed to the screen
-    print "Status:", LpStatus[prob.status]
+    print("Status:", LpStatus[prob.status])
     # The solution is printed if it was deemed "optimal" i.e met the constraints
     if LpStatus[prob.status] == "Optimal":
         # The solution is written to the sudokuout.txt file
@@ -112,4 +112,4 @@ while True:
 sudokuout.close()
 
 # The location of the solutions is give to the user
-print "Solutions Written to sudokuout.txt"
+print("Solutions Written to sudokuout.txt")

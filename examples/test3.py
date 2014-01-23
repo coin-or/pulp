@@ -29,11 +29,11 @@ hpmax = 100.0
 sini = 50.0
 
 # Time range
-time = range(tmax)
+time = list(range(tmax))
 # Time range (and one more step for the last state of plants)
-xtime = range(tmax+1)
+xtime = list(range(tmax+1))
 # Units range
-unit = range(units)
+unit = list(range(units))
 # The demand
 demand = [dmin+(dmax-dmin)*0.5 + 0.5*(dmax-dmin)*sin(4*t*2*3.1415/tmax) for t in time]
 # Maximum output for the thermal units
@@ -100,23 +100,23 @@ prob += ctp + cts
 # Solve the problem
 prob.solve()
 
-print "Minimum total cost:", prob.objective.value()
+print("Minimum total cost:", prob.objective.value())
 
 # Print the results
-print "   D    S     U ",
-for i in unit: print "  T%d    " %i,
-print
+print("   D    S     U ", end=' ')
+for i in unit: print("  T%d    " %i, end=' ')
+print()
 
 for t in time:
 	# Demand, hydro storage, hydro production
-	print "%5.1f" % demand[t], "%5.1f" % value(s[t]), "%5.1f" % value(ph[t]),
+	print("%5.1f" % demand[t], "%5.1f" % value(s[t]), "%5.1f" % value(ph[t]), end=' ')
 	for i in unit:
 		# Thermal production
-		print "%4.1f" % value(p[t][i]),
+		print("%4.1f" % value(p[t][i]), end=' ')
 		# The state of the unit
-		if value(d[t][i]): print "+",
-		else: print "-",
+		if value(d[t][i]): print("+", end=' ')
+		else: print("-", end=' ')
 		# Wether the unit will be started
-		if value(u[t][i]): print "*",
-		else: print " ",
-	print
+		if value(u[t][i]): print("*", end=' ')
+		else: print(" ", end=' ')
+	print()

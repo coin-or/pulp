@@ -37,7 +37,7 @@ while morePatterns == True:
 solution, varsdict = masterSolve(Patterns, rollData, relax = False)
 
 # Display Solution
-for i,j in varsdict.items():
-    print i, "=", j
+for i,j in list(varsdict.items()):
+    print(i, "=", j)
     
-print "objective = ", solution
+print("objective = ", solution)

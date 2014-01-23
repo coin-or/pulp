@@ -42,9 +42,9 @@ for guest in guests:
 
 seating_model.solve()
 
-print "The choosen tables are out of a total of %s:"%len(possible_tables)
+print("The choosen tables are out of a total of %s:"%len(possible_tables))
 for table in possible_tables:
     if x[table].value() == 1.0:
-        print table
+        print(table)
 
 
