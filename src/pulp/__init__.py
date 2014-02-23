@@ -29,8 +29,7 @@ Module file that imports all of the pulp functions
 
 Copyright 2007- Stuart Mitchell (s.mitchell@auckland.ac.nz)
 """
-
-VERSION = '1.5.5'
+from .constants import VERSION
 
 from .pulp import *
 from .amply import *

@@ -3,7 +3,6 @@ include INSTALL
 include LICENSE
 include MANIFEST.in
 include README
-include VERSION
 include HISTORY
 include setup.py
 include ez_setup.py
