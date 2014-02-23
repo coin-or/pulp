@@ -2495,7 +2495,7 @@ class GurobiFormulation(object):
             elif isinstance(other, LpAffineExpression):
                 self.objective = other
                 self.objective.name = name
-            elif isinstance(other, LpVariable) or type(other) in [int, float]:
+            elif isinstance(other, LpVariable) or isinstance(other, (int, float)):
                 self.objective = LpAffineExpression(other)
                 self.objective.name = name
             else:

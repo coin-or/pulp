@@ -1311,7 +1311,7 @@ class LpProblem(object):
         elif isinstance(other, LpAffineExpression):
             self.objective = other
             self.objective.name = name
-        elif isinstance(other, LpVariable) or type(other) in [int, float]:
+        elif isinstance(other, LpVariable) or isinstance(other, (int, float)):
             self.objective = LpAffineExpression(other)
             self.objective.name = name
         else:
@@ -1957,8 +1957,8 @@ def lpDot(v1, v2):
         return lpSum([lpDot(e1,e2) for e1,e2 in zip(v1,v2)])
 
 def isNumber(x):
-    """Returns true if x is an int of a float"""
-    return type(x) in [int, float]
+    """Returns true if x is an int or a float"""
+    return isinstance(x, (int, float))
 
 def value(x):
     """Returns the value of the variable/expression x, or x if it is a number"""
