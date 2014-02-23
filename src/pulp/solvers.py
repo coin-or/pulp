@@ -1232,7 +1232,7 @@ class XPRESS(LpSolver_CMD):
             "Optimal":LpStatusOptimal,
             }
         if statusString not in xpressStatus:
-            raise PulpSolverError("Unknow status returned by XPRESS: "+statusString)
+            raise PulpSolverError("Unknown status returned by XPRESS: "+statusString)
         status = xpressStatus[statusString]
         values = {}
         while 1:
@@ -2365,3 +2365,140 @@ except(ImportError):
     def ctypesArrayFill(myList, type = None):
         return None
 
+class GurobiFormulation(object):
+    """
+    The Gurobi LP/MIP solver (via its python interface)
+    without holding our own copy of the constraints
+
+    Contributed by  Ben Hollis<ben.hollis@polymathian.com>
+
+    This is an experimental interface that implements some of the
+    LpProblem interface, this should probably be done with an ABC
+    Also needs tests
+    """
+    try:
+        sys.path.append(gurobi_path)
+        global gurobipy
+        import gurobipy
+    except:
+        def __init__(self, sense):
+            raise PulpSolverError("GUROBI: Not Available")
+    else:
+
+        def __init__(self, name, sense):
+            self.gurobi_model = gurobipy.Model(name)
+            self.sense = sense
+            if sense == LpMaximize:
+                self.gurobi_model.setAttr("ModelSense", -1)
+            self.varables = {}
+            self.objective = None
+            self.status = None
+
+        def addVariable(self, v):
+            if v.name not in self.varables:
+                self.varables[v.name] = v
+                lower_bound = v.getLb()
+                if lower_bound is None:
+                    lower_bound = -gurobipy.GRB.INFINITY
+                upper_bound = v.getUb()
+                if upper_bound is None:
+                    upper_bound = gurobipy.GRB.INFINITY
+                varType = gurobipy.GRB.CONTINUOUS
+                if v.isInteger():
+                    varType = gurobipy.GRB.INTEGER
+                v.solver_var = self.gurobi_model.addVar(lower_bound, upper_bound, vtype = varType, obj = 0, name = v.name)
+                return v
+
+        def update(self):
+            self.gurobi_model.update()
+
+        def numVariables(self):
+            return self.gurobi_model.getAttr('NumVars')
+
+        def numConstraints(self):
+            return self.gurobi_model.getAttr('NumConstrs')
+
+        def getSense(self):
+            return self.sense
+
+        def addVariables(self, variables):
+            [self.addVariable(v) for v in variables]
+
+        def add(self, constraint, name = None):
+            self.addConstraint(constraint, name)
+
+        def solve(self, callback = None):
+            print("***Solving using thin Gurobi Formulation")
+            self.gurobi_model.reset()
+            for var, coeff in self.objective.items():
+                var.solver_var.setAttr("Obj", coeff)
+            self.gurobi_model.optimize(callback = callback)
+            return self.findSolutionValues()
+
+        def findSolutionValues(self):
+            for var in self.varables.values():
+                try:
+                    var.varValue = var.solver_var.X
+                except gurobipy.GurobiError:
+                    pass
+            GRB = gurobipy.GRB
+            gurobiLPStatus = {
+                GRB.OPTIMAL: LpStatusOptimal,
+                GRB.INFEASIBLE: LpStatusInfeasible,
+                GRB.INF_OR_UNBD: LpStatusInfeasible,
+                GRB.UNBOUNDED: LpStatusUnbounded,
+                GRB.ITERATION_LIMIT: LpStatusNotSolved,
+                GRB.NODE_LIMIT: LpStatusNotSolved,
+                GRB.TIME_LIMIT: LpStatusNotSolved,
+                GRB.SOLUTION_LIMIT: LpStatusNotSolved,
+                GRB.INTERRUPTED: LpStatusNotSolved,
+                GRB.NUMERIC: LpStatusNotSolved,
+            }
+            self.status = gurobiLPStatus.get(self.gurobi_model.Status, LpStatusUndefined)
+            return self.status
+
+        def addConstraint(self, constraint, name = None):
+            if not isinstance(constraint, LpConstraint):
+                raise TypeError("Can only add LpConstraint objects")
+            if name:
+                constraint.name = name
+            try:
+                if constraint.name:
+                    name = constraint.name
+                else:
+                    name = self.unusedConstraintName()
+            except AttributeError:
+                raise TypeError("Can only add LpConstraint objects")
+            #if self._addVariables(constraint.keys()):
+                #self.gurobi_model.update()
+
+
+            expr = gurobipy.LinExpr(constraint.values(), [v.solver_var for v in constraint.keys()])  # Solver_var is added inside addVariable
+            if constraint.sense == LpConstraintLE:
+                relation = gurobipy.GRB.LESS_EQUAL
+            elif constraint.sense == LpConstraintGE:
+                relation = gurobipy.GRB.GREATER_EQUAL
+            elif constraint.sense == LpConstraintEQ:
+                relation = gurobipy.GRB.EQUAL
+            else:
+                raise PulpSolverError('Detected an invalid constraint type')
+            self.gurobi_model.addConstr(expr, relation, -constraint.constant, name)
+
+        def __iadd__(self, other):
+            if isinstance(other, tuple):
+                other, name = other
+            else:
+                name = None
+            if other is True:
+                return self
+            elif isinstance(other, LpConstraint):
+                self.addConstraint(other, name)
+            elif isinstance(other, LpAffineExpression):
+                self.objective = other
+                self.objective.name = name
+            elif isinstance(other, LpVariable) or type(other) in [int, float]:
+                self.objective = LpAffineExpression(other)
+                self.objective.name = name
+            else:
+                raise TypeError("Can only add LpConstraint, LpAffineExpression or True objects")
+            return self
