@@ -375,44 +375,44 @@ class GLPK_CMD(LpSolver_CMD):
 
     def readsol(self,filename):
         """Read a GLPK solution file"""
-        f = open(filename)
-        f.readline()
-        rows = int(f.readline().split()[1])
-        cols = int(f.readline().split()[1])
-        f.readline()
-        statusString = f.readline()[12:-1]
-        glpkStatus = {
-            "INTEGER OPTIMAL":LpStatusOptimal,
-            "INTEGER NON-OPTIMAL":LpStatusOptimal,
-            "OPTIMAL":LpStatusOptimal,
-            "INFEASIBLE (FINAL)":LpStatusInfeasible,
-            "INTEGER UNDEFINED":LpStatusUndefined,
-            "UNBOUNDED":LpStatusUnbounded,
-            "UNDEFINED":LpStatusUndefined,
-            "INTEGER EMPTY":LpStatusInfeasible
-            }
-        #print "statusString ",statusString
-        if statusString not in glpkStatus:
-            raise PulpSolverError("Unknown status returned by GLPK")
-        status = glpkStatus[statusString]
-        isInteger = statusString in ["INTEGER NON-OPTIMAL","INTEGER OPTIMAL","INTEGER UNDEFINED"]
-        values = {}
-        for i in range(4): f.readline()
-        for i in range(rows):
-            line = f.readline().split()
-            if len(line) ==2: f.readline()
-        for i in range(3):
+        with open(filename) as f:
             f.readline()
-        for i in range(cols):
-            line = f.readline().split()
-            name = line[1]
-            if len(line) ==2: line = [0,0]+f.readline().split()
-            if isInteger:
-                if line[2] == "*": value = int(line[3])
-                else: value = float(line[2])
-            else:
-                value = float(line[3])
-            values[name] = value
+            rows = int(f.readline().split()[1])
+            cols = int(f.readline().split()[1])
+            f.readline()
+            statusString = f.readline()[12:-1]
+            glpkStatus = {
+                "INTEGER OPTIMAL":LpStatusOptimal,
+                "INTEGER NON-OPTIMAL":LpStatusOptimal,
+                "OPTIMAL":LpStatusOptimal,
+                "INFEASIBLE (FINAL)":LpStatusInfeasible,
+                "INTEGER UNDEFINED":LpStatusUndefined,
+                "UNBOUNDED":LpStatusUnbounded,
+                "UNDEFINED":LpStatusUndefined,
+                "INTEGER EMPTY":LpStatusInfeasible
+                }
+            #print "statusString ",statusString
+            if statusString not in glpkStatus:
+                raise PulpSolverError("Unknown status returned by GLPK")
+            status = glpkStatus[statusString]
+            isInteger = statusString in ["INTEGER NON-OPTIMAL","INTEGER OPTIMAL","INTEGER UNDEFINED"]
+            values = {}
+            for i in range(4): f.readline()
+            for i in range(rows):
+                line = f.readline().split()
+                if len(line) ==2: f.readline()
+            for i in range(3):
+                f.readline()
+            for i in range(cols):
+                line = f.readline().split()
+                name = line[1]
+                if len(line) ==2: line = [0,0]+f.readline().split()
+                if isInteger:
+                    if line[2] == "*": value = int(line[3])
+                    else: value = float(line[2])
+                else:
+                    value = float(line[3])
+                values[name] = value
         return status, values
 GLPK = GLPK_CMD
 
@@ -1220,29 +1220,29 @@ class XPRESS(LpSolver_CMD):
 
     def readsol(self,filename):
         """Read an XPRESS solution file"""
-        f = open(filename)
-        for i in range(6): f.readline()
-        l = f.readline().split()
+        with open(filename) as f:
+            for i in range(6): f.readline()
+            l = f.readline().split()
 
-        rows = int(l[2])
-        cols = int(l[5])
-        for i in range(3): f.readline()
-        statusString = f.readline().split()[0]
-        xpressStatus = {
-            "Optimal":LpStatusOptimal,
-            }
-        if statusString not in xpressStatus:
-            raise PulpSolverError("Unknown status returned by XPRESS: "+statusString)
-        status = xpressStatus[statusString]
-        values = {}
-        while 1:
-            l = f.readline()
-            if l == "": break
-            line = l.split()
-            if len(line) and line[0] == 'C':
-                name = line[2]
-                value = float(line[4])
-                values[name] = value
+            rows = int(l[2])
+            cols = int(l[5])
+            for i in range(3): f.readline()
+            statusString = f.readline().split()[0]
+            xpressStatus = {
+                "Optimal":LpStatusOptimal,
+                }
+            if statusString not in xpressStatus:
+                raise PulpSolverError("Unknown status returned by XPRESS: "+statusString)
+            status = xpressStatus[statusString]
+            values = {}
+            while 1:
+                l = f.readline()
+                if l == "": break
+                line = l.split()
+                if len(line) and line[0] == 'C':
+                    name = line[2]
+                    value = float(line[4])
+                    values[name] = value
         return status, values
 
 class COIN_CMD(LpSolver_CMD):
@@ -1391,22 +1391,22 @@ class COIN_CMD(LpSolver_CMD):
                     'Infeasible': LpStatusInfeasible,
                     'Unbounded': LpStatusUnbounded,
                     'Stopped': LpStatusNotSolved}
-        f = open(filename)
-        statusstr = f.readline().split()[0]
-        status = cbcStatus.get(statusstr, LpStatusUndefined)
-        for l in f:
-            if len(l)<=2:
-                break
-            l = l.split()
-            vn = l[1]
-            val = l[2]
-            dj = l[3]
-            if vn in reverseVn:
-                values[reverseVn[vn]] = float(val)
-                reducedCosts[reverseVn[vn]] = float(dj)
-            if vn in reverseCn:
-                slacks[reverseCn[vn]] = float(val)
-                shadowPrices[reverseCn[vn]] = float(dj)
+        with open(filename) as f:
+            statusstr = f.readline().split()[0]
+            status = cbcStatus.get(statusstr, LpStatusUndefined)
+            for l in f:
+                if len(l)<=2:
+                    break
+                l = l.split()
+                vn = l[1]
+                val = l[2]
+                dj = l[3]
+                if vn in reverseVn:
+                    values[reverseVn[vn]] = float(val)
+                    reducedCosts[reverseVn[vn]] = float(dj)
+                if vn in reverseCn:
+                    slacks[reverseCn[vn]] = float(val)
+                    shadowPrices[reverseCn[vn]] = float(dj)
         return status, values, reducedCosts, shadowPrices, slacks
 
     def readsol_LP(self, filename, lp, vs):
@@ -1423,22 +1423,22 @@ class COIN_CMD(LpSolver_CMD):
                     'Infeasible': LpStatusInfeasible,
                     'Unbounded': LpStatusUnbounded,
                     'Stopped': LpStatusNotSolved}
-        f = open(filename)
-        statusstr = f.readline().split()[0]
-        status = cbcStatus.get(statusstr, LpStatusUndefined)
-        for l in f:
-            if len(l)<=2:
-                break
-            l = l.split()
-            vn = l[1]
-            val = l[2]
-            dj = l[3]
-            if vn in values:
-                values[vn] = float(val)
-                reducedCosts[vn] = float(dj)
-            if vn in lp.constraints:
-                slacks[vn] = float(val)
-                shadowPrices[vn] = float(dj)
+        with open(filename) as f:
+            statusstr = f.readline().split()[0]
+            status = cbcStatus.get(statusstr, LpStatusUndefined)
+            for l in f:
+                if len(l)<=2:
+                    break
+                l = l.split()
+                vn = l[1]
+                val = l[2]
+                dj = l[3]
+                if vn in values:
+                    values[vn] = float(val)
+                    reducedCosts[vn] = float(dj)
+                if vn in lp.constraints:
+                    slacks[vn] = float(val)
+                    shadowPrices[vn] = float(dj)
         return status, values, reducedCosts, shadowPrices, slacks
 
 COIN = COIN_CMD
@@ -1926,27 +1926,26 @@ class GUROBI_CMD(LpSolver_CMD):
 
     def readsol(self, filename):
         """Read a Gurobi solution file"""
-        my_file = open(filename)
-        try:
-            next(my_file) # skip the objective value
-        except StopIteration:
-            # Empty file not solved
-            warnings.warn('GUROBI_CMD does provide good solution status of non optimal solutions')
-            status = LpStatusNotSolved
-            return status, {}, {}, {}, {}
-        #We have no idea what the status is assume optimal
-        status = LpStatusOptimal
+        with open(filename) as my_file:
+            try:
+                next(my_file) # skip the objective value
+            except StopIteration:
+                # Empty file not solved
+                warnings.warn('GUROBI_CMD does provide good solution status of non optimal solutions')
+                status = LpStatusNotSolved
+                return status, {}, {}, {}, {}
+            #We have no idea what the status is assume optimal
+            status = LpStatusOptimal
 
-        shadowPrices = {}
-        slacks = {}
-        shadowPrices = {}
-        slacks = {}
-        values = {}
-        reducedCosts = {}
-        for line in my_file:
-                name, value  = line.split()
-                values[name] = float(value)
-        my_file.close()
+            shadowPrices = {}
+            slacks = {}
+            shadowPrices = {}
+            slacks = {}
+            values = {}
+            reducedCosts = {}
+            for line in my_file:
+                    name, value  = line.split()
+                    values[name] = float(value)
         return status, values, reducedCosts, shadowPrices, slacks
 
 #get the glpk name in global scope
