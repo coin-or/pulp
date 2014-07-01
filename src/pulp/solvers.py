@@ -1330,7 +1330,7 @@ class COIN_CMD(LpSolver_CMD):
             cmds += "branch "
         else:
             cmds += "initialSolve "
-        cmds += "printingOptions rows "
+        cmds += "printingOptions all "
         cmds += "solution "+tmpSol+" "
         if self.msg:
             pipe = None
@@ -1964,7 +1964,7 @@ class PYGLPK(LpSolver):
         #import the model into the global scope
         global glpk
         import glpk.glpkpi as glpk
-    except ImportError:
+    except:
         def available(self):
             """True if the solver is available"""
             return False
