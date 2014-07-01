@@ -851,7 +851,7 @@ class LpConstraint(LpAffineExpression):
 
     def __str__(self):
         s = LpAffineExpression.__str__(self, 0)
-        if self.sense:
+        if self.sense is not None:
             s += " " + LpConstraintSenses[self.sense] + " " + str(-self.constant)
         return s
 
