@@ -505,7 +505,6 @@ def pulpTest122(solver):
     prob += -y+z == 7, "c3"
     prob.extend((w >= -1).makeElasticSubProblem(penalty = 1.1))
     print("\t Testing elastic constraints (penalty unchanged)")
-    prob.writeLP('debug.lp')
     pulpTestCheck(prob, solver, [LpStatusOptimal],
                     {x:4, y:-1, z:6, w:-1.0})
 
@@ -524,7 +523,6 @@ def pulpTest123(solver):
     prob += -y+z == 7, "c3"
     prob.extend((w >= -1).makeElasticSubProblem(penalty = 0.9))
     print("\t Testing elastic constraints (penalty unbounded)")
-    prob.writeLP('debug.lp')
     if solver.__class__ in [COINMP_DLL, GUROBI, CPLEX_CMD, CPLEX_PY, YAPOSIB]:
         # COINMP_DLL Does not report unbounded problems, correctly
          pulpTestCheck(prob, solver, [LpStatusInfeasible])

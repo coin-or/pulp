@@ -1133,7 +1133,7 @@ class LpProblem(object):
     def deepcopy(self):
         """Make a copy of self. Expressions are copied by value"""
         lpcopy = LpProblem(name = self.name, sense = self.sense)
-        if lpcopy.objective is not None:
+        if self.objective is not None:
             lpcopy.objective = self.objective.copy()
         lpcopy.constraints = {}
         for k,v in self.constraints.items():
