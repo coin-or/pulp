@@ -228,9 +228,25 @@ def pulpTest018(solver):
     prob += x+z >= 10, "c2"
     prob += -y+z == 7, "c3"
     prob += w >= 0, "c4"
-    if solver.__class__ in [COIN_CMD]:
+    if solver.__class__ in [PULP_CBC_CMD, COIN_CMD]:
         print("\t Testing Long lines in LP")
         pulpTestCheck(prob, solver, [LpStatusOptimal], {x:4, y:-1, z:6, w:0},
+                    use_mps=False)
+
+def pulpTest019(solver):
+    # divide
+    prob = LpProblem("test019", LpMinimize)
+    x = LpVariable("x", 0, 4)
+    y = LpVariable("y", -1, 1)
+    z = LpVariable("z", 0)
+    w = LpVariable("w", 0)
+    prob += x + 4*y + 9*z, "obj"
+    prob += (2 * x + 2 * y).__div__(2.0) <= 5, "c1"
+    prob += x+z >= 10, "c2"
+    prob += -y+z == 7, "c3"
+    prob += w >= 0, "c4"
+    print("\t Testing LpAffineExpression divide")
+    pulpTestCheck(prob, solver, [LpStatusOptimal], {x:4, y:-1, z:6, w:0},
                     use_mps=False)
 
 def pulpTest020(solver):
@@ -541,7 +557,7 @@ def pulpTestSolver(solver, msg = 0):
             pulpTest001,
             pulpTest010, pulpTest011, pulpTest012, pulpTest013, pulpTest014,
             pulpTest015, pulpTest016, pulpTest017,
-            pulpTest018,
+            pulpTest018, pulpTest019,
             pulpTest020,
             pulpTest030,
             pulpTest040,
