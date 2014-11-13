@@ -795,6 +795,17 @@ class LpAffineExpression(_DICT_TYPE):
             e[v] = x / other
         return e
 
+    def __truediv__(self, other):
+        if isinstance(other,LpAffineExpression) or isinstance(other,LpVariable):
+            if len(other):
+                raise TypeError("Expressions cannot be divided by a non-constant expression")
+            other = other.constant
+        e = self.emptyCopy()
+        e.constant = self.constant / other
+        for v,x in self.items():
+            e[v] = x / other
+        return e
+
     def __rdiv__(self, other):
         e = self.emptyCopy()
         if len(self):
