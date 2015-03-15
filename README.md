@@ -1,9 +1,5 @@
 #pulp
 
-# Copyright J.S. Roy (js@jeannot.org), 2003-2005
-# Copyright Stuart A. Mitchell (stu@stuartmitchell.com)
-# See the LICENSE file for copyright information.
-
 PuLP is an LP modeler written in python. PuLP can generate MPS or LP files
 and call GLPK[1], COIN CLP/CBC[2], CPLEX[3], and GUROBI[4] to solve linear
 problems.
@@ -95,6 +91,10 @@ as a constraint or variable
 
 Comments, bug reports, patches and suggestions are welcome.
 pulp-or-discuss@googlegroups.com
+
+     Copyright J.S. Roy (js@jeannot.org), 2003-2005
+     Copyright Stuart A. Mitchell (stu@stuartmitchell.com)
+     See the LICENSE file for copyright information.
 
 References:
 [1] http://www.gnu.org/software/glpk/glpk.html
