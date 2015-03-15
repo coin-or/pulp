@@ -99,7 +99,7 @@ import itertools
 
 from .constants import *
 from .solvers import *
-from types import GeneratorType
+from collections import Iterable
 
 try:  # allow Python 2/3 compatibility
     maketrans = str.maketrans
@@ -541,7 +541,7 @@ class LpAffineExpression(_DICT_TYPE):
         elif isinstance(e, dict):
             self.constant = constant
             super(LpAffineExpression, self).__init__(list(e.items()))
-        elif isinstance(e, list) or isinstance(e, GeneratorType):
+        elif isinstance(e, Iterable):
             self.constant = constant
             super(LpAffineExpression, self).__init__(e)
         elif isinstance(e,LpElement):
@@ -698,16 +698,16 @@ class LpAffineExpression(_DICT_TYPE):
         if other is None: return self
         if isinstance(other,LpElement):
             self.addterm(other, 1)
-        elif (isinstance(other,list)
-              or isinstance(other,types.GeneratorType)):
-           for e in other:
-                self.addInPlace(e)
         elif isinstance(other,LpAffineExpression):
             self.constant += other.constant
             for v,x in other.items():
                 self.addterm(v, x)
         elif isinstance(other,dict):
             for e in other.values():
+                self.addInPlace(e)
+        elif (isinstance(other,list)
+              or isinstance(other, Iterable)):
+           for e in other:
                 self.addInPlace(e)
         else:
             self.constant += other
@@ -718,16 +718,16 @@ class LpAffineExpression(_DICT_TYPE):
         if other is None: return self
         if isinstance(other,LpElement):
             self.addterm(other, -1)
-        elif (isinstance(other,list)
-              or isinstance(other,types.GeneratorType)):
-            for e in other:
-                self.subInPlace(e)
         elif isinstance(other,LpAffineExpression):
             self.constant -= other.constant
             for v,x in other.items():
                 self.addterm(v, -x)
         elif isinstance(other,dict):
             for e in other.values():
+                self.subInPlace(e)
+        elif (isinstance(other,list)
+              or isinstance(other, Iterable)):
+            for e in other:
                 self.subInPlace(e)
         else:
             self.constant -= other
