@@ -4,26 +4,26 @@ Installation
 Note that to install PuLP you must first have a working python installation as
 described in `installing python`_.
 
-PuLP requires Python >= 2.5. Though it can be made to work with Python 2.4
+PuLP requires Python >= 2.6.
 
-The latest version of PuLP can be freely obtained from coin-or_.
+The latest version of PuLP can be freely obtained from github_.
 Please note that this version of PuLP has not been tested with operating systems
 other than Microsoft Windows and Ubuntu Linux.
 
-Easy install and pypi installation
+Pip and pypi installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-By far the easiest way to install pulp is through the use of EasyInstall_ and
+By far the easiest way to install pulp is through the use of pip_ and
 CheeseShop_.
 
-* Install EasyInstall
-    * In  windows (please make sure easy_install is on your path)::
+* Install pip
+    * In  windows (please make sure pip is on your path)::
 
-        c:\Python26\Scripts\> easy_install -U pulp
+        c:\Python26\Scripts\> pip install pulp
 
     * In Linux::
 
-        $ sudo easy_install -U pulp
+        $ sudo pip install pulp
         $ sudo pulptest             #needed to get the default solver to work
 
 * Then follow the instructions below to test your installation
@@ -70,18 +70,10 @@ Linux Installation
         $ sudo apt-get install glpk
 
     * install gurobi_ (free academic licenses)
-    * install cplex_ (and pay $$)
-    * or compile coinMP_ and pulp from source using buildout and copy the files
-
-    .. code-block:: sh
-
-        $ python bootstrap.py
-        $ bin/buildout -c solvers.cfg
-        $ cp parts/lib/* src/pulp/
-        $ sudo setup.py install
+    * install cplex_ (also a license for academics)
 
 .. _glpk: http://www.gnu.org/software/glpk/
-.. _CoinMP: http://projects.coin-or.org/CoinMP
+.. _CBC: https://projects.coin-or.org/Cbc
 .. _cplex: http://cplex.com
 .. _gurobi: http://gurobi.com
 
@@ -90,38 +82,49 @@ Testing your PuLP installation
 To test that that you pulp installation is working correctly please type the
 following into a python interpreter and note that the output should be similar.
 The output below is what you would expect if you have not installed any other
-solvers and the CoinMP_ solver bundled with pulp works.
+solvers and the CBC_ solver bundled with pulp works.
 
 >>> import pulp
 >>> pulp.pulpTestAll()
-Solver pulp.pulp.COIN_MEM unavailable.
-Solver pulp.pulp.COIN_CMD unavailable.
-     Testing continuous LP solution
-     Testing maximize continuous LP solution
-     Testing unbounded continuous LP solution
-     Testing MIP solution
-     Testing MIP relaxation
-     Testing feasibility problem (no objective)
-     Testing an infeasible problem
-     Testing an integer infeasible problem (Error to be fixed)
-     Testing column based modelling
-     Testing column based modelling with empty constraints
-     Testing dual variables and slacks reporting
-     Testing resolve of problem
-     Testing Sequential Solves
-     Testing fractional constraints
-     Testing elastic constraints (no change)
-     Testing elastic constraints (freebound)
-     Testing elastic constraints (penalty unchanged)
-     Testing elastic constraints (penalty unbounded)
-* Solver pulp.pulp.COINMP_DLL passed.
-Solver pulp.pulp.GLPK_MEM unavailable.
-Solver pulp.pulp.GLPK_CMD unavailable.
-Solver pulp.pulp.XPRESS unavailable.
+         Testing zero subtraction
+         Testing continuous LP solution
+         Testing maximize continuous LP solution
+         Testing unbounded continuous LP solution
+         Testing Long Names
+         Testing repeated Names
+         Testing zero constraint
+         Testing zero objective
+         Testing LpVariable (not LpAffineExpression) objective
+         Testing Long lines in LP
+         Testing LpAffineExpression divide
+         Testing MIP solution
+         Testing MIP relaxation
+         Testing feasibility problem (no objective)
+         Testing an infeasible problem
+         Testing an integer infeasible problem
+         Testing column based modelling
+         Testing dual variables and slacks reporting
+         Testing fractional constraints
+         Testing elastic constraints (no change)
+         Testing elastic constraints (freebound)
+         Testing elastic constraints (penalty unchanged)
+         Testing elastic constraints (penalty unbounded)
+* Solver pulp.solvers.PULP_CBC_CMD passed.
+Solver pulp.solvers.CPLEX_DLL unavailable
+Solver pulp.solvers.CPLEX_CMD unavailable
+Solver pulp.solvers.CPLEX_PY unavailable
+Solver pulp.solvers.COIN_CMD unavailable
+Solver pulp.solvers.COINMP_DLL unavailable
+Solver pulp.solvers.GLPK_CMD unavailable
+Solver pulp.solvers.XPRESS unavailable
+Solver pulp.solvers.GUROBI unavailable
+Solver pulp.solvers.GUROBI_CMD unavailable
+Solver pulp.solvers.PYGLPK unavailable
+Solver pulp.solvers.YAPOSIB unavailable
 
 .. _`installing python`: http://www.diveintopython.org/installing_python/index.html
-.. _coin-or: https://projects.coin-or.org/PuLP
-.. _EasyInstall: http://pypi.python.org/pypi/setuptools
+.. _github: https://github.com/stumitchell/pulp-or
+.. _pip: https://pypi.python.org/pypi/pip
 .. _CheeseShop: http://pypi.python.org
-.. _`PuLP zipfile`: http://www.coin-or.org/download/source/PuLP/
+.. _`PuLP zipfile`: https://github.com/stumitchell/pulp-or/archive/master.zip
 
