@@ -2254,6 +2254,7 @@ def pulpTestAll():
                YAPOSIB
                ]
 
+    failed = False
     for s in solvers:
         if s().available():
             try:
@@ -2262,8 +2263,11 @@ def pulpTestAll():
             except Exception as e:
                 print(e)
                 print("* Solver", s, "failed.")
+                failed = True
         else:
             print("Solver %s unavailable" % s)
+    if failed:
+        raise PulpError("Tests Failed")
 
 def pulpDoctest():
     """

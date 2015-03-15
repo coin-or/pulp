@@ -1,4 +1,4 @@
-#pulp
+#pulp [![Build Status](https://travis-ci.org/stumitchell/pulp-or.svg?branch=master)](https://travis-ci.org/stumitchell/pulp-or)
 
 PuLP is an LP modeler written in python. PuLP can generate MPS or LP files
 and call GLPK[1], COIN CLP/CBC[2], CPLEX[3], and GUROBI[4] to solve linear
