@@ -12,4 +12,4 @@ python:
 install:
   - pip install .
 # command to run tests
-script: pulptests
+script: pulptest
