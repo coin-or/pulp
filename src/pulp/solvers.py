@@ -1466,6 +1466,7 @@ class PULP_CBC_CMD(COIN_CMD):
     This solver uses a precompiled version of cbc provided with the package
     """
     pulp_cbc_path = pulp_cbc_path
+    print(pulp_cbc_path)
     try:
         if os.name != 'nt':
             if not os.access(pulp_cbc_path, os.X_OK):
