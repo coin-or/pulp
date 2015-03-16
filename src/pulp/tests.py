@@ -246,8 +246,7 @@ def pulpTest019(solver):
     prob += -y+z == 7, "c3"
     prob += w >= 0, "c4"
     print("\t Testing LpAffineExpression divide")
-    pulpTestCheck(prob, solver, [LpStatusOptimal], {x:4, y:-1, z:6, w:0},
-                    use_mps=False)
+    pulpTestCheck(prob, solver, [LpStatusOptimal], {x:4, y:-1, z:6, w:0})
 
 def pulpTest020(solver):
     # MIP
