@@ -12,7 +12,7 @@ CplexPath = /usr/ilog/cplex/bin/x86_rhel4.0_3.4/libcplex110.so
 GurobiPath = /opt/gurobi201/linux32/lib/python2.5
 CbcPath = cbc
 GlpkPath = glpsol
-PulpCbcPath = %(here)s/solverdir/cbc-osx
+PulpCbcPath = %(here)s/solverdir/cbc/%(os)s/%(arch)scbc
 [licenses]
 ilm_cplex_license = "LICENSE your-enterprise\nRUNTIME NEVER ..."
 ilm_cplex_license_signature = 0

@@ -8,6 +8,10 @@ python:
   # does not have headers provided, please ask https://launchpad.net/~pypy/+archive/ppa
   # maintainers to fix their pypy-dev package.
   - "pypy"
+before_install: 
+  - sudo apt-get install glpk
+  #- pip install glpk
+  #- sudo apt-get install coinor-cbc
 # command to install dependencies
 install:
   - pip install .

@@ -10,7 +10,7 @@ CplexPath = cplex100.dll
 GurobiPath = C:\gurobi10\win32\python2.5\lib
 CbcPath = cbc
 GlpkPath = glpsol
-PulpCbcPath = %(here)s\solverdir\cbc.exe
+PulpCbcPath = %(here)s\solverdir\cbc\%(os)s\%(arch)s\cbc.exe
 [licenses]
 ilm_cplex_license = "LICENSE your-enterprise\nRUNTIME NEVER ..."
 ilm_cplex_license_signature = 0
