@@ -103,6 +103,7 @@ def initialize(filename, operating_system='linux', arch='64'):
         if not os.path.dirname(path):
             #if no pathname is supplied assume the file is in the same directory
             coinMP_path[i] = os.path.join(os.path.dirname(config_filename),path)
+    print pulp_cbc_path
     return cplex_dll_path, ilm_cplex_license, ilm_cplex_license_signature,\
         coinMP_path, gurobi_path, cbc_path, glpk_path, pulp_cbc_path
 
