@@ -9,7 +9,8 @@ python:
   # maintainers to fix their pypy-dev package.
   - "pypy"
 before_install: 
-  - sudo apt-get install glpk
+ - sudo apt-get update -qq
+ - sudo apt-get install -qq glpk coinor-cbc
   #- pip install glpk
   #- sudo apt-get install coinor-cbc
 # command to install dependencies
