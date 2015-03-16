@@ -10,7 +10,7 @@ python:
   - "pypy"
 before_install: 
   - sudo apt-get install glpk
-  - pip install glpk
+  #- pip install glpk
   #- sudo apt-get install coinor-cbc
 # command to install dependencies
 install:
