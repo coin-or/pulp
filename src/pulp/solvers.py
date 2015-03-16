@@ -1486,6 +1486,7 @@ class PULP_CBC_CMD(COIN_CMD):
             if path is not None:
                 raise PulpSolverError('Use COIN_CMD if you want to set a path')
             #check that the file is executable
+            print(self.pulp_cbc_path)
             COIN_CMD.__init__(self, path=self.pulp_cbc_path, *args, **kwargs)
 
 def COINMP_DLL_load_dll(path):
