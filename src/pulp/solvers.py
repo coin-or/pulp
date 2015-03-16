@@ -103,7 +103,6 @@ def initialize(filename, operating_system='linux', arch='64'):
         if not os.path.dirname(path):
             #if no pathname is supplied assume the file is in the same directory
             coinMP_path[i] = os.path.join(os.path.dirname(config_filename),path)
-    print pulp_cbc_path
     return cplex_dll_path, ilm_cplex_license, ilm_cplex_license_signature,\
         coinMP_path, gurobi_path, cbc_path, glpk_path, pulp_cbc_path
 
@@ -322,9 +321,6 @@ class LpSolver_CMD(LpSolver):
         """Checks that the solver command is executable,
         And returns the actual path to it."""
 
-        print command
-        print 'os.path.exists(command)=', os.path.exists(command)
-        print 'os.access(command, os.X_OK)=', os.access(command, os.X_OK)
         if os.path.isabs(command):
             if os.path.exists(command) and os.access(command, os.X_OK):
                 return command
@@ -1466,10 +1462,8 @@ class PULP_CBC_CMD(COIN_CMD):
     This solver uses a precompiled version of cbc provided with the package
     """
     pulp_cbc_path = pulp_cbc_path
-    print('in PULP_CBC_CMD ', pulp_cbc_path)
     try:
         if os.name != 'nt':
-            print('os.access(pulp_cbc_path, os.X_OK) ', os.access(pulp_cbc_path, os.X_OK))
             if not os.access(pulp_cbc_path, os.X_OK):
                 import stat
                 os.chmod(pulp_cbc_path, stat.S_IXUSR + stat.S_IXOTH)
@@ -1488,7 +1482,6 @@ class PULP_CBC_CMD(COIN_CMD):
             if path is not None:
                 raise PulpSolverError('Use COIN_CMD if you want to set a path')
             #check that the file is executable
-            print(self.pulp_cbc_path)
             COIN_CMD.__init__(self, path=self.pulp_cbc_path, *args, **kwargs)
 
 def COINMP_DLL_load_dll(path):
