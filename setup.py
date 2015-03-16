@@ -55,7 +55,12 @@ problems.
                                 "AUTHORS.CoinMP.txt",
                                 "README.CoinMP.txt",
                                 ],
-                      'pulp.solverdir' : ['*','*.*']},
+                      'pulp.solverdir.cbc.linux.32' : ['*','*.*'],
+                      'pulp.solverdir.cbc.linux.64' : ['*','*.*'],
+                      'pulp.solverdir.cbc.win.32' : ['*','*.*'],
+                      'pulp.solverdir.cbc.win.64' : ['*','*.*'],
+                      'pulp.solverdir.cbc.osx.64' : ['*','*.*'],
+                      },
       install_requires = [pyparsing_ver],
       entry_points = ("""
       [console_scripts]
