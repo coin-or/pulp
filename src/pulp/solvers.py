@@ -322,6 +322,9 @@ class LpSolver_CMD(LpSolver):
         """Checks that the solver command is executable,
         And returns the actual path to it."""
 
+        print command
+        print 'os.path.exists(command)=', os.path.exists(command)
+        print 'os.access(command, os.X_OK)=', os.access(command, os.X_OK)
         if os.path.isabs(command):
             if os.path.exists(command) and os.access(command, os.X_OK):
                 return command
