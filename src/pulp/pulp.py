@@ -1499,7 +1499,10 @@ class LpProblem(object):
             constraint = self.constraints[k]
             if not list(constraint.keys()):
                 #empty constraint add the dummyVar
-                constraint += self.get_dummyVar()
+                dummyVar = self.get_dummyVar()
+                constraint += dummyVar
+                #set this dummyvar to zero so infeasible problems are not made feasible
+                f.write((dummyVar == 0.0).asCplexLpConstraint(k))
             f.write(constraint.asCplexLpConstraint(k))
         vs = self.variables()
         # check if any names are longer than 100 characters
