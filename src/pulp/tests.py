@@ -82,7 +82,8 @@ def pulpTest009(solver):
         pulpTestCheck(prob, solver, [LpStatusInfeasible], {x:4, y:-1, z:6, w:0},
             use_mps = False)
     else:
-        pulpTestCheck(prob, solver, [LpStatusInfeasible, LpStatusNotSolved])
+        pulpTestCheck(prob, solver, [LpStatusInfeasible, LpStatusNotSolved,
+            LpStatusUndefined])
 
 
 def pulpTest010(solver):
