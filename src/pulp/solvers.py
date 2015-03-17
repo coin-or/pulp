@@ -1896,7 +1896,7 @@ class GUROBI_CMD(LpSolver_CMD):
         except: pass
         cmd = self.path
         cmd += ' ' + ' '.join(['%s=%s' % (key, value)
-                    for key, value in self.options.items()])
+                    for key, value in self.options])
         cmd += ' ResultFile=%s' % tmpSol
         if lp.isMIP():
             if not self.mip:
