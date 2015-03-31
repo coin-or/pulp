@@ -49,7 +49,9 @@ copyright = '2009-, pulp documentation team.'
 # built documents.
 #
 # The full version, including alpha/beta/rc tags.
-release = open(os.path.join('..','..','VERSION')).read().strip()
+import pulp
+
+release = pulp.VERSION
 # The short X.Y version.
 version = release[:3]
 

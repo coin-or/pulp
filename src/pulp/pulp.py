@@ -99,7 +99,7 @@ import itertools
 
 from .constants import *
 from .solvers import *
-from types import GeneratorType
+from collections import Iterable
 
 try:  # allow Python 2/3 compatibility
     maketrans = str.maketrans
@@ -541,7 +541,7 @@ class LpAffineExpression(_DICT_TYPE):
         elif isinstance(e, dict):
             self.constant = constant
             super(LpAffineExpression, self).__init__(list(e.items()))
-        elif isinstance(e, list) or isinstance(e, GeneratorType):
+        elif isinstance(e, Iterable):
             self.constant = constant
             super(LpAffineExpression, self).__init__(e)
         elif isinstance(e,LpElement):
@@ -698,16 +698,16 @@ class LpAffineExpression(_DICT_TYPE):
         if other is None: return self
         if isinstance(other,LpElement):
             self.addterm(other, 1)
-        elif (isinstance(other,list)
-              or isinstance(other,types.GeneratorType)):
-           for e in other:
-                self.addInPlace(e)
         elif isinstance(other,LpAffineExpression):
             self.constant += other.constant
             for v,x in other.items():
                 self.addterm(v, x)
         elif isinstance(other,dict):
             for e in other.values():
+                self.addInPlace(e)
+        elif (isinstance(other,list)
+              or isinstance(other, Iterable)):
+           for e in other:
                 self.addInPlace(e)
         else:
             self.constant += other
@@ -718,16 +718,16 @@ class LpAffineExpression(_DICT_TYPE):
         if other is None: return self
         if isinstance(other,LpElement):
             self.addterm(other, -1)
-        elif (isinstance(other,list)
-              or isinstance(other,types.GeneratorType)):
-            for e in other:
-                self.subInPlace(e)
         elif isinstance(other,LpAffineExpression):
             self.constant -= other.constant
             for v,x in other.items():
                 self.addterm(v, -x)
         elif isinstance(other,dict):
             for e in other.values():
+                self.subInPlace(e)
+        elif (isinstance(other,list)
+              or isinstance(other, Iterable)):
+            for e in other:
                 self.subInPlace(e)
         else:
             self.constant -= other
@@ -1425,10 +1425,10 @@ class LpProblem(object):
             if n in coefs:
                 cv = coefs[n]
                 # Most of the work is done here
-                for k in cv: f.write("    %-8s  %-8s  % .5e\n" % (n,k,cv[k]))
+                for k in cv: f.write("    %-8s  %-8s  % .12e\n" % (n,k,cv[k]))
 
             # objective function
-            if v in cobj: f.write("    %-8s  %-8s  % .5e\n" % (n,objName,cobj[v]))
+            if v in cobj: f.write("    %-8s  %-8s  % .12e\n" % (n,objName,cobj[v]))
             if mip and v.cat == LpInteger:
                 f.write("    MARK      'MARKER'                 'INTEND'\n")
         # right hand side
@@ -1437,14 +1437,14 @@ class LpProblem(object):
             c = -c.constant
             if rename: k = constraintsNames[k]
             if c == 0: c = 0
-            f.write("    RHS       %-8s  % .5e\n" % (k,c))
+            f.write("    RHS       %-8s  % .12e\n" % (k,c))
         # bounds
         f.write("BOUNDS\n")
         for v in vs:
             n = v.name
             if rename: n = variablesNames[n]
             if v.lowBound != None and v.lowBound == v.upBound:
-                f.write(" FX BND       %-8s  % .5e\n" % (n, v.lowBound))
+                f.write(" FX BND       %-8s  % .12e\n" % (n, v.lowBound))
             elif v.lowBound == 0 and v.upBound == 1 and mip and v.cat == LpInteger:
                 f.write(" BV BND       %-8s\n" % n)
             else:
@@ -1453,14 +1453,14 @@ class LpProblem(object):
                     # are assumed BV by COIN and CPLEX.
                     # So we explicitly write a 0 lower bound in this case.
                     if v.lowBound != 0 or (mip and v.cat == LpInteger and v.upBound == None):
-                        f.write(" LO BND       %-8s  % .5e\n" % (n, v.lowBound))
+                        f.write(" LO BND       %-8s  % .12e\n" % (n, v.lowBound))
                 else:
                     if v.upBound != None:
                         f.write(" MI BND       %-8s\n" % n)
                     else:
                         f.write(" FR BND       %-8s\n" % n)
                 if v.upBound != None:
-                    f.write(" UP BND       %-8s  % .5e\n" % (n, v.upBound))
+                    f.write(" UP BND       %-8s  % .12e\n" % (n, v.upBound))
         f.write("ENDATA\n")
         f.close()
         self.restoreObjective(wasNone, dummyVar)
@@ -1499,7 +1499,10 @@ class LpProblem(object):
             constraint = self.constraints[k]
             if not list(constraint.keys()):
                 #empty constraint add the dummyVar
-                constraint += self.get_dummyVar()
+                dummyVar = self.get_dummyVar()
+                constraint += dummyVar
+                #set this dummyvar to zero so infeasible problems are not made feasible
+                f.write((dummyVar == 0.0).asCplexLpConstraint("_dummy"))
             f.write(constraint.asCplexLpConstraint(k))
         vs = self.variables()
         # check if any names are longer than 100 characters
@@ -2254,6 +2257,7 @@ def pulpTestAll():
                YAPOSIB
                ]
 
+    failed = False
     for s in solvers:
         if s().available():
             try:
@@ -2262,8 +2266,11 @@ def pulpTestAll():
             except Exception as e:
                 print(e)
                 print("* Solver", s, "failed.")
+                failed = True
         else:
             print("Solver %s unavailable" % s)
+    if failed:
+        raise PulpError("Tests Failed")
 
 def pulpDoctest():
     """

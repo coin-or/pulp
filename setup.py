@@ -8,7 +8,7 @@ from ez_setup import use_setuptools
 use_setuptools()
 from setuptools import setup
 
-Description = open('README').read()
+Description = open('README.md').read()
 
 License = open('LICENSE').read()
 
@@ -34,8 +34,8 @@ problems.
       license = License,
       keywords = ["Optimization", "Linear Programming", "Operations Research"],
       author="J.S. Roy and S.A. Mitchell",
-      author_email="s.mitchell@auckland.ac.nz",
-      url="http://pulp-or.googlecode.com/",
+      author_email="pulp@stuartmitchell.com",
+      url="https://github.com/stumitchell/pulp-or",
       classifiers = ['Development Status :: 5 - Production/Stable',
                      'Environment :: Console',
                      'Intended Audience :: Science/Research',
@@ -46,7 +46,14 @@ problems.
       ],
       #ext_modules = [pulpCOIN],
       package_dir={'':'src'},
-      packages = ['pulp', 'pulp.solverdir'],
+      #need the cbc directories here as the executable bit is set
+      packages = ['pulp', 
+      'pulp.solverdir',
+      'pulp.solverdir.cbc.linux.32',
+      'pulp.solverdir.cbc.linux.64',
+      'pulp.solverdir.cbc.win.32',
+      'pulp.solverdir.cbc.win.64',
+      'pulp.solverdir.cbc.osx.64'],
       package_data = {'pulp' : ["AUTHORS","LICENSE",
                                 "pulp.cfg.linux",
                                 "pulp.cfg.win",
@@ -55,7 +62,12 @@ problems.
                                 "AUTHORS.CoinMP.txt",
                                 "README.CoinMP.txt",
                                 ],
-                      'pulp.solverdir' : ['*','*.*']},
+                      'pulp.solverdir.cbc.linux.32' : ['*','*.*'],
+                      'pulp.solverdir.cbc.linux.64' : ['*','*.*'],
+                      'pulp.solverdir.cbc.win.32' : ['*','*.*'],
+                      'pulp.solverdir.cbc.win.64' : ['*','*.*'],
+                      'pulp.solverdir.cbc.osx.64' : ['*','*.*'],
+                      },
       install_requires = [pyparsing_ver],
       entry_points = ("""
       [console_scripts]

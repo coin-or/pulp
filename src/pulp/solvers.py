@@ -54,10 +54,11 @@ class PulpSolverError(PulpError):
     pass
 
 #import configuration information
-def initialize(filename):
+def initialize(filename, operating_system='linux', arch='64'):
     """ reads the configuration file to initialise the module"""
     here = os.path.dirname(filename)
-    config = configparser.SafeConfigParser({'here':here})
+    config = configparser.SafeConfigParser({'here':here,
+        'os':operating_system, 'arch':arch})
     config.read(filename)
 
     try:
@@ -107,11 +108,21 @@ def initialize(filename):
 
 #pick up the correct config file depending on operating system
 PULPCFGFILE = "pulp.cfg"
+is_64bits = sys.maxsize > 2**32
+if is_64bits:
+    arch = '64'
+else:
+    arch = '32'
+operating_system = None
 if sys.platform in ['win32', 'cli']:
+    operating_system = 'win'
     PULPCFGFILE += ".win"
 elif sys.platform in ['darwin']:
+    operating_system = "osx"
+    arch = '64'
     PULPCFGFILE += ".osx"
 else:
+    operating_system = "linux"
     PULPCFGFILE += ".linux"
 
 if __name__ != '__main__':
@@ -125,7 +136,7 @@ else: #run as a script
                                    PULPCFGFILE)
 cplex_dll_path, ilm_cplex_license, ilm_cplex_license_signature, \
         coinMP_path, gurobi_path, cbc_path, glpk_path, pulp_cbc_path = \
-        initialize(config_filename)
+        initialize(config_filename, operating_system, arch)
 
 
 # See later for LpSolverDefault definition
@@ -1398,6 +1409,9 @@ class COIN_CMD(LpSolver_CMD):
                 if len(l)<=2:
                     break
                 l = l.split()
+                #incase the solution is infeasible
+                if l[0] == '**':
+                    l = l[1:]
                 vn = l[1]
                 val = l[2]
                 dj = l[3]
@@ -1447,25 +1461,19 @@ class PULP_CBC_CMD(COIN_CMD):
     """
     This solver uses a precompiled version of cbc provided with the package
     """
-    arch_pulp_cbc_path = pulp_cbc_path
+    pulp_cbc_path = pulp_cbc_path
     try:
         if os.name != 'nt':
-            #not windows
-            is_64bits = sys.maxsize > 2**32
-            if is_64bits:
-                arch_pulp_cbc_path = pulp_cbc_path + '-64'
-            else:
-                arch_pulp_cbc_path = pulp_cbc_path + '-32'
-            if not os.access(arch_pulp_cbc_path, os.X_OK):
+            if not os.access(pulp_cbc_path, os.X_OK):
                 import stat
-                os.chmod(arch_pulp_cbc_path, stat.S_IXUSR + stat.S_IXOTH)
+                os.chmod(pulp_cbc_path, stat.S_IXUSR + stat.S_IXOTH)
     except: #probably due to incorrect permissions
         def available(self):
             """True if the solver is available"""
             return False
         def actualSolve(self, lp, callback = None):
             """Solve a well formulated lp problem"""
-            raise PulpSolverError("PULP_CBC_CMD: Not Available (check permissions on %s)" % self.arch_pulp_cbc_path)
+            raise PulpSolverError("PULP_CBC_CMD: Not Available (check permissions on %s)" % self.pulp_cbc_path)
     else:
         def __init__(self, path=None, *args, **kwargs):
             """
@@ -1474,7 +1482,7 @@ class PULP_CBC_CMD(COIN_CMD):
             if path is not None:
                 raise PulpSolverError('Use COIN_CMD if you want to set a path')
             #check that the file is executable
-            COIN_CMD.__init__(self, path=self.arch_pulp_cbc_path, *args, **kwargs)
+            COIN_CMD.__init__(self, path=self.pulp_cbc_path, *args, **kwargs)
 
 def COINMP_DLL_load_dll(path):
     """
@@ -1888,7 +1896,7 @@ class GUROBI_CMD(LpSolver_CMD):
         except: pass
         cmd = self.path
         cmd += ' ' + ' '.join(['%s=%s' % (key, value)
-                    for key, value in self.options.items()])
+                    for key, value in self.options])
         cmd += ' ResultFile=%s' % tmpSol
         if lp.isMIP():
             if not self.mip:

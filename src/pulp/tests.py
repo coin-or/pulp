@@ -64,6 +64,28 @@ def pulpTest001(solver):
     print("\t Testing zero subtraction")
     assert str(c2)  #will raise an exception
 
+def pulpTest009(solver):
+    # infeasible
+    prob = LpProblem("test09", LpMinimize)
+    x = LpVariable("x", 0, 4)
+    y = LpVariable("y", -1, 1)
+    z = LpVariable("z", 0)
+    w = LpVariable("w", 0)
+    prob += x + 4*y + 9*z, "obj"
+    prob += lpSum([v for v in [x] if False]) >= 5, "c1"  #this is a 0 >=5 constraint
+    prob += x+z >= 10, "c2"
+    prob += -y+z == 7, "c3"
+    prob += w >= 0, "c4"
+    print("\t Testing inconsistant lp solution")
+    #this was a problem with use_mps=false
+    if solver.__class__ in [PULP_CBC_CMD, COIN_CMD]:
+        pulpTestCheck(prob, solver, [LpStatusInfeasible], {x:4, y:-1, z:6, w:0},
+            use_mps = False)
+    else:
+        pulpTestCheck(prob, solver, [LpStatusInfeasible, LpStatusNotSolved,
+            LpStatusUndefined])
+
+
 def pulpTest010(solver):
     # Continuous
     prob = LpProblem("test010", LpMinimize)
@@ -246,8 +268,7 @@ def pulpTest019(solver):
     prob += -y+z == 7, "c3"
     prob += w >= 0, "c4"
     print("\t Testing LpAffineExpression divide")
-    pulpTestCheck(prob, solver, [LpStatusOptimal], {x:4, y:-1, z:6, w:0},
-                    use_mps=False)
+    pulpTestCheck(prob, solver, [LpStatusOptimal], {x:4, y:-1, z:6, w:0})
 
 def pulpTest020(solver):
     # MIP
@@ -555,6 +576,7 @@ def pulpTest123(solver):
 def pulpTestSolver(solver, msg = 0):
     tests = [
             pulpTest001,
+            pulpTest009,
             pulpTest010, pulpTest011, pulpTest012, pulpTest013, pulpTest014,
             pulpTest015, pulpTest016, pulpTest017,
             pulpTest018, pulpTest019,
