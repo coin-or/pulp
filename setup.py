@@ -51,6 +51,8 @@ problems.
       'pulp.solverdir',
       'pulp.solverdir.cbc.linux.32',
       'pulp.solverdir.cbc.linux.64',
+      'pulp.solverdir.cbc.win.32',
+      'pulp.solverdir.cbc.win.64',
       'pulp.solverdir.cbc.osx.64'],
       package_data = {'pulp' : ["AUTHORS","LICENSE",
                                 "pulp.cfg.linux",
