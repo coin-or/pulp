@@ -1368,6 +1368,10 @@ class COIN_CMD(LpSolver_CMD):
         lp.assignConsSlack(slacks, activity=True)
         if not self.keepFiles:
             try:
+                os.remove(tmpMps)
+            except:
+                pass
+            try:
                 os.remove(tmpLp)
             except:
                 pass
