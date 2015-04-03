@@ -476,6 +476,7 @@ class CPLEX_CMD(LpSolver_CMD):
         cplex_cmds += "optimize\n"
         cplex_cmds += "write "+tmpSol+"\n"
         cplex_cmds += "quit\n"
+        cplex_cmds = cplex_cmds.encode('UTF-8')
         cplex.communicate(cplex_cmds)
         if cplex.returncode != 0:
             raise PulpSolverError("PuLP: Error while trying to execute "+self.path)
