@@ -101,6 +101,9 @@ from .constants import *
 from .solvers import *
 from collections import Iterable
 
+import logging
+log = logging.getLogger(__name__)
+
 try:  # allow Python 2/3 compatibility
     maketrans = str.maketrans
 except AttributeError:
@@ -1783,9 +1786,9 @@ class FixedElasticSubProblem(LpProblem):
         freeVar = self._findValue("freeVar")
         result = abs(upVar + lowVar) >= EPS
         if result:
-            logging.debug("isViolated %s, upVar %s, lowVar %s, freeVar %s result %s"%(
+            log.debug("isViolated %s, upVar %s, lowVar %s, freeVar %s result %s"%(
                         self.name, upVar, lowVar, freeVar, result))
-            logging.debug("isViolated value lhs %s constant %s"%(
+            log.debug("isViolated value lhs %s constant %s"%(
                          self.findLHSValue(), self.RHS))
         return result
 

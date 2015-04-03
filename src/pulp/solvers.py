@@ -1347,7 +1347,7 @@ class COIN_CMD(LpSolver_CMD):
             pipe = None
         else:
             pipe = open(os.devnull, 'w')
-        logging.debug(self.path + cmds)
+        log.debug(self.path + cmds)
         cbc = subprocess.Popen((self.path + cmds).split(), stdout = pipe,
                              stderr = pipe)
         if cbc.wait() != 0:
