@@ -429,6 +429,12 @@ GLPK = GLPK_CMD
 
 class CPLEX_CMD(LpSolver_CMD):
     """The CPLEX LP solver"""
+    
+    def __init__(self, path = None, keepFiles = 0, mip = 1,
+            msg = 0, options = [], timelimit = None):
+        LpSolver_CMD.__init__(self, path, keepFiles, mip, msg, options)
+        self.timelimit = timelimit
+    
     def defaultPath(self):
         return self.executableExtension("cplex")
 
@@ -456,6 +462,8 @@ class CPLEX_CMD(LpSolver_CMD):
         else:
             cplex = subprocess.Popen(self.path, stdin = subprocess.PIPE)
         cplex_cmds = "read "+tmpLp+"\n"
+        if self.timelimit is not None:
+            cplex_cmds += "set timelimit " + self.timelimt + "\n"
         for option in self.options:
             cplex_cmds += option+"\n"
         if lp.isMIP():
