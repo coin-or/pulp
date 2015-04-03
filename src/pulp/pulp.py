@@ -101,6 +101,9 @@ from .constants import *
 from .solvers import *
 from collections import Iterable
 
+import logging
+log = logging.getLogger(__name__)
+
 try:  # allow Python 2/3 compatibility
     maketrans = str.maketrans
 except AttributeError:
@@ -749,11 +752,18 @@ class LpAffineExpression(_DICT_TYPE):
     def __radd__(self, other):
         return self.copy().addInPlace(other)
 
+    def __iadd__(self, other):
+        return self.addInPlace(other)
+
     def __sub__(self, other):
         return self.copy().subInPlace(other)
 
     def __rsub__(self, other):
         return (-self).addInPlace(other)
+
+    def __isub__(self, other):
+        return (self).subInPlace(other)
+
 
     def __mul__(self, other):
         e = self.emptyCopy()
@@ -1776,9 +1786,9 @@ class FixedElasticSubProblem(LpProblem):
         freeVar = self._findValue("freeVar")
         result = abs(upVar + lowVar) >= EPS
         if result:
-            logging.debug("isViolated %s, upVar %s, lowVar %s, freeVar %s result %s"%(
+            log.debug("isViolated %s, upVar %s, lowVar %s, freeVar %s result %s"%(
                         self.name, upVar, lowVar, freeVar, result))
-            logging.debug("isViolated value lhs %s constant %s"%(
+            log.debug("isViolated value lhs %s constant %s"%(
                          self.findLHSValue(), self.RHS))
         return result
 

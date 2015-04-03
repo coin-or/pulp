@@ -1347,7 +1347,7 @@ class COIN_CMD(LpSolver_CMD):
             pipe = None
         else:
             pipe = open(os.devnull, 'w')
-        logging.debug(self.path + cmds)
+        log.debug(self.path + cmds)
         cbc = subprocess.Popen((self.path + cmds).split(), stdout = pipe,
                              stderr = pipe)
         if cbc.wait() != 0:
@@ -1367,6 +1367,10 @@ class COIN_CMD(LpSolver_CMD):
         lp.assignConsPi(shadowPrices)
         lp.assignConsSlack(slacks, activity=True)
         if not self.keepFiles:
+            try:
+                os.remove(tmpMps)
+            except:
+                pass
             try:
                 os.remove(tmpLp)
             except:
@@ -1444,6 +1448,8 @@ class COIN_CMD(LpSolver_CMD):
                 if len(l)<=2:
                     break
                 l = l.split()
+                if l[0] == '**':
+                    l = l[1:]
                 vn = l[1]
                 val = l[2]
                 dj = l[3]
