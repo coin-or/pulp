@@ -1448,6 +1448,8 @@ class COIN_CMD(LpSolver_CMD):
                 if len(l)<=2:
                     break
                 l = l.split()
+                if l[0] == '**':
+                    l = l[1:]
                 vn = l[1]
                 val = l[2]
                 dj = l[3]
