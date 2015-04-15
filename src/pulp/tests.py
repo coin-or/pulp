@@ -56,6 +56,7 @@ def pulpTest001(solver):
     """
     Test that a variable is deleted when it is suptracted to 0
     """
+    print "I am in test 001"
     x = LpVariable("x", 0, 4)
     y = LpVariable("y", -1, 1)
     z = LpVariable("z", 0)
