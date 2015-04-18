@@ -35,7 +35,7 @@ problems.
       keywords = ["Optimization", "Linear Programming", "Operations Research"],
       author="J.S. Roy and S.A. Mitchell",
       author_email="pulp@stuartmitchell.com",
-      url="https://github.com/stumitchell/pulp-or",
+      url="https://github.com/coin-or/pulp",
       classifiers = ['Development Status :: 5 - Production/Stable',
                      'Environment :: Console',
                      'Intended Audience :: Science/Research',
