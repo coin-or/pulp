@@ -419,7 +419,7 @@ class GLPK_CMD(LpSolver_CMD):
                 name = line[1]
                 if len(line) ==2: line = [0,0]+f.readline().split()
                 if isInteger:
-                    if line[2] == "*": value = int(line[3])
+                    if line[2] == "*": value = int(float(line[3]))
                     else: value = float(line[2])
                 else:
                     value = float(line[3])

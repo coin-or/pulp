@@ -9,6 +9,7 @@ def pulpTestCheck(prob, solver, okstatus, sol = {},
                    slacks = None,
                    eps = 10**-3,
                    status = None,
+                   objective = None,
                    **kwargs):
 
     if status is None:
@@ -48,9 +49,17 @@ def pulpTestCheck(prob, solver, okstatus, sol = {},
             if abs(c.slack - slack) > eps:
                 prob.writeLP("debug.lp")
                 prob.writeMPS("debug.mps")
-                print(("Test failed: constraint.slack", cname , "==",
-                        c.slack, "!=", slack))
-                raise PulpError("Tests failed for solver %s"%solver)
+                print("Test failed: constraint.slack", cname , "==",
+                        c.slack, "!=", slack)
+                raise PulpError("Tests failed for solver %s" % solver)
+    if objective is not None:
+        z = prob.objective.value()
+        if abs(z - objective) > eps:
+            prob.writeLP("debug.lp")
+            prob.writeMPS("debug.mps")
+            print("Test failed: objective ", z, " != ", objective)
+            raise PulpError("Tests failed for solver %s" % solver)
+            
 
 def pulpTest001(solver):
     """
@@ -224,7 +233,7 @@ def pulpTest016(solver):
 
 def pulpTest017(solver):
     # variable as objective
-    prob = LpProblem("test016", LpMinimize)
+    prob = LpProblem("test017", LpMinimize)
     x = LpVariable("x", 0, 4)
     y = LpVariable("y", -1, 1)
     z = LpVariable("z", 0)
@@ -240,7 +249,7 @@ def pulpTest017(solver):
 
 def pulpTest018(solver):
     # Long name in lp
-    prob = LpProblem("test013", LpMinimize)
+    prob = LpProblem("test018", LpMinimize)
     x = LpVariable("x"*90, 0, 4)
     y = LpVariable("y"*90, -1, 1)
     z = LpVariable("z"*90, 0)
@@ -282,6 +291,20 @@ def pulpTest020(solver):
     prob += -y+z == 7.5, "c3"
     print("\t Testing MIP solution")
     pulpTestCheck(prob, solver, [LpStatusOptimal], {x:3, y:-0.5, z:7})
+
+def pulpTest021(solver):
+    # MIP with floats in objective
+    prob = LpProblem("test021", LpMinimize)
+    x = LpVariable("x", 0, 4)
+    y = LpVariable("y", -1, 1)
+    z = LpVariable("z", 0, None, LpInteger)
+    prob += 1.1 * x + 4.1 * y + 9.1 * z, "obj"
+    prob += x+y <= 5, "c1"
+    prob += x+z >= 10, "c2"
+    prob += -y+z == 7.5, "c3"
+    print("\t Testing MIP solution with floats in objective")
+    pulpTestCheck(prob, solver, [LpStatusOptimal], {x:3, y:-0.5, z:7},
+                    objective=64.95)
 
 def pulpTest030(solver):
     # relaxed MIP
@@ -580,7 +603,7 @@ def pulpTestSolver(solver, msg = 0):
             pulpTest010, pulpTest011, pulpTest012, pulpTest013, pulpTest014,
             pulpTest015, pulpTest016, pulpTest017,
             pulpTest018, pulpTest019,
-            pulpTest020,
+            pulpTest020, pulpTest021,
             pulpTest030,
             pulpTest040,
             pulpTest050,
