@@ -463,7 +463,7 @@ class CPLEX_CMD(LpSolver_CMD):
             cplex = subprocess.Popen(self.path, stdin = subprocess.PIPE)
         cplex_cmds = "read "+tmpLp+"\n"
         if self.timelimit is not None:
-            cplex_cmds += "set timelimit " + self.timelimt + "\n"
+            cplex_cmds += "set timelimit " + str(self.timelimit) + "\n"
         for option in self.options:
             cplex_cmds += option+"\n"
         if lp.isMIP():
