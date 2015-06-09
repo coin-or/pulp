@@ -22,7 +22,7 @@ solver executable.
 
 See the examples directory for examples.
 
-PuLP requires Python >= 2.5.
+PuLP requires Python >= 2.6.
 
 The examples use the default solver (cbc), to use other solvers they must be available.
 
