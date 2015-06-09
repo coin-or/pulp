@@ -429,6 +429,12 @@ GLPK = GLPK_CMD
 
 class CPLEX_CMD(LpSolver_CMD):
     """The CPLEX LP solver"""
+    
+    def __init__(self, path = None, keepFiles = 0, mip = 1,
+            msg = 0, options = [], timelimit = None):
+        LpSolver_CMD.__init__(self, path, keepFiles, mip, msg, options)
+        self.timelimit = timelimit
+    
     def defaultPath(self):
         return self.executableExtension("cplex")
 
@@ -456,6 +462,8 @@ class CPLEX_CMD(LpSolver_CMD):
         else:
             cplex = subprocess.Popen(self.path, stdin = subprocess.PIPE)
         cplex_cmds = "read "+tmpLp+"\n"
+        if self.timelimit is not None:
+            cplex_cmds += "set timelimit " + str(self.timelimit) + "\n"
         for option in self.options:
             cplex_cmds += option+"\n"
         if lp.isMIP():
@@ -468,6 +476,7 @@ class CPLEX_CMD(LpSolver_CMD):
         cplex_cmds += "optimize\n"
         cplex_cmds += "write "+tmpSol+"\n"
         cplex_cmds += "quit\n"
+        cplex_cmds = cplex_cmds.encode('UTF-8')
         cplex.communicate(cplex_cmds)
         if cplex.returncode != 0:
             raise PulpSolverError("PuLP: Error while trying to execute "+self.path)
