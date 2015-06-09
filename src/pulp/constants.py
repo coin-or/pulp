@@ -1,5 +1,4 @@
 # PuLP : Python LP Modeler
-# Version 1.20
 
 # Copyright (c) 2002-2005, Jean-Sebastien Roy (js@jeannot.org)
 # Modifications Copyright (c) 2007- Stuart Anthony Mitchell (s.mitchell@auckland.ac.nz)
@@ -28,7 +27,7 @@
 This file contains the constant definitions for PuLP
 Note that hopefully these will be changed into something more pythonic
 """
-VERSION = '1.5.9'
+VERSION = '1.6.0'
 EPS = 1e-7
 
 # variable categories
