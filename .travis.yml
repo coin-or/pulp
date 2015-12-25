@@ -17,6 +17,7 @@ before_deploy:
 - sudo apt-get install dvipng
 deploy:
   provider: pypi
+  docs_dir: doc/build/html
   user: StuartMitchell
   password:
     secure: SVUU0MC4tLFS0EWqybpjWHKHumZ0qB6quhkvvx0pyfn4h6CIgZqhuWdSD/PJomlZp+dfqdQUVq3Tzl50UwQFG4OcBORJ+fVjxGJPkO5dpFsvtoNfBRNV9ZkYzMUx0djXxFKK2sVNqgI2O2sDvZk4eHDD09+mKtoSZ5XeT68Vqno=
