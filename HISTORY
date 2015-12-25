@@ -1,6 +1,8 @@
 # PuLP, Copyright J.S. Roy (js@jeannot.org), 2002-2005
 #       Copyright S.A.Mitchell (s.mitchell@auckland.ac.nz), 2007-
 # See the LICENSE file for copyright information.
+1.6.1, 2015-12-25
+    Fix for dummy variables
 1.5.4, 2013-03-18
     Added cbc support for osx (hopefully)
 1.4.9, 2011-03-30

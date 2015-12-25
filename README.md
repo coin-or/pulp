@@ -11,7 +11,7 @@ The easiest way to install pulp is via [PyPi](https://pypi.python.org/pypi/PuLP)
 If pip is available on your system
 
      $pip install pulp
-    
+
 Otherwise follow the download instructions on the PyPi page
 On Linux and OSX systems the tests must be run to make the default
 solver executable.
@@ -43,7 +43,7 @@ Use LpProblem() to create new problems. Create "myProblem"
      >>> prob = LpProblem("myProblem", LpMinimize)
 
 Combine variables to create expressions and constraints and add them to the
-problem. 
+problem.
 
      >>> prob += x + y <= 2
 
@@ -55,7 +55,7 @@ become the objective.
 To solve with the default included solver
 
      >>> status = prob.solve()
-     
+
 To use another sovler to solve the problem.
 
      >>> status = prob.solve(GLPK(msg = 0))
@@ -74,18 +74,18 @@ Exported Classes:
 
 * LpProblem -- Container class for a Linear programming problem
 * LpVariable -- Variables that are added to constraints in the LP
-* LpConstraint -- A constraint of the general form 
+* LpConstraint -- A constraint of the general form
 
-      a1x1+a2x2 ...anxn (<=, =, >=) b 
+      a1x1+a2x2 ...anxn (<=, =, >=) b
 
 *  LpConstraintVar -- Used to construct a column of the model in column-wise modelling
 
 Exported Functions:
 
 * value() -- Finds the value of a variable or expression
-* lpSum() -- given a list of the form [a1*x1, a2x2, ..., anxn] will construct 
+* lpSum() -- given a list of the form [a1*x1, a2x2, ..., anxn] will construct
 a linear expression to be used as a constraint or variable
-* lpDot() --given two lists of the form [a1, a2, ..., an] and 
+* lpDot() --given two lists of the form [a1, a2, ..., an] and
 [ x1, x2, ..., xn] will construct a linear epression to be used
 as a constraint or variable
 
