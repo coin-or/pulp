@@ -1498,7 +1498,7 @@ class LpProblem(object):
             f.write("Minimize\n")
         else:
             f.write("Maximize\n")
-        wasNone, dummyVar = self.fixObjective()
+        wasNone, objectiveDummyVar = self.fixObjective()
         objName = self.objective.name
         if not objName: objName = "OBJ"
         f.write(self.objective.asCplexLpAffineExpression(objName, constant = 0))
@@ -1567,7 +1567,7 @@ class LpProblem(object):
                         f.write(" %s: %.12g\n" % (v.name, val))
         f.write("End\n")
         f.close()
-        self.restoreObjective(wasNone, dummyVar)
+        self.restoreObjective(wasNone, objectiveDummyVar)
 
     def assignVarsVals(self, values):
         variables = self.variablesDict()
