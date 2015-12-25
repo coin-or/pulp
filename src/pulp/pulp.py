@@ -243,7 +243,7 @@ class LpVariable(LpElement):
     This class models an LP Variable with the specified associated parameters
 
     :param name: The name of the variable used in the output .lp file
-    :param lowbound: The lower bound on this variable's range.
+    :param lowBound: The lower bound on this variable's range.
         Default is negative infinity
     :param upBound: The upper bound on this variable's range.
         Default is positive infinity
