@@ -96,6 +96,7 @@ References:
 import types
 import string
 import itertools
+import warnings
 
 from .constants import *
 from .solvers import *
@@ -1330,9 +1331,13 @@ class LpProblem(object):
         elif isinstance(other, LpConstraint):
             self.addConstraint(other, name)
         elif isinstance(other, LpAffineExpression):
+            if self.objective is None:
+                warnings.warn("Overwriting previously set objective.")
             self.objective = other
             self.objective.name = name
         elif isinstance(other, LpVariable) or isinstance(other, (int, float)):
+            if self.objective is None:
+                warnings.warn("Overwriting previously set objective.")
             self.objective = LpAffineExpression(other)
             self.objective.name = name
         else:
