@@ -100,7 +100,6 @@ import itertools
 from .constants import *
 from .solvers import *
 from collections import Iterable
-from operator import attrgetter
 
 import logging
 log = logging.getLogger(__name__)
@@ -1127,32 +1126,21 @@ class LpProblem(object):
         self.lastUnused = 0
 
     def __repr__(self):
-        s = self.name+":\n"
+        string = self.name+":\n"
         if self.sense == 1:
-            s += "MINIMIZE\n"
+            string += "MINIMIZE\n"
         else:
-            s += "MAXIMIZE\n"
-        s += repr(self.objective) +"\n"
+            string += "MAXIMIZE\n"
+        string += repr(self.objective) +"\n"
 
         if self.constraints:
-            s += "SUBJECT TO\n"
+            string += "SUBJECT TO\n"
             for n, c in self.constraints.items():
-                s += c.asCplexLpConstraint(n) +"\n"
-        s += "VARIABLES\n"
+                string += c.asCplexLpConstraint(n) +"\n"
+        string += "VARIABLES\n"
         for v in self.variables():
-            s += v.asCplexLpVariable() + " " + LpCategories[v.cat] + "\n"
-        return s
-
-    def __getstate__(self):
-        # Remove transient data prior to pickling.
-        state = self.__dict__.copy()
-        del state['_variable_ids']
-        return state
-
-    def __setstate__(self, state):
-        # Update transient data prior to unpickling.
-        self.__dict__.update(state)
-        self._variable_ids = {id(v): v for v in self._variables}
+            string += v.asCplexLpVariable() + " " + LpCategories[v.cat] + "\n"
+        return string
 
     def copy(self):
         """Make a copy of self. Expressions are copied by reference"""
@@ -1264,8 +1252,12 @@ class LpProblem(object):
             self.addVariables(list(self.objective.keys()))
         for c in self.constraints.values():
             self.addVariables(list(c.keys()))
+        variables = self._variables
         #sort the varibles DSU
-        return list(sorted(self._variables, key=attrgetter('name')))
+        variables = [[v.name, v] for v in variables]
+        variables.sort()
+        variables = [v for _, v in variables]
+        return variables
 
     def variablesDict(self):
         variables = {}
