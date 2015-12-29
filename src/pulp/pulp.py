@@ -1152,7 +1152,9 @@ class LpProblem(object):
     def __setstate__(self, state):
         # Update transient data prior to unpickling.
         self.__dict__.update(state)
-        self._variable_ids = {id(v): v for v in self._variables}
+        self._variable_ids = {}
+        for v in self._variables:
+            self._variable_ids[id(v)] = v
 
     def copy(self):
         """Make a copy of self. Expressions are copied by reference"""
