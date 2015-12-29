@@ -2545,7 +2545,7 @@ class SCIP_CMD(LpSolver_CMD):
         'solution improvement limit reached': LpStatusNotSolved,
         'restart limit reached': LpStatusNotSolved,
         'optimal solution found': LpStatusOptimal,
-        'infeasible': LpStatusInfeasible,
+        'infeasible':   LpStatusInfeasible,
         'unbounded': LpStatusUnbounded,
         'infeasible or unbounded': LpStatusNotSolved,
     }
@@ -2568,13 +2568,13 @@ class SCIP_CMD(LpSolver_CMD):
             tmpLp = os.path.join(self.tmpDir, "%d-pulp.lp" % pid)
             tmpSol = os.path.join(self.tmpDir, "%d-pulp.sol" % pid)
         else:
-            tmpLp = lp.name+"-pulp.lp"
-            tmpSol = lp.name+"-pulp.sol"
+            tmpLp = lp.name + "-pulp.lp"
+            tmpSol = lp.name + "-pulp.sol"
 
         lp.writeLP(tmpLp)
         proc = [
-            'scip', '-c', 'read %s' % tmpLp, '-c', 'optimize',
-            '-c', 'write solution %s' % tmpSol, '-c', 'quit'
+            'scip', '-c', 'read "%s"' % tmpLp, '-c', 'optimize',
+            '-c', 'write solution "%s"' % tmpSol, '-c', 'quit'
         ]
         proc.extend(self.options)
         if not self.msg:
@@ -2588,7 +2588,14 @@ class SCIP_CMD(LpSolver_CMD):
             raise PulpSolverError("PuLP: Error while executing "+self.path)
 
         lp.status, values = self.readsol(tmpSol)
-        lp.assignVarsVals(values)
+
+        # Make sure to add back in any 0-valued variables SCIP leaves out.
+        finalVals = {}
+        for v in lp.variables():
+            finalVals[v.name] = values.get(v.name, 0.0)
+
+        lp.assignVarsVals(finalVals)
+
         if not self.keepFiles:
             for f in (tmpLp, tmpSol):
                 try:
@@ -2598,7 +2605,7 @@ class SCIP_CMD(LpSolver_CMD):
 
         return lp.status
 
-    def readsol(self,filename):
+    def readsol(self, filename):
         """Read a SCIP solution file"""
         with open(filename) as f:
             # First line must containt 'solution status: <something>'
