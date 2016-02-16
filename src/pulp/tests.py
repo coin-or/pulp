@@ -191,8 +191,9 @@ def pulpTest014(solver):
     prob += -y+z == 7, "c3"
     prob += w >= 0, "c4"
     print("\t Testing repeated Names")
-    if solver.__class__ in [COIN_CMD, PULP_CBC_CMD, CPLEX_CMD, CPLEX_PY,
-            GLPK_CMD, GUROBI_CMD]:
+    if solver.__class__ in [COIN_CMD, COINMP_DLL, PULP_CBC_CMD,
+                            CPLEX_CMD, CPLEX_DLL, CPLEX_PY,
+                            GLPK_CMD, GUROBI_CMD]:
         try:
             pulpTestCheck(prob, solver, [LpStatusOptimal], {x:4, y:-1, z:6, w:0})
         except PulpError:
