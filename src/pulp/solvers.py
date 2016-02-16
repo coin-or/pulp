@@ -1685,8 +1685,7 @@ class COINMP_DLL(LpSolver):
             #put pi and slack variables against the constraints
             for i in range(numRows):
                 constraintpivalues[self.n2c[i]] = cShadowPrices[i]
-                constraintslackvalues[self.n2c[i]] = \
-                    rhsValues[i] - cSlackValues[i]
+                constraintslackvalues[self.n2c[i]] = cSlackValues[i]
             lp.assignConsPi(constraintpivalues)
             lp.assignConsSlack(constraintslackvalues)
 
