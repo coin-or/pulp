@@ -1409,16 +1409,14 @@ class LpProblem(object):
         if not objName: objName = "OBJ"
         f.write(" N  %s\n" % objName)
         mpsConstraintType = {LpConstraintLE:"L", LpConstraintEQ:"E", LpConstraintGE:"G"}
-        for k,c in self.constraints.items():
-            if rename: k = constraintsNames[k]
-            f.write(" "+mpsConstraintType[c.sense]+"  "+k+"\n")
-        # matrix
-        f.write("COLUMNS\n")
+        # right hand side
+        rhs = ""
         # Creation of a dict of dict:
         # coefs[nomVariable][nomContrainte] = coefficient
         coefs = {}
         for k,c in self.constraints.items():
             if rename: k = constraintsNames[k]
+            f.write(" "+mpsConstraintType[c.sense]+"  "+k+"\n")
             for v in c:
                 n = v.name
                 if rename: n = variablesNames[n]
@@ -1426,51 +1424,53 @@ class LpProblem(object):
                     coefs[n][k] = c[v]
                 else:
                     coefs[n] = {k:c[v]}
-
+            c = -c.constant
+            if c == 0: c = 0
+            rhs += "    RHS       %-8s  % .12e\n" % (k,c)
+        # matrix
+        columns = ""
+        # bounds
+        bounds = ""
         for v in vs:
             if mip and v.cat == LpInteger:
-                f.write("    MARK      'MARKER'                 'INTORG'\n")
+                columns += "    MARK      'MARKER'                 'INTORG'\n"
             n = v.name
             if rename: n = variablesNames[n]
             if n in coefs:
                 cv = coefs[n]
                 # Most of the work is done here
-                for k in cv: f.write("    %-8s  %-8s  % .12e\n" % (n,k,cv[k]))
+                for k in cv:
+                    columns += "    %-8s  %-8s  % .12e\n" % (n,k,cv[k])
 
             # objective function
-            if v in cobj: f.write("    %-8s  %-8s  % .12e\n" % (n,objName,cobj[v]))
+            if v in cobj:
+                columns += "    %-8s  %-8s  % .12e\n" % (n,objName,cobj[v])
             if mip and v.cat == LpInteger:
-                f.write("    MARK      'MARKER'                 'INTEND'\n")
-        # right hand side
-        f.write("RHS\n")
-        for k,c in self.constraints.items():
-            c = -c.constant
-            if rename: k = constraintsNames[k]
-            if c == 0: c = 0
-            f.write("    RHS       %-8s  % .12e\n" % (k,c))
-        # bounds
-        f.write("BOUNDS\n")
-        for v in vs:
-            n = v.name
-            if rename: n = variablesNames[n]
+                columns += "    MARK      'MARKER'                 'INTEND'\n"
             if v.lowBound != None and v.lowBound == v.upBound:
-                f.write(" FX BND       %-8s  % .12e\n" % (n, v.lowBound))
+                bounds += " FX BND       %-8s  % .12e\n" % (n, v.lowBound)
             elif v.lowBound == 0 and v.upBound == 1 and mip and v.cat == LpInteger:
-                f.write(" BV BND       %-8s\n" % n)
+                bounds += " BV BND       %-8s\n" % n
             else:
                 if v.lowBound != None:
                     # In MPS files, variables with no bounds (i.e. >= 0)
                     # are assumed BV by COIN and CPLEX.
                     # So we explicitly write a 0 lower bound in this case.
                     if v.lowBound != 0 or (mip and v.cat == LpInteger and v.upBound == None):
-                        f.write(" LO BND       %-8s  % .12e\n" % (n, v.lowBound))
+                        bounds += " LO BND       %-8s  % .12e\n" % (n, v.lowBound)
                 else:
                     if v.upBound != None:
-                        f.write(" MI BND       %-8s\n" % n)
+                        bounds += " MI BND       %-8s\n" % n
                     else:
-                        f.write(" FR BND       %-8s\n" % n)
+                        bounds += " FR BND       %-8s\n" % n
                 if v.upBound != None:
-                    f.write(" UP BND       %-8s  % .12e\n" % (n, v.upBound))
+                    bounds += " UP BND       %-8s  % .12e\n" % (n, v.upBound)
+        f.write("COLUMNS\n")
+        f.write(columns)
+        f.write("RHS\n")
+        f.write(rhs)
+        f.write("BOUNDS\n")
+        f.write(bounds)
         f.write("ENDATA\n")
         f.close()
         self.restoreObjective(wasNone, dummyVar)
