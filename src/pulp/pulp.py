@@ -302,7 +302,7 @@ class LpVariable(LpElement):
         :param name: The prefix to the name of each LP variable created
         :param indexs: A list of strings of the keys to the dictionary of LP
             variables, and the main part of the variable name itself
-        :param lowbound: The lower bound on these variables' range. Default is
+        :param lowBound: The lower bound on these variables' range. Default is
             negative infinity
         :param upBound: The upper bound on these variables' range. Default is
             positive infinity
