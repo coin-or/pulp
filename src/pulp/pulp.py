@@ -2024,7 +2024,7 @@ def combination(orgset, k = None):
     except ImportError:
         return __combination(orgset,k)
 
-def __combination(orgset,k):
+def __combination(orgset, k):
     """
     fall back if probstat is not installed note it is GPL so cannot
     be included
@@ -2086,7 +2086,7 @@ def __permutation(orgset, k):
             for s in __permutation(orgset[:i] + orgset[i+1:],k-1):
                 yield (x,)+ s
 
-def allpermutations(orgset,k):
+def allpermutations(orgset, k):
     """
     returns all permutations of orgset with up to k items
 
@@ -2119,9 +2119,9 @@ def allpermutations(orgset,k):
     """
     return itertools.chain(*[permutation(orgset,i) for i in range(1,k+1)])
 
-def allcombinations(orgset,k):
+def allcombinations(orgset, k):
     """
-    returns all permutations of orgset with up to k items
+    returns all combinations of orgset with up to k items
 
     :param orgset: the list to be iterated
     :param k: the maxcardinality of the subsets
