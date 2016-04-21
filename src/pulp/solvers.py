@@ -1192,6 +1192,32 @@ else:
 
 class XPRESS(LpSolver_CMD):
     """The XPRESS LP solver"""
+    def __init__(self, path = None, keepFiles = 0, mip = 1,
+            msg = 0, maxSeconds = None, targetGap = None, heurFreq = None,
+            heurStra = None, coverCuts = None, preSolve = None,
+            options = []):
+        """
+        Initializes the Xpress solver.
+
+        @param maxSeconds: the maximum time that the Optimizer will run before it terminates
+        @param targetGap: global search will terminate if: 
+                          abs(MIPOBJVAL - BESTBOUND) <= MIPRELSTOP * BESTBOUND
+        @param heurFreq: the frequency at which heuristics are used in the tree search
+        @param heurStra: heuristic strategy
+        @param coverCuts: the number of rounds of lifted cover inequalities at the top node
+        @param preSolve: whether presolving should be performed before the main algorithm
+        @param options: Adding more options, e.g. options = ["NODESELECTION=1", "HEURDEPTH=5"]
+                        More about Xpress options and control parameters please see
+                        http://tomopt.com/docs/xpress/tomlab_xpress008.php
+        """
+        LpSolver_CMD.__init__(self, path, keepFiles, mip, msg, options)
+        self.maxSeconds = maxSeconds
+        self.targetGap = targetGap
+        self.heurFreq = heurFreq
+        self.heurStra = heurStra
+        self.coverCuts = coverCuts
+        self.preSolve = preSolve
+
     def defaultPath(self):
         return self.executableExtension("optimizer")
 
@@ -1216,6 +1242,20 @@ class XPRESS(LpSolver_CMD):
         else:
             xpress = os.popen(self.path+" "+lp.name, "w")
         xpress.write("READPROB "+tmpLp+"\n")
+        if self.maxSeconds:
+            xpress.write("MAXTIME=%d\n" % self.maxSeconds)
+        if self.targetGap:
+            xpress.write("MIPRELSTOP=%f\n" % self.targetGap)
+        if self.heurFreq:
+            xpress.write("HEURFREQ=%d\n" % self.heurFreq)
+        if self.heurStra:
+            xpress.write("HEURSTRATEGY=%d\n" % self.heurStra)
+        if self.coverCuts:
+            xpress.write("COVERCUTS=%d\n" % self.coverCuts)
+        if self.preSolve:
+            xpress.write("PRESOLVE=%d\n" % self.preSolve)
+        for option in self.options:
+            xpress.write(option+"\n")
         if lp.sense == LpMaximize:
             xpress.write("MAXIM\n")
         else:
