@@ -17,11 +17,14 @@ version_dict = {}
 exec(open('src/pulp/constants.py').read(), version_dict)
 VERSION = version_dict['VERSION']
 
-#hack because pyparsing made version 2 python 3 specific
-if sys.version_info[0] <= 2:
+# hack because pyparsing made version 2 only support python 2.6 and later
+# Reference: http://pyparsing.wikispaces.com/News
+if sys.version_info[:2] <= (2, 5):
     pyparsing_ver = 'pyparsing<=1.9.9'
-else:
+elif sys.version_info[0] >= 3:
     pyparsing_ver = 'pyparsing>=2.0.0'
+else:
+    pyparsing_ver = 'pyparsing>=2.0.1'
 
 setup(name="PuLP",
       version=VERSION,
@@ -47,7 +50,7 @@ problems.
       #ext_modules = [pulpCOIN],
       package_dir={'':'src'},
       #need the cbc directories here as the executable bit is set
-      packages = ['pulp', 
+      packages = ['pulp',
       'pulp.solverdir',
       'pulp.solverdir.cbc.linux.32',
       'pulp.solverdir.cbc.linux.64',
