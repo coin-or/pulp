@@ -8,7 +8,7 @@ def dumpTestProblem(prob):
         prob.writeLP("debug.lp")
         prob.writeMPS("debug.mps")
     except:
-        print "(Failed to write the test problem.)"
+        print("(Failed to write the test problem.)")
 
 def pulpTestCheck(prob, solver, okstatus, sol = {},
                    reducedcosts = None,
