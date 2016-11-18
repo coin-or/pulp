@@ -2006,11 +2006,12 @@ class GUROBI_CMD(LpSolver_CMD):
             slacks = {}
             values = {}
             reducedCosts = {}
-            try:
-                name, value  = line.split()
-                values[name] = float(value)
-            except ValueError:
-                pass
+            for line in my_file:
+                try:
+                    name, value  = line.split()
+                    values[name] = float(value)
+                except ValueError:
+                    pass
         return status, values, reducedCosts, shadowPrices, slacks
 
 #get the glpk name in global scope
