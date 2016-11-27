@@ -360,8 +360,14 @@ class GLPK_CMD(LpSolver_CMD):
         if not self.msg:
             proc[0] = self.path
             pipe = open(os.devnull, 'w')
-            rc = subprocess.call(proc, stdout = pipe,
-                             stderr = pipe)
+            if operating_system == 'win':
+                # Prevent flashing windows if used from a GUI application
+                startupinfo = subprocess.STARTUPINFO()
+                startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                rc = subprocess.call(proc, stdout = pipe, stderr = pipe,
+                                     startupinfo = startupinfo)
+            else:
+                rc = subprocess.call(proc, stdout = pipe, stderr = pipe)
             if rc:
                 raise PulpSolverError("PuLP: Error while trying to execute "+self.path)
         else:
