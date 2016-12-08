@@ -31,7 +31,6 @@ the current version
 """
 
 import os
-import subprocess
 import sys
 from time import clock
 try:
@@ -46,6 +45,16 @@ from .constants import *
 
 import logging
 log = logging.getLogger(__name__)
+
+if os.name == "posix" and sys.version_info[0] < 3:
+    try:
+        import subprocess32 as subprocess
+    except ImportError:
+        log.debug("Thread-safe subprocess32 module not found! "
+                  "Using unsafe built-in subprocess module instead.")
+        import subprocess
+else:
+    import subprocess
 
 class PulpSolverError(PulpError):
     """
