@@ -1219,7 +1219,7 @@ class XPRESS(LpSolver_CMD):
         Initializes the Xpress solver.
 
         @param maxSeconds: the maximum time that the Optimizer will run before it terminates
-        @param targetGap: global search will terminate if: 
+        @param targetGap: global search will terminate if:
                           abs(MIPOBJVAL - BESTBOUND) <= MIPRELSTOP * BESTBOUND
         @param heurFreq: the frequency at which heuristics are used in the tree search
         @param heurStra: heuristic strategy
@@ -1662,6 +1662,8 @@ class COINMP_DLL(LpSolver):
             #create problem
             self.hProb = hProb = self.lib.CoinCreateProblem(lp.name);
             #set problem options
+            self.lib.CoinSetIntOption(hProb, self.COIN_INT_LOGLEVEL, ctypes.c_int(self.msg))
+
             if self.maxSeconds:
                 if self.mip:
                     self.lib.CoinSetRealOption(hProb, self.COIN_REAL_MIPMAXSEC,
@@ -1691,22 +1693,14 @@ class COINMP_DLL(LpSolver):
                                    colNames, rowNames, "Objective")
             if lp.isMIP() and self.mip:
                 self.lib.CoinLoadInteger(hProb,columnType)
+
             if self.msg == 0:
-                #close stdout to get rid of messages
-                tempfile = open(mktemp(),'w')
-                savestdout = os.dup(1)
-                os.close(1)
-                if os.dup(tempfile.fileno()) != 1:
-                    raise PulpSolverError("couldn't redirect stdout - dup() error")
+                self.lib.CoinRegisterMsgLogCallback(
+                    hProb, ctypes.c_char_p(""), ctypes.POINTER(ctypes.c_int)()
+                )
             self.coinTime = -clock()
             self.lib.CoinOptimizeProblem(hProb, 0);
             self.coinTime += clock()
-
-            if self.msg == 0:
-                #reopen stdout
-                os.close(1)
-                os.dup(savestdout)
-                os.close(savestdout)
 
             CoinLpStatus = {0:LpStatusOptimal,
                             1:LpStatusInfeasible,
@@ -1717,7 +1711,7 @@ class COINMP_DLL(LpSolver):
                             -1:LpStatusUndefined
                             }
             solutionStatus = self.lib.CoinGetSolutionStatus(hProb)
-            solutionText = self.lib.CoinGetSolutionText(hProb,solutionStatus)
+            solutionText = self.lib.CoinGetSolutionText(hProb)
             objectValue =  self.lib.CoinGetObjectValue(hProb)
 
             #get the solution values
