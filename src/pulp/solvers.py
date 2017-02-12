@@ -564,9 +564,9 @@ def CPLEX_DLL_load_dll(path):
     """
     import ctypes
     if os.name in ['nt','dos']:
-        lib = ctypes.windll.LoadLibrary(path)
+        lib = ctypes.windll.LoadLibrary(str(path))
     else:
-        lib = ctypes.cdll.LoadLibrary(path)
+        lib = ctypes.cdll.LoadLibrary(str(path))
     return lib
 
 try:
@@ -1564,7 +1564,7 @@ def COINMP_DLL_load_dll(path):
     """
     import ctypes
     if os.name == 'nt':
-        lib = ctypes.windll.LoadLibrary(path[-1])
+        lib = ctypes.windll.LoadLibrary(str(path[-1]))
     else:
         #linux hack to get working
         mode = ctypes.RTLD_GLOBAL
