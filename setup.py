@@ -19,11 +19,8 @@ VERSION = version_dict['VERSION']
 
 setup(name="PuLP",
       version=VERSION,
-      description="""
-PuLP is an LP modeler written in python. PuLP can generate MPS or LP files
-and call GLPK, COIN CLP/CBC, CPLEX, and GUROBI to solve linear
-problems.
-""",
+      description=
+      "PuLP is an LP modeler written in python. PuLP can generate MPS or LP files and call GLPK, COIN CLP/CBC, CPLEX, and GUROBI to solve linear problems.",
       long_description = Description,
       license = License,
       keywords = ["Optimization", "Linear Programming", "Operations Research"],
