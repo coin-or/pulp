@@ -40,7 +40,7 @@ except ImportError:
 from . import sparse
 import collections
 import warnings
-from tempfile import mktemp
+from tempfile import mktemp, NamedTemporaryFile
 from .constants import *
 
 import logging
@@ -358,9 +358,8 @@ class GLPK_CMD(LpSolver_CMD):
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute "+self.path)
         if not self.keepFiles:
-            pid = os.getpid()
-            tmpLp = os.path.join(self.tmpDir, "%d-pulp.lp" % pid)
-            tmpSol = os.path.join(self.tmpDir, "%d-pulp.sol" % pid)
+            tmpLp = NamedTemporaryFile(dir=self.tmpDir, suffix="-pulp.lp", delete=False).name
+            tmpSol = NamedTemporaryFile(dir=self.tmpDir, suffix="-pulp.sol", delete=False).name
         else:
             tmpLp = lp.name+"-pulp.lp"
             tmpSol = lp.name+"-pulp.sol"
