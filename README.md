@@ -1,10 +1,10 @@
-#pulp [![Build Status](https://travis-ci.org/coin-or/pulp.svg?branch=master)](https://travis-ci.org/coin-or/pulp)
+# pulp [![Build Status](https://travis-ci.org/coin-or/pulp.svg?branch=master)](https://travis-ci.org/coin-or/pulp)
 
 PuLP is an LP modeler written in python. PuLP can generate MPS or LP files
 and call GLPK[1], COIN CLP/CBC[2], CPLEX[3], and GUROBI[4] to solve linear
 problems.
 
-##Installation
+## Installation
 
 The easiest way to install pulp is via [PyPi](https://pypi.python.org/pypi/PuLP)
 
@@ -18,7 +18,7 @@ solver executable.
 
      $sudo pulptest
 
-##Examples
+## Examples
 
 See the examples directory for examples.
 
@@ -26,7 +26,7 @@ PuLP requires Python >= 2.6.
 
 The examples use the default solver (cbc), to use other solvers they must be available.
 
-#Documentation
+# Documentation
 Documentation is found on https://pythonhosted.org/PuLP/.
 
 
