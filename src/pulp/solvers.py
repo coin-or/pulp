@@ -1007,22 +1007,6 @@ else:
         For api functions that have not been wrapped in this solver please use
         the base cplex classes
         """
-        CplexLpStatus = {cplex.Cplex.solution.status.MIP_optimal: LpStatusOptimal,
-                        cplex.Cplex.solution.status.optimal: LpStatusOptimal,
-                        cplex.Cplex.solution.status.optimal_tolerance: LpStatusOptimal,
-                        cplex.Cplex.solution.status.infeasible: LpStatusInfeasible,
-                        cplex.Cplex.solution.status.infeasible_or_unbounded:  LpStatusInfeasible,
-                        cplex.Cplex.solution.status.MIP_infeasible: LpStatusInfeasible,
-                        cplex.Cplex.solution.status.MIP_infeasible_or_unbounded:  LpStatusInfeasible,
-                        cplex.Cplex.solution.status.unbounded: LpStatusUnbounded,
-                        cplex.Cplex.solution.status.MIP_unbounded: LpStatusUnbounded,
-                        cplex.Cplex.solution.status.abort_dual_obj_limit: LpStatusNotSolved,
-                        cplex.Cplex.solution.status.abort_iteration_limit: LpStatusNotSolved,
-                        cplex.Cplex.solution.status.abort_obj_limit: LpStatusNotSolved,
-                        cplex.Cplex.solution.status.abort_relaxed: LpStatusNotSolved,
-                        cplex.Cplex.solution.status.abort_time_limit: LpStatusNotSolved,
-                        cplex.Cplex.solution.status.abort_user: LpStatusNotSolved,
-                        }
 
         def __init__(self,
                     mip = True,
@@ -1173,8 +1157,23 @@ else:
             self.solveTime += clock()
 
         def findSolutionValues(self, lp):
+            CplexLpStatus = {lp.solverModel.solution.status.MIP_optimal: LpStatusOptimal,
+                             lp.solverModel.solution.status.optimal: LpStatusOptimal,
+                             lp.solverModel.solution.status.optimal_tolerance: LpStatusOptimal,
+                             lp.solverModel.solution.status.infeasible: LpStatusInfeasible,
+                             lp.solverModel.solution.status.infeasible_or_unbounded:  LpStatusInfeasible,
+                             lp.solverModel.solution.status.MIP_infeasible: LpStatusInfeasible,
+                             lp.solverModel.solution.status.MIP_infeasible_or_unbounded:  LpStatusInfeasible,
+                             lp.solverModel.solution.status.unbounded: LpStatusUnbounded,
+                             lp.solverModel.solution.status.MIP_unbounded: LpStatusUnbounded,
+                             lp.solverModel.solution.status.abort_dual_obj_limit: LpStatusNotSolved,
+                             lp.solverModel.solution.status.abort_iteration_limit: LpStatusNotSolved,
+                             lp.solverModel.solution.status.abort_obj_limit: LpStatusNotSolved,
+                             lp.solverModel.solution.status.abort_relaxed: LpStatusNotSolved,
+                             lp.solverModel.solution.status.abort_time_limit: LpStatusNotSolved,
+                             lp.solverModel.solution.status.abort_user: LpStatusNotSolved}
             lp.cplex_status = lp.solverModel.solution.get_status()
-            lp.status = self.CplexLpStatus.get(lp.cplex_status, LpStatusUndefined)
+            lp.status = CplexLpStatus.get(lp.cplex_status, LpStatusUndefined)
             var_names = [var.name for var in lp.variables()]
             con_names = [con for con in lp.constraints]
             try:
