@@ -2025,8 +2025,9 @@ class GUROBI_CMD(LpSolver_CMD):
             values = {}
             reducedCosts = {}
             for line in my_file:
-                    name, value  = line.split()
-                    values[name] = float(value)
+                    if line[0] != '#': #skip comments
+                        name, value  = line.split()
+                        values[name] = float(value)
         return status, values, reducedCosts, shadowPrices, slacks
 
 #get the glpk name in global scope
