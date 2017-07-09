@@ -3,6 +3,13 @@ Tests for pulp
 """
 from .pulp import *
 
+def dumpTestProblem(prob):
+    try:
+        prob.writeLP("debug.lp")
+        prob.writeMPS("debug.mps")
+    except:
+        print("(Failed to write the test problem.)")
+
 def pulpTestCheck(prob, solver, okstatus, sol = {},
                    reducedcosts = None,
                    duals = None,
@@ -15,8 +22,7 @@ def pulpTestCheck(prob, solver, okstatus, sol = {},
     if status is None:
         status = prob.solve(solver, **kwargs)
     if status not in okstatus:
-        prob.writeLP("debug.lp")
-        prob.writeMPS("debug.mps")
+        dumpTestProblem(prob)
         print("Failure: status ==", status, "not in", okstatus)
         print("Failure: status ==", LpStatus[status], "not in", \
                                 [LpStatus[s] for s in okstatus])
@@ -24,39 +30,34 @@ def pulpTestCheck(prob, solver, okstatus, sol = {},
     if sol:
         for v,x in sol.items():
             if abs(v.varValue - x) > eps:
-                prob.writeLP("debug.lp")
-                prob.writeMPS("debug.mps")
+                dumpTestProblem(prob)
                 print("Test failed: var", v, "==", v.varValue, "!=", x)
                 raise PulpError("Tests failed for solver %s"%solver)
     if reducedcosts:
         for v,dj in reducedcosts.items():
             if abs(v.dj - dj) > eps:
-                prob.writeLP("debug.lp")
-                prob.writeMPS("debug.mps")
+                dumpTestProblem(prob)
                 print("Test failed: var.dj", v, "==", v.dj, "!=", dj)
                 raise PulpError("Tests failed for solver %s"%solver)
     if duals:
         for cname,p in duals.items():
             c = prob.constraints[cname]
             if abs(c.pi - p) > eps:
-                prob.writeLP("debug.lp")
-                prob.writeMPS("debug.mps")
+                dumpTestProblem(prob)
                 print("Test failed: constraint.pi", cname , "==", c.pi, "!=", p)
                 raise PulpError("Tests failed for solver %s"%solver)
     if slacks:
         for cname,slack in slacks.items():
             c = prob.constraints[cname]
             if abs(c.slack - slack) > eps:
-                prob.writeLP("debug.lp")
-                prob.writeMPS("debug.mps")
+                dumpTestProblem(prob)
                 print("Test failed: constraint.slack", cname , "==",
                         c.slack, "!=", slack)
                 raise PulpError("Tests failed for solver %s" % solver)
     if objective is not None:
         z = prob.objective.value()
         if abs(z - objective) > eps:
-            prob.writeLP("debug.lp")
-            prob.writeMPS("debug.mps")
+            dumpTestProblem(prob)
             print("Test failed: objective ", z, " != ", objective)
             raise PulpError("Tests failed for solver %s" % solver)
             
@@ -190,8 +191,9 @@ def pulpTest014(solver):
     prob += -y+z == 7, "c3"
     prob += w >= 0, "c4"
     print("\t Testing repeated Names")
-    if solver.__class__ in [COIN_CMD, PULP_CBC_CMD, CPLEX_CMD, CPLEX_PY,
-            GLPK_CMD, GUROBI_CMD]:
+    if solver.__class__ in [COIN_CMD, COINMP_DLL, PULP_CBC_CMD,
+                            CPLEX_CMD, CPLEX_DLL, CPLEX_PY,
+                            GLPK_CMD, GUROBI_CMD]:
         try:
             pulpTestCheck(prob, solver, [LpStatusOptimal], {x:4, y:-1, z:6, w:0})
         except PulpError:
