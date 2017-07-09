@@ -33,6 +33,7 @@ the current version
 import os
 import sys
 from time import clock
+from uuid import uuid4
 try:
     import configparser
 except ImportError:
@@ -358,9 +359,9 @@ class GLPK_CMD(LpSolver_CMD):
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute "+self.path)
         if not self.keepFiles:
-            pid = os.getpid()
-            tmpLp = os.path.join(self.tmpDir, "%d-pulp.lp" % pid)
-            tmpSol = os.path.join(self.tmpDir, "%d-pulp.sol" % pid)
+            uuid = uuid4().hex
+            tmpLp = os.path.join(self.tmpDir, "%s-pulp.lp" % uuid)
+            tmpSol = os.path.join(self.tmpDir, "%s-pulp.sol" % uuid)
         else:
             tmpLp = lp.name+"-pulp.lp"
             tmpSol = lp.name+"-pulp.sol"
@@ -466,9 +467,9 @@ class CPLEX_CMD(LpSolver_CMD):
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute "+self.path)
         if not self.keepFiles:
-            pid = os.getpid()
-            tmpLp = os.path.join(self.tmpDir, "%d-pulp.lp" % pid)
-            tmpSol = os.path.join(self.tmpDir, "%d-pulp.sol" % pid)
+            uuid = uuid4().hex
+            tmpLp = os.path.join(self.tmpDir, "%s-pulp.lp" % uuid)
+            tmpSol = os.path.join(self.tmpDir, "%s-pulp.sol" % uuid)
         else:
             tmpLp = lp.name+"-pulp.lp"
             tmpSol = lp.name+"-pulp.sol"
@@ -1249,9 +1250,9 @@ class XPRESS(LpSolver_CMD):
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute "+self.path)
         if not self.keepFiles:
-            pid = os.getpid()
-            tmpLp = os.path.join(self.tmpDir, "%d-pulp.lp" % pid)
-            tmpSol = os.path.join(self.tmpDir, "%d-pulp.prt" % pid)
+            uuid = uuid4().hex
+            tmpLp = os.path.join(self.tmpDir, "%s-pulp.lp" % uuid)
+            tmpSol = os.path.join(self.tmpDir, "%s-pulp.prt" % uuid)
         else:
             tmpLp = lp.name+"-pulp.lp"
             tmpSol = lp.name+"-pulp.prt"
@@ -1371,10 +1372,10 @@ class COIN_CMD(LpSolver_CMD):
             raise PulpSolverError("Pulp: cannot execute %s cwd: %s"%(self.path,
                                    os.getcwd()))
         if not self.keepFiles:
-            pid = os.getpid()
-            tmpLp = os.path.join(self.tmpDir, "%d-pulp.lp" % pid)
-            tmpMps = os.path.join(self.tmpDir, "%d-pulp.mps" % pid)
-            tmpSol = os.path.join(self.tmpDir, "%d-pulp.sol" % pid)
+            uuid = uuid4().hex
+            tmpLp = os.path.join(self.tmpDir, "%s-pulp.lp" % uuid)
+            tmpMps = os.path.join(self.tmpDir, "%s-pulp.mps" % uuid)
+            tmpSol = os.path.join(self.tmpDir, "%s-pulp.sol" % uuid)
         else:
             tmpLp = lp.name+"-pulp.lp"
             tmpMps = lp.name+"-pulp.mps"
@@ -1959,9 +1960,9 @@ class GUROBI_CMD(LpSolver_CMD):
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute "+self.path)
         if not self.keepFiles:
-            pid = os.getpid()
-            tmpLp = os.path.join(self.tmpDir, "%d-pulp.lp" % pid)
-            tmpSol = os.path.join(self.tmpDir, "%d-pulp.sol" % pid)
+            uuid = uuid4().hex
+            tmpLp = os.path.join(self.tmpDir, "%s-pulp.lp" % uuid)
+            tmpSol = os.path.join(self.tmpDir, "%s-pulp.sol" % uuid)
         else:
             tmpLp = lp.name+"-pulp.lp"
             tmpSol = lp.name+"-pulp.sol"
@@ -2619,9 +2620,9 @@ class SCIP_CMD(LpSolver_CMD):
 
         # TODO: should we use tempfile instead?
         if not self.keepFiles:
-            pid = os.getpid()
-            tmpLp = os.path.join(self.tmpDir, "%d-pulp.lp" % pid)
-            tmpSol = os.path.join(self.tmpDir, "%d-pulp.sol" % pid)
+            uuid = uuid4().hex
+            tmpLp = os.path.join(self.tmpDir, "%s-pulp.lp" % uuid)
+            tmpSol = os.path.join(self.tmpDir, "%s-pulp.sol" % uuid)
         else:
             tmpLp = lp.name + "-pulp.lp"
             tmpSol = lp.name + "-pulp.sol"
