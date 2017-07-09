@@ -1140,8 +1140,21 @@ class LpProblem(object):
                 string += c.asCplexLpConstraint(n) +"\n"
         string += "VARIABLES\n"
         for v in self.variables():
-            string += v.asCplexLpVariable() + " " + LpCategories[v.cat] + "\n"
-        return string
+            s += v.asCplexLpVariable() + " " + LpCategories[v.cat] + "\n"
+        return s
+
+    def __getstate__(self):
+        # Remove transient data prior to pickling.
+        state = self.__dict__.copy()
+        del state['_variable_ids']
+        return state
+
+    def __setstate__(self, state):
+        # Update transient data prior to unpickling.
+        self.__dict__.update(state)
+        self._variable_ids = {}
+        for v in self._variables:
+            self._variable_ids[id(v)] = v
 
     def copy(self):
         """Make a copy of self. Expressions are copied by reference"""
