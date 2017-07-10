@@ -467,7 +467,7 @@ class LpVariable(LpElement):
             s= "%.12g <= " % self.lowBound
         s += self.name
         if self.upBound != None:
-            s+= " <= %.12g" % self.upBound
+            s += " <= %.12g" % self.upBound
         return s
 
     def asCplexLpAffineExpression(self, name, constant = 1):
@@ -1127,18 +1127,18 @@ class LpProblem(object):
         self.lastUnused = 0
 
     def __repr__(self):
-        string = self.name+":\n"
+        s = self.name+":\n"
         if self.sense == 1:
-            string += "MINIMIZE\n"
+            s += "MINIMIZE\n"
         else:
-            string += "MAXIMIZE\n"
-        string += repr(self.objective) +"\n"
+            s += "MAXIMIZE\n"
+        s += repr(self.objective) +"\n"
 
         if self.constraints:
-            string += "SUBJECT TO\n"
+            s += "SUBJECT TO\n"
             for n, c in self.constraints.items():
-                string += c.asCplexLpConstraint(n) +"\n"
-        string += "VARIABLES\n"
+                s += c.asCplexLpConstraint(n) +"\n"
+        s += "VARIABLES\n"
         for v in self.variables():
             s += v.asCplexLpVariable() + " " + LpCategories[v.cat] + "\n"
         return s
