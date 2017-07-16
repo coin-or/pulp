@@ -1822,21 +1822,21 @@ class GUROBI(LpSolver):
             for var in lp.variables():
                 try:
                     var.varValue = var.solverVar.X
-                except gurobipy.GurobiError:
+                except (gurobipy.GurobiError, AttributeError):
                     pass
                 try:
                     var.dj = var.solverVar.RC
-                except gurobipy.GurobiError:
+                except (gurobipy.GurobiError, AttributeError):
                     pass
             #put pi and slack variables against the constraints
             for constr in lp.constraints.values():
                 try:
                     constr.pi = constr.solverConstraint.Pi
-                except gurobipy.GurobiError:
+                except (gurobipy.GurobiError, AttributeError):
                     pass
                 try:
                     constr.slack = constr.solverConstraint.Slack
-                except gurobipy.GurobiError:
+                except(gurobipy.GurobiError, AttributeError):
                     pass
             if self.msg:
                 print("Gurobi status=", solutionStatus)
