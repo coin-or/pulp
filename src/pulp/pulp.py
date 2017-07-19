@@ -2273,6 +2273,7 @@ def configSolvers():
 
 
 def pulpTestAll():
+    print "hello tests"
     from .tests import pulpTestSolver
     solvers = [PULP_CBC_CMD,
                CPLEX_DLL,
@@ -2282,8 +2283,8 @@ def pulpTestAll():
                COINMP_DLL,
                GLPK_CMD,
                XPRESS,
-               GUROBI,
-               GUROBI_CMD,
+               #GUROBI,
+               #GUROBI_CMD,
                PYGLPK,
                YAPOSIB
                ]
