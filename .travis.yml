@@ -7,7 +7,7 @@ python:
 - pypy
 before_install:
 - sudo apt-get update -qq
-- sudo apt-get install -qq glpk
+- sudo apt-get install -qq glpk-utils
 install:
 - pip install .
 script: pulptest
