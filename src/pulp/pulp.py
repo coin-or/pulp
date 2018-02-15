@@ -664,7 +664,8 @@ class LpAffineExpression(_DICT_TYPE):
             if val == 1:
                 term = "%s %s" %(sign, v.name)
             else:
-                term = "%s %.12g %s" % (sign, val, v.name)
+                #adding zero to val to remove instances of negative zero
+                term = "%s %.12g %s" % (sign, val + 0, v.name)
 
             if self._count_characters(line) + len(term) > LpCplexLPLineSize:
                 result += ["".join(line)]
