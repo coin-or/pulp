@@ -1112,6 +1112,7 @@ class LpProblem(object):
         self.sos1 = {}
         self.sos2 = {}
         self.status = LpStatusNotSolved
+        self.sol_status = LpSolutionNoSolutionFound
         self.noOverlap = 1
         self.solver = None
         self.initialValues = {}
@@ -1735,6 +1736,20 @@ class LpProblem(object):
 
     def getSense(self):
         return self.sense
+
+    def assignStatus(self, status, sol_status=None):
+        """
+        Sets the status of the model after solving.
+        :param status: code for the status of the model
+        :param sol_status: code for the status of the solution
+        :return:
+        """
+        # TODO: check if status are valid status codes
+        self.status = status
+        if sol_status is None:
+            sol_status = LpStatusToSolution.get(status, LpSolutionNoSolutionFound)
+        self.sol_status = sol_status
+        return True
 
 class FixedElasticSubProblem(LpProblem):
     """

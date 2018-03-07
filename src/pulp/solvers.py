@@ -395,14 +395,15 @@ class GLPK_CMD(LpSolver_CMD):
 
         if not os.path.exists(tmpSol):
             raise PulpSolverError("PuLP: Error while executing "+self.path)
-        lp.status, values = self.readsol(tmpSol)
+        status, values = self.readsol(tmpSol)
         lp.assignVarsVals(values)
+        lp.assignStatus(status)
         if not self.keepFiles:
             try: os.remove(tmpLp)
             except: pass
             try: os.remove(tmpSol)
             except: pass
-        return lp.status
+        return status
 
     def readsol(self,filename):
         """Read a GLPK solution file"""
@@ -517,7 +518,7 @@ class CPLEX_CMD(LpSolver_CMD):
             lp.assignVarsDj(reducedCosts)
             lp.assignConsPi(shadowPrices)
             lp.assignConsSlack(slacks)
-        lp.status = status
+        lp.assignStatus(status)
         return status
 
     def readsol(self,filename):
@@ -529,6 +530,7 @@ class CPLEX_CMD(LpSolver_CMD):
         solutionXML = et.parse(filename).getroot()
         solutionheader = solutionXML.find("header")
         statusString = solutionheader.get("solutionStatusString")
+        # TODO: check status for Integer Feasible
         cplexStatus = {
             "optimal":LpStatusOptimal,
             }
@@ -727,9 +729,9 @@ try:
             lp.resolveOK = True
             for var in lp.variables():
                 var.isModified = False
-            lp.status = CplexLpStatus.get(solutionStatus.value,
-                                          LpStatusUndefined)
-            return lp.status
+            status = CplexLpStatus.get(solutionStatus.value, LpStatusUndefined)
+            lp.assignStatus(status)
+            return status
 
         def __del__(self):
             #LpSolver.__del__(self)
@@ -1174,7 +1176,8 @@ else:
                              lp.solverModel.solution.status.abort_time_limit: LpStatusNotSolved,
                              lp.solverModel.solution.status.abort_user: LpStatusNotSolved}
             lp.cplex_status = lp.solverModel.solution.get_status()
-            lp.status = CplexLpStatus.get(lp.cplex_status, LpStatusUndefined)
+            status = CplexLpStatus.get(lp.cplex_status, LpStatusUndefined)
+            lp.assignStatus(status)
             var_names = [var.name for var in lp.variables()]
             con_names = [con for con in lp.constraints]
             try:
@@ -1198,7 +1201,7 @@ else:
             lp.resolveOK = True
             for var in lp.variables():
                 var.isModified = False
-            return lp.status
+            return status
 
         def actualResolve(self,lp):
             """
@@ -1291,11 +1294,12 @@ class XPRESS(LpSolver_CMD):
             except: pass
             try: os.remove(tmpSol)
             except: pass
-        lp.status = status
         lp.assignVarsVals(values)
+        # TODO: the following could be put inside the assignStatus function
         if abs(lp.infeasibilityGap(self.mip)) > 1e-5: # Arbitrary
-            lp.status = LpStatusInfeasible
-        return lp.status
+            status = LpStatusInfeasible
+        lp.assignStatus(status)
+        return status
 
     def readsol(self,filename):
         """Read an XPRESS solution file"""
@@ -1307,6 +1311,7 @@ class XPRESS(LpSolver_CMD):
             cols = int(l[5])
             for i in range(3): f.readline()
             statusString = f.readline().split()[0]
+            # TODO: check status for Integer Feasible
             xpressStatus = {
                 "Optimal":LpStatusOptimal,
                 }
@@ -1426,16 +1431,17 @@ class COIN_CMD(LpSolver_CMD):
         if not os.path.exists(tmpSol):
             raise PulpSolverError("Pulp: Error while executing "+self.path)
         if use_mps:
-            lp.status, values, reducedCosts, shadowPrices, slacks = self.readsol_MPS(
+            status, values, reducedCosts, shadowPrices, slacks, sol_status = self.readsol_MPS(
                         tmpSol, lp, lp.variables(),
                         variablesNames, constraintsNames, objectiveName)
         else:
-            lp.status, values, reducedCosts, shadowPrices, slacks = self.readsol_LP(
+            status, values, reducedCosts, shadowPrices, slacks, sol_status = self.readsol_LP(
                     tmpSol, lp, lp.variables())
         lp.assignVarsVals(values)
         lp.assignVarsDj(reducedCosts)
         lp.assignConsPi(shadowPrices)
         lp.assignConsSlack(slacks, activity=True)
+        lp.assignStatus(status, sol_status)
         if not self.keepFiles:
             try:
                 os.remove(tmpMps)
@@ -1449,7 +1455,7 @@ class COIN_CMD(LpSolver_CMD):
                 os.remove(tmpSol)
             except:
                 pass
-        return lp.status
+        return status
 
     def readsol_MPS(self, filename, lp, vs, variablesNames, constraintsNames,
                 objectiveName):
@@ -1472,13 +1478,8 @@ class COIN_CMD(LpSolver_CMD):
         reducedCosts = {}
         shadowPrices = {}
         slacks = {}
-        cbcStatus = {'Optimal': LpStatusOptimal,
-                    'Infeasible': LpStatusInfeasible,
-                    'Unbounded': LpStatusUnbounded,
-                    'Stopped': LpStatusNotSolved}
+        status, sol_status = self.get_status(filename)
         with open(filename) as f:
-            statusstr = f.readline().split()[0]
-            status = cbcStatus.get(statusstr, LpStatusUndefined)
             for l in f:
                 if len(l)<=2:
                     break
@@ -1495,7 +1496,7 @@ class COIN_CMD(LpSolver_CMD):
                 if vn in reverseCn:
                     slacks[reverseCn[vn]] = float(val)
                     shadowPrices[reverseCn[vn]] = float(dj)
-        return status, values, reducedCosts, shadowPrices, slacks
+        return status, values, reducedCosts, shadowPrices, slacks, sol_status
 
     def readsol_LP(self, filename, lp, vs):
         """
@@ -1507,13 +1508,8 @@ class COIN_CMD(LpSolver_CMD):
         slacks = {}
         for v in vs:
             values[v.name] = 0.0
-        cbcStatus = {'Optimal': LpStatusOptimal,
-                    'Infeasible': LpStatusInfeasible,
-                    'Unbounded': LpStatusUnbounded,
-                    'Stopped': LpStatusNotSolved}
+        status, sol_status = self.get_status(filename)
         with open(filename) as f:
-            statusstr = f.readline().split()[0]
-            status = cbcStatus.get(statusstr, LpStatusUndefined)
             for l in f:
                 if len(l)<=2:
                     break
@@ -1529,7 +1525,32 @@ class COIN_CMD(LpSolver_CMD):
                 if vn in lp.constraints:
                     slacks[vn] = float(val)
                     shadowPrices[vn] = float(dj)
-        return status, values, reducedCosts, shadowPrices, slacks
+        return status, values, reducedCosts, shadowPrices, slacks, sol_status
+
+    def get_status(self, filename):
+        cbcStatus = {'Optimal': LpStatusOptimal,
+                    'Infeasible': LpStatusInfeasible,
+                    'Unbounded': LpStatusUnbounded,
+                    'Stopped': LpStatusNotSolved}
+
+        cbcSolStatus = {'Optimal': LpSolutionOptimal,
+                    'Infeasible': LpSolutionInfeasible,
+                    'Unbounded': LpSolutionUnbounded,
+                    'Stopped': LpSolutionNoSolutionFound}
+
+        with open(filename) as f:
+            statusstrs = f.readline().split()
+
+        status = cbcStatus.get(statusstrs[0], LpStatusUndefined)
+        sol_status = cbcSolStatus.get(statusstrs[0], LpSolutionNoSolutionFound)
+        # here we could use some regex expression.
+        # Not sure what's more desirable
+        if status == LpStatusNotSolved and len(statusstrs) >= 5:
+            if statusstrs[4] == "objective":
+                status = LpStatusOptimal
+                sol_status = LpSolutionIntegerFeasible
+        return status, sol_status
+
 
 COIN = COIN_CMD
 
@@ -1707,7 +1728,7 @@ class COINMP_DLL(LpSolver):
                 os.close(1)
                 os.dup(savestdout)
                 os.close(savestdout)
-
+            # TODO: check Integer Feasible status
             CoinLpStatus = {0:LpStatusOptimal,
                             1:LpStatusInfeasible,
                             2:LpStatusInfeasible,
@@ -1751,8 +1772,9 @@ class COINMP_DLL(LpSolver):
             lp.assignConsSlack(constraintslackvalues)
 
             self.lib.CoinFreeSolver()
-            lp.status = CoinLpStatus[self.lib.CoinGetSolutionStatus(hProb)]
-            return lp.status
+            status = CoinLpStatus[self.lib.CoinGetSolutionStatus(hProb)]
+            lp.assignStatus(status)
+            return status
 
 if COINMP_DLL.available():
     COIN = COINMP_DLL
@@ -1809,6 +1831,7 @@ class GUROBI(LpSolver):
             model = lp.solverModel
             solutionStatus = model.Status
             GRB = gurobipy.GRB
+            # TODO: check status for Integer Feasible
             gurobiLpStatus = {GRB.OPTIMAL: LpStatusOptimal,
                                    GRB.INFEASIBLE: LpStatusInfeasible,
                                    GRB.INF_OR_UNBD: LpStatusInfeasible,
@@ -1845,8 +1868,9 @@ class GUROBI(LpSolver):
             lp.resolveOK = True
             for var in lp.variables():
                 var.isModified = False
-            lp.status = gurobiLpStatus.get(solutionStatus, LpStatusUndefined)
-            return lp.status
+            status = gurobiLpStatus.get(solutionStatus, LpStatusUndefined)
+            lp.assignStatus(status)
+            return status
 
         def available(self):
             """True if the solver is available"""
@@ -2004,7 +2028,7 @@ class GUROBI_CMD(LpSolver_CMD):
             lp.assignVarsDj(reducedCosts)
             lp.assignConsPi(shadowPrices)
             lp.assignConsSlack(slacks)
-        lp.status = status
+        lp.assignStatus(status)
         return status
 
     def readsol(self, filename):
@@ -2018,6 +2042,7 @@ class GUROBI_CMD(LpSolver_CMD):
                 status = LpStatusNotSolved
                 return status, {}, {}, {}, {}
             #We have no idea what the status is assume optimal
+            # TODO: check status for Integer Feasible
             status = LpStatusOptimal
 
             shadowPrices = {}
@@ -2083,7 +2108,7 @@ class PYGLPK(LpSolver):
                 solutionStatus = glpk.glp_get_status(prob)
             glpkLpStatus = {glpk.GLP_OPT: LpStatusOptimal,
                                    glpk.GLP_UNDEF: LpStatusUndefined,
-                                   glpk.GLP_FEAS: LpStatusNotSolved,
+                                   glpk.GLP_FEAS: LpStatusOptimal,
                                    glpk.GLP_INFEAS: LpStatusInfeasible,
                                    glpk.GLP_NOFEAS: LpStatusInfeasible,
                                    glpk.GLP_UNBND: LpStatusUnbounded
@@ -2106,9 +2131,9 @@ class PYGLPK(LpSolver):
             lp.resolveOK = True
             for var in lp.variables():
                 var.isModified = False
-            lp.status = glpkLpStatus.get(solutionStatus,
-                    LpStatusUndefined)
-            return lp.status
+            status = glpkLpStatus.get(solutionStatus, LpStatusUndefined)
+            lp.assignStatus(status)
+            return status
 
         def available(self):
             """True if the solver is available"""
@@ -2318,9 +2343,9 @@ class YAPOSIB(LpSolver):
             lp.resolveOK = True
             for var in lp.variables():
                 var.isModified = False
-            lp.status = yaposibLpStatus.get(solutionStatus,
-                    LpStatusUndefined)
-            return lp.status
+            status = yaposibLpStatus.get(solutionStatus, LpStatusUndefined)
+            lp.assignStatus(status)
+            return status
 
         def available(self):
             """True if the solver is available"""
@@ -2525,6 +2550,7 @@ class GurobiFormulation(object):
                 except gurobipy.GurobiError:
                     pass
             GRB = gurobipy.GRB
+            # TODO: check status for Integer Feasible
             gurobiLPStatus = {
                 GRB.OPTIMAL: LpStatusOptimal,
                 GRB.INFEASIBLE: LpStatusInfeasible,
@@ -2644,7 +2670,7 @@ class SCIP_CMD(LpSolver_CMD):
         if not os.path.exists(tmpSol):
             raise PulpSolverError("PuLP: Error while executing "+self.path)
 
-        lp.status, values = self.readsol(tmpSol)
+        status, values = self.readsol(tmpSol)
 
         # Make sure to add back in any 0-valued variables SCIP leaves out.
         finalVals = {}
@@ -2652,6 +2678,7 @@ class SCIP_CMD(LpSolver_CMD):
             finalVals[v.name] = values.get(v.name, 0.0)
 
         lp.assignVarsVals(finalVals)
+        lp.assignStatus(status)
 
         if not self.keepFiles:
             for f in (tmpLp, tmpSol):
@@ -2660,7 +2687,7 @@ class SCIP_CMD(LpSolver_CMD):
                 except:
                     pass
 
-        return lp.status
+        return status
 
     def readsol(self, filename):
         """Read a SCIP solution file"""

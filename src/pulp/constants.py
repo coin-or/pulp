@@ -48,12 +48,34 @@ LpStatusOptimal = 1
 LpStatusInfeasible = -1
 LpStatusUnbounded = -2
 LpStatusUndefined = -3
-LpStatus = { LpStatusNotSolved:"Not Solved",
+LpStatus = {
+    LpStatusNotSolved:"Not Solved",
     LpStatusOptimal:"Optimal",
     LpStatusInfeasible:"Infeasible",
     LpStatusUnbounded:"Unbounded",
     LpStatusUndefined:"Undefined",
     }
+
+# solution status
+LpSolutionNoSolutionFound = 0
+LpSolutionOptimal = 1
+LpSolutionIntegerFeasible = 2
+LpSolutionInfeasible = -1
+LpSolutionUnbounded = -2
+LpSolution = {
+    LpSolutionNoSolutionFound: "No Solution Found",
+    LpSolutionOptimal: "Optimal Solution Found",
+    LpSolutionIntegerFeasible: "Integer Solution Found",
+    LpSolutionInfeasible: "No Solution Exists",
+    LpSolutionUnbounded: "Unbounded"
+    }
+LpStatusToSolution = {
+    LpStatusNotSolved: LpSolutionNoSolutionFound,
+    LpStatusOptimal: LpSolutionOptimal,
+    LpStatusInfeasible: LpSolutionInfeasible,
+    LpStatusUnbounded: LpSolutionUnbounded,
+    LpStatusUndefined: LpSolutionNoSolutionFound,
+}
 
 # constraint sense
 LpConstraintLE = -1
