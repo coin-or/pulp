@@ -1424,7 +1424,7 @@ class COIN_CMD(LpSolver_CMD):
         if timeout is not None and sys.version_info < (3, 3):
             warnings.warn('Pulp: Subprocess timeout is not available in python < 3.3. Solver will run indefinitely.')
 
-        if (cbc.wait(timeout) if sys.version_info >= (3, 3) else cb.wait()) != 0:
+        if (cbc.wait(timeout) if sys.version_info >= (3, 3) else cbc.wait()) != 0:
             raise PulpSolverError("Pulp: Error while trying to execute " +  \
                                     self.path)
         if not os.path.exists(tmpSol):
