@@ -1,7 +1,6 @@
 """
 Tests for pulp
 """
-from subprocess import TimeoutExpired
 from sys import version_info
 from .pulp import *
 
@@ -515,6 +514,7 @@ def pulpTest101(solver):
 
     if solver.__class__ in [PULP_CBC_CMD] and version_info >= (3, 3):
         print("\t Testing CBC Timeout (python >= 3.3)")
+        from subprocess import TimeoutExpired
         try:
             status = prob.sequentialSolve([obj1,obj2], solver = solver, timeout=0)
             assert False, 'This should not have been executed'
