@@ -1365,7 +1365,7 @@ class COIN_CMD(LpSolver_CMD):
         """True if the solver is available"""
         return self.executable(self.path)
 
-    def solve_CBC(self, lp, use_mps=True):
+    def solve_CBC(self, lp, use_mps=True, timeout=None):
         """Solve a MIP problem using CBC"""
         if not self.executable(self.path):
             raise PulpSolverError("Pulp: cannot execute %s cwd: %s"%(self.path,
@@ -1420,7 +1420,11 @@ class COIN_CMD(LpSolver_CMD):
         args.append(self.path)
         args.extend(cmds[1:].split())
         cbc = subprocess.Popen(args, stdout = pipe, stderr = pipe)
-        if cbc.wait() != 0:
+
+        if timeout is not None and sys.version_info < (3, 3):
+            warnings.warn('Pulp: Subprocess timeout is not available in python < 3.3. Solver will run indefinitely.')
+
+        if (cbc.wait(timeout) if sys.version_info >= (3, 3) else cb.wait()) != 0:
             raise PulpSolverError("Pulp: Error while trying to execute " +  \
                                     self.path)
         if not os.path.exists(tmpSol):
