@@ -1529,14 +1529,14 @@ class COIN_CMD(LpSolver_CMD):
 
     def get_status(self, filename):
         cbcStatus = {'Optimal': LpStatusOptimal,
-                    'Infeasible': LpStatusInfeasible,
-                    'Unbounded': LpStatusUnbounded,
-                    'Stopped': LpStatusNotSolved}
+                     'Infeasible': LpStatusInfeasible,
+                     'Unbounded': LpStatusUnbounded,
+                     'Stopped': LpStatusNotSolved}
 
         cbcSolStatus = {'Optimal': LpSolutionOptimal,
-                    'Infeasible': LpSolutionInfeasible,
-                    'Unbounded': LpSolutionUnbounded,
-                    'Stopped': LpSolutionNoSolutionFound}
+                        'Infeasible': LpSolutionInfeasible,
+                        'Unbounded': LpSolutionUnbounded,
+                        'Stopped': LpSolutionNoSolutionFound}
 
         with open(filename) as f:
             statusstrs = f.readline().split()
@@ -2726,3 +2726,95 @@ class SCIP_CMD(LpSolver_CMD):
         return status, values
 
 SCIP = SCIP_CMD
+
+class CHOCO_CMD(LpSolver_CMD):
+    """The CHOCO_CMD solver"""
+
+    def defaultPath(self):
+        raise PulpError("PuLP: default path does not exist por CHOCO_CMD")
+        # return self.executableExtension("choco-parsers-4.0.5-SNAPSHOT-with-dependencies.jar")
+
+    def available(self):
+        """True if the solver is available"""
+        return self.executable(self.path)
+
+    def actualSolve(self, lp):
+        """Solve a well formulated lp problem"""
+        if not self.executable('java'):
+            raise PulpSolverError("PuLP: java needs to be installed and accesible in order to use CHOCO_CMD")
+        if not os.path.exists(self.path):
+            raise PulpSolverError("PuLP: cannot execute "+self.path)
+        if not self.keepFiles:
+            uuid = uuid4().hex
+            tmpMps = os.path.join(self.tmpDir, "%s-pulp.mps" % uuid)
+            tmpSol = os.path.join(self.tmpDir, "%s-pulp.sol" % uuid)
+        else:
+            tmpMps = lp.name+"-pulp.mps"
+            tmpSol = lp.name+"-pulp.sol"
+        lp.writeMPS(tmpMps, mpsSense=lp.sense)
+
+        try: os.remove(tmpSol)
+        except: pass
+        cmd = 'java -cp .:' + self.path + ' org.chocosolver.parser.mps.ChocoMPS'
+        cmd += ' ' + ' '.join(['%s %s' % (key, value)
+                    for key, value in self.options])
+        cmd += ' %s' % (tmpMps)
+        if lp.isMIP():
+            if not self.mip:
+                warnings.warn("CHOCO_CMD cannot solve the relaxation of a problem")
+        if self.msg:
+            pipe = None
+        else:
+            pipe = open(tmpSol, 'w')
+
+        return_code = subprocess.call(cmd.split(), stdout=pipe, stderr=pipe)
+
+        if return_code != 0:
+            raise PulpSolverError("PuLP: Error while trying to execute "+self.path)
+        if not self.keepFiles:
+            try: os.remove(tmpMps)
+            except: pass
+        if not os.path.exists(tmpSol):
+            status = LpStatusNotSolved
+        else:
+            status, values, status_sol = self.readsol(tmpSol)
+        if not self.keepFiles:
+            try: os.remove(tmpSol)
+            except: pass
+
+        lp.assignStatus(status, status_sol)
+        if status not in [LpStatusInfeasible, LpStatusNotSolved]:
+            lp.assignVarsVals(values)
+
+        return status
+
+    def readsol(self, filename):
+        """Read a Choco solution file"""
+        # TODO: figure out the unbounded status in choco solver
+        chocoStatus = {'OPTIMUM FOUND': LpStatusOptimal,
+                       'SATISFIABLE': LpStatusOptimal,
+                       'UNSATISFIABLE': LpStatusInfeasible,
+                       'UNKNOWN': LpStatusNotSolved}
+
+        chocoSolStatus = {'OPTIMUM FOUND': LpSolutionOptimal,
+                          'SATISFIABLE': LpSolutionIntegerFeasible,
+                          'UNSATISFIABLE': LpSolutionInfeasible,
+                          'UNKNOWN': LpSolutionNoSolutionFound}
+
+        status = LpSolutionNoSolutionFound
+        sol_status = LpSolutionNoSolutionFound
+        values = {}
+        with open(filename) as f:
+            content = f.readlines()
+        content = [l.strip() for l in content if l[:2] not in ['o ', 'c ']]
+        if not len(content):
+            return status, values
+        if content[0][:2] == 's ':
+            status_str = content[0][2:]
+            status = chocoStatus[status_str]
+            sol_status = chocoSolStatus[status_str]
+        for line in content[1:]:
+            name, value = line.split()
+            values[name] = float(value)
+
+        return status, values, sol_status
