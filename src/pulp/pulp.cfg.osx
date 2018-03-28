@@ -13,6 +13,7 @@ GurobiPath = /opt/gurobi201/linux32/lib/python2.5
 CbcPath = cbc
 GlpkPath = glpsol
 PulpCbcPath = %(here)s/solverdir/cbc/%(os)s/%(arch)s/cbc
+PulpChocoPath = %(here)s/solverdir/choco/choco-parsers-with-dependencies.jar
 [licenses]
 ilm_cplex_license = "LICENSE your-enterprise\nRUNTIME NEVER ..."
 ilm_cplex_license_signature = 0

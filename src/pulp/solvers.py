@@ -113,12 +113,16 @@ def initialize(filename, operating_system='linux', arch='64'):
         scip_path = config.get("locations", "ScipPath")
     except configparser.Error:
         scip_path = 'scip'
+    try:
+        pulp_choco_path = config.get("locations", "PulpChocoPath")
+    except configparser.Error:
+        pulp_choco_path = 'choco'
     for i,path in enumerate(coinMP_path):
         if not os.path.dirname(path):
             #if no pathname is supplied assume the file is in the same directory
             coinMP_path[i] = os.path.join(os.path.dirname(config_filename),path)
     return cplex_dll_path, ilm_cplex_license, ilm_cplex_license_signature,\
-        coinMP_path, gurobi_path, cbc_path, glpk_path, pulp_cbc_path, scip_path
+        coinMP_path, gurobi_path, cbc_path, glpk_path, pulp_cbc_path, scip_path, pulp_choco_path
 
 #pick up the correct config file depending on operating system
 PULPCFGFILE = "pulp.cfg"
@@ -149,7 +153,7 @@ else: #run as a script
     config_filename = os.path.join(DIRNAME,
                                    PULPCFGFILE)
 cplex_dll_path, ilm_cplex_license, ilm_cplex_license_signature, coinMP_path,\
-        gurobi_path, cbc_path, glpk_path, pulp_cbc_path, scip_path = \
+        gurobi_path, cbc_path, glpk_path, pulp_cbc_path, scip_path, pulp_choco_path = \
         initialize(config_filename, operating_system, arch)
 
 
@@ -2727,6 +2731,7 @@ class SCIP_CMD(LpSolver_CMD):
 
 SCIP = SCIP_CMD
 
+
 class CHOCO_CMD(LpSolver_CMD):
     """The CHOCO_CMD solver"""
 
@@ -2818,3 +2823,33 @@ class CHOCO_CMD(LpSolver_CMD):
             values[name] = float(value)
 
         return status, values, sol_status
+
+
+class PULP_CHOCO_CMD(CHOCO_CMD):
+    """
+    This solver uses a packaged version of choco provided with the package
+    """
+    pulp_choco_path = pulp_choco_path
+    try:
+        if os.name != 'nt':
+            if not os.access(pulp_choco_path, os.X_OK):
+                import stat
+                os.chmod(pulp_choco_path, stat.S_IXUSR + stat.S_IXOTH)
+    except:  # probably due to incorrect permissions
+
+        def available(self):
+            """True if the solver is available"""
+            return False
+
+        def actualSolve(self, lp, callback=None):
+            """Solve a well formulated lp problem"""
+            raise PulpSolverError("PULP_CHOCO_CMD: Not Available (check permissions on %s)" % self.pulp_choco_path)
+    else:
+        def __init__(self, path=None, *args, **kwargs):
+            """
+            just loads up CHOCO_CMD with the path set
+            """
+            if path is not None:
+                raise PulpSolverError('Use CHOCO_CMD if you want to set a path')
+            # check that the file is executable
+            CHOCO_CMD.__init__(self, path=self.pulp_choco_path, *args, **kwargs)
