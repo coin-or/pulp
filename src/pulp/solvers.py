@@ -2751,12 +2751,17 @@ class CHOCO_CMD(LpSolver_CMD):
             raise PulpSolverError("PuLP: cannot execute "+self.path)
         if not self.keepFiles:
             uuid = uuid4().hex
+            tmpLp = os.path.join(self.tmpDir, "%s-pulp.lp" % uuid)
             tmpMps = os.path.join(self.tmpDir, "%s-pulp.mps" % uuid)
             tmpSol = os.path.join(self.tmpDir, "%s-pulp.sol" % uuid)
         else:
+            tmpLp = lp.name + "-pulp.lp"
             tmpMps = lp.name+"-pulp.mps"
             tmpSol = lp.name+"-pulp.sol"
         lp.writeMPS(tmpMps, mpsSense=lp.sense)
+
+        # just to report duplicated variables:
+        lp.writeLP(tmpLp, writeSOS=1)
 
         try: os.remove(tmpSol)
         except: pass
@@ -2767,20 +2772,23 @@ class CHOCO_CMD(LpSolver_CMD):
         if lp.isMIP():
             if not self.mip:
                 warnings.warn("CHOCO_CMD cannot solve the relaxation of a problem")
-        if self.msg:
-            pipe = None
-        else:
-            pipe = open(tmpSol, 'w')
+        # we always get the output to a file.
+        # if not, we cannot read it afterwards
+        # (we thus ignore the self.msg parameter)
+        pipe = open(tmpSol, 'w')
 
         return_code = subprocess.call(cmd.split(), stdout=pipe, stderr=pipe)
 
         if return_code != 0:
             raise PulpSolverError("PuLP: Error while trying to execute "+self.path)
         if not self.keepFiles:
-            try: os.remove(tmpMps)
+            try:
+                os.remove(tmpMps)
+                os.remove(tmpLp)
             except: pass
         if not os.path.exists(tmpSol):
             status = LpStatusNotSolved
+            status_sol = LpSolutionNoSolutionFound
         else:
             status, values, status_sol = self.readsol(tmpSol)
         if not self.keepFiles:

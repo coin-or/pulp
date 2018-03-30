@@ -2300,7 +2300,8 @@ def pulpTestAll():
                GUROBI,
                GUROBI_CMD,
                PYGLPK,
-               YAPOSIB
+               YAPOSIB,
+               PULP_CHOCO_CMD
                ]
 
     failed = False
