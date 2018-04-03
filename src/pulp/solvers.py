@@ -2761,7 +2761,10 @@ class CHOCO_CMD(LpSolver_CMD):
         lp.writeMPS(tmpMps, mpsSense=lp.sense)
 
         # just to report duplicated variables:
-        lp.writeLP(tmpLp, writeSOS=1)
+        repeated_names = lp.checkDuplicateVars()
+        if repeated_names:
+            raise PulpError('Repeated variable names in Lp format\n'
+                            + str(repeated_names))
 
         try: os.remove(tmpSol)
         except: pass
@@ -2769,6 +2772,8 @@ class CHOCO_CMD(LpSolver_CMD):
         cmd += ' ' + ' '.join(['%s %s' % (key, value)
                     for key, value in self.options])
         cmd += ' %s' % (tmpMps)
+        if lp.sense == LpMaximize:
+            cmd += ' -max'
         if lp.isMIP():
             if not self.mip:
                 warnings.warn("CHOCO_CMD cannot solve the relaxation of a problem")

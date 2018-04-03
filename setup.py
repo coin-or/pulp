@@ -59,6 +59,7 @@ setup(name="PuLP",
                       'pulp.solverdir.cbc.win.32' : ['*','*.*'],
                       'pulp.solverdir.cbc.win.64' : ['*','*.*'],
                       'pulp.solverdir.cbc.osx.64' : ['*','*.*'],
+                      'pulp.solverdir.choco' : ['*','*.*'],
                       },
       install_requires = ['pyparsing>=2.0.1'],
       entry_points = ("""

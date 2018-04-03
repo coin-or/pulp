@@ -1543,14 +1543,10 @@ class LpProblem(object):
             raise PulpError('Variable names too long for Lp format\n'
                                 + str(long_names))
         # check for repeated names
-        repeated_names = {}
-        for v in vs:
-            repeated_names[v.name] = repeated_names.get(v.name, 0) + 1
-        repeated_names = [(key, value) for key, value in list(repeated_names.items())
-                            if value >= 2]
+        repeated_names = self.checkDuplicateVars()
         if repeated_names:
             raise PulpError('Repeated variable names in Lp format\n'
-                                + str(repeated_names))
+                            + str(repeated_names))
         # Bounds on non-"positive" variables
         # Note: XPRESS and CPLEX do not interpret integer variables without
         # explicit bounds
@@ -1590,6 +1586,16 @@ class LpProblem(object):
         f.write("End\n")
         f.close()
         self.restoreObjective(wasNone, objectiveDummyVar)
+
+    def checkDuplicateVars(self):
+        vs = self.variables()
+
+        repeated_names = {}
+        for v in vs:
+            repeated_names[v.name] = repeated_names.get(v.name, 0) + 1
+        repeated_names = [(key, value) for key, value in list(repeated_names.items())
+                          if value >= 2]
+        return repeated_names
 
     def assignVarsVals(self, values):
         variables = self.variablesDict()

@@ -91,6 +91,9 @@ def pulpTest009(solver):
     if solver.__class__ in [PULP_CBC_CMD, COIN_CMD]:
         pulpTestCheck(prob, solver, [LpStatusInfeasible], {x:4, y:-1, z:6, w:0},
             use_mps = False)
+    elif solver.__class__ in [PULP_CHOCO_CMD, CHOCO_CMD]:
+        # this error is not detected with mps and choco can only use mps files
+        pass
     else:
         pulpTestCheck(prob, solver, [LpStatusInfeasible, LpStatusNotSolved,
             LpStatusUndefined])
