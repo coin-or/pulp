@@ -1474,6 +1474,7 @@ class COIN_CMD(LpSolver_CMD):
         slacks = {}
         cbcStatus = {'Optimal': LpStatusOptimal,
                     'Infeasible': LpStatusInfeasible,
+                    'Integer': LpStatusInfeasible,
                     'Unbounded': LpStatusUnbounded,
                     'Stopped': LpStatusNotSolved}
         with open(filename) as f:
@@ -1509,6 +1510,7 @@ class COIN_CMD(LpSolver_CMD):
             values[v.name] = 0.0
         cbcStatus = {'Optimal': LpStatusOptimal,
                     'Infeasible': LpStatusInfeasible,
+                    'Integer': LpStatusInfeasible,
                     'Unbounded': LpStatusUnbounded,
                     'Stopped': LpStatusNotSolved}
         with open(filename) as f:
