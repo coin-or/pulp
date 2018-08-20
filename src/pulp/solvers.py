@@ -1419,7 +1419,7 @@ class COIN_CMD(LpSolver_CMD):
         args = []
         args.append(self.path)
         args.extend(cmds[1:].split())
-        cbc = subprocess.Popen(args, stdout = pipe, stderr = pipe)
+        cbc = subprocess.Popen(args, stdout = pipe, stderr = pipe, stdin = subprocess.DEVNULL)
         if cbc.wait() != 0:
             raise PulpSolverError("Pulp: Error while trying to execute " +  \
                                     self.path)
