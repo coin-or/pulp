@@ -257,7 +257,7 @@ class LpVariable(LpElement):
         LpElement.__init__(self,name)
         self.lowBound = lowBound
         self.upBound = upBound
-        self.cat = cat
+        self.__cat = cat
         self.varValue = None
         self.dj = None
         self.init = 0
@@ -266,7 +266,7 @@ class LpVariable(LpElement):
         if cat == LpBinary:
             self.lowBound = 0
             self.upBound = 1
-            self.cat = LpInteger
+            self.__cat = LpInteger
         if e:
             self.add_expression(e)
 
@@ -371,6 +371,20 @@ class LpVariable(LpElement):
         self.upBound = up
         self.modified = True
 
+    def setCat(self, cat):
+        if cat == LpBinary:
+            self.__cat = LpInteger
+            self.lowBound = 0
+            self.upBound = 1
+        else:
+            self.__cat = cat
+        self.modified = True
+    
+    def getCat(self):
+        return self.__cat
+
+    cat = property(fget = getCat,fset = setCat)
+    
     def positive(self):
         self.bounds(0, None)
 
