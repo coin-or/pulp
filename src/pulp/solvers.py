@@ -1219,7 +1219,7 @@ class XPRESS(LpSolver_CMD):
         Initializes the Xpress solver.
 
         @param maxSeconds: the maximum time that the Optimizer will run before it terminates
-        @param targetGap: global search will terminate if: 
+        @param targetGap: global search will terminate if:
                           abs(MIPOBJVAL - BESTBOUND) <= MIPRELSTOP * BESTBOUND
         @param heurFreq: the frequency at which heuristics are used in the tree search
         @param heurStra: heuristic strategy
@@ -1983,6 +1983,10 @@ class GUROBI_CMD(LpSolver_CMD):
             pipe = open(os.devnull, 'w')
 
         return_code = subprocess.call(cmd.split(), stdout = pipe, stderr = pipe)
+
+        # Close the pipe now if we used it.
+        if pipe is not None:
+            pipe.close()
 
         if return_code != 0:
             raise PulpSolverError("PuLP: Error while trying to execute "+self.path)
