@@ -1668,7 +1668,7 @@ class LpProblem(object):
         return status
 
     def sequentialSolve(self, objectives, absoluteTols = None,
-                        relativeTols = None, solver = None, debug = False, timeout = None):
+                        relativeTols = None, solver = None, debug = False, processTimeout = None):
         """
         Solve the given Lp problem with several objective functions.
 
@@ -1680,7 +1680,7 @@ class LpProblem(object):
            the constraints should be +ve for a minimise objective
         :param relativeTols: the list of relative tolerances applied to the constraints
         :param solver: the specific solver to be used, defaults to the default solver.
-        :param timeout: Timeout (in second) passed to Popen.wait() (for CBC solver only)
+        :param processTimeout: Timeout (in second) passed to Popen.wait() (for CBC solver only)
 
         """
         #TODO Add a penalty variable to make problems elastic
@@ -1698,7 +1698,7 @@ class LpProblem(object):
         for i,(obj,absol,rel) in enumerate(zip(objectives,
                                                absoluteTols, relativeTols)):
             self.setObjective(obj)
-            status = solver.actualSolve(self, timeout=timeout)
+            status = solver.actualSolve(self, processTimeout=processTimeout)
             statuses.append(status)
             if debug: self.writeLP("%sSequence.lp"%i)
             if self.sense == LpMinimize:

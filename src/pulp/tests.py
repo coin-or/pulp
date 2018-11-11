@@ -516,7 +516,7 @@ def pulpTest101(solver):
         print("\t Testing CBC Timeout (python >= 3.3)")
         from subprocess import TimeoutExpired
         try:
-            status = prob.sequentialSolve([obj1,obj2], solver = solver, timeout=0)
+            status = prob.sequentialSolve([obj1,obj2], solver = solver, processTimeout=0)
             assert False, 'This should not have been executed'
         except TimeoutExpired:
             pass
