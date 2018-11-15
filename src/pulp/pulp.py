@@ -135,7 +135,7 @@ def setConfigInformation(**keywords):
     """
     #TODO: extend if we ever add another section in the config file
     #read the old configuration
-    config = ConfigParser.SafeConfigParser()
+    config = ConfigParser.ConfigParser()
     config.read(config_filename)
     #set the new keys
     for (key,val) in keywords.items():
