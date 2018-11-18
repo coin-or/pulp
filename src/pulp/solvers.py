@@ -38,6 +38,10 @@ try:
     import configparser
 except ImportError:
     import ConfigParser as configparser
+try:
+    Parser = configparser.ConfigParser
+except AttributeError:
+    Parser = configparser.SafeConfigParser    
 from . import sparse
 import collections
 import warnings
@@ -67,7 +71,7 @@ class PulpSolverError(PulpError):
 def initialize(filename, operating_system='linux', arch='64'):
     """ reads the configuration file to initialise the module"""
     here = os.path.dirname(filename)
-    config = configparser.SafeConfigParser({'here':here,
+    config = Parser({'here':here,
         'os':operating_system, 'arch':arch})
     config.read(filename)
 
