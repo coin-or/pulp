@@ -42,37 +42,42 @@ for v in VALS:
         prob += lpSum([choices[v][r][c] for (r, c) in b]) == 1
 
 # The starting numbers are entered as constraints
-prob += choices[5][1][1] == 1
-prob += choices[6][2][1] == 1
-prob += choices[8][4][1] == 1
-prob += choices[4][5][1] == 1
-prob += choices[7][6][1] == 1
-prob += choices[3][1][2] == 1
-prob += choices[9][3][2] == 1
-prob += choices[6][7][2] == 1
-prob += choices[8][3][3] == 1
-prob += choices[1][2][4] == 1
-prob += choices[8][5][4] == 1
-prob += choices[4][8][4] == 1
-prob += choices[7][1][5] == 1
-prob += choices[9][2][5] == 1
-prob += choices[6][4][5] == 1
-prob += choices[2][6][5] == 1
-prob += choices[1][8][5] == 1
-prob += choices[8][9][5] == 1
-prob += choices[5][2][6] == 1
-prob += choices[3][5][6] == 1
-prob += choices[9][8][6] == 1
-prob += choices[2][7][7] == 1
-prob += choices[6][3][8] == 1
-prob += choices[8][7][8] == 1
-prob += choices[7][9][8] == 1
-prob += choices[3][4][9] == 1
-# Since the previous Sudoku contains only one unique solution, we remove some constraints to contain a Sudoku
-# with multiple solutions
-# prob += choices[1][5][9] == 1
-# prob += choices[6][6][9] == 1
-# prob += choices[5][8][9] == 1
+input_data = [
+    (5, 1, 1),
+    (6, 2, 1),
+    (8, 4, 1),
+    (4, 5, 1),
+    (7, 6, 1),
+    (3, 1, 2),
+    (9, 3, 2),
+    (6, 7, 2),
+    (8, 3, 3),
+    (1, 2, 4),
+    (8, 5, 4),
+    (4, 8, 4),
+    (7, 1, 5),
+    (9, 2, 5),
+    (6, 4, 5),
+    (2, 6, 5),
+    (1, 8, 5),
+    (8, 9, 5),
+    (5, 2, 6),
+    (3, 5, 6),
+    (9, 8, 6),
+    (2, 7, 7),
+    (6, 3, 8),
+    (8, 7, 8),
+    (7, 9, 8),
+    (3, 4, 9),
+    # Since the previous Sudoku contains only one unique solution, we remove some numers from the board to obtain a
+    # Sudoku with multiple solutions
+#    (1, 5, 9),
+#    (6, 6, 9),
+#    (5, 8, 9)
+]
+
+for (v, r, c) in input_data:
+    prob += choices[v][r][c] == 1
 
 # The problem data is written to an .lp file
 prob.writeLP("Sudoku.lp")
@@ -88,12 +93,12 @@ while True:
     if LpStatus[prob.status] == "Optimal":
         # The solution is written to the sudokuout.txt file
         for r in ROWS:
-            if r == 1 or r == 4 or r == 7:
+            if r in [1, 4, 7]:
                 sudokuout.write("+-------+-------+-------+\n")
             for c in COLS:
                 for v in VALS:
                     if value(choices[v][r][c]) == 1:
-                        if c == 1 or c == 4 or c == 7:
+                        if c in [1, 4, 7]:
                             sudokuout.write("| ")
                         sudokuout.write(str(v) + " ")
                         if c == 9:
