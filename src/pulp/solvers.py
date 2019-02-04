@@ -538,8 +538,6 @@ class CPLEX_CMD(LpSolver_CMD):
 
         shadowPrices = {}
         slacks = {}
-        shadowPrices = {}
-        slacks = {}
         constraints = solutionXML.find("linearConstraints")
         for constraint in constraints:
                 name = constraint.get("name")
@@ -1382,6 +1380,8 @@ class COIN_CMD(LpSolver_CMD):
         if use_mps:
             vs, variablesNames, constraintsNames, objectiveName = lp.writeMPS(
                         tmpMps, rename = 1)
+            # filename = 'tmpsol.sol'
+            # self.writesol_MPS(filename, lp, vs, variablesNames, constraintsNames, objectiveName)
             cmds = ' '+tmpMps+" "
             if lp.sense == LpMaximize:
                 cmds += 'max '
@@ -1496,6 +1496,23 @@ class COIN_CMD(LpSolver_CMD):
                     slacks[reverseCn[vn]] = float(val)
                     shadowPrices[reverseCn[vn]] = float(dj)
         return status, values, reducedCosts, shadowPrices, slacks
+
+    def writesol_MPS(self, filename, lp, vs, variablesNames, constraintsNames,
+                objectiveName):
+        """
+        Read a CBC solution file generated from an mps file (different names)
+        # status, values, reducedCosts, shadowPrices, slacks, sol_status
+        """
+        values = {v.name: v.value() if v.value() is not None else 0 for v in vs}
+        value_lines = [(i, v, 0, 0) for i, v in enumerate(constraintsNames.values())]
+        value_lines += [(i, v, values[k], 0) for i, (k, v) in enumerate(variablesNames.items())]
+        lines = ['Stopped on time - objective value -23003.45433848\n']
+        lines += ["{0:>7} {1} {2:>15} {3:>23}\n".format(*tup) for tup in value_lines]
+
+        with open(filename, 'w') as f:
+            f.writelines(lines)
+
+        return True
 
     def readsol_LP(self, filename, lp, vs):
         """
