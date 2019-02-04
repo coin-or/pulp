@@ -1178,10 +1178,14 @@ else:
                              lp.solverModel.solution.status.abort_obj_limit: LpStatusNotSolved,
                              lp.solverModel.solution.status.abort_relaxed: LpStatusNotSolved,
                              lp.solverModel.solution.status.abort_time_limit: LpStatusNotSolved,
-                             lp.solverModel.solution.status.abort_user: LpStatusNotSolved}
+                             lp.solverModel.solution.status.abort_user: LpStatusNotSolved,
+                             lp.solverModel.solution.status.MIP_abort_feasible: LpStatusOptimal}
             lp.cplex_status = lp.solverModel.solution.get_status()
             status = CplexLpStatus.get(lp.cplex_status, LpStatusUndefined)
-            lp.assignStatus(status)
+            sol_status = None
+            if lp.cplex_status == lp.solverModel.solution.status.MIP_abort_feasible:
+                sol_status = LpSolutionIntegerFeasible
+            lp.assignStatus(status, sol_status)
             var_names = [var.name for var in lp.variables()]
             con_names = [con for con in lp.constraints]
             try:
