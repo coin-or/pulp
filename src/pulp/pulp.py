@@ -1506,7 +1506,7 @@ class LpProblem(object):
         constraints, variables) of the defined Lp problem to a file.
 
         :param filename:  the name of the file to be created.
-
+        return variables
         Side Effects:
             - The file is created.
         """
@@ -1589,6 +1589,7 @@ class LpProblem(object):
         f.write("End\n")
         f.close()
         self.restoreObjective(wasNone, objectiveDummyVar)
+        return vs
 
     def assignVarsVals(self, values):
         variables = self.variablesDict()
