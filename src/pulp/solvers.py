@@ -38,6 +38,10 @@ try:
     import configparser
 except ImportError:
     import ConfigParser as configparser
+try:
+    Parser = configparser.ConfigParser
+except AttributeError:
+    Parser = configparser.SafeConfigParser    
 from . import sparse
 import collections
 import warnings
@@ -67,7 +71,7 @@ class PulpSolverError(PulpError):
 def initialize(filename, operating_system='linux', arch='64'):
     """ reads the configuration file to initialise the module"""
     here = os.path.dirname(filename)
-    config = configparser.SafeConfigParser({'here':here,
+    config = Parser({'here':here,
         'os':operating_system, 'arch':arch})
     config.read(filename)
 
@@ -1244,7 +1248,7 @@ class XPRESS(LpSolver_CMD):
         Initializes the Xpress solver.
 
         @param maxSeconds: the maximum time that the Optimizer will run before it terminates
-        @param targetGap: global search will terminate if: 
+        @param targetGap: global search will terminate if:
                           abs(MIPOBJVAL - BESTBOUND) <= MIPRELSTOP * BESTBOUND
         @param heurFreq: the frequency at which heuristics are used in the tree search
         @param heurStra: heuristic strategy
@@ -1493,6 +1497,7 @@ class COIN_CMD(LpSolver_CMD):
         slacks = {}
         cbcStatus = {'Optimal': LpStatusOptimal,
                     'Infeasible': LpStatusInfeasible,
+                    'Integer': LpStatusInfeasible,
                     'Unbounded': LpStatusUnbounded,
                     'Stopped': LpStatusNotSolved}
         with open(filename) as f:
@@ -1831,25 +1836,31 @@ class GUROBI(LpSolver):
                                    GRB.NUMERIC: LpStatusNotSolved,
                                    }
             #populate pulp solution values
-            for var in lp.variables():
-                try:
-                    var.varValue = var.solverVar.X
-                except (gurobipy.GurobiError, AttributeError):
-                    pass
-                try:
-                    var.dj = var.solverVar.RC
-                except (gurobipy.GurobiError, AttributeError):
-                    pass
+            try:
+                for var, value in zip(lp.variables(), model.getAttr(GRB.Attr.X, model.getVars())):
+                    var.varValue = value
+            except (gurobipy.GurobiError, AttributeError):
+                pass
+
+            try:
+                for var, value in zip(lp.variables(), model.getAttr(GRB.Attr.RC, model.getVars())):
+                    var.dj = value
+            except (gurobipy.GurobiError, AttributeError):
+                pass
+
             #put pi and slack variables against the constraints
-            for constr in lp.constraints.values():
-                try:
-                    constr.pi = constr.solverConstraint.Pi
-                except (gurobipy.GurobiError, AttributeError):
-                    pass
-                try:
-                    constr.slack = constr.solverConstraint.Slack
-                except(gurobipy.GurobiError, AttributeError):
-                    pass
+            try:
+                for constr, value in zip(lp.constraints.values(), model.getAttr(GRB.Pi, model.getConstrs())):
+                    constr.pi = value
+            except (gurobipy.GurobiError, AttributeError):
+                pass
+
+            try:
+                for constr, value in zip(lp.constraints.values(), model.getAttr(GRB.Slack, model.getConstrs())):
+                    constr.slack = value
+            except (gurobipy.GurobiError, AttributeError):
+                pass
+
             if self.msg:
                 print("Gurobi status=", solutionStatus)
             lp.resolveOK = True
@@ -1993,6 +2004,10 @@ class GUROBI_CMD(LpSolver_CMD):
             pipe = open(os.devnull, 'w')
 
         return_code = subprocess.call(cmd.split(), stdout = pipe, stderr = pipe)
+
+        # Close the pipe now if we used it.
+        if pipe is not None:
+            pipe.close()
 
         if return_code != 0:
             raise PulpSolverError("PuLP: Error while trying to execute "+self.path)
