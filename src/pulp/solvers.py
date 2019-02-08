@@ -579,7 +579,8 @@ class CPLEX_CMD(LpSolver_CMD):
         et.SubElement(root, 'header', attrib=attrib_quality)
         variables = et.SubElement(root, 'variables')
 
-        values = {v.name: v.value() if v.value() is not None else 0 for v in vs}
+        # values = {v.name: v.value() if v.value() is not None else 0 for v in vs}
+        values = {v.name: v.value() for v in vs if v.value() is not None}
         for index, (name, value) in enumerate(values.items()):
             attrib_vars = dict(name=name, value = str(value), index=str(index))
             et.SubElement(variables, 'variable', attrib=attrib_vars)
