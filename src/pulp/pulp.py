@@ -491,11 +491,28 @@ class LpVariable(LpElement):
         for constraint, coeff in e.items():
             constraint.addVariable(self,coeff)
 
-    def setInitialValue(self,val):
+    def setInitialValue(self, val, check=True):
         """sets the initial value of the Variable to val
         may of may not be supported by the solver
+        if check is True: we confirm the value is really possible
         """
-        raise NotImplementedError
+        lb = self.lowBound
+        ub = self.upBound
+        if check:
+            if lb is not None and val < lb:
+                raise ValueError('value {} smaller than lowBound {}'.format(val, lb))
+            if ub is not None and val > ub:
+                raise ValueError('value {} greater than upBound {}'.format(val, ub))
+        self.varValue = val
+
+    def fixValue(self):
+        """
+        changes lower bound and upper bound to the initial value if exists.
+        :return:
+        """
+        val = self.varValue
+        if val is not None:
+            self.bounds(val, val)
 
 
 class LpAffineExpression(_DICT_TYPE):
