@@ -852,7 +852,7 @@ class LpConstraint(LpAffineExpression):
         """
         LpAffineExpression.__init__(self, e, name = name)
         if rhs is not None:
-            self.constant = - rhs
+            self.constant -= rhs
         self.sense = sense
         self.pi = None
         self.slack = None
