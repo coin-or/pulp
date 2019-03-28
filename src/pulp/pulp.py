@@ -491,11 +491,28 @@ class LpVariable(LpElement):
         for constraint, coeff in e.items():
             constraint.addVariable(self,coeff)
 
-    def setInitialValue(self,val):
+    def setInitialValue(self, val, check=True):
         """sets the initial value of the Variable to val
         may of may not be supported by the solver
+        if check is True: we confirm the value is really possible
         """
-        raise NotImplementedError
+        lb = self.lowBound
+        ub = self.upBound
+        if check:
+            if lb is not None and val < lb:
+                raise ValueError('value {} smaller than lowBound {}'.format(val, lb))
+            if ub is not None and val > ub:
+                raise ValueError('value {} greater than upBound {}'.format(val, ub))
+        self.varValue = val
+
+    def fixValue(self):
+        """
+        changes lower bound and upper bound to the initial value if exists.
+        :return:
+        """
+        val = self.varValue
+        if val is not None:
+            self.bounds(val, val)
 
 
 class LpAffineExpression(_DICT_TYPE):
@@ -664,7 +681,8 @@ class LpAffineExpression(_DICT_TYPE):
             if val == 1:
                 term = "%s %s" %(sign, v.name)
             else:
-                term = "%s %.12g %s" % (sign, val, v.name)
+                #adding zero to val to remove instances of negative zero
+                term = "%s %.12g %s" % (sign, val + 0, v.name)
 
             if self._count_characters(line) + len(term) > LpCplexLPLineSize:
                 result += ["".join(line)]
@@ -1507,7 +1525,7 @@ class LpProblem(object):
         constraints, variables) of the defined Lp problem to a file.
 
         :param filename:  the name of the file to be created.
-
+        return variables
         Side Effects:
             - The file is created.
         """
@@ -1590,6 +1608,7 @@ class LpProblem(object):
         f.write("End\n")
         f.close()
         self.restoreObjective(wasNone, objectiveDummyVar)
+        return vs
 
     def assignVarsVals(self, values):
         variables = self.variablesDict()
@@ -1605,16 +1624,22 @@ class LpProblem(object):
 
     def assignConsPi(self, values):
         for name in values:
-            self.constraints[name].pi = values[name]
+            try:
+                self.constraints[name].pi = values[name]
+            except KeyError:
+                pass
 
     def assignConsSlack(self, values, activity=False):
         for name in values:
-            if activity:
-                #reports the activitynot the slack
-                self.constraints[name].slack = -1 * (
-                        self.constraints[name].constant + float(values[name]))
-            else:
-                self.constraints[name].slack = float(values[name])
+            try:
+                if activity:
+                    #reports the activitynot the slack
+                    self.constraints[name].slack = -1 * (
+                            self.constraints[name].constant + float(values[name]))
+                else:
+                    self.constraints[name].slack = float(values[name])
+            except KeyError:
+                pass
 
     def get_dummyVar(self):
         if self.dummyVar is None:
