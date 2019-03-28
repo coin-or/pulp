@@ -1467,7 +1467,7 @@ class COIN_CMD(LpSolver_CMD):
                                     self.path)
         if not os.path.exists(tmpSol):
             raise PulpSolverError("Pulp: Error while executing "+self.path)
-        lp.status, values, reducedCosts, shadowPrices, slacks, sol_status = \
+        status, values, reducedCosts, shadowPrices, slacks, sol_status = \
             self.readsol_MPS(tmpSol, lp, lp.variables(), variablesNames, constraintsNames)
         lp.assignVarsVals(values)
         lp.assignVarsDj(reducedCosts)
@@ -1475,18 +1475,11 @@ class COIN_CMD(LpSolver_CMD):
         lp.assignConsSlack(slacks, activity=True)
         lp.assignStatus(status, sol_status)
         if not self.keepFiles:
-            try:
-                os.remove(tmpMps)
-            except:
-                pass
-            try:
-                os.remove(tmpLp)
-            except:
-                pass
-            try:
-                os.remove(tmpSol)
-            except:
-                pass
+            for f in [tmpMps, tmpLp, tmpSol]:
+                try:
+                    os.remove(f)
+                except:
+                    pass
         return status
 
     def readsol_MPS(self, filename, lp, vs, variablesNames, constraintsNames, objectiveName=None):
