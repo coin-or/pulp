@@ -1543,6 +1543,8 @@ class LpProblem(object):
         ks = list(self.constraints.keys())
         ks.sort()
         dummyWritten = False
+        constraints = []
+        variables = []
         for k in ks:
             constraint = self.constraints[k]
             if not list(constraint.keys()):
@@ -1551,9 +1553,9 @@ class LpProblem(object):
                 constraint += dummyVar
                 #set this dummyvar to zero so infeasible problems are not made feasible
                 if not dummyWritten:
-                    f.write((dummyVar == 0.0).asCplexLpConstraint("_dummy"))
+                    constraints.append((dummyVar == 0.0).asCplexLpConstraint("_dummy"))
                     dummyWritten = True
-            f.write(constraint.asCplexLpConstraint(k))
+            constraints.append(constraint.asCplexLpConstraint(k))
         vs = self.variables()
         # check if any names are longer than 100 characters
         long_names = [v.name for v in vs if len(v.name) > 100]
@@ -1578,33 +1580,35 @@ class LpProblem(object):
         else:
             vg = [v for v in vs if not v.isPositive()]
         if vg:
-            f.write("Bounds\n")
+            variables.append("Bounds\n")
             for v in vg:
-                f.write("%s\n" % v.asCplexLpVariable())
+                variables.append("%s\n" % v.asCplexLpVariable())
         # Integer non-binary variables
         if mip:
             vg = [v for v in vs if v.cat == LpInteger and not v.isBinary()]
             if vg:
-                f.write("Generals\n")
-                for v in vg: f.write("%s\n" % v.name)
+                variables.append("Generals\n")
+                for v in vg: variables.append("%s\n" % v.name)
             # Binary variables
             vg = [v for v in vs if v.isBinary()]
             if vg:
-                f.write("Binaries\n")
-                for v in vg: f.write("%s\n" % v.name)
+                variables.append("Binaries\n")
+                for v in vg: variables.append("%s\n" % v.name)
         # Special Ordered Sets
         if writeSOS and (self.sos1 or self.sos2):
-            f.write("SOS\n")
+            variables.append("SOS\n")
             if self.sos1:
                 for sos in self.sos1.values():
-                    f.write("S1:: \n")
+                    variables.append("S1:: \n")
                     for v,val in sos.items():
-                        f.write(" %s: %.12g\n" % (v.name, val))
+                        variables.append(" %s: %.12g\n" % (v.name, val))
             if self.sos2:
                 for sos in self.sos2.values():
-                    f.write("S2:: \n")
+                    variables.append("S2:: \n")
                     for v,val in sos.items():
-                        f.write(" %s: %.12g\n" % (v.name, val))
+                        variables.append(" %s: %.12g\n" % (v.name, val))
+        f.write(''.join(constraints))
+        f.write(''.join(variables))
         f.write("End\n")
         f.close()
         self.restoreObjective(wasNone, objectiveDummyVar)
