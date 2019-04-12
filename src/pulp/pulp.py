@@ -1449,7 +1449,7 @@ class LpProblem(object):
         f.write(" N  %s\n" % objName)
         mpsConstraintType = {LpConstraintLE:"L", LpConstraintEQ:"E", LpConstraintGE:"G"}
         # right hand side
-        rhs = ""
+        rhs = []
         # Creation of a dict of dict:
         # coefs[nomVariable][nomContrainte] = coefficient
         coefs = {}
@@ -1465,51 +1465,51 @@ class LpProblem(object):
                     coefs[n] = {k:c[v]}
             c = -c.constant
             if c == 0: c = 0
-            rhs += "    RHS       %-8s  % .12e\n" % (k,c)
+            rhs.append("    RHS       %-8s  % .12e\n" % (k,c))
         # matrix
-        columns = ""
+        columns = []
         # bounds
-        bounds = ""
+        bounds = []
         for v in vs:
             if mip and v.cat == LpInteger:
-                columns += "    MARK      'MARKER'                 'INTORG'\n"
+                columns.append("    MARK      'MARKER'                 'INTORG'\n")
             n = v.name
             if rename: n = variablesNames[n]
             if n in coefs:
                 cv = coefs[n]
                 # Most of the work is done here
                 for k in cv:
-                    columns += "    %-8s  %-8s  % .12e\n" % (n,k,cv[k])
+                    columns.append("    %-8s  %-8s  % .12e\n" % (n,k,cv[k]))
 
             # objective function
             if v in cobj:
-                columns += "    %-8s  %-8s  % .12e\n" % (n,objName,cobj[v])
+                columns.append("    %-8s  %-8s  % .12e\n" % (n,objName,cobj[v]))
             if mip and v.cat == LpInteger:
-                columns += "    MARK      'MARKER'                 'INTEND'\n"
+                columns.append("    MARK      'MARKER'                 'INTEND'\n")
             if v.lowBound != None and v.lowBound == v.upBound:
-                bounds += " FX BND       %-8s  % .12e\n" % (n, v.lowBound)
+                bounds.append(" FX BND       %-8s  % .12e\n" % (n, v.lowBound))
             elif v.lowBound == 0 and v.upBound == 1 and mip and v.cat == LpInteger:
-                bounds += " BV BND       %-8s\n" % n
+                bounds.append(" BV BND       %-8s\n" % n)
             else:
                 if v.lowBound != None:
                     # In MPS files, variables with no bounds (i.e. >= 0)
                     # are assumed BV by COIN and CPLEX.
                     # So we explicitly write a 0 lower bound in this case.
                     if v.lowBound != 0 or (mip and v.cat == LpInteger and v.upBound == None):
-                        bounds += " LO BND       %-8s  % .12e\n" % (n, v.lowBound)
+                        bounds.append(" LO BND       %-8s  % .12e\n" % (n, v.lowBound))
                 else:
                     if v.upBound != None:
-                        bounds += " MI BND       %-8s\n" % n
+                        bounds.append(" MI BND       %-8s\n" % n)
                     else:
-                        bounds += " FR BND       %-8s\n" % n
+                        bounds.append(" FR BND       %-8s\n" % n)
                 if v.upBound != None:
-                    bounds += " UP BND       %-8s  % .12e\n" % (n, v.upBound)
+                    bounds.append(" UP BND       %-8s  % .12e\n" % (n, v.upBound))
         f.write("COLUMNS\n")
-        f.write(columns)
+        f.write(''.join(columns))
         f.write("RHS\n")
-        f.write(rhs)
+        f.write(''.join(rhs))
         f.write("BOUNDS\n")
-        f.write(bounds)
+        f.write(''.join(bounds))
         f.write("ENDATA\n")
         f.close()
         self.restoreObjective(wasNone, dummyVar)
