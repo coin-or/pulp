@@ -498,12 +498,17 @@ class LpVariable(LpElement):
         """
         lb = self.lowBound
         ub = self.upBound
-        if check:
-            if lb is not None and val < lb:
-                raise ValueError('value {} smaller than lowBound {}'.format(val, lb))
-            if ub is not None and val > ub:
-                raise ValueError('value {} greater than upBound {}'.format(val, ub))
+        config = [('smaller', 'lowBound', lb, lambda: val < lb),
+                  ('greater', 'upBound', ub, lambda: val > ub)]
+
+        for rel, bound_name, bound_value, condition in config:
+            if bound_value is not None and condition():
+                if not check:
+                    return False
+                raise ValueError('In variable {}, initial value {} is {} than {} {}'.
+                                 format(self.name, val, rel, bound_name, bound_value))
         self.varValue = val
+        return True
 
     def fixValue(self):
         """
