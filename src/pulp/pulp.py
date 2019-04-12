@@ -638,14 +638,13 @@ class LpAffineExpression(_DICT_TYPE):
         elif s == "":
             s = "0"
         return s
-
+    
     def sorted_keys(self):
         """
         returns the list of keys sorted by name
         """
-        result = [(v.name, v) for v in self.keys()]
-        result.sort()
-        result = [v for _, v in result]
+        result = list(self.keys())
+        result.sort(key=lambda v: v.name)
         return result
 
     def __repr__(self):
@@ -664,31 +663,31 @@ class LpAffineExpression(_DICT_TYPE):
         """
         helper for asCplexLpAffineExpression
         """
+        variables = self.sorted_keys()
+        vals = [self[v] for v in variables]
+        signs = [" -" if v < 0 else " +" for v in vals]
+        if vals[0] >= 0:
+            signs[0] = ""
+        vals = [abs(v) for v in vals]
+        # adding zero to val to remove instances of negative zero
+        terms = [
+            "%s %s" % (signs[pos], v.name)
+            if vals[pos] == 1 else
+            "%s %.12g %s" % (signs[pos], vals[pos] + 0, v.name)
+            for pos, v in enumerate(variables)
+        ]
+        term_gen = ((term, len(term)) for term in terms)
         result = []
         line = ["%s:" % name]
-        notFirst = 0
-        variables = self.sorted_keys()
-        for v in variables:
-            val = self[v]
-            if val < 0:
-                sign = " -"
-                val = -val
-            elif notFirst:
-                sign = " +"
-            else:
-                sign = ""
-            notFirst = 1
-            if val == 1:
-                term = "%s %s" %(sign, v.name)
-            else:
-                #adding zero to val to remove instances of negative zero
-                term = "%s %.12g %s" % (sign, val + 0, v.name)
-
-            if self._count_characters(line) + len(term) > LpCplexLPLineSize:
-                result += ["".join(line)]
+        line_size = sum(len(t) for t in line)
+        for term, term_size in term_gen:
+            if line_size + term_size > LpCplexLPLineSize:
+                result.append("".join(line))
                 line = [term]
+                line_size = term_size
             else:
-                line += [term]
+                line_size += term_size
+                line.append(term)
         return result, line
 
     def asCplexLpAffineExpression(self, name, constant = 1):
@@ -1287,10 +1286,8 @@ class LpProblem(object):
             self.addVariables(list(c.keys()))
         variables = self._variables
         #sort the varibles DSU
-        variables = [[v.name, v] for v in variables]
-        variables.sort()
-        variables = [v for _, v in variables]
-        return variables
+        variables.sort(key=lambda v: v.name)
+        return list(variables)
 
     def variablesDict(self):
         variables = {}
