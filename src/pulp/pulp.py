@@ -643,14 +643,13 @@ class LpAffineExpression(_DICT_TYPE):
         elif s == "":
             s = "0"
         return s
-
+    
     def sorted_keys(self):
         """
         returns the list of keys sorted by name
         """
-        result = [(v.name, v) for v in self.keys()]
-        result.sort()
-        result = [v for _, v in result]
+        result = list(self.keys())
+        result.sort(key=lambda v: v.name)
         return result
 
     def __repr__(self):
@@ -669,31 +668,31 @@ class LpAffineExpression(_DICT_TYPE):
         """
         helper for asCplexLpAffineExpression
         """
+        variables = self.sorted_keys()
+        vals = [self[v] for v in variables]
+        signs = [" -" if v < 0 else " +" for v in vals]
+        if vals[0] >= 0:
+            signs[0] = ""
+        vals = [abs(v) for v in vals]
+        # adding zero to val to remove instances of negative zero
+        terms = [
+            "%s %s" % (signs[pos], v.name)
+            if vals[pos] == 1 else
+            "%s %.12g %s" % (signs[pos], vals[pos] + 0, v.name)
+            for pos, v in enumerate(variables)
+        ]
+        term_gen = ((term, len(term)) for term in terms)
         result = []
         line = ["%s:" % name]
-        notFirst = 0
-        variables = self.sorted_keys()
-        for v in variables:
-            val = self[v]
-            if val < 0:
-                sign = " -"
-                val = -val
-            elif notFirst:
-                sign = " +"
-            else:
-                sign = ""
-            notFirst = 1
-            if val == 1:
-                term = "%s %s" %(sign, v.name)
-            else:
-                #adding zero to val to remove instances of negative zero
-                term = "%s %.12g %s" % (sign, val + 0, v.name)
-
-            if self._count_characters(line) + len(term) > LpCplexLPLineSize:
-                result += ["".join(line)]
+        line_size = sum(len(t) for t in line)
+        for term, term_size in term_gen:
+            if line_size + term_size > LpCplexLPLineSize:
+                result.append("".join(line))
                 line = [term]
+                line_size = term_size
             else:
-                line += [term]
+                line_size += term_size
+                line.append(term)
         return result, line
 
     def asCplexLpAffineExpression(self, name, constant = 1):
@@ -1292,10 +1291,8 @@ class LpProblem(object):
             self.addVariables(list(c.keys()))
         variables = self._variables
         #sort the varibles DSU
-        variables = [[v.name, v] for v in variables]
-        variables.sort()
-        variables = [v for _, v in variables]
-        return variables
+        variables.sort(key=lambda v: v.name)
+        return list(variables)
 
     def variablesDict(self):
         variables = {}
@@ -1451,16 +1448,14 @@ class LpProblem(object):
         if not objName: objName = "OBJ"
         f.write(" N  %s\n" % objName)
         mpsConstraintType = {LpConstraintLE:"L", LpConstraintEQ:"E", LpConstraintGE:"G"}
-        for k,c in self.constraints.items():
-            if rename: k = constraintsNames[k]
-            f.write(" "+mpsConstraintType[c.sense]+"  "+k+"\n")
-        # matrix
-        f.write("COLUMNS\n")
+        # right hand side
+        rhs = ""
         # Creation of a dict of dict:
         # coefs[nomVariable][nomContrainte] = coefficient
         coefs = {}
         for k,c in self.constraints.items():
             if rename: k = constraintsNames[k]
+            f.write(" "+mpsConstraintType[c.sense]+"  "+k+"\n")
             for v in c:
                 n = v.name
                 if rename: n = variablesNames[n]
@@ -1468,51 +1463,53 @@ class LpProblem(object):
                     coefs[n][k] = c[v]
                 else:
                     coefs[n] = {k:c[v]}
-
+            c = -c.constant
+            if c == 0: c = 0
+            rhs += "    RHS       %-8s  % .12e\n" % (k,c)
+        # matrix
+        columns = ""
+        # bounds
+        bounds = ""
         for v in vs:
             if mip and v.cat == LpInteger:
-                f.write("    MARK      'MARKER'                 'INTORG'\n")
+                columns += "    MARK      'MARKER'                 'INTORG'\n"
             n = v.name
             if rename: n = variablesNames[n]
             if n in coefs:
                 cv = coefs[n]
                 # Most of the work is done here
-                for k in cv: f.write("    %-8s  %-8s  % .12e\n" % (n,k,cv[k]))
+                for k in cv:
+                    columns += "    %-8s  %-8s  % .12e\n" % (n,k,cv[k])
 
             # objective function
-            if v in cobj: f.write("    %-8s  %-8s  % .12e\n" % (n,objName,cobj[v]))
+            if v in cobj:
+                columns += "    %-8s  %-8s  % .12e\n" % (n,objName,cobj[v])
             if mip and v.cat == LpInteger:
-                f.write("    MARK      'MARKER'                 'INTEND'\n")
-        # right hand side
-        f.write("RHS\n")
-        for k,c in self.constraints.items():
-            c = -c.constant
-            if rename: k = constraintsNames[k]
-            if c == 0: c = 0
-            f.write("    RHS       %-8s  % .12e\n" % (k,c))
-        # bounds
-        f.write("BOUNDS\n")
-        for v in vs:
-            n = v.name
-            if rename: n = variablesNames[n]
+                columns += "    MARK      'MARKER'                 'INTEND'\n"
             if v.lowBound != None and v.lowBound == v.upBound:
-                f.write(" FX BND       %-8s  % .12e\n" % (n, v.lowBound))
+                bounds += " FX BND       %-8s  % .12e\n" % (n, v.lowBound)
             elif v.lowBound == 0 and v.upBound == 1 and mip and v.cat == LpInteger:
-                f.write(" BV BND       %-8s\n" % n)
+                bounds += " BV BND       %-8s\n" % n
             else:
                 if v.lowBound != None:
                     # In MPS files, variables with no bounds (i.e. >= 0)
                     # are assumed BV by COIN and CPLEX.
                     # So we explicitly write a 0 lower bound in this case.
                     if v.lowBound != 0 or (mip and v.cat == LpInteger and v.upBound == None):
-                        f.write(" LO BND       %-8s  % .12e\n" % (n, v.lowBound))
+                        bounds += " LO BND       %-8s  % .12e\n" % (n, v.lowBound)
                 else:
                     if v.upBound != None:
-                        f.write(" MI BND       %-8s\n" % n)
+                        bounds += " MI BND       %-8s\n" % n
                     else:
-                        f.write(" FR BND       %-8s\n" % n)
+                        bounds += " FR BND       %-8s\n" % n
                 if v.upBound != None:
-                    f.write(" UP BND       %-8s  % .12e\n" % (n, v.upBound))
+                    bounds += " UP BND       %-8s  % .12e\n" % (n, v.upBound)
+        f.write("COLUMNS\n")
+        f.write(columns)
+        f.write("RHS\n")
+        f.write(rhs)
+        f.write("BOUNDS\n")
+        f.write(bounds)
         f.write("ENDATA\n")
         f.close()
         self.restoreObjective(wasNone, dummyVar)
@@ -1548,6 +1545,8 @@ class LpProblem(object):
         ks = list(self.constraints.keys())
         ks.sort()
         dummyWritten = False
+        constraints = []
+        variables = []
         for k in ks:
             constraint = self.constraints[k]
             if not list(constraint.keys()):
@@ -1556,9 +1555,9 @@ class LpProblem(object):
                 constraint += dummyVar
                 #set this dummyvar to zero so infeasible problems are not made feasible
                 if not dummyWritten:
-                    f.write((dummyVar == 0.0).asCplexLpConstraint("_dummy"))
+                    constraints.append((dummyVar == 0.0).asCplexLpConstraint("_dummy"))
                     dummyWritten = True
-            f.write(constraint.asCplexLpConstraint(k))
+            constraints.append(constraint.asCplexLpConstraint(k))
         vs = self.variables()
         # check if any names are longer than 100 characters
         long_names = [v.name for v in vs if len(v.name) > 100]
@@ -1583,33 +1582,35 @@ class LpProblem(object):
         else:
             vg = [v for v in vs if not v.isPositive()]
         if vg:
-            f.write("Bounds\n")
+            variables.append("Bounds\n")
             for v in vg:
-                f.write("%s\n" % v.asCplexLpVariable())
+                variables.append("%s\n" % v.asCplexLpVariable())
         # Integer non-binary variables
         if mip:
             vg = [v for v in vs if v.cat == LpInteger and not v.isBinary()]
             if vg:
-                f.write("Generals\n")
-                for v in vg: f.write("%s\n" % v.name)
+                variables.append("Generals\n")
+                for v in vg: variables.append("%s\n" % v.name)
             # Binary variables
             vg = [v for v in vs if v.isBinary()]
             if vg:
-                f.write("Binaries\n")
-                for v in vg: f.write("%s\n" % v.name)
+                variables.append("Binaries\n")
+                for v in vg: variables.append("%s\n" % v.name)
         # Special Ordered Sets
         if writeSOS and (self.sos1 or self.sos2):
-            f.write("SOS\n")
+            variables.append("SOS\n")
             if self.sos1:
                 for sos in self.sos1.values():
-                    f.write("S1:: \n")
+                    variables.append("S1:: \n")
                     for v,val in sos.items():
-                        f.write(" %s: %.12g\n" % (v.name, val))
+                        variables.append(" %s: %.12g\n" % (v.name, val))
             if self.sos2:
                 for sos in self.sos2.values():
-                    f.write("S2:: \n")
+                    variables.append("S2:: \n")
                     for v,val in sos.items():
-                        f.write(" %s: %.12g\n" % (v.name, val))
+                        variables.append(" %s: %.12g\n" % (v.name, val))
+        f.write(''.join(constraints))
+        f.write(''.join(variables))
         f.write("End\n")
         f.close()
         self.restoreObjective(wasNone, objectiveDummyVar)

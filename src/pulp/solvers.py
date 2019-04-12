@@ -468,7 +468,7 @@ class CPLEX_CMD(LpSolver_CMD):
         """True if the solver is available"""
         return self.executable(self.path)
 
-    def actualSolve(self, lp):
+    def actualSolve(self, lp, timeout=None):
         """Solve a well formulated lp problem"""
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute "+self.path)
@@ -509,7 +509,10 @@ class CPLEX_CMD(LpSolver_CMD):
         cplex_cmds += "write "+tmpSol+"\n"
         cplex_cmds += "quit\n"
         cplex_cmds = cplex_cmds.encode('UTF-8')
-        cplex.communicate(cplex_cmds)
+        try:
+            cplex.communicate(cplex_cmds, timeout=timeout)
+        except subprocess.TimeoutExpired:
+            cplex.kill()
         if cplex.returncode != 0:
             raise PulpSolverError("PuLP: Error while trying to execute "+self.path)
         if not os.path.exists(tmpSol):
@@ -1400,7 +1403,7 @@ class COIN_CMD(LpSolver_CMD):
         """True if the solver is available"""
         return self.executable(self.path)
 
-    def solve_CBC(self, lp, use_mps=True):
+    def solve_CBC(self, lp, use_mps=True, timeout=None):
         """Solve a MIP problem using CBC"""
         if not self.executable(self.path):
             raise PulpSolverError("Pulp: cannot execute %s cwd: %s"%(self.path,
@@ -1998,7 +2001,7 @@ class GUROBI_CMD(LpSolver_CMD):
         """True if the solver is available"""
         return self.executable(self.path)
 
-    def actualSolve(self, lp):
+    def actualSolve(self, lp, timeout=None):
         """Solve a well formulated lp problem"""
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute "+self.path)
