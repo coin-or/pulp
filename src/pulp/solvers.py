@@ -2749,7 +2749,8 @@ class CHOCO_CMD(LpSolver_CMD):
 
     def actualSolve(self, lp):
         """Solve a well formulated lp problem"""
-        if not self.executable('java'):
+        java_path = self.executableExtension('java')
+        if not self.executable(java_path):
             raise PulpSolverError("PuLP: java needs to be installed and accesible in order to use CHOCO_CMD")
         if not os.path.exists(self.path):
             raise PulpSolverError("PuLP: cannot execute "+self.path)
@@ -2772,7 +2773,7 @@ class CHOCO_CMD(LpSolver_CMD):
 
         try: os.remove(tmpSol)
         except: pass
-        cmd = 'java -cp .:' + self.path + ' org.chocosolver.parser.mps.ChocoMPS'
+        cmd = java_path + ' -cp ' + self.path + ' org.chocosolver.parser.mps.ChocoMPS'
         cmd += ' ' + ' '.join(['%s %s' % (key, value)
                     for key, value in self.options])
         cmd += ' %s' % (tmpMps)
