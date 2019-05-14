@@ -27,7 +27,7 @@
 This file contains the constant definitions for PuLP
 Note that hopefully these will be changed into something more pythonic
 """
-VERSION = '1.6.9'
+VERSION = '1.6.10'
 EPS = 1e-7
 
 # variable categories
