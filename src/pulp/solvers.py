@@ -388,6 +388,7 @@ class GLPK_CMD(LpSolver_CMD):
                 rc = subprocess.call(proc, stdout = pipe, stderr = pipe)
             if rc:
                 raise PulpSolverError("PuLP: Error while trying to execute "+self.path)
+            pipe.close()
         else:
             if os.name != 'nt':
                 rc = os.spawnvp(os.P_WAIT, self.path, proc)
@@ -1427,6 +1428,8 @@ class COIN_CMD(LpSolver_CMD):
         if cbc.wait() != 0:
             raise PulpSolverError("Pulp: Error while trying to execute " +  \
                                     self.path)
+        if pipe:
+            pipe.close()
         if not os.path.exists(tmpSol):
             raise PulpSolverError("Pulp: Error while executing "+self.path)
         if use_mps:
