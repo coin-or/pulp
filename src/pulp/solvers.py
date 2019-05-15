@@ -1486,11 +1486,10 @@ class COIN_CMD(LpSolver_CMD):
         """
         Read a CBC solution file generated from an mps or lp file (possible different names)
         """
-        values = {v.name: 0 for v in vs}
+        values = dict((v.name, 0) for v in vs)
 
-
-        reverseVn = {v: k for k, v in variablesNames.items()}
-        reverseCn = {v: k for k, v in constraintsNames.items()}
+        reverseVn = dict((v, k) for k, v in variablesNames.items())
+        reverseCn = dict((v, k) for k, v in constraintsNames.items())
 
         reducedCosts = {}
         shadowPrices = {}
