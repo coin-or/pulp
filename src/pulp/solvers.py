@@ -1983,16 +1983,22 @@ class GUROBI_CMD(LpSolver_CMD):
             uuid = uuid4().hex
             tmpLp = os.path.join(self.tmpDir, "%s-pulp.lp" % uuid)
             tmpSol = os.path.join(self.tmpDir, "%s-pulp.sol" % uuid)
+            tmpMst = os.path.join(self.tmpDir, "%s-pulp.mst" % uuid)
         else:
             tmpLp = lp.name+"-pulp.lp"
             tmpSol = lp.name+"-pulp.sol"
-        lp.writeLP(tmpLp, writeSOS = 1)
+            tmpMst = lp.name + "-pulp.mst"
+        vs = lp.writeLP(tmpLp, writeSOS = 1)
         try: os.remove(tmpSol)
         except: pass
         cmd = self.path
         cmd += ' ' + ' '.join(['%s=%s' % (key, value)
                     for key, value in self.options])
         cmd += ' ResultFile=%s' % tmpSol
+        if self.mip_start:
+            self.writesol(filename=tmpMst, vs=vs)
+            cmd += ' InputFile=%s' % tmpMst
+
         if lp.isMIP():
             if not self.mip:
                 warnings.warn('GUROBI_CMD does not allow a problem to be relaxed')
@@ -2010,19 +2016,15 @@ class GUROBI_CMD(LpSolver_CMD):
 
         if return_code != 0:
             raise PulpSolverError("PuLP: Error while trying to execute "+self.path)
-        if not self.keepFiles:
-            try: os.remove(tmpLp)
-            except: pass
         if not os.path.exists(tmpSol):
             warnings.warn('GUROBI_CMD does provide good solution status of non optimal solutions')
             status = LpStatusNotSolved
         else:
             status, values, reducedCosts, shadowPrices, slacks = self.readsol(tmpSol)
         if not self.keepFiles:
-            try: os.remove(tmpSol)
-            except: pass
-            try: os.remove("gurobi.log")
-            except: pass
+            for f in [tmpSol, tmpMst, tmpLp, "gurobi.log"]:
+                try: os.remove(f)
+                except: pass
         if status != LpStatusInfeasible:
             lp.assignVarsVals(values)
             lp.assignVarsDj(reducedCosts)
@@ -2055,6 +2057,17 @@ class GUROBI_CMD(LpSolver_CMD):
                         name, value  = line.split()
                         values[name] = float(value)
         return status, values, reducedCosts, shadowPrices, slacks
+
+    def writesol(self, filename, vs):
+        """Writes a GUROBI solution file"""
+
+        values = [(v.name, v.value()) for v in vs if v.value() is not None]
+        rows = []
+        for name, value in values:
+            rows.append('{} {}'.format(name, value))
+        with open(filename, 'w') as f:
+            f.write('\n'.join(rows))
+        return True
 
 #get the glpk name in global scope
 glpk = None
