@@ -38,6 +38,10 @@ try:
     import configparser
 except ImportError:
     import ConfigParser as configparser
+try:
+    Parser = configparser.ConfigParser
+except AttributeError:
+    Parser = configparser.SafeConfigParser    
 from . import sparse
 import collections
 import warnings
@@ -67,7 +71,7 @@ class PulpSolverError(PulpError):
 def initialize(filename, operating_system='linux', arch='64'):
     """ reads the configuration file to initialise the module"""
     here = os.path.dirname(filename)
-    config = configparser.SafeConfigParser({'here':here,
+    config = Parser({'here':here,
         'os':operating_system, 'arch':arch})
     config.read(filename)
 
@@ -388,6 +392,7 @@ class GLPK_CMD(LpSolver_CMD):
                 rc = subprocess.call(proc, stdout = pipe, stderr = pipe)
             if rc:
                 raise PulpSolverError("PuLP: Error while trying to execute "+self.path)
+            pipe.close()
         else:
             if os.name != 'nt':
                 rc = os.spawnvp(os.P_WAIT, self.path, proc)
@@ -1230,7 +1235,7 @@ class XPRESS(LpSolver_CMD):
         Initializes the Xpress solver.
 
         @param maxSeconds: the maximum time that the Optimizer will run before it terminates
-        @param targetGap: global search will terminate if: 
+        @param targetGap: global search will terminate if:
                           abs(MIPOBJVAL - BESTBOUND) <= MIPRELSTOP * BESTBOUND
         @param heurFreq: the frequency at which heuristics are used in the tree search
         @param heurStra: heuristic strategy
@@ -1436,6 +1441,8 @@ class COIN_CMD(LpSolver_CMD):
         if cbc.wait() != 0:
             raise PulpSolverError("Pulp: Error while trying to execute " +  \
                                     self.path)
+        if pipe:
+            pipe.close()
         if not os.path.exists(tmpSol):
             raise PulpSolverError("Pulp: Error while executing "+self.path)
         if use_mps:
@@ -1538,6 +1545,7 @@ class COIN_CMD(LpSolver_CMD):
     def get_status(self, filename):
         cbcStatus = {'Optimal': LpStatusOptimal,
                      'Infeasible': LpStatusInfeasible,
+                     'Integer': LpStatusInfeasible,
                      'Unbounded': LpStatusUnbounded,
                      'Stopped': LpStatusNotSolved}
 
@@ -1691,6 +1699,8 @@ class COINMP_DLL(LpSolver):
             #create problem
             self.hProb = hProb = self.lib.CoinCreateProblem(lp.name);
             #set problem options
+            self.lib.CoinSetIntOption(hProb, self.COIN_INT_LOGLEVEL, ctypes.c_int(self.msg))
+
             if self.maxSeconds:
                 if self.mip:
                     self.lib.CoinSetRealOption(hProb, self.COIN_REAL_MIPMAXSEC,
@@ -1720,22 +1730,15 @@ class COINMP_DLL(LpSolver):
                                    colNames, rowNames, "Objective")
             if lp.isMIP() and self.mip:
                 self.lib.CoinLoadInteger(hProb,columnType)
+
             if self.msg == 0:
-                #close stdout to get rid of messages
-                tempfile = open(mktemp(),'w')
-                savestdout = os.dup(1)
-                os.close(1)
-                if os.dup(tempfile.fileno()) != 1:
-                    raise PulpSolverError("couldn't redirect stdout - dup() error")
+                self.lib.CoinRegisterMsgLogCallback(
+                    hProb, ctypes.c_char_p(""), ctypes.POINTER(ctypes.c_int)()
+                )
             self.coinTime = -clock()
             self.lib.CoinOptimizeProblem(hProb, 0);
             self.coinTime += clock()
 
-            if self.msg == 0:
-                #reopen stdout
-                os.close(1)
-                os.dup(savestdout)
-                os.close(savestdout)
             # TODO: check Integer Feasible status
             CoinLpStatus = {0:LpStatusOptimal,
                             1:LpStatusInfeasible,
@@ -1746,7 +1749,7 @@ class COINMP_DLL(LpSolver):
                             -1:LpStatusUndefined
                             }
             solutionStatus = self.lib.CoinGetSolutionStatus(hProb)
-            solutionText = self.lib.CoinGetSolutionText(hProb,solutionStatus)
+            solutionText = self.lib.CoinGetSolutionText(hProb)
             objectValue =  self.lib.CoinGetObjectValue(hProb)
 
             #get the solution values
@@ -1852,25 +1855,31 @@ class GUROBI(LpSolver):
                                    GRB.NUMERIC: LpStatusNotSolved,
                                    }
             #populate pulp solution values
-            for var in lp.variables():
-                try:
-                    var.varValue = var.solverVar.X
-                except (gurobipy.GurobiError, AttributeError):
-                    pass
-                try:
-                    var.dj = var.solverVar.RC
-                except (gurobipy.GurobiError, AttributeError):
-                    pass
+            try:
+                for var, value in zip(lp.variables(), model.getAttr(GRB.Attr.X, model.getVars())):
+                    var.varValue = value
+            except (gurobipy.GurobiError, AttributeError):
+                pass
+
+            try:
+                for var, value in zip(lp.variables(), model.getAttr(GRB.Attr.RC, model.getVars())):
+                    var.dj = value
+            except (gurobipy.GurobiError, AttributeError):
+                pass
+
             #put pi and slack variables against the constraints
-            for constr in lp.constraints.values():
-                try:
-                    constr.pi = constr.solverConstraint.Pi
-                except (gurobipy.GurobiError, AttributeError):
-                    pass
-                try:
-                    constr.slack = constr.solverConstraint.Slack
-                except(gurobipy.GurobiError, AttributeError):
-                    pass
+            try:
+                for constr, value in zip(lp.constraints.values(), model.getAttr(GRB.Pi, model.getConstrs())):
+                    constr.pi = value
+            except (gurobipy.GurobiError, AttributeError):
+                pass
+
+            try:
+                for constr, value in zip(lp.constraints.values(), model.getAttr(GRB.Slack, model.getConstrs())):
+                    constr.slack = value
+            except (gurobipy.GurobiError, AttributeError):
+                pass
+
             if self.msg:
                 print("Gurobi status=", solutionStatus)
             lp.resolveOK = True
@@ -2015,6 +2024,10 @@ class GUROBI_CMD(LpSolver_CMD):
             pipe = open(os.devnull, 'w')
 
         return_code = subprocess.call(cmd.split(), stdout = pipe, stderr = pipe)
+
+        # Close the pipe now if we used it.
+        if pipe is not None:
+            pipe.close()
 
         if return_code != 0:
             raise PulpSolverError("PuLP: Error while trying to execute "+self.path)

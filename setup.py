@@ -8,7 +8,6 @@ from ez_setup import use_setuptools
 use_setuptools()
 from setuptools import setup
 
-Description = open('README.md').read()
 
 License = open('LICENSE').read()
 
@@ -17,11 +16,15 @@ version_dict = {}
 exec(open('src/pulp/constants.py').read(), version_dict)
 VERSION = version_dict['VERSION']
 
+with open("README.md", "r") as fh:
+    long_description = fh.read()
+
 setup(name="PuLP",
       version=VERSION,
       description=
       "PuLP is an LP modeler written in python. PuLP can generate MPS or LP files and call GLPK, COIN CLP/CBC, CPLEX, and GUROBI to solve linear problems.",
-      long_description = Description,
+      long_description = long_description,
+      long_description_content_type="text/markdown",
       license = License,
       keywords = ["Optimization", "Linear Programming", "Operations Research"],
       author="J.S. Roy and S.A. Mitchell",
@@ -38,7 +41,7 @@ setup(name="PuLP",
       #ext_modules = [pulpCOIN],
       package_dir={'':'src'},
       #need the cbc directories here as the executable bit is set
-      packages = ['pulp', 
+      packages = ['pulp',
       'pulp.solverdir',
       'pulp.solverdir.cbc.linux.32',
       'pulp.solverdir.cbc.linux.64',

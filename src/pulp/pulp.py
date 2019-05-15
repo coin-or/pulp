@@ -664,7 +664,8 @@ class LpAffineExpression(_DICT_TYPE):
             if val == 1:
                 term = "%s %s" %(sign, v.name)
             else:
-                term = "%s %.12g %s" % (sign, val, v.name)
+                #adding zero to val to remove instances of negative zero
+                term = "%s %.12g %s" % (sign, val + 0, v.name)
 
             if self._count_characters(line) + len(term) > LpCplexLPLineSize:
                 result += ["".join(line)]
@@ -851,7 +852,7 @@ class LpConstraint(LpAffineExpression):
         """
         LpAffineExpression.__init__(self, e, name = name)
         if rhs is not None:
-            self.constant = - rhs
+            self.constant -= rhs
         self.sense = sense
         self.pi = None
         self.slack = None
@@ -1611,16 +1612,22 @@ class LpProblem(object):
 
     def assignConsPi(self, values):
         for name in values:
-            self.constraints[name].pi = values[name]
+            try:
+                self.constraints[name].pi = values[name]
+            except KeyError:
+                pass
 
     def assignConsSlack(self, values, activity=False):
         for name in values:
-            if activity:
-                #reports the activitynot the slack
-                self.constraints[name].slack = -1 * (
-                        self.constraints[name].constant + float(values[name]))
-            else:
-                self.constraints[name].slack = float(values[name])
+            try:
+                if activity:
+                    #reports the activitynot the slack
+                    self.constraints[name].slack = -1 * (
+                            self.constraints[name].constant + float(values[name]))
+                else:
+                    self.constraints[name].slack = float(values[name])
+            except KeyError:
+                pass
 
     def get_dummyVar(self):
         if self.dummyVar is None:
