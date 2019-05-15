@@ -579,9 +579,8 @@ class CPLEX_CMD(LpSolver_CMD):
         et.SubElement(root, 'header', attrib=attrib_quality)
         variables = et.SubElement(root, 'variables')
 
-        # values = {v.name: v.value() if v.value() is not None else 0 for v in vs}
-        values = {v.name: v.value() for v in vs if v.value() is not None}
-        for index, (name, value) in enumerate(values.items()):
+        values = [(v.name, v.value()) for v in vs if v.value() is not None]
+        for index, (name, value) in enumerate(values):
             attrib_vars = dict(name=name, value = str(value), index=str(index))
             et.SubElement(variables, 'variable', attrib=attrib_vars)
         mst = et.ElementTree(root)
@@ -1419,8 +1418,8 @@ class COIN_CMD(LpSolver_CMD):
         else:
             vs = lp.writeLP(tmpLp)
             # In the Lp we do not create new variable or constraint names:
-            variablesNames = {v.name: v.name for v in vs}
-            constraintsNames = {c: c for c in lp.constraints}
+            variablesNames = dict((v.name, v.name) for v in vs)
+            constraintsNames = dict((c, c) for c in lp.constraints)
             objectiveName = None
             cmds = ' '+tmpLp+" "
         if self.mip_start:
@@ -1527,7 +1526,7 @@ class COIN_CMD(LpSolver_CMD):
         Writes a CBC solution file generated from an mps / lp file (possible different names)
         returns True on success
         """
-        values = {v.name: v.value() if v.value() is not None else 0 for v in vs}
+        values = dict((v.name, v.value() if v.value() is not None else 0) for v in vs)
         value_lines = []
         value_lines += [(i, v, values[k], 0) for i, (k, v) in enumerate(variablesNames.items())]
         lines = ['Stopped on time - objective value 0\n']
@@ -1543,8 +1542,8 @@ class COIN_CMD(LpSolver_CMD):
         Read a CBC solution file generated from an lp (good names)
         returns status, values, reducedCosts, shadowPrices, slacks
         """
-        variablesNames = {v.name: v.name for v in vs}
-        constraintsNames = {c: c for c in lp.constraints}
+        variablesNames = dict((v.name, v.name) for v in vs)
+        constraintsNames = dict((c, c) for c in lp.constraints)
         return self.readsol_MPS(filename, lp, vs, variablesNames, constraintsNames)
 
 COIN = COIN_CMD
