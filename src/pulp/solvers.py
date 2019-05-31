@@ -32,7 +32,10 @@ the current version
 
 import os
 import sys
-from time import clock
+try:
+    from time import clock
+except ImportError:
+    from time import perf_counter as clock
 from uuid import uuid4
 try:
     import configparser
