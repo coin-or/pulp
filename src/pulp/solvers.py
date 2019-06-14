@@ -1841,13 +1841,13 @@ class GUROBI(LpSolver):
 
             #put pi and slack variables against the constraints
             try:
-                for constr, value in zip(lp.constraints.values(), model.getAttr(GRB.Pi, model.getConstrs())):
+                for constr, value in zip(lp.constraints.values(), model.getAttr(GRB.Attr.Pi, model.getConstrs())):
                     constr.pi = value
             except (gurobipy.GurobiError, AttributeError):
                 pass
 
             try:
-                for constr, value in zip(lp.constraints.values(), model.getAttr(GRB.Slack, model.getConstrs())):
+                for constr, value in zip(lp.constraints.values(), model.getAttr(GRB.Attr.Slack, model.getConstrs())):
                     constr.slack = value
             except (gurobipy.GurobiError, AttributeError):
                 pass
