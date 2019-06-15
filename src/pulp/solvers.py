@@ -1191,7 +1191,7 @@ else:
                 lp.assignVarsVals(variablevalues)
                 constraintslackvalues = dict(zip(con_names, lp.solverModel.solution.get_linear_slacks(con_names)))
                 lp.assignConsSlack(constraintslackvalues)
-                if lp.solverModel.get_problem_type == cplex.Cplex.problem_type.LP:
+                if lp.solverModel.get_problem_type() == cplex.Cplex.problem_type.LP:
                     variabledjvalues = dict(zip(var_names, lp.solverModel.solution.get_reduced_costs(var_names)))
                     lp.assignVarsDj(variabledjvalues)
                     constraintpivalues = dict(zip(con_names, lp.solverModel.solution.get_dual_values(con_names)))
