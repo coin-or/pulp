@@ -9,7 +9,7 @@
 CplexPath = /usr/ilog/cplex/bin/x86_rhel4.0_3.4/libcplex110.so
 #note the recommended gurobi changes must be made to your PATH
 #and LD_LIBRARY_PATH environment variables
-GurobiPath = /opt/gurobi201/linux32/lib/python2.5
+GurobiPath = /Library/gurobi811/mac64/lib/python3.6
 CbcPath = cbc
 GlpkPath = glpsol
 PulpCbcPath = %(here)s/solverdir/cbc/%(os)s/%(arch)s/cbc
