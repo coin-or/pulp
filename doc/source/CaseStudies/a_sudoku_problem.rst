@@ -5,7 +5,7 @@ A Sudoku Problem formulated as an LP
 Problem Description
 -------------------
 
-A `sudoku problem <http://en.wikipedia.org/wiki/Sudoku>`_ is a problem where there are is an incomplete 9x9 table of numbers which must be filled according
+A `sudoku problem <http://en.wikipedia.org/wiki/Sudoku>`_ is a problem with an incomplete 9x9 table of numbers that must be filled according
 to several rules:
 
 + Within any of the 9 individual 3x3 boxes, each of the numbers 1 to 9 must be
@@ -13,7 +13,8 @@ to several rules:
 + Within any column of the 9x9 grid, each of the numbers 1 to 9 must be found
 + Within any row of the 9x9 grid, each of the numbers 1 to 9 must be found
 
-On this page we will formulate the below problem from wikipedia to model using PuLP. Once created, our code will need little modification to solve any sudoku problem at all.
+On this page we will formulate the problem below (from wikipedia) as a model using PuLP. 
+Once created, our code will need little modification to solve any sudoku problem.
 
 .. image:: images/wikisudokuproblem.jpg
 
@@ -33,25 +34,25 @@ solutions satisfying the 45 constraint but still with 2 of the same number in
 the same box/row/column.
 
 Instead, we must create 729 individual binary (0-1) problem variables. These
-represent 9 problem variables per square for each of 81 squares, where the 9
+represent 9 problem variables per square for each of the 81 squares, where the 9
 variables each correspond to the number that might be in that square. The
 binary nature of the variable says whether the existence of that number in that
 square is true or false. Therefore, there can clearly be only 1 of the 9
 variables for each square as true (1) and the other 8 must be false (0) since
-only one number can be placed into any square. This will become more clear.
+only one number can be placed into any square. This will become clear below.
 
 
 Formulate the Objective Function
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Interestingly, with sudoku there is no solution that is better than another
-solution, since a solution by definition, must satisfy all the constraints.
+solution, since a solution by definition must satisfy all the constraints.
 Therefore, we are not really trying to minimise or maximise anything, we are
-just trying to find the values on our variables that satisfy the constraints.
-Therefore, whilst either :attr:`~pulp.LpMinimize` or :attr:`~pulp.LpMaximize` must be entered, it is not
+just trying to find the values of our variables that satisfy the constraints.
+Therefore, whilst either :attr:`~pulp.LpMinimize` or :attr:`~pulp.LpMaximize` must be used, it is not
 important which. Similarly, the objective function can be anything, so in this
 example it is simply zero.
-That is we are trying to minimize zero, subject to our constraints (meeting the constraints being the important part) 
+That is we are trying to minimize zero, subject to our constraints (meeting the constraints are the important part).
 
 Formulate the Constraints
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -131,7 +132,7 @@ The problem is written to an LP file, solved using CPLEX (due to CPLEX's simple 
     :lines: 80-87
 
 
-Instead of printing out all 729 of the binary problem variables and their respective values, it is most meaningful to draw the solution in a text file. The code also puts lines inbetween every third row and column to make the solution easier to read. The sudokuout.txt file is created in the same folder as the .py file.
+Instead of printing out all 729 of the binary problem variables and their respective values, it is more meaningful to draw the solution in a text file. The code also puts lines inbetween every third row and column to make the solution easier to read. The sudokuout.txt file is created in the same folder as the .py file.
 
 .. literalinclude:: ../../../examples/Sudoku1.py
     :lines: 92-108

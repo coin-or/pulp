@@ -1,6 +1,6 @@
-# pulp ![Build Status](https://travis-ci.org/coin-or/pulp.svg?branch=master)](https://travis-ci.org/coin-or/pulp)
+# pulp [![Build Status](https://travis-ci.org/coin-or/pulp.svg?branch=master)](https://travis-ci.org/coin-or/pulp)
 
-PuLP is an LP modeler written in python. PuLP can generate MPS or LP files
+PuLP is an LP modeler written in Python. PuLP can generate MPS or LP files
 and call GLPK[1], COIN CLP/CBC[2], CPLEX[3], and GUROBI[4] to solve linear
 problems.
 
@@ -8,15 +8,15 @@ problems.
 
 The easiest way to install pulp is via [PyPi](https://pypi.python.org/pypi/PuLP)
 
-If pip is available on your system
+If pip is available on your system:
 
-     $pip install pulp
+     $ pip install pulp
 
-Otherwise follow the download instructions on the PyPi page
+Otherwise follow the download instructions on the PyPi page.
 On Linux and OSX systems the tests must be run to make the default
 solver executable.
 
-     $sudo pulptest
+     $ sudo pulptest
 
 ## Examples
 
@@ -24,7 +24,7 @@ See the examples directory for examples.
 
 PuLP requires Python >= 2.6.
 
-The examples use the default solver (cbc), to use other solvers they must be available.
+The examples use the default solver (CBC), to use other solvers they must be available.
 
 # Documentation
 Documentation is found on https://pythonhosted.org/PuLP/.
@@ -42,7 +42,7 @@ Use LpProblem() to create new problems. Create "myProblem"
 
      >>> prob = LpProblem("myProblem", LpMinimize)
 
-Combine variables to create expressions and constraints and add them to the
+Combine variables to create expressions and constraints, then add them to the
 problem.
 
      >>> prob += x + y <= 2
