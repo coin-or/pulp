@@ -6,7 +6,12 @@ python:
 - '3.4'
 - '3.5'
 - '3.6'
-- pypy
+- '3.7'
+- '3.7-dev'
+- '3.8-dev'
+- 'nightly'
+- 'pypy'
+- 'pypy3.5'
 before_install:
 - sudo apt-get update -qq
 - sudo apt-get install -qq glpk-utils
