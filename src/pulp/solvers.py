@@ -120,12 +120,16 @@ def initialize(filename, operating_system='linux', arch='64'):
         scip_path = config.get("locations", "ScipPath")
     except configparser.Error:
         scip_path = 'scip'
+    try:
+        pulp_choco_path = config.get("locations", "PulpChocoPath")
+    except configparser.Error:
+        pulp_choco_path = 'choco'
     for i,path in enumerate(coinMP_path):
         if not os.path.dirname(path):
             #if no pathname is supplied assume the file is in the same directory
             coinMP_path[i] = os.path.join(os.path.dirname(config_filename),path)
     return cplex_dll_path, ilm_cplex_license, ilm_cplex_license_signature,\
-        coinMP_path, gurobi_path, cbc_path, glpk_path, pulp_cbc_path, scip_path
+        coinMP_path, gurobi_path, cbc_path, glpk_path, pulp_cbc_path, scip_path, pulp_choco_path
 
 #pick up the correct config file depending on operating system
 PULPCFGFILE = "pulp.cfg"
@@ -156,7 +160,7 @@ else: #run as a script
     config_filename = os.path.join(DIRNAME,
                                    PULPCFGFILE)
 cplex_dll_path, ilm_cplex_license, ilm_cplex_license_signature, coinMP_path,\
-        gurobi_path, cbc_path, glpk_path, pulp_cbc_path, scip_path = \
+        gurobi_path, cbc_path, glpk_path, pulp_cbc_path, scip_path, pulp_choco_path = \
         initialize(config_filename, operating_system, arch)
 
 
@@ -403,14 +407,15 @@ class GLPK_CMD(LpSolver_CMD):
 
         if not os.path.exists(tmpSol):
             raise PulpSolverError("PuLP: Error while executing "+self.path)
-        lp.status, values = self.readsol(tmpSol)
+        status, values = self.readsol(tmpSol)
         lp.assignVarsVals(values)
+        lp.assignStatus(status)
         if not self.keepFiles:
             try: os.remove(tmpLp)
             except: pass
             try: os.remove(tmpSol)
             except: pass
-        return lp.status
+        return status
 
     def readsol(self,filename):
         """Read a GLPK solution file"""
@@ -525,7 +530,7 @@ class CPLEX_CMD(LpSolver_CMD):
             lp.assignVarsDj(reducedCosts)
             lp.assignConsPi(shadowPrices)
             lp.assignConsSlack(slacks)
-        lp.status = status
+        lp.assignStatus(status)
         return status
 
     def readsol(self,filename):
@@ -537,6 +542,7 @@ class CPLEX_CMD(LpSolver_CMD):
         solutionXML = et.parse(filename).getroot()
         solutionheader = solutionXML.find("header")
         statusString = solutionheader.get("solutionStatusString")
+        # TODO: check status for Integer Feasible
         cplexStatus = {
             "optimal":LpStatusOptimal,
             }
@@ -735,9 +741,9 @@ try:
             lp.resolveOK = True
             for var in lp.variables():
                 var.isModified = False
-            lp.status = CplexLpStatus.get(solutionStatus.value,
-                                          LpStatusUndefined)
-            return lp.status
+            status = CplexLpStatus.get(solutionStatus.value, LpStatusUndefined)
+            lp.assignStatus(status)
+            return status
 
         def __del__(self):
             #LpSolver.__del__(self)
@@ -1180,9 +1186,14 @@ else:
                              lp.solverModel.solution.status.abort_obj_limit: LpStatusNotSolved,
                              lp.solverModel.solution.status.abort_relaxed: LpStatusNotSolved,
                              lp.solverModel.solution.status.abort_time_limit: LpStatusNotSolved,
-                             lp.solverModel.solution.status.abort_user: LpStatusNotSolved}
+                             lp.solverModel.solution.status.abort_user: LpStatusNotSolved,
+                             lp.solverModel.solution.status.MIP_abort_feasible: LpStatusOptimal}
             lp.cplex_status = lp.solverModel.solution.get_status()
-            lp.status = CplexLpStatus.get(lp.cplex_status, LpStatusUndefined)
+            status = CplexLpStatus.get(lp.cplex_status, LpStatusUndefined)
+            sol_status = None
+            if lp.cplex_status == lp.solverModel.solution.status.MIP_abort_feasible:
+                sol_status = LpSolutionIntegerFeasible
+            lp.assignStatus(status, sol_status)
             var_names = [var.name for var in lp.variables()]
             con_names = [con for con in lp.constraints]
             try:
@@ -1206,7 +1217,7 @@ else:
             lp.resolveOK = True
             for var in lp.variables():
                 var.isModified = False
-            return lp.status
+            return status
 
         def actualResolve(self,lp):
             """
@@ -1299,11 +1310,12 @@ class XPRESS(LpSolver_CMD):
             except: pass
             try: os.remove(tmpSol)
             except: pass
-        lp.status = status
         lp.assignVarsVals(values)
+        # TODO: the following could be put inside the assignStatus function
         if abs(lp.infeasibilityGap(self.mip)) > 1e-5: # Arbitrary
-            lp.status = LpStatusInfeasible
-        return lp.status
+            status = LpStatusInfeasible
+        lp.assignStatus(status)
+        return status
 
     def readsol(self,filename):
         """Read an XPRESS solution file"""
@@ -1315,6 +1327,7 @@ class XPRESS(LpSolver_CMD):
             cols = int(l[5])
             for i in range(3): f.readline()
             statusString = f.readline().split()[0]
+            # TODO: check status for Integer Feasible
             xpressStatus = {
                 "Optimal":LpStatusOptimal,
                 }
@@ -1436,16 +1449,17 @@ class COIN_CMD(LpSolver_CMD):
         if not os.path.exists(tmpSol):
             raise PulpSolverError("Pulp: Error while executing "+self.path)
         if use_mps:
-            lp.status, values, reducedCosts, shadowPrices, slacks = self.readsol_MPS(
+            status, values, reducedCosts, shadowPrices, slacks, sol_status = self.readsol_MPS(
                         tmpSol, lp, lp.variables(),
                         variablesNames, constraintsNames, objectiveName)
         else:
-            lp.status, values, reducedCosts, shadowPrices, slacks = self.readsol_LP(
+            status, values, reducedCosts, shadowPrices, slacks, sol_status = self.readsol_LP(
                     tmpSol, lp, lp.variables())
         lp.assignVarsVals(values)
         lp.assignVarsDj(reducedCosts)
         lp.assignConsPi(shadowPrices)
         lp.assignConsSlack(slacks, activity=True)
+        lp.assignStatus(status, sol_status)
         if not self.keepFiles:
             try:
                 os.remove(tmpMps)
@@ -1459,7 +1473,7 @@ class COIN_CMD(LpSolver_CMD):
                 os.remove(tmpSol)
             except:
                 pass
-        return lp.status
+        return status
 
     def readsol_MPS(self, filename, lp, vs, variablesNames, constraintsNames,
                 objectiveName):
@@ -1482,14 +1496,8 @@ class COIN_CMD(LpSolver_CMD):
         reducedCosts = {}
         shadowPrices = {}
         slacks = {}
-        cbcStatus = {'Optimal': LpStatusOptimal,
-                    'Infeasible': LpStatusInfeasible,
-                    'Integer': LpStatusInfeasible,
-                    'Unbounded': LpStatusUnbounded,
-                    'Stopped': LpStatusNotSolved}
+        status, sol_status = self.get_status(filename)
         with open(filename) as f:
-            statusstr = f.readline().split()[0]
-            status = cbcStatus.get(statusstr, LpStatusUndefined)
             for l in f:
                 if len(l)<=2:
                     break
@@ -1506,7 +1514,7 @@ class COIN_CMD(LpSolver_CMD):
                 if vn in reverseCn:
                     slacks[reverseCn[vn]] = float(val)
                     shadowPrices[reverseCn[vn]] = float(dj)
-        return status, values, reducedCosts, shadowPrices, slacks
+        return status, values, reducedCosts, shadowPrices, slacks, sol_status
 
     def readsol_LP(self, filename, lp, vs):
         """
@@ -1518,14 +1526,8 @@ class COIN_CMD(LpSolver_CMD):
         slacks = {}
         for v in vs:
             values[v.name] = 0.0
-        cbcStatus = {'Optimal': LpStatusOptimal,
-                    'Infeasible': LpStatusInfeasible,
-                    'Integer': LpStatusInfeasible,
-                    'Unbounded': LpStatusUnbounded,
-                    'Stopped': LpStatusNotSolved}
+        status, sol_status = self.get_status(filename)
         with open(filename) as f:
-            statusstr = f.readline().split()[0]
-            status = cbcStatus.get(statusstr, LpStatusUndefined)
             for l in f:
                 if len(l)<=2:
                     break
@@ -1541,7 +1543,33 @@ class COIN_CMD(LpSolver_CMD):
                 if vn in lp.constraints:
                     slacks[vn] = float(val)
                     shadowPrices[vn] = float(dj)
-        return status, values, reducedCosts, shadowPrices, slacks
+        return status, values, reducedCosts, shadowPrices, slacks, sol_status
+
+    def get_status(self, filename):
+        cbcStatus = {'Optimal': LpStatusOptimal,
+                     'Infeasible': LpStatusInfeasible,
+                     'Integer': LpStatusInfeasible,
+                     'Unbounded': LpStatusUnbounded,
+                     'Stopped': LpStatusNotSolved}
+
+        cbcSolStatus = {'Optimal': LpSolutionOptimal,
+                        'Infeasible': LpSolutionInfeasible,
+                        'Unbounded': LpSolutionUnbounded,
+                        'Stopped': LpSolutionNoSolutionFound}
+
+        with open(filename) as f:
+            statusstrs = f.readline().split()
+
+        status = cbcStatus.get(statusstrs[0], LpStatusUndefined)
+        sol_status = cbcSolStatus.get(statusstrs[0], LpSolutionNoSolutionFound)
+        # here we could use some regex expression.
+        # Not sure what's more desirable
+        if status == LpStatusNotSolved and len(statusstrs) >= 5:
+            if statusstrs[4] == "objective":
+                status = LpStatusOptimal
+                sol_status = LpSolutionIntegerFeasible
+        return status, sol_status
+
 
 COIN = COIN_CMD
 
@@ -1714,6 +1742,7 @@ class COINMP_DLL(LpSolver):
             self.lib.CoinOptimizeProblem(hProb, 0);
             self.coinTime += clock()
 
+            # TODO: check Integer Feasible status
             CoinLpStatus = {0:LpStatusOptimal,
                             1:LpStatusInfeasible,
                             2:LpStatusInfeasible,
@@ -1757,8 +1786,9 @@ class COINMP_DLL(LpSolver):
             lp.assignConsSlack(constraintslackvalues)
 
             self.lib.CoinFreeSolver()
-            lp.status = CoinLpStatus[self.lib.CoinGetSolutionStatus(hProb)]
-            return lp.status
+            status = CoinLpStatus[self.lib.CoinGetSolutionStatus(hProb)]
+            lp.assignStatus(status)
+            return status
 
 if COINMP_DLL.available():
     COIN = COINMP_DLL
@@ -1815,6 +1845,7 @@ class GUROBI(LpSolver):
             model = lp.solverModel
             solutionStatus = model.Status
             GRB = gurobipy.GRB
+            # TODO: check status for Integer Feasible
             gurobiLpStatus = {GRB.OPTIMAL: LpStatusOptimal,
                                    GRB.INFEASIBLE: LpStatusInfeasible,
                                    GRB.INF_OR_UNBD: LpStatusInfeasible,
@@ -1857,8 +1888,9 @@ class GUROBI(LpSolver):
             lp.resolveOK = True
             for var in lp.variables():
                 var.isModified = False
-            lp.status = gurobiLpStatus.get(solutionStatus, LpStatusUndefined)
-            return lp.status
+            status = gurobiLpStatus.get(solutionStatus, LpStatusUndefined)
+            lp.assignStatus(status)
+            return status
 
         def available(self):
             """True if the solver is available"""
@@ -2020,7 +2052,7 @@ class GUROBI_CMD(LpSolver_CMD):
             lp.assignVarsDj(reducedCosts)
             lp.assignConsPi(shadowPrices)
             lp.assignConsSlack(slacks)
-        lp.status = status
+        lp.assignStatus(status)
         return status
 
     def readsol(self, filename):
@@ -2034,6 +2066,7 @@ class GUROBI_CMD(LpSolver_CMD):
                 status = LpStatusNotSolved
                 return status, {}, {}, {}, {}
             #We have no idea what the status is assume optimal
+            # TODO: check status for Integer Feasible
             status = LpStatusOptimal
 
             shadowPrices = {}
@@ -2099,7 +2132,7 @@ class PYGLPK(LpSolver):
                 solutionStatus = glpk.glp_get_status(prob)
             glpkLpStatus = {glpk.GLP_OPT: LpStatusOptimal,
                                    glpk.GLP_UNDEF: LpStatusUndefined,
-                                   glpk.GLP_FEAS: LpStatusNotSolved,
+                                   glpk.GLP_FEAS: LpStatusOptimal,
                                    glpk.GLP_INFEAS: LpStatusInfeasible,
                                    glpk.GLP_NOFEAS: LpStatusInfeasible,
                                    glpk.GLP_UNBND: LpStatusUnbounded
@@ -2122,9 +2155,9 @@ class PYGLPK(LpSolver):
             lp.resolveOK = True
             for var in lp.variables():
                 var.isModified = False
-            lp.status = glpkLpStatus.get(solutionStatus,
-                    LpStatusUndefined)
-            return lp.status
+            status = glpkLpStatus.get(solutionStatus, LpStatusUndefined)
+            lp.assignStatus(status)
+            return status
 
         def available(self):
             """True if the solver is available"""
@@ -2334,9 +2367,9 @@ class YAPOSIB(LpSolver):
             lp.resolveOK = True
             for var in lp.variables():
                 var.isModified = False
-            lp.status = yaposibLpStatus.get(solutionStatus,
-                    LpStatusUndefined)
-            return lp.status
+            status = yaposibLpStatus.get(solutionStatus, LpStatusUndefined)
+            lp.assignStatus(status)
+            return status
 
         def available(self):
             """True if the solver is available"""
@@ -2541,6 +2574,7 @@ class GurobiFormulation(object):
                 except gurobipy.GurobiError:
                     pass
             GRB = gurobipy.GRB
+            # TODO: check status for Integer Feasible
             gurobiLPStatus = {
                 GRB.OPTIMAL: LpStatusOptimal,
                 GRB.INFEASIBLE: LpStatusInfeasible,
@@ -2660,7 +2694,7 @@ class SCIP_CMD(LpSolver_CMD):
         if not os.path.exists(tmpSol):
             raise PulpSolverError("PuLP: Error while executing "+self.path)
 
-        lp.status, values = self.readsol(tmpSol)
+        status, values = self.readsol(tmpSol)
 
         # Make sure to add back in any 0-valued variables SCIP leaves out.
         finalVals = {}
@@ -2668,6 +2702,7 @@ class SCIP_CMD(LpSolver_CMD):
             finalVals[v.name] = values.get(v.name, 0.0)
 
         lp.assignVarsVals(finalVals)
+        lp.assignStatus(status)
 
         if not self.keepFiles:
             for f in (tmpLp, tmpSol):
@@ -2676,7 +2711,7 @@ class SCIP_CMD(LpSolver_CMD):
                 except:
                     pass
 
-        return lp.status
+        return status
 
     def readsol(self, filename):
         """Read a SCIP solution file"""
@@ -2715,3 +2750,140 @@ class SCIP_CMD(LpSolver_CMD):
         return status, values
 
 SCIP = SCIP_CMD
+
+
+class CHOCO_CMD(LpSolver_CMD):
+    """The CHOCO_CMD solver"""
+
+    def defaultPath(self):
+        raise PulpError("PuLP: default path does not exist por CHOCO_CMD")
+        # return self.executableExtension("choco-parsers-4.0.5-SNAPSHOT-with-dependencies.jar")
+
+    def available(self):
+        """True if the solver is available"""
+        return self.executable(self.path)
+
+    def actualSolve(self, lp):
+        """Solve a well formulated lp problem"""
+        java_path = self.executableExtension('java')
+        if not self.executable(java_path):
+            raise PulpSolverError("PuLP: java needs to be installed and accesible in order to use CHOCO_CMD")
+        if not os.path.exists(self.path):
+            raise PulpSolverError("PuLP: cannot execute "+self.path)
+        if not self.keepFiles:
+            uuid = uuid4().hex
+            tmpLp = os.path.join(self.tmpDir, "%s-pulp.lp" % uuid)
+            tmpMps = os.path.join(self.tmpDir, "%s-pulp.mps" % uuid)
+            tmpSol = os.path.join(self.tmpDir, "%s-pulp.sol" % uuid)
+        else:
+            tmpLp = lp.name + "-pulp.lp"
+            tmpMps = lp.name+"-pulp.mps"
+            tmpSol = lp.name+"-pulp.sol"
+        lp.writeMPS(tmpMps, mpsSense=lp.sense)
+
+        # just to report duplicated variables:
+        repeated_names = lp.checkDuplicateVars()
+        if repeated_names:
+            raise PulpError('Repeated variable names in Lp format\n'
+                            + str(repeated_names))
+
+        try: os.remove(tmpSol)
+        except: pass
+        cmd = java_path + ' -cp ' + self.path + ' org.chocosolver.parser.mps.ChocoMPS'
+        cmd += ' ' + ' '.join(['%s %s' % (key, value)
+                    for key, value in self.options])
+        cmd += ' %s' % (tmpMps)
+        if lp.sense == LpMaximize:
+            cmd += ' -max'
+        if lp.isMIP():
+            if not self.mip:
+                warnings.warn("CHOCO_CMD cannot solve the relaxation of a problem")
+        # we always get the output to a file.
+        # if not, we cannot read it afterwards
+        # (we thus ignore the self.msg parameter)
+        pipe = open(tmpSol, 'w')
+
+        return_code = subprocess.call(cmd.split(), stdout=pipe, stderr=pipe)
+
+        if return_code != 0:
+            raise PulpSolverError("PuLP: Error while trying to execute "+self.path)
+        if not self.keepFiles:
+            try:
+                os.remove(tmpMps)
+                os.remove(tmpLp)
+            except: pass
+        if not os.path.exists(tmpSol):
+            status = LpStatusNotSolved
+            status_sol = LpSolutionNoSolutionFound
+        else:
+            status, values, status_sol = self.readsol(tmpSol)
+        if not self.keepFiles:
+            try: os.remove(tmpSol)
+            except: pass
+
+        lp.assignStatus(status, status_sol)
+        if status not in [LpStatusInfeasible, LpStatusNotSolved]:
+            lp.assignVarsVals(values)
+
+        return status
+
+    def readsol(self, filename):
+        """Read a Choco solution file"""
+        # TODO: figure out the unbounded status in choco solver
+        chocoStatus = {'OPTIMUM FOUND': LpStatusOptimal,
+                       'SATISFIABLE': LpStatusOptimal,
+                       'UNSATISFIABLE': LpStatusInfeasible,
+                       'UNKNOWN': LpStatusNotSolved}
+
+        chocoSolStatus = {'OPTIMUM FOUND': LpSolutionOptimal,
+                          'SATISFIABLE': LpSolutionIntegerFeasible,
+                          'UNSATISFIABLE': LpSolutionInfeasible,
+                          'UNKNOWN': LpSolutionNoSolutionFound}
+
+        status = LpSolutionNoSolutionFound
+        sol_status = LpSolutionNoSolutionFound
+        values = {}
+        with open(filename) as f:
+            content = f.readlines()
+        content = [l.strip() for l in content if l[:2] not in ['o ', 'c ']]
+        if not len(content):
+            return status, values
+        if content[0][:2] == 's ':
+            status_str = content[0][2:]
+            status = chocoStatus[status_str]
+            sol_status = chocoSolStatus[status_str]
+        for line in content[1:]:
+            name, value = line.split()
+            values[name] = float(value)
+
+        return status, values, sol_status
+
+
+class PULP_CHOCO_CMD(CHOCO_CMD):
+    """
+    This solver uses a packaged version of choco provided with the package
+    """
+    pulp_choco_path = pulp_choco_path
+    try:
+        if os.name != 'nt':
+            if not os.access(pulp_choco_path, os.X_OK):
+                import stat
+                os.chmod(pulp_choco_path, stat.S_IXUSR + stat.S_IXOTH)
+    except:  # probably due to incorrect permissions
+
+        def available(self):
+            """True if the solver is available"""
+            return False
+
+        def actualSolve(self, lp, callback=None):
+            """Solve a well formulated lp problem"""
+            raise PulpSolverError("PULP_CHOCO_CMD: Not Available (check permissions on %s)" % self.pulp_choco_path)
+    else:
+        def __init__(self, path=None, *args, **kwargs):
+            """
+            just loads up CHOCO_CMD with the path set
+            """
+            if path is not None:
+                raise PulpSolverError('Use CHOCO_CMD if you want to set a path')
+            # check that the file is executable
+            CHOCO_CMD.__init__(self, path=self.pulp_choco_path, *args, **kwargs)

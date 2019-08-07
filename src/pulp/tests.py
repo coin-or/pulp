@@ -91,6 +91,9 @@ def pulpTest009(solver):
     if solver.__class__ in [PULP_CBC_CMD, COIN_CMD]:
         pulpTestCheck(prob, solver, [LpStatusInfeasible], {x:4, y:-1, z:6, w:0},
             use_mps = False)
+    elif solver.__class__ in [PULP_CHOCO_CMD, CHOCO_CMD]:
+        # this error is not detected with mps and choco can only use mps files
+        pass
     else:
         pulpTestCheck(prob, solver, [LpStatusInfeasible, LpStatusNotSolved,
             LpStatusUndefined])
@@ -153,6 +156,9 @@ def pulpTest012(solver):
         # CPLEX_DLL Does not report unbounded problems, correctly
         # GUROBI_CMD has a very simple interface
          pulpTestCheck(prob, solver, [LpStatusNotSolved])
+    elif solver.__class__ in [PULP_CHOCO_CMD, CHOCO_CMD]:
+        # choco bounds all variables. Would not return unbounded status
+        pass
     else:
         pulpTestCheck(prob, solver, [LpStatusUnbounded])
 
@@ -193,11 +199,11 @@ def pulpTest014(solver):
     print("\t Testing repeated Names")
     if solver.__class__ in [COIN_CMD, COINMP_DLL, PULP_CBC_CMD,
                             CPLEX_CMD, CPLEX_DLL, CPLEX_PY,
-                            GLPK_CMD, GUROBI_CMD]:
+                            GLPK_CMD, GUROBI_CMD, PULP_CHOCO_CMD, CHOCO_CMD]:
         try:
             pulpTestCheck(prob, solver, [LpStatusOptimal], {x:4, y:-1, z:6, w:0})
         except PulpError:
-            #these solvers should raise an error'
+            # these solvers should raise an error
             pass
     else:
         pulpTestCheck(prob, solver, [LpStatusOptimal], {x:4, y:-1, z:6, w:0})
@@ -320,8 +326,8 @@ def pulpTest030(solver):
     prob += -y+z == 7.5, "c3"
     solver.mip = 0
     print("\t Testing MIP relaxation")
-    if solver.__class__ in [GUROBI_CMD]:
-        #gurobi command does not let the problem be relaxed
+    if solver.__class__ in [GUROBI_CMD, PULP_CHOCO_CMD, CHOCO_CMD]:
+        # gurobi command and choco do not let the problem be relaxed
         pulpTestCheck(prob, solver, [LpStatusOptimal], {x:3.0, y:-0.5, z:7})
     else:
         pulpTestCheck(prob, solver, [LpStatusOptimal], {x:3.5, y:-1, z:6.5})
@@ -594,6 +600,9 @@ def pulpTest123(solver):
     elif solver.__class__ in [CPLEX_DLL, GUROBI_CMD]:
         # GLPK_CMD Does not report unbounded problems, correctly
          pulpTestCheck(prob, solver, [LpStatusNotSolved])
+    elif solver.__class__ in [PULP_CHOCO_CMD, CHOCO_CMD]:
+        # choco bounds all variables. Would not return unbounded status
+        pass
     else:
         pulpTestCheck(prob, solver, [LpStatusUnbounded])
 

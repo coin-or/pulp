@@ -1113,6 +1113,7 @@ class LpProblem(object):
         self.sos1 = {}
         self.sos2 = {}
         self.status = LpStatusNotSolved
+        self.sol_status = LpSolutionNoSolutionFound
         self.noOverlap = 1
         self.solver = None
         self.initialValues = {}
@@ -1543,14 +1544,10 @@ class LpProblem(object):
             raise PulpError('Variable names too long for Lp format\n'
                                 + str(long_names))
         # check for repeated names
-        repeated_names = {}
-        for v in vs:
-            repeated_names[v.name] = repeated_names.get(v.name, 0) + 1
-        repeated_names = [(key, value) for key, value in list(repeated_names.items())
-                            if value >= 2]
+        repeated_names = self.checkDuplicateVars()
         if repeated_names:
             raise PulpError('Repeated variable names in Lp format\n'
-                                + str(repeated_names))
+                            + str(repeated_names))
         # Bounds on non-"positive" variables
         # Note: XPRESS and CPLEX do not interpret integer variables without
         # explicit bounds
@@ -1590,6 +1587,16 @@ class LpProblem(object):
         f.write("End\n")
         f.close()
         self.restoreObjective(wasNone, objectiveDummyVar)
+
+    def checkDuplicateVars(self):
+        vs = self.variables()
+
+        repeated_names = {}
+        for v in vs:
+            repeated_names[v.name] = repeated_names.get(v.name, 0) + 1
+        repeated_names = [(key, value) for key, value in list(repeated_names.items())
+                          if value >= 2]
+        return repeated_names
 
     def assignVarsVals(self, values):
         variables = self.variablesDict()
@@ -1742,6 +1749,20 @@ class LpProblem(object):
 
     def getSense(self):
         return self.sense
+
+    def assignStatus(self, status, sol_status=None):
+        """
+        Sets the status of the model after solving.
+        :param status: code for the status of the model
+        :param sol_status: code for the status of the solution
+        :return:
+        """
+        # TODO: check if status are valid status codes
+        self.status = status
+        if sol_status is None:
+            sol_status = LpStatusToSolution.get(status, LpSolutionNoSolutionFound)
+        self.sol_status = sol_status
+        return True
 
 class FixedElasticSubProblem(LpProblem):
     """
@@ -2292,7 +2313,8 @@ def pulpTestAll():
                GUROBI,
                GUROBI_CMD,
                PYGLPK,
-               YAPOSIB
+               YAPOSIB,
+               PULP_CHOCO_CMD
                ]
 
     failed = False
