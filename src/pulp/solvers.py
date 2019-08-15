@@ -2840,14 +2840,14 @@ class CHOCO_CMD(LpSolver_CMD):
                           'UNSATISFIABLE': LpSolutionInfeasible,
                           'UNKNOWN': LpSolutionNoSolutionFound}
 
-        status = LpSolutionNoSolutionFound
+        status = LpStatusNotSolved
         sol_status = LpSolutionNoSolutionFound
         values = {}
         with open(filename) as f:
             content = f.readlines()
         content = [l.strip() for l in content if l[:2] not in ['o ', 'c ']]
         if not len(content):
-            return status, values
+            return status, values, sol_status
         if content[0][:2] == 's ':
             status_str = content[0][2:]
             status = chocoStatus[status_str]
@@ -2887,3 +2887,85 @@ class PULP_CHOCO_CMD(CHOCO_CMD):
                 raise PulpSolverError('Use CHOCO_CMD if you want to set a path')
             # check that the file is executable
             CHOCO_CMD.__init__(self, path=self.pulp_choco_path, *args, **kwargs)
+
+class MIPCL_CMD(LpSolver_CMD):
+    """The MIPCL_CMD solver"""
+
+    def defaultPath(self):
+        return self.executableExtension("mps_mipcl")
+
+    def available(self):
+        """True if the solver is available"""
+        return self.executable(self.path)
+
+    def actualSolve(self, lp):
+        """Solve a well formulated lp problem"""
+        if not self.executable(self.path):
+            raise PulpSolverError("PuLP: cannot execute " + self.path)
+        if not self.keepFiles:
+            uuid = uuid4().hex
+            tmpMps = os.path.join(self.tmpDir, "%s-pulp.mps" % uuid)
+            tmpSol = os.path.join(self.tmpDir, "%s-pulp.sol" % uuid)
+        else:
+            tmpMps = lp.name+"-pulp.mps"
+            tmpSol = lp.name+"-pulp.sol"
+        lp.writeMPS(tmpMps, mpsSense=lp.sense)
+
+        # just to report duplicated variables:
+        repeated_names = lp.checkDuplicateVars()
+        if repeated_names:
+            raise PulpError('Repeated variable names:\n' + str(repeated_names))
+
+        try: os.remove(tmpSol)
+        except: pass
+        cmd = self.path
+        cmd += ' %s' % tmpMps
+        cmd += ' -solfile %s' % tmpSol
+        for option in self.options:
+            cmd += ' ' + option
+        if lp.isMIP():
+            if not self.mip:
+                warnings.warn("MIPCL_CMD cannot solve the relaxation of a problem")
+        if self.msg:
+            pipe = None
+        else:
+            pipe = open(os.devnull, 'w')
+
+        return_code = subprocess.call(cmd.split(), stdout=pipe, stderr=pipe)
+
+        if return_code != 0:
+            raise PulpSolverError("PuLP: Error while trying to execute "+self.path)
+        if not os.path.exists(tmpSol):
+            status = LpStatusNotSolved
+            status_sol = LpSolutionNoSolutionFound
+        else:
+            status, values, status_sol = self.readsol(tmpSol)
+        if not self.keepFiles:
+            for _file in [tmpMps, tmpSol]:
+                try: os.remove(_file)
+                except: pass
+
+        lp.assignStatus(status, status_sol)
+        if status not in [LpStatusInfeasible, LpStatusNotSolved]:
+            lp.assignVarsVals(values)
+
+        return status
+
+    def readsol(self, filename):
+        """Read a MIPCL solution file"""
+
+        status = LpStatusNotSolved
+        sol_status = LpSolutionNoSolutionFound
+        with open(filename) as f:
+            content = f.readlines()
+        content = [l.strip() for l in content]
+        values = {}
+        if not len(content):
+            return status, values, sol_status
+        for line in content[1:]:
+            name, value = line.split()
+            values[name] = float(value)
+        status = LpStatusOptimal
+        sol_status = LpSolutionIntegerFeasible
+        return status, values, sol_status
+
