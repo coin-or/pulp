@@ -542,9 +542,9 @@ class CPLEX_CMD(LpSolver_CMD):
         solutionXML = et.parse(filename).getroot()
         solutionheader = solutionXML.find("header")
         statusString = solutionheader.get("solutionStatusString")
-        # TODO: check status for Integer Feasible
         cplexStatus = {
             "optimal":LpStatusOptimal,
+            "infeasible":LpStatusInfeasible
             }
         if statusString not in cplexStatus:
             raise PulpSolverError("Unknown status returned by CPLEX: "+statusString)
