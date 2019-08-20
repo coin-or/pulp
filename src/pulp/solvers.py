@@ -545,6 +545,7 @@ class CPLEX_CMD(LpSolver_CMD):
         # TODO: check status for Integer Feasible
         cplexStatus = {
             "optimal":LpStatusOptimal,
+            "infeasible":LpStatusInfeasible
             }
         if statusString not in cplexStatus:
             raise PulpSolverError("Unknown status returned by CPLEX: "+statusString)
