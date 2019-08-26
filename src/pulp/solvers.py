@@ -2909,6 +2909,8 @@ class MIPCL_CMD(LpSolver_CMD):
         else:
             tmpMps = lp.name+"-pulp.mps"
             tmpSol = lp.name+"-pulp.sol"
+        if lp.sense == LpMaximize:
+            raise PulpSolverError("PuLP: MIPCL_CMD cannot handle maximisation problems.")
         lp.writeMPS(tmpMps, mpsSense=lp.sense)
 
         # just to report duplicated variables:
