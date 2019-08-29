@@ -2680,7 +2680,7 @@ class SCIP_CMD(LpSolver_CMD):
 
         lp.writeLP(tmpLp)
         proc = [
-            'scip', '-c', 'read "%s"' % tmpLp, '-c', 'optimize',
+            '%s' % self.path, '-c', 'read "%s"' % tmpLp, '-c', 'optimize',
             '-c', 'write solution "%s"' % tmpSol, '-c', 'quit'
         ]
         proc.extend(self.options)
