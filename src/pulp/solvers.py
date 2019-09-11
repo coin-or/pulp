@@ -1468,18 +1468,11 @@ class COIN_CMD(LpSolver_CMD):
         lp.assignConsPi(shadowPrices)
         lp.assignConsSlack(slacks, activity=True)
         if not self.keepFiles:
-            try:
-                os.remove(tmpMps)
-            except:
-                pass
-            try:
-                os.remove(tmpLp)
-            except:
-                pass
-            try:
-                os.remove(tmpSol)
-            except:
-                pass
+            for f in [tmpMps, tmpLp, tmpSol, tmpSol_init]:
+                try:
+                    os.remove(f)
+                except:
+                    pass
         return lp.status
 
     def readsol_MPS(self, filename, lp, vs, variablesNames, constraintsNames, objectiveName=None):
