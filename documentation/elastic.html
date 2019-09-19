@@ -1,0 +1,178 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Elastic Constraints &#8212; PuLP 1.6.9 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">PuLP</a></h1>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=coin-or&repo=pulp&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../main/index.html">Main Topics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CaseStudies/index.html">Case Studies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CaseStudies/index.html#indices-and-tables">Indices and tables</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../constants.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp.constants</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../pulp.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp</span></code>:  Pulp classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../solvers.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp.solvers</span></code> Interface to Solvers</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="elastic-constraints">
+<h1>Elastic Constraints<a class="headerlink" href="#elastic-constraints" title="Permalink to this headline">¶</a></h1>
+<p>A constraint <span class="math notranslate nohighlight">\(C(x) = c\)</span> (equality may be replaced by <span class="math notranslate nohighlight">\(\le\)</span>
+or <span class="math notranslate nohighlight">\(\ge\)</span>)
+can be elasticized to the form</p>
+<div class="math notranslate nohighlight">
+\[C(x) \in D\]</div>
+<p>where <span class="math notranslate nohighlight">\(D\)</span> denotes some interval containing the value
+<span class="math notranslate nohighlight">\(c\)</span>.</p>
+<p>Define the constraint in two steps:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>instantiate constraint (subclass of <a class="reference internal" href="../pulp.html#pulp.LpConstraint" title="pulp.LpConstraint"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpConstraint</span></code></a>) with target <span class="math notranslate nohighlight">\(c\)</span>.</p></li>
+<li><p>call its <a class="reference internal" href="../pulp.html#pulp.LpConstraint.makeElasticSubProblem" title="pulp.LpConstraint.makeElasticSubProblem"><code class="xref py py-meth docutils literal notranslate"><span class="pre">makeElasticSubProblem()</span></code></a> method which returns
+an object of type <a class="reference internal" href="../pulp.html#pulp.FixedElasticSubProblem" title="pulp.FixedElasticSubProblem"><code class="xref py py-class docutils literal notranslate"><span class="pre">FixedElasticSubProblem</span></code></a>
+(subclass of <a class="reference internal" href="../pulp.html#pulp.LpProblem" title="pulp.LpProblem"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpProblem</span></code></a>) - its objective is the minimization
+of the distance of <span class="math notranslate nohighlight">\(C(x)\)</span> from <span class="math notranslate nohighlight">\(D\)</span>.</p></li>
+</ol>
+</div></blockquote>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">constraint</span> <span class="o">=</span> <span class="n">LpConstraint</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">rhs</span> <span class="o">=</span> <span class="n">c</span><span class="p">)</span>
+<span class="n">elasticProblem</span> <span class="o">=</span> <span class="n">constraint</span><span class="o">.</span><span class="n">makeElasticSubProblem</span><span class="p">(</span>
+                       <span class="n">penalty</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">penalty_value</span><span class="o">&gt;</span><span class="p">,</span>
+                       <span class="n">proportionFreeBound</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">freebound_value</span><span class="o">&gt;</span><span class="p">,</span>
+                       <span class="n">proportionFreeBoundList</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">freebound_list_value</span><span class="o">&gt;</span><span class="p">,</span>
+                       <span class="p">)</span>
+</pre></div>
+</div>
+<dl class="simple">
+<dt>where:</dt><dd><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;penalty_value&gt;</span></code> is a real number</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;freebound_value&gt;</span></code> <span class="math notranslate nohighlight">\(a \in [0,1]\)</span> specifies a symmetric
+target interval <span class="math notranslate nohighlight">\(D = (c(1-a),c(1+a))\)</span> about <span class="math notranslate nohighlight">\(c\)</span></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;freebound_list_value&gt;</span> <span class="pre">=</span> <span class="pre">[a,b]</span></code>, a list of
+proportions <span class="math notranslate nohighlight">\(a, b \in [0,1]\)</span> specifying an asymmetric target
+interval <span class="math notranslate nohighlight">\(D = (c(1-a),c(1+b))\)</span> about <span class="math notranslate nohighlight">\(c\)</span></p></li>
+</ul>
+</dd>
+</dl>
+<p>The penalty applies to the constraint at points <span class="math notranslate nohighlight">\(x\)</span> where
+<span class="math notranslate nohighlight">\(C(x) \not \in D\)</span>.
+The magnitude of <code class="docutils literal notranslate"><span class="pre">&lt;penalty_value&gt;</span></code> can be assessed by examining
+the final objective function in the <code class="docutils literal notranslate"><span class="pre">.lp</span></code> file written by
+<a class="reference internal" href="../pulp.html#pulp.LpProblem.writeLP" title="pulp.LpProblem.writeLP"><code class="xref py py-meth docutils literal notranslate"><span class="pre">LpProblem.writeLP()</span></code></a>.</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">constraint_1</span> <span class="o">=</span> <span class="n">LpConstraint</span><span class="p">(</span><span class="s1">&#39;ex_1&#39;</span><span class="p">,</span><span class="n">sense</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">rhs</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">elasticProblem_1</span> <span class="o">=</span> <span class="n">constraint_1</span><span class="o">.</span><span class="n">makeElasticSubproblem</span><span class="p">(</span><span class="n">penalty</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">proportionFreeBound</span> <span class="o">=</span> <span class="mf">0.01</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">constraint_2</span> <span class="o">=</span> <span class="n">LpConstraint</span><span class="p">(</span><span class="s1">&#39;ex_2&#39;</span><span class="p">,</span><span class="n">sense</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">rhs</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">elasticProblem_2</span> <span class="o">=</span> <span class="n">constraint_2</span><span class="o">.</span><span class="n">makeElasticSubproblem</span><span class="p">(</span><span class="n">penalty</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+<span class="go">proportionFreeBoundList = [0.02, 0.05])</span>
+</pre></div>
+</div>
+<ol class="arabic simple">
+<li><p>constraint_1 has a penalty-free target interval of 1% either side of the rhs value, 200</p></li>
+<li><p>constraint_2 has a penalty-free target interval of
+- 2% on left and 5% on the right side of the rhs value, 500</p></li>
+</ol>
+<a class="reference internal image-reference" href="documentation\_static/freebound.*"><img alt="Freebound interval" src="documentation\_static/freebound.*" style="height: 5in;" /></a>
+<p>Following are the methods of the return-value:</p>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+
+    <div class="footer">
+      &copy;2009-, pulp documentation team..
+      
+      |
+      <a href="../_sources/documentation/elastic.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/coin-or/pulp" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+     
+<center>
+<a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/nz/"><img alt="Creative Commons License" style="border-width:0" src="http://i.creativecommons.org/l/by-sa/3.0/nz/88x31.png" /></a><br /><span xmlns:dc="http://purl.org/dc/elements/1.1/" href="http://purl.org/dc/dcmitype/Text" property="dc:title" rel="dc:type">PuLP documentation</span> by <span xmlns:cc="http://creativecommons.org/ns#" property="cc:attributionName">Pulp documentation team</span> is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/nz/">Creative Commons Attribution-Share Alike 3.0 New Zealand License</a>.
+</center>
+
+  </body>
+</html>

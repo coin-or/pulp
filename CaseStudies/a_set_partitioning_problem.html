@@ -1,0 +1,239 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>A Set Partitioning Problem &#8212; PuLP 1.6.9 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="A Sudoku Problem formulated as an LP" href="a_sudoku_problem.html" />
+    <link rel="prev" title="A Blending Problem" href="a_blending_problem.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">PuLP</a></h1>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=coin-or&repo=pulp&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../main/index.html">Main Topics</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Case Studies</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="a_blending_problem.html">A Blending Problem</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">A Set Partitioning Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="a_sudoku_problem.html">A Sudoku Problem formulated as an LP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="a_transportation_problem.html">A Transportation Problem</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="index.html#indices-and-tables">Indices and tables</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../constants.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp.constants</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../pulp.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp</span></code>:  Pulp classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../solvers.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp.solvers</span></code> Interface to Solvers</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Case Studies</a><ul>
+      <li>Previous: <a href="a_blending_problem.html" title="previous chapter">A Blending Problem</a></li>
+      <li>Next: <a href="a_sudoku_problem.html" title="next chapter">A Sudoku Problem formulated as an LP</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="a-set-partitioning-problem">
+<h1>A Set Partitioning Problem<a class="headerlink" href="#a-set-partitioning-problem" title="Permalink to this headline">¶</a></h1>
+<p>A set partitioning problem determines how the items in one set (S) can be partitioned into smaller
+subsets. All items in S must be contained in one and only one partition. Related problems are:</p>
+<ul class="simple">
+<li><p>set packing - all items must be contained in zero or one partitions;</p></li>
+<li><p>set covering - all items must be contained in at least one partition.</p></li>
+</ul>
+<p>In this case study a wedding planner must determine guest seating allocations
+for a wedding. To model this problem the tables are modelled as the partitions
+and the guests invited to the wedding are modelled as the elements of S. The
+wedding planner wishes to maximise the total happiness of all of the tables.</p>
+<img alt="../_images/wedding_seating.jpg" src="../_images/wedding_seating.jpg" />
+<div xmlns:cc="http://creativecommons.org/ns#" about="http://www.flickr.com/photos/71463577@N00/3735357685"><a rel="cc:attributionURL" href="http://www.flickr.com/photos/mbphotography/">http://www.flickr.com/photos/mbphotography/</a> / <a rel="license" href="http://creativecommons.org/licenses/by-nc-nd/2.0/">CC BY-NC-ND 2.0</a></div><p>A set partitioning problem may be modelled by explicitly enumerating each
+possible subset. Though this approach does become intractable for large numbers
+of items (without using column generation) it does have the advantage that the
+objective function co-efficients for the partitions can be non-linear
+expressions (like happiness) and still allow this problem to be solved
+using Linear Programming.</p>
+<p>First we use <a class="reference internal" href="../pulp.html#pulp.allcombinations" title="pulp.allcombinations"><code class="xref py py-func docutils literal notranslate"><span class="pre">allcombinations()</span></code></a> to generate a list of all
+possible table seatings.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#create list of all possible tables</span>
+<span class="n">possible_tables</span> <span class="o">=</span> <span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">pulp</span><span class="o">.</span><span class="n">allcombinations</span><span class="p">(</span><span class="n">guests</span><span class="p">,</span> 
+                                        <span class="n">max_table_size</span><span class="p">)]</span>
+</pre></div>
+</div>
+<p>Then we create a binary variable that will be 1 if the table will be in the solution, or zero otherwise.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#create a binary variable to state that a table setting is used</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpVariable</span><span class="o">.</span><span class="n">dicts</span><span class="p">(</span><span class="s1">&#39;table&#39;</span><span class="p">,</span> <span class="n">possible_tables</span><span class="p">,</span> 
+                            <span class="n">lowBound</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+                            <span class="n">upBound</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+                            <span class="n">cat</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpInteger</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>We create the <a class="reference internal" href="../pulp.html#pulp.LpProblem" title="pulp.LpProblem"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpProblem</span></code></a> and then make the objective function. Note that
+happiness function used in this script would be difficult to model in any other way.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">seating_model</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;Wedding Seating Model&quot;</span><span class="p">,</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
+
+<span class="n">seating_model</span> <span class="o">+=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">happiness</span><span class="p">(</span><span class="n">table</span><span class="p">)</span> <span class="o">*</span> <span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>We specify the total number of tables allowed in the solution.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#specify the maximum number of tables</span>
+<span class="n">seating_model</span> <span class="o">+=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span><span class="p">])</span> <span class="o">&lt;=</span> <span class="n">max_tables</span><span class="p">,</span> \
+</pre></div>
+</div>
+<p>This set of constraints defines the set partitioning problem by guaranteeing that a guest is allocated to
+exactly one table.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#A guest must seated at one and only one table</span>
+<span class="k">for</span> <span class="n">guest</span> <span class="ow">in</span> <span class="n">guests</span><span class="p">:</span>
+    <span class="n">seating_model</span> <span class="o">+=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span>
+                                <span class="k">if</span> <span class="n">guest</span> <span class="ow">in</span> <span class="n">table</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;Must_seat_</span><span class="si">%s</span><span class="s2">&quot;</span><span class="o">%</span><span class="n">guest</span>
+</pre></div>
+</div>
+<p>The full file can be found here <a class="reference external" href="https://projects.coin-or.org/PuLP/browser/trunk/examples/wedding.py?format=txt">wedding.py</a></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">A set partitioning model of a wedding seating problem</span>
+
+<span class="sd">Authors: Stuart Mitchell 2009</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">pulp</span>
+
+<span class="n">max_tables</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="n">max_table_size</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="n">guests</span> <span class="o">=</span> <span class="s1">&#39;A B C D E F G I J K L M N O P Q R&#39;</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+
+<span class="k">def</span> <span class="nf">happiness</span><span class="p">(</span><span class="n">table</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Find the happiness of the table</span>
+<span class="sd">    - by calculating the maximum distance between the letters</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">ord</span><span class="p">(</span><span class="n">table</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">-</span> <span class="nb">ord</span><span class="p">(</span><span class="n">table</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+                
+<span class="c1">#create list of all possible tables</span>
+<span class="n">possible_tables</span> <span class="o">=</span> <span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">pulp</span><span class="o">.</span><span class="n">allcombinations</span><span class="p">(</span><span class="n">guests</span><span class="p">,</span> 
+                                        <span class="n">max_table_size</span><span class="p">)]</span>
+
+<span class="c1">#create a binary variable to state that a table setting is used</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpVariable</span><span class="o">.</span><span class="n">dicts</span><span class="p">(</span><span class="s1">&#39;table&#39;</span><span class="p">,</span> <span class="n">possible_tables</span><span class="p">,</span> 
+                            <span class="n">lowBound</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+                            <span class="n">upBound</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+                            <span class="n">cat</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpInteger</span><span class="p">)</span>
+
+<span class="n">seating_model</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;Wedding Seating Model&quot;</span><span class="p">,</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
+
+<span class="n">seating_model</span> <span class="o">+=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">happiness</span><span class="p">(</span><span class="n">table</span><span class="p">)</span> <span class="o">*</span> <span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span><span class="p">])</span>
+
+<span class="c1">#specify the maximum number of tables</span>
+<span class="n">seating_model</span> <span class="o">+=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span><span class="p">])</span> <span class="o">&lt;=</span> <span class="n">max_tables</span><span class="p">,</span> \
+                            <span class="s2">&quot;Maximum_number_of_tables&quot;</span>
+
+<span class="c1">#A guest must seated at one and only one table</span>
+<span class="k">for</span> <span class="n">guest</span> <span class="ow">in</span> <span class="n">guests</span><span class="p">:</span>
+    <span class="n">seating_model</span> <span class="o">+=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span>
+                                <span class="k">if</span> <span class="n">guest</span> <span class="ow">in</span> <span class="n">table</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;Must_seat_</span><span class="si">%s</span><span class="s2">&quot;</span><span class="o">%</span><span class="n">guest</span>
+
+<span class="n">seating_model</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+
+<span class="nb">print</span><span class="p">((</span><span class="s2">&quot;The choosen tables are out of a total of </span><span class="si">%s</span><span class="s2">:&quot;</span><span class="o">%</span><span class="nb">len</span><span class="p">(</span><span class="n">possible_tables</span><span class="p">)))</span>
+<span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">()</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
+
+
+</pre></div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+
+    <div class="footer">
+      &copy;2009-, pulp documentation team..
+      
+      |
+      <a href="../_sources/CaseStudies/a_set_partitioning_problem.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/coin-or/pulp" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+     
+<center>
+<a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/nz/"><img alt="Creative Commons License" style="border-width:0" src="http://i.creativecommons.org/l/by-sa/3.0/nz/88x31.png" /></a><br /><span xmlns:dc="http://purl.org/dc/elements/1.1/" href="http://purl.org/dc/dcmitype/Text" property="dc:title" rel="dc:type">PuLP documentation</span> by <span xmlns:cc="http://creativecommons.org/ns#" property="cc:attributionName">Pulp documentation team</span> is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/nz/">Creative Commons Attribution-Share Alike 3.0 New Zealand License</a>.
+</center>
+
+  </body>
+</html>

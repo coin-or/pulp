@@ -1,0 +1,380 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>A Sudoku Problem formulated as an LP &#8212; PuLP 1.6.9 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="A Transportation Problem" href="a_transportation_problem.html" />
+    <link rel="prev" title="A Set Partitioning Problem" href="a_set_partitioning_problem.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">PuLP</a></h1>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=coin-or&repo=pulp&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../main/index.html">Main Topics</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Case Studies</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="a_blending_problem.html">A Blending Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="a_set_partitioning_problem.html">A Set Partitioning Problem</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">A Sudoku Problem formulated as an LP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="a_transportation_problem.html">A Transportation Problem</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="index.html#indices-and-tables">Indices and tables</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../constants.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp.constants</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../pulp.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp</span></code>:  Pulp classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../solvers.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp.solvers</span></code> Interface to Solvers</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Case Studies</a><ul>
+      <li>Previous: <a href="a_set_partitioning_problem.html" title="previous chapter">A Set Partitioning Problem</a></li>
+      <li>Next: <a href="a_transportation_problem.html" title="next chapter">A Transportation Problem</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="a-sudoku-problem-formulated-as-an-lp">
+<h1>A Sudoku Problem formulated as an LP<a class="headerlink" href="#a-sudoku-problem-formulated-as-an-lp" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="problem-description">
+<h2>Problem Description<a class="headerlink" href="#problem-description" title="Permalink to this headline">¶</a></h2>
+<p>A <a class="reference external" href="http://en.wikipedia.org/wiki/Sudoku">sudoku problem</a> is a problem where there are is an incomplete 9x9 table of numbers which must be filled according
+to several rules:</p>
+<ul class="simple">
+<li><p>Within any of the 9 individual 3x3 boxes, each of the numbers 1 to 9 must be
+found</p></li>
+<li><p>Within any column of the 9x9 grid, each of the numbers 1 to 9 must be found</p></li>
+<li><p>Within any row of the 9x9 grid, each of the numbers 1 to 9 must be found</p></li>
+</ul>
+<p>On this page we will formulate the below problem from wikipedia to model using PuLP. Once created, our code will need little modification to solve any sudoku problem at all.</p>
+<img alt="../_images/wikisudokuproblem.jpg" src="../_images/wikisudokuproblem.jpg" />
+</div>
+<div class="section" id="formulation">
+<h2>Formulation<a class="headerlink" href="#formulation" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="identify-the-decision-variables">
+<h3>Identify the Decision Variables<a class="headerlink" href="#identify-the-decision-variables" title="Permalink to this headline">¶</a></h3>
+<p>In order to formulate this problem as a linear program, we cannot simply create
+a variable for each of the 81 squares between 1 and 9 representing the value in
+that square. This is because in linear programming there is no “not equal to”
+operator and so we cannot use the necessary constraints of no squares within a
+box/row/column being equal in value to each other. Whilst we can ensure the sum
+of all the values in a box/row/column equal 45, this will still result in many
+solutions satisfying the 45 constraint but still with 2 of the same number in
+the same box/row/column.</p>
+<p>Instead, we must create 729 individual binary (0-1) problem variables. These
+represent 9 problem variables per square for each of 81 squares, where the 9
+variables each correspond to the number that might be in that square. The
+binary nature of the variable says whether the existence of that number in that
+square is true or false. Therefore, there can clearly be only 1 of the 9
+variables for each square as true (1) and the other 8 must be false (0) since
+only one number can be placed into any square. This will become more clear.</p>
+</div>
+<div class="section" id="formulate-the-objective-function">
+<h3>Formulate the Objective Function<a class="headerlink" href="#formulate-the-objective-function" title="Permalink to this headline">¶</a></h3>
+<p>Interestingly, with sudoku there is no solution that is better than another
+solution, since a solution by definition, must satisfy all the constraints.
+Therefore, we are not really trying to minimise or maximise anything, we are
+just trying to find the values on our variables that satisfy the constraints.
+Therefore, whilst either <code class="xref py py-attr docutils literal notranslate"><span class="pre">LpMinimize</span></code> or <code class="xref py py-attr docutils literal notranslate"><span class="pre">LpMaximize</span></code> must be entered, it is not
+important which. Similarly, the objective function can be anything, so in this
+example it is simply zero.
+That is we are trying to minimize zero, subject to our constraints (meeting the constraints being the important part)</p>
+</div>
+<div class="section" id="formulate-the-constraints">
+<h3>Formulate the Constraints<a class="headerlink" href="#formulate-the-constraints" title="Permalink to this headline">¶</a></h3>
+<p>These are simply the known constraints of a sudoku problem plus the constraints
+on our own created variables we have used to express the features of the
+problem:</p>
+<ul class="simple">
+<li><p>The values in the squares in any row must be each of 1 to 9</p></li>
+<li><p>The values in the squares in any column must be each of 1 to 9</p></li>
+<li><p>The values in the squares in any box must be each of 1 to 9
+(a box is one of the 9 non-overlapping 3x3 grids within the overall 9x9 grid)</p></li>
+<li><p>There must be only one number within any square (seems logically obvious, but
+it is important to our formulation to ensure because of our variable choices)</p></li>
+<li><p>The starting sudoku numbers must be in those same places in the final
+solution (this is a constraint since these numbers are not changeable in the
+actual problem, whereas we can control any other numbers. If none or very few
+starting numbers were present, the sudoku problem would have a very large
+number of feasible solutions, instead of just one)</p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="solution">
+<h2>Solution<a class="headerlink" href="#solution" title="Permalink to this headline">¶</a></h2>
+<p>The introductory commenting and import statement are entered</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">The Sudoku Problem Formulation for the PuLP Modeller</span>
+
+<span class="sd">Authors: Antony Phillips, Dr Stuart Mitcehll</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># Import PuLP modeler functions</span>
+<span class="kn">from</span> <span class="nn">pulp</span> <span class="k">import</span> <span class="o">*</span>
+</pre></div>
+</div>
+<p>In the unique case of the sudoku problem, the row names, column names and variable option values are all the exact same list of numbers (as strings) from “1” to “9”.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># A list of strings from &quot;1&quot; to &quot;9&quot; is created</span>
+<span class="n">Sequence</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;2&quot;</span><span class="p">,</span> <span class="s2">&quot;3&quot;</span><span class="p">,</span> <span class="s2">&quot;4&quot;</span><span class="p">,</span> <span class="s2">&quot;5&quot;</span><span class="p">,</span> <span class="s2">&quot;6&quot;</span><span class="p">,</span> <span class="s2">&quot;7&quot;</span><span class="p">,</span> <span class="s2">&quot;8&quot;</span><span class="p">,</span> <span class="s2">&quot;9&quot;</span><span class="p">]</span>
+
+<span class="c1"># The Vals, Rows and Cols sequences all follow this form</span>
+<span class="n">Vals</span> <span class="o">=</span> <span class="n">Sequence</span>
+<span class="n">Rows</span> <span class="o">=</span> <span class="n">Sequence</span>
+<span class="n">Cols</span> <span class="o">=</span> <span class="n">Sequence</span>
+</pre></div>
+</div>
+<p>A list called <cite>Boxes</cite> is created with 9 elements, each being another list. These 9 lists correspond to each of the 9 boxes, and each of the lists contains tuples as the elements with the row and column indices for each square in that box. Explicitly entering the values in a similar way to the following would have had the same effect (but would have been a waste of time):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># The boxes list is created, with the row and column index of each square in each box</span>
+<span class="n">Boxes</span> <span class="o">=</span><span class="p">[]</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+        <span class="n">Boxes</span> <span class="o">+=</span> <span class="p">[[(</span><span class="n">Rows</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">i</span><span class="o">+</span><span class="n">k</span><span class="p">],</span><span class="n">Cols</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">j</span><span class="o">+</span><span class="n">l</span><span class="p">])</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)]]</span>
+</pre></div>
+</div>
+<p>Therefore, Boxes[0] will return a list of tuples containing the locations of each of the 9 squares in the first box.</p>
+<p>The prob variable is created to contain the problem data. LpMinimize has the same effect as LpMaximise in this case.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># The prob variable is created to contain the problem data        </span>
+<span class="n">prob</span> <span class="o">=</span> <span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;Sudoku Problem&quot;</span><span class="p">,</span><span class="n">LpMinimize</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The 729 problem variables are created since the <cite>(Vals,Rows,Cols)</cite> creates a variable for each combination of value, row and column. An example variable would be: Choice_4_2_9, and it is defined to be a binary variable (able to take only the integers 1 or 0. If Choice_4_2_9 was 1, it would mean the number 4 was present in the square situated in row 2, column 9. (If it was 0, it would mean there was not a 4 there)</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># The problem variables are created</span>
+<span class="n">choices</span> <span class="o">=</span> <span class="n">LpVariable</span><span class="o">.</span><span class="n">dicts</span><span class="p">(</span><span class="s2">&quot;Choice&quot;</span><span class="p">,(</span><span class="n">Vals</span><span class="p">,</span><span class="n">Rows</span><span class="p">,</span><span class="n">Cols</span><span class="p">),</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">LpInteger</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>As explained above, the objective function (what we try to change using the problem variables) is simply zero (constant) since we are only concerned with any variable combination that can satisfy the constraints.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># The arbitrary objective function is added</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;Arbitrary Objective Function&quot;</span>
+</pre></div>
+</div>
+<p>Since there are 9 variables for each square, it is important to specify that only exactly one of them can take the value of “1” (and the rest are “0”). Therefore, the below code reads: for each of the 81 squares, the sum of all the 9 variables (each representing a value that could be there) relating to that particular square must equal 1.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># A constraint ensuring that only one value can be in each square is created</span>
+<span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">Rows</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">Cols</span><span class="p">:</span>
+        <span class="n">prob</span> <span class="o">+=</span> <span class="n">lpSum</span><span class="p">([</span><span class="n">choices</span><span class="p">[</span><span class="n">v</span><span class="p">][</span><span class="n">r</span><span class="p">][</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">Vals</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;&quot;</span>
+</pre></div>
+</div>
+<p>These constraints ensure that each number (value) can only occur once in each row, column and box.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># The row, column and box constraints are added for each value</span>
+<span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">Vals</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">Rows</span><span class="p">:</span>
+        <span class="n">prob</span> <span class="o">+=</span> <span class="n">lpSum</span><span class="p">([</span><span class="n">choices</span><span class="p">[</span><span class="n">v</span><span class="p">][</span><span class="n">r</span><span class="p">][</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">Cols</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span><span class="s2">&quot;&quot;</span>
+        
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">Cols</span><span class="p">:</span>
+        <span class="n">prob</span> <span class="o">+=</span> <span class="n">lpSum</span><span class="p">([</span><span class="n">choices</span><span class="p">[</span><span class="n">v</span><span class="p">][</span><span class="n">r</span><span class="p">][</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">Rows</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span><span class="s2">&quot;&quot;</span>
+
+    <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">Boxes</span><span class="p">:</span>
+        <span class="n">prob</span> <span class="o">+=</span> <span class="n">lpSum</span><span class="p">([</span><span class="n">choices</span><span class="p">[</span><span class="n">v</span><span class="p">][</span><span class="n">r</span><span class="p">][</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="p">(</span><span class="n">r</span><span class="p">,</span><span class="n">c</span><span class="p">)</span> <span class="ow">in</span> <span class="n">b</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span><span class="s2">&quot;&quot;</span>
+</pre></div>
+</div>
+<p>The starting numbers are entered as constraints i.e a “5” in row “1” column “1” is true.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># The starting numbers are entered as constraints                </span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">choices</span><span class="p">[</span><span class="s2">&quot;5&quot;</span><span class="p">][</span><span class="s2">&quot;1&quot;</span><span class="p">][</span><span class="s2">&quot;1&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span><span class="s2">&quot;&quot;</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">choices</span><span class="p">[</span><span class="s2">&quot;6&quot;</span><span class="p">][</span><span class="s2">&quot;2&quot;</span><span class="p">][</span><span class="s2">&quot;1&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span><span class="s2">&quot;&quot;</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">choices</span><span class="p">[</span><span class="s2">&quot;8&quot;</span><span class="p">][</span><span class="s2">&quot;4&quot;</span><span class="p">][</span><span class="s2">&quot;1&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span><span class="s2">&quot;&quot;</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">choices</span><span class="p">[</span><span class="s2">&quot;4&quot;</span><span class="p">][</span><span class="s2">&quot;5&quot;</span><span class="p">][</span><span class="s2">&quot;1&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span><span class="s2">&quot;&quot;</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">choices</span><span class="p">[</span><span class="s2">&quot;7&quot;</span><span class="p">][</span><span class="s2">&quot;6&quot;</span><span class="p">][</span><span class="s2">&quot;1&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span><span class="s2">&quot;&quot;</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">choices</span><span class="p">[</span><span class="s2">&quot;3&quot;</span><span class="p">][</span><span class="s2">&quot;1&quot;</span><span class="p">][</span><span class="s2">&quot;2&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span><span class="s2">&quot;&quot;</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">choices</span><span class="p">[</span><span class="s2">&quot;9&quot;</span><span class="p">][</span><span class="s2">&quot;3&quot;</span><span class="p">][</span><span class="s2">&quot;2&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span><span class="s2">&quot;&quot;</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">choices</span><span class="p">[</span><span class="s2">&quot;6&quot;</span><span class="p">][</span><span class="s2">&quot;7&quot;</span><span class="p">][</span><span class="s2">&quot;2&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span><span class="s2">&quot;&quot;</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">choices</span><span class="p">[</span><span class="s2">&quot;8&quot;</span><span class="p">][</span><span class="s2">&quot;3&quot;</span><span class="p">][</span><span class="s2">&quot;3&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span><span class="s2">&quot;&quot;</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">choices</span><span class="p">[</span><span class="s2">&quot;1&quot;</span><span class="p">][</span><span class="s2">&quot;2&quot;</span><span class="p">][</span><span class="s2">&quot;4&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span><span class="s2">&quot;&quot;</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">choices</span><span class="p">[</span><span class="s2">&quot;8&quot;</span><span class="p">][</span><span class="s2">&quot;5&quot;</span><span class="p">][</span><span class="s2">&quot;4&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span><span class="s2">&quot;&quot;</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">choices</span><span class="p">[</span><span class="s2">&quot;4&quot;</span><span class="p">][</span><span class="s2">&quot;8&quot;</span><span class="p">][</span><span class="s2">&quot;4&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span><span class="s2">&quot;&quot;</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">choices</span><span class="p">[</span><span class="s2">&quot;7&quot;</span><span class="p">][</span><span class="s2">&quot;1&quot;</span><span class="p">][</span><span class="s2">&quot;5&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span><span class="s2">&quot;&quot;</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">choices</span><span class="p">[</span><span class="s2">&quot;9&quot;</span><span class="p">][</span><span class="s2">&quot;2&quot;</span><span class="p">][</span><span class="s2">&quot;5&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span><span class="s2">&quot;&quot;</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">choices</span><span class="p">[</span><span class="s2">&quot;6&quot;</span><span class="p">][</span><span class="s2">&quot;4&quot;</span><span class="p">][</span><span class="s2">&quot;5&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span><span class="s2">&quot;&quot;</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">choices</span><span class="p">[</span><span class="s2">&quot;2&quot;</span><span class="p">][</span><span class="s2">&quot;6&quot;</span><span class="p">][</span><span class="s2">&quot;5&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span><span class="s2">&quot;&quot;</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">choices</span><span class="p">[</span><span class="s2">&quot;1&quot;</span><span class="p">][</span><span class="s2">&quot;8&quot;</span><span class="p">][</span><span class="s2">&quot;5&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span><span class="s2">&quot;&quot;</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">choices</span><span class="p">[</span><span class="s2">&quot;8&quot;</span><span class="p">][</span><span class="s2">&quot;9&quot;</span><span class="p">][</span><span class="s2">&quot;5&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span><span class="s2">&quot;&quot;</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">choices</span><span class="p">[</span><span class="s2">&quot;5&quot;</span><span class="p">][</span><span class="s2">&quot;2&quot;</span><span class="p">][</span><span class="s2">&quot;6&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span><span class="s2">&quot;&quot;</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">choices</span><span class="p">[</span><span class="s2">&quot;3&quot;</span><span class="p">][</span><span class="s2">&quot;5&quot;</span><span class="p">][</span><span class="s2">&quot;6&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span><span class="s2">&quot;&quot;</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">choices</span><span class="p">[</span><span class="s2">&quot;9&quot;</span><span class="p">][</span><span class="s2">&quot;8&quot;</span><span class="p">][</span><span class="s2">&quot;6&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span><span class="s2">&quot;&quot;</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">choices</span><span class="p">[</span><span class="s2">&quot;2&quot;</span><span class="p">][</span><span class="s2">&quot;7&quot;</span><span class="p">][</span><span class="s2">&quot;7&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span><span class="s2">&quot;&quot;</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">choices</span><span class="p">[</span><span class="s2">&quot;6&quot;</span><span class="p">][</span><span class="s2">&quot;3&quot;</span><span class="p">][</span><span class="s2">&quot;8&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span><span class="s2">&quot;&quot;</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">choices</span><span class="p">[</span><span class="s2">&quot;8&quot;</span><span class="p">][</span><span class="s2">&quot;7&quot;</span><span class="p">][</span><span class="s2">&quot;8&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span><span class="s2">&quot;&quot;</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">choices</span><span class="p">[</span><span class="s2">&quot;7&quot;</span><span class="p">][</span><span class="s2">&quot;9&quot;</span><span class="p">][</span><span class="s2">&quot;8&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span><span class="s2">&quot;&quot;</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">choices</span><span class="p">[</span><span class="s2">&quot;3&quot;</span><span class="p">][</span><span class="s2">&quot;4&quot;</span><span class="p">][</span><span class="s2">&quot;9&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span><span class="s2">&quot;&quot;</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">choices</span><span class="p">[</span><span class="s2">&quot;1&quot;</span><span class="p">][</span><span class="s2">&quot;5&quot;</span><span class="p">][</span><span class="s2">&quot;9&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span><span class="s2">&quot;&quot;</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">choices</span><span class="p">[</span><span class="s2">&quot;6&quot;</span><span class="p">][</span><span class="s2">&quot;6&quot;</span><span class="p">][</span><span class="s2">&quot;9&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span><span class="s2">&quot;&quot;</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">choices</span><span class="p">[</span><span class="s2">&quot;5&quot;</span><span class="p">][</span><span class="s2">&quot;8&quot;</span><span class="p">][</span><span class="s2">&quot;9&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span><span class="s2">&quot;&quot;</span>
+</pre></div>
+</div>
+<p>The problem is written to an LP file, solved using CPLEX (due to CPLEX’s simple output) and the solution status is printed to the screen</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># The problem data is written to an .lp file</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">writeLP</span><span class="p">(</span><span class="s2">&quot;Sudoku.lp&quot;</span><span class="p">)</span>
+
+<span class="c1"># The problem is solved using PuLP&#39;s choice of Solver</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+
+<span class="c1"># The status of the solution is printed to the screen</span>
+<span class="nb">print</span><span class="p">((</span><span class="s2">&quot;Status:&quot;</span><span class="p">,</span> <span class="n">LpStatus</span><span class="p">[</span><span class="n">prob</span><span class="o">.</span><span class="n">status</span><span class="p">]))</span>
+</pre></div>
+</div>
+<p>Instead of printing out all 729 of the binary problem variables and their respective values, it is most meaningful to draw the solution in a text file. The code also puts lines inbetween every third row and column to make the solution easier to read. The sudokuout.txt file is created in the same folder as the .py file.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># The solution is written to the sudokuout.txt file </span>
+<span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">Rows</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">r</span> <span class="o">==</span> <span class="s2">&quot;1&quot;</span> <span class="ow">or</span> <span class="n">r</span> <span class="o">==</span> <span class="s2">&quot;4&quot;</span> <span class="ow">or</span> <span class="n">r</span> <span class="o">==</span> <span class="s2">&quot;7&quot;</span><span class="p">:</span>
+                    <span class="n">sudokuout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;+-------+-------+-------+</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">Cols</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">Vals</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">value</span><span class="p">(</span><span class="n">choices</span><span class="p">[</span><span class="n">v</span><span class="p">][</span><span class="n">r</span><span class="p">][</span><span class="n">c</span><span class="p">])</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+                               
+                <span class="k">if</span> <span class="n">c</span> <span class="o">==</span> <span class="s2">&quot;1&quot;</span> <span class="ow">or</span> <span class="n">c</span> <span class="o">==</span> <span class="s2">&quot;4&quot;</span> <span class="ow">or</span> <span class="n">c</span> <span class="o">==</span><span class="s2">&quot;7&quot;</span><span class="p">:</span>
+                    <span class="n">sudokuout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;| &quot;</span><span class="p">)</span>
+                    
+                <span class="n">sudokuout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">v</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span><span class="p">)</span>
+                
+                <span class="k">if</span> <span class="n">c</span> <span class="o">==</span> <span class="s2">&quot;9&quot;</span><span class="p">:</span>
+                    <span class="n">sudokuout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;|</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="n">sudokuout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;+-------+-------+-------+&quot;</span><span class="p">)</span>                    
+<span class="n">sudokuout</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>A note of the location of the solution is printed to the solution</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># The location of the solution is give to the user</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Solution Written to sudokuout.txt&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The full file above is given provided <a class="reference external" href="https://projects.coin-or.org/PuLP/browser/trunk/examples/Sudoku1.py?format=txt">Sudoku1.py</a></p>
+<p>The final solution should be the following:</p>
+<img alt="../_images/wikisudokusolution.jpg" src="../_images/wikisudokusolution.jpg" />
+</div>
+<div class="section" id="extra-for-experts">
+<h2>Extra for Experts<a class="headerlink" href="#extra-for-experts" title="Permalink to this headline">¶</a></h2>
+<p>In the above formulation we did not consider the fact that there may be multiple solutions if the sudoku problem is not well defined.</p>
+<p>We can make our code return all the solutions by editing our code as shown after the <cite>prob.writeLP</cite> line. Essentially we are just looping over the solve statement, and each time after a successful solve, adding a constraint that the same solution cannot be used again. When there are no more solutions, our program ends.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># A file called sudokuout.txt is created/overwritten for writing to</span>
+<span class="n">sudokuout</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;sudokuout.txt&#39;</span><span class="p">,</span><span class="s1">&#39;w&#39;</span><span class="p">)</span>
+
+<span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+    <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+    <span class="c1"># The status of the solution is printed to the screen</span>
+    <span class="nb">print</span><span class="p">((</span><span class="s2">&quot;Status:&quot;</span><span class="p">,</span> <span class="n">LpStatus</span><span class="p">[</span><span class="n">prob</span><span class="o">.</span><span class="n">status</span><span class="p">]))</span>
+    <span class="c1"># The solution is printed if it was deemed &quot;optimal&quot; i.e met the constraints</span>
+    <span class="k">if</span> <span class="n">LpStatus</span><span class="p">[</span><span class="n">prob</span><span class="o">.</span><span class="n">status</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Optimal&quot;</span><span class="p">:</span>
+        <span class="c1"># The solution is written to the sudokuout.txt file</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">Rows</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">r</span> <span class="o">==</span> <span class="s2">&quot;1&quot;</span> <span class="ow">or</span> <span class="n">r</span> <span class="o">==</span> <span class="s2">&quot;4&quot;</span> <span class="ow">or</span> <span class="n">r</span> <span class="o">==</span> <span class="s2">&quot;7&quot;</span><span class="p">:</span>
+                <span class="n">sudokuout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;+-------+-------+-------+</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">Cols</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">Vals</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">value</span><span class="p">(</span><span class="n">choices</span><span class="p">[</span><span class="n">v</span><span class="p">][</span><span class="n">r</span><span class="p">][</span><span class="n">c</span><span class="p">])</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">c</span> <span class="o">==</span> <span class="s2">&quot;1&quot;</span> <span class="ow">or</span> <span class="n">c</span> <span class="o">==</span> <span class="s2">&quot;4&quot;</span> <span class="ow">or</span> <span class="n">c</span> <span class="o">==</span><span class="s2">&quot;7&quot;</span><span class="p">:</span>
+                            <span class="n">sudokuout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;| &quot;</span><span class="p">)</span>
+                        <span class="n">sudokuout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">v</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">c</span> <span class="o">==</span> <span class="s2">&quot;9&quot;</span><span class="p">:</span>
+                            <span class="n">sudokuout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;|</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">sudokuout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;+-------+-------+-------+</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="c1"># The constraint is added that the same solution cannot be returned again</span>
+        <span class="n">prob</span> <span class="o">+=</span> <span class="n">lpSum</span><span class="p">([</span><span class="n">choices</span><span class="p">[</span><span class="n">v</span><span class="p">][</span><span class="n">r</span><span class="p">][</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">Vals</span>
+                                        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">Rows</span>
+                                        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">Cols</span>
+                                        <span class="k">if</span> <span class="n">value</span><span class="p">(</span><span class="n">choices</span><span class="p">[</span><span class="n">v</span><span class="p">][</span><span class="n">r</span><span class="p">][</span><span class="n">c</span><span class="p">])</span><span class="o">==</span><span class="mi">1</span><span class="p">])</span> <span class="o">&lt;=</span> <span class="mi">80</span>
+    <span class="c1"># If a new optimal solution cannot be found, we end the program</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">break</span>
+<span class="n">sudokuout</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+<span class="c1"># The location of the solutions is give to the user</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Solutions Written to sudokuout.txt&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The full file using this is available <a class="reference external" href="https://github.com/stumitchell/pulp-or/raw/master/examples/Sudoku2.py">Sudoku2.py</a>. When using this code for sudoku problems with a large number of solutions, it could take a very long time to solve them all. To create sudoku problems with multiple solutions from unique solution sudoku problem, you can simply delete a starting number constraint. You may find that deleting several constraints will still lead to a single optimal solution but the removal of one particular constraint leads to a sudden dramatic increase in the number of solutions.</p>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+
+    <div class="footer">
+      &copy;2009-, pulp documentation team..
+      
+      |
+      <a href="../_sources/CaseStudies/a_sudoku_problem.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/coin-or/pulp" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+     
+<center>
+<a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/nz/"><img alt="Creative Commons License" style="border-width:0" src="http://i.creativecommons.org/l/by-sa/3.0/nz/88x31.png" /></a><br /><span xmlns:dc="http://purl.org/dc/elements/1.1/" href="http://purl.org/dc/dcmitype/Text" property="dc:title" rel="dc:type">PuLP documentation</span> by <span xmlns:cc="http://creativecommons.org/ns#" property="cc:attributionName">Pulp documentation team</span> is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/nz/">Creative Commons Attribution-Share Alike 3.0 New Zealand License</a>.
+</center>
+
+  </body>
+</html>

@@ -1,0 +1,700 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>pulp: Pulp classes &#8212; PuLP 1.6.9 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="pulp.solvers Interface to Solvers" href="solvers.html" />
+    <link rel="prev" title="pulp.constants" href="constants.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">PuLP</a></h1>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=coin-or&repo=pulp&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="main/index.html">Main Topics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CaseStudies/index.html">Case Studies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CaseStudies/index.html#indices-and-tables">Indices and tables</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="constants.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp.constants</span></code></a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp</span></code>:  Pulp classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="solvers.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp.solvers</span></code> Interface to Solvers</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="constants.html" title="previous chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp.constants</span></code></a></li>
+      <li>Next: <a href="solvers.html" title="next chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp.solvers</span></code> Interface to Solvers</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-pulp">
+<span id="pulp-pulp-classes"></span><h1><a class="reference internal" href="#module-pulp" title="pulp"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp</span></code></a>:  Pulp classes<a class="headerlink" href="#module-pulp" title="Permalink to this headline">¶</a></h1>
+<table class="longtable docutils align-center">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pulp.LpProblem" title="pulp.LpProblem"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LpProblem</span></code></a>([name, sense])</p></td>
+<td><p>An LP Problem</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pulp.LpVariable" title="pulp.LpVariable"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LpVariable</span></code></a>(name[, lowBound, upBound, cat, e])</p></td>
+<td><p>This class models an LP Variable with the specified associated parameters</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pulp.LpAffineExpression" title="pulp.LpAffineExpression"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LpAffineExpression</span></code></a>([e, constant, name])</p></td>
+<td><p>A linear combination of <a class="reference internal" href="#pulp.LpVariable" title="pulp.LpVariable"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpVariables</span></code></a>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pulp.LpConstraint" title="pulp.LpConstraint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LpConstraint</span></code></a>([e, sense, name, rhs])</p></td>
+<td><p>An LP constraint</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pulp.LpConstraint.makeElasticSubProblem" title="pulp.LpConstraint.makeElasticSubProblem"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LpConstraint.makeElasticSubProblem</span></code></a>(*args, …)</p></td>
+<td><p>Builds an elastic subproblem by adding variables to a hard constraint</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pulp.FixedElasticSubProblem" title="pulp.FixedElasticSubProblem"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FixedElasticSubProblem</span></code></a>(constraint[, …])</p></td>
+<td><p>Contains the subproblem generated by converting a fixed constraint <span class="math notranslate nohighlight">\(\sum_{i}a_i x_i = b\)</span> into an elastic constraint.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition-todo admonition" id="index-0">
+<p class="admonition-title">Todo</p>
+<p>LpFractionConstraint, FractionElasticSubProblem</p>
+</div>
+<div class="section" id="the-lpproblem-class">
+<h2>The LpProblem Class<a class="headerlink" href="#the-lpproblem-class" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pulp.LpProblem">
+<em class="property">class </em><code class="descclassname">pulp.</code><code class="descname">LpProblem</code><span class="sig-paren">(</span><em>name='NoName'</em>, <em>sense=1</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpProblem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>An LP Problem</p>
+<p>Creates an LP Problem</p>
+<p>This function creates a new LP Problem  with the specified associated parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – name of the problem used in the output .lp file</p></li>
+<li><p><strong>sense</strong> – of the LP problem objective.                  Either <a class="reference internal" href="constants.html#pulp.constants.LpMinimize" title="pulp.constants.LpMinimize"><code class="xref py py-data docutils literal notranslate"><span class="pre">LpMinimize</span></code></a> (default)                 or <a class="reference internal" href="constants.html#pulp.constants.LpMaximize" title="pulp.constants.LpMaximize"><code class="xref py py-data docutils literal notranslate"><span class="pre">LpMaximize</span></code></a>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>An LP Problem</p>
+</dd>
+</dl>
+<p>Three important attributes of the problem are:</p>
+<dl class="attribute">
+<dt id="pulp.LpProblem.objective">
+<code class="descname">objective</code><a class="headerlink" href="#pulp.LpProblem.objective" title="Permalink to this definition">¶</a></dt>
+<dd><p>The objective of the problem, an <a class="reference internal" href="#pulp.LpAffineExpression" title="pulp.LpAffineExpression"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LpAffineExpression</span></code></a></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pulp.LpProblem.constraints">
+<code class="descname">constraints</code><a class="headerlink" href="#pulp.LpProblem.constraints" title="Permalink to this definition">¶</a></dt>
+<dd><p>An <code class="xref py py-class docutils literal notranslate"><span class="pre">ordered</span> <span class="pre">dictionary</span></code> of
+<a class="reference internal" href="#pulp.LpConstraint" title="pulp.LpConstraint"><code class="xref py py-class docutils literal notranslate"><span class="pre">constraints</span></code></a> of the problem - indexed by their names.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pulp.LpProblem.status">
+<code class="descname">status</code><a class="headerlink" href="#pulp.LpProblem.status" title="Permalink to this definition">¶</a></dt>
+<dd><p>The return <a class="reference internal" href="constants.html#pulp.constants.LpStatus" title="pulp.constants.LpStatus"><code class="xref py py-data docutils literal notranslate"><span class="pre">status</span></code></a>
+of the problem from the solver.</p>
+</dd></dl>
+
+<p>Some of the more important methods:</p>
+<dl class="method">
+<dt id="pulp.LpProblem.solve">
+<code class="descname">solve</code><span class="sig-paren">(</span><em>solver=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpProblem.solve" title="Permalink to this definition">¶</a></dt>
+<dd><p>Solve the given Lp problem.</p>
+<p>This function changes the problem to make it suitable for solving
+then calls the solver.actualSolve() method to find the solution</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>solver</strong> – Optional: the specific solver to be used, defaults to the
+default solver.</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Side Effects:</dt><dd><ul class="simple">
+<li><p>The attributes of the problem object are changed in
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">actualSolve()</span></code> to reflect the Lp solution</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pulp.LpProblem.roundSolution">
+<code class="descname">roundSolution</code><span class="sig-paren">(</span><em>epsInt=1e-05</em>, <em>eps=1e-07</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpProblem.roundSolution" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rounds the lp variables</p>
+<dl class="simple">
+<dt>Inputs:</dt><dd><ul class="simple">
+<li><p>none</p></li>
+</ul>
+</dd>
+<dt>Side Effects:</dt><dd><ul class="simple">
+<li><p>The lp variables are rounded</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pulp.LpProblem.setObjective">
+<code class="descname">setObjective</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpProblem.setObjective" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the input variable as the objective function. Used in Columnwise Modelling</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>obj</strong> – the objective function of type <code class="xref py py-class docutils literal notranslate"><span class="pre">LpConstraintVar</span></code></p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Side Effects:</dt><dd><ul class="simple">
+<li><p>The objective function is set</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pulp.LpProblem.writeLP">
+<code class="descname">writeLP</code><span class="sig-paren">(</span><em>filename</em>, <em>writeSOS=1</em>, <em>mip=1</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpProblem.writeLP" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write the given Lp problem to a .lp file.</p>
+<p>This function writes the specifications (objective function,
+constraints, variables) of the defined Lp problem to a file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>filename</strong> – the name of the file to be created.</p>
+</dd>
+</dl>
+<p>return variables
+Side Effects:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>The file is created.</p></li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="variables-and-expressions">
+<h2>Variables and Expressions<a class="headerlink" href="#variables-and-expressions" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pulp.LpElement">
+<em class="property">class </em><code class="descclassname">pulp.</code><code class="descname">LpElement</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpElement" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base class for LpVariable and LpConstraintVar</p>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="class">
+<dt id="pulp.LpVariable">
+<em class="property">class </em><code class="descclassname">pulp.</code><code class="descname">LpVariable</code><span class="sig-paren">(</span><em>name</em>, <em>lowBound=None</em>, <em>upBound=None</em>, <em>cat='Continuous'</em>, <em>e=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class models an LP Variable with the specified associated parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – The name of the variable used in the output .lp file</p></li>
+<li><p><strong>lowBound</strong> – The lower bound on this variable’s range.
+Default is negative infinity</p></li>
+<li><p><strong>upBound</strong> – The upper bound on this variable’s range.
+Default is positive infinity</p></li>
+<li><p><strong>cat</strong> – The category this variable is in, Integer, Binary or
+Continuous(default)</p></li>
+<li><p><strong>e</strong> – Used for column based modelling: relates to the variable’s
+existence in the objective function and constraints</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="method">
+<dt id="pulp.LpVariable.addVariableToConstraints">
+<code class="descname">addVariableToConstraints</code><span class="sig-paren">(</span><em>e</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable.addVariableToConstraints" title="Permalink to this definition">¶</a></dt>
+<dd><p>adds a variable to the constraints indicated by
+the LpConstraintVars in e</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="pulp.LpVariable.dicts">
+<em class="property">classmethod </em><code class="descname">dicts</code><span class="sig-paren">(</span><em>name</em>, <em>indexs</em>, <em>lowBound=None</em>, <em>upBound=None</em>, <em>cat='Continuous'</em>, <em>indexStart=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable.dicts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a dictionary of LP variables</p>
+<dl class="simple">
+<dt>This function creates a dictionary of LP Variables with the specified</dt><dd><p>associated parameters.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – The prefix to the name of each LP variable created</p></li>
+<li><p><strong>indexs</strong> – A list of strings of the keys to the dictionary of LP
+variables, and the main part of the variable name itself</p></li>
+<li><p><strong>lowBound</strong> – The lower bound on these variables’ range. Default is
+negative infinity</p></li>
+<li><p><strong>upBound</strong> – The upper bound on these variables’ range. Default is
+positive infinity</p></li>
+<li><p><strong>cat</strong> – The category these variables are in, Integer or
+Continuous(default)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A dictionary of LP Variables</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pulp.LpVariable.fixValue">
+<code class="descname">fixValue</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable.fixValue" title="Permalink to this definition">¶</a></dt>
+<dd><p>changes lower bound and upper bound to the initial value if exists.
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pulp.LpVariable.setInitialValue">
+<code class="descname">setInitialValue</code><span class="sig-paren">(</span><em>val</em>, <em>check=True</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable.setInitialValue" title="Permalink to this definition">¶</a></dt>
+<dd><p>sets the initial value of the Variable to val
+may of may not be supported by the solver
+if check is True: we confirm the value is really possible</p>
+</dd></dl>
+
+</dd></dl>
+
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">LpVariable</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">,</span><span class="n">lowBound</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">cat</span><span class="o">=</span><span class="s1">&#39;Continuous&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y</span> <span class="o">=</span> <span class="n">LpVariable</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">upBound</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="n">cat</span><span class="o">=</span><span class="s1">&#39;Integer&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>gives  <span class="math notranslate nohighlight">\(x \in [0,\infty)\)</span>, <span class="math notranslate nohighlight">\(y \in (-\infty, 5]\)</span>, an
+integer.</p>
+<hr class="docutils" />
+<dl class="class">
+<dt id="pulp.LpAffineExpression">
+<em class="property">class </em><code class="descclassname">pulp.</code><code class="descname">LpAffineExpression</code><span class="sig-paren">(</span><em>e=None</em>, <em>constant=0</em>, <em>name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpAffineExpression" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/collections.html#collections.OrderedDict" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">collections.OrderedDict</span></code></a></p>
+<p>A linear combination of <a class="reference internal" href="#pulp.LpVariable" title="pulp.LpVariable"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpVariables</span></code></a>.
+Can be initialised with the following:</p>
+<ol class="arabic simple">
+<li><p>e = None: an empty Expression</p></li>
+<li><p>e = dict: gives an expression with the values being the coefficients of the keys (order of terms is undetermined)</p></li>
+<li><p>e = list or generator of 2-tuples: equivalent to dict.items()</p></li>
+<li><p>e = LpElement: an expression of length 1 with the coefficient 1</p></li>
+<li><p>e = other: the constant is initialised as e</p></li>
+</ol>
+<p>Examples:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">=</span><span class="n">LpAffineExpression</span><span class="p">(</span><span class="n">LpElement</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span>
+<span class="go">1*x + 0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x_name</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;x_0&#39;</span><span class="p">,</span> <span class="s1">&#39;x_1&#39;</span><span class="p">,</span> <span class="s1">&#39;x_2&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="n">LpVariable</span><span class="p">(</span><span class="n">x_name</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">lowBound</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">upBound</span> <span class="o">=</span> <span class="mi">10</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">LpAffineExpression</span><span class="p">([</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="o">-</span><span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span><span class="mi">4</span><span class="p">)])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span>
+<span class="go">1*x_0 + -3*x_1 + 4*x_2 + 0</span>
+</pre></div>
+</div>
+<p>In brief, <span class="math notranslate nohighlight">\(\textsf{LpAffineExpression([(x[i],a[i]) for i in
+I])} = \sum_{i \in I} a_i x_i\)</span> where  (note the order):</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">x[i]</span></code> is an <a class="reference internal" href="#pulp.LpVariable" title="pulp.LpVariable"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpVariable</span></code></a></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">a[i]</span></code> is a numerical coefficient.</p></li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="function">
+<dt id="pulp.lpSum">
+<code class="descclassname">pulp.</code><code class="descname">lpSum</code><span class="sig-paren">(</span><em>vector</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.lpSum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the sum of a list of linear expressions</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>vector</strong> – A list of linear expressions</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="constraints">
+<h2>Constraints<a class="headerlink" href="#constraints" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pulp.LpConstraint">
+<em class="property">class </em><code class="descclassname">pulp.</code><code class="descname">LpConstraint</code><span class="sig-paren">(</span><em>e=None</em>, <em>sense=0</em>, <em>name=None</em>, <em>rhs=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpConstraint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.pulp.LpAffineExpression</span></code></p>
+<p>An LP constraint</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>e</strong> – an instance of <a class="reference internal" href="#pulp.LpAffineExpression" title="pulp.LpAffineExpression"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpAffineExpression</span></code></a></p></li>
+<li><p><strong>sense</strong> – one of <a class="reference internal" href="constants.html#pulp.constants.LpConstraintEQ" title="pulp.constants.LpConstraintEQ"><code class="xref py py-data docutils literal notranslate"><span class="pre">LpConstraintEQ</span></code></a>, <a class="reference internal" href="constants.html#pulp.constants.LpConstraintGE" title="pulp.constants.LpConstraintGE"><code class="xref py py-data docutils literal notranslate"><span class="pre">LpConstraintGE</span></code></a>, <a class="reference internal" href="constants.html#pulp.constants.LpConstraintLE" title="pulp.constants.LpConstraintLE"><code class="xref py py-data docutils literal notranslate"><span class="pre">LpConstraintLE</span></code></a> (0, 1, -1 respectively)</p></li>
+<li><p><strong>name</strong> – identifying string</p></li>
+<li><p><strong>rhs</strong> – numerical value of constraint target</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="method">
+<dt id="pulp.LpConstraint.makeElasticSubProblem">
+<code class="descname">makeElasticSubProblem</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpConstraint.makeElasticSubProblem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Builds an elastic subproblem by adding variables to a hard constraint</p>
+<p>uses FixedElasticSubProblem</p>
+</dd></dl>
+
+</dd></dl>
+
+<div class="section" id="elastic-constraints">
+<h3>Elastic Constraints<a class="headerlink" href="#elastic-constraints" title="Permalink to this headline">¶</a></h3>
+<p>A constraint <span class="math notranslate nohighlight">\(C(x) = c\)</span> (equality may be replaced by <span class="math notranslate nohighlight">\(\le\)</span>
+or <span class="math notranslate nohighlight">\(\ge\)</span>)
+can be elasticized to the form</p>
+<div class="math notranslate nohighlight">
+\[C(x) \in D\]</div>
+<p>where <span class="math notranslate nohighlight">\(D\)</span> denotes some interval containing the value
+<span class="math notranslate nohighlight">\(c\)</span>.</p>
+<p>Define the constraint in two steps:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>instantiate constraint (subclass of <a class="reference internal" href="#pulp.LpConstraint" title="pulp.LpConstraint"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpConstraint</span></code></a>) with target <span class="math notranslate nohighlight">\(c\)</span>.</p></li>
+<li><p>call its <a class="reference internal" href="#pulp.LpConstraint.makeElasticSubProblem" title="pulp.LpConstraint.makeElasticSubProblem"><code class="xref py py-meth docutils literal notranslate"><span class="pre">makeElasticSubProblem()</span></code></a> method which returns
+an object of type <a class="reference internal" href="#pulp.FixedElasticSubProblem" title="pulp.FixedElasticSubProblem"><code class="xref py py-class docutils literal notranslate"><span class="pre">FixedElasticSubProblem</span></code></a>
+(subclass of <a class="reference internal" href="#pulp.LpProblem" title="pulp.LpProblem"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpProblem</span></code></a>) - its objective is the minimization
+of the distance of <span class="math notranslate nohighlight">\(C(x)\)</span> from <span class="math notranslate nohighlight">\(D\)</span>.</p></li>
+</ol>
+</div></blockquote>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">constraint</span> <span class="o">=</span> <span class="n">LpConstraint</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">rhs</span> <span class="o">=</span> <span class="n">c</span><span class="p">)</span>
+<span class="n">elasticProblem</span> <span class="o">=</span> <span class="n">constraint</span><span class="o">.</span><span class="n">makeElasticSubProblem</span><span class="p">(</span>
+                       <span class="n">penalty</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">penalty_value</span><span class="o">&gt;</span><span class="p">,</span>
+                       <span class="n">proportionFreeBound</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">freebound_value</span><span class="o">&gt;</span><span class="p">,</span>
+                       <span class="n">proportionFreeBoundList</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">freebound_list_value</span><span class="o">&gt;</span><span class="p">,</span>
+                       <span class="p">)</span>
+</pre></div>
+</div>
+<dl class="simple">
+<dt>where:</dt><dd><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;penalty_value&gt;</span></code> is a real number</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;freebound_value&gt;</span></code> <span class="math notranslate nohighlight">\(a \in [0,1]\)</span> specifies a symmetric
+target interval <span class="math notranslate nohighlight">\(D = (c(1-a),c(1+a))\)</span> about <span class="math notranslate nohighlight">\(c\)</span></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;freebound_list_value&gt;</span> <span class="pre">=</span> <span class="pre">[a,b]</span></code>, a list of
+proportions <span class="math notranslate nohighlight">\(a, b \in [0,1]\)</span> specifying an asymmetric target
+interval <span class="math notranslate nohighlight">\(D = (c(1-a),c(1+b))\)</span> about <span class="math notranslate nohighlight">\(c\)</span></p></li>
+</ul>
+</dd>
+</dl>
+<p>The penalty applies to the constraint at points <span class="math notranslate nohighlight">\(x\)</span> where
+<span class="math notranslate nohighlight">\(C(x) \not \in D\)</span>.
+The magnitude of <code class="docutils literal notranslate"><span class="pre">&lt;penalty_value&gt;</span></code> can be assessed by examining
+the final objective function in the <code class="docutils literal notranslate"><span class="pre">.lp</span></code> file written by
+<a class="reference internal" href="#pulp.LpProblem.writeLP" title="pulp.LpProblem.writeLP"><code class="xref py py-meth docutils literal notranslate"><span class="pre">LpProblem.writeLP()</span></code></a>.</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">constraint_1</span> <span class="o">=</span> <span class="n">LpConstraint</span><span class="p">(</span><span class="s1">&#39;ex_1&#39;</span><span class="p">,</span><span class="n">sense</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">rhs</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">elasticProblem_1</span> <span class="o">=</span> <span class="n">constraint_1</span><span class="o">.</span><span class="n">makeElasticSubproblem</span><span class="p">(</span><span class="n">penalty</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">proportionFreeBound</span> <span class="o">=</span> <span class="mf">0.01</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">constraint_2</span> <span class="o">=</span> <span class="n">LpConstraint</span><span class="p">(</span><span class="s1">&#39;ex_2&#39;</span><span class="p">,</span><span class="n">sense</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">rhs</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">elasticProblem_2</span> <span class="o">=</span> <span class="n">constraint_2</span><span class="o">.</span><span class="n">makeElasticSubproblem</span><span class="p">(</span><span class="n">penalty</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+<span class="go">proportionFreeBoundList = [0.02, 0.05])</span>
+</pre></div>
+</div>
+<ol class="arabic simple">
+<li><p>constraint_1 has a penalty-free target interval of 1% either side of the rhs value, 200</p></li>
+<li><p>constraint_2 has a penalty-free target interval of
+- 2% on left and 5% on the right side of the rhs value, 500</p></li>
+</ol>
+<a class="reference internal image-reference" href="_images/freebound.jpg"><img alt="Freebound interval" src="_images/freebound.jpg" style="height: 5in;" /></a>
+<p>Following are the methods of the return-value:</p>
+<dl class="class">
+<dt id="pulp.FixedElasticSubProblem">
+<em class="property">class </em><code class="descclassname">pulp.</code><code class="descname">FixedElasticSubProblem</code><span class="sig-paren">(</span><em>constraint</em>, <em>penalty=None</em>, <em>proportionFreeBound=None</em>, <em>proportionFreeBoundList=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.FixedElasticSubProblem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.pulp.LpProblem</span></code></p>
+<p>Contains the subproblem generated by converting a fixed constraint
+<span class="math notranslate nohighlight">\(\sum_{i}a_i x_i = b\)</span> into an elastic constraint.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>constraint</strong> – The LpConstraint that the elastic constraint is based on</p></li>
+<li><p><strong>penalty</strong> – penalty applied for violation (+ve or -ve) of the constraints</p></li>
+<li><p><strong>proportionFreeBound</strong> – the proportional bound (+ve and -ve) on
+constraint violation that is free from penalty</p></li>
+<li><p><strong>proportionFreeBoundList</strong> – the proportional bound on         constraint violation that is free from penalty, expressed as a list        where [-ve, +ve]</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="method">
+<dt id="pulp.FixedElasticSubProblem.alterName">
+<code class="descname">alterName</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.FixedElasticSubProblem.alterName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alters the name of anonymous parts of the problem</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pulp.FixedElasticSubProblem.deElasticize">
+<code class="descname">deElasticize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.FixedElasticSubProblem.deElasticize" title="Permalink to this definition">¶</a></dt>
+<dd><p>de-elasticize constraint</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pulp.FixedElasticSubProblem.findDifferenceFromRHS">
+<code class="descname">findDifferenceFromRHS</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.FixedElasticSubProblem.findDifferenceFromRHS" title="Permalink to this definition">¶</a></dt>
+<dd><p>The amount the actual value varies from the RHS (sense: LHS - RHS)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pulp.FixedElasticSubProblem.findLHSValue">
+<code class="descname">findLHSValue</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.FixedElasticSubProblem.findLHSValue" title="Permalink to this definition">¶</a></dt>
+<dd><p>for elastic constraints finds the LHS value of the constraint without
+the free variable and or penalty variable assumes the constant is on the
+rhs</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pulp.FixedElasticSubProblem.isViolated">
+<code class="descname">isViolated</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.FixedElasticSubProblem.isViolated" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns true if the penalty variables are non-zero</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pulp.FixedElasticSubProblem.reElasticize">
+<code class="descname">reElasticize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.FixedElasticSubProblem.reElasticize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make the Subproblem elastic again after deElasticize</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="combinations-and-permutations">
+<h2>Combinations  and Permutations<a class="headerlink" href="#combinations-and-permutations" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="pulp.combination">
+<code class="descclassname">pulp.</code><code class="descname">combination</code><span class="sig-paren">(</span><em>orgset</em>, <em>k=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.combination" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns an iterator that lists the combinations of orgset of
+length k</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>orgset</strong> – the list to be iterated</p></li>
+<li><p><strong>k</strong> – the cardinality of the subsets</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>an iterator of the subsets</p>
+</dd>
+</dl>
+<p>example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">combination</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">],</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">c</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<span class="go">(1, 2)</span>
+<span class="go">(1, 3)</span>
+<span class="go">(1, 4)</span>
+<span class="go">(2, 3)</span>
+<span class="go">(2, 4)</span>
+<span class="go">(3, 4)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="pulp.allcombinations">
+<code class="descclassname">pulp.</code><code class="descname">allcombinations</code><span class="sig-paren">(</span><em>orgset</em>, <em>k</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.allcombinations" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns all combinations of orgset with up to k items</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>orgset</strong> – the list to be iterated</p></li>
+<li><p><strong>k</strong> – the maxcardinality of the subsets</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>an iterator of the subsets</p>
+</dd>
+</dl>
+<p>example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">allcombinations</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">],</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">c</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<span class="go">(1,)</span>
+<span class="go">(2,)</span>
+<span class="go">(3,)</span>
+<span class="go">(4,)</span>
+<span class="go">(1, 2)</span>
+<span class="go">(1, 3)</span>
+<span class="go">(1, 4)</span>
+<span class="go">(2, 3)</span>
+<span class="go">(2, 4)</span>
+<span class="go">(3, 4)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="pulp.permutation">
+<code class="descclassname">pulp.</code><code class="descname">permutation</code><span class="sig-paren">(</span><em>orgset</em>, <em>k=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.permutation" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns an iterator that lists the permutations of orgset of
+length k</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>orgset</strong> – the list to be iterated</p></li>
+<li><p><strong>k</strong> – the cardinality of the subsets</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>an iterator of the subsets</p>
+</dd>
+</dl>
+<p>example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">permutation</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">],</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">c</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<span class="go">(1, 2)</span>
+<span class="go">(1, 3)</span>
+<span class="go">(1, 4)</span>
+<span class="go">(2, 1)</span>
+<span class="go">(2, 3)</span>
+<span class="go">(2, 4)</span>
+<span class="go">(3, 1)</span>
+<span class="go">(3, 2)</span>
+<span class="go">(3, 4)</span>
+<span class="go">(4, 1)</span>
+<span class="go">(4, 2)</span>
+<span class="go">(4, 3)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="pulp.allpermutations">
+<code class="descclassname">pulp.</code><code class="descname">allpermutations</code><span class="sig-paren">(</span><em>orgset</em>, <em>k</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.allpermutations" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns all permutations of orgset with up to k items</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>orgset</strong> – the list to be iterated</p></li>
+<li><p><strong>k</strong> – the maxcardinality of the subsets</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>an iterator of the subsets</p>
+</dd>
+</dl>
+<p>example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">allpermutations</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">],</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">c</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<span class="go">(1,)</span>
+<span class="go">(2,)</span>
+<span class="go">(3,)</span>
+<span class="go">(4,)</span>
+<span class="go">(1, 2)</span>
+<span class="go">(1, 3)</span>
+<span class="go">(1, 4)</span>
+<span class="go">(2, 1)</span>
+<span class="go">(2, 3)</span>
+<span class="go">(2, 4)</span>
+<span class="go">(3, 1)</span>
+<span class="go">(3, 2)</span>
+<span class="go">(3, 4)</span>
+<span class="go">(4, 1)</span>
+<span class="go">(4, 2)</span>
+<span class="go">(4, 3)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="pulp.value">
+<code class="descclassname">pulp.</code><code class="descname">value</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the value of the variable/expression x, or x if it is a number</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+
+    <div class="footer">
+      &copy;2009-, pulp documentation team..
+      
+      |
+      <a href="_sources/pulp.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/coin-or/pulp" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+     
+<center>
+<a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/nz/"><img alt="Creative Commons License" style="border-width:0" src="http://i.creativecommons.org/l/by-sa/3.0/nz/88x31.png" /></a><br /><span xmlns:dc="http://purl.org/dc/elements/1.1/" href="http://purl.org/dc/dcmitype/Text" property="dc:title" rel="dc:type">PuLP documentation</span> by <span xmlns:cc="http://creativecommons.org/ns#" property="cc:attributionName">Pulp documentation team</span> is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/nz/">Creative Commons Attribution-Share Alike 3.0 New Zealand License</a>.
+</center>
+
+  </body>
+</html>

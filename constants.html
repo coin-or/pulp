@@ -1,0 +1,301 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>pulp.constants &#8212; PuLP 1.6.9 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="pulp: Pulp classes" href="pulp.html" />
+    <link rel="prev" title="A Transportation Problem" href="CaseStudies/a_transportation_problem.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">PuLP</a></h1>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=coin-or&repo=pulp&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="main/index.html">Main Topics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CaseStudies/index.html">Case Studies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CaseStudies/index.html#indices-and-tables">Indices and tables</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp.constants</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="pulp.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp</span></code>:  Pulp classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="solvers.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp.solvers</span></code> Interface to Solvers</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="CaseStudies/a_transportation_problem.html" title="previous chapter">A Transportation Problem</a></li>
+      <li>Next: <a href="pulp.html" title="next chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp</span></code>:  Pulp classes</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-pulp.constants">
+<span id="pulp-constants"></span><h1><a class="reference internal" href="#module-pulp.constants" title="pulp.constants"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp.constants</span></code></a><a class="headerlink" href="#module-pulp.constants" title="Permalink to this headline">¶</a></h1>
+<p>This file contains the constant definitions for PuLP
+Note that hopefully these will be changed into something more pythonic</p>
+<dl class="exception">
+<dt id="pulp.constants.PulpError">
+<em class="property">exception </em><code class="descclassname">pulp.constants.</code><code class="descname">PulpError</code><a class="headerlink" href="#pulp.constants.PulpError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#Exception" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></a></p>
+<p>Pulp Exception Class</p>
+<dl class="attribute">
+<dt id="pulp.constants.PulpError.args">
+<code class="descname">args</code><a class="headerlink" href="#pulp.constants.PulpError.args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pulp.constants.PulpError.with_traceback">
+<code class="descname">with_traceback</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.constants.PulpError.with_traceback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exception.with_traceback(tb) –
+set self.__traceback__ to tb and return self.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pulp.constants.isiterable">
+<code class="descclassname">pulp.constants.</code><code class="descname">isiterable</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.constants.isiterable" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="data">
+<dt id="pulp.constants.LpStatus">
+<code class="descclassname">pulp.constants.</code><code class="descname">LpStatus</code><a class="headerlink" href="#pulp.constants.LpStatus" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return status from solver:</p>
+<blockquote>
+<div><table class="docutils align-center">
+<colgroup>
+<col style="width: 48%" />
+<col style="width: 25%" />
+<col style="width: 28%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>LpStatus  key</p></th>
+<th class="head"><p>string value</p></th>
+<th class="head"><p>numerical value</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference internal" href="#pulp.constants.LpStatusOptimal" title="pulp.constants.LpStatusOptimal"><code class="xref py py-data docutils literal notranslate"><span class="pre">LpStatusOptimal</span></code></a></p></td>
+<td><p>“Optimal”</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pulp.constants.LpStatusNotSolved" title="pulp.constants.LpStatusNotSolved"><code class="xref py py-data docutils literal notranslate"><span class="pre">LpStatusNotSolved</span></code></a></p></td>
+<td><p>“Not Solved”</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pulp.constants.LpStatusInfeasible" title="pulp.constants.LpStatusInfeasible"><code class="xref py py-data docutils literal notranslate"><span class="pre">LpStatusInfeasible</span></code></a></p></td>
+<td><p>“Infeasible”</p></td>
+<td><p>-1</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pulp.constants.LpStatusUnbounded" title="pulp.constants.LpStatusUnbounded"><code class="xref py py-data docutils literal notranslate"><span class="pre">LpStatusUnbounded</span></code></a></p></td>
+<td><p>“Unbounded”</p></td>
+<td><p>-2</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pulp.constants.LpStatusUndefined" title="pulp.constants.LpStatusUndefined"><code class="xref py py-data docutils literal notranslate"><span class="pre">LpStatusUndefined</span></code></a></p></td>
+<td><p>“Undefined”</p></td>
+<td><p>-3</p></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</dd></dl>
+
+<dl class="data">
+<dt id="pulp.constants.LpStatusOptimal">
+<code class="descclassname">pulp.constants.</code><code class="descname">LpStatusOptimal</code><a class="headerlink" href="#pulp.constants.LpStatusOptimal" title="Permalink to this definition">¶</a></dt>
+<dd><p>LpStatusOptimal = 1</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="pulp.constants.LpStatusNotSolved">
+<code class="descclassname">pulp.constants.</code><code class="descname">LpStatusNotSolved</code><a class="headerlink" href="#pulp.constants.LpStatusNotSolved" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>LpStatusNotSolved = 0</p>
+</div></blockquote>
+<dl class="data">
+<dt id="pulp.constants.LpStatusInfeasible">
+<code class="descclassname">pulp.constants.</code><code class="descname">LpStatusInfeasible</code><a class="headerlink" href="#pulp.constants.LpStatusInfeasible" title="Permalink to this definition">¶</a></dt>
+<dd><p>LpStatusInfeasible = -1</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="pulp.constants.LpStatusUnbounded">
+<code class="descclassname">pulp.constants.</code><code class="descname">LpStatusUnbounded</code><a class="headerlink" href="#pulp.constants.LpStatusUnbounded" title="Permalink to this definition">¶</a></dt>
+<dd><p>LpStatusUnbounded = -2</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="pulp.constants.LpStatusUndefined">
+<code class="descclassname">pulp.constants.</code><code class="descname">LpStatusUndefined</code><a class="headerlink" href="#pulp.constants.LpStatusUndefined" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>LpStatusUndefined = -3</p>
+</div></blockquote>
+<dl class="data">
+<dt id="pulp.constants.LpSenses">
+<code class="descclassname">pulp.constants.</code><code class="descname">LpSenses</code><a class="headerlink" href="#pulp.constants.LpSenses" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dictionary of values for <code class="xref py py-attr docutils literal notranslate"><span class="pre">sense</span></code>:</p>
+<blockquote>
+<div><p>LpSenses =
+{<a class="reference internal" href="#pulp.constants.LpMaximize" title="pulp.constants.LpMaximize"><code class="xref py py-data docutils literal notranslate"><span class="pre">LpMaximize</span></code></a>:”Maximize”, <a class="reference internal" href="#pulp.constants.LpMinimize" title="pulp.constants.LpMinimize"><code class="xref py py-data docutils literal notranslate"><span class="pre">LpMinimize</span></code></a>:”Minimize”}</p>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="data">
+<dt id="pulp.constants.LpMinimize">
+<code class="descclassname">pulp.constants.</code><code class="descname">LpMinimize</code><a class="headerlink" href="#pulp.constants.LpMinimize" title="Permalink to this definition">¶</a></dt>
+<dd><p>LpMinimize = 1</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="pulp.constants.LpMaximize">
+<code class="descclassname">pulp.constants.</code><code class="descname">LpMaximize</code><a class="headerlink" href="#pulp.constants.LpMaximize" title="Permalink to this definition">¶</a></dt>
+<dd><p>LpMaximize = -1</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="pulp.constants.LpConstraintEQ">
+<code class="descclassname">pulp.constants.</code><code class="descname">LpConstraintEQ</code><a class="headerlink" href="#pulp.constants.LpConstraintEQ" title="Permalink to this definition">¶</a></dt>
+<dd><p>LpConstraintEQ = 0</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="pulp.constants.LpConstraintLE">
+<code class="descclassname">pulp.constants.</code><code class="descname">LpConstraintLE</code><a class="headerlink" href="#pulp.constants.LpConstraintLE" title="Permalink to this definition">¶</a></dt>
+<dd><p>LpConstraintLE = -1</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="pulp.constants.LpConstraintGE">
+<code class="descclassname">pulp.constants.</code><code class="descname">LpConstraintGE</code><a class="headerlink" href="#pulp.constants.LpConstraintGE" title="Permalink to this definition">¶</a></dt>
+<dd><p>LpConstraintGE = 1</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="pulp.constants.LpConstraintSenses">
+<code class="descclassname">pulp.constants.</code><code class="descname">LpConstraintSenses</code><a class="headerlink" href="#pulp.constants.LpConstraintSenses" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils align-center">
+<colgroup>
+<col style="width: 44%" />
+<col style="width: 27%" />
+<col style="width: 29%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>LpConstraint key</p></th>
+<th class="head"><p>symbolic value</p></th>
+<th class="head"><p>numerical value</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference internal" href="#pulp.constants.LpConstraintEQ" title="pulp.constants.LpConstraintEQ"><code class="xref py py-data docutils literal notranslate"><span class="pre">LpConstraintEQ</span></code></a></p></td>
+<td><p>“==”</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pulp.constants.LpConstraintLE" title="pulp.constants.LpConstraintLE"><code class="xref py py-data docutils literal notranslate"><span class="pre">LpConstraintLE</span></code></a></p></td>
+<td><p>“&lt;=”</p></td>
+<td><p>-1</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pulp.constants.LpConstraintGE" title="pulp.constants.LpConstraintGE"><code class="xref py py-data docutils literal notranslate"><span class="pre">LpConstraintGE</span></code></a></p></td>
+<td><p>“&gt;=”</p></td>
+<td><p>1</p></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+
+    <div class="footer">
+      &copy;2009-, pulp documentation team..
+      
+      |
+      <a href="_sources/constants.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/coin-or/pulp" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+     
+<center>
+<a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/nz/"><img alt="Creative Commons License" style="border-width:0" src="http://i.creativecommons.org/l/by-sa/3.0/nz/88x31.png" /></a><br /><span xmlns:dc="http://purl.org/dc/elements/1.1/" href="http://purl.org/dc/dcmitype/Text" property="dc:title" rel="dc:type">PuLP documentation</span> by <span xmlns:cc="http://creativecommons.org/ns#" property="cc:attributionName">Pulp documentation team</span> is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/nz/">Creative Commons Attribution-Share Alike 3.0 New Zealand License</a>.
+</center>
+
+  </body>
+</html>

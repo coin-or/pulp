@@ -1,0 +1,183 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Optimization with PuLP &#8212; PuLP 1.6.9 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Main Topics" href="main/index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="#">PuLP</a></h1>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=coin-or&repo=pulp&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="main/index.html">Main Topics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CaseStudies/index.html">Case Studies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CaseStudies/index.html#indices-and-tables">Indices and tables</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="constants.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp.constants</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="pulp.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp</span></code>:  Pulp classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="solvers.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp.solvers</span></code> Interface to Solvers</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+      <li>Next: <a href="main/index.html" title="next chapter">Main Topics</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="optimization-with-pulp">
+<h1>Optimization with PuLP<a class="headerlink" href="#optimization-with-pulp" title="Permalink to this headline">¶</a></h1>
+<p>You can begin learning Python and using PuLP
+by looking at the content below. We recommend that you read The Optimisation Process,
+Optimisation Concepts, and the Introduction to Python
+before beginning the case-studies. For instructions for the installation of PuLP
+see <a class="reference internal" href="main/installing_pulp_at_home.html#installation"><span class="std std-ref">Installing PuLP at Home</span></a>.</p>
+<p>The full PuLP function documentation is available, and useful functions
+will be explained in the case studies.
+The case studies are in order, so the later case studies will assume you have
+(at least) read the earlier case studies. However, we will provide links to any
+relevant information you will need.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="main/index.html">Main Topics</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="main/the_optimisation_process.html">The Optimisation Process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="main/optimisation_concepts.html">Optimisation Concepts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="main/basic_python_coding.html">Basic Python Coding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="main/installing_pulp_at_home.html">Installing PuLP at Home</a></li>
+<li class="toctree-l2"><a class="reference internal" href="main/amply.html">Amply</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="CaseStudies/index.html">Case Studies</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="CaseStudies/a_blending_problem.html">A Blending Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CaseStudies/a_set_partitioning_problem.html">A Set Partitioning Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CaseStudies/a_sudoku_problem.html">A Sudoku Problem formulated as an LP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CaseStudies/a_transportation_problem.html">A Transportation Problem</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="CaseStudies/index.html#indices-and-tables">Indices and tables</a></li>
+</ul>
+</div>
+<div class="section" id="pulp-internal-documentation">
+<h2>PuLP Internal Documentation<a class="headerlink" href="#pulp-internal-documentation" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="constants.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp.constants</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="pulp.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp</span></code>:  Pulp classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="solvers.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp.solvers</span></code> Interface to Solvers</a></li>
+</ul>
+</div>
+</div>
+<div class="section" id="authors">
+<h2>Authors<a class="headerlink" href="#authors" title="Permalink to this headline">¶</a></h2>
+<p>The authors of this documentation (the pulp documentation team) include:</p>
+<ul class="simple">
+<li><p>Stuart Mitchell (<a class="reference external" href="mailto:s&#46;mitchell&#37;&#52;&#48;auckland&#46;ac&#46;nz">s<span>&#46;</span>mitchell<span>&#64;</span>auckland<span>&#46;</span>ac<span>&#46;</span>nz</a>)</p></li>
+<li><p>Anita Kean</p></li>
+<li><p>Andrew Mason</p></li>
+<li><p>Michael O’Sullivan</p></li>
+<li><p>Antony Phillips</p></li>
+</ul>
+</div>
+<div class="section" id="indices-and-tables">
+<h2>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+
+    <div class="footer">
+      &copy;2009-, pulp documentation team..
+      
+      |
+      <a href="_sources/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/coin-or/pulp" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+     
+<center>
+<a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/nz/"><img alt="Creative Commons License" style="border-width:0" src="http://i.creativecommons.org/l/by-sa/3.0/nz/88x31.png" /></a><br /><span xmlns:dc="http://purl.org/dc/elements/1.1/" href="http://purl.org/dc/dcmitype/Text" property="dc:title" rel="dc:type">PuLP documentation</span> by <span xmlns:cc="http://creativecommons.org/ns#" property="cc:attributionName">Pulp documentation team</span> is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/nz/">Creative Commons Attribution-Share Alike 3.0 New Zealand License</a>.
+</center>
+
+  </body>
+</html>
