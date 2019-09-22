@@ -8,6 +8,7 @@ from ez_setup import use_setuptools
 use_setuptools()
 from setuptools import setup
 
+Description = open('README.rst').read()
 
 License = open('LICENSE').read()
 
