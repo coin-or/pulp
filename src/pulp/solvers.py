@@ -1263,59 +1263,58 @@ class XPRESS(LpSolver_CMD):
         """True if the solver is available"""
         return self.executable(self.path)
 
-    def actualSolve(self, lp):
-        """Solve a well formulated lp problem"""
-        if not self.executable(self.path):
-            raise PulpSolverError("PuLP: cannot execute "+self.path)
-        if not self.keepFiles:
-            uuid = uuid4().hex
-            tmpLp = os.path.join(self.tmpDir, "%s-pulp.lp" % uuid)
-            tmpSol = os.path.join(self.tmpDir, "%s-pulp.prt" % uuid)
-        else:
-            tmpLp = lp.name+"-pulp.lp"
-            tmpSol = lp.name+"-pulp.prt"
-        lp.writeLP(tmpLp, writeSOS = 1, mip = self.mip)
-        if not self.msg:
-            xpress = os.popen(self.path+" "+lp.name+" > /dev/null 2> /dev/null", "w")
-        else:
-            xpress = os.popen(self.path+" "+lp.name, "w")
-        xpress.write("READPROB "+tmpLp+"\n")
-        if self.maxSeconds:
-            xpress.write("MAXTIME=%d\n" % self.maxSeconds)
-        if self.targetGap:
-            xpress.write("MIPRELSTOP=%f\n" % self.targetGap)
-        if self.heurFreq:
-            xpress.write("HEURFREQ=%d\n" % self.heurFreq)
-        if self.heurStra:
-            xpress.write("HEURSTRATEGY=%d\n" % self.heurStra)
-        if self.coverCuts:
-            xpress.write("COVERCUTS=%d\n" % self.coverCuts)
-        if self.preSolve:
-            xpress.write("PRESOLVE=%d\n" % self.preSolve)
-        for option in self.options:
-            xpress.write(option+"\n")
-        if lp.sense == LpMaximize:
-            xpress.write("MAXIM\n")
-        else:
-            xpress.write("MINIM\n")
-        if lp.isMIP() and self.mip:
-            xpress.write("GLOBAL\n")
-        xpress.write("WRITEPRTSOL "+tmpSol+"\n")
-        xpress.write("QUIT\n")
-        if xpress.close() != None:
-            raise PulpSolverError("PuLP: Error while executing "+self.path)
-        status, values = self.readsol(tmpSol)
-        if not self.keepFiles:
-            try: os.remove(tmpLp)
-            except: pass
-            try: os.remove(tmpSol)
-            except: pass
-        lp.assignVarsVals(values)
-        # TODO: the following could be put inside the assignStatus function
-        if abs(lp.infeasibilityGap(self.mip)) > 1e-5: # Arbitrary
-            status = LpStatusInfeasible
-        lp.assignStatus(status)
-        return status
+	def actualSolve(self, lp):
+		"""Solve a well formulated lp problem"""
+		if not self.executable(self.path):
+			raise PulpSolverError("PuLP: cannot execute "+self.path)
+		if not self.keepFiles:
+			uuid = uuid4().hex
+			tmpLp = os.path.join(self.tmpDir, "%s-pulp.lp" % uuid)
+			tmpSol = os.path.join(self.tmpDir, "%s-pulp.prt" % uuid)
+		else:
+			tmpLp = lp.name+"-pulp.lp"
+			tmpSol = lp.name+"-pulp.prt"
+		lp.writeLP(tmpLp, writeSOS = 1, mip = self.mip)
+		xpress = subprocess.Popen([self.path, lp.name], shell=True, stdin=subprocess.PIPE, universal_newlines=True)
+		if not self.msg:
+			xpress.stdin.write("OUTPUTLOG=0\n")
+		xpress.stdin.write("READPROB "+tmpLp+"\n")
+		if self.maxSeconds:
+			xpress.stdin.write("MAXTIME=%d\n" % self.maxSeconds)
+		if self.targetGap:
+			xpress.stdin.write("MIPRELSTOP=%f\n" % self.targetGap)
+		if self.heurFreq:
+			xpress.stdin.write("HEURFREQ=%d\n" % self.heurFreq)
+		if self.heurStra:
+			xpress.stdin.write("HEURSTRATEGY=%d\n" % self.heurStra)
+		if self.coverCuts:
+			xpress.stdin.write("COVERCUTS=%d\n" % self.coverCuts)
+		if self.preSolve:
+			xpress.stdin.write("PRESOLVE=%d\n" % self.preSolve)
+		for option in self.options:
+			xpress.stdin.write(option+"\n")
+		if lp.sense == LpMaximize:
+			xpress.stdin.write("MAXIM\n")
+		else:
+			xpress.stdin.write("MINIM\n")
+		if lp.isMIP() and self.mip:
+			xpress.stdin.write("GLOBAL\n")
+		xpress.stdin.write("WRITEPRTSOL "+tmpSol+"\n")
+		xpress.stdin.write("QUIT\n")
+		xpress.stdin.close()
+		if xpress.wait() != 0:
+			raise PulpSolverError("PuLP: Error while executing "+self.path)
+		status, values = self.readsol(tmpSol)
+		if not self.keepFiles:
+			try: os.remove(tmpLp)
+			except: pass
+			try: os.remove(tmpSol)
+			except: pass
+		lp.status = status
+		lp.assignVarsVals(values)
+		if abs(lp.infeasibilityGap(self.mip)) > 1e-5: # Arbitrary
+			lp.status = LpStatusInfeasible
+		return lp.status
 
     def readsol(self,filename):
         """Read an XPRESS solution file"""
