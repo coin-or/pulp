@@ -14,15 +14,17 @@ Installation
 
 The easiest way to install pulp is via `PyPi <https://pypi.python.org/pypi/PuLP>`_
 
-If pip is available on your system:
+If pip is available on your system::
 
-     $ pip install pulp
+     pip install pulp
 
 Otherwise follow the download instructions on the PyPi page.
 On Linux and OSX systems the tests must be run to make the default
 solver executable.
 
-     $ sudo pulptest
+::
+
+     sudo pulptest
 
 Examples
 ================
@@ -39,45 +41,45 @@ Documentation
 Documentation is found on https://coin-or.github.io/pulp/.
 
 
-Use LpVariable() to create new variables. To create a variable 0 <= x <= 3
+Use LpVariable() to create new variables. To create a variable 0 <= x <= 3::
 
-     >>> x = LpVariable("x", 0, 3)
+     x = LpVariable("x", 0, 3)
 
-To create a variable 0 <= y <= 1
+To create a variable 0 <= y <= 1::
 
-     >>> y = LpVariable("y", 0, 1)
+     y = LpVariable("y", 0, 1)
 
-Use LpProblem() to create new problems. Create "myProblem"
+Use LpProblem() to create new problems. Create "myProblem"::
 
-     >>> prob = LpProblem("myProblem", LpMinimize)
+     prob = LpProblem("myProblem", LpMinimize)
 
 Combine variables to create expressions and constraints, then add them to the
-problem.
+problem::
 
-     >>> prob += x + y <= 2
+     prob += x + y <= 2
 
 If you add an expression (not a constraint), it will
-become the objective.
+become the objective::
 
-     >>> prob += -4*x + y
+     prob += -4*x + y
 
-To solve with the default included solver
+To solve with the default included solver::
 
-     >>> status = prob.solve()
+     status = prob.solve()
 
-To use another sovler to solve the problem.
+To use another sovler to solve the problem::
 
-     >>> status = prob.solve(GLPK(msg = 0))
+     status = prob.solve(GLPK(msg = 0))
 
-Display the status of the solution
+Display the status of the solution::
 
-     >>> LpStatus[status]
-     'Optimal'
+     LpStatus[status]
+     > 'Optimal'
 
-You can get the value of the variables using value(). ex:
+You can get the value of the variables using value(). ex::
 
-     >>> value(x)
-     2.0
+     value(x)
+     > 2.0
 
 Exported Classes:
 
