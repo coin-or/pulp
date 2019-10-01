@@ -1230,9 +1230,11 @@ else:
 
 class XPRESS(LpSolver_CMD):
     """The XPRESS LP solver"""
+    csv = __import__('csv')
+
     def __init__(self, path = None, keepFiles = 0, mip = 1,
             msg = 0, maxSeconds = None, targetGap = None, heurFreq = None,
-            heurStra = None, coverCuts = None, preSolve = None,
+            heurStra = None, coverCuts = None, preSolve = None, fullPrecision = False,
             options = []):
         """
         Initializes the Xpress solver.
@@ -1255,6 +1257,7 @@ class XPRESS(LpSolver_CMD):
         self.heurStra = heurStra
         self.coverCuts = coverCuts
         self.preSolve = preSolve
+        self.fullPrecision = fullPrecision
 
     def defaultPath(self):
         return self.executableExtension("optimizer")
@@ -1299,7 +1302,10 @@ class XPRESS(LpSolver_CMD):
             xpress.stdin.write("MINIM\n")
         if lp.isMIP() and self.mip:
             xpress.stdin.write("GLOBAL\n")
-        xpress.stdin.write("WRITEPRTSOL "+tmpSol+"\n")
+        if self.fullPrecision:
+            xpress.stdin.write("WRITESOL "+tmpSol+ " -p\n")
+        else:
+            xpress.stdin.write("WRITEPRTSOL "+tmpSol+"\n")
         xpress.stdin.write("QUIT\n")
         xpress.stdin.close()
         if xpress.wait() != 0:
@@ -1318,31 +1324,48 @@ class XPRESS(LpSolver_CMD):
 
     def readsol(self,filename):
         """Read an XPRESS solution file"""
-        with open(filename) as f:
-            for i in range(6): f.readline()
-            l = f.readline().split()
+        if self.fullPrecision:
+            # Read an XPRESS solution from a CSV format ASCII file, [problem_name.prt]
+            try:
+                with open(filename) as csvfile:
+                    csvreader = self.csv.reader(csvfile)
+                    values = {}
+                    for row in csvreader:
+                        if len(row) and row[2].split()[0] == 'C':
+                            name = row[1].split()[0]
+                            value = float(row[4].split()[0])
+                            values[name] = value
+                status = LpStatusOptimal  # Assumes optimal solution if solution-file exists. Not a very thorough test
+            except IOError:
+                status = LpStatusNotSolved
+            return status, values
+        else:
+            # Read an XPRESS solution from a fixed format ASCII file, [problem_name.prt]
+            with open(filename) as f:
+                for _ in range(6): f.readline()  # skip 6 first rows
+                l = f.readline().split()  # read number of rows and cols
+                rows = int(l[2])
+                cols = int(l[5])
+                for i in range(3): f.readline()  # skip three rows
+                statusString = f.readline().split()[0]
+                # TODO: check status for Integer Feasible
+                xpressStatus = {
+                    "Optimal":LpStatusOptimal,
+                    }
+                if statusString not in xpressStatus:
+                    raise PulpSolverError("Unknown status returned by XPRESS: "+statusString)
+                status = xpressStatus[statusString]
 
-            rows = int(l[2])
-            cols = int(l[5])
-            for i in range(3): f.readline()
-            statusString = f.readline().split()[0]
-            # TODO: check status for Integer Feasible
-            xpressStatus = {
-                "Optimal":LpStatusOptimal,
-                }
-            if statusString not in xpressStatus:
-                raise PulpSolverError("Unknown status returned by XPRESS: "+statusString)
-            status = xpressStatus[statusString]
-            values = {}
-            while 1:
-                l = f.readline()
-                if l == "": break
-                line = l.split()
-                if len(line) and line[0] == 'C':
-                    name = line[2]
-                    value = float(line[4])
-                    values[name] = value
-        return status, values
+                values = {}
+                while 1:
+                    l = f.readline()
+                    if l == "": break
+                    line = l.split()
+                    if len(line) and line[0] == 'C':
+                        name = line[2]
+                        value = float(line[4])
+                        values[name] = value
+            return status, values
 
 class COIN_CMD(LpSolver_CMD):
     """The COIN CLP/CBC LP solver
