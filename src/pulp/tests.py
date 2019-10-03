@@ -142,7 +142,7 @@ def pulpTest012(solver):
     prob += -y+z == 7, "c3"
     prob += w >= 0, "c4"
     print("\t Testing unbounded continuous LP solution")
-    if solver.__class__ in [GUROBI, CPLEX_CMD, YAPOSIB, CPLEX_PY]:
+    if solver.__class__ in [GUROBI, CPLEX_CMD, YAPOSIB, CPLEX_PY, MOSEK]:
         # These solvers report infeasible or unbounded
         pulpTestCheck(prob, solver, [LpStatusInfeasible])
     elif solver.__class__ in [COINMP_DLL,]:
@@ -199,7 +199,7 @@ def pulpTest014(solver):
     print("\t Testing repeated Names")
     if solver.__class__ in [COIN_CMD, COINMP_DLL, PULP_CBC_CMD,
                             CPLEX_CMD, CPLEX_DLL, CPLEX_PY,
-                            GLPK_CMD, GUROBI_CMD, PULP_CHOCO_CMD, CHOCO_CMD]:
+                            GLPK_CMD, GUROBI_CMD, PULP_CHOCO_CMD, CHOCO_CMD, MOSEK]:
         try:
             pulpTestCheck(prob, solver, [LpStatusOptimal], {x:4, y:-1, z:6, w:0})
         except PulpError:
@@ -375,7 +375,7 @@ def pulpTest060(solver):
     prob += x+z >= 10.3, "c2"
     prob += -y+z == 7.4, "c3"
     print("\t Testing an integer infeasible problem")
-    if solver.__class__ in [GLPK_CMD, COIN_CMD, PULP_CBC_CMD]:
+    if solver.__class__ in [GLPK_CMD, COIN_CMD, PULP_CBC_CMD, MOSEK]:
         # GLPK_CMD returns InfeasibleOrUnbounded
         pulpTestCheck(prob, solver, [LpStatusInfeasible, LpStatusUndefined])
     elif solver.__class__ in [COINMP_DLL]:
@@ -591,7 +591,7 @@ def pulpTest123(solver):
     prob += -y+z == 7, "c3"
     prob.extend((w >= -1).makeElasticSubProblem(penalty = 0.9))
     print("\t Testing elastic constraints (penalty unbounded)")
-    if solver.__class__ in [COINMP_DLL, GUROBI, CPLEX_CMD, CPLEX_PY, YAPOSIB]:
+    if solver.__class__ in [COINMP_DLL, GUROBI, CPLEX_CMD, CPLEX_PY, YAPOSIB, MOSEK]:
         # COINMP_DLL Does not report unbounded problems, correctly
          pulpTestCheck(prob, solver, [LpStatusInfeasible])
     elif solver.__class__ is GLPK_CMD:
