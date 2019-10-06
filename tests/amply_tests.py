@@ -501,4 +501,22 @@ def test_tuple_param():
     assert result[2,3] == 4
     assert result[3,4] == 5
 
+def test_comment():
+    result = Amply(
+        """
+        # a comment
+        set elem dimen 2;
+        param foo{elem};
+        param foo :=
+            1   2   3
+            2   3   4
+            3   4   5
+        ;
+        """
+    )['foo']
+
+    f = result[1,2]
+    assert f == 3
+    assert result[2,3] == 4
+    assert result[3,4] == 5
 
