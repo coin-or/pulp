@@ -464,9 +464,12 @@ class CPLEX_CMD(LpSolver_CMD):
     """The CPLEX LP solver"""
 
     def __init__(self, path = None, keepFiles = 0, mip = 1,
-            msg = 0, options = [], timelimit = None):
+            msg = 0, options = [], timelimit = None, save_cplex_log = False, cplex_logname = None, seed = None):
         LpSolver_CMD.__init__(self, path, keepFiles, mip, msg, options)
         self.timelimit = timelimit
+        self.save_cplex_log = save_cplex_log
+        self.cplex_logname = cplex_logname
+        self.seed = seed
 
     def defaultPath(self):
         return self.executableExtension("cplex")
@@ -497,6 +500,7 @@ class CPLEX_CMD(LpSolver_CMD):
         cplex_cmds = "read "+tmpLp+"\n"
         if self.timelimit is not None:
             cplex_cmds += "set timelimit " + str(self.timelimit) + "\n"
+            cplex_cmds += "set randomseed " + str(self.seed) + "\n"
         for option in self.options:
             cplex_cmds += option+"\n"
         if lp.isMIP():
@@ -520,6 +524,10 @@ class CPLEX_CMD(LpSolver_CMD):
             status = LpStatusInfeasible
         else:
             status, values, reducedCosts, shadowPrices, slacks = self.readsol(tmpSol)
+
+        if self.save_cplex_log :
+            try: os.system(str("cp cplex.log %s" % (self.cplex_logname)))
+            except: pass
         if not self.keepFiles:
             try: os.remove(tmpSol)
             except: pass
@@ -542,13 +550,22 @@ class CPLEX_CMD(LpSolver_CMD):
         solutionXML = et.parse(filename).getroot()
         solutionheader = solutionXML.find("header")
         statusString = solutionheader.get("solutionStatusString")
-        # TODO: check status for Integer Feasible
+        statusCode = int(solutionheader.get("solutionStatusValue"))
+        dualFeasible = int(solutionheader.get("dualFeasible"))
         cplexStatus = {
-            "optimal":LpStatusOptimal,
-            }
-        if statusString not in cplexStatus:
-            raise PulpSolverError("Unknown status returned by CPLEX: "+statusString)
-        status = cplexStatus[statusString]
+            1 : LpStatusOptimal,
+            101 : LpStatusOptimal,
+            102 : LpStatusOptimal,
+            103 : LpStatusInfeasible,
+            104 : LpStatusOptimal, # "limit on MixInt soln has been reached"
+            105 : LpStatusOptimal, # "node limit reached, but soln exists"
+            106 : LpStatusInfeasible, # "node limit reached, soln infeasible"
+            107 : LpStatusOptimal, # "time limit reached, but soln exists"
+            108 : LpStatusInfeasible # "time limit reached, soln infeasible"
+        }
+        if statusCode not in cplexStatus:
+            raise PulpSolverError("Unknown status returned by CPLEX: %s (code = %d)" % (statusString,statusCode))
+        status = cplexStatus[statusCode]
 
         shadowPrices = {}
         slacks = {}
@@ -559,7 +576,10 @@ class CPLEX_CMD(LpSolver_CMD):
                 name = constraint.get("name")
                 shadowPrice = constraint.get("dual")
                 slack = constraint.get("slack")
-                shadowPrices[name] = float(shadowPrice)
+                if dualFeasible :
+                    shadowPrices[name] = float(shadowPrice)
+                else :
+                    shadowPrices[name] = float(0)
                 slacks[name] = float(slack)
 
         values = {}
@@ -569,7 +589,10 @@ class CPLEX_CMD(LpSolver_CMD):
                 value = variable.get("value")
                 reducedCost = variable.get("reducedCost")
                 values[name] = float(value)
-                reducedCosts[name] = float(reducedCost)
+                if dualFeasible :
+                    reducedCosts[name] = float(reducedCost)
+                else :
+                    reducedCosts[name] = float(0)
 
         return status, values, reducedCosts, shadowPrices, slacks
 
