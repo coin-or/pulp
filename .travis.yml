@@ -34,8 +34,7 @@ before_install:
 - sudo apt-get install -qq glpk-utils
 
 install:
-- pipenv install
-- pipenv install .
+- pip install .
 
 script: python tests/run_tests.py
 
