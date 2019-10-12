@@ -1,13 +1,13 @@
-import os
-import importlib
+import os, sys
 import unittest
 import pulp
 import shutil
 
 class Examples_DocsTests(unittest.TestCase):
 
-    # @unittest.skip
+    @unittest.skipIf(sys.version_info <= (2, 6), "python 2.6 has no importlib")
     def test_examples(self, examples_dir='../examples'):
+        import importlib
         files = os.listdir(examples_dir)
         TMP_dir = '_tmp/'
         if not os.path.exists(TMP_dir):

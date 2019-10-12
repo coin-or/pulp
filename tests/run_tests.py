@@ -5,7 +5,7 @@ from tests import test_amply, test_pulp, test_examples
 
 if __name__ == '__main__':
     # Tests
-    runner = unittest.TextTestRunner(verbosity=0)
+    runner = unittest.TextTestRunner()
     loader = unittest.TestLoader()
     # we get suite with all PuLP tests
     suite_all = test_pulp.suite()
@@ -17,4 +17,4 @@ if __name__ == '__main__':
     suite_all.addTests(docs_examples)
     # we run all tests at the same time
     ret = runner.run(suite_all)
-    sys.exit(not ret)
+    sys.exit(not ret.wasSuccessful())
