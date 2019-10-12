@@ -37,7 +37,7 @@ install:
 - pipenv install
 - pipenv install .
 
-script: python tests/pulp_tests.py
+script: python tests/run_tests.py
 
 before_deploy:
 - sudo apt-get install texlive-latex-extra

@@ -1,29 +1,9 @@
 """
 Tests for pulp
 """
-import os, sys
-sys.path.insert(1, os.path.join(sys.path[0], '..'))
 from pulp import *
-
 import unittest
 
-def configSolvers():
-    """
-    Configure the path the the solvers on the command line
-
-    Designed to configure the file locations of the solvers from the
-    command line after installation
-    """
-    configlist = [(cplex_dll_path, "cplexpath", "CPLEX: "),
-                  (coinMP_path, "coinmppath", "CoinMP dll (windows only): ")]
-    print("Please type the full path including filename and extension \n" +
-          "for each solver available")
-    configdict = {}
-    for (default, key, msg) in configlist:
-        value = input(msg + "[" + str(default) + "]")
-        if value:
-            configdict[key] = value
-    setConfigInformation(**configdict)
 
 def dumpTestProblem(prob):
     try:
@@ -666,7 +646,7 @@ def pulpTestCheck(prob, solver, okstatus, sol=None,
             raise PulpError("Tests failed for solver %s" % solver)
 
 
-def test_all():
+def suite():
     solvers = [PULP_CBC_CMD,
                CPLEX_DLL,
                CPLEX_CMD,
@@ -688,13 +668,13 @@ def test_all():
         if solver().available():
             tests = loader.loadTestsFromTestCase(PuLPTest, solver=solver(msg=0))
             suite.addTests(tests)
-    unittest.TextTestRunner(verbosity=0).run(suite)
+    return suite
 
 
 if __name__ == '__main__':
     # Tests
-    test_all()
-
+    runner = unittest.TextTestRunner(verbosity=0)
+    runner.run(suite())
     # To run a single test:
     # suite = unittest.TestSuite()
     # suite.addTest(PuLPTest('test_pulp_060', PULP_CBC_CMD(msg=0)))

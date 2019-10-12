@@ -134,6 +134,7 @@ def setConfigInformation(**keywords):
     the keyword value pairs come from the keywords dictionary
     """
     #TODO: extend if we ever add another section in the config file
+    # TODO: we're using ConfigParser without importing it??
     #read the old configuration
     config = ConfigParser.SafeConfigParser()
     config.read(config_filename)
@@ -2280,3 +2281,22 @@ def read_table(data, coerce_type, transpose=False):
                 key = (items[0], headings[i])
             result[key] = coerce_type(item)
     return result
+
+
+def configSolvers():
+    """
+    Configure the path the the solvers on the command line
+
+    Designed to configure the file locations of the solvers from the
+    command line after installation
+    """
+    configlist = [(cplex_dll_path, "cplexpath", "CPLEX: "),
+                  (coinMP_path, "coinmppath", "CoinMP dll (windows only): ")]
+    print("Please type the full path including filename and extension \n" +
+          "for each solver available")
+    configdict = {}
+    for (default, key, msg) in configlist:
+        value = input(msg + "[" + str(default) + "]")
+        if value:
+            configdict[key] = value
+    setConfigInformation(**configdict)
