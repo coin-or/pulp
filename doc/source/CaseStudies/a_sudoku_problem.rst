@@ -135,7 +135,7 @@ The problem is written to an LP file, solved using CPLEX (due to CPLEX's simple 
 Instead of printing out all 729 of the binary problem variables and their respective values, it is more meaningful to draw the solution in a text file. The code also puts lines inbetween every third row and column to make the solution easier to read. The sudokuout.txt file is created in the same folder as the .py file.
 
 .. literalinclude:: ../../../examples/Sudoku1.py
-    :lines: 92-108
+    :lines: 90-108
 
 A note of the location of the solution is printed to the solution
 

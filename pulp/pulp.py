@@ -1107,6 +1107,9 @@ class LpProblem(object):
                 or :data:`~pulp.constants.LpMaximize`.
         :return: An LP Problem
         """
+        if ' ' in name:
+            warnings.warn("Spaces are not permitted in the name. Converted to '_'")
+            name = name.replace(" ", "_")
         self.objective = None
         self.constraints = _DICT_TYPE()
         self.name = name
