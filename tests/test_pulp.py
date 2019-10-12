@@ -583,17 +583,6 @@ class PuLPTest(unittest.TestCase):
         else:
             pulpTestCheck(prob, self.solver, [LpStatusUnbounded])
 
-    def test_doctest(self):
-        """
-        runs all doctests
-        """
-        import doctest
-        if __name__ != '__main__':
-            from . import pulp
-            doctest.testmod(pulp)
-        else:
-            doctest.testmod()
-
 
 def pulpTestCheck(prob, solver, okstatus, sol=None,
                   reducedcosts=None,
