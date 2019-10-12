@@ -16,4 +16,5 @@ if __name__ == '__main__':
     docs_examples = loader.loadTestsFromTestCase(test_examples.Examples_DocsTests)
     suite_all.addTests(docs_examples)
     # we run all tests at the same time
-    runner.run(suite_all)
+    ret = runner.run(suite_all)
+    sys.exit(not ret)
