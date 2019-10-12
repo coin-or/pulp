@@ -13,7 +13,7 @@ License = open('LICENSE').read()
 
 # read the version number safely from the constants.py file
 version_dict = {}
-exec(open('src/pulp/constants.py').read(), version_dict)
+exec(open('pulp/constants.py').read(), version_dict)
 VERSION = version_dict['VERSION']
 
 with open("README.md", "r") as fh:
@@ -39,7 +39,6 @@ setup(name="PuLP",
                      'Topic :: Scientific/Engineering :: Mathematics',
       ],
       #ext_modules = [pulpCOIN],
-      package_dir={'':'src'},
       #need the cbc directories here as the executable bit is set
       packages = ['pulp',
       'pulp.solverdir',

@@ -34,9 +34,10 @@ before_install:
 - sudo apt-get install -qq glpk-utils
 
 install:
-- pip install .
+- pipenv install
+- pipenv install .
 
-script: pulptest
+script: python tests/pulp_tests.py
 
 before_deploy:
 - sudo apt-get install texlive-latex-extra

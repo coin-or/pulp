@@ -1,9 +1,6 @@
 from pulp.amply import Amply, AmplyError
 from io import StringIO
-
-from nose.tools import assert_raises
 import unittest
-
 
 class AmplyTest(unittest.TestCase):
 
@@ -85,7 +82,7 @@ class AmplyTest(unittest.TestCase):
             set dim1 dimen 1;
             set dim1 := (1, 2) (2, 3) (3, 2);
             """
-        assert_raises(AmplyError, lambda: Amply(a))
+        self.assertRaises(AmplyError, lambda: Amply(a))
 
     def test_set_dimen2_noparen(self):
         result = Amply(
@@ -213,7 +210,7 @@ class AmplyTest(unittest.TestCase):
             param foo{s};
             param foo := 1 Jan 2 Feb 3;
             """
-        assert_raises(AmplyError, lambda :Amply(a))
+        self.assertRaises(AmplyError, lambda: Amply(a))
 
     def test_param_default(self):
         result = Amply(
@@ -222,12 +219,12 @@ class AmplyTest(unittest.TestCase):
             param foo := Jan 1 Feb 2 Mar 3;
             """
         )
-        j = result['foo']['Jan']
-        assert j == 1
-        m = result['foo']['Mar']
-        assert m == 3
-        d = result['foo']['FOO']
-        assert d == 3
+        options = [('Jan', 1),
+                   ('Mar', 3),
+                   ('FOO', 3)
+                   ]
+        for name, value in options:
+            self.assertEqual(result['foo'][name], value)
 
     def test_param_undefined(self):
         result = Amply(
@@ -238,7 +235,8 @@ class AmplyTest(unittest.TestCase):
         )
         j = result['foo']['Jan']
         assert j == 1
-        assert_raises(KeyError, lambda : result['foo']['Apr'])
+        with self.assertRaises(KeyError):
+            a = result['foo']['Apr']
 
     def test_sub2_params(self):
         result = Amply(
@@ -264,10 +262,12 @@ class AmplyTest(unittest.TestCase):
             """
         )['demand']
 
-        s = result['spoons']
-        assert s == { 'FRA': 200, 'DET': 100, 'LAN': 30 }
-        assert result['plates'] == { 'FRA': 30, 'DET': 120, 'LAN': 90 }
-        assert result['cups'] == { 'FRA': 666, 'DET': 13, 'LAN': 29 }
+        options = [('spoons', { 'FRA': 200, 'DET': 100, 'LAN': 30 }),
+                   ('plates', { 'FRA': 30, 'DET': 120, 'LAN': 90 }),
+                   ('cups', { 'FRA': 666, 'DET': 13, 'LAN': 29 })
+                   ]
+        for name, _dict in options:
+            self.assertDictEqual(result[name], _dict)
 
     def test_2d_numeric_param(self):
         result = Amply(
@@ -297,10 +297,12 @@ class AmplyTest(unittest.TestCase):
             """
         )['demand']
 
-        s = result['spoons']
-        assert s == { 'FRA': 200, 'DET': 42, 'LAN': 30 }
-        assert result['plates'] == { 'FRA': 30, 'DET': 120, 'LAN': 42 }
-        assert result['cups'] == { 'FRA': 42, 'DET': 42, 'LAN': 29 }
+        options = [('spoons', { 'FRA': 200, 'DET': 42, 'LAN': 30 }),
+                   ('plates', { 'FRA': 30, 'DET': 120, 'LAN': 42 }),
+                   ('cups', { 'FRA': 42, 'DET': 42, 'LAN': 29 })
+                   ]
+        for name, _dict in options:
+            self.assertDictEqual(result[name], _dict)
 
     def test_2tables(self):
         result = Amply(
@@ -322,14 +324,19 @@ class AmplyTest(unittest.TestCase):
             """
         )
         demand = result['demand']
-        assert demand['spoons'] == {'FRA': 200, 'DET': 42, 'LAN': 30 }
-        assert demand['plates'] == { 'FRA': 30, 'DET': 120, 'LAN': 42 }
-        assert demand['cups'] == { 'FRA': 42, 'DET': 42, 'LAN': 29 }
+        options = [('spoons', { 'FRA': 200, 'DET': 42, 'LAN': 30 }),
+                   ('plates', { 'FRA': 30, 'DET': 120, 'LAN': 42 }),
+                   ('cups', { 'FRA': 42, 'DET': 42, 'LAN': 29 })
+                   ]
+        for name, _dict in options:
+            self.assertDictEqual(demand[name], _dict)
 
         square = result['square']
-        assert square['A'] == {'A': 1, 'B': 6}
-        assert square['B'] == {'A': 6, 'B': 36}
-
+        options = [('A', {'A': 1, 'B': 6}),
+                   ('B', {'A': 6, 'B': 36}),
+                   ]
+        for name, _dict in options:
+            self.assertDictEqual(square[name], _dict)
 
     def test_2d_param_transpose(self):
         result = Amply(
@@ -343,10 +350,9 @@ class AmplyTest(unittest.TestCase):
             """
         )['demand']
 
-        f = result['FRA']
-        assert f == { 'spoons': 200, 'plates': 30, 'cups': 42 }
-        assert result['DET'] == { 'spoons': 42, 'plates': 120, 'cups': 42 }
-        assert result['LAN'] == { 'spoons': 30, 'plates': 42, 'cups': 29 }
+        self.assertEqual(result['FRA'], { 'spoons': 200, 'plates': 30, 'cups': 42 })
+        self.assertEqual(result['DET'], { 'spoons': 42, 'plates': 120, 'cups': 42 })
+        self.assertEqual(result['LAN'], { 'spoons': 30, 'plates': 42, 'cups': 29 })
 
     def test_2d_slice1(self):
         result = Amply(
@@ -459,15 +465,14 @@ class AmplyTest(unittest.TestCase):
         assert result['elem'] == [(0,0),(1,1),(2,2)]
 
     def test_undefined_tabbing_param(self):
-        assert_raises(AmplyError, lambda: Amply(
-            """
+        a = """
             param cost{elem};
             param : cost value :=
             0       1   2
             3       4   5
             ;
             """
-        ))
+        self.assertRaises(AmplyError, lambda: Amply(a))
 
     def test_2dset_simpleparam(self):
         result = Amply(
