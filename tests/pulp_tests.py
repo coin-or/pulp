@@ -60,7 +60,7 @@ class PuLPTest(unittest.TestCase):
 
     def __init__(self, testName, solver, *args, **kwargs):
         super().__init__(testName)
-        self.solver = solver
+        self.solver = solver.copy()
 
     def test_pulp_001(self):
         """
@@ -73,7 +73,6 @@ class PuLPTest(unittest.TestCase):
         c2 = c1 + z - z
         print("\t Testing zero subtraction")
         assert str(c2)  # will raise an exception
-
 
     def test_pulp_009(self):
         # infeasible
@@ -114,7 +113,6 @@ class PuLPTest(unittest.TestCase):
         print("\t Testing continuous LP solution")
         pulpTestCheck(prob, self.solver, [LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
 
-
     def test_pulp_011(self):
         # Continuous Maximisation
         prob = LpProblem("test011", LpMaximize)
@@ -129,7 +127,6 @@ class PuLPTest(unittest.TestCase):
         prob += w >= 0, "c4"
         print("\t Testing maximize continuous LP solution")
         pulpTestCheck(prob, self.solver, [LpStatusOptimal], {x: 4, y: 1, z: 8, w: 0})
-
 
     def test_pulp_012(self):
         # Unbounded
@@ -164,7 +161,6 @@ class PuLPTest(unittest.TestCase):
         else:
             pulpTestCheck(prob, self.solver, [LpStatusUnbounded])
 
-
     def test_pulp_013(self):
         # Long name
         prob = LpProblem("test013", LpMinimize)
@@ -186,7 +182,6 @@ class PuLPTest(unittest.TestCase):
                 pass
         else:
             pulpTestCheck(prob, self.solver, [LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
-
 
     def test_pulp_014(self):
         # repeated name
@@ -212,7 +207,6 @@ class PuLPTest(unittest.TestCase):
         else:
             pulpTestCheck(prob, self.solver, [LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
 
-
     def test_pulp_015(self):
         # zero constraint
         prob = LpProblem("test015", LpMinimize)
@@ -229,7 +223,6 @@ class PuLPTest(unittest.TestCase):
         print("\t Testing zero constraint")
         pulpTestCheck(prob, self.solver, [LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
 
-
     def test_pulp_016(self):
         # zero objective
         prob = LpProblem("test016", LpMinimize)
@@ -244,7 +237,6 @@ class PuLPTest(unittest.TestCase):
         prob += lpSum([0, 0]) <= 0, "c5"
         print("\t Testing zero objective")
         pulpTestCheck(prob, self.solver, [LpStatusOptimal])
-
 
     def test_pulp_017(self):
         # variable as objective
@@ -261,7 +253,6 @@ class PuLPTest(unittest.TestCase):
         prob += lpSum([0, 0]) <= 0, "c5"
         print("\t Testing LpVariable (not LpAffineExpression) objective")
         pulpTestCheck(prob, self.solver, [LpStatusOptimal])
-
 
     def test_pulp_018(self):
         # Long name in lp
@@ -280,7 +271,6 @@ class PuLPTest(unittest.TestCase):
             pulpTestCheck(prob, self.solver, [LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0},
                           use_mps=False)
 
-
     def test_pulp_019(self):
         # divide
         prob = LpProblem("test019", LpMinimize)
@@ -296,7 +286,6 @@ class PuLPTest(unittest.TestCase):
         print("\t Testing LpAffineExpression divide")
         pulpTestCheck(prob, self.solver, [LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
 
-
     def test_pulp_020(self):
         # MIP
         prob = LpProblem("test020", LpMinimize)
@@ -309,7 +298,6 @@ class PuLPTest(unittest.TestCase):
         prob += -y + z == 7.5, "c3"
         print("\t Testing MIP solution")
         pulpTestCheck(prob, self.solver, [LpStatusOptimal], {x: 3, y: -0.5, z: 7})
-
 
     def test_pulp_021(self):
         # MIP with floats in objective
@@ -324,7 +312,6 @@ class PuLPTest(unittest.TestCase):
         print("\t Testing MIP solution with floats in objective")
         pulpTestCheck(prob, self.solver, [LpStatusOptimal], {x: 3, y: -0.5, z: 7},
                       objective=64.95)
-
 
     def test_pulp_030(self):
         # relaxed MIP
@@ -344,7 +331,6 @@ class PuLPTest(unittest.TestCase):
         else:
             pulpTestCheck(prob, self.solver, [LpStatusOptimal], {x: 3.5, y: -1, z: 6.5})
 
-
     def test_pulp_040(self):
         # Feasibility only
         prob = LpProblem("test040", LpMinimize)
@@ -356,7 +342,6 @@ class PuLPTest(unittest.TestCase):
         prob += -y + z == 7.5, "c3"
         print("\t Testing feasibility problem (no objective)")
         pulpTestCheck(prob, self.solver, [LpStatusOptimal])
-
 
     def test_pulp_050(self):
         # Infeasible
@@ -376,7 +361,6 @@ class PuLPTest(unittest.TestCase):
             pulpTestCheck(prob, self.solver, [LpStatusNotSolved])
         else:
             pulpTestCheck(prob, self.solver, [LpStatusInfeasible])
-
 
     def test_pulp_060(self):
         # Integer Infeasible
@@ -401,7 +385,6 @@ class PuLPTest(unittest.TestCase):
         else:
             pulpTestCheck(prob, self.solver, [LpStatusInfeasible])
 
-
     def test_pulp_070(self):
         # Column Based modelling of test_pulp_1
         prob = LpProblem("test070", LpMinimize)
@@ -421,7 +404,6 @@ class PuLPTest(unittest.TestCase):
         z = LpVariable("z", 0, None, LpContinuous, 9 * obj + b + c)
         print("\t Testing column based modelling")
         pulpTestCheck(prob, self.solver, [LpStatusOptimal], {x: 4, y: -1, z: 6})
-
 
     def test_pulp_075(self):
         # Column Based modelling of test_pulp_1 with empty constraints
@@ -444,7 +426,6 @@ class PuLPTest(unittest.TestCase):
                                 PYGLPK]:
             print("\t Testing column based modelling with empty constraints")
             pulpTestCheck(prob, self.solver, [LpStatusOptimal], {x: 4, y: -1, z: 6})
-
 
     def test_pulp_080(self):
         """
@@ -472,7 +453,6 @@ class PuLPTest(unittest.TestCase):
                           duals={"c1": 0, "c2": 1, "c3": 8},
                           slacks={"c1": 2, "c2": 0, "c3": 0})
 
-
     def test_pulp_090(self):
         # Column Based modelling of test_pulp_1 with a resolve
         prob = LpProblem("test090", LpMinimize)
@@ -499,7 +479,6 @@ class PuLPTest(unittest.TestCase):
             # over ridden if it is not implemented
             # test_pulp_Check(prob, self.solver, [LpStatusOptimal], {x:4, y:-1, z:6})
 
-
     def test_pulp_100(self):
         """
         Test the ability to sequentially solve a problem
@@ -521,7 +500,6 @@ class PuLPTest(unittest.TestCase):
                           sol={x: 0, y: 1},
                           status=status)
 
-
     def test_pulp_110(self):
         """
         Test the ability to use fractional constraints
@@ -541,7 +519,6 @@ class PuLPTest(unittest.TestCase):
         pulpTestCheck(prob, self.solver, [LpStatusOptimal],
                       {x: 10 / 3.0, y: -1 / 3.0, z: 20 / 3.0, w: 0})
 
-
     def test_pulp_120(self):
         """
         Test the ability to use Elastic constraints
@@ -559,7 +536,6 @@ class PuLPTest(unittest.TestCase):
         print("\t Testing elastic constraints (no change)")
         pulpTestCheck(prob, self.solver, [LpStatusOptimal],
                       {x: 4, y: -1, z: 6, w: -1})
-
 
     def test_pulp_121(self):
         """
@@ -579,7 +555,6 @@ class PuLPTest(unittest.TestCase):
         pulpTestCheck(prob, self.solver, [LpStatusOptimal],
                       {x: 4, y: -1, z: 6, w: -1.1})
 
-
     def test_pulp_122(self):
         """
         Test the ability to use Elastic constraints (penalty unchanged)
@@ -597,7 +572,6 @@ class PuLPTest(unittest.TestCase):
         print("\t Testing elastic constraints (penalty unchanged)")
         pulpTestCheck(prob, self.solver, [LpStatusOptimal],
                       {x: 4, y: -1, z: 6, w: -1.0})
-
 
     def test_pulp_123(self):
         """
@@ -691,28 +665,6 @@ def pulpTestCheck(prob, solver, okstatus, sol=None,
             print("Test failed: objective ", z, " != ", objective)
             raise PulpError("Tests failed for solver %s" % solver)
 
-# def test_pulp_Solver(solver, msg=0):
-#     tests = [
-#         test_pulp_001,
-#         test_pulp_009,
-#         test_pulp_010, test_pulp_011, test_pulp_012, test_pulp_013, test_pulp_014,
-#         test_pulp_015, test_pulp_016, test_pulp_017,
-#         test_pulp_018, test_pulp_019,
-#         test_pulp_020, test_pulp_021,
-#         test_pulp_030,
-#         test_pulp_040,
-#         test_pulp_050,
-#         test_pulp_060,
-#         test_pulp_070, test_pulp_075,
-#         test_pulp_080,
-#         test_pulp_090,
-#         test_pulp_100,
-#         test_pulp_110,
-#         test_pulp_120, test_pulp_121, test_pulp_122, test_pulp_123
-#     ]
-#     for t in tests:
-#         t(solver(msg=msg))
-
 
 def test_all():
     solvers = [PULP_CBC_CMD,
@@ -724,7 +676,7 @@ def test_all():
                GLPK_CMD,
                XPRESS,
                GUROBI,
-               # GUROBI_CMD,
+               GUROBI_CMD,
                PYGLPK,
                YAPOSIB,
                PULP_CHOCO_CMD
@@ -745,6 +697,6 @@ if __name__ == '__main__':
 
     # To run a single test:
     # suite = unittest.TestSuite()
-    # suite.addTest(PuLPTest('test_pulp_060', PULP_CBC_CMD()))
+    # suite.addTest(PuLPTest('test_pulp_060', PULP_CBC_CMD(msg=0)))
     # unittest.TextTestRunner(verbosity=0).run(suite)
 
