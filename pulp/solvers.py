@@ -1003,7 +1003,7 @@ except (ImportError,OSError):
 
 try:
     import cplex
-except (ImportError):
+except (Exception) as e:
     class CPLEX_PY(LpSolver):
         """The CPLEX LP/MIP solver from python PHANTOM Something went wrong!!!!"""
         def available(self):
@@ -1011,7 +1011,7 @@ except (ImportError):
             return False
         def actualSolve(self, lp):
             """Solve a well formulated lp problem"""
-            raise PulpSolverError("CPLEX_PY: Not Available")
+            raise PulpSolverError("CPLEX_PY: Not Available: " + str(e))
 else:
     class CPLEX_PY(LpSolver):
         """
