@@ -2000,6 +2000,13 @@ class GUROBI_CMD(LpSolver_CMD):
 
     def actualSolve(self, lp):
         """Solve a well formulated lp problem"""
+        # TODO: workaround for python not reading LD_LIBRARY_PATH
+        # in my version of ubuntu
+        if 'GUROBI_HOME' in os.environ:
+            if 'LD_LIBRARY_PATH' not in os.environ:
+                os.environ['LD_LIBRARY_PATH'] = ""
+            os.environ['LD_LIBRARY_PATH'] += ':' + os.environ['GUROBI_HOME'] + "/lib"
+
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute "+self.path)
         if not self.keepFiles:

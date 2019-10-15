@@ -123,7 +123,7 @@ class PuLPTest(unittest.TestCase):
         print("\t Testing unbounded continuous LP solution")
         if self.solver.__class__ in [GUROBI, CPLEX_CMD, YAPOSIB, CPLEX_PY]:
             # These solvers report infeasible or unbounded
-            pulpTestCheck(prob, self.solver, [LpStatusInfeasible])
+            pulpTestCheck(prob, self.solver, [LpStatusInfeasible, LpStatusUnbounded])
         elif self.solver.__class__ in [COINMP_DLL, ]:
             # COINMP_DLL is just plain wrong
             print('\t\t Error in CoinMP it reports Optimal')
@@ -570,7 +570,7 @@ class PuLPTest(unittest.TestCase):
         print("\t Testing elastic constraints (penalty unbounded)")
         if self.solver.__class__ in [COINMP_DLL, GUROBI, CPLEX_CMD, CPLEX_PY, YAPOSIB]:
             # COINMP_DLL Does not report unbounded problems, correctly
-            pulpTestCheck(prob, self.solver, [LpStatusInfeasible])
+            pulpTestCheck(prob, self.solver, [LpStatusInfeasible, LpStatusUnbounded])
         elif self.solver.__class__ is GLPK_CMD:
             # GLPK_CMD Does not report unbounded problems, correctly
             pulpTestCheck(prob, self.solver, [LpStatusUndefined])
