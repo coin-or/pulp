@@ -13,8 +13,9 @@ if __name__ == '__main__':
     amply = loader.loadTestsFromTestCase(test_amply.AmplyTest)
     suite_all.addTests(amply)
     # We add examples and docs tests
-    docs_examples = loader.loadTestsFromTestCase(test_examples.Examples_DocsTests)
-    suite_all.addTests(docs_examples)
+    if sys.version_info > (2, 6):
+        docs_examples = loader.loadTestsFromTestCase(test_examples.Examples_DocsTests)
+        suite_all.addTests(docs_examples)
     # we run all tests at the same time
     ret = runner.run(suite_all)
     sys.exit(not ret.wasSuccessful())

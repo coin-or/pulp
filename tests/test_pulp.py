@@ -39,7 +39,7 @@ class TestLoaderWithKwargs(unittest.TestLoader):
 class PuLPTest(unittest.TestCase):
 
     def __init__(self, testName, solver, *args, **kwargs):
-        super().__init__(testName)
+        unittest.TestCase.__init__(self, testName)
         self.solver = solver.copy()
 
     def test_pulp_001(self):
