@@ -691,7 +691,7 @@ else:
     param_record = param_slice_record | plain_data_record | tabular_record | \
             tr_tabular_record | Suppress(":=")
 
-    param_default = Optional("default" + data.setResultsName('default'))
+    param_default = Optional("default" + single.setResultsName('default'))
 
     param_stmt = "param" + symbol.setResultsName('name') + param_default + \
             Group(OneOrMore(param_record)).setResultsName('records') + END
