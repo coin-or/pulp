@@ -123,7 +123,7 @@ else:
         Convenience method for walking down a series of nested dictionaries
 
         keys is a tuple of strings
-        
+
         access_data(dict, ('key1', 'key2', 'key3') is equivalent to
         dict['key1']['key2']['key3']
 
@@ -600,7 +600,7 @@ else:
             return self.data != other
 
         def __repr__(self):
-            return '<%s: %s>' % (self.__class__.__name__, self.data) 
+            return '<%s: %s>' % (self.__class__.__name__, self.data)
 
     def mark_transposed(tokens):
         tokens[0].setTransposed(True)
@@ -616,7 +616,7 @@ else:
                    Optional("." + Optional(Word(nums))) +
                    Optional(oneOf("e E") + Word("+-"+nums, nums)))\
             .setParseAction(lambda t: float(t[0]))
-                   
+
     LPAREN = Suppress('(')
     RPAREN = Suppress(')')
     LBRACE = Suppress('{')
@@ -710,6 +710,7 @@ else:
             param_tabbing_stmt
     grammar = ZeroOrMore(stmts) + StringEnd()
     grammar.ignore("#" + SkipTo(lineEnd))
+    grammar.ignore("end;" + SkipTo(lineEnd))
 
     class Amply(object):
         """
