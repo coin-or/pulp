@@ -1677,9 +1677,9 @@ class LpProblem(object):
         if not(solver): solver = LpSolverDefault
         wasNone, dummyVar = self.fixObjective()
         #time it
-        self.solutionTime = -clock()
+        self.solutionTime = -process_time()
         status = solver.actualSolve(self, **kwargs)
-        self.solutionTime += clock()
+        self.solutionTime += process_time()
         self.restoreObjective(wasNone, dummyVar)
         self.solver = solver
         return status
@@ -1709,7 +1709,7 @@ class LpProblem(object):
         if not(relativeTols):
             relativeTols  = [1] * len(objectives)
         #time it
-        self.solutionTime = -clock()
+        self.solutionTime = -process_time()
         statuses = []
         for i,(obj,absol,rel) in enumerate(zip(objectives,
                                                absoluteTols, relativeTols)):
@@ -1721,7 +1721,7 @@ class LpProblem(object):
                 self += obj <= value(obj)*rel + absol,"%s_Sequence_Objective"%i
             elif self.sense == LpMaximize:
                 self += obj >= value(obj)*rel + absol,"%s_Sequence_Objective"%i
-        self.solutionTime += clock()
+        self.solutionTime += process_time()
         self.solver = solver
         return statuses
 
