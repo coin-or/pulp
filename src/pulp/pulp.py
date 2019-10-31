@@ -97,6 +97,7 @@ import types
 import string
 import itertools
 import warnings
+from time import process_time
 
 from .constants import *
 from .solvers import *
