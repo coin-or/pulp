@@ -22,8 +22,9 @@ sys.path.insert(0,os.path.abspath('../src/pulp/'))
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.doctest', 'sphinx.ext.intersphinx', 'sphinx.ext.todo', 'sphinx.ext.coverage', 'sphinx.ext.pngmath', 'sphinx.ext.ifconfig', 'sphinx.ext.autosummary']
-
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.doctest', 
+'sphinx.ext.intersphinx', 'sphinx.ext.todo', 'sphinx.ext.coverage', 
+'sphinx.ext.ifconfig', 'sphinx.ext.autosummary', 'sphinx.ext.mathjax']
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
@@ -72,6 +73,11 @@ version = release[:3]
 # for source files.
 exclude_trees = []
 
+# List of patterns, relative to source directory, that match files and
+# directories to ignore when looking for source files.
+# This pattern also affects html_static_path and html_extra_path.
+exclude_patterns = []
+
 # The reST default role (used for this markup: `text`) to use for all documents.
 #default_role = None
 
@@ -97,13 +103,19 @@ pygments_style = 'sphinx'
 
 # The theme to use for HTML and HTML Help pages.  Major themes that come with
 # Sphinx are currently 'default' and 'sphinxdoc'.
-html_theme = 'default'
+# html_theme = 'default'
+html_theme = 'alabaster'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 #html_theme_options = {}
-
+html_theme_options = {
+    'fixed_sidebar': True, 
+    'github_banner': True,
+    'show_powered_by': False,
+    'github_user': 'coin-or',
+    'github_repo': 'pulp'}
 # Add any paths that contain custom themes here, relative to this directory.
 #html_theme_path = []
 
@@ -201,4 +213,4 @@ latex_documents = [
 
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'http://docs.python.org/': None}
+intersphinx_mapping = {'http://docs.python.org/3': None}

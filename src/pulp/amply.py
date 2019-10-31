@@ -66,7 +66,7 @@ else:
     from pyparsing import alphas, nums, alphanums, delimitedList, oneOf
     from pyparsing import Combine, Dict, Forward, Group, Literal, NotAny
     from pyparsing import OneOrMore, Optional, ParseResults, QuotedString
-    from pyparsing import StringEnd, Suppress, Word, ZeroOrMore
+    from pyparsing import StringEnd, Suppress, Word, ZeroOrMore, SkipTo, lineEnd
 
     from itertools import chain
 
@@ -709,7 +709,7 @@ else:
     stmts = set_stmt | set_def_stmt | param_stmt | param_def_stmt | \
             param_tabbing_stmt
     grammar = ZeroOrMore(stmts) + StringEnd()
-
+    grammar.ignore("#" + SkipTo(lineEnd))
 
     class Amply(object):
         """

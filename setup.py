@@ -8,6 +8,8 @@ from ez_setup import use_setuptools
 use_setuptools()
 from setuptools import setup
 
+readme_name = 'README.rst'
+Description = open(readme_name).read()
 
 License = open('LICENSE').read()
 
@@ -16,7 +18,7 @@ version_dict = {}
 exec(open('src/pulp/constants.py').read(), version_dict)
 VERSION = version_dict['VERSION']
 
-with open("README.md", "r") as fh:
+with open(readme_name, "r") as fh:
     long_description = fh.read()
 
 setup(name="PuLP",

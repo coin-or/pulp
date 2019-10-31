@@ -5,7 +5,7 @@ Authors: Antony Phillips,  Dr Stuart Mitchell  2008
 """
 
 # Import Column Generation functions
-from CG import *
+from .CG import *
 
 # The roll data is created
 rollData = {#Length Demand SalePrice
