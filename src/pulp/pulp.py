@@ -97,7 +97,11 @@ import types
 import string
 import itertools
 import warnings
-from time import process_time
+import sys
+
+major_version = sys.version_info[0]
+if major_version >= 3:
+    from time import process_time
 
 from .constants import *
 from .solvers import *
@@ -1678,9 +1682,15 @@ class LpProblem(object):
         if not(solver): solver = LpSolverDefault
         wasNone, dummyVar = self.fixObjective()
         #time it
-        self.solutionTime = -process_time()
+        if major_version >= 3:        
+            self.solutionTime = -process_time()
+        else:
+            self.solutionTime = -clock()
         status = solver.actualSolve(self, **kwargs)
-        self.solutionTime += process_time()
+        if major_version >= 3:        
+            self.solutionTime += process_time()
+        else:
+            self.solutionTime += clock()
         self.restoreObjective(wasNone, dummyVar)
         self.solver = solver
         return status
@@ -1710,7 +1720,10 @@ class LpProblem(object):
         if not(relativeTols):
             relativeTols  = [1] * len(objectives)
         #time it
-        self.solutionTime = -process_time()
+        if major_version >= 3:        
+            self.solutionTime = -process_time()
+        else:
+            self.solutionTime = -clock()
         statuses = []
         for i,(obj,absol,rel) in enumerate(zip(objectives,
                                                absoluteTols, relativeTols)):
@@ -1722,7 +1735,10 @@ class LpProblem(object):
                 self += obj <= value(obj)*rel + absol,"%s_Sequence_Objective"%i
             elif self.sense == LpMaximize:
                 self += obj >= value(obj)*rel + absol,"%s_Sequence_Objective"%i
-        self.solutionTime += process_time()
+        if major_version >= 3:        
+            self.solutionTime += process_time()
+        else:
+            self.solutionTime += clock()
         self.solver = solver
         return statuses
 
