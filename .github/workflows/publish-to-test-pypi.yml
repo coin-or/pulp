@@ -19,7 +19,7 @@ jobs:
         wheel
         --user
     - name: Build a binary wheel and a source tarball
-      run: python setup.py sdist bdist_wheel
+      run: python setup.py sdist --formats=gztar,zip
     - name: Publish distribution 📦 to Test PyPI
       uses: pypa/gh-action-pypi-publish@master
       with:
