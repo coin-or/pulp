@@ -24,4 +24,4 @@ jobs:
         pip install .
     - name: Test with pulptest
       run: |
-        pulptest
+        python tests/run_tests.py
