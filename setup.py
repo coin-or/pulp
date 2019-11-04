@@ -11,7 +11,7 @@ from setuptools import setup
 readme_name = 'README.rst'
 Description = open(readme_name).read()
 
-License = open('LICENSE').read()
+# License = open('LICENSE').read()
 
 # read the version number safely from the constants.py file
 version_dict = {}
@@ -26,8 +26,8 @@ setup(name="PuLP",
       description=
       "PuLP is an LP modeler written in python. PuLP can generate MPS or LP files and call GLPK, COIN CLP/CBC, CPLEX, and GUROBI to solve linear problems.",
       long_description = long_description,
-      long_description_content_type="text/markdown",
-      license = License,
+      long_description_content_type = "text/x-rst",
+      # license = License,
       keywords = ["Optimization", "Linear Programming", "Operations Research"],
       author="J.S. Roy and S.A. Mitchell",
       author_email="pulp@stuartmitchell.com",
