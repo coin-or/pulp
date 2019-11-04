@@ -1,10 +1,11 @@
 import os, sys
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 import unittest
+import pulp
 from tests import test_amply, test_pulp, test_examples
 
-if __name__ == '__main__':
-    # Tests
+def pulpTestAll():
+     # Tests
     runner = unittest.TextTestRunner()
     loader = unittest.TestLoader()
     # we get suite with all PuLP tests
@@ -18,4 +19,8 @@ if __name__ == '__main__':
         suite_all.addTests(docs_examples)
     # we run all tests at the same time
     ret = runner.run(suite_all)
-    sys.exit(not ret.wasSuccessful())
+    if not ret.wasSuccessful():
+        raise  pulp.PulpError("Tests Failed")
+
+if __name__ == '__main__':
+    pulpTestAll()
