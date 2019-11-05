@@ -12,13 +12,7 @@ for a wedding. To model this problem the tables are modelled as the partitions
 and the guests invited to the wedding are modelled as the elements of S. The 
 wedding planner wishes to maximise the total happiness of all of the tables. 
 
-.. image:: images/wedding_seating.jpg
-
-.. raw:: html
-
-    <div xmlns:cc="http://creativecommons.org/ns#" about="http://www.flickr.com/photos/71463577@N00/3735357685"><a rel="cc:attributionURL" href="http://www.flickr.com/photos/mbphotography/">http://www.flickr.com/photos/mbphotography/</a> / <a rel="license" href="http://creativecommons.org/licenses/by-nc-nd/2.0/">CC BY-NC-ND 2.0</a></div>
-
-A set partitioning problem may be modelled by explicitly enumerating each 
+A set partitioning problem may be modelled by explicitly enumerating each
 possible subset. Though this approach does become intractable for large numbers
 of items (without using column generation) it does have the advantage that the
 objective function co-efficients for the partitions can be non-linear 

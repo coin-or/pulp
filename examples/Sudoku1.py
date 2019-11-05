@@ -1,7 +1,7 @@
 """
 The Sudoku Problem Formulation for the PuLP Modeller
 
-Authors: Antony Phillips, Dr Stuart Mitcehll
+Authors: Antony Phillips, Dr Stuart Mitchell
 """
 
 # Import PuLP modeler functions
@@ -16,7 +16,7 @@ Rows = Sequence
 Cols = Sequence
 
 # The boxes list is created, with the row and column index of each square in each box
-Boxes =[]
+Boxes = []
 for i in range(3):
     for j in range(3):
         Boxes += [[(Rows[3*i+k],Cols[3*j+l]) for k in range(3) for l in range(3)]]
