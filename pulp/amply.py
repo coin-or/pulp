@@ -706,6 +706,8 @@ else:
             param_default + END
     param_def_stmt.setParseAction(ParamDefStmt)
 
+    # comment = "#" + SkipTo(lineEnd)
+
     stmts = set_stmt | set_def_stmt | param_stmt | param_def_stmt | \
             param_tabbing_stmt
     grammar = ZeroOrMore(stmts) + StringEnd()

@@ -1003,7 +1003,7 @@ except (ImportError,OSError):
 
 try:
     import cplex
-except (ImportError):
+except (Exception) as e:
     class CPLEX_PY(LpSolver):
         """The CPLEX LP/MIP solver from python PHANTOM Something went wrong!!!!"""
         def available(self):
@@ -1011,7 +1011,7 @@ except (ImportError):
             return False
         def actualSolve(self, lp):
             """Solve a well formulated lp problem"""
-            raise PulpSolverError("CPLEX_PY: Not Available")
+            raise PulpSolverError("CPLEX_PY: Not Available: " + str(e))
 else:
     class CPLEX_PY(LpSolver):
         """
@@ -1666,8 +1666,7 @@ class COINMP_DLL(LpSolver):
 
         def copy(self):
             """Make a copy of self"""
-
-            aCopy = LpSolver.copy()
+            aCopy = LpSolver.copy(self)
             aCopy.cuts = self.cuts
             aCopy.presolve = self.presolve
             aCopy.dual = self.dual
@@ -2001,6 +2000,13 @@ class GUROBI_CMD(LpSolver_CMD):
 
     def actualSolve(self, lp):
         """Solve a well formulated lp problem"""
+        # TODO: workaround for python not reading LD_LIBRARY_PATH
+        # in my version of ubuntu
+        if 'GUROBI_HOME' in os.environ:
+            if 'LD_LIBRARY_PATH' not in os.environ:
+                os.environ['LD_LIBRARY_PATH'] = ""
+            os.environ['LD_LIBRARY_PATH'] += ':' + os.environ['GUROBI_HOME'] + "/lib"
+
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute "+self.path)
         if not self.keepFiles:
@@ -2761,7 +2767,8 @@ class CHOCO_CMD(LpSolver_CMD):
 
     def available(self):
         """True if the solver is available"""
-        return self.executable(self.path)
+        java_path = self.executableExtension('java')
+        return self.executable(self.path) and self.executable(java_path)
 
     def actualSolve(self, lp):
         """Solve a well formulated lp problem"""

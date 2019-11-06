@@ -134,6 +134,7 @@ def setConfigInformation(**keywords):
     the keyword value pairs come from the keywords dictionary
     """
     #TODO: extend if we ever add another section in the config file
+    # TODO: we're using ConfigParser without importing it??
     #read the old configuration
     config = ConfigParser.SafeConfigParser()
     config.read(config_filename)
@@ -2284,6 +2285,7 @@ def read_table(data, coerce_type, transpose=False):
             result[key] = coerce_type(item)
     return result
 
+
 def configSolvers():
     """
     Configure the path the the solvers on the command line
@@ -2291,63 +2293,13 @@ def configSolvers():
     Designed to configure the file locations of the solvers from the
     command line after installation
     """
-    configlist = [(cplex_dll_path,"cplexpath","CPLEX: "),
-                  (coinMP_path, "coinmppath","CoinMP dll (windows only): ")]
+    configlist = [(cplex_dll_path, "cplexpath", "CPLEX: "),
+                  (coinMP_path, "coinmppath", "CoinMP dll (windows only): ")]
     print("Please type the full path including filename and extension \n" +
-           "for each solver available")
+          "for each solver available")
     configdict = {}
     for (default, key, msg) in configlist:
-        value = input(msg + "[" + str(default) +"]")
+        value = input(msg + "[" + str(default) + "]")
         if value:
             configdict[key] = value
     setConfigInformation(**configdict)
-
-
-def pulpTestAll():
-    from .tests import pulpTestSolver
-    solvers = [PULP_CBC_CMD,
-               CPLEX_DLL,
-               CPLEX_CMD,
-               CPLEX_PY,
-               COIN_CMD,
-               COINMP_DLL,
-               GLPK_CMD,
-               XPRESS,
-               GUROBI,
-               GUROBI_CMD,
-               PYGLPK,
-               YAPOSIB,
-               PULP_CHOCO_CMD
-               ]
-
-    failed = False
-    for s in solvers:
-        if s().available():
-            try:
-                pulpTestSolver(s)
-                print("* Solver %s passed." % s)
-            except Exception as e:
-                print(e)
-                print("* Solver", s, "failed.")
-                failed = True
-        else:
-            print("Solver %s unavailable" % s)
-    if failed:
-        raise PulpError("Tests Failed")
-
-def pulpDoctest():
-    """
-    runs all doctests
-    """
-    import doctest
-    if __name__ != '__main__':
-        from . import pulp
-        doctest.testmod(pulp)
-    else:
-        doctest.testmod()
-
-
-if __name__ == '__main__':
-    # Tests
-    pulpTestAll()
-    pulpDoctest()
