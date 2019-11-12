@@ -100,7 +100,11 @@ import warnings
 
 from .constants import *
 from .solvers import *
-from collections import Iterable
+try:
+    from collections.abc import Iterable
+except ImportError:
+    # python 2.7 compatible 
+    from collections import Iterable
 
 import logging
 log = logging.getLogger(__name__)
