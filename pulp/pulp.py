@@ -492,11 +492,33 @@ class LpVariable(LpElement):
         for constraint, coeff in e.items():
             constraint.addVariable(self,coeff)
 
-    def setInitialValue(self,val):
+    def setInitialValue(self, val, check=True):
         """sets the initial value of the Variable to val
         may of may not be supported by the solver
+        if check is True: we confirm the value is really possible
         """
-        raise NotImplementedError
+        lb = self.lowBound
+        ub = self.upBound
+        config = [('smaller', 'lowBound', lb, lambda: val < lb),
+                  ('greater', 'upBound', ub, lambda: val > ub)]
+
+        for rel, bound_name, bound_value, condition in config:
+            if bound_value is not None and condition():
+                if not check:
+                    return False
+                raise ValueError('In variable {}, initial value {} is {} than {} {}'.
+                                 format(self.name, val, rel, bound_name, bound_value))
+        self.varValue = val
+        return True
+
+    def fixValue(self):
+        """
+        changes lower bound and upper bound to the initial value if exists.
+        :return:
+        """
+        val = self.varValue
+        if val is not None:
+            self.bounds(val, val)
 
 
 class LpAffineExpression(_DICT_TYPE):
@@ -1512,7 +1534,7 @@ class LpProblem(object):
         constraints, variables) of the defined Lp problem to a file.
 
         :param filename:  the name of the file to be created.
-
+        return variables
         Side Effects:
             - The file is created.
         """
@@ -1591,6 +1613,7 @@ class LpProblem(object):
         f.write("End\n")
         f.close()
         self.restoreObjective(wasNone, objectiveDummyVar)
+        return vs
 
     def checkDuplicateVars(self):
         vs = self.variables()
