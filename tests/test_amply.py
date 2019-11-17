@@ -256,7 +256,7 @@ class AmplyTest(unittest.TestCase):
             param demand {item, location};
             param demand
                 :   FRA DET LAN :=
-            spoons  200 100 30  
+            spoons  200 100 30
             plates  30  120 90
             cups    666 13  29 ;
             """
@@ -291,7 +291,7 @@ class AmplyTest(unittest.TestCase):
             param demand {item, location};
             param demand default 42
                 :   FRA DET LAN :=
-            spoons  200 . 30  
+            spoons  200 . 30
             plates  30  120 .
             cups    . .  29 ;
             """
@@ -310,11 +310,11 @@ class AmplyTest(unittest.TestCase):
             param demand {item, location};
             param demand default 42
                 :   FRA DET LAN :=
-            spoons  200 . 30  
+            spoons  200 . 30
             plates  30  120 .
-            cups    . .  29 
+            cups    . .  29
             ;
-    
+
             param square {foo, foo};
             param square
                 :   A   B :=
@@ -344,7 +344,7 @@ class AmplyTest(unittest.TestCase):
             param demand {location, item};
             param demand default 42 (tr)
                 :   FRA DET LAN :=
-            spoons  200 . 30  
+            spoons  200 . 30
             plates  30  120 .
             cups    . .  29 ;
             """
