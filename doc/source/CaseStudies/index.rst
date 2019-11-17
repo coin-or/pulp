@@ -9,6 +9,7 @@
     a_blending_problem
     a_set_partitioning_problem
     a_sudoku_problem
+    a_transportation_problem
 
 Indices and tables
 ==================

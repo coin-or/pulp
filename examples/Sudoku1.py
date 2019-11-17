@@ -2,7 +2,7 @@
 The Sudoku Problem Formulation for the PuLP Modeller
 
 Authors: Antony Phillips, Dr Stuart Mitchell
-edited by Dr Nathan Sudermann-Merx
+edited by Nathan Sudermann-Merx
 """
 
 # Import PuLP modeler functions
