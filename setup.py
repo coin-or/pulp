@@ -66,8 +66,8 @@ setup(name="PuLP",
       install_requires = ['pyparsing>=2.0.1'],
       entry_points = ("""
       [console_scripts]
-      pulptest = pulp:pulpTestAll
-      pulpdoctest = pulp:pulpDoctest
+      pulptest = tests.run_tests:pulpTestAll
+      # pulpdoctest = pulp:pulpDoctest
       """
       ),
 )

@@ -57,7 +57,7 @@ become the objective.
 >>> prob += -4*x + y
 
 Choose a solver and solve the problem. ex:
->>> status = prob.solve(GLPK(msg = 0))
+>>> status = prob.solve(PULP_CBC_CMD(msg = 0))
 
 Display the status of the solution
 >>> LpStatus[status]
