@@ -57,7 +57,7 @@ become the objective.
 >>> prob += -4*x + y
 
 Choose a solver and solve the problem. ex:
->>> status = prob.solve(GLPK(msg = 0))
+>>> status = prob.solve(PULP_CBC_CMD(msg = 0))
 
 Display the status of the solution
 >>> LpStatus[status]
@@ -100,7 +100,11 @@ import warnings
 
 from .constants import *
 from .solvers import *
-from collections import Iterable
+try:
+    from collections.abc import Iterable
+except ImportError:
+    # python 2.7 compatible 
+    from collections import Iterable
 
 import logging
 log = logging.getLogger(__name__)
@@ -134,6 +138,7 @@ def setConfigInformation(**keywords):
     the keyword value pairs come from the keywords dictionary
     """
     #TODO: extend if we ever add another section in the config file
+    # TODO: we're using ConfigParser without importing it??
     #read the old configuration
     config = ConfigParser.SafeConfigParser()
     config.read(config_filename)
@@ -491,11 +496,33 @@ class LpVariable(LpElement):
         for constraint, coeff in e.items():
             constraint.addVariable(self,coeff)
 
-    def setInitialValue(self,val):
+    def setInitialValue(self, val, check=True):
         """sets the initial value of the Variable to val
         may of may not be supported by the solver
+        if check is True: we confirm the value is really possible
         """
-        raise NotImplementedError
+        lb = self.lowBound
+        ub = self.upBound
+        config = [('smaller', 'lowBound', lb, lambda: val < lb),
+                  ('greater', 'upBound', ub, lambda: val > ub)]
+
+        for rel, bound_name, bound_value, condition in config:
+            if bound_value is not None and condition():
+                if not check:
+                    return False
+                raise ValueError('In variable {}, initial value {} is {} than {} {}'.
+                                 format(self.name, val, rel, bound_name, bound_value))
+        self.varValue = val
+        return True
+
+    def fixValue(self):
+        """
+        changes lower bound and upper bound to the initial value if exists.
+        :return:
+        """
+        val = self.varValue
+        if val is not None:
+            self.bounds(val, val)
 
 
 class LpAffineExpression(_DICT_TYPE):
@@ -1106,6 +1133,9 @@ class LpProblem(object):
                 or :data:`~pulp.constants.LpMaximize`.
         :return: An LP Problem
         """
+        if ' ' in name:
+            warnings.warn("Spaces are not permitted in the name. Converted to '_'")
+            name = name.replace(" ", "_")
         self.objective = None
         self.constraints = _DICT_TYPE()
         self.name = name
@@ -1508,7 +1538,7 @@ class LpProblem(object):
         constraints, variables) of the defined Lp problem to a file.
 
         :param filename:  the name of the file to be created.
-
+        return variables
         Side Effects:
             - The file is created.
         """
@@ -1587,6 +1617,7 @@ class LpProblem(object):
         f.write("End\n")
         f.close()
         self.restoreObjective(wasNone, objectiveDummyVar)
+        return vs
 
     def checkDuplicateVars(self):
         vs = self.variables()
@@ -2281,6 +2312,7 @@ def read_table(data, coerce_type, transpose=False):
             result[key] = coerce_type(item)
     return result
 
+
 def configSolvers():
     """
     Configure the path the the solvers on the command line
@@ -2288,63 +2320,13 @@ def configSolvers():
     Designed to configure the file locations of the solvers from the
     command line after installation
     """
-    configlist = [(cplex_dll_path,"cplexpath","CPLEX: "),
-                  (coinMP_path, "coinmppath","CoinMP dll (windows only): ")]
+    configlist = [(cplex_dll_path, "cplexpath", "CPLEX: "),
+                  (coinMP_path, "coinmppath", "CoinMP dll (windows only): ")]
     print("Please type the full path including filename and extension \n" +
-           "for each solver available")
+          "for each solver available")
     configdict = {}
     for (default, key, msg) in configlist:
-        value = input(msg + "[" + str(default) +"]")
+        value = input(msg + "[" + str(default) + "]")
         if value:
             configdict[key] = value
     setConfigInformation(**configdict)
-
-
-def pulpTestAll():
-    from .tests import pulpTestSolver
-    solvers = [PULP_CBC_CMD,
-               CPLEX_DLL,
-               CPLEX_CMD,
-               CPLEX_PY,
-               COIN_CMD,
-               COINMP_DLL,
-               GLPK_CMD,
-               XPRESS,
-               GUROBI,
-               GUROBI_CMD,
-               PYGLPK,
-               YAPOSIB,
-               PULP_CHOCO_CMD
-               ]
-
-    failed = False
-    for s in solvers:
-        if s().available():
-            try:
-                pulpTestSolver(s)
-                print("* Solver %s passed." % s)
-            except Exception as e:
-                print(e)
-                print("* Solver", s, "failed.")
-                failed = True
-        else:
-            print("Solver %s unavailable" % s)
-    if failed:
-        raise PulpError("Tests Failed")
-
-def pulpDoctest():
-    """
-    runs all doctests
-    """
-    import doctest
-    if __name__ != '__main__':
-        from . import pulp
-        doctest.testmod(pulp)
-    else:
-        doctest.testmod()
-
-
-if __name__ == '__main__':
-    # Tests
-    pulpTestAll()
-    pulpDoctest()

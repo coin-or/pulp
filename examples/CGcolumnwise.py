@@ -70,10 +70,10 @@ def addPatterns(obj,constraints,newPatterns):
         for j,k in zip(i,Pattern.lenOpts):
             lsum += j * int(k)
         if lsum > Pattern.totalRollLength:
-            raise "Length Options too large for Roll"
+            raise("Length Options too large for Roll")
 
         # The number of rolls of each length in each new pattern is printed
-        print "P"+str(Pattern.numPatterns),"=",i
+        print("P"+str(Pattern.numPatterns),"=",i)
 
         # The patterns are instantiated as Pattern objects
         Patterns += [Pattern("P" + str(Pattern.numPatterns),i)]
