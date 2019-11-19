@@ -2994,7 +2994,7 @@ class MIPCL_CMD(LpSolver_CMD):
         for line in content[1:]:
             name, value = line.split()
             values[name] = float(value)
-        # I´m not sure how this solver announces the optimality
+        # I'm not sure how this solver announces the optimality
         # of a solution so we assume it is integer feasible
         return LpStatusOptimal, values, LpSolutionIntegerFeasible
 
