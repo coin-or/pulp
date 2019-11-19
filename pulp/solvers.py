@@ -2782,7 +2782,7 @@ class CHOCO_CMD(LpSolver_CMD):
     """The CHOCO_CMD solver"""
 
     def defaultPath(self):
-        raise PulpError("PuLP: default path does not exist por CHOCO_CMD")
+        raise PulpSolverError("PuLP: default path does not exist por CHOCO_CMD")
         # return self.executableExtension("choco-parsers-4.0.5-SNAPSHOT-with-dependencies.jar")
 
     def available(self):
@@ -2806,14 +2806,10 @@ class CHOCO_CMD(LpSolver_CMD):
             tmpLp = lp.name + "-pulp.lp"
             tmpMps = lp.name+"-pulp.mps"
             tmpSol = lp.name+"-pulp.sol"
-        lp.writeMPS(tmpMps, mpsSense=lp.sense)
-
         # just to report duplicated variables:
-        repeated_names = lp.checkDuplicateVars()
-        if repeated_names:
-            raise PulpError('Repeated variable names in Lp format\n'
-                            + str(repeated_names))
+        lp.checkDuplicateVars()
 
+        lp.writeMPS(tmpMps, mpsSense=lp.sense)
         try: os.remove(tmpSol)
         except: pass
         cmd = java_path + ' -cp ' + self.path + ' org.chocosolver.parser.mps.ChocoMPS'
@@ -2915,6 +2911,7 @@ class PULP_CHOCO_CMD(CHOCO_CMD):
             # check that the file is executable
             CHOCO_CMD.__init__(self, path=self.pulp_choco_path, *args, **kwargs)
 
+
 class MIPCL_CMD(LpSolver_CMD):
     """The MIPCL_CMD solver"""
 
@@ -2938,13 +2935,11 @@ class MIPCL_CMD(LpSolver_CMD):
             tmpSol = lp.name+"-pulp.sol"
         if lp.sense == LpMaximize:
             raise PulpSolverError("PuLP: MIPCL_CMD cannot handle maximisation problems.")
+        lp.checkDuplicateVars()
+        lp.checkLengthVars(52)
         lp.writeMPS(tmpMps, mpsSense=lp.sense)
 
         # just to report duplicated variables:
-        repeated_names = lp.checkDuplicateVars()
-        if repeated_names:
-            raise PulpError('Repeated variable names:\n' + str(repeated_names))
-
         try: os.remove(tmpSol)
         except: pass
         cmd = self.path
@@ -2982,19 +2977,24 @@ class MIPCL_CMD(LpSolver_CMD):
 
     def readsol(self, filename):
         """Read a MIPCL solution file"""
-
-        status = LpStatusNotSolved
-        sol_status = LpSolutionNoSolutionFound
         with open(filename) as f:
             content = f.readlines()
         content = [l.strip() for l in content]
         values = {}
         if not len(content):
-            return status, values, sol_status
+            return LpStatusNotSolved, values, LpSolutionNoSolutionFound
+        first_line = content[0]
+        if first_line == '=infeas=':
+            return LpStatusInfeasible, values, LpSolutionInfeasible
+        objective, value = first_line.split()
+        # this is a workaround.
+        # Not sure if it always returns this limit when unbounded.
+        if abs(float(value)) >= 9.999999995e+10:
+            return LpStatusUnbounded, values, LpSolutionUnbounded
         for line in content[1:]:
             name, value = line.split()
             values[name] = float(value)
-        status = LpStatusOptimal
-        sol_status = LpSolutionIntegerFeasible
-        return status, values, sol_status
+        # I´m not sure how this solver announces the optimality
+        # of a solution so we assume it is integer feasible
+        return LpStatusOptimal, values, LpSolutionIntegerFeasible
 
