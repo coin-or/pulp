@@ -230,7 +230,10 @@ class LpElement(object):
         return LpAffineExpression(self) >= other
 
     def __eq__(self, other):
-        return LpAffineExpression(self) == other
+        if isinstance(other, LpElement) and self.hash == other.hash:
+            return not self.__ne__(other)
+        else:
+            return LpAffineExpression(self) == other
 
     def __ne__(self, other):
         if isinstance(other, LpVariable):
