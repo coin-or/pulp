@@ -71,8 +71,8 @@ class PuLPTest(unittest.TestCase):
         if self.solver.__class__ in [PULP_CBC_CMD, COIN_CMD]:
             pulpTestCheck(prob, self.solver, [LpStatusInfeasible], {x: 4, y: -1, z: 6, w: 0},
                           use_mps=False)
-        elif self.solver.__class__ in [PULP_CHOCO_CMD, CHOCO_CMD]:
-            # this error is not detected with mps and choco can only use mps files
+        elif self.solver.__class__ in [PULP_CHOCO_CMD, CHOCO_CMD, MIPCL_CMD]:
+            # this error is not detected with mps and choco, MIPCL_CMD can only use mps files
             pass
         else:
             pulpTestCheck(prob, self.solver, [LpStatusInfeasible, LpStatusNotSolved,
@@ -106,7 +106,14 @@ class PuLPTest(unittest.TestCase):
         prob += -y + z == 7, "c3"
         prob += w >= 0, "c4"
         print("\t Testing maximize continuous LP solution")
-        pulpTestCheck(prob, self.solver, [LpStatusOptimal], {x: 4, y: 1, z: 8, w: 0})
+        if self.solver.__class__ in [MIPCL_CMD]:
+            # mipcl has no support for maximizing
+            try:
+                pulpTestCheck(prob, self.solver, [LpStatusOptimal], {x: 4, y: 1, z: 8, w: 0})
+            except PulpSolverError:
+                pass
+        else:
+            pulpTestCheck(prob, self.solver, [LpStatusOptimal], {x: 4, y: 1, z: 8, w: 0})
 
     def test_pulp_012(self):
         # Unbounded
@@ -124,7 +131,7 @@ class PuLPTest(unittest.TestCase):
         if self.solver.__class__ in [GUROBI, CPLEX_CMD, YAPOSIB, CPLEX_PY]:
             # These solvers report infeasible or unbounded
             pulpTestCheck(prob, self.solver, [LpStatusInfeasible, LpStatusUnbounded])
-        elif self.solver.__class__ in [COINMP_DLL, ]:
+        elif self.solver.__class__ in [COINMP_DLL]:
             # COINMP_DLL is just plain wrong
             print('\t\t Error in CoinMP it reports Optimal')
             pulpTestCheck(prob, self.solver, [LpStatusOptimal])
@@ -138,6 +145,12 @@ class PuLPTest(unittest.TestCase):
         elif self.solver.__class__ in [PULP_CHOCO_CMD, CHOCO_CMD]:
             # choco bounds all variables. Would not return unbounded status
             pass
+        elif self.solver.__class__ in [MIPCL_CMD]:
+            # mipcl has no support for maximizing
+            try:
+                pulpTestCheck(prob, self.solver, [LpStatusUndefined])
+            except PulpSolverError:
+                pass
         else:
             pulpTestCheck(prob, self.solver, [LpStatusUnbounded])
 
@@ -154,7 +167,7 @@ class PuLPTest(unittest.TestCase):
         prob += -y + z == 7, "c3"
         prob += w >= 0, "c4"
         print("\t Testing Long Names")
-        if self.solver.__class__ in [CPLEX_CMD, GLPK_CMD, GUROBI_CMD]:
+        if self.solver.__class__ in [CPLEX_CMD, GLPK_CMD, GUROBI_CMD, MIPCL_CMD]:
             try:
                 pulpTestCheck(prob, self.solver, [LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
             except PulpError:
@@ -178,7 +191,7 @@ class PuLPTest(unittest.TestCase):
         print("\t Testing repeated Names")
         if self.solver.__class__ in [COIN_CMD, COINMP_DLL, PULP_CBC_CMD,
                                 CPLEX_CMD, CPLEX_DLL, CPLEX_PY,
-                                GLPK_CMD, GUROBI_CMD, PULP_CHOCO_CMD, CHOCO_CMD]:
+                                GLPK_CMD, GUROBI_CMD, PULP_CHOCO_CMD, CHOCO_CMD, MIPCL_CMD]:
             try:
                 pulpTestCheck(prob, self.solver, [LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
             except PulpError:
@@ -305,8 +318,8 @@ class PuLPTest(unittest.TestCase):
         prob += -y + z == 7.5, "c3"
         self.solver.mip = 0
         print("\t Testing MIP relaxation")
-        if self.solver.__class__ in [GUROBI_CMD, PULP_CHOCO_CMD, CHOCO_CMD]:
-            # gurobi command and choco do not let the problem be relaxed
+        if self.solver.__class__ in [GUROBI_CMD, PULP_CHOCO_CMD, CHOCO_CMD, MIPCL_CMD]:
+            # gurobi command, choco and mipcl do not let the problem be relaxed
             pulpTestCheck(prob, self.solver, [LpStatusOptimal], {x: 3.0, y: -0.5, z: 7})
         else:
             pulpTestCheck(prob, self.solver, [LpStatusOptimal], {x: 3.5, y: -1, z: 6.5})
@@ -648,7 +661,8 @@ def suite():
                GUROBI_CMD,
                PYGLPK,
                YAPOSIB,
-               PULP_CHOCO_CMD
+               PULP_CHOCO_CMD,
+               MIPCL_CMD
                ]
 
     loader = TestLoaderWithKwargs()

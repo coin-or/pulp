@@ -1530,7 +1530,7 @@ class LpProblem(object):
         else:
             return vs, variablesNames, constraintsNames, cobj.name
 
-    def writeLP(self, filename, writeSOS = 1, mip = 1):
+    def writeLP(self, filename, writeSOS = 1, mip = 1, max_length=100):
         """
         Write the given Lp problem to a .lp file.
 
@@ -1567,17 +1567,11 @@ class LpProblem(object):
                     f.write((dummyVar == 0.0).asCplexLpConstraint("_dummy"))
                     dummyWritten = True
             f.write(constraint.asCplexLpConstraint(k))
-        vs = self.variables()
         # check if any names are longer than 100 characters
-        long_names = [v.name for v in vs if len(v.name) > 100]
-        if long_names:
-            raise PulpError('Variable names too long for Lp format\n'
-                                + str(long_names))
+        self.checkLengthVars(max_length)
+        vs = self.variables()
         # check for repeated names
-        repeated_names = self.checkDuplicateVars()
-        if repeated_names:
-            raise PulpError('Repeated variable names in Lp format\n'
-                            + str(repeated_names))
+        self.checkDuplicateVars()
         # Bounds on non-"positive" variables
         # Note: XPRESS and CPLEX do not interpret integer variables without
         # explicit bounds
@@ -1627,7 +1621,17 @@ class LpProblem(object):
             repeated_names[v.name] = repeated_names.get(v.name, 0) + 1
         repeated_names = [(key, value) for key, value in list(repeated_names.items())
                           if value >= 2]
-        return repeated_names
+        if repeated_names:
+            raise PulpError('Repeated variable names:\n' + str(repeated_names))
+        return 1
+
+    def checkLengthVars(self, max_length):
+        vs = self.variables()
+        long_names = [v.name for v in vs if len(v.name) > max_length]
+        if long_names:
+            raise PulpError('Variable names too long for Lp format\n'
+                                + str(long_names))
+        return 1
 
     def assignVarsVals(self, values):
         variables = self.variablesDict()
