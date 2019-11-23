@@ -29,7 +29,7 @@ Examples
 
 See the examples directory for examples.
 
-PuLP requires Python >= 2.6.
+PuLP requires Python >= 2.7.
 
 The examples use the default solver (CBC), to use other solvers they must be available.
 
