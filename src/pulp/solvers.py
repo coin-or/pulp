@@ -2904,6 +2904,8 @@ class MOSEK(LpSolver):
             raise PulpSolverError("MOSEK : Not Available")
     else:
         def __init__(self, mip = True, msg = True, mosek_pars = {}, task_file_name = "", sol_type = mosek.soltype.bas):
+            #Initialize the MOSEK solver.
+            #For a complete list of valid MOSEK parameters, check MOSEK online documentation.
             self.mip = mip
             self.msg = msg
             self.task_file_name = task_file_name
@@ -2918,7 +2920,7 @@ class MOSEK(LpSolver):
             sys.stdout.write(text)
             sys.stdout.flush()
 
-        def buildSolverModel(self, lp, inf=1e20, LpObjSenses = {LpMaximize:-1, LpMinimize:1}):
+        def buildSolverModel(self, lp, inf=1e20):
             self.cons = lp.constraints
             self.numcons = len(self.cons)
             self.cons_dict = {}
@@ -2930,11 +2932,7 @@ class MOSEK(LpSolver):
             self.numvars = len(self.vars)
             self.var_dict = {}
             #Checking for repeated names
-            repeated_names = {}
-            for v in self.vars:
-                repeated_names[v.name] = repeated_names.get(v.name, 0) + 1
-            repeated_names = [(key, value) for key, value in list(repeated_names.items()) if value >= 2]
-            if repeated_names:
+            if len(lp.checkDuplicateVars())>0:
                 raise PulpError('Variables must have unique names for MOSEK-PuLP interface.')
             #Creating a MOSEK environment
             self.env = mosek.Env()
@@ -2975,7 +2973,6 @@ class MOSEK(LpSolver):
             self.task.putaijlist(self.A_rows,self.A_cols,self.A_vals)
             #Constraints
             self.constraint_data_list = []
-            row_i = 0
             for c in self.cons:
                 cname = self.cons[c].name
                 if cname != None:
@@ -2987,14 +2984,14 @@ class MOSEK(LpSolver):
                 clow = -inf
                 cup = inf
                 #Constraint bounds
-                if csense == 0:
+                if csense == LpConstraintEQ:
                     cbkey = mosek.boundkey.fx
                     clow = cconst
                     cup = cconst
-                elif csense == 1:
+                elif csense == LpConstraintGE:
                     cbkey = mosek.boundkey.lo
                     clow = cconst
-                elif csense == -1:
+                elif csense == LpConstraintLE:
                     cbkey = mosek.boundkey.up
                     cup = cconst
                 else:
@@ -3003,7 +3000,7 @@ class MOSEK(LpSolver):
             self.cons_id_list,self.cbkey_list,self.clow_list,self.cup_list = zip(*self.constraint_data_list)
             self.task.putconboundlist(self.cons_id_list,self.cbkey_list,self.clow_list,self.cup_list)
             #Objective sense
-            if LpObjSenses[lp.sense] == -1:
+            if lp.sense == LpMaximize:
                 self.task.putobjsense(mosek.objsense.maximize)
             else:
                 self.task.putobjsense(mosek.objsense.minimize)
@@ -3073,7 +3070,7 @@ class MOSEK(LpSolver):
                 elif par.startswith("MSK_SPAR_"):
                     self.task.putnastrparam(par, val)
                 else:
-                    raise Exception("Invalid MOSEK parameter '%s'." % par)
+                    raise PulpSolverError("Invalid MOSEK parameter: '{}'. Check MOSEK documentation for a list of valid parameters.".format(par))
 
         def actualSolve(self, lp):
             self.buildSolverModel(lp)
@@ -3089,7 +3086,7 @@ class MOSEK(LpSolver):
             if self.msg:
                 self.task.solutionsummary(mosek.streamtype.msg)
             self.findSolutionValues(lp)
-            lp.status = self.solution_status_dict[self.solsta]
+            lp.assignStatus(self.solution_status_dict[self.solsta])
             for var in lp.variables():
                 var.modified = False
             for con in lp.constraints.values():
@@ -3104,14 +3101,14 @@ class MOSEK(LpSolver):
                     clow = -inf
                     cup = inf
                     #Constraint bounds
-                    if csense == 0:
+                    if csense == LpConstraintEQ:
                         cbkey = mosek.boundkey.fx
                         clow = cconst
                         cup = cconst
-                    elif csense == 1:
+                    elif csense == LpConstraintGE:
                         cbkey = mosek.boundkey.lo
                         clow = cconst
-                    elif csense == -1:
+                    elif csense == LpConstraintLE:
                         cbkey = mosek.boundkey.up
                         cup = cconst
                     else:
@@ -3119,8 +3116,8 @@ class MOSEK(LpSolver):
                     self.task.putconbound(self.cons_dict[c],cbkey,clow,cup)
             #Re-solve
             self.task.optimize()
-            self.findSolutionvalues(lp)
-            lp.status = self.solution_status_dict[self.solsta]
+            self.findSolutionValues(lp)
+            lp.assignStatus(self.solution_status_dict[self.solsta])
             for var in lp.variables():
                 var.modified = False
             for con in lp.constraints.values(): 
