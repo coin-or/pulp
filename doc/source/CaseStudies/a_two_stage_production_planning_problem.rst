@@ -1,5 +1,5 @@
 A Two Stage Production Planning Problem
-============================
+=======================================
 
 In a production planning problem, the decision maker must decide how to purchase material,
 labor, and other resources in order to produce end products to maximize profit.
@@ -72,17 +72,18 @@ that it is added to the problem using `+=`.
 .. literalinclude:: ../../../examples/Two_stage_Stochastic_GemstoneTools.py
     :lines: 69-72
 
-We specify the total number of tables allowed in the solution.
+We then add in constraints.  Constraints here in sets based on scenarios
+and products and are specified using the `for i in list:` notation.
+Within each constraint, summations are expressed using list comprehensions.
+Note that constraints are differentiated from the objective function as each
+constraint ends in a logical comparison (usually <= or >=, but can be ==) while
+Finally, here, the file gives each constraint a name which includes the specific
+scenario or product the constraint applies to.
 
-.. literalinclude:: ../../../examples/wedding.py
-    :lines: 34-35
+.. literalinclude:: ../../../examples/Two_stage_Stochastic_GemstoneTools.py
+    :lines: 73-85
 
-This set of constraints defines the set partitioning problem by guaranteeing that a guest is allocated to
-exactly one table.
 
-.. literalinclude:: ../../../examples/wedding.py
-    :lines: 38-41
+The full file can be found here `Two_stage_Stochastic_GemstoneTools.py <https://projects.coin-or.org/PuLP/browser/trunk/examples/Two_stage_Stochastic_GemstoneTools.py?format=txt>`
 
-The full file can be found here `wedding.py <https://projects.coin-or.org/PuLP/browser/trunk/examples/wedding.py?format=txt>`_
-
-.. literalinclude:: ../../../examples/wedding.py
+.. literalinclude:: ../../../examples/Two_stage_Stochastic_GemstoneTools.py

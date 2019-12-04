@@ -83,7 +83,7 @@ for j in scenarios:
                                 ("assembly capacity" +str(j))
     for i in products:
         gemstoneprob += production_vars[j][i] <= capacity_dict[i], \
-                                            ("capacity " + i + str(j))
+                                            ("capacity " + str(i) + str(j))
 
 # Print problem
 print(gemstoneprob)
