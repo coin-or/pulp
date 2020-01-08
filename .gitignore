@@ -60,3 +60,6 @@ py-ve*
 
 #cloud9
 .c9
+
+#pycharm
+.idea/
