@@ -62,8 +62,10 @@ if os.name == "posix" and sys.version_info[0] < 3:
         log.debug("Thread-safe subprocess32 module not found! "
                   "Using unsafe built-in subprocess module instead.")
         import subprocess
+    devnull = open(os.devnull, 'wb')
 else:
     import subprocess
+    devnull = subprocess.DEVNULL
 
 class PulpSolverError(PulpError):
     """
@@ -1473,11 +1475,7 @@ class COIN_CMD(LpSolver_CMD):
         args = []
         args.append(self.path)
         args.extend(cmds[1:].split())
-        if sys.version_info[0] < 3:
-            devnull = open(os.devnull, 'wb')
-            cbc = subprocess.Popen(args, stdout = pipe, stderr = pipe, stdin = devnull)
-        else:
-            cbc = subprocess.Popen(args, stdout = pipe, stderr = pipe, stdin = subprocess.DEVNULL)
+        cbc = subprocess.Popen(args, stdout = pipe, stderr = pipe, stdin=devnull)
         if cbc.wait() != 0:
             raise PulpSolverError("Pulp: Error while trying to execute " +  \
                                     self.path)
