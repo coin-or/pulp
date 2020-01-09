@@ -529,27 +529,9 @@ class AmplyTest(unittest.TestCase):
         assert result[2,3] == 4
         assert result[3,4] == 5
 
-    def test_comment():
-        result = Amply(
-            """
-            # a comment
-            set elem dimen 2;
-            param foo{elem};
-            param foo :=
-                1   2   3
-                2   3   4
-                3   4   5
-            ;
-            """
-        )['foo']
+    def test_empty_tabbing_parameter_statement(self):
 
-        f = result[1,2]
-        assert f == 3
-        assert result[2,3] == 4
-        assert result[3,4] == 5
-
-    def test_empty_tabbing_parameter_statement():
-        result = Amply(
+        result = amply.Amply(
             """
             set x;
             param square {x};
@@ -558,9 +540,24 @@ class AmplyTest(unittest.TestCase):
             """
         )
         assert 'square' in result.symbols.keys()
+        assert result.square == {}
 
-    def test_empty_parameter_statement():
-        result = Amply(
+    def test_empty_tabbing_parameters(self):
+
+        result = amply.Amply(
+            """
+            set x;
+            param square {x};
+            param triangle {x};
+            param default 99 : square triangle :=
+            ;
+            """
+        )
+        assert 'square' in result.symbols.keys()
+        assert result.square == {}
+
+    def test_empty_parameter_statement(self):
+        result = amply.Amply(
             """
             param square {x};
             param square default 99 :=
@@ -568,6 +565,7 @@ class AmplyTest(unittest.TestCase):
             """
         )
         assert 'square' in result.symbols.keys()
+        assert result.square == {}
 
 
 

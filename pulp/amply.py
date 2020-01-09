@@ -697,16 +697,14 @@ else:
             Group(OneOrMore(param_record)).setResultsName('records') + END
     param_stmt.setParseAction(ParamStmt)
 
-    param_tabbing_stmt = "param" + param_default + ':' + Optional(symbol + ':') + \
+    param_tabbing_stmt = "param" + param_default + ':' + Optional(symbol + ': ') + \
             OneOrMore(data).setResultsName('params') \
-            + ':=' + OneOrMore(single).setResultsName('data') + END
+            + ':=' + ZeroOrMore(single).setResultsName('data') + END
     param_tabbing_stmt.setParseAction(ParamTabbingStmt)
 
     param_def_stmt = "param" + symbol + Optional(subscript_domain) + \
             param_default + END
     param_def_stmt.setParseAction(ParamDefStmt)
-
-    # comment = "#" + SkipTo(lineEnd)
 
     stmts = set_stmt | set_def_stmt | param_stmt | param_def_stmt | \
             param_tabbing_stmt
