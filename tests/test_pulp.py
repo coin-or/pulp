@@ -128,11 +128,7 @@ class PuLPTest(unittest.TestCase):
         prob += -y + z == 7, "c3"
         prob += w >= 0, "c4"
         print("\t Testing unbounded continuous LP solution")
-<<<<<<< HEAD
         if self.solver.__class__ in [GUROBI, CPLEX_CMD, YAPOSIB, CPLEX_PY, MOSEK]:
-=======
-        if self.solver.__class__ in [GUROBI, CPLEX_CMD, YAPOSIB, CPLEX_PY]:
->>>>>>> 815754330559b07b5273d107a2a59f30a489e788
             # These solvers report infeasible or unbounded
             pulpTestCheck(prob, self.solver, [LpStatusInfeasible, LpStatusUnbounded])
         elif self.solver.__class__ in [COINMP_DLL]:
@@ -195,11 +191,7 @@ class PuLPTest(unittest.TestCase):
         print("\t Testing repeated Names")
         if self.solver.__class__ in [COIN_CMD, COINMP_DLL, PULP_CBC_CMD,
                                 CPLEX_CMD, CPLEX_DLL, CPLEX_PY,
-<<<<<<< HEAD
                                 GLPK_CMD, GUROBI_CMD, PULP_CHOCO_CMD, CHOCO_CMD, MIPCL_CMD, MOSEK]:
-=======
-                                GLPK_CMD, GUROBI_CMD, PULP_CHOCO_CMD, CHOCO_CMD, MIPCL_CMD]:
->>>>>>> 815754330559b07b5273d107a2a59f30a489e788
             try:
                 pulpTestCheck(prob, self.solver, [LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
             except PulpError:
@@ -373,11 +365,7 @@ class PuLPTest(unittest.TestCase):
         prob += x + z >= 10.3, "c2"
         prob += -y + z == 7.4, "c3"
         print("\t Testing an integer infeasible problem")
-<<<<<<< HEAD
         if self.solver.__class__ in [GLPK_CMD, COIN_CMD, PULP_CBC_CMD, MOSEK]:
-=======
-        if self.solver.__class__ in [GLPK_CMD, COIN_CMD, PULP_CBC_CMD]:
->>>>>>> 815754330559b07b5273d107a2a59f30a489e788
             # GLPK_CMD returns InfeasibleOrUnbounded
             pulpTestCheck(prob, self.solver, [LpStatusInfeasible, LpStatusUndefined])
         elif self.solver.__class__ in [COINMP_DLL]:
@@ -593,11 +581,7 @@ class PuLPTest(unittest.TestCase):
         prob += -y + z == 7, "c3"
         prob.extend((w >= -1).makeElasticSubProblem(penalty=0.9))
         print("\t Testing elastic constraints (penalty unbounded)")
-<<<<<<< HEAD
         if self.solver.__class__ in [COINMP_DLL, GUROBI, CPLEX_CMD, CPLEX_PY, YAPOSIB, MOSEK]:
-=======
-        if self.solver.__class__ in [COINMP_DLL, GUROBI, CPLEX_CMD, CPLEX_PY, YAPOSIB]:
->>>>>>> 815754330559b07b5273d107a2a59f30a489e788
             # COINMP_DLL Does not report unbounded problems, correctly
             pulpTestCheck(prob, self.solver, [LpStatusInfeasible, LpStatusUnbounded])
         elif self.solver.__class__ is GLPK_CMD:
