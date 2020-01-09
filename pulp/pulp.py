@@ -57,7 +57,7 @@ become the objective.
 >>> prob += -4*x + y
 
 Choose a solver and solve the problem. ex:
->>> status = prob.solve(GLPK(msg = 0))
+>>> status = prob.solve(PULP_CBC_CMD(msg = 0))
 
 Display the status of the solution
 >>> LpStatus[status]
@@ -100,7 +100,11 @@ import warnings
 
 from .constants import *
 from .solvers import *
-from collections import Iterable
+try:
+    from collections.abc import Iterable
+except ImportError:
+    # python 2.7 compatible 
+    from collections import Iterable
 
 import logging
 log = logging.getLogger(__name__)
@@ -134,6 +138,7 @@ def setConfigInformation(**keywords):
     the keyword value pairs come from the keywords dictionary
     """
     #TODO: extend if we ever add another section in the config file
+    # TODO: we're using ConfigParser without importing it??
     #read the old configuration
     config = ConfigParser.SafeConfigParser()
     config.read(config_filename)
@@ -491,11 +496,33 @@ class LpVariable(LpElement):
         for constraint, coeff in e.items():
             constraint.addVariable(self,coeff)
 
-    def setInitialValue(self,val):
+    def setInitialValue(self, val, check=True):
         """sets the initial value of the Variable to val
         may of may not be supported by the solver
+        if check is True: we confirm the value is really possible
         """
-        raise NotImplementedError
+        lb = self.lowBound
+        ub = self.upBound
+        config = [('smaller', 'lowBound', lb, lambda: val < lb),
+                  ('greater', 'upBound', ub, lambda: val > ub)]
+
+        for rel, bound_name, bound_value, condition in config:
+            if bound_value is not None and condition():
+                if not check:
+                    return False
+                raise ValueError('In variable {}, initial value {} is {} than {} {}'.
+                                 format(self.name, val, rel, bound_name, bound_value))
+        self.varValue = val
+        return True
+
+    def fixValue(self):
+        """
+        changes lower bound and upper bound to the initial value if exists.
+        :return:
+        """
+        val = self.varValue
+        if val is not None:
+            self.bounds(val, val)
 
 
 class LpAffineExpression(_DICT_TYPE):
@@ -1106,6 +1133,9 @@ class LpProblem(object):
                 or :data:`~pulp.constants.LpMaximize`.
         :return: An LP Problem
         """
+        if ' ' in name:
+            warnings.warn("Spaces are not permitted in the name. Converted to '_'")
+            name = name.replace(" ", "_")
         self.objective = None
         self.constraints = _DICT_TYPE()
         self.name = name
@@ -1500,7 +1530,7 @@ class LpProblem(object):
         else:
             return vs, variablesNames, constraintsNames, cobj.name
 
-    def writeLP(self, filename, writeSOS = 1, mip = 1):
+    def writeLP(self, filename, writeSOS = 1, mip = 1, max_length=100):
         """
         Write the given Lp problem to a .lp file.
 
@@ -1508,7 +1538,7 @@ class LpProblem(object):
         constraints, variables) of the defined Lp problem to a file.
 
         :param filename:  the name of the file to be created.
-
+        return variables
         Side Effects:
             - The file is created.
         """
@@ -1537,17 +1567,11 @@ class LpProblem(object):
                     f.write((dummyVar == 0.0).asCplexLpConstraint("_dummy"))
                     dummyWritten = True
             f.write(constraint.asCplexLpConstraint(k))
-        vs = self.variables()
         # check if any names are longer than 100 characters
-        long_names = [v.name for v in vs if len(v.name) > 100]
-        if long_names:
-            raise PulpError('Variable names too long for Lp format\n'
-                                + str(long_names))
+        self.checkLengthVars(max_length)
+        vs = self.variables()
         # check for repeated names
-        repeated_names = self.checkDuplicateVars()
-        if repeated_names:
-            raise PulpError('Repeated variable names in Lp format\n'
-                            + str(repeated_names))
+        self.checkDuplicateVars()
         # Bounds on non-"positive" variables
         # Note: XPRESS and CPLEX do not interpret integer variables without
         # explicit bounds
@@ -1587,6 +1611,7 @@ class LpProblem(object):
         f.write("End\n")
         f.close()
         self.restoreObjective(wasNone, objectiveDummyVar)
+        return vs
 
     def checkDuplicateVars(self):
         vs = self.variables()
@@ -1596,7 +1621,17 @@ class LpProblem(object):
             repeated_names[v.name] = repeated_names.get(v.name, 0) + 1
         repeated_names = [(key, value) for key, value in list(repeated_names.items())
                           if value >= 2]
-        return repeated_names
+        if repeated_names:
+            raise PulpError('Repeated variable names:\n' + str(repeated_names))
+        return 1
+
+    def checkLengthVars(self, max_length):
+        vs = self.variables()
+        long_names = [v.name for v in vs if len(v.name) > max_length]
+        if long_names:
+            raise PulpError('Variable names too long for Lp format\n'
+                                + str(long_names))
+        return 1
 
     def assignVarsVals(self, values):
         variables = self.variablesDict()
@@ -2281,6 +2316,7 @@ def read_table(data, coerce_type, transpose=False):
             result[key] = coerce_type(item)
     return result
 
+
 def configSolvers():
     """
     Configure the path the the solvers on the command line
@@ -2288,17 +2324,16 @@ def configSolvers():
     Designed to configure the file locations of the solvers from the
     command line after installation
     """
-    configlist = [(cplex_dll_path,"cplexpath","CPLEX: "),
-                  (coinMP_path, "coinmppath","CoinMP dll (windows only): ")]
+    configlist = [(cplex_dll_path, "cplexpath", "CPLEX: "),
+                  (coinMP_path, "coinmppath", "CoinMP dll (windows only): ")]
     print("Please type the full path including filename and extension \n" +
-           "for each solver available")
+          "for each solver available")
     configdict = {}
     for (default, key, msg) in configlist:
-        value = input(msg + "[" + str(default) +"]")
+        value = input(msg + "[" + str(default) + "]")
         if value:
             configdict[key] = value
     setConfigInformation(**configdict)
-
 
 def pulpTestAll():
     from .tests import pulpTestSolver
