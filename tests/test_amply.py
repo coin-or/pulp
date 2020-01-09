@@ -567,7 +567,24 @@ class AmplyTest(unittest.TestCase):
         assert 'square' in result.symbols.keys()
         assert result.square == {}
 
-
+    def test_high_dim_tabbing(self):
+        result = amply.Amply(
+            """
+            set x;
+            set y;
+            param square {x,y};
+            param default 99 : square :=
+            a a 34
+            a b 35
+            a c 36
+            b a 53
+            b b 45.3
+            b c 459.2
+            ;
+            """
+        )
+        assert 'square' in result.symbols.keys()
+        assert result.square == {}
 
 if __name__ == '__main__':
     unittest.main()
