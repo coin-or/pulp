@@ -3,8 +3,6 @@ matrix:
   include:
     # Ubuntu 14.04 LTS (Trusty Tahr)
     - dist: trusty
-      python: 2.6
-    - dist: trusty
       python: 2.7
     - dist: trusty
       python: 3.3
@@ -36,7 +34,7 @@ before_install:
 install:
 - pip install .
 
-script: pulptest
+script: python tests/run_tests.py
 
 before_deploy:
 - sudo apt-get install texlive-latex-extra

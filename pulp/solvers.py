@@ -33,9 +33,10 @@ the current version
 import os
 import sys
 try:
-    from time import clock
-except ImportError:
     from time import perf_counter as clock
+except ImportError:
+    from time import clock
+    
 from uuid import uuid4
 try:
     import configparser
@@ -297,7 +298,7 @@ class LpSolver:
 
 class LpSolver_CMD(LpSolver):
     """A generic command line LP Solver"""
-    def __init__(self, path=None, keepFiles=0, mip=1, msg=1, options=[]):
+    def __init__(self, path=None, keepFiles=0, mip=1, msg=1, options=[], mip_start=False):
         LpSolver.__init__(self, mip, msg, options)
         if path is None:
             self.path = self.defaultPath()
@@ -305,6 +306,7 @@ class LpSolver_CMD(LpSolver):
             self.path = path
         self.keepFiles = keepFiles
         self.setTmpDir()
+        self.mip_start = mip_start
 
     def copy(self):
         """Make a copy of self"""
@@ -464,8 +466,8 @@ class CPLEX_CMD(LpSolver_CMD):
     """The CPLEX LP solver"""
 
     def __init__(self, path = None, keepFiles = 0, mip = 1,
-            msg = 0, options = [], timelimit = None):
-        LpSolver_CMD.__init__(self, path, keepFiles, mip, msg, options)
+            msg = 0, options = [], timelimit = None, mip_start=False):
+        LpSolver_CMD.__init__(self, path, keepFiles, mip, msg, options, mip_start)
         self.timelimit = timelimit
 
     def defaultPath(self):
@@ -483,10 +485,12 @@ class CPLEX_CMD(LpSolver_CMD):
             uuid = uuid4().hex
             tmpLp = os.path.join(self.tmpDir, "%s-pulp.lp" % uuid)
             tmpSol = os.path.join(self.tmpDir, "%s-pulp.sol" % uuid)
+            tmpMst = os.path.join(self.tmpDir, "%s-pulp.mst" % uuid)
         else:
             tmpLp = lp.name+"-pulp.lp"
             tmpSol = lp.name+"-pulp.sol"
-        lp.writeLP(tmpLp, writeSOS = 1)
+            tmpMst = lp.name+"-pulp.mst"
+        vs = lp.writeLP(tmpLp, writeSOS = 1)
         try: os.remove(tmpSol)
         except: pass
         if not self.msg:
@@ -494,7 +498,12 @@ class CPLEX_CMD(LpSolver_CMD):
                 stdout = subprocess.PIPE, stderr = subprocess.PIPE)
         else:
             cplex = subprocess.Popen(self.path, stdin = subprocess.PIPE)
-        cplex_cmds = "read "+tmpLp+"\n"
+        cplex_cmds = "read " + tmpLp + "\n"
+        if self.mip_start:
+            self.writesol(filename=tmpMst, vs=vs)
+            cplex_cmds += "read " + tmpMst + "\n"
+            cplex_cmds += 'set advance 1\n'
+
         if self.timelimit is not None:
             cplex_cmds += "set timelimit " + str(self.timelimit) + "\n"
         for option in self.options:
@@ -505,7 +514,6 @@ class CPLEX_CMD(LpSolver_CMD):
                 cplex_cmds += "change problem fixed\n"
             else:
                 cplex_cmds += "change problem lp\n"
-
         cplex_cmds += "optimize\n"
         cplex_cmds += "write "+tmpSol+"\n"
         cplex_cmds += "quit\n"
@@ -513,18 +521,16 @@ class CPLEX_CMD(LpSolver_CMD):
         cplex.communicate(cplex_cmds)
         if cplex.returncode != 0:
             raise PulpSolverError("PuLP: Error while trying to execute "+self.path)
-        if not self.keepFiles:
-            try: os.remove(tmpLp)
-            except: pass
         if not os.path.exists(tmpSol):
             status = LpStatusInfeasible
         else:
             status, values, reducedCosts, shadowPrices, slacks = self.readsol(tmpSol)
         if not self.keepFiles:
-            try: os.remove(tmpSol)
-            except: pass
-            try: os.remove("cplex.log")
-            except: pass
+            for file in [tmpMst, tmpMst, tmpSol, "cplex.log"]:
+                try:
+                    os.remove(file)
+                except:
+                    pass
         if status != LpStatusInfeasible:
             lp.assignVarsVals(values)
             lp.assignVarsDj(reducedCosts)
@@ -552,8 +558,6 @@ class CPLEX_CMD(LpSolver_CMD):
 
         shadowPrices = {}
         slacks = {}
-        shadowPrices = {}
-        slacks = {}
         constraints = solutionXML.find("linearConstraints")
         for constraint in constraints:
                 name = constraint.get("name")
@@ -572,6 +576,28 @@ class CPLEX_CMD(LpSolver_CMD):
                 reducedCosts[name] = float(reducedCost)
 
         return status, values, reducedCosts, shadowPrices, slacks
+
+    def writesol(self, filename, vs):
+        """Writes a CPLEX solution file"""
+        try:
+            import xml.etree.ElementTree as et
+        except ImportError:
+            import elementtree.ElementTree as et
+        root = et.Element('CPLEXSolution', version="1.2")
+        attrib_head = dict()
+        attrib_quality = dict()
+        et.SubElement(root, 'header', attrib=attrib_head)
+        et.SubElement(root, 'header', attrib=attrib_quality)
+        variables = et.SubElement(root, 'variables')
+
+        values = [(v.name, v.value()) for v in vs if v.value() is not None]
+        for index, (name, value) in enumerate(values):
+            attrib_vars = dict(name=name, value = str(value), index=str(index))
+            et.SubElement(variables, 'variable', attrib=attrib_vars)
+        mst = et.ElementTree(root)
+        mst.write(filename, encoding='utf-8', xml_declaration=True)
+
+        return True
 
 def CPLEX_DLL_load_dll(path):
     """
@@ -1003,7 +1029,7 @@ except (ImportError,OSError):
 
 try:
     import cplex
-except (ImportError):
+except (Exception) as e:
     class CPLEX_PY(LpSolver):
         """The CPLEX LP/MIP solver from python PHANTOM Something went wrong!!!!"""
         def available(self):
@@ -1011,7 +1037,7 @@ except (ImportError):
             return False
         def actualSolve(self, lp):
             """Solve a well formulated lp problem"""
-            raise PulpSolverError("CPLEX_PY: Not Available")
+            raise PulpSolverError("CPLEX_PY: Not Available: " + str(e))
 else:
     class CPLEX_PY(LpSolver):
         """
@@ -1356,8 +1382,8 @@ class COIN_CMD(LpSolver_CMD):
     def __init__(self, path = None, keepFiles = 0, mip = 1,
             msg = 0, cuts = None, presolve = None, dual = None,
             strong = None, options = [],
-            fracGap = None, maxSeconds = None, threads = None):
-        LpSolver_CMD.__init__(self, path, keepFiles, mip, msg, options)
+            fracGap = None, maxSeconds = None, threads = None, mip_start=False):
+        LpSolver_CMD.__init__(self, path, keepFiles, mip, msg, options, mip_start)
         self.cuts = cuts
         self.presolve = presolve
         self.dual = dual
@@ -1396,19 +1422,27 @@ class COIN_CMD(LpSolver_CMD):
             tmpLp = os.path.join(self.tmpDir, "%s-pulp.lp" % uuid)
             tmpMps = os.path.join(self.tmpDir, "%s-pulp.mps" % uuid)
             tmpSol = os.path.join(self.tmpDir, "%s-pulp.sol" % uuid)
+            tmpSol_init = os.path.join(self.tmpDir, "%s-pulp_init.sol" % uuid)
         else:
             tmpLp = lp.name+"-pulp.lp"
             tmpMps = lp.name+"-pulp.mps"
             tmpSol = lp.name+"-pulp.sol"
+            tmpSol_init = lp.name + "-pulp_init.sol"
         if use_mps:
-            vs, variablesNames, constraintsNames, objectiveName = lp.writeMPS(
-                        tmpMps, rename = 1)
+            vs, variablesNames, constraintsNames, objectiveName = lp.writeMPS(tmpMps, rename = 1)
             cmds = ' '+tmpMps+" "
             if lp.sense == LpMaximize:
                 cmds += 'max '
         else:
-            lp.writeLP(tmpLp)
+            vs = lp.writeLP(tmpLp)
+            # In the Lp we do not create new variable or constraint names:
+            variablesNames = dict((v.name, v.name) for v in vs)
+            constraintsNames = dict((c, c) for c in lp.constraints)
+            objectiveName = None
             cmds = ' '+tmpLp+" "
+        if self.mip_start:
+            self.writesol(tmpSol_init, lp, vs, variablesNames, constraintsNames)
+            cmds += 'mips {} '.format(tmpSol_init)
         if self.threads:
             cmds += "threads %s "%self.threads
         if self.fracGap is not None:
@@ -1421,7 +1455,6 @@ class COIN_CMD(LpSolver_CMD):
             cmds += "strong %d " % self.strong
         if self.cuts:
             cmds += "gomory on "
-            #cbc.write("oddhole on "
             cmds += "knapsack on "
             cmds += "probing on "
         for option in self.options:
@@ -1448,50 +1481,29 @@ class COIN_CMD(LpSolver_CMD):
             pipe.close()
         if not os.path.exists(tmpSol):
             raise PulpSolverError("Pulp: Error while executing "+self.path)
-        if use_mps:
-            status, values, reducedCosts, shadowPrices, slacks, sol_status = self.readsol_MPS(
-                        tmpSol, lp, lp.variables(),
-                        variablesNames, constraintsNames, objectiveName)
-        else:
-            status, values, reducedCosts, shadowPrices, slacks, sol_status = self.readsol_LP(
-                    tmpSol, lp, lp.variables())
+        status, values, reducedCosts, shadowPrices, slacks, sol_status = \
+            self.readsol_MPS(tmpSol, lp, lp.variables(), variablesNames, constraintsNames)
         lp.assignVarsVals(values)
         lp.assignVarsDj(reducedCosts)
         lp.assignConsPi(shadowPrices)
         lp.assignConsSlack(slacks, activity=True)
         lp.assignStatus(status, sol_status)
         if not self.keepFiles:
-            try:
-                os.remove(tmpMps)
-            except:
-                pass
-            try:
-                os.remove(tmpLp)
-            except:
-                pass
-            try:
-                os.remove(tmpSol)
-            except:
-                pass
+            for f in [tmpMps, tmpLp, tmpSol, tmpSol_init]:
+                try:
+                    os.remove(f)
+                except:
+                    pass
         return status
 
-    def readsol_MPS(self, filename, lp, vs, variablesNames, constraintsNames,
-                objectiveName):
+    def readsol_MPS(self, filename, lp, vs, variablesNames, constraintsNames, objectiveName=None):
         """
-        Read a CBC solution file generated from an mps file (different names)
+        Read a CBC solution file generated from an mps or lp file (possible different names)
         """
-        values = {}
+        values = dict((v.name, 0) for v in vs)
 
-        reverseVn = {}
-        for k, n in variablesNames.items():
-            reverseVn[n] = k
-        reverseCn = {}
-        for k, n in constraintsNames.items():
-            reverseCn[n] = k
-
-
-        for v in vs:
-            values[v.name] = 0.0
+        reverseVn = dict((v, k) for k, v in variablesNames.items())
+        reverseCn = dict((v, k) for k, v in constraintsNames.items())
 
         reducedCosts = {}
         shadowPrices = {}
@@ -1516,34 +1528,30 @@ class COIN_CMD(LpSolver_CMD):
                     shadowPrices[reverseCn[vn]] = float(dj)
         return status, values, reducedCosts, shadowPrices, slacks, sol_status
 
+    def writesol(self, filename, lp, vs, variablesNames, constraintsNames):
+        """
+        Writes a CBC solution file generated from an mps / lp file (possible different names)
+        returns True on success
+        """
+        values = dict((v.name, v.value() if v.value() is not None else 0) for v in vs)
+        value_lines = []
+        value_lines += [(i, v, values[k], 0) for i, (k, v) in enumerate(variablesNames.items())]
+        lines = ['Stopped on time - objective value 0\n']
+        lines += ["{0:>7} {1} {2:>15} {3:>23}\n".format(*tup) for tup in value_lines]
+
+        with open(filename, 'w') as f:
+            f.writelines(lines)
+
+        return True
+
     def readsol_LP(self, filename, lp, vs):
         """
         Read a CBC solution file generated from an lp (good names)
+        returns status, values, reducedCosts, shadowPrices, slacks, sol_status
         """
-        values = {}
-        reducedCosts = {}
-        shadowPrices = {}
-        slacks = {}
-        for v in vs:
-            values[v.name] = 0.0
-        status, sol_status = self.get_status(filename)
-        with open(filename) as f:
-            for l in f:
-                if len(l)<=2:
-                    break
-                l = l.split()
-                if l[0] == '**':
-                    l = l[1:]
-                vn = l[1]
-                val = l[2]
-                dj = l[3]
-                if vn in values:
-                    values[vn] = float(val)
-                    reducedCosts[vn] = float(dj)
-                if vn in lp.constraints:
-                    slacks[vn] = float(val)
-                    shadowPrices[vn] = float(dj)
-        return status, values, reducedCosts, shadowPrices, slacks, sol_status
+        variablesNames = dict((v.name, v.name) for v in vs)
+        constraintsNames = dict((c, c) for c in lp.constraints)
+        return self.readsol_MPS(filename, lp, vs, variablesNames, constraintsNames)
 
     def get_status(self, filename):
         cbcStatus = {'Optimal': LpStatusOptimal,
@@ -1666,8 +1674,7 @@ class COINMP_DLL(LpSolver):
 
         def copy(self):
             """Make a copy of self"""
-
-            aCopy = LpSolver.copy()
+            aCopy = LpSolver.copy(self)
             aCopy.cuts = self.cuts
             aCopy.presolve = self.presolve
             aCopy.dual = self.dual
@@ -2001,22 +2008,35 @@ class GUROBI_CMD(LpSolver_CMD):
 
     def actualSolve(self, lp):
         """Solve a well formulated lp problem"""
+        # TODO: workaround for python not reading LD_LIBRARY_PATH
+        # in my version of ubuntu
+        if 'GUROBI_HOME' in os.environ:
+            if 'LD_LIBRARY_PATH' not in os.environ:
+                os.environ['LD_LIBRARY_PATH'] = ""
+            os.environ['LD_LIBRARY_PATH'] += ':' + os.environ['GUROBI_HOME'] + "/lib"
+
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute "+self.path)
         if not self.keepFiles:
             uuid = uuid4().hex
             tmpLp = os.path.join(self.tmpDir, "%s-pulp.lp" % uuid)
             tmpSol = os.path.join(self.tmpDir, "%s-pulp.sol" % uuid)
+            tmpMst = os.path.join(self.tmpDir, "%s-pulp.mst" % uuid)
         else:
             tmpLp = lp.name+"-pulp.lp"
             tmpSol = lp.name+"-pulp.sol"
-        lp.writeLP(tmpLp, writeSOS = 1)
+            tmpMst = lp.name + "-pulp.mst"
+        vs = lp.writeLP(tmpLp, writeSOS = 1)
         try: os.remove(tmpSol)
         except: pass
         cmd = self.path
         cmd += ' ' + ' '.join(['%s=%s' % (key, value)
                     for key, value in self.options])
         cmd += ' ResultFile=%s' % tmpSol
+        if self.mip_start:
+            self.writesol(filename=tmpMst, vs=vs)
+            cmd += ' InputFile=%s' % tmpMst
+
         if lp.isMIP():
             if not self.mip:
                 warnings.warn('GUROBI_CMD does not allow a problem to be relaxed')
@@ -2034,19 +2054,15 @@ class GUROBI_CMD(LpSolver_CMD):
 
         if return_code != 0:
             raise PulpSolverError("PuLP: Error while trying to execute "+self.path)
-        if not self.keepFiles:
-            try: os.remove(tmpLp)
-            except: pass
         if not os.path.exists(tmpSol):
             warnings.warn('GUROBI_CMD does provide good solution status of non optimal solutions')
             status = LpStatusNotSolved
         else:
             status, values, reducedCosts, shadowPrices, slacks = self.readsol(tmpSol)
         if not self.keepFiles:
-            try: os.remove(tmpSol)
-            except: pass
-            try: os.remove("gurobi.log")
-            except: pass
+            for f in [tmpSol, tmpMst, tmpLp, "gurobi.log"]:
+                try: os.remove(f)
+                except: pass
         if status != LpStatusInfeasible:
             lp.assignVarsVals(values)
             lp.assignVarsDj(reducedCosts)
@@ -2080,6 +2096,17 @@ class GUROBI_CMD(LpSolver_CMD):
                         name, value  = line.split()
                         values[name] = float(value)
         return status, values, reducedCosts, shadowPrices, slacks
+
+    def writesol(self, filename, vs):
+        """Writes a GUROBI solution file"""
+
+        values = [(v.name, v.value()) for v in vs if v.value() is not None]
+        rows = []
+        for name, value in values:
+            rows.append('{} {}'.format(name, value))
+        with open(filename, 'w') as f:
+            f.write('\n'.join(rows))
+        return True
 
 #get the glpk name in global scope
 glpk = None
@@ -2756,12 +2783,13 @@ class CHOCO_CMD(LpSolver_CMD):
     """The CHOCO_CMD solver"""
 
     def defaultPath(self):
-        raise PulpError("PuLP: default path does not exist por CHOCO_CMD")
+        raise PulpSolverError("PuLP: default path does not exist por CHOCO_CMD")
         # return self.executableExtension("choco-parsers-4.0.5-SNAPSHOT-with-dependencies.jar")
 
     def available(self):
         """True if the solver is available"""
-        return self.executable(self.path)
+        java_path = self.executableExtension('java')
+        return self.executable(self.path) and self.executable(java_path)
 
     def actualSolve(self, lp):
         """Solve a well formulated lp problem"""
@@ -2779,14 +2807,10 @@ class CHOCO_CMD(LpSolver_CMD):
             tmpLp = lp.name + "-pulp.lp"
             tmpMps = lp.name+"-pulp.mps"
             tmpSol = lp.name+"-pulp.sol"
-        lp.writeMPS(tmpMps, mpsSense=lp.sense)
-
         # just to report duplicated variables:
-        repeated_names = lp.checkDuplicateVars()
-        if repeated_names:
-            raise PulpError('Repeated variable names in Lp format\n'
-                            + str(repeated_names))
+        lp.checkDuplicateVars()
 
+        lp.writeMPS(tmpMps, mpsSense=lp.sense)
         try: os.remove(tmpSol)
         except: pass
         cmd = java_path + ' -cp ' + self.path + ' org.chocosolver.parser.mps.ChocoMPS'
@@ -2840,14 +2864,14 @@ class CHOCO_CMD(LpSolver_CMD):
                           'UNSATISFIABLE': LpSolutionInfeasible,
                           'UNKNOWN': LpSolutionNoSolutionFound}
 
-        status = LpSolutionNoSolutionFound
+        status = LpStatusNotSolved
         sol_status = LpSolutionNoSolutionFound
         values = {}
         with open(filename) as f:
             content = f.readlines()
         content = [l.strip() for l in content if l[:2] not in ['o ', 'c ']]
         if not len(content):
-            return status, values
+            return status, values, sol_status
         if content[0][:2] == 's ':
             status_str = content[0][2:]
             status = chocoStatus[status_str]
@@ -2903,14 +2927,14 @@ class MOSEK(LpSolver):
         def actualSolve(self, lp, callback = None):
             raise PulpSolverError("MOSEK : Not Available")
     else:
-        def __init__(self, mip = True, msg = True, mosek_pars = {}, task_file_name = "", sol_type = mosek.soltype.bas):
+        def __init__(self, mip = True, msg = True, options = {}, task_file_name = "", sol_type = mosek.soltype.bas):
             #Initialize the MOSEK solver.
             #For a complete list of valid MOSEK parameters, check MOSEK online documentation.
             self.mip = mip
             self.msg = msg
             self.task_file_name = task_file_name
             self.solution_type = sol_type
-            self.mosek_pars_dict = mosek_pars
+            self.options = options
 
         def available(self):
             print('MOSEK : Available')
@@ -2932,8 +2956,7 @@ class MOSEK(LpSolver):
             self.numvars = len(self.vars)
             self.var_dict = {}
             #Checking for repeated names
-            if len(lp.checkDuplicateVars())>0:
-                raise PulpError('Variables must have unique names for MOSEK-PuLP interface.')
+            lp.checkDuplicateVars()
             #Creating a MOSEK environment
             self.env = mosek.Env()
             self.task = self.env.Task()
@@ -3075,8 +3098,8 @@ class MOSEK(LpSolver):
         def actualSolve(self, lp):
             self.buildSolverModel(lp)
             #Set solver parameters
-            for msk_par in self.mosek_pars_dict:
-                self.putparam(msk_par,self.mosek_pars_dict[msk_par])
+            for msk_par in self.options:
+                self.putparam(msk_par,self.options[msk_par])
             #Task file
             if self.task_file_name:
                 self.task.writedata(self.task_file_name)
@@ -3123,3 +3146,90 @@ class MOSEK(LpSolver):
             for con in lp.constraints.values(): 
                 con.modified = False
             return(lp.status)
+
+
+class MIPCL_CMD(LpSolver_CMD):
+    """The MIPCL_CMD solver"""
+
+    def defaultPath(self):
+        return self.executableExtension("mps_mipcl")
+
+    def available(self):
+        """True if the solver is available"""
+        return self.executable(self.path)
+
+    def actualSolve(self, lp):
+        """Solve a well formulated lp problem"""
+        if not self.executable(self.path):
+            raise PulpSolverError("PuLP: cannot execute " + self.path)
+        if not self.keepFiles:
+            uuid = uuid4().hex
+            tmpMps = os.path.join(self.tmpDir, "%s-pulp.mps" % uuid)
+            tmpSol = os.path.join(self.tmpDir, "%s-pulp.sol" % uuid)
+        else:
+            tmpMps = lp.name+"-pulp.mps"
+            tmpSol = lp.name+"-pulp.sol"
+        if lp.sense == LpMaximize:
+            raise PulpSolverError("PuLP: MIPCL_CMD cannot handle maximisation problems.")
+        lp.checkDuplicateVars()
+        lp.checkLengthVars(52)
+        lp.writeMPS(tmpMps, mpsSense=lp.sense)
+
+        # just to report duplicated variables:
+        try: os.remove(tmpSol)
+        except: pass
+        cmd = self.path
+        cmd += ' %s' % tmpMps
+        cmd += ' -solfile %s' % tmpSol
+        for option in self.options:
+            cmd += ' ' + option
+        if lp.isMIP():
+            if not self.mip:
+                warnings.warn("MIPCL_CMD cannot solve the relaxation of a problem")
+        if self.msg:
+            pipe = None
+        else:
+            pipe = open(os.devnull, 'w')
+
+        return_code = subprocess.call(cmd.split(), stdout=pipe, stderr=pipe)
+
+        if return_code != 0:
+            raise PulpSolverError("PuLP: Error while trying to execute "+self.path)
+        if not os.path.exists(tmpSol):
+            status = LpStatusNotSolved
+            status_sol = LpSolutionNoSolutionFound
+        else:
+            status, values, status_sol = self.readsol(tmpSol)
+        if not self.keepFiles:
+            for _file in [tmpMps, tmpSol]:
+                try: os.remove(_file)
+                except: pass
+
+        lp.assignStatus(status, status_sol)
+        if status not in [LpStatusInfeasible, LpStatusNotSolved]:
+            lp.assignVarsVals(values)
+
+        return status
+
+    def readsol(self, filename):
+        """Read a MIPCL solution file"""
+        with open(filename) as f:
+            content = f.readlines()
+        content = [l.strip() for l in content]
+        values = {}
+        if not len(content):
+            return LpStatusNotSolved, values, LpSolutionNoSolutionFound
+        first_line = content[0]
+        if first_line == '=infeas=':
+            return LpStatusInfeasible, values, LpSolutionInfeasible
+        objective, value = first_line.split()
+        # this is a workaround.
+        # Not sure if it always returns this limit when unbounded.
+        if abs(float(value)) >= 9.999999995e+10:
+            return LpStatusUnbounded, values, LpSolutionUnbounded
+        for line in content[1:]:
+            name, value = line.split()
+            values[name] = float(value)
+        # I'm not sure how this solver announces the optimality
+        # of a solution so we assume it is integer feasible
+        return LpStatusOptimal, values, LpSolutionIntegerFeasible

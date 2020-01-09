@@ -4,19 +4,19 @@ Setup script for PuLP added by Stuart Mitchell 2007
 Copyright 2007 Stuart Mitchell
 """
 import sys
-from ez_setup import use_setuptools
-use_setuptools()
 from setuptools import setup
 
+readme_name = 'README.rst'
+Description = open(readme_name).read()
 
-License = open('LICENSE').read()
+# License = open('LICENSE').read()
 
 # read the version number safely from the constants.py file
 version_dict = {}
-exec(open('src/pulp/constants.py').read(), version_dict)
+exec(open('pulp/constants.py').read(), version_dict)
 VERSION = version_dict['VERSION']
 
-with open("README.md", "r") as fh:
+with open(readme_name, "r") as fh:
     long_description = fh.read()
 
 setup(name="PuLP",
@@ -24,8 +24,8 @@ setup(name="PuLP",
       description=
       "PuLP is an LP modeler written in python. PuLP can generate MPS or LP files and call GLPK, COIN CLP/CBC, CPLEX, and GUROBI to solve linear problems.",
       long_description = long_description,
-      long_description_content_type="text/markdown",
-      license = License,
+      long_description_content_type = "text/x-rst",
+      # license = License,
       keywords = ["Optimization", "Linear Programming", "Operations Research"],
       author="J.S. Roy and S.A. Mitchell",
       author_email="pulp@stuartmitchell.com",
@@ -39,7 +39,6 @@ setup(name="PuLP",
                      'Topic :: Scientific/Engineering :: Mathematics',
       ],
       #ext_modules = [pulpCOIN],
-      package_dir={'':'src'},
       #need the cbc directories here as the executable bit is set
       packages = ['pulp',
       'pulp.solverdir',
@@ -67,8 +66,8 @@ setup(name="PuLP",
       install_requires = ['pyparsing>=2.0.1'],
       entry_points = ("""
       [console_scripts]
-      pulptest = pulp:pulpTestAll
-      pulpdoctest = pulp:pulpDoctest
+      pulptest = tests.run_tests:pulpTestAll
+      # pulpdoctest = pulp:pulpDoctest
       """
       ),
 )

@@ -5,7 +5,7 @@ Authors: Antony Phillips,  Dr Stuart Mitchell  2008
 """
 
 # Import Column Generation functions
-from CGcolumnwise import *
+from .CGcolumnwise import *
 
 # The Master Problem is created
 prob, obj, constraints = createMaster()
