@@ -584,7 +584,10 @@ class AmplyTest(unittest.TestCase):
             """
         )
         assert 'square' in result.symbols.keys()
-        assert result.square == {}
+        print(result.square['b'])
+        assert result.square['a'] == {'a': 34.0, 'b': 35.0, 'c': 36.0}
+        assert result.square['b'] == {'a': 53.0, 'b': 45.3, 'c': 459.2}
+
 
 if __name__ == '__main__':
     unittest.main()
