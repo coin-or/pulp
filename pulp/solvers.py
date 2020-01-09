@@ -3147,7 +3147,6 @@ class MOSEK(LpSolver):
                 con.modified = False
             return(lp.status)
 
-
 class MIPCL_CMD(LpSolver_CMD):
     """The MIPCL_CMD solver"""
 
