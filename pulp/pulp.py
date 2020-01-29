@@ -2336,3 +2336,53 @@ def configSolvers():
         if value:
             configdict[key] = value
     setConfigInformation(**configdict)
+
+def pulpTestAll():
+    from .tests import pulpTestSolver
+    solvers = [PULP_CBC_CMD,
+               CPLEX_DLL,
+               CPLEX_CMD,
+               CPLEX_PY,
+               COIN_CMD,
+               COINMP_DLL,
+               GLPK_CMD,
+               XPRESS,
+               GUROBI,
+               GUROBI_CMD,
+               PYGLPK,
+               YAPOSIB,
+               PULP_CHOCO_CMD,
+               MOSEK
+               ]
+
+    failed = False
+    for s in solvers:
+        if s().available():
+            try:
+                pulpTestSolver(s)
+                print("* Solver %s passed." % s)
+            except Exception as e:
+                print(e)
+                print("* Solver", s, "failed.")
+                failed = True
+        else:
+            print("Solver %s unavailable" % s)
+    if failed:
+        raise PulpError("Tests Failed")
+
+def pulpDoctest():
+    """
+    runs all doctests
+    """
+    import doctest
+    if __name__ != '__main__':
+        from . import pulp
+        doctest.testmod(pulp)
+    else:
+        doctest.testmod()
+
+
+if __name__ == '__main__':
+    # Tests
+    pulpTestAll()
+    pulpDoctest()
