@@ -466,9 +466,12 @@ class CPLEX_CMD(LpSolver_CMD):
     """The CPLEX LP solver"""
 
     def __init__(self, path = None, keepFiles = 0, mip = 1,
-            msg = 0, options = [], timelimit = None, mip_start=False):
+            msg = 0, options = [], timeLimit = None, mip_start=False,*, timelimit = None):
         LpSolver_CMD.__init__(self, path, keepFiles, mip, msg, options, mip_start)
-        self.timelimit = timelimit
+        if timelimit:
+            warnings.warn(f"Parameter timelimit is being depreciated for standard 'timeLimit'")
+            timeLimit = timelimit
+        self.timelimit = timeLimit
 
     def defaultPath(self):
         return self.executableExtension("cplex")
@@ -1257,9 +1260,9 @@ else:
 class XPRESS(LpSolver_CMD):
     """The XPRESS LP solver"""
     def __init__(self, path = None, keepFiles = 0, mip = 1,
-            msg = 0, maxSeconds = None, targetGap = None, heurFreq = None,
+            msg = 0, timeLimit = None, targetGap = None, heurFreq = None,
             heurStra = None, coverCuts = None, preSolve = None,
-            options = []):
+            options = [], *, maxSeconds = None):
         """
         Initializes the Xpress solver.
 
@@ -1275,7 +1278,10 @@ class XPRESS(LpSolver_CMD):
                         http://tomopt.com/docs/xpress/tomlab_xpress008.php
         """
         LpSolver_CMD.__init__(self, path, keepFiles, mip, msg, options)
-        self.maxSeconds = maxSeconds
+        if maxSeconds:
+            warnings.warn(f"Parameter maxSeconds is being depreciated for standard 'timeLimit'")
+            timeLimit = maxSeconds
+        self.maxSeconds = timeLimit
         self.targetGap = targetGap
         self.heurFreq = heurFreq
         self.heurStra = heurStra
@@ -1382,14 +1388,17 @@ class COIN_CMD(LpSolver_CMD):
     def __init__(self, path = None, keepFiles = 0, mip = 1,
             msg = 0, cuts = None, presolve = None, dual = None,
             strong = None, options = [],
-            fracGap = None, maxSeconds = None, threads = None, mip_start=False):
+            fracGap = None, timeLimit = None, threads = None, mip_start=False, *, maxSeconds=None):
         LpSolver_CMD.__init__(self, path, keepFiles, mip, msg, options, mip_start)
+        if maxSeconds:
+            warnings.warn(f"Parameter maxSeconds is being depreciated for standard 'timeLimit'")
+            timeLimit = maxSeconds
+        self.maxSeconds = timeLimit
         self.cuts = cuts
         self.presolve = presolve
         self.dual = dual
         self.strong = strong
         self.fracGap = fracGap
-        self.maxSeconds = maxSeconds
         self.threads = threads
         #TODO hope this gets fixed in cbc as it does not like the c:\ in windows paths
         if os.name == 'nt':
@@ -1599,7 +1608,7 @@ class PULP_CBC_CMD(COIN_CMD):
             """Solve a well formulated lp problem"""
             raise PulpSolverError("PULP_CBC_CMD: Not Available (check permissions on %s)" % self.pulp_cbc_path)
     else:
-        def __init__(self, path=None, *args, **kwargs):
+        def __init__(self, path=None, *args, **kwargs): # From sean : no max seconds here
             """
             just loads up COIN_CMD with the path set
             """
