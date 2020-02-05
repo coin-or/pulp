@@ -470,7 +470,10 @@ class CPLEX_CMD(LpSolver_CMD):
         LpSolver_CMD.__init__(self, path, keepFiles, mip, msg, options, mip_start)
         if timelimit:
             warnings.warn(f"Parameter timelimit is being depreciated for standard 'timeLimit'")
-            timeLimit = timelimit
+            if timeLimit:
+                warnings.warn(f"Parameter timeLimit and timelimit passed, using timeLimit ")
+            else:
+                timeLimit = timelimit
         self.timelimit = timeLimit
 
     def defaultPath(self):
@@ -1280,7 +1283,10 @@ class XPRESS(LpSolver_CMD):
         LpSolver_CMD.__init__(self, path, keepFiles, mip, msg, options)
         if maxSeconds:
             warnings.warn(f"Parameter maxSeconds is being depreciated for standard 'timeLimit'")
-            timeLimit = maxSeconds
+            if timeLimit:
+                warnings.warn(f"Parameter timeLimit and maxSeconds passed, using timeLimit ")
+            else:
+                timeLimit = maxSeconds
         self.maxSeconds = timeLimit
         self.targetGap = targetGap
         self.heurFreq = heurFreq
@@ -1392,7 +1398,10 @@ class COIN_CMD(LpSolver_CMD):
         LpSolver_CMD.__init__(self, path, keepFiles, mip, msg, options, mip_start)
         if maxSeconds:
             warnings.warn(f"Parameter maxSeconds is being depreciated for standard 'timeLimit'")
-            timeLimit = maxSeconds
+            if timeLimit:
+                warnings.warn(f"Parameter timeLimit and maxSeconds passed, using timeLimit ")
+            else:
+                timeLimit = maxSeconds
         self.maxSeconds = timeLimit
         self.cuts = cuts
         self.presolve = presolve
