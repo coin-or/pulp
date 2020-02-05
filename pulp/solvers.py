@@ -3036,7 +3036,7 @@ class MOSEK(LpSolver):
             self.solsta = self.task.getsolsta(self.solution_type)
             self.solution_status_dict = {mosek.solsta.optimal: LpStatusOptimal,
                                         mosek.solsta.prim_infeas_cer: LpStatusInfeasible, 
-                                        mosek.solsta.dual_infeas_cer: LpStatusInfeasible,
+                                        mosek.solsta.dual_infeas_cer: LpStatusUnbounded,
                                         mosek.solsta.unknown: LpStatusUndefined,
                                         mosek.solsta.integer_optimal: LpStatusOptimal,
                                         mosek.solsta.prim_illposed_cer:LpStatusNotSolved, 
