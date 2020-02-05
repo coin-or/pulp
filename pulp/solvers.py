@@ -469,9 +469,9 @@ class CPLEX_CMD(LpSolver_CMD):
             msg = 0, options = [], timeLimit = None, mip_start=False,*, timelimit = None):
         LpSolver_CMD.__init__(self, path, keepFiles, mip, msg, options, mip_start)
         if timelimit:
-            warnings.warn(f"Parameter timelimit is being depreciated for standard 'timeLimit'")
+            warnings.warn("Parameter timelimit is being depreciated for standard 'timeLimit'")
             if timeLimit:
-                warnings.warn(f"Parameter timeLimit and timelimit passed, using timeLimit ")
+                warnings.warn("Parameter timeLimit and timelimit passed, using timeLimit ")
             else:
                 timeLimit = timelimit
         self.timelimit = timeLimit
@@ -1282,9 +1282,9 @@ class XPRESS(LpSolver_CMD):
         """
         LpSolver_CMD.__init__(self, path, keepFiles, mip, msg, options)
         if maxSeconds:
-            warnings.warn(f"Parameter maxSeconds is being depreciated for standard 'timeLimit'")
+            warnings.warn("Parameter maxSeconds is being depreciated for standard 'timeLimit'")
             if timeLimit:
-                warnings.warn(f"Parameter timeLimit and maxSeconds passed, using timeLimit ")
+                warnings.warn("Parameter timeLimit and maxSeconds passed, using timeLimit ")
             else:
                 timeLimit = maxSeconds
         self.maxSeconds = timeLimit
@@ -1397,9 +1397,9 @@ class COIN_CMD(LpSolver_CMD):
             fracGap = None, timeLimit = None, threads = None, mip_start=False, *, maxSeconds=None):
         LpSolver_CMD.__init__(self, path, keepFiles, mip, msg, options, mip_start)
         if maxSeconds:
-            warnings.warn(f"Parameter maxSeconds is being depreciated for standard 'timeLimit'")
+            warnings.warn("Parameter maxSeconds is being depreciated for standard 'timeLimit'")
             if timeLimit:
-                warnings.warn(f"Parameter timeLimit and maxSeconds passed, using timeLimit ")
+                warnings.warn("Parameter timeLimit and maxSeconds passed, using timeLimit ")
             else:
                 timeLimit = maxSeconds
         self.maxSeconds = timeLimit
