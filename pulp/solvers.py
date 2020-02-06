@@ -2917,19 +2917,37 @@ class PULP_CHOCO_CMD(CHOCO_CMD):
 ########################################################################################################################
 
 class MOSEK(LpSolver):
-    "PuLP interface to the Mosek solver"
+    """PuLP interface to the MOSEK solver"""
     try:
         global mosek
         import mosek 
     except ImportError:
         def available(self):
+            """True if MOSEK is available."""
             return False 
         def actualSolve(self, lp, callback = None):
+            """Solves a well-formulated lp problem."""
             raise PulpSolverError("MOSEK : Not Available")
     else:
         def __init__(self, mip = True, msg = True, options = {}, task_file_name = "", sol_type = mosek.soltype.bas):
-            #Initialize the MOSEK solver.
-            #For a complete list of valid MOSEK parameters, check MOSEK online documentation.
+            """Initialize the MOSEK solver.
+            Keyword arguments:
+            @param mip: If False, then solve MIP as LP. Default is True. 
+            @param msg: Enable MOSEK log output. Default is True.
+            @param options: Accepts a dictionary of MOSEK solver parameters, for eg.
+                            options = {"dparam.mio_max_time":30} sets the maximum time 
+                            spent by the Mixed Integer optimizer to 30 seconds. Not
+                            setting this results in MOSEK using default parameters.
+            @param task_file_name: Writes a MOSEK task file of the given name. usage eg.
+                            task_file_name = "test_task_file.opf". By default, no task 
+                            file will be written.
+            @param sol_type: The type of solution.Valid solutions: mosek.soltype.bas 
+                            (Basic solution, default), mosek.soltype.itr (Interior-point 
+                            solution) and mosek.soltype.itg (Integer solution).
+
+            For a full list of MOSEK parameters and supported task file formats, please see 
+            https://docs.mosek.com/9.1/pythonapi/parameters.html#doc-all-parameter-list.
+            """
             self.mip = mip
             self.msg = msg
             self.task_file_name = task_file_name
@@ -2937,14 +2955,17 @@ class MOSEK(LpSolver):
             self.options = options
 
         def available(self):
+            """True if MOSEK is available."""
             print('MOSEK : Available')
             return(True)
 
         def streampunk(self, text):
+            """Sets the output stream."""
             sys.stdout.write(text)
             sys.stdout.flush()
 
         def buildSolverModel(self, lp, inf=1e20):
+            """Translate the problem into a MOSEK task."""
             self.cons = lp.constraints
             self.numcons = len(self.cons)
             self.cons_dict = {}
@@ -3029,10 +3050,12 @@ class MOSEK(LpSolver):
                 self.task.putobjsense(mosek.objsense.minimize)
 
         def findSolutionValues(self, lp):
-            #####################################   DISCLAIMER   #################################################
-            # For most cases the following status map should be adequately descriptive. However, if more nuance is
-            # needed, then enable log output and refer to the MOSEK docs to interpret the various solution states. 
-            ######################################################################################################
+            """
+            Reads the solution values from the MOSEK task and translated the MOSEK
+            solution status to lpstats. DISCLAIMER: for most cases, the solution status
+            map is adequately descriptive, but for a more nuanced understanding enable
+            log output and refer to MOSEK docs.
+            """
             self.solsta = self.task.getsolsta(self.solution_type)
             self.solution_status_dict = {mosek.solsta.optimal: LpStatusOptimal,
                                         mosek.solsta.prim_infeas_cer: LpStatusInfeasible, 
@@ -3079,6 +3102,9 @@ class MOSEK(LpSolver):
                     pass
             
         def putparam(self, par, val):
+            """
+            Checks validity of the passed MOSEK parameters and sets their values.
+            """
             if isinstance(par, mosek.dparam):
                 self.task.putdouparam(par, val)
             elif isinstance(par, mosek.iparam):
@@ -3096,6 +3122,10 @@ class MOSEK(LpSolver):
                     raise PulpSolverError("Invalid MOSEK parameter: '{}'. Check MOSEK documentation for a list of valid parameters.".format(par))
 
         def actualSolve(self, lp):
+            """
+            Solve a well-formulated lp problem.
+            Returns the lp.status.
+            """
             self.buildSolverModel(lp)
             #Set solver parameters
             for msk_par in self.options:
@@ -3117,6 +3147,10 @@ class MOSEK(LpSolver):
             return(lp.status)
 
         def actualResolve(self, lp):
+            """
+            Enables the modification of constriants and the re-solving of the 
+            problem from the old MOSEK model.
+            """
             for c in self.cons:
                 if self.cons[c].modified:
                     csense = self.cons[c].sense
