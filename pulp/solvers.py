@@ -466,7 +466,7 @@ class CPLEX_CMD(LpSolver_CMD):
     """The CPLEX LP solver"""
 
     def __init__(self, path = None, keepFiles = 0, mip = 1,
-            msg = 0, options = [], timeLimit = None, mip_start=False,*, timelimit = None):
+            msg = 0, options = [], timeLimit = None, mip_start=False, timelimit = None):
         LpSolver_CMD.__init__(self, path, keepFiles, mip, msg, options, mip_start)
         if timelimit:
             warnings.warn("Parameter timelimit is being depreciated for standard 'timeLimit'")
@@ -1265,7 +1265,7 @@ class XPRESS(LpSolver_CMD):
     def __init__(self, path = None, keepFiles = 0, mip = 1,
             msg = 0, timeLimit = None, targetGap = None, heurFreq = None,
             heurStra = None, coverCuts = None, preSolve = None,
-            options = [], *, maxSeconds = None):
+            options = [], maxSeconds = None):
         """
         Initializes the Xpress solver.
 
@@ -1394,7 +1394,7 @@ class COIN_CMD(LpSolver_CMD):
     def __init__(self, path = None, keepFiles = 0, mip = 1,
             msg = 0, cuts = None, presolve = None, dual = None,
             strong = None, options = [],
-            fracGap = None, timeLimit = None, threads = None, mip_start=False, *, maxSeconds=None):
+            fracGap = None, timeLimit = None, threads = None, mip_start=False, maxSeconds=None):
         LpSolver_CMD.__init__(self, path, keepFiles, mip, msg, options, mip_start)
         if maxSeconds:
             warnings.warn("Parameter maxSeconds is being depreciated for standard 'timeLimit'")
