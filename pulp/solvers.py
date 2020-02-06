@@ -2930,18 +2930,22 @@ class MOSEK(LpSolver):
             raise PulpSolverError("MOSEK : Not Available")
     else:
         def __init__(self, mip = True, msg = True, options = {}, task_file_name = "", sol_type = mosek.soltype.bas):
-            """Initialize the MOSEK solver.
+            """Initializes the MOSEK solver.
 
             Keyword arguments:
-            @param mip: If False, then solve MIP as LP. Default is True. 
+            @param mip: If False, then solve MIP as LP. Default is True.
+
             @param msg: Enable MOSEK log output. Default is True.
+
             @param options: Accepts a dictionary of MOSEK solver parameters, for eg.
                             options = {"dparam.mio_max_time":30} sets the maximum time 
                             spent by the Mixed Integer optimizer to 30 seconds. Not
                             setting this results in MOSEK using default parameters.
+
             @param task_file_name: Writes a MOSEK task file of the given name. usage eg.
                             task_file_name = "test_task_file.opf". By default, no task 
                             file will be written.
+
             @param sol_type: The type of solution.Valid solutions: mosek.soltype.bas 
                             (Basic solution, default), mosek.soltype.itr (Interior-point 
                             solution) and mosek.soltype.itg (Integer solution).
@@ -3052,10 +3056,9 @@ class MOSEK(LpSolver):
 
         def findSolutionValues(self, lp):
             """
-            Reads the solution values from the MOSEK task and translated the MOSEK
-            solution status to lpstats. DISCLAIMER: for most cases, the solution status
-            map is adequately descriptive, but for a more nuanced understanding enable
-            log output and refer to MOSEK docs.
+            Reads the solution values from the MOSEK task and translates the MOSEK
+            solution status to lpstatus. DISCLAIMER: For a more nuanced understanding 
+            of the solution status, enable log output and refer to MOSEK docs.
             """
             self.solsta = self.task.getsolsta(self.solution_type)
             self.solution_status_dict = {mosek.solsta.optimal: LpStatusOptimal,
@@ -3149,8 +3152,7 @@ class MOSEK(LpSolver):
 
         def actualResolve(self, lp):
             """
-            Enables the modification of constriants and the re-solving of the 
-            problem from the old MOSEK model.
+            Modify constraints and re-solves an lp. MOSEK uses the task created in the first solve.
             """
             for c in self.cons:
                 if self.cons[c].modified:
