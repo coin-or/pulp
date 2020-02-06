@@ -2931,6 +2931,7 @@ class MOSEK(LpSolver):
     else:
         def __init__(self, mip = True, msg = True, options = {}, task_file_name = "", sol_type = mosek.soltype.bas):
             """Initialize the MOSEK solver.
+
             Keyword arguments:
             @param mip: If False, then solve MIP as LP. Default is True. 
             @param msg: Enable MOSEK log output. Default is True.
@@ -2959,8 +2960,8 @@ class MOSEK(LpSolver):
             print('MOSEK : Available')
             return(True)
 
-        def streampunk(self, text):
-            """Sets the output stream."""
+        def setOutStream(self, text):
+            """Sets the log-output stream."""
             sys.stdout.write(text)
             sys.stdout.flush()
 
@@ -2984,7 +2985,7 @@ class MOSEK(LpSolver):
             self.task.appendcons(self.numcons)
             self.task.appendvars(self.numvars)
             if self.msg:
-                self.task.set_Stream(mosek.streamtype.log,self.streampunk)
+                self.task.set_Stream(mosek.streamtype.log,self.setOutStream)
             #Adding variables
             for i in range(self.numvars):
                 vname = self.vars[i].name
