@@ -2939,8 +2939,11 @@ class MOSEK(LpSolver):
             @param msg: Enable Mosek log output.
 
             @param options: Accepts a dictionary of Mosek solver parameters. Ignore to
-                            use default parameter values. Eg: options = {"dparam.mio_max_time":30}
+                            use default parameter values. Eg: options = {mosek.dparam.mio_max_time:30}
                             sets the maximum time spent by the Mixed Integer optimizer to 30 seconds.
+                            Equivalently, one could also write: options = {"MSK_DPAR_MIO_MAX_TIME":30}
+                            which uses the generic parameter name as used within the solver, instead of
+                            using an object from the Mosek Optimizer API (Python), as before.
 
             @param task_file_name: Writes a Mosek task file of the given name. By default, 
                             no task file will be written. Eg: task_file_name = "eg1.opf".
@@ -2949,8 +2952,8 @@ class MOSEK(LpSolver):
                             (Basic solution, default), mosek.soltype.itr (Interior-point 
                             solution) and mosek.soltype.itg (Integer solution).
 
-            For a full list of Mosek parameters and supported task file formats, please see 
-            https://docs.mosek.com/9.1/pythonapi/parameters.html#doc-all-parameter-list.
+            For a full list of Mosek parameters (for the Mosek Optimizer API) and supported task file 
+            formats, please see https://docs.mosek.com/9.1/pythonapi/parameters.html#doc-all-parameter-list.
             """
             self.mip = mip
             self.msg = msg
