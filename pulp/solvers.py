@@ -2919,19 +2919,44 @@ class PULP_CHOCO_CMD(CHOCO_CMD):
 ########################################################################################################################
 
 class MOSEK(LpSolver):
-    "PuLP interface to the Mosek solver"
+    """Mosek lp and mip solver (via Mosek Optimizer API)."""
     try:
         global mosek
         import mosek 
     except ImportError:
         def available(self):
+            """True if Mosek is available."""
             return False 
         def actualSolve(self, lp, callback = None):
+            """Solves a well-formulated lp problem."""
             raise PulpSolverError("MOSEK : Not Available")
     else:
         def __init__(self, mip = True, msg = True, options = {}, task_file_name = "", sol_type = mosek.soltype.bas):
-            #Initialize the MOSEK solver.
-            #For a complete list of valid MOSEK parameters, check MOSEK online documentation.
+            """Initializes the Mosek solver.
+
+            Keyword arguments:
+
+            @param mip: If False, then solve MIP as LP.
+
+            @param msg: Enable Mosek log output.
+
+            @param options: Accepts a dictionary of Mosek solver parameters. Ignore to
+                            use default parameter values. Eg: options = {mosek.dparam.mio_max_time:30}
+                            sets the maximum time spent by the Mixed Integer optimizer to 30 seconds.
+                            Equivalently, one could also write: options = {"MSK_DPAR_MIO_MAX_TIME":30}
+                            which uses the generic parameter name as used within the solver, instead of
+                            using an object from the Mosek Optimizer API (Python), as before.
+
+            @param task_file_name: Writes a Mosek task file of the given name. By default, 
+                            no task file will be written. Eg: task_file_name = "eg1.opf".
+
+            @param sol_type: Mosek supports three types of solutions: mosek.soltype.bas 
+                            (Basic solution, default), mosek.soltype.itr (Interior-point 
+                            solution) and mosek.soltype.itg (Integer solution).
+
+            For a full list of Mosek parameters (for the Mosek Optimizer API) and supported task file 
+            formats, please see https://docs.mosek.com/9.1/pythonapi/parameters.html#doc-all-parameter-list.
+            """
             self.mip = mip
             self.msg = msg
             self.task_file_name = task_file_name
@@ -2939,14 +2964,17 @@ class MOSEK(LpSolver):
             self.options = options
 
         def available(self):
+            """True if Mosek is available."""
             print('MOSEK : Available')
             return(True)
 
-        def streampunk(self, text):
+        def setOutStream(self, text):
+            """Sets the log-output stream."""
             sys.stdout.write(text)
             sys.stdout.flush()
 
         def buildSolverModel(self, lp, inf=1e20):
+            """Translate the problem into a Mosek task object."""
             self.cons = lp.constraints
             self.numcons = len(self.cons)
             self.cons_dict = {}
@@ -2965,7 +2993,7 @@ class MOSEK(LpSolver):
             self.task.appendcons(self.numcons)
             self.task.appendvars(self.numvars)
             if self.msg:
-                self.task.set_Stream(mosek.streamtype.log,self.streampunk)
+                self.task.set_Stream(mosek.streamtype.log,self.setOutStream)
             #Adding variables
             for i in range(self.numvars):
                 vname = self.vars[i].name
@@ -3031,14 +3059,16 @@ class MOSEK(LpSolver):
                 self.task.putobjsense(mosek.objsense.minimize)
 
         def findSolutionValues(self, lp):
-            #####################################   DISCLAIMER   #################################################
-            # For most cases the following status map should be adequately descriptive. However, if more nuance is
-            # needed, then enable log output and refer to the MOSEK docs to interpret the various solution states. 
-            ######################################################################################################
+            """
+            Read the solution values and status from the Mosek task object. Note: Since the status 
+            map from mosek.solsta to LpStatus is not exact, it is recommended that one enables the 
+            log output and then refer to Mosek documentation for a better understanding of the 
+            solution (especially in the case of mip problems).
+            """
             self.solsta = self.task.getsolsta(self.solution_type)
             self.solution_status_dict = {mosek.solsta.optimal: LpStatusOptimal,
                                         mosek.solsta.prim_infeas_cer: LpStatusInfeasible, 
-                                        mosek.solsta.dual_infeas_cer: LpStatusInfeasible,
+                                        mosek.solsta.dual_infeas_cer: LpStatusUnbounded,
                                         mosek.solsta.unknown: LpStatusUndefined,
                                         mosek.solsta.integer_optimal: LpStatusOptimal,
                                         mosek.solsta.prim_illposed_cer:LpStatusNotSolved, 
@@ -3081,6 +3111,9 @@ class MOSEK(LpSolver):
                     pass
             
         def putparam(self, par, val):
+            """
+            Pass the values of valid parameters to Mosek.
+            """
             if isinstance(par, mosek.dparam):
                 self.task.putdouparam(par, val)
             elif isinstance(par, mosek.iparam):
@@ -3098,6 +3131,9 @@ class MOSEK(LpSolver):
                     raise PulpSolverError("Invalid MOSEK parameter: '{}'. Check MOSEK documentation for a list of valid parameters.".format(par))
 
         def actualSolve(self, lp):
+            """
+            Solve a well-formulated lp problem.
+            """
             self.buildSolverModel(lp)
             #Set solver parameters
             for msk_par in self.options:
@@ -3119,6 +3155,9 @@ class MOSEK(LpSolver):
             return(lp.status)
 
         def actualResolve(self, lp):
+            """
+            Modify constraints and re-solve an lp. The Mosek task object created in the first solve is used.
+            """
             for c in self.cons:
                 if self.cons[c].modified:
                     csense = self.cons[c].sense
