@@ -55,17 +55,19 @@ from .constants import *
 import logging
 log = logging.getLogger(__name__)
 
-if sys.version_info[0] < 3:
-    devnull = open(os.devnull, 'wb')
-    if os.name == "posix":
-        try:
-            import subprocess32 as subprocess
-        except ImportError:
-            log.debug("Thread-safe subprocess32 module not found! "
-                      "Using unsafe built-in subprocess module instead.")
-            import subprocess
+if os.name == "posix" and sys.version_info[0] < 3:
+    try:
+        import subprocess32 as subprocess
+    except ImportError:
+        log.debug("Thread-safe subprocess32 module not found! "
+                  "Using unsafe built-in subprocess module instead.")
+        import subprocess
 else:
     import subprocess
+
+if sys.version_info[0] < 3:
+    devnull = open(os.devnull, 'wb')
+else:
     devnull = subprocess.DEVNULL
 
 class PulpSolverError(PulpError):
