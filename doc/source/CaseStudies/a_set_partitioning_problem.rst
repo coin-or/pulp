@@ -1,3 +1,5 @@
+.. _set-partitioning-problem:
+
 A Set Partitioning Problem
 ============================
 
@@ -50,7 +52,4 @@ exactly one table.
 The full file can be found here `wedding.py <https://projects.coin-or.org/PuLP/browser/trunk/examples/wedding.py?format=txt>`_
 
 .. literalinclude:: ../../../examples/wedding.py
-
-
-
 

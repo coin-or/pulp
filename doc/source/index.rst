@@ -23,18 +23,7 @@ relevant information you will need.
 
    main/index
    CaseStudies/index
-..  comment block
-   main/Concepts
-   main/Introduction
-   main/Installing%20Python InstallingPythonatHome
-   main/BasicPythonCoding
-   main/Introduction to PuLP
-   main/InstallingPulpatHome
-   main/CaseStudies/ABLendingProblem
-   main/UsingElasticConstraints
-   main/Using FractionalConstraints
-   main/SequentialOptimisation
-   main/ExtraCaseStudies
+   guides/index
 
 PuLP Internal Documentation
 ===========================

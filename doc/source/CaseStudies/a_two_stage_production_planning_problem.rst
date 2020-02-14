@@ -84,6 +84,6 @@ scenario or product the constraint applies to.
     :lines: 73-85
 
 
-The full file can be found here `Two_stage_Stochastic_GemstoneTools.py <https://projects.coin-or.org/PuLP/browser/trunk/examples/Two_stage_Stochastic_GemstoneTools.py?format=txt>`
+The full file can be found here :download:`Two_stage_Stochastic_GemstoneTools.py <../../../examples/Two_stage_Stochastic_GemstoneTools.py>`
 
 .. literalinclude:: ../../../examples/Two_stage_Stochastic_GemstoneTools.py
