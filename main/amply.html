@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>Amply &#8212; PuLP 1.6.9 documentation</title>
+    <title>Amply &#8212; PuLP 2.0 documentation</title>
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -75,10 +75,10 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
     </form>
     </div>
@@ -393,22 +393,22 @@ using a tuple as an index:</p>
 <p>All functionality is contained within the <code class="docutils literal notranslate"><span class="pre">Amply</span></code> class.</p>
 <dl class="class">
 <dt id="Amply">
-<em class="property">class </em><code class="descname">Amply</code><span class="sig-paren">(</span><em>string=&quot;&quot;</em><span class="sig-paren">)</span><a class="headerlink" href="#Amply" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-name descname">Amply</code><span class="sig-paren">(</span><em class="sig-param">string=&quot;&quot;</em><span class="sig-paren">)</span><a class="headerlink" href="#Amply" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="method">
 <dt id="Amply.load_string">
-<code class="descname">load_string</code><span class="sig-paren">(</span><em>string</em><span class="sig-paren">)</span><a class="headerlink" href="#Amply.load_string" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">load_string</code><span class="sig-paren">(</span><em class="sig-param">string</em><span class="sig-paren">)</span><a class="headerlink" href="#Amply.load_string" title="Permalink to this definition">¶</a></dt>
 <dd><p>Parse string data.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="Amply.load_file">
-<code class="descname">load_file</code><span class="sig-paren">(</span><em>file</em><span class="sig-paren">)</span><a class="headerlink" href="#Amply.load_file" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">load_file</code><span class="sig-paren">(</span><em class="sig-param">file</em><span class="sig-paren">)</span><a class="headerlink" href="#Amply.load_file" title="Permalink to this definition">¶</a></dt>
 <dd><p>Parse contents of file or file-like object (has a read() method).</p>
 </dd></dl>
 
-<dl class="staticmethod">
+<dl class="method">
 <dt id="Amply.from_file">
-<em class="property">static </em><code class="descname">from_file</code><span class="sig-paren">(</span><em>file</em><span class="sig-paren">)</span><a class="headerlink" href="#Amply.from_file" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="sig-name descname">from_file</code><span class="sig-paren">(</span><em class="sig-param">file</em><span class="sig-paren">)</span><a class="headerlink" href="#Amply.from_file" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alternate constructor. Create Amply object from contents of file or file-like object.</p>
 </dd></dl>
 

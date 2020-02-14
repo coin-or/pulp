@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>pulp.constants &#8212; PuLP 1.6.9 documentation</title>
+    <title>pulp.constants &#8212; PuLP 2.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -66,10 +66,10 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
     </form>
     </div>
@@ -97,17 +97,17 @@
 Note that hopefully these will be changed into something more pythonic</p>
 <dl class="exception">
 <dt id="pulp.constants.PulpError">
-<em class="property">exception </em><code class="descclassname">pulp.constants.</code><code class="descname">PulpError</code><a class="headerlink" href="#pulp.constants.PulpError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#Exception" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></a></p>
+<em class="property">exception </em><code class="sig-prename descclassname">pulp.constants.</code><code class="sig-name descname">PulpError</code><a class="headerlink" href="#pulp.constants.PulpError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#Exception" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></a></p>
 <p>Pulp Exception Class</p>
 <dl class="attribute">
 <dt id="pulp.constants.PulpError.args">
-<code class="descname">args</code><a class="headerlink" href="#pulp.constants.PulpError.args" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">args</code><a class="headerlink" href="#pulp.constants.PulpError.args" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pulp.constants.PulpError.with_traceback">
-<code class="descname">with_traceback</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.constants.PulpError.with_traceback" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">with_traceback</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.constants.PulpError.with_traceback" title="Permalink to this definition">¶</a></dt>
 <dd><p>Exception.with_traceback(tb) –
 set self.__traceback__ to tb and return self.</p>
 </dd></dl>
@@ -116,15 +116,15 @@ set self.__traceback__ to tb and return self.</p>
 
 <dl class="function">
 <dt id="pulp.constants.isiterable">
-<code class="descclassname">pulp.constants.</code><code class="descname">isiterable</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.constants.isiterable" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">pulp.constants.</code><code class="sig-name descname">isiterable</code><span class="sig-paren">(</span><em class="sig-param">obj</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.constants.isiterable" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="data">
 <dt id="pulp.constants.LpStatus">
-<code class="descclassname">pulp.constants.</code><code class="descname">LpStatus</code><a class="headerlink" href="#pulp.constants.LpStatus" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">pulp.constants.</code><code class="sig-name descname">LpStatus</code><a class="headerlink" href="#pulp.constants.LpStatus" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return status from solver:</p>
 <blockquote>
-<div><table class="docutils align-center">
+<div><table class="docutils align-default">
 <colgroup>
 <col style="width: 48%" />
 <col style="width: 25%" />
@@ -164,37 +164,37 @@ set self.__traceback__ to tb and return self.</p>
 
 <dl class="data">
 <dt id="pulp.constants.LpStatusOptimal">
-<code class="descclassname">pulp.constants.</code><code class="descname">LpStatusOptimal</code><a class="headerlink" href="#pulp.constants.LpStatusOptimal" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">pulp.constants.</code><code class="sig-name descname">LpStatusOptimal</code><a class="headerlink" href="#pulp.constants.LpStatusOptimal" title="Permalink to this definition">¶</a></dt>
 <dd><p>LpStatusOptimal = 1</p>
 </dd></dl>
 
 <dl class="data">
 <dt id="pulp.constants.LpStatusNotSolved">
-<code class="descclassname">pulp.constants.</code><code class="descname">LpStatusNotSolved</code><a class="headerlink" href="#pulp.constants.LpStatusNotSolved" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">pulp.constants.</code><code class="sig-name descname">LpStatusNotSolved</code><a class="headerlink" href="#pulp.constants.LpStatusNotSolved" title="Permalink to this definition">¶</a></dt>
 <dd><blockquote>
 <div><p>LpStatusNotSolved = 0</p>
 </div></blockquote>
 <dl class="data">
 <dt id="pulp.constants.LpStatusInfeasible">
-<code class="descclassname">pulp.constants.</code><code class="descname">LpStatusInfeasible</code><a class="headerlink" href="#pulp.constants.LpStatusInfeasible" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">pulp.constants.</code><code class="sig-name descname">LpStatusInfeasible</code><a class="headerlink" href="#pulp.constants.LpStatusInfeasible" title="Permalink to this definition">¶</a></dt>
 <dd><p>LpStatusInfeasible = -1</p>
 </dd></dl>
 
 <dl class="data">
 <dt id="pulp.constants.LpStatusUnbounded">
-<code class="descclassname">pulp.constants.</code><code class="descname">LpStatusUnbounded</code><a class="headerlink" href="#pulp.constants.LpStatusUnbounded" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">pulp.constants.</code><code class="sig-name descname">LpStatusUnbounded</code><a class="headerlink" href="#pulp.constants.LpStatusUnbounded" title="Permalink to this definition">¶</a></dt>
 <dd><p>LpStatusUnbounded = -2</p>
 </dd></dl>
 
 <dl class="data">
 <dt id="pulp.constants.LpStatusUndefined">
-<code class="descclassname">pulp.constants.</code><code class="descname">LpStatusUndefined</code><a class="headerlink" href="#pulp.constants.LpStatusUndefined" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">pulp.constants.</code><code class="sig-name descname">LpStatusUndefined</code><a class="headerlink" href="#pulp.constants.LpStatusUndefined" title="Permalink to this definition">¶</a></dt>
 <dd><blockquote>
 <div><p>LpStatusUndefined = -3</p>
 </div></blockquote>
 <dl class="data">
 <dt id="pulp.constants.LpSenses">
-<code class="descclassname">pulp.constants.</code><code class="descname">LpSenses</code><a class="headerlink" href="#pulp.constants.LpSenses" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">pulp.constants.</code><code class="sig-name descname">LpSenses</code><a class="headerlink" href="#pulp.constants.LpSenses" title="Permalink to this definition">¶</a></dt>
 <dd><p>Dictionary of values for <code class="xref py py-attr docutils literal notranslate"><span class="pre">sense</span></code>:</p>
 <blockquote>
 <div><p>LpSenses =
@@ -206,38 +206,38 @@ set self.__traceback__ to tb and return self.</p>
 
 <dl class="data">
 <dt id="pulp.constants.LpMinimize">
-<code class="descclassname">pulp.constants.</code><code class="descname">LpMinimize</code><a class="headerlink" href="#pulp.constants.LpMinimize" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">pulp.constants.</code><code class="sig-name descname">LpMinimize</code><a class="headerlink" href="#pulp.constants.LpMinimize" title="Permalink to this definition">¶</a></dt>
 <dd><p>LpMinimize = 1</p>
 </dd></dl>
 
 <dl class="data">
 <dt id="pulp.constants.LpMaximize">
-<code class="descclassname">pulp.constants.</code><code class="descname">LpMaximize</code><a class="headerlink" href="#pulp.constants.LpMaximize" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">pulp.constants.</code><code class="sig-name descname">LpMaximize</code><a class="headerlink" href="#pulp.constants.LpMaximize" title="Permalink to this definition">¶</a></dt>
 <dd><p>LpMaximize = -1</p>
 </dd></dl>
 
 <dl class="data">
 <dt id="pulp.constants.LpConstraintEQ">
-<code class="descclassname">pulp.constants.</code><code class="descname">LpConstraintEQ</code><a class="headerlink" href="#pulp.constants.LpConstraintEQ" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">pulp.constants.</code><code class="sig-name descname">LpConstraintEQ</code><a class="headerlink" href="#pulp.constants.LpConstraintEQ" title="Permalink to this definition">¶</a></dt>
 <dd><p>LpConstraintEQ = 0</p>
 </dd></dl>
 
 <dl class="data">
 <dt id="pulp.constants.LpConstraintLE">
-<code class="descclassname">pulp.constants.</code><code class="descname">LpConstraintLE</code><a class="headerlink" href="#pulp.constants.LpConstraintLE" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">pulp.constants.</code><code class="sig-name descname">LpConstraintLE</code><a class="headerlink" href="#pulp.constants.LpConstraintLE" title="Permalink to this definition">¶</a></dt>
 <dd><p>LpConstraintLE = -1</p>
 </dd></dl>
 
 <dl class="data">
 <dt id="pulp.constants.LpConstraintGE">
-<code class="descclassname">pulp.constants.</code><code class="descname">LpConstraintGE</code><a class="headerlink" href="#pulp.constants.LpConstraintGE" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">pulp.constants.</code><code class="sig-name descname">LpConstraintGE</code><a class="headerlink" href="#pulp.constants.LpConstraintGE" title="Permalink to this definition">¶</a></dt>
 <dd><p>LpConstraintGE = 1</p>
 </dd></dl>
 
 <dl class="data">
 <dt id="pulp.constants.LpConstraintSenses">
-<code class="descclassname">pulp.constants.</code><code class="descname">LpConstraintSenses</code><a class="headerlink" href="#pulp.constants.LpConstraintSenses" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils align-center">
+<code class="sig-prename descclassname">pulp.constants.</code><code class="sig-name descname">LpConstraintSenses</code><a class="headerlink" href="#pulp.constants.LpConstraintSenses" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils align-default">
 <colgroup>
 <col style="width: 44%" />
 <col style="width: 27%" />

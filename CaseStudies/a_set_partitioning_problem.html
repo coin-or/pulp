@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>A Set Partitioning Problem &#8212; PuLP 1.6.9 documentation</title>
+    <title>A Set Partitioning Problem &#8212; PuLP 2.0 documentation</title>
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -52,9 +52,12 @@
 <li class="toctree-l2 current"><a class="current reference internal" href="#">A Set Partitioning Problem</a></li>
 <li class="toctree-l2"><a class="reference internal" href="a_sudoku_problem.html">A Sudoku Problem formulated as an LP</a></li>
 <li class="toctree-l2"><a class="reference internal" href="a_transportation_problem.html">A Transportation Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="a_two_stage_production_planning_problem.html">A Two Stage Production Planning Problem</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="index.html#indices-and-tables">Indices and tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/index.html">How to’s</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/index.html#indices-and-tables">Indices and tables</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../constants.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp.constants</span></code></a></li>
@@ -74,10 +77,10 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
     </form>
     </div>
@@ -100,7 +103,7 @@
           <div class="body" role="main">
             
   <div class="section" id="a-set-partitioning-problem">
-<h1>A Set Partitioning Problem<a class="headerlink" href="#a-set-partitioning-problem" title="Permalink to this headline">¶</a></h1>
+<span id="set-partitioning-problem"></span><h1>A Set Partitioning Problem<a class="headerlink" href="#a-set-partitioning-problem" title="Permalink to this headline">¶</a></h1>
 <p>A set partitioning problem determines how the items in one set (S) can be partitioned into smaller
 subsets. All items in S must be contained in one and only one partition. Related problems are:</p>
 <ul class="simple">
@@ -111,8 +114,7 @@ subsets. All items in S must be contained in one and only one partition. Related
 for a wedding. To model this problem the tables are modelled as the partitions
 and the guests invited to the wedding are modelled as the elements of S. The
 wedding planner wishes to maximise the total happiness of all of the tables.</p>
-<img alt="../_images/wedding_seating.jpg" src="../_images/wedding_seating.jpg" />
-<div xmlns:cc="http://creativecommons.org/ns#" about="http://www.flickr.com/photos/71463577@N00/3735357685"><a rel="cc:attributionURL" href="http://www.flickr.com/photos/mbphotography/">http://www.flickr.com/photos/mbphotography/</a> / <a rel="license" href="http://creativecommons.org/licenses/by-nc-nd/2.0/">CC BY-NC-ND 2.0</a></div><p>A set partitioning problem may be modelled by explicitly enumerating each
+<p>A set partitioning problem may be modelled by explicitly enumerating each
 possible subset. Though this approach does become intractable for large numbers
 of items (without using column generation) it does have the advantage that the
 objective function co-efficients for the partitions can be non-linear
@@ -198,7 +200,7 @@ exactly one table.</p>
 
 <span class="n">seating_model</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
 
-<span class="nb">print</span><span class="p">((</span><span class="s2">&quot;The choosen tables are out of a total of </span><span class="si">%s</span><span class="s2">:&quot;</span><span class="o">%</span><span class="nb">len</span><span class="p">(</span><span class="n">possible_tables</span><span class="p">)))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;The choosen tables are out of a total of </span><span class="si">%s</span><span class="s2">:&quot;</span><span class="o">%</span><span class="nb">len</span><span class="p">(</span><span class="n">possible_tables</span><span class="p">))</span>
 <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span><span class="p">:</span>
     <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">()</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>

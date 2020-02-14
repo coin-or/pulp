@@ -5,7 +5,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>Index &#8212; PuLP 1.6.9 documentation</title>
+    <title>Index &#8212; PuLP 2.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -48,6 +48,8 @@
 <li class="toctree-l1"><a class="reference internal" href="main/index.html">Main Topics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="CaseStudies/index.html">Case Studies</a></li>
 <li class="toctree-l1"><a class="reference internal" href="CaseStudies/index.html#indices-and-tables">Indices and tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guides/index.html">How to’s</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guides/index.html#indices-and-tables">Indices and tables</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="constants.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp.constants</span></code></a></li>
@@ -63,10 +65,10 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
     </form>
     </div>
@@ -116,10 +118,12 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="solvers.html#pulp.solvers.LpSolver.actualResolve">actualResolve() (pulp.solvers.LpSolver method)</a>
 </li>
-      <li><a href="solvers.html#pulp.solvers.COIN_CMD.actualSolve">actualSolve() (pulp.solvers.COIN_CMD method)</a>
+      <li><a href="solvers.html#pulp.solvers.CHOCO_CMD.actualSolve">actualSolve() (pulp.solvers.CHOCO_CMD method)</a>
 
       <ul>
         <li><a href="solvers.html#pulp.solvers.COINMP_DLL.actualSolve">(pulp.solvers.COINMP_DLL method)</a>
+</li>
+        <li><a href="solvers.html#pulp.solvers.COIN_CMD.actualSolve">(pulp.solvers.COIN_CMD method)</a>
 </li>
         <li><a href="solvers.html#pulp.solvers.CPLEX_CMD.actualSolve">(pulp.solvers.CPLEX_CMD method)</a>
 </li>
@@ -134,6 +138,8 @@
         <li><a href="solvers.html#pulp.solvers.GUROBI_CMD.actualSolve">(pulp.solvers.GUROBI_CMD method)</a>
 </li>
         <li><a href="solvers.html#pulp.solvers.LpSolver.actualSolve">(pulp.solvers.LpSolver method)</a>
+</li>
+        <li><a href="solvers.html#pulp.solvers.MIPCL_CMD.actualSolve">(pulp.solvers.MIPCL_CMD method)</a>
 </li>
         <li><a href="solvers.html#pulp.solvers.PYGLPK.actualSolve">(pulp.solvers.PYGLPK method)</a>
 </li>
@@ -158,10 +164,12 @@
 </li>
       <li><a href="constants.html#pulp.constants.PulpError.args">args (pulp.constants.PulpError attribute)</a>
 </li>
-      <li><a href="solvers.html#pulp.solvers.COIN_CMD.available">available() (pulp.solvers.COIN_CMD method)</a>
+      <li><a href="solvers.html#pulp.solvers.CHOCO_CMD.available">available() (pulp.solvers.CHOCO_CMD method)</a>
 
       <ul>
         <li><a href="solvers.html#pulp.solvers.COINMP_DLL.available">(pulp.solvers.COINMP_DLL class method)</a>
+</li>
+        <li><a href="solvers.html#pulp.solvers.COIN_CMD.available">(pulp.solvers.COIN_CMD method)</a>
 </li>
         <li><a href="solvers.html#pulp.solvers.CPLEX_CMD.available">(pulp.solvers.CPLEX_CMD method)</a>
 </li>
@@ -176,6 +184,8 @@
         <li><a href="solvers.html#pulp.solvers.GUROBI_CMD.available">(pulp.solvers.GUROBI_CMD method)</a>
 </li>
         <li><a href="solvers.html#pulp.solvers.LpSolver.available">(pulp.solvers.LpSolver method)</a>
+</li>
+        <li><a href="solvers.html#pulp.solvers.MIPCL_CMD.available">(pulp.solvers.MIPCL_CMD method)</a>
 </li>
         <li><a href="solvers.html#pulp.solvers.PYGLPK.available">(pulp.solvers.PYGLPK method)</a>
 </li>
@@ -192,6 +202,8 @@
 <h2 id="C">C</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="solvers.html#pulp.solvers.CHOCO_CMD">CHOCO_CMD (class in pulp.solvers)</a>
+</li>
       <li><a href="solvers.html#pulp.solvers.COIN">COIN (in module pulp.solvers)</a>
 </li>
       <li><a href="solvers.html#pulp.solvers.COIN_CMD">COIN_CMD (class in pulp.solvers)</a>
@@ -234,9 +246,11 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="pulp.html#pulp.FixedElasticSubProblem.deElasticize">deElasticize() (pulp.FixedElasticSubProblem method)</a>
 </li>
-      <li><a href="solvers.html#pulp.solvers.COIN_CMD.defaultPath">defaultPath() (pulp.solvers.COIN_CMD method)</a>
+      <li><a href="solvers.html#pulp.solvers.CHOCO_CMD.defaultPath">defaultPath() (pulp.solvers.CHOCO_CMD method)</a>
 
       <ul>
+        <li><a href="solvers.html#pulp.solvers.COIN_CMD.defaultPath">(pulp.solvers.COIN_CMD method)</a>
+</li>
         <li><a href="solvers.html#pulp.solvers.CPLEX_CMD.defaultPath">(pulp.solvers.CPLEX_CMD method)</a>
 </li>
         <li><a href="solvers.html#pulp.solvers.GLPK_CMD.defaultPath">(pulp.solvers.GLPK_CMD method)</a>
@@ -244,6 +258,8 @@
         <li><a href="solvers.html#pulp.solvers.GUROBI_CMD.defaultPath">(pulp.solvers.GUROBI_CMD method)</a>
 </li>
         <li><a href="solvers.html#pulp.solvers.LpSolver_CMD.defaultPath">(pulp.solvers.LpSolver_CMD method)</a>
+</li>
+        <li><a href="solvers.html#pulp.solvers.MIPCL_CMD.defaultPath">(pulp.solvers.MIPCL_CMD method)</a>
 </li>
         <li><a href="solvers.html#pulp.solvers.SCIP_CMD.defaultPath">(pulp.solvers.SCIP_CMD method)</a>
 </li>
@@ -290,14 +306,16 @@
 <h2 id="G">G</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="solvers.html#pulp.solvers.COIN_CMD.get_status">get_status() (pulp.solvers.COIN_CMD method)</a>
+</li>
       <li><a href="solvers.html#pulp.solvers.LpSolver.getCplexStyleArrays">getCplexStyleArrays() (pulp.solvers.LpSolver method)</a>
 </li>
       <li><a href="solvers.html#pulp.solvers.GLPK">GLPK (in module pulp.solvers)</a>
 </li>
-      <li><a href="solvers.html#pulp.solvers.GLPK_CMD">GLPK_CMD (class in pulp.solvers)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="solvers.html#pulp.solvers.GLPK_CMD">GLPK_CMD (class in pulp.solvers)</a>
+</li>
       <li><a href="solvers.html#pulp.solvers.GUROBI">GUROBI (class in pulp.solvers)</a>
 </li>
       <li><a href="solvers.html#pulp.solvers.GUROBI_CMD">GUROBI_CMD (class in pulp.solvers)</a>
@@ -381,6 +399,10 @@
       <li><a href="pulp.html#pulp.LpConstraint.makeElasticSubProblem">makeElasticSubProblem() (pulp.LpConstraint method)</a>
 </li>
   </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="solvers.html#pulp.solvers.MIPCL_CMD">MIPCL_CMD (class in pulp.solvers)</a>
+</li>
+  </ul></td>
 </tr></table>
 
 <h2 id="O">O</h2>
@@ -402,11 +424,15 @@
 </li>
       <li><a href="solvers.html#module-pulp.solvers">pulp.solvers (module)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="solvers.html#pulp.solvers.PULP_CBC_CMD">PULP_CBC_CMD (class in pulp.solvers)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="solvers.html#pulp.solvers.PULP_CBC_CMD.pulp_cbc_path">pulp_cbc_path (pulp.solvers.PULP_CBC_CMD attribute)</a>
+</li>
+      <li><a href="solvers.html#pulp.solvers.PULP_CHOCO_CMD">PULP_CHOCO_CMD (class in pulp.solvers)</a>
+</li>
+      <li><a href="solvers.html#pulp.solvers.PULP_CHOCO_CMD.pulp_choco_path">pulp_choco_path (pulp.solvers.PULP_CHOCO_CMD attribute)</a>
 </li>
       <li><a href="constants.html#pulp.constants.PulpError">PulpError</a>
 </li>
@@ -420,12 +446,16 @@
 <h2 id="R">R</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="solvers.html#pulp.solvers.CPLEX_CMD.readsol">readsol() (pulp.solvers.CPLEX_CMD method)</a>
+      <li><a href="solvers.html#pulp.solvers.CHOCO_CMD.readsol">readsol() (pulp.solvers.CHOCO_CMD method)</a>
 
       <ul>
+        <li><a href="solvers.html#pulp.solvers.CPLEX_CMD.readsol">(pulp.solvers.CPLEX_CMD method)</a>
+</li>
         <li><a href="solvers.html#pulp.solvers.GLPK_CMD.readsol">(pulp.solvers.GLPK_CMD method)</a>
 </li>
         <li><a href="solvers.html#pulp.solvers.GUROBI_CMD.readsol">(pulp.solvers.GUROBI_CMD method)</a>
+</li>
+        <li><a href="solvers.html#pulp.solvers.MIPCL_CMD.readsol">(pulp.solvers.MIPCL_CMD method)</a>
 </li>
         <li><a href="solvers.html#pulp.solvers.SCIP_CMD.readsol">(pulp.solvers.SCIP_CMD method)</a>
 </li>
@@ -496,6 +526,8 @@
 
       <ul>
         <li><a href="solvers.html#pulp.solvers.CPLEX_CMD.writesol">(pulp.solvers.CPLEX_CMD method)</a>
+</li>
+        <li><a href="solvers.html#pulp.solvers.GUROBI_CMD.writesol">(pulp.solvers.GUROBI_CMD method)</a>
 </li>
       </ul></li>
   </ul></td>

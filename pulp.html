@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>pulp: Pulp classes &#8212; PuLP 1.6.9 documentation</title>
+    <title>pulp: Pulp classes &#8212; PuLP 2.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -66,10 +66,10 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
     </form>
     </div>
@@ -93,7 +93,7 @@
             
   <div class="section" id="module-pulp">
 <span id="pulp-pulp-classes"></span><h1><a class="reference internal" href="#module-pulp" title="pulp"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp</span></code></a>:  Pulp classes<a class="headerlink" href="#module-pulp" title="Permalink to this headline">¶</a></h1>
-<table class="longtable docutils align-center">
+<table class="longtable docutils align-default">
 <colgroup>
 <col style="width: 10%" />
 <col style="width: 90%" />
@@ -119,7 +119,7 @@
 </tr>
 </tbody>
 </table>
-<div class="admonition-todo admonition" id="index-0">
+<div class="admonition-todo admonition" id="id1">
 <p class="admonition-title">Todo</p>
 <p>LpFractionConstraint, FractionElasticSubProblem</p>
 </div>
@@ -127,8 +127,8 @@
 <h2>The LpProblem Class<a class="headerlink" href="#the-lpproblem-class" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="pulp.LpProblem">
-<em class="property">class </em><code class="descclassname">pulp.</code><code class="descname">LpProblem</code><span class="sig-paren">(</span><em>name='NoName'</em>, <em>sense=1</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpProblem" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<em class="property">class </em><code class="sig-prename descclassname">pulp.</code><code class="sig-name descname">LpProblem</code><span class="sig-paren">(</span><em class="sig-param">name='NoName'</em>, <em class="sig-param">sense=1</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpProblem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>An LP Problem</p>
 <p>Creates an LP Problem</p>
 <p>This function creates a new LP Problem  with the specified associated parameters</p>
@@ -146,20 +146,20 @@
 <p>Three important attributes of the problem are:</p>
 <dl class="attribute">
 <dt id="pulp.LpProblem.objective">
-<code class="descname">objective</code><a class="headerlink" href="#pulp.LpProblem.objective" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">objective</code><a class="headerlink" href="#pulp.LpProblem.objective" title="Permalink to this definition">¶</a></dt>
 <dd><p>The objective of the problem, an <a class="reference internal" href="#pulp.LpAffineExpression" title="pulp.LpAffineExpression"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LpAffineExpression</span></code></a></p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pulp.LpProblem.constraints">
-<code class="descname">constraints</code><a class="headerlink" href="#pulp.LpProblem.constraints" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">constraints</code><a class="headerlink" href="#pulp.LpProblem.constraints" title="Permalink to this definition">¶</a></dt>
 <dd><p>An <code class="xref py py-class docutils literal notranslate"><span class="pre">ordered</span> <span class="pre">dictionary</span></code> of
 <a class="reference internal" href="#pulp.LpConstraint" title="pulp.LpConstraint"><code class="xref py py-class docutils literal notranslate"><span class="pre">constraints</span></code></a> of the problem - indexed by their names.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pulp.LpProblem.status">
-<code class="descname">status</code><a class="headerlink" href="#pulp.LpProblem.status" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">status</code><a class="headerlink" href="#pulp.LpProblem.status" title="Permalink to this definition">¶</a></dt>
 <dd><p>The return <a class="reference internal" href="constants.html#pulp.constants.LpStatus" title="pulp.constants.LpStatus"><code class="xref py py-data docutils literal notranslate"><span class="pre">status</span></code></a>
 of the problem from the solver.</p>
 </dd></dl>
@@ -167,7 +167,7 @@ of the problem from the solver.</p>
 <p>Some of the more important methods:</p>
 <dl class="method">
 <dt id="pulp.LpProblem.solve">
-<code class="descname">solve</code><span class="sig-paren">(</span><em>solver=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpProblem.solve" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">solve</code><span class="sig-paren">(</span><em class="sig-param">solver=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpProblem.solve" title="Permalink to this definition">¶</a></dt>
 <dd><p>Solve the given Lp problem.</p>
 <p>This function changes the problem to make it suitable for solving
 then calls the solver.actualSolve() method to find the solution</p>
@@ -188,7 +188,7 @@ default solver.</p>
 
 <dl class="method">
 <dt id="pulp.LpProblem.roundSolution">
-<code class="descname">roundSolution</code><span class="sig-paren">(</span><em>epsInt=1e-05</em>, <em>eps=1e-07</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpProblem.roundSolution" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">roundSolution</code><span class="sig-paren">(</span><em class="sig-param">epsInt=1e-05</em>, <em class="sig-param">eps=1e-07</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpProblem.roundSolution" title="Permalink to this definition">¶</a></dt>
 <dd><p>Rounds the lp variables</p>
 <dl class="simple">
 <dt>Inputs:</dt><dd><ul class="simple">
@@ -204,7 +204,7 @@ default solver.</p>
 
 <dl class="method">
 <dt id="pulp.LpProblem.setObjective">
-<code class="descname">setObjective</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpProblem.setObjective" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">setObjective</code><span class="sig-paren">(</span><em class="sig-param">obj</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpProblem.setObjective" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sets the input variable as the objective function. Used in Columnwise Modelling</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -221,7 +221,7 @@ default solver.</p>
 
 <dl class="method">
 <dt id="pulp.LpProblem.writeLP">
-<code class="descname">writeLP</code><span class="sig-paren">(</span><em>filename</em>, <em>writeSOS=1</em>, <em>mip=1</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpProblem.writeLP" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">writeLP</code><span class="sig-paren">(</span><em class="sig-param">filename</em>, <em class="sig-param">writeSOS=1</em>, <em class="sig-param">mip=1</em>, <em class="sig-param">max_length=100</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpProblem.writeLP" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write the given Lp problem to a .lp file.</p>
 <p>This function writes the specifications (objective function,
 constraints, variables) of the defined Lp problem to a file.</p>
@@ -246,14 +246,14 @@ Side Effects:</p>
 <h2>Variables and Expressions<a class="headerlink" href="#variables-and-expressions" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="pulp.LpElement">
-<em class="property">class </em><code class="descclassname">pulp.</code><code class="descname">LpElement</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpElement" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pulp.</code><code class="sig-name descname">LpElement</code><span class="sig-paren">(</span><em class="sig-param">name</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpElement" title="Permalink to this definition">¶</a></dt>
 <dd><p>Base class for LpVariable and LpConstraintVar</p>
 </dd></dl>
 
 <hr class="docutils" />
 <dl class="class">
 <dt id="pulp.LpVariable">
-<em class="property">class </em><code class="descclassname">pulp.</code><code class="descname">LpVariable</code><span class="sig-paren">(</span><em>name</em>, <em>lowBound=None</em>, <em>upBound=None</em>, <em>cat='Continuous'</em>, <em>e=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pulp.</code><code class="sig-name descname">LpVariable</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">lowBound=None</em>, <em class="sig-param">upBound=None</em>, <em class="sig-param">cat='Continuous'</em>, <em class="sig-param">e=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable" title="Permalink to this definition">¶</a></dt>
 <dd><p>This class models an LP Variable with the specified associated parameters</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -272,14 +272,14 @@ existence in the objective function and constraints</p></li>
 </dl>
 <dl class="method">
 <dt id="pulp.LpVariable.addVariableToConstraints">
-<code class="descname">addVariableToConstraints</code><span class="sig-paren">(</span><em>e</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable.addVariableToConstraints" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">addVariableToConstraints</code><span class="sig-paren">(</span><em class="sig-param">e</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable.addVariableToConstraints" title="Permalink to this definition">¶</a></dt>
 <dd><p>adds a variable to the constraints indicated by
 the LpConstraintVars in e</p>
 </dd></dl>
 
-<dl class="classmethod">
+<dl class="method">
 <dt id="pulp.LpVariable.dicts">
-<em class="property">classmethod </em><code class="descname">dicts</code><span class="sig-paren">(</span><em>name</em>, <em>indexs</em>, <em>lowBound=None</em>, <em>upBound=None</em>, <em>cat='Continuous'</em>, <em>indexStart=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable.dicts" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><code class="sig-name descname">dicts</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">indexs</em>, <em class="sig-param">lowBound=None</em>, <em class="sig-param">upBound=None</em>, <em class="sig-param">cat='Continuous'</em>, <em class="sig-param">indexStart=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable.dicts" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a dictionary of LP variables</p>
 <dl class="simple">
 <dt>This function creates a dictionary of LP Variables with the specified</dt><dd><p>associated parameters.</p>
@@ -307,14 +307,14 @@ Continuous(default)</p></li>
 
 <dl class="method">
 <dt id="pulp.LpVariable.fixValue">
-<code class="descname">fixValue</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable.fixValue" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">fixValue</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable.fixValue" title="Permalink to this definition">¶</a></dt>
 <dd><p>changes lower bound and upper bound to the initial value if exists.
 :return:</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pulp.LpVariable.setInitialValue">
-<code class="descname">setInitialValue</code><span class="sig-paren">(</span><em>val</em>, <em>check=True</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable.setInitialValue" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">setInitialValue</code><span class="sig-paren">(</span><em class="sig-param">val</em>, <em class="sig-param">check=True</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable.setInitialValue" title="Permalink to this definition">¶</a></dt>
 <dd><p>sets the initial value of the Variable to val
 may of may not be supported by the solver
 if check is True: we confirm the value is really possible</p>
@@ -332,8 +332,8 @@ integer.</p>
 <hr class="docutils" />
 <dl class="class">
 <dt id="pulp.LpAffineExpression">
-<em class="property">class </em><code class="descclassname">pulp.</code><code class="descname">LpAffineExpression</code><span class="sig-paren">(</span><em>e=None</em>, <em>constant=0</em>, <em>name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpAffineExpression" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/collections.html#collections.OrderedDict" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">collections.OrderedDict</span></code></a></p>
+<em class="property">class </em><code class="sig-prename descclassname">pulp.</code><code class="sig-name descname">LpAffineExpression</code><span class="sig-paren">(</span><em class="sig-param">e=None</em>, <em class="sig-param">constant=0</em>, <em class="sig-param">name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpAffineExpression" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/collections.html#collections.OrderedDict" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">collections.OrderedDict</span></code></a></p>
 <p>A linear combination of <a class="reference internal" href="#pulp.LpVariable" title="pulp.LpVariable"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpVariables</span></code></a>.
 Can be initialised with the following:</p>
 <ol class="arabic simple">
@@ -367,7 +367,7 @@ I])} = \sum_{i \in I} a_i x_i\)</span> where  (note the order):</p>
 <hr class="docutils" />
 <dl class="function">
 <dt id="pulp.lpSum">
-<code class="descclassname">pulp.</code><code class="descname">lpSum</code><span class="sig-paren">(</span><em>vector</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.lpSum" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">pulp.</code><code class="sig-name descname">lpSum</code><span class="sig-paren">(</span><em class="sig-param">vector</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.lpSum" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the sum of a list of linear expressions</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -381,7 +381,7 @@ I])} = \sum_{i \in I} a_i x_i\)</span> where  (note the order):</p>
 <h2>Constraints<a class="headerlink" href="#constraints" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="pulp.LpConstraint">
-<em class="property">class </em><code class="descclassname">pulp.</code><code class="descname">LpConstraint</code><span class="sig-paren">(</span><em>e=None</em>, <em>sense=0</em>, <em>name=None</em>, <em>rhs=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpConstraint" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pulp.</code><code class="sig-name descname">LpConstraint</code><span class="sig-paren">(</span><em class="sig-param">e=None</em>, <em class="sig-param">sense=0</em>, <em class="sig-param">name=None</em>, <em class="sig-param">rhs=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpConstraint" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.pulp.LpAffineExpression</span></code></p>
 <p>An LP constraint</p>
 <dl class="field-list simple">
@@ -396,7 +396,7 @@ I])} = \sum_{i \in I} a_i x_i\)</span> where  (note the order):</p>
 </dl>
 <dl class="method">
 <dt id="pulp.LpConstraint.makeElasticSubProblem">
-<code class="descname">makeElasticSubProblem</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpConstraint.makeElasticSubProblem" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">makeElasticSubProblem</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpConstraint.makeElasticSubProblem" title="Permalink to this definition">¶</a></dt>
 <dd><p>Builds an elastic subproblem by adding variables to a hard constraint</p>
 <p>uses FixedElasticSubProblem</p>
 </dd></dl>
@@ -463,7 +463,7 @@ the final objective function in the <code class="docutils literal notranslate"><
 <p>Following are the methods of the return-value:</p>
 <dl class="class">
 <dt id="pulp.FixedElasticSubProblem">
-<em class="property">class </em><code class="descclassname">pulp.</code><code class="descname">FixedElasticSubProblem</code><span class="sig-paren">(</span><em>constraint</em>, <em>penalty=None</em>, <em>proportionFreeBound=None</em>, <em>proportionFreeBoundList=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.FixedElasticSubProblem" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pulp.</code><code class="sig-name descname">FixedElasticSubProblem</code><span class="sig-paren">(</span><em class="sig-param">constraint</em>, <em class="sig-param">penalty=None</em>, <em class="sig-param">proportionFreeBound=None</em>, <em class="sig-param">proportionFreeBoundList=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.FixedElasticSubProblem" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.pulp.LpProblem</span></code></p>
 <p>Contains the subproblem generated by converting a fixed constraint
 <span class="math notranslate nohighlight">\(\sum_{i}a_i x_i = b\)</span> into an elastic constraint.</p>
@@ -480,25 +480,25 @@ constraint violation that is free from penalty</p></li>
 </dl>
 <dl class="method">
 <dt id="pulp.FixedElasticSubProblem.alterName">
-<code class="descname">alterName</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.FixedElasticSubProblem.alterName" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">alterName</code><span class="sig-paren">(</span><em class="sig-param">name</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.FixedElasticSubProblem.alterName" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alters the name of anonymous parts of the problem</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pulp.FixedElasticSubProblem.deElasticize">
-<code class="descname">deElasticize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.FixedElasticSubProblem.deElasticize" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">deElasticize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.FixedElasticSubProblem.deElasticize" title="Permalink to this definition">¶</a></dt>
 <dd><p>de-elasticize constraint</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pulp.FixedElasticSubProblem.findDifferenceFromRHS">
-<code class="descname">findDifferenceFromRHS</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.FixedElasticSubProblem.findDifferenceFromRHS" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">findDifferenceFromRHS</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.FixedElasticSubProblem.findDifferenceFromRHS" title="Permalink to this definition">¶</a></dt>
 <dd><p>The amount the actual value varies from the RHS (sense: LHS - RHS)</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pulp.FixedElasticSubProblem.findLHSValue">
-<code class="descname">findLHSValue</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.FixedElasticSubProblem.findLHSValue" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">findLHSValue</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.FixedElasticSubProblem.findLHSValue" title="Permalink to this definition">¶</a></dt>
 <dd><p>for elastic constraints finds the LHS value of the constraint without
 the free variable and or penalty variable assumes the constant is on the
 rhs</p>
@@ -506,13 +506,13 @@ rhs</p>
 
 <dl class="method">
 <dt id="pulp.FixedElasticSubProblem.isViolated">
-<code class="descname">isViolated</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.FixedElasticSubProblem.isViolated" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">isViolated</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.FixedElasticSubProblem.isViolated" title="Permalink to this definition">¶</a></dt>
 <dd><p>returns true if the penalty variables are non-zero</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pulp.FixedElasticSubProblem.reElasticize">
-<code class="descname">reElasticize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.FixedElasticSubProblem.reElasticize" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">reElasticize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.FixedElasticSubProblem.reElasticize" title="Permalink to this definition">¶</a></dt>
 <dd><p>Make the Subproblem elastic again after deElasticize</p>
 </dd></dl>
 
@@ -524,7 +524,7 @@ rhs</p>
 <h2>Combinations  and Permutations<a class="headerlink" href="#combinations-and-permutations" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="pulp.combination">
-<code class="descclassname">pulp.</code><code class="descname">combination</code><span class="sig-paren">(</span><em>orgset</em>, <em>k=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.combination" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">pulp.</code><code class="sig-name descname">combination</code><span class="sig-paren">(</span><em class="sig-param">orgset</em>, <em class="sig-param">k=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.combination" title="Permalink to this definition">¶</a></dt>
 <dd><p>returns an iterator that lists the combinations of orgset of
 length k</p>
 <dl class="field-list simple">
@@ -554,7 +554,7 @@ length k</p>
 
 <dl class="function">
 <dt id="pulp.allcombinations">
-<code class="descclassname">pulp.</code><code class="descname">allcombinations</code><span class="sig-paren">(</span><em>orgset</em>, <em>k</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.allcombinations" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">pulp.</code><code class="sig-name descname">allcombinations</code><span class="sig-paren">(</span><em class="sig-param">orgset</em>, <em class="sig-param">k</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.allcombinations" title="Permalink to this definition">¶</a></dt>
 <dd><p>returns all combinations of orgset with up to k items</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -587,7 +587,7 @@ length k</p>
 
 <dl class="function">
 <dt id="pulp.permutation">
-<code class="descclassname">pulp.</code><code class="descname">permutation</code><span class="sig-paren">(</span><em>orgset</em>, <em>k=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.permutation" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">pulp.</code><code class="sig-name descname">permutation</code><span class="sig-paren">(</span><em class="sig-param">orgset</em>, <em class="sig-param">k=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.permutation" title="Permalink to this definition">¶</a></dt>
 <dd><p>returns an iterator that lists the permutations of orgset of
 length k</p>
 <dl class="field-list simple">
@@ -623,7 +623,7 @@ length k</p>
 
 <dl class="function">
 <dt id="pulp.allpermutations">
-<code class="descclassname">pulp.</code><code class="descname">allpermutations</code><span class="sig-paren">(</span><em>orgset</em>, <em>k</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.allpermutations" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">pulp.</code><code class="sig-name descname">allpermutations</code><span class="sig-paren">(</span><em class="sig-param">orgset</em>, <em class="sig-param">k</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.allpermutations" title="Permalink to this definition">¶</a></dt>
 <dd><p>returns all permutations of orgset with up to k items</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -662,7 +662,7 @@ length k</p>
 
 <dl class="function">
 <dt id="pulp.value">
-<code class="descclassname">pulp.</code><code class="descname">value</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.value" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">pulp.</code><code class="sig-name descname">value</code><span class="sig-paren">(</span><em class="sig-param">x</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.value" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the value of the variable/expression x, or x if it is a number</p>
 </dd></dl>
 

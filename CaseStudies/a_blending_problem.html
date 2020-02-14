@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>A Blending Problem &#8212; PuLP 1.6.9 documentation</title>
+    <title>A Blending Problem &#8212; PuLP 2.0 documentation</title>
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -74,10 +74,10 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
     </form>
     </div>
@@ -120,7 +120,7 @@ costs for these are likely to be very small anyway.)</p>
 fibre and salt in the final product. The contributions (in grams) per
 gram of ingredient are given in the table below.</p>
 <blockquote>
-<div><table class="docutils align-center">
+<div><table class="docutils align-default">
 <colgroup>
 <col style="width: 27%" />
 <col style="width: 20%" />
@@ -149,17 +149,29 @@ gram of ingredient are given in the table below.</p>
 <td><p>0.005</p></td>
 <td><p>0.005</p></td>
 </tr>
-<tr class="row-even"><td><p>Rice</p></td>
+<tr class="row-even"><td><p>Mutton</p></td>
+<td><p>0.150</p></td>
+<td><p>0.110</p></td>
+<td><p>0.003</p></td>
+<td><p>0.007</p></td>
+</tr>
+<tr class="row-odd"><td><p>Rice</p></td>
 <td><p>0.000</p></td>
 <td><p>0.010</p></td>
 <td><p>0.100</p></td>
 <td><p>0.002</p></td>
 </tr>
-<tr class="row-odd"><td><p>Wheat bran</p></td>
+<tr class="row-even"><td><p>Wheat bran</p></td>
 <td><p>0.040</p></td>
 <td><p>0.010</p></td>
 <td><p>0.150</p></td>
 <td><p>0.008</p></td>
+</tr>
+<tr class="row-odd"><td><p>Gel</p></td>
+<td><p>0.000</p></td>
+<td><p>0.000</p></td>
+<td><p>0.000</p></td>
+<td><p>0.000</p></td>
 </tr>
 </tbody>
 </table>
@@ -302,7 +314,7 @@ us. Firstly, we request the status of the solution, which can be one of
 value of <code class="docutils literal notranslate"><span class="pre">prob</span></code> (<code class="xref py py-attr docutils literal notranslate"><span class="pre">pulp.pulp.LpProblem.status</span></code>) is returned as an integer, which must be converted
 to its significant text meaning using the
 <a class="reference internal" href="../constants.html#pulp.constants.LpStatus" title="pulp.constants.LpStatus"><code class="xref py py-attr docutils literal notranslate"><span class="pre">LpStatus</span></code></a> dictionary. Since
-<a class="reference internal" href="../constants.html#pulp.constants.LpStatus" title="pulp.constants.LpStatus"><code class="xref py py-attr docutils literal notranslate"><span class="pre">LpStatus</span></code></a> is a dictionary(<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code></a>), its input must be in square brackets:</p>
+<a class="reference internal" href="../constants.html#pulp.constants.LpStatus" title="pulp.constants.LpStatus"><code class="xref py py-attr docutils literal notranslate"><span class="pre">LpStatus</span></code></a> is a dictionary(<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code></a>), its input must be in square brackets:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># The status of the solution is printed to the screen</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Status:&quot;</span><span class="p">,</span> <span class="n">LpStatus</span><span class="p">[</span><span class="n">prob</span><span class="o">.</span><span class="n">status</span><span class="p">])</span>
 </pre></div>

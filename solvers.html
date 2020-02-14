@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>pulp.solvers Interface to Solvers &#8212; PuLP 1.6.9 documentation</title>
+    <title>pulp.solvers Interface to Solvers &#8212; PuLP 2.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -64,10 +64,10 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
     </form>
     </div>
@@ -94,15 +94,45 @@
 <p>This file contains the solver classes for PuLP
 Note that the solvers that require a compiled extension may not work in
 the current version</p>
+<dl class="class">
+<dt id="pulp.solvers.CHOCO_CMD">
+<em class="property">class </em><code class="sig-prename descclassname">pulp.solvers.</code><code class="sig-name descname">CHOCO_CMD</code><span class="sig-paren">(</span><em class="sig-param">path=None</em>, <em class="sig-param">keepFiles=0</em>, <em class="sig-param">mip=1</em>, <em class="sig-param">msg=1</em>, <em class="sig-param">options=[]</em>, <em class="sig-param">mip_start=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.CHOCO_CMD" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pulp.solvers.LpSolver_CMD" title="pulp.solvers.LpSolver_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.solvers.LpSolver_CMD</span></code></a></p>
+<p>The CHOCO_CMD solver</p>
+<dl class="method">
+<dt id="pulp.solvers.CHOCO_CMD.actualSolve">
+<code class="sig-name descname">actualSolve</code><span class="sig-paren">(</span><em class="sig-param">lp</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.CHOCO_CMD.actualSolve" title="Permalink to this definition">¶</a></dt>
+<dd><p>Solve a well formulated lp problem</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pulp.solvers.CHOCO_CMD.available">
+<code class="sig-name descname">available</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.CHOCO_CMD.available" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if the solver is available</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pulp.solvers.CHOCO_CMD.defaultPath">
+<code class="sig-name descname">defaultPath</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.CHOCO_CMD.defaultPath" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pulp.solvers.CHOCO_CMD.readsol">
+<code class="sig-name descname">readsol</code><span class="sig-paren">(</span><em class="sig-param">filename</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.CHOCO_CMD.readsol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read a Choco solution file</p>
+</dd></dl>
+
+</dd></dl>
+
 <dl class="attribute">
 <dt id="pulp.solvers.COIN">
-<code class="descclassname">pulp.solvers.</code><code class="descname">COIN</code><a class="headerlink" href="#pulp.solvers.COIN" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">pulp.solvers.</code><code class="sig-name descname">COIN</code><a class="headerlink" href="#pulp.solvers.COIN" title="Permalink to this definition">¶</a></dt>
 <dd><p>alias of <a class="reference internal" href="#pulp.solvers.COIN_CMD" title="pulp.solvers.COIN_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.solvers.COIN_CMD</span></code></a></p>
 </dd></dl>
 
 <dl class="class">
 <dt id="pulp.solvers.COINMP_DLL">
-<em class="property">class </em><code class="descclassname">pulp.solvers.</code><code class="descname">COINMP_DLL</code><span class="sig-paren">(</span><em>mip=True</em>, <em>msg=True</em>, <em>options=[]</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.COINMP_DLL" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pulp.solvers.</code><code class="sig-name descname">COINMP_DLL</code><span class="sig-paren">(</span><em class="sig-param">mip=True</em>, <em class="sig-param">msg=True</em>, <em class="sig-param">options=[]</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.COINMP_DLL" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pulp.solvers.LpSolver" title="pulp.solvers.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.solvers.LpSolver</span></code></a></p>
 <p>The COIN_MP LP MIP solver (via a DLL or linux so)</p>
 <dl class="field-list simple">
@@ -115,13 +145,13 @@ the current version</p>
 </dl>
 <dl class="method">
 <dt id="pulp.solvers.COINMP_DLL.actualSolve">
-<code class="descname">actualSolve</code><span class="sig-paren">(</span><em>lp</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.COINMP_DLL.actualSolve" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">actualSolve</code><span class="sig-paren">(</span><em class="sig-param">lp</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.COINMP_DLL.actualSolve" title="Permalink to this definition">¶</a></dt>
 <dd><p>Solve a well formulated lp problem</p>
 </dd></dl>
 
-<dl class="classmethod">
+<dl class="method">
 <dt id="pulp.solvers.COINMP_DLL.available">
-<em class="property">classmethod </em><code class="descname">available</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.COINMP_DLL.available" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><code class="sig-name descname">available</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.COINMP_DLL.available" title="Permalink to this definition">¶</a></dt>
 <dd><p>True if the solver is available</p>
 </dd></dl>
 
@@ -129,61 +159,66 @@ the current version</p>
 
 <dl class="function">
 <dt id="pulp.solvers.COINMP_DLL_load_dll">
-<code class="descclassname">pulp.solvers.</code><code class="descname">COINMP_DLL_load_dll</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.COINMP_DLL_load_dll" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">pulp.solvers.</code><code class="sig-name descname">COINMP_DLL_load_dll</code><span class="sig-paren">(</span><em class="sig-param">path</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.COINMP_DLL_load_dll" title="Permalink to this definition">¶</a></dt>
 <dd><p>function that loads the DLL useful for debugging installation problems</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="pulp.solvers.COIN_CMD">
-<em class="property">class </em><code class="descclassname">pulp.solvers.</code><code class="descname">COIN_CMD</code><span class="sig-paren">(</span><em>path=None</em>, <em>keepFiles=0</em>, <em>mip=1</em>, <em>msg=0</em>, <em>cuts=None</em>, <em>presolve=None</em>, <em>dual=None</em>, <em>strong=None</em>, <em>options=[]</em>, <em>fracGap=None</em>, <em>maxSeconds=None</em>, <em>threads=None</em>, <em>mip_start=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.COIN_CMD" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pulp.solvers.</code><code class="sig-name descname">COIN_CMD</code><span class="sig-paren">(</span><em class="sig-param">path=None</em>, <em class="sig-param">keepFiles=0</em>, <em class="sig-param">mip=1</em>, <em class="sig-param">msg=0</em>, <em class="sig-param">cuts=None</em>, <em class="sig-param">presolve=None</em>, <em class="sig-param">dual=None</em>, <em class="sig-param">strong=None</em>, <em class="sig-param">options=[]</em>, <em class="sig-param">fracGap=None</em>, <em class="sig-param">maxSeconds=None</em>, <em class="sig-param">threads=None</em>, <em class="sig-param">mip_start=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.COIN_CMD" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pulp.solvers.LpSolver_CMD" title="pulp.solvers.LpSolver_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.solvers.LpSolver_CMD</span></code></a></p>
 <p>The COIN CLP/CBC LP solver
 now only uses cbc</p>
 <dl class="method">
 <dt id="pulp.solvers.COIN_CMD.actualSolve">
-<code class="descname">actualSolve</code><span class="sig-paren">(</span><em>lp</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.COIN_CMD.actualSolve" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">actualSolve</code><span class="sig-paren">(</span><em class="sig-param">lp</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.COIN_CMD.actualSolve" title="Permalink to this definition">¶</a></dt>
 <dd><p>Solve a well formulated lp problem</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pulp.solvers.COIN_CMD.available">
-<code class="descname">available</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.COIN_CMD.available" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">available</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.COIN_CMD.available" title="Permalink to this definition">¶</a></dt>
 <dd><p>True if the solver is available</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pulp.solvers.COIN_CMD.copy">
-<code class="descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.COIN_CMD.copy" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.COIN_CMD.copy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Make a copy of self</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pulp.solvers.COIN_CMD.defaultPath">
-<code class="descname">defaultPath</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.COIN_CMD.defaultPath" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">defaultPath</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.COIN_CMD.defaultPath" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pulp.solvers.COIN_CMD.get_status">
+<code class="sig-name descname">get_status</code><span class="sig-paren">(</span><em class="sig-param">filename</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.COIN_CMD.get_status" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pulp.solvers.COIN_CMD.readsol_LP">
-<code class="descname">readsol_LP</code><span class="sig-paren">(</span><em>filename</em>, <em>lp</em>, <em>vs</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.COIN_CMD.readsol_LP" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">readsol_LP</code><span class="sig-paren">(</span><em class="sig-param">filename</em>, <em class="sig-param">lp</em>, <em class="sig-param">vs</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.COIN_CMD.readsol_LP" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read a CBC solution file generated from an lp (good names)
-returns status, values, reducedCosts, shadowPrices, slacks</p>
+returns status, values, reducedCosts, shadowPrices, slacks, sol_status</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pulp.solvers.COIN_CMD.readsol_MPS">
-<code class="descname">readsol_MPS</code><span class="sig-paren">(</span><em>filename</em>, <em>lp</em>, <em>vs</em>, <em>variablesNames</em>, <em>constraintsNames</em>, <em>objectiveName=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.COIN_CMD.readsol_MPS" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">readsol_MPS</code><span class="sig-paren">(</span><em class="sig-param">filename</em>, <em class="sig-param">lp</em>, <em class="sig-param">vs</em>, <em class="sig-param">variablesNames</em>, <em class="sig-param">constraintsNames</em>, <em class="sig-param">objectiveName=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.COIN_CMD.readsol_MPS" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read a CBC solution file generated from an mps or lp file (possible different names)</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pulp.solvers.COIN_CMD.solve_CBC">
-<code class="descname">solve_CBC</code><span class="sig-paren">(</span><em>lp</em>, <em>use_mps=True</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.COIN_CMD.solve_CBC" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">solve_CBC</code><span class="sig-paren">(</span><em class="sig-param">lp</em>, <em class="sig-param">use_mps=True</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.COIN_CMD.solve_CBC" title="Permalink to this definition">¶</a></dt>
 <dd><p>Solve a MIP problem using CBC</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pulp.solvers.COIN_CMD.writesol">
-<code class="descname">writesol</code><span class="sig-paren">(</span><em>filename</em>, <em>lp</em>, <em>vs</em>, <em>variablesNames</em>, <em>constraintsNames</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.COIN_CMD.writesol" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">writesol</code><span class="sig-paren">(</span><em class="sig-param">filename</em>, <em class="sig-param">lp</em>, <em class="sig-param">vs</em>, <em class="sig-param">variablesNames</em>, <em class="sig-param">constraintsNames</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.COIN_CMD.writesol" title="Permalink to this definition">¶</a></dt>
 <dd><p>Writes a CBC solution file generated from an mps / lp file (possible different names)
 returns True on success</p>
 </dd></dl>
@@ -192,41 +227,41 @@ returns True on success</p>
 
 <dl class="attribute">
 <dt id="pulp.solvers.CPLEX">
-<code class="descclassname">pulp.solvers.</code><code class="descname">CPLEX</code><a class="headerlink" href="#pulp.solvers.CPLEX" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">pulp.solvers.</code><code class="sig-name descname">CPLEX</code><a class="headerlink" href="#pulp.solvers.CPLEX" title="Permalink to this definition">¶</a></dt>
 <dd><p>alias of <a class="reference internal" href="#pulp.solvers.CPLEX_CMD" title="pulp.solvers.CPLEX_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.solvers.CPLEX_CMD</span></code></a></p>
 </dd></dl>
 
 <dl class="class">
 <dt id="pulp.solvers.CPLEX_CMD">
-<em class="property">class </em><code class="descclassname">pulp.solvers.</code><code class="descname">CPLEX_CMD</code><span class="sig-paren">(</span><em>path=None</em>, <em>keepFiles=0</em>, <em>mip=1</em>, <em>msg=0</em>, <em>options=[]</em>, <em>timelimit=None</em>, <em>mip_start=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.CPLEX_CMD" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pulp.solvers.</code><code class="sig-name descname">CPLEX_CMD</code><span class="sig-paren">(</span><em class="sig-param">path=None</em>, <em class="sig-param">keepFiles=0</em>, <em class="sig-param">mip=1</em>, <em class="sig-param">msg=0</em>, <em class="sig-param">options=[]</em>, <em class="sig-param">timelimit=None</em>, <em class="sig-param">mip_start=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.CPLEX_CMD" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pulp.solvers.LpSolver_CMD" title="pulp.solvers.LpSolver_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.solvers.LpSolver_CMD</span></code></a></p>
 <p>The CPLEX LP solver</p>
 <dl class="method">
 <dt id="pulp.solvers.CPLEX_CMD.actualSolve">
-<code class="descname">actualSolve</code><span class="sig-paren">(</span><em>lp</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.CPLEX_CMD.actualSolve" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">actualSolve</code><span class="sig-paren">(</span><em class="sig-param">lp</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.CPLEX_CMD.actualSolve" title="Permalink to this definition">¶</a></dt>
 <dd><p>Solve a well formulated lp problem</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pulp.solvers.CPLEX_CMD.available">
-<code class="descname">available</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.CPLEX_CMD.available" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">available</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.CPLEX_CMD.available" title="Permalink to this definition">¶</a></dt>
 <dd><p>True if the solver is available</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pulp.solvers.CPLEX_CMD.defaultPath">
-<code class="descname">defaultPath</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.CPLEX_CMD.defaultPath" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">defaultPath</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.CPLEX_CMD.defaultPath" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pulp.solvers.CPLEX_CMD.readsol">
-<code class="descname">readsol</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.CPLEX_CMD.readsol" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">readsol</code><span class="sig-paren">(</span><em class="sig-param">filename</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.CPLEX_CMD.readsol" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read a CPLEX solution file</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pulp.solvers.CPLEX_CMD.writesol">
-<code class="descname">writesol</code><span class="sig-paren">(</span><em>filename</em>, <em>vs</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.CPLEX_CMD.writesol" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">writesol</code><span class="sig-paren">(</span><em class="sig-param">filename</em>, <em class="sig-param">vs</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.CPLEX_CMD.writesol" title="Permalink to this definition">¶</a></dt>
 <dd><p>Writes a CPLEX solution file</p>
 </dd></dl>
 
@@ -234,18 +269,18 @@ returns True on success</p>
 
 <dl class="class">
 <dt id="pulp.solvers.CPLEX_DLL">
-<em class="property">class </em><code class="descclassname">pulp.solvers.</code><code class="descname">CPLEX_DLL</code><span class="sig-paren">(</span><em>mip=True</em>, <em>msg=True</em>, <em>options=[]</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.CPLEX_DLL" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pulp.solvers.</code><code class="sig-name descname">CPLEX_DLL</code><span class="sig-paren">(</span><em class="sig-param">mip=True</em>, <em class="sig-param">msg=True</em>, <em class="sig-param">options=[]</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.CPLEX_DLL" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pulp.solvers.LpSolver" title="pulp.solvers.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.solvers.LpSolver</span></code></a></p>
 <p>The CPLEX LP/MIP solver PHANTOM Something went wrong!!!!</p>
 <dl class="method">
 <dt id="pulp.solvers.CPLEX_DLL.actualSolve">
-<code class="descname">actualSolve</code><span class="sig-paren">(</span><em>lp</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.CPLEX_DLL.actualSolve" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">actualSolve</code><span class="sig-paren">(</span><em class="sig-param">lp</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.CPLEX_DLL.actualSolve" title="Permalink to this definition">¶</a></dt>
 <dd><p>Solve a well formulated lp problem</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pulp.solvers.CPLEX_DLL.available">
-<code class="descname">available</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.CPLEX_DLL.available" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">available</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.CPLEX_DLL.available" title="Permalink to this definition">¶</a></dt>
 <dd><p>True if the solver is available</p>
 </dd></dl>
 
@@ -253,24 +288,24 @@ returns True on success</p>
 
 <dl class="function">
 <dt id="pulp.solvers.CPLEX_DLL_load_dll">
-<code class="descclassname">pulp.solvers.</code><code class="descname">CPLEX_DLL_load_dll</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.CPLEX_DLL_load_dll" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">pulp.solvers.</code><code class="sig-name descname">CPLEX_DLL_load_dll</code><span class="sig-paren">(</span><em class="sig-param">path</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.CPLEX_DLL_load_dll" title="Permalink to this definition">¶</a></dt>
 <dd><p>function that loads the DLL useful for debugging installation problems</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="pulp.solvers.CPLEX_PY">
-<em class="property">class </em><code class="descclassname">pulp.solvers.</code><code class="descname">CPLEX_PY</code><span class="sig-paren">(</span><em>mip=True</em>, <em>msg=True</em>, <em>options=[]</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.CPLEX_PY" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pulp.solvers.</code><code class="sig-name descname">CPLEX_PY</code><span class="sig-paren">(</span><em class="sig-param">mip=True</em>, <em class="sig-param">msg=True</em>, <em class="sig-param">options=[]</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.CPLEX_PY" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pulp.solvers.LpSolver" title="pulp.solvers.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.solvers.LpSolver</span></code></a></p>
 <p>The CPLEX LP/MIP solver from python PHANTOM Something went wrong!!!!</p>
 <dl class="method">
 <dt id="pulp.solvers.CPLEX_PY.actualSolve">
-<code class="descname">actualSolve</code><span class="sig-paren">(</span><em>lp</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.CPLEX_PY.actualSolve" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">actualSolve</code><span class="sig-paren">(</span><em class="sig-param">lp</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.CPLEX_PY.actualSolve" title="Permalink to this definition">¶</a></dt>
 <dd><p>Solve a well formulated lp problem</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pulp.solvers.CPLEX_PY.available">
-<code class="descname">available</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.CPLEX_PY.available" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">available</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.CPLEX_PY.available" title="Permalink to this definition">¶</a></dt>
 <dd><p>True if the solver is available</p>
 </dd></dl>
 
@@ -278,35 +313,35 @@ returns True on success</p>
 
 <dl class="attribute">
 <dt id="pulp.solvers.GLPK">
-<code class="descclassname">pulp.solvers.</code><code class="descname">GLPK</code><a class="headerlink" href="#pulp.solvers.GLPK" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">pulp.solvers.</code><code class="sig-name descname">GLPK</code><a class="headerlink" href="#pulp.solvers.GLPK" title="Permalink to this definition">¶</a></dt>
 <dd><p>alias of <a class="reference internal" href="#pulp.solvers.GLPK_CMD" title="pulp.solvers.GLPK_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.solvers.GLPK_CMD</span></code></a></p>
 </dd></dl>
 
 <dl class="class">
 <dt id="pulp.solvers.GLPK_CMD">
-<em class="property">class </em><code class="descclassname">pulp.solvers.</code><code class="descname">GLPK_CMD</code><span class="sig-paren">(</span><em>path=None</em>, <em>keepFiles=0</em>, <em>mip=1</em>, <em>msg=1</em>, <em>options=[]</em>, <em>mip_start=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.GLPK_CMD" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pulp.solvers.</code><code class="sig-name descname">GLPK_CMD</code><span class="sig-paren">(</span><em class="sig-param">path=None</em>, <em class="sig-param">keepFiles=0</em>, <em class="sig-param">mip=1</em>, <em class="sig-param">msg=1</em>, <em class="sig-param">options=[]</em>, <em class="sig-param">mip_start=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.GLPK_CMD" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pulp.solvers.LpSolver_CMD" title="pulp.solvers.LpSolver_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.solvers.LpSolver_CMD</span></code></a></p>
 <p>The GLPK LP solver</p>
 <dl class="method">
 <dt id="pulp.solvers.GLPK_CMD.actualSolve">
-<code class="descname">actualSolve</code><span class="sig-paren">(</span><em>lp</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.GLPK_CMD.actualSolve" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">actualSolve</code><span class="sig-paren">(</span><em class="sig-param">lp</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.GLPK_CMD.actualSolve" title="Permalink to this definition">¶</a></dt>
 <dd><p>Solve a well formulated lp problem</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pulp.solvers.GLPK_CMD.available">
-<code class="descname">available</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.GLPK_CMD.available" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">available</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.GLPK_CMD.available" title="Permalink to this definition">¶</a></dt>
 <dd><p>True if the solver is available</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pulp.solvers.GLPK_CMD.defaultPath">
-<code class="descname">defaultPath</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.GLPK_CMD.defaultPath" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">defaultPath</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.GLPK_CMD.defaultPath" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pulp.solvers.GLPK_CMD.readsol">
-<code class="descname">readsol</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.GLPK_CMD.readsol" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">readsol</code><span class="sig-paren">(</span><em class="sig-param">filename</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.GLPK_CMD.readsol" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read a GLPK solution file</p>
 </dd></dl>
 
@@ -314,7 +349,7 @@ returns True on success</p>
 
 <dl class="class">
 <dt id="pulp.solvers.GUROBI">
-<em class="property">class </em><code class="descclassname">pulp.solvers.</code><code class="descname">GUROBI</code><span class="sig-paren">(</span><em>mip=True</em>, <em>msg=True</em>, <em>options=[]</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.GUROBI" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pulp.solvers.</code><code class="sig-name descname">GUROBI</code><span class="sig-paren">(</span><em class="sig-param">mip=True</em>, <em class="sig-param">msg=True</em>, <em class="sig-param">options=[]</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.GUROBI" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pulp.solvers.LpSolver" title="pulp.solvers.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.solvers.LpSolver</span></code></a></p>
 <p>The Gurobi LP/MIP solver (via its python interface)</p>
 <p>The Gurobi variables are available (after a solve) in var.solverVar
@@ -322,13 +357,13 @@ Constriaints in constraint.solverConstraint
 and the Model is in prob.solverModel</p>
 <dl class="method">
 <dt id="pulp.solvers.GUROBI.actualSolve">
-<code class="descname">actualSolve</code><span class="sig-paren">(</span><em>lp</em>, <em>callback=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.GUROBI.actualSolve" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">actualSolve</code><span class="sig-paren">(</span><em class="sig-param">lp</em>, <em class="sig-param">callback=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.GUROBI.actualSolve" title="Permalink to this definition">¶</a></dt>
 <dd><p>Solve a well formulated lp problem</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pulp.solvers.GUROBI.available">
-<code class="descname">available</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.GUROBI.available" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">available</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.GUROBI.available" title="Permalink to this definition">¶</a></dt>
 <dd><p>True if the solver is available</p>
 </dd></dl>
 
@@ -336,38 +371,44 @@ and the Model is in prob.solverModel</p>
 
 <dl class="class">
 <dt id="pulp.solvers.GUROBI_CMD">
-<em class="property">class </em><code class="descclassname">pulp.solvers.</code><code class="descname">GUROBI_CMD</code><span class="sig-paren">(</span><em>path=None</em>, <em>keepFiles=0</em>, <em>mip=1</em>, <em>msg=1</em>, <em>options=[]</em>, <em>mip_start=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.GUROBI_CMD" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pulp.solvers.</code><code class="sig-name descname">GUROBI_CMD</code><span class="sig-paren">(</span><em class="sig-param">path=None</em>, <em class="sig-param">keepFiles=0</em>, <em class="sig-param">mip=1</em>, <em class="sig-param">msg=1</em>, <em class="sig-param">options=[]</em>, <em class="sig-param">mip_start=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.GUROBI_CMD" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pulp.solvers.LpSolver_CMD" title="pulp.solvers.LpSolver_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.solvers.LpSolver_CMD</span></code></a></p>
 <p>The GUROBI_CMD solver</p>
 <dl class="method">
 <dt id="pulp.solvers.GUROBI_CMD.actualSolve">
-<code class="descname">actualSolve</code><span class="sig-paren">(</span><em>lp</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.GUROBI_CMD.actualSolve" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">actualSolve</code><span class="sig-paren">(</span><em class="sig-param">lp</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.GUROBI_CMD.actualSolve" title="Permalink to this definition">¶</a></dt>
 <dd><p>Solve a well formulated lp problem</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pulp.solvers.GUROBI_CMD.available">
-<code class="descname">available</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.GUROBI_CMD.available" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">available</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.GUROBI_CMD.available" title="Permalink to this definition">¶</a></dt>
 <dd><p>True if the solver is available</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pulp.solvers.GUROBI_CMD.defaultPath">
-<code class="descname">defaultPath</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.GUROBI_CMD.defaultPath" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">defaultPath</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.GUROBI_CMD.defaultPath" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pulp.solvers.GUROBI_CMD.readsol">
-<code class="descname">readsol</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.GUROBI_CMD.readsol" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">readsol</code><span class="sig-paren">(</span><em class="sig-param">filename</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.GUROBI_CMD.readsol" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read a Gurobi solution file</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pulp.solvers.GUROBI_CMD.writesol">
+<code class="sig-name descname">writesol</code><span class="sig-paren">(</span><em class="sig-param">filename</em>, <em class="sig-param">vs</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.GUROBI_CMD.writesol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes a GUROBI solution file</p>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="pulp.solvers.GurobiFormulation">
-<em class="property">class </em><code class="descclassname">pulp.solvers.</code><code class="descname">GurobiFormulation</code><span class="sig-paren">(</span><em>sense</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.GurobiFormulation" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<em class="property">class </em><code class="sig-prename descclassname">pulp.solvers.</code><code class="sig-name descname">GurobiFormulation</code><span class="sig-paren">(</span><em class="sig-param">sense</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.GurobiFormulation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>The Gurobi LP/MIP solver (via its python interface)
 without holding our own copy of the constraints</p>
 <p>Contributed by  Ben Hollis&lt;<a class="reference external" href="mailto:ben&#46;hollis&#37;&#52;&#48;polymathian&#46;com">ben<span>&#46;</span>hollis<span>&#64;</span>polymathian<span>&#46;</span>com</a>&gt;</p>
@@ -378,12 +419,12 @@ Also needs tests</p>
 
 <dl class="class">
 <dt id="pulp.solvers.LpSolver">
-<em class="property">class </em><code class="descclassname">pulp.solvers.</code><code class="descname">LpSolver</code><span class="sig-paren">(</span><em>mip=True</em>, <em>msg=True</em>, <em>options=[]</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.LpSolver" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<em class="property">class </em><code class="sig-prename descclassname">pulp.solvers.</code><code class="sig-name descname">LpSolver</code><span class="sig-paren">(</span><em class="sig-param">mip=True</em>, <em class="sig-param">msg=True</em>, <em class="sig-param">options=[]</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.LpSolver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>A generic LP Solver</p>
 <dl class="method">
 <dt id="pulp.solvers.LpSolver.actualResolve">
-<code class="descname">actualResolve</code><span class="sig-paren">(</span><em>lp</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.LpSolver.actualResolve" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">actualResolve</code><span class="sig-paren">(</span><em class="sig-param">lp</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.LpSolver.actualResolve" title="Permalink to this definition">¶</a></dt>
 <dd><p>uses existing problem information and solves the problem
 If it is not implelemented in the solver
 just solve again</p>
@@ -391,25 +432,25 @@ just solve again</p>
 
 <dl class="method">
 <dt id="pulp.solvers.LpSolver.actualSolve">
-<code class="descname">actualSolve</code><span class="sig-paren">(</span><em>lp</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.LpSolver.actualSolve" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">actualSolve</code><span class="sig-paren">(</span><em class="sig-param">lp</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.LpSolver.actualSolve" title="Permalink to this definition">¶</a></dt>
 <dd><p>Solve a well formulated lp problem</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pulp.solvers.LpSolver.available">
-<code class="descname">available</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.LpSolver.available" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">available</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.LpSolver.available" title="Permalink to this definition">¶</a></dt>
 <dd><p>True if the solver is available</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pulp.solvers.LpSolver.copy">
-<code class="descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.LpSolver.copy" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.LpSolver.copy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Make a copy of self</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pulp.solvers.LpSolver.getCplexStyleArrays">
-<code class="descname">getCplexStyleArrays</code><span class="sig-paren">(</span><em>lp</em>, <em>senseDict={-1: 'L'</em>, <em>0: 'E'</em>, <em>1: 'G'}</em>, <em>LpVarCategories={'Continuous': 'C'</em>, <em>'Integer': 'I'}</em>, <em>LpObjSenses={-1: -1</em>, <em>1: 1}</em>, <em>infBound=1e+20</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.LpSolver.getCplexStyleArrays" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">getCplexStyleArrays</code><span class="sig-paren">(</span><em class="sig-param">lp</em>, <em class="sig-param">senseDict={-1: 'L'</em>, <em class="sig-param">0: 'E'</em>, <em class="sig-param">1: 'G'}</em>, <em class="sig-param">LpVarCategories={'Continuous': 'C'</em>, <em class="sig-param">'Integer': 'I'}</em>, <em class="sig-param">LpObjSenses={-1: -1</em>, <em class="sig-param">1: 1}</em>, <em class="sig-param">infBound=1e+20</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.LpSolver.getCplexStyleArrays" title="Permalink to this definition">¶</a></dt>
 <dd><p>returns the arrays suitable to pass to a cdll Cplex
 or other solvers that are similar</p>
 <p>Copyright (c) Stuart Mitchell 2007</p>
@@ -417,7 +458,7 @@ or other solvers that are similar</p>
 
 <dl class="method">
 <dt id="pulp.solvers.LpSolver.solve">
-<code class="descname">solve</code><span class="sig-paren">(</span><em>lp</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.LpSolver.solve" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">solve</code><span class="sig-paren">(</span><em class="sig-param">lp</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.LpSolver.solve" title="Permalink to this definition">¶</a></dt>
 <dd><p>Solve the problem lp</p>
 </dd></dl>
 
@@ -425,35 +466,35 @@ or other solvers that are similar</p>
 
 <dl class="class">
 <dt id="pulp.solvers.LpSolver_CMD">
-<em class="property">class </em><code class="descclassname">pulp.solvers.</code><code class="descname">LpSolver_CMD</code><span class="sig-paren">(</span><em>path=None</em>, <em>keepFiles=0</em>, <em>mip=1</em>, <em>msg=1</em>, <em>options=[]</em>, <em>mip_start=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.LpSolver_CMD" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pulp.solvers.</code><code class="sig-name descname">LpSolver_CMD</code><span class="sig-paren">(</span><em class="sig-param">path=None</em>, <em class="sig-param">keepFiles=0</em>, <em class="sig-param">mip=1</em>, <em class="sig-param">msg=1</em>, <em class="sig-param">options=[]</em>, <em class="sig-param">mip_start=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.LpSolver_CMD" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pulp.solvers.LpSolver" title="pulp.solvers.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.solvers.LpSolver</span></code></a></p>
 <p>A generic command line LP Solver</p>
 <dl class="method">
 <dt id="pulp.solvers.LpSolver_CMD.copy">
-<code class="descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.LpSolver_CMD.copy" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.LpSolver_CMD.copy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Make a copy of self</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pulp.solvers.LpSolver_CMD.defaultPath">
-<code class="descname">defaultPath</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.LpSolver_CMD.defaultPath" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">defaultPath</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.LpSolver_CMD.defaultPath" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="staticmethod">
+<dl class="method">
 <dt id="pulp.solvers.LpSolver_CMD.executable">
-<em class="property">static </em><code class="descname">executable</code><span class="sig-paren">(</span><em>command</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.LpSolver_CMD.executable" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="sig-name descname">executable</code><span class="sig-paren">(</span><em class="sig-param">command</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.LpSolver_CMD.executable" title="Permalink to this definition">¶</a></dt>
 <dd><p>Checks that the solver command is executable,
 And returns the actual path to it.</p>
 </dd></dl>
 
-<dl class="staticmethod">
+<dl class="method">
 <dt id="pulp.solvers.LpSolver_CMD.executableExtension">
-<em class="property">static </em><code class="descname">executableExtension</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.LpSolver_CMD.executableExtension" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="sig-name descname">executableExtension</code><span class="sig-paren">(</span><em class="sig-param">name</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.LpSolver_CMD.executableExtension" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pulp.solvers.LpSolver_CMD.setTmpDir">
-<code class="descname">setTmpDir</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.LpSolver_CMD.setTmpDir" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">setTmpDir</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.LpSolver_CMD.setTmpDir" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set the tmpDir attribute to a reasonnable location for a temporary
 directory</p>
 </dd></dl>
@@ -461,21 +502,64 @@ directory</p>
 </dd></dl>
 
 <dl class="class">
+<dt id="pulp.solvers.MIPCL_CMD">
+<em class="property">class </em><code class="sig-prename descclassname">pulp.solvers.</code><code class="sig-name descname">MIPCL_CMD</code><span class="sig-paren">(</span><em class="sig-param">path=None</em>, <em class="sig-param">keepFiles=0</em>, <em class="sig-param">mip=1</em>, <em class="sig-param">msg=1</em>, <em class="sig-param">options=[]</em>, <em class="sig-param">mip_start=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.MIPCL_CMD" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pulp.solvers.LpSolver_CMD" title="pulp.solvers.LpSolver_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.solvers.LpSolver_CMD</span></code></a></p>
+<p>The MIPCL_CMD solver</p>
+<dl class="method">
+<dt id="pulp.solvers.MIPCL_CMD.actualSolve">
+<code class="sig-name descname">actualSolve</code><span class="sig-paren">(</span><em class="sig-param">lp</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.MIPCL_CMD.actualSolve" title="Permalink to this definition">¶</a></dt>
+<dd><p>Solve a well formulated lp problem</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pulp.solvers.MIPCL_CMD.available">
+<code class="sig-name descname">available</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.MIPCL_CMD.available" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if the solver is available</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pulp.solvers.MIPCL_CMD.defaultPath">
+<code class="sig-name descname">defaultPath</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.MIPCL_CMD.defaultPath" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pulp.solvers.MIPCL_CMD.readsol">
+<code class="sig-name descname">readsol</code><span class="sig-paren">(</span><em class="sig-param">filename</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.MIPCL_CMD.readsol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read a MIPCL solution file</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
 <dt id="pulp.solvers.PULP_CBC_CMD">
-<em class="property">class </em><code class="descclassname">pulp.solvers.</code><code class="descname">PULP_CBC_CMD</code><span class="sig-paren">(</span><em>path=None</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.PULP_CBC_CMD" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pulp.solvers.</code><code class="sig-name descname">PULP_CBC_CMD</code><span class="sig-paren">(</span><em class="sig-param">path=None</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.PULP_CBC_CMD" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pulp.solvers.COIN_CMD" title="pulp.solvers.COIN_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.solvers.COIN_CMD</span></code></a></p>
 <p>This solver uses a precompiled version of cbc provided with the package</p>
 <p>just loads up COIN_CMD with the path set</p>
 <dl class="attribute">
 <dt id="pulp.solvers.PULP_CBC_CMD.pulp_cbc_path">
-<code class="descname">pulp_cbc_path</code><em class="property"> = 'c:\\python37\\lib\\site-packages\\pulp\\solverdir\\cbc\\win\\64\\cbc.exe'</em><a class="headerlink" href="#pulp.solvers.PULP_CBC_CMD.pulp_cbc_path" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">pulp_cbc_path</code><em class="property"> = 'c:\\Anaconda3\\lib\\site-packages\\pulp\\solverdir\\cbc\\win\\64\\cbc.exe'</em><a class="headerlink" href="#pulp.solvers.PULP_CBC_CMD.pulp_cbc_path" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pulp.solvers.PULP_CHOCO_CMD">
+<em class="property">class </em><code class="sig-prename descclassname">pulp.solvers.</code><code class="sig-name descname">PULP_CHOCO_CMD</code><span class="sig-paren">(</span><em class="sig-param">path=None</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.PULP_CHOCO_CMD" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pulp.solvers.CHOCO_CMD" title="pulp.solvers.CHOCO_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.solvers.CHOCO_CMD</span></code></a></p>
+<p>This solver uses a packaged version of choco provided with the package</p>
+<p>just loads up CHOCO_CMD with the path set</p>
+<dl class="attribute">
+<dt id="pulp.solvers.PULP_CHOCO_CMD.pulp_choco_path">
+<code class="sig-name descname">pulp_choco_path</code><em class="property"> = 'c:\\Anaconda3\\lib\\site-packages\\pulp/solverdir/choco/choco-parsers-with-dependencies.jar'</em><a class="headerlink" href="#pulp.solvers.PULP_CHOCO_CMD.pulp_choco_path" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="pulp.solvers.PYGLPK">
-<em class="property">class </em><code class="descclassname">pulp.solvers.</code><code class="descname">PYGLPK</code><span class="sig-paren">(</span><em>mip=True</em>, <em>msg=True</em>, <em>options=[]</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.PYGLPK" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pulp.solvers.</code><code class="sig-name descname">PYGLPK</code><span class="sig-paren">(</span><em class="sig-param">mip=True</em>, <em class="sig-param">msg=True</em>, <em class="sig-param">options=[]</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.PYGLPK" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pulp.solvers.LpSolver" title="pulp.solvers.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.solvers.LpSolver</span></code></a></p>
 <p>The glpk LP/MIP solver (via its python interface)</p>
 <p>Copyright Christophe-Marie Duquesne 2012</p>
@@ -484,13 +568,13 @@ The glpk constraints are available in constraint.solverConstraint
 The Model is in prob.solverModel</p>
 <dl class="method">
 <dt id="pulp.solvers.PYGLPK.actualSolve">
-<code class="descname">actualSolve</code><span class="sig-paren">(</span><em>lp</em>, <em>callback=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.PYGLPK.actualSolve" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">actualSolve</code><span class="sig-paren">(</span><em class="sig-param">lp</em>, <em class="sig-param">callback=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.PYGLPK.actualSolve" title="Permalink to this definition">¶</a></dt>
 <dd><p>Solve a well formulated lp problem</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pulp.solvers.PYGLPK.available">
-<code class="descname">available</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.PYGLPK.available" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">available</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.PYGLPK.available" title="Permalink to this definition">¶</a></dt>
 <dd><p>True if the solver is available</p>
 </dd></dl>
 
@@ -498,47 +582,47 @@ The Model is in prob.solverModel</p>
 
 <dl class="exception">
 <dt id="pulp.solvers.PulpSolverError">
-<em class="property">exception </em><code class="descclassname">pulp.solvers.</code><code class="descname">PulpSolverError</code><a class="headerlink" href="#pulp.solvers.PulpSolverError" title="Permalink to this definition">¶</a></dt>
+<em class="property">exception </em><code class="sig-prename descclassname">pulp.solvers.</code><code class="sig-name descname">PulpSolverError</code><a class="headerlink" href="#pulp.solvers.PulpSolverError" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="constants.html#pulp.constants.PulpError" title="pulp.constants.PulpError"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.constants.PulpError</span></code></a></p>
 <p>Pulp Solver-related exceptions</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pulp.solvers.SCIP">
-<code class="descclassname">pulp.solvers.</code><code class="descname">SCIP</code><a class="headerlink" href="#pulp.solvers.SCIP" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">pulp.solvers.</code><code class="sig-name descname">SCIP</code><a class="headerlink" href="#pulp.solvers.SCIP" title="Permalink to this definition">¶</a></dt>
 <dd><p>alias of <a class="reference internal" href="#pulp.solvers.SCIP_CMD" title="pulp.solvers.SCIP_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.solvers.SCIP_CMD</span></code></a></p>
 </dd></dl>
 
 <dl class="class">
 <dt id="pulp.solvers.SCIP_CMD">
-<em class="property">class </em><code class="descclassname">pulp.solvers.</code><code class="descname">SCIP_CMD</code><span class="sig-paren">(</span><em>path=None</em>, <em>keepFiles=0</em>, <em>mip=1</em>, <em>msg=1</em>, <em>options=[]</em>, <em>mip_start=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.SCIP_CMD" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pulp.solvers.</code><code class="sig-name descname">SCIP_CMD</code><span class="sig-paren">(</span><em class="sig-param">path=None</em>, <em class="sig-param">keepFiles=0</em>, <em class="sig-param">mip=1</em>, <em class="sig-param">msg=1</em>, <em class="sig-param">options=[]</em>, <em class="sig-param">mip_start=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.SCIP_CMD" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pulp.solvers.LpSolver_CMD" title="pulp.solvers.LpSolver_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.solvers.LpSolver_CMD</span></code></a></p>
 <p>The SCIP optimization solver</p>
 <dl class="attribute">
 <dt id="pulp.solvers.SCIP_CMD.SCIP_STATUSES">
-<code class="descname">SCIP_STATUSES</code><em class="property"> = {'gap limit reached': 0, 'infeasible': -1, 'infeasible or unbounded': 0, 'memory limit reached': 0, 'node limit reached': 0, 'optimal solution found': 1, 'restart limit reached': 0, 'solution improvement limit reached': 0, 'solution limit reached': 0, 'stall node limit reached': 0, 'time limit reached': 0, 'total node limit reached': 0, 'unbounded': -2, 'unknown': -3, 'user interrupt': 0}</em><a class="headerlink" href="#pulp.solvers.SCIP_CMD.SCIP_STATUSES" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">SCIP_STATUSES</code><em class="property"> = {'gap limit reached': 0, 'infeasible': -1, 'infeasible or unbounded': 0, 'memory limit reached': 0, 'node limit reached': 0, 'optimal solution found': 1, 'restart limit reached': 0, 'solution improvement limit reached': 0, 'solution limit reached': 0, 'stall node limit reached': 0, 'time limit reached': 0, 'total node limit reached': 0, 'unbounded': -2, 'unknown': -3, 'user interrupt': 0}</em><a class="headerlink" href="#pulp.solvers.SCIP_CMD.SCIP_STATUSES" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pulp.solvers.SCIP_CMD.actualSolve">
-<code class="descname">actualSolve</code><span class="sig-paren">(</span><em>lp</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.SCIP_CMD.actualSolve" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">actualSolve</code><span class="sig-paren">(</span><em class="sig-param">lp</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.SCIP_CMD.actualSolve" title="Permalink to this definition">¶</a></dt>
 <dd><p>Solve a well formulated lp problem</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pulp.solvers.SCIP_CMD.available">
-<code class="descname">available</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.SCIP_CMD.available" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">available</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.SCIP_CMD.available" title="Permalink to this definition">¶</a></dt>
 <dd><p>True if the solver is available</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pulp.solvers.SCIP_CMD.defaultPath">
-<code class="descname">defaultPath</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.SCIP_CMD.defaultPath" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">defaultPath</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.SCIP_CMD.defaultPath" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pulp.solvers.SCIP_CMD.readsol">
-<code class="descname">readsol</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.SCIP_CMD.readsol" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">readsol</code><span class="sig-paren">(</span><em class="sig-param">filename</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.SCIP_CMD.readsol" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read a SCIP solution file</p>
 </dd></dl>
 
@@ -546,7 +630,7 @@ The Model is in prob.solverModel</p>
 
 <dl class="class">
 <dt id="pulp.solvers.XPRESS">
-<em class="property">class </em><code class="descclassname">pulp.solvers.</code><code class="descname">XPRESS</code><span class="sig-paren">(</span><em>path=None</em>, <em>keepFiles=0</em>, <em>mip=1</em>, <em>msg=0</em>, <em>maxSeconds=None</em>, <em>targetGap=None</em>, <em>heurFreq=None</em>, <em>heurStra=None</em>, <em>coverCuts=None</em>, <em>preSolve=None</em>, <em>options=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.XPRESS" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pulp.solvers.</code><code class="sig-name descname">XPRESS</code><span class="sig-paren">(</span><em class="sig-param">path=None</em>, <em class="sig-param">keepFiles=0</em>, <em class="sig-param">mip=1</em>, <em class="sig-param">msg=0</em>, <em class="sig-param">maxSeconds=None</em>, <em class="sig-param">targetGap=None</em>, <em class="sig-param">heurFreq=None</em>, <em class="sig-param">heurStra=None</em>, <em class="sig-param">coverCuts=None</em>, <em class="sig-param">preSolve=None</em>, <em class="sig-param">options=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.XPRESS" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pulp.solvers.LpSolver_CMD" title="pulp.solvers.LpSolver_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.solvers.LpSolver_CMD</span></code></a></p>
 <p>The XPRESS LP solver</p>
 <p>Initializes the Xpress solver.</p>
@@ -566,24 +650,24 @@ The Model is in prob.solverModel</p>
 </div></blockquote>
 <dl class="method">
 <dt id="pulp.solvers.XPRESS.actualSolve">
-<code class="descname">actualSolve</code><span class="sig-paren">(</span><em>lp</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.XPRESS.actualSolve" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">actualSolve</code><span class="sig-paren">(</span><em class="sig-param">lp</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.XPRESS.actualSolve" title="Permalink to this definition">¶</a></dt>
 <dd><p>Solve a well formulated lp problem</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pulp.solvers.XPRESS.available">
-<code class="descname">available</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.XPRESS.available" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">available</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.XPRESS.available" title="Permalink to this definition">¶</a></dt>
 <dd><p>True if the solver is available</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pulp.solvers.XPRESS.defaultPath">
-<code class="descname">defaultPath</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.XPRESS.defaultPath" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">defaultPath</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.XPRESS.defaultPath" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pulp.solvers.XPRESS.readsol">
-<code class="descname">readsol</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.XPRESS.readsol" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">readsol</code><span class="sig-paren">(</span><em class="sig-param">filename</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.XPRESS.readsol" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read an XPRESS solution file</p>
 </dd></dl>
 
@@ -591,7 +675,7 @@ The Model is in prob.solverModel</p>
 
 <dl class="class">
 <dt id="pulp.solvers.YAPOSIB">
-<em class="property">class </em><code class="descclassname">pulp.solvers.</code><code class="descname">YAPOSIB</code><span class="sig-paren">(</span><em>mip=True</em>, <em>msg=True</em>, <em>options=[]</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.YAPOSIB" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pulp.solvers.</code><code class="sig-name descname">YAPOSIB</code><span class="sig-paren">(</span><em class="sig-param">mip=True</em>, <em class="sig-param">msg=True</em>, <em class="sig-param">options=[]</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.YAPOSIB" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pulp.solvers.LpSolver" title="pulp.solvers.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.solvers.LpSolver</span></code></a></p>
 <p>COIN OSI (via its python interface)</p>
 <p>Copyright Christophe-Marie Duquesne 2012</p>
@@ -600,13 +684,13 @@ The yaposib constraints are available in constraint.solverConstraint
 The Model is in prob.solverModel</p>
 <dl class="method">
 <dt id="pulp.solvers.YAPOSIB.actualSolve">
-<code class="descname">actualSolve</code><span class="sig-paren">(</span><em>lp</em>, <em>callback=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.YAPOSIB.actualSolve" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">actualSolve</code><span class="sig-paren">(</span><em class="sig-param">lp</em>, <em class="sig-param">callback=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.YAPOSIB.actualSolve" title="Permalink to this definition">¶</a></dt>
 <dd><p>Solve a well formulated lp problem</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pulp.solvers.YAPOSIB.available">
-<code class="descname">available</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.YAPOSIB.available" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">available</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.YAPOSIB.available" title="Permalink to this definition">¶</a></dt>
 <dd><p>True if the solver is available</p>
 </dd></dl>
 
@@ -614,14 +698,14 @@ The Model is in prob.solverModel</p>
 
 <dl class="function">
 <dt id="pulp.solvers.ctypesArrayFill">
-<code class="descclassname">pulp.solvers.</code><code class="descname">ctypesArrayFill</code><span class="sig-paren">(</span><em>myList</em>, <em>type=&lt;class 'ctypes.c_double'&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.ctypesArrayFill" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">pulp.solvers.</code><code class="sig-name descname">ctypesArrayFill</code><span class="sig-paren">(</span><em class="sig-param">myList</em>, <em class="sig-param">type=&lt;class 'ctypes.c_double'&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.ctypesArrayFill" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a c array with ctypes from a python list
 type is the type of the c array</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pulp.solvers.initialize">
-<code class="descclassname">pulp.solvers.</code><code class="descname">initialize</code><span class="sig-paren">(</span><em>filename</em>, <em>operating_system='linux'</em>, <em>arch='64'</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.initialize" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">pulp.solvers.</code><code class="sig-name descname">initialize</code><span class="sig-paren">(</span><em class="sig-param">filename</em>, <em class="sig-param">operating_system='linux'</em>, <em class="sig-param">arch='64'</em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.solvers.initialize" title="Permalink to this definition">¶</a></dt>
 <dd><p>reads the configuration file to initialise the module</p>
 </dd></dl>
 
