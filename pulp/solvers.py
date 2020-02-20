@@ -3213,7 +3213,9 @@ class MIPCL_CMD(LpSolver_CMD):
             tmpMps = lp.name+"-pulp.mps"
             tmpSol = lp.name+"-pulp.sol"
         if lp.sense == LpMaximize:
-            raise PulpSolverError("PuLP: MIPCL_CMD cannot handle maximisation problems.")
+            # we swap the objectives
+            # because it does not handle maximization.
+            lp += -lp.objective
         lp.checkDuplicateVars()
         lp.checkLengthVars(52)
         lp.writeMPS(tmpMps, mpsSense=lp.sense)
@@ -3235,7 +3237,10 @@ class MIPCL_CMD(LpSolver_CMD):
             pipe = open(os.devnull, 'w')
 
         return_code = subprocess.call(cmd.split(), stdout=pipe, stderr=pipe)
-
+        # We need to undo the objective swap before finishing
+        if lp.sense == LpMaximize:
+            warnings.warn('MIPCL_CMD does not allow maximization, we will minimize the inverse of the objective function.')
+            lp += -lp.objective
         if return_code != 0:
             raise PulpSolverError("PuLP: Error while trying to execute "+self.path)
         if not os.path.exists(tmpSol):

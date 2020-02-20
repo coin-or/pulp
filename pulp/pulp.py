@@ -1345,7 +1345,7 @@ class LpProblem(object):
         self.modifiedConstraints.append(constraint)
         self.addVariables(list(constraint.keys()))
 
-    def setObjective(self,obj):
+    def setObjective(self, obj):
         """
         Sets the input variable as the objective function. Used in Columnwise Modelling
 
