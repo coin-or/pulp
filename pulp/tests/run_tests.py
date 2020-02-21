@@ -1,5 +1,4 @@
-import os, sys
-sys.path.insert(1, os.path.join(sys.path[0], '..'))
+import sys
 import unittest
 import pulp
 from tests import test_amply, test_pulp, test_examples
