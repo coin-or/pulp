@@ -1,7 +1,7 @@
 import sys
 import unittest
 import pulp
-from tests import test_amply, test_pulp, test_examples
+from pulp.tests import test_amply, test_pulp, test_examples
 
 def pulpTestAll():
      # Tests
