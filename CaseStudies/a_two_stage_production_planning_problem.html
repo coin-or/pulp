@@ -15,7 +15,7 @@
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="How to’s" href="../guides/index.html" />
+    <link rel="next" title="User Guides" href="../guides/index.html" />
     <link rel="prev" title="A Transportation Problem" href="a_transportation_problem.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
@@ -55,14 +55,8 @@
 <li class="toctree-l2 current"><a class="current reference internal" href="#">A Two Stage Production Planning Problem</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="index.html#indices-and-tables">Indices and tables</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/index.html">How to’s</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/index.html#indices-and-tables">Indices and tables</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../constants.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp.constants</span></code></a></li>
-<li class="toctree-l1"><a class="reference internal" href="../pulp.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp</span></code>:  Pulp classes</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../solvers.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp.solvers</span></code> Interface to Solvers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/index.html">User Guides</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../technical/index.html">PuLP Internal Documentation</a></li>
 </ul>
 
 <div class="relations">
@@ -71,7 +65,7 @@
   <li><a href="../index.html">Documentation overview</a><ul>
   <li><a href="index.html">Case Studies</a><ul>
       <li>Previous: <a href="a_transportation_problem.html" title="previous chapter">A Transportation Problem</a></li>
-      <li>Next: <a href="../guides/index.html" title="next chapter">How to’s</a></li>
+      <li>Next: <a href="../guides/index.html" title="next chapter">User Guides</a></li>
   </ul></li>
   </ul></li>
 </ul>
@@ -176,7 +170,7 @@ which creates dictionaries with associated indexing values.</p>
 <span class="n">steelpurchase</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpVariable</span><span class="p">(</span><span class="s2">&quot;steelpurchase&quot;</span><span class="p">,</span> <span class="n">lowBound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">cat</span><span class="o">=</span><span class="s1">&#39;Continuous&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>We create the <a class="reference internal" href="../pulp.html#pulp.LpProblem" title="pulp.LpProblem"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpProblem</span></code></a> and then make the objective function.
+<p>We create the <a class="reference internal" href="../technical/pulp.html#pulp.LpProblem" title="pulp.LpProblem"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpProblem</span></code></a> and then make the objective function.
 Note that this is a maximization problem, as the goal is to maximize net revenue.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">gemstoneprob</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;The Gemstone Tool Problem&quot;</span><span class="p">,</span><span class="n">pulp</span><span class="o">.</span><span class="n">LpMaximize</span><span class="p">)</span>
 </pre></div>

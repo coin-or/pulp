@@ -15,6 +15,8 @@
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="PuLP Internal Documentation" href="../technical/index.html" />
+    <link rel="prev" title="How to warm-start a solver" href="how_to_mip_start.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
@@ -43,21 +45,26 @@
 
 
 <h3>Navigation</h3>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../main/index.html">Main Topics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../CaseStudies/index.html">Case Studies</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../CaseStudies/index.html#indices-and-tables">Indices and tables</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">User Guides</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="how_to_configure_solvers.html">How to configure a solver in PuLP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how_to_mip_start.html">How to warm-start a solver</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Elastic Constraints</a></li>
 </ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../constants.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp.constants</span></code></a></li>
-<li class="toctree-l1"><a class="reference internal" href="../pulp.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp</span></code>:  Pulp classes</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../solvers.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp.solvers</span></code> Interface to Solvers</a></li>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../technical/index.html">PuLP Internal Documentation</a></li>
 </ul>
 
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
   <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">User Guides</a><ul>
+      <li>Previous: <a href="how_to_mip_start.html" title="previous chapter">How to warm-start a solver</a></li>
+      <li>Next: <a href="../technical/index.html" title="next chapter">PuLP Internal Documentation</a></li>
+  </ul></li>
   </ul></li>
 </ul>
 </div>
@@ -99,10 +106,10 @@ can be elasticized to the form</p>
 <p>Define the constraint in two steps:</p>
 <blockquote>
 <div><ol class="arabic simple">
-<li><p>instantiate constraint (subclass of <a class="reference internal" href="../pulp.html#pulp.LpConstraint" title="pulp.LpConstraint"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpConstraint</span></code></a>) with target <span class="math notranslate nohighlight">\(c\)</span>.</p></li>
-<li><p>call its <a class="reference internal" href="../pulp.html#pulp.LpConstraint.makeElasticSubProblem" title="pulp.LpConstraint.makeElasticSubProblem"><code class="xref py py-meth docutils literal notranslate"><span class="pre">makeElasticSubProblem()</span></code></a> method which returns
-an object of type <a class="reference internal" href="../pulp.html#pulp.FixedElasticSubProblem" title="pulp.FixedElasticSubProblem"><code class="xref py py-class docutils literal notranslate"><span class="pre">FixedElasticSubProblem</span></code></a>
-(subclass of <a class="reference internal" href="../pulp.html#pulp.LpProblem" title="pulp.LpProblem"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpProblem</span></code></a>) - its objective is the minimization
+<li><p>instantiate constraint (subclass of <a class="reference internal" href="../technical/pulp.html#pulp.LpConstraint" title="pulp.LpConstraint"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpConstraint</span></code></a>) with target <span class="math notranslate nohighlight">\(c\)</span>.</p></li>
+<li><p>call its <a class="reference internal" href="../technical/pulp.html#pulp.LpConstraint.makeElasticSubProblem" title="pulp.LpConstraint.makeElasticSubProblem"><code class="xref py py-meth docutils literal notranslate"><span class="pre">makeElasticSubProblem()</span></code></a> method which returns
+an object of type <a class="reference internal" href="../technical/pulp.html#pulp.FixedElasticSubProblem" title="pulp.FixedElasticSubProblem"><code class="xref py py-class docutils literal notranslate"><span class="pre">FixedElasticSubProblem</span></code></a>
+(subclass of <a class="reference internal" href="../technical/pulp.html#pulp.LpProblem" title="pulp.LpProblem"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpProblem</span></code></a>) - its objective is the minimization
 of the distance of <span class="math notranslate nohighlight">\(C(x)\)</span> from <span class="math notranslate nohighlight">\(D\)</span>.</p></li>
 </ol>
 </div></blockquote>
@@ -129,7 +136,7 @@ interval <span class="math notranslate nohighlight">\(D = (c(1-a),c(1+b))\)</spa
 <span class="math notranslate nohighlight">\(C(x) \not \in D\)</span>.
 The magnitude of <code class="docutils literal notranslate"><span class="pre">&lt;penalty_value&gt;</span></code> can be assessed by examining
 the final objective function in the <code class="docutils literal notranslate"><span class="pre">.lp</span></code> file written by
-<a class="reference internal" href="../pulp.html#pulp.LpProblem.writeLP" title="pulp.LpProblem.writeLP"><code class="xref py py-meth docutils literal notranslate"><span class="pre">LpProblem.writeLP()</span></code></a>.</p>
+<a class="reference internal" href="../technical/pulp.html#pulp.LpProblem.writeLP" title="pulp.LpProblem.writeLP"><code class="xref py py-meth docutils literal notranslate"><span class="pre">LpProblem.writeLP()</span></code></a>.</p>
 <p>Example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">constraint_1</span> <span class="o">=</span> <span class="n">LpConstraint</span><span class="p">(</span><span class="s1">&#39;ex_1&#39;</span><span class="p">,</span><span class="n">sense</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">rhs</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">elasticProblem_1</span> <span class="o">=</span> <span class="n">constraint_1</span><span class="o">.</span><span class="n">makeElasticSubproblem</span><span class="p">(</span><span class="n">penalty</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">proportionFreeBound</span> <span class="o">=</span> <span class="mf">0.01</span><span class="p">)</span>
@@ -143,7 +150,7 @@ the final objective function in the <code class="docutils literal notranslate"><
 <li><p>constraint_2 has a penalty-free target interval of
 - 2% on left and 5% on the right side of the rhs value, 500</p></li>
 </ol>
-<a class="reference internal image-reference" href="documentation\_static/freebound.*"><img alt="Freebound interval" src="documentation\_static/freebound.*" style="height: 5in;" /></a>
+<a class="reference internal image-reference" href="../_images/freebound.jpg"><img alt="Freebound interval" src="../_images/freebound.jpg" style="height: 5in;" /></a>
 <p>Following are the methods of the return-value:</p>
 </div>
 
@@ -159,7 +166,7 @@ the final objective function in the <code class="docutils literal notranslate"><
       &copy;2009-, pulp documentation team..
       
       |
-      <a href="../_sources/documentation/elastic.rst.txt"
+      <a href="../_sources/guides/how_to_elastic_constraints.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 

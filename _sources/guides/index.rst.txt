@@ -1,4 +1,4 @@
-﻿How to's
+﻿User Guides
 =====================
 
 
@@ -7,10 +7,4 @@
 
     how_to_configure_solvers
     how_to_mip_start
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+    how_to_elastic_constraints

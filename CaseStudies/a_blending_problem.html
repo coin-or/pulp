@@ -52,14 +52,11 @@
 <li class="toctree-l2"><a class="reference internal" href="a_set_partitioning_problem.html">A Set Partitioning Problem</a></li>
 <li class="toctree-l2"><a class="reference internal" href="a_sudoku_problem.html">A Sudoku Problem formulated as an LP</a></li>
 <li class="toctree-l2"><a class="reference internal" href="a_transportation_problem.html">A Transportation Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="a_two_stage_production_planning_problem.html">A Two Stage Production Planning Problem</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="index.html#indices-and-tables">Indices and tables</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../constants.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp.constants</span></code></a></li>
-<li class="toctree-l1"><a class="reference internal" href="../pulp.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp</span></code>:  Pulp classes</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../solvers.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp.solvers</span></code> Interface to Solvers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/index.html">User Guides</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../technical/index.html">PuLP Internal Documentation</a></li>
 </ul>
 
 <div class="relations">
@@ -227,7 +224,7 @@ for this example is found in <a class="reference external" href="https://project
 </pre></div>
 </div>
 <p>A variable called <code class="docutils literal notranslate"><span class="pre">prob</span></code> (although its name is not important) is
-created using the <a class="reference internal" href="../pulp.html#pulp.LpProblem" title="pulp.LpProblem"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpProblem</span></code></a> function. It has two parameters, the first
+created using the <a class="reference internal" href="../technical/pulp.html#pulp.LpProblem" title="pulp.LpProblem"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpProblem</span></code></a> function. It has two parameters, the first
 being the arbitrary name of this problem (as a string), and the second
 parameter being either <code class="docutils literal notranslate"><span class="pre">LpMinimize</span></code> or <code class="docutils literal notranslate"><span class="pre">LpMaximize</span></code> depending on the
 type of LP you are trying to solve:</p>
@@ -236,7 +233,7 @@ type of LP you are trying to solve:</p>
 </pre></div>
 </div>
 <p>The problem variables <code class="docutils literal notranslate"><span class="pre">x1</span></code> and <code class="docutils literal notranslate"><span class="pre">x2</span></code> are created using the
-<a class="reference internal" href="../pulp.html#pulp.LpVariable" title="pulp.LpVariable"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpVariable</span></code></a> class. It has four parameters, the first is the
+<a class="reference internal" href="../technical/pulp.html#pulp.LpVariable" title="pulp.LpVariable"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpVariable</span></code></a> class. It has four parameters, the first is the
 arbitrary name of what this variable represents, the second is the lower
 bound on this variable, the third is the upper bound, and the fourth
 is essentially the type of data (discrete or continuous). The options
@@ -286,13 +283,13 @@ the cause of that constraint:</p>
 <span class="n">prob</span> <span class="o">+=</span> <span class="mf">0.002</span><span class="o">*</span><span class="n">x1</span> <span class="o">+</span> <span class="mf">0.005</span><span class="o">*</span><span class="n">x2</span> <span class="o">&lt;=</span> <span class="mf">0.4</span><span class="p">,</span> <span class="s2">&quot;SaltRequirement&quot;</span>
 </pre></div>
 </div>
-<p>Now that all the problem data is entered, the <a class="reference internal" href="../pulp.html#pulp.LpProblem.writeLP" title="pulp.LpProblem.writeLP"><code class="xref py py-meth docutils literal notranslate"><span class="pre">writeLP()</span></code></a> function
+<p>Now that all the problem data is entered, the <a class="reference internal" href="../technical/pulp.html#pulp.LpProblem.writeLP" title="pulp.LpProblem.writeLP"><code class="xref py py-meth docutils literal notranslate"><span class="pre">writeLP()</span></code></a> function
 can be used to copy this information into a .lp file into the directory
 that your code-block is running from. Once your code runs successfully, you
 can open this .lp file with a text editor to see what the above steps were
 doing. You will notice that there is no assignment operator (such as an
 equals sign) on this line. This is because the function/method called
-<a class="reference internal" href="../pulp.html#pulp.LpProblem.writeLP" title="pulp.LpProblem.writeLP"><code class="xref py py-meth docutils literal notranslate"><span class="pre">writeLP()</span></code></a> is being performed to the
+<a class="reference internal" href="../technical/pulp.html#pulp.LpProblem.writeLP" title="pulp.LpProblem.writeLP"><code class="xref py py-meth docutils literal notranslate"><span class="pre">writeLP()</span></code></a> is being performed to the
 variable/object <code class="docutils literal notranslate"><span class="pre">prob</span></code> (and the
 string <code class="docutils literal notranslate"><span class="pre">&quot;WhiskasModel.lp&quot;</span></code> is an additional parameter). The dot <code class="docutils literal notranslate"><span class="pre">.</span></code>
 between the variable/object and the function/method is important and is
@@ -302,7 +299,7 @@ seen frequently in Object Oriented software (such as this):</p>
 </pre></div>
 </div>
 <p>The LP is solved using the solver that PuLP chooses. The input
-brackets after <a class="reference internal" href="../pulp.html#pulp.LpProblem.solve" title="pulp.LpProblem.solve"><code class="xref py py-meth docutils literal notranslate"><span class="pre">solve()</span></code></a> are left empty in this case, however they can be
+brackets after <a class="reference internal" href="../technical/pulp.html#pulp.LpProblem.solve" title="pulp.LpProblem.solve"><code class="xref py py-meth docutils literal notranslate"><span class="pre">solve()</span></code></a> are left empty in this case, however they can be
 used to specify which solver to use (e.g <code class="docutils literal notranslate"><span class="pre">prob.solve(CPLEX())</span></code> ):</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># The problem is solved using PuLP&#39;s choice of Solver</span>
 <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
@@ -313,8 +310,8 @@ us. Firstly, we request the status of the solution, which can be one of
 “Not Solved”, “Infeasible”, “Unbounded”, “Undefined” or “Optimal”. The
 value of <code class="docutils literal notranslate"><span class="pre">prob</span></code> (<code class="xref py py-attr docutils literal notranslate"><span class="pre">pulp.pulp.LpProblem.status</span></code>) is returned as an integer, which must be converted
 to its significant text meaning using the
-<a class="reference internal" href="../constants.html#pulp.constants.LpStatus" title="pulp.constants.LpStatus"><code class="xref py py-attr docutils literal notranslate"><span class="pre">LpStatus</span></code></a> dictionary. Since
-<a class="reference internal" href="../constants.html#pulp.constants.LpStatus" title="pulp.constants.LpStatus"><code class="xref py py-attr docutils literal notranslate"><span class="pre">LpStatus</span></code></a> is a dictionary(<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code></a>), its input must be in square brackets:</p>
+<a class="reference internal" href="../technical/constants.html#pulp.constants.LpStatus" title="pulp.constants.LpStatus"><code class="xref py py-attr docutils literal notranslate"><span class="pre">LpStatus</span></code></a> dictionary. Since
+<a class="reference internal" href="../technical/constants.html#pulp.constants.LpStatus" title="pulp.constants.LpStatus"><code class="xref py py-attr docutils literal notranslate"><span class="pre">LpStatus</span></code></a> is a dictionary(<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code></a>), its input must be in square brackets:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># The status of the solution is printed to the screen</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Status:&quot;</span><span class="p">,</span> <span class="n">LpStatus</span><span class="p">[</span><span class="n">prob</span><span class="o">.</span><span class="n">status</span><span class="p">])</span>
 </pre></div>
@@ -335,7 +332,7 @@ equals sign, followed by its optimum value.
 properties of the object <code class="docutils literal notranslate"><span class="pre">variable</span></code>.</p>
 <p>The optimised objective function value is printed to the screen,
 using the value function. This ensures that the number is in the right
-format to be displayed. <a class="reference internal" href="../pulp.html#pulp.LpProblem.objective" title="pulp.LpProblem.objective"><code class="xref py py-attr docutils literal notranslate"><span class="pre">objective</span></code></a> is an attribute of the object
+format to be displayed. <a class="reference internal" href="../technical/pulp.html#pulp.LpProblem.objective" title="pulp.LpProblem.objective"><code class="xref py py-attr docutils literal notranslate"><span class="pre">objective</span></code></a> is an attribute of the object
 <code class="docutils literal notranslate"><span class="pre">prob</span></code>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># The optimised objective function value is printed to the screen</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Total Cost of Ingredients per can = &quot;</span><span class="p">,</span> <span class="n">value</span><span class="p">(</span><span class="n">prob</span><span class="o">.</span><span class="n">objective</span><span class="p">))</span>
@@ -475,7 +472,7 @@ the data.</p>
 </pre></div>
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">prob</span></code> variable is created to contain the formulation, and the
-usual parameters are passed into <a class="reference internal" href="../pulp.html#pulp.LpProblem" title="pulp.LpProblem"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LpProblem</span></code></a>.</p>
+usual parameters are passed into <a class="reference internal" href="../technical/pulp.html#pulp.LpProblem" title="pulp.LpProblem"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LpProblem</span></code></a>.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create the &#39;prob&#39; variable to contain the problem data</span>
 <span class="n">prob</span> <span class="o">=</span> <span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;The Whiskas Problem&quot;</span><span class="p">,</span> <span class="n">LpMinimize</span><span class="p">)</span>
 </pre></div>
@@ -490,7 +487,7 @@ keys to the dictionary are the Ingredient names, and the data is
 </div>
 <p>Since <code class="docutils literal notranslate"><span class="pre">costs</span></code> and <code class="docutils literal notranslate"><span class="pre">ingredient_vars</span></code> are now dictionaries with the
 reference keys as the Ingredient names, the data can be simply extracted
-with a list comprehension as shown. The <a class="reference internal" href="../pulp.html#pulp.lpSum" title="pulp.lpSum"><code class="xref py py-func docutils literal notranslate"><span class="pre">lpSum()</span></code></a> function will add the
+with a list comprehension as shown. The <a class="reference internal" href="../technical/pulp.html#pulp.lpSum" title="pulp.lpSum"><code class="xref py py-func docutils literal notranslate"><span class="pre">lpSum()</span></code></a> function will add the
 elements of the resulting list. Thus the objective function is simply
 entered and assigned a name:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># The objective function is added to &#39;prob&#39; first</span>

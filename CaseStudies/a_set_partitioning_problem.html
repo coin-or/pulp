@@ -55,14 +55,8 @@
 <li class="toctree-l2"><a class="reference internal" href="a_two_stage_production_planning_problem.html">A Two Stage Production Planning Problem</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="index.html#indices-and-tables">Indices and tables</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/index.html">How to’s</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/index.html#indices-and-tables">Indices and tables</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../constants.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp.constants</span></code></a></li>
-<li class="toctree-l1"><a class="reference internal" href="../pulp.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp</span></code>:  Pulp classes</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../solvers.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp.solvers</span></code> Interface to Solvers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/index.html">User Guides</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../technical/index.html">PuLP Internal Documentation</a></li>
 </ul>
 
 <div class="relations">
@@ -120,7 +114,7 @@ of items (without using column generation) it does have the advantage that the
 objective function co-efficients for the partitions can be non-linear
 expressions (like happiness) and still allow this problem to be solved
 using Linear Programming.</p>
-<p>First we use <a class="reference internal" href="../pulp.html#pulp.allcombinations" title="pulp.allcombinations"><code class="xref py py-func docutils literal notranslate"><span class="pre">allcombinations()</span></code></a> to generate a list of all
+<p>First we use <a class="reference internal" href="../technical/pulp.html#pulp.allcombinations" title="pulp.allcombinations"><code class="xref py py-func docutils literal notranslate"><span class="pre">allcombinations()</span></code></a> to generate a list of all
 possible table seatings.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#create list of all possible tables</span>
 <span class="n">possible_tables</span> <span class="o">=</span> <span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">pulp</span><span class="o">.</span><span class="n">allcombinations</span><span class="p">(</span><span class="n">guests</span><span class="p">,</span> 
@@ -135,7 +129,7 @@ possible table seatings.</p>
                             <span class="n">cat</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpInteger</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>We create the <a class="reference internal" href="../pulp.html#pulp.LpProblem" title="pulp.LpProblem"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpProblem</span></code></a> and then make the objective function. Note that
+<p>We create the <a class="reference internal" href="../technical/pulp.html#pulp.LpProblem" title="pulp.LpProblem"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpProblem</span></code></a> and then make the objective function. Note that
 happiness function used in this script would be difficult to model in any other way.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">seating_model</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;Wedding Seating Model&quot;</span><span class="p">,</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
 
