@@ -54,7 +54,7 @@ proportionFreeBoundList = [0.02, 0.05])
 #.    constraint_2 has a penalty-free target interval of
       - 2% on left and 5% on the right side of the rhs value, 500
 
-.. image:: _static/freebound.*
+.. image:: ../_static/freebound.*
    :height:  5in
    :alt:  Freebound interval
 

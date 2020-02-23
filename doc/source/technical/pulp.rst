@@ -86,8 +86,6 @@ Constraints
    :show-inheritance:
    :members: makeElasticSubProblem
 
-.. include::  documentation/elastic.rst
-
 .. autoclass:: FixedElasticSubProblem
    :show-inheritance:
    :members:
