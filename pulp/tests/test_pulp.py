@@ -658,6 +658,7 @@ def suite():
     suite = unittest.TestSuite()
     for solver in solvers:
         if solver().available():
+            print("Found solver: {}".format(solver))
             tests = loader.loadTestsFromTestCase(PuLPTest, solver=solver(msg=0))
             suite.addTests(tests)
     return suite
