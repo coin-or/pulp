@@ -1,12 +1,12 @@
-from .coin import *
-from .cplex import  *
-from .gurobi import *
-from .glpk import *
-from .choco import *
-from .mipcl import *
-from .mosek import *
-from .scip import *
-from .xpress import *
+from .coin_api import *
+from .cplex_api import  *
+from .gurobi_api import *
+from .glpk_api import *
+from .choco_api import *
+from .mipcl_api import *
+from .mosek_api import *
+from .scip_api import *
+from .xpress_api import *
 from .core import cplex_dll_path, coinMP_path, config_filename, Parser
 
 # Default solver selection
