@@ -3,6 +3,7 @@ import unittest
 import pulp
 import shutil
 
+
 class Examples_DocsTests(unittest.TestCase):
 
     def test_examples(self, examples_dir='../examples'):
