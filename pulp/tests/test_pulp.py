@@ -106,14 +106,7 @@ class PuLPTest(unittest.TestCase):
         prob += -y + z == 7, "c3"
         prob += w >= 0, "c4"
         print("\t Testing maximize continuous LP solution")
-        if self.solver.__class__ in [MIPCL_CMD]:
-            # mipcl has no support for maximizing
-            try:
-                pulpTestCheck(prob, self.solver, [LpStatusOptimal], {x: 4, y: 1, z: 8, w: 0})
-            except PulpSolverError:
-                pass
-        else:
-            pulpTestCheck(prob, self.solver, [LpStatusOptimal], {x: 4, y: 1, z: 8, w: 0})
+        pulpTestCheck(prob, self.solver, [LpStatusOptimal], {x: 4, y: 1, z: 8, w: 0})
 
     def test_pulp_012(self):
         # Unbounded
@@ -131,9 +124,10 @@ class PuLPTest(unittest.TestCase):
         if self.solver.__class__ in [GUROBI, CPLEX_CMD, YAPOSIB, CPLEX_PY, MOSEK]:
             # These solvers report infeasible or unbounded
             pulpTestCheck(prob, self.solver, [LpStatusInfeasible, LpStatusUnbounded])
-        elif self.solver.__class__ in [COINMP_DLL]:
+        elif self.solver.__class__ in [COINMP_DLL, MIPCL_CMD]:
             # COINMP_DLL is just plain wrong
-            print('\t\t Error in CoinMP it reports Optimal')
+            # also MIPCL_CMD
+            print('\t\t Error in CoinMP and MIPCL_CMD: reports Optimal')
             pulpTestCheck(prob, self.solver, [LpStatusOptimal])
         elif self.solver.__class__ is GLPK_CMD:
             # GLPK_CMD Does not report unbounded problems, correctly
@@ -145,12 +139,6 @@ class PuLPTest(unittest.TestCase):
         elif self.solver.__class__ in [PULP_CHOCO_CMD, CHOCO_CMD]:
             # choco bounds all variables. Would not return unbounded status
             pass
-        elif self.solver.__class__ in [MIPCL_CMD]:
-            # mipcl has no support for maximizing
-            try:
-                pulpTestCheck(prob, self.solver, [LpStatusUndefined])
-            except PulpSolverError:
-                pass
         else:
             pulpTestCheck(prob, self.solver, [LpStatusUnbounded])
 
@@ -670,8 +658,11 @@ def suite():
     suite = unittest.TestSuite()
     for solver in solvers:
         if solver().available():
+            print("Solver %s available" % solver)
             tests = loader.loadTestsFromTestCase(PuLPTest, solver=solver(msg=0))
             suite.addTests(tests)
+        else:
+            print("Solver %s unavailable" % solver)
     return suite
 
 
