@@ -75,7 +75,6 @@ class MOSEK(LpSolver):
 
         def available(self):
             """True if Mosek is available."""
-            print('MOSEK : Available')
             return(True)
 
         def setOutStream(self, text):
