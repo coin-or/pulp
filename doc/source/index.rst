@@ -24,15 +24,7 @@ relevant information you will need.
    main/index
    CaseStudies/index
    guides/index
-
-PuLP Internal Documentation
-===========================
-.. toctree::
-   :maxdepth: 1
-
-   constants
-   pulp
-   solvers
+   technical/index
    
 Authors
 =======
@@ -40,7 +32,6 @@ Authors
 The authors of this documentation (the pulp documentation team) include:
 
 .. include:: AUTHORS.txt
-
 
 
 Indices and tables

@@ -6,7 +6,7 @@ import shutil
 
 class Examples_DocsTests(unittest.TestCase):
 
-    def test_examples(self, examples_dir='../examples'):
+    def test_examples(self, examples_dir='../../examples'):
         import importlib
         this_file = os.path.realpath(__file__)
         parent_dir = os.path.dirname(this_file)

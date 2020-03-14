@@ -38,7 +38,6 @@ setup(name="PuLP",
                      'Programming Language :: Python',
                      'Topic :: Scientific/Engineering :: Mathematics',
       ],
-      #ext_modules = [pulpCOIN],
       #need the cbc directories here as the executable bit is set
       packages = ['pulp',
       'pulp.solverdir',
@@ -47,27 +46,20 @@ setup(name="PuLP",
       'pulp.solverdir.cbc.win.32',
       'pulp.solverdir.cbc.win.64',
       'pulp.solverdir.cbc.osx.64',
-      'pulp.solverdir.choco'],
-      package_data = {'pulp' : ["AUTHORS","LICENSE",
-                                "pulp.cfg.linux",
-                                "pulp.cfg.win",
-                                "pulp.cfg.osx",
-                                "LICENSE.CoinMP.txt",
-                                "AUTHORS.CoinMP.txt",
-                                "README.CoinMP.txt",
-                                ],
-                      'pulp.solverdir.cbc.linux.32' : ['*','*.*'],
+      'pulp.solverdir.choco',
+      ],
+      package_data = {'pulp.solverdir.cbc.linux.32' : ['*','*.*'],
                       'pulp.solverdir.cbc.linux.64' : ['*','*.*'],
                       'pulp.solverdir.cbc.win.32' : ['*','*.*'],
                       'pulp.solverdir.cbc.win.64' : ['*','*.*'],
                       'pulp.solverdir.cbc.osx.64' : ['*','*.*'],
                       'pulp.solverdir.choco' : ['*','*.*'],
                       },
+      include_package_data=True,
       install_requires = ['pyparsing>=2.0.1'],
       entry_points = ("""
       [console_scripts]
-      pulptest = tests.run_tests:pulpTestAll
-      # pulpdoctest = pulp:pulpDoctest
+      pulptest = pulp.tests.run_tests:pulpTestAll
       """
       ),
 )
