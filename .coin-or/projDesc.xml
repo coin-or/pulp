@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type = "text/xsl" href = "http://www.coin-or.org/projects/autoGen.xsl"?>
+<projectData xmlns="coin-or.org" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="coin-or.org http://www.coin-or.org/projects/autoGen.xsd">
+  <projectBasics>
+    <projectName>PuLP</projectName>
+    <projectDescription>
+  PuLP is an LP modeler written in python. PuLP can generate
+  MPS or LP files and call GLPK, COIN CLP/CBC, CPLEX, GUROBI
+  to solve linear problems.
+    </projectDescription>
+    <projectShortDescription>A Python library for modeling linear and integer programs.</projectShortDescription>
+    <projectManager>Stuart Mitchell </projectManager>
+    <projectHomePage>https://github.com/coin-or/Pulp</projectHomePage>
+    <projectLicense>MIT License</projectLicense>
+    <projectLicenseURL>http://www.opensource.org/licenses/mit-license.php</projectLicenseURL>
+    <coinLinkedProjects/>
+    <otherLinkedPackages>
+      <otherPackage>
+        <packageName>GLPK</packageName>
+        <packageURL>http://www.gnu.org/software/glpk/</packageURL>
+        <requiredOrOptional>Optional</requiredOrOptional>
+      </otherPackage>
+    </otherLinkedPackages>
+    <projectLanguage>python</projectLanguage>
+    <developmentStatus>
+      <activityStatus>Active</activityStatus>
+      <maturityLevel>3</maturityLevel>
+    </developmentStatus>
+    <testedPlatforms>
+      <platform>
+        <operatingSystem>Microsoft Windows</operatingSystem>
+        <compiler>python 2.5</compiler>
+      </platform>
+      <platform>
+        <operatingSystem>Microsoft Windows</operatingSystem>
+        <compiler>python 2.4</compiler>
+      </platform>
+      <platform>
+        <operatingSystem>Linux</operatingSystem>
+        <compiler>python 2.6</compiler>
+      </platform>
+      <platform>
+        <operatingSystem>Linux</operatingSystem>
+        <compiler>python 2.5</compiler>
+      </platform>
+      <platform>
+        <operatingSystem>Linux</operatingSystem>
+        <compiler>python 2.4</compiler>
+      </platform>
+    </testedPlatforms>
+    <projectCategories>
+      <category>Modeling systems</category>
+      <category>Optimization deterministic linear continuous</category>
+      <category>Optimization deterministic linear discrete</category>
+    </projectCategories>
+  </projectBasics>
+  <leftMenuLinks>
+    <documentation>https://coin-or.github.io/pulp/</documentation>
+    <sourceCodeDownload>https://github.com/coin-or/pulp</sourceCodeDownload>
+    <binaryDownload/>
+    <mailingList>http://groups.google.co.nz/group/pulp-or-discuss</mailingList>
+  </leftMenuLinks>
+</projectData>
