@@ -7,7 +7,7 @@ import sys
 from setuptools import setup
 
 readme_name = 'README.rst'
-Description = open(readme_name).read()
+
 
 # License = open('LICENSE').read()
 
