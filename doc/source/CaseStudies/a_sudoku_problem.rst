@@ -136,7 +136,7 @@ Instead of printing out all 729 of the binary problem variables and their respec
 A note of the location of the solution is printed to the solution
 
 .. literalinclude:: ../../../examples/Sudoku1.py
-    :lines: 107-109
+    :lines: 107-108
 
 
 The full file above is given provided `Sudoku1.py <https://projects.coin-or.org/PuLP/browser/trunk/examples/Sudoku1.py?format=txt>`_
