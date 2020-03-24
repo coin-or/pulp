@@ -113,12 +113,12 @@ GUROBI
     set LD_LIBRARY_PATH=%LD_LIBRARY_PATH%;%GUROBI_HOME%/lib
 
 
-Configuring where the command line solvers write their temporary files
+Configuring where the CMD solvers write their temporary files
 ---------------------------------------------------------------------------
 
 In the case of solver APIs that use the command line (again, those that end in ``CMD``, sometimes a user wants to control where the files are written. There are plenty of options.
 
-By default, PuLP does not keep the intermediary files (the *.mps,  *.lp, *.mst, *.sol) and they are written in a temporary directory of the operating system. PuLP looks for the TEMP, TMP and TMPDIR environment variables to write the file (in that order). After using them, PuLP deletes them. If you change any of these environment variables before solving, you should be able to choose where you want PuLP to write the results.
+By default, PuLP does not keep the intermediary files (the \*.mps, \*.lp, \*.mst, \*.sol) and they are written in a temporary directory of the operating system. PuLP looks for the TEMP, TMP and TMPDIR environment variables to write the file (in that order). After using them, PuLP deletes them. If you change any of these environment variables before solving, you should be able to choose where you want PuLP to write the results.
 
 .. code-block:: python
 
@@ -170,9 +170,9 @@ These API offer a series of advantages over using the command line option:
 * They are usually faster to initialize a problem (they do not involve writing files to disk).
 * They offer a lot more functionality and information (extreme rays, dual prices, reduced costs).
 
-In order to access this functionality, the user needs to use the solver object included inside the PuLP problem. PuLP uses the `solverModel` attribute on the problem object. This attribute is created and filled when the method `buildSolverModel()` is executed.
+In order to access this functionality, the user needs to use the solver object included inside the PuLP problem. PuLP uses the ``solverModel`` attribute on the problem object. This attribute is created and filled when the method ``buildSolverModel()`` is executed.
 
-For example, using the `CPLEX_PY` API we can access the api object after the solving is done:
+For example, using the ``CPLEX_PY`` API we can access the api object after the solving is done:
 
 .. code-block:: python
 
@@ -184,7 +184,7 @@ For example, using the `CPLEX_PY` API we can access the api object after the sol
 
     solver = pulp.CPLEX_PY()
     status = prob.solve(solver)
-    # you can now access the information from the cplex python object post-solving by calling:
+    # you can now access the information from the cplex API python object
     prob.solverModel  
 
 Also, you can access the python api object before solving by using the lower-level methods:
@@ -201,10 +201,10 @@ Also, you can access the python api object before solving by using the lower-lev
     solver.self.buildSolverModel(lp)
     # you can now edit the object or do something with it before solving
     solver.solverModel
-    # the, you can call tell the solver to solve the problem
-    self.callSolver(lp)
+    # the, you can call the solver to solve the problem
+    solver.callSolver(lp)
     # finally, you fill the PuLP variables with the solution
-    status = self.findSolutionValues(lp)
+    status = solver.findSolutionValues(lp)
 
 For more information on how to use the `solverModel`, one needs to check the official documentation depending on the solver.
 
