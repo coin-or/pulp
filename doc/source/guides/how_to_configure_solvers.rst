@@ -91,12 +91,11 @@ CPLEX
 
 **Windows: add the following environment variables (via the command line or the graphical user interface)**::
 
-    set CPLEX_HOME=/opt/ibm/ILOG/CPLEX_Studio128/cplex
-    set CPO_HOME=/opt/ibm/ILOG/CPLEX_Studio128/cpoptimizer
-    set PATH=%PATH%;%CPLEX_HOME%/bin/x86-64_linux;%CPO_HOME%/bin/x86-64_linux
-    set LD_LIBRARY_PATH=%LD_LIBRARY_PATH%;%CPLEX_HOME%/bin/x86-64_linux;%CPO_HOME%/bin/x86-64_linux
-    set PYTHONPATH=%PYTHONPATH%;/opt/ibm/ILOG/CPLEX_Studio128/cplex/python/3.5/x86-64_linux
-
+    set CPLEX_HOME=C:/Program Files/IBM/ILOG/CPLEX_Studio128/cplex
+    set CPO_HOME=C:/Program Files/IBM/ILOG/CPLEX_Studio128/cpoptimizer
+    set PATH=%PATH%;%CPLEX_HOME%/bin/x64_win64;%CPO_HOME%/bin/x64_win64
+    set LD_LIBRARY_PATH=%LD_LIBRARY_PATH%;%CPLEX_HOME%/bin/x64_win64;%CPO_HOME%/bin/x64_win64
+    set PYTHONPATH=%PYTHONPATH%;/opt/ibm/ILOG/CPLEX_Studio128/cplex/python/3.5/x64_win64
 
 GUROBI
 *******
@@ -112,4 +111,100 @@ GUROBI
     set GUROBI_HOME=/opt/gurobi801/linux64
     set PATH=%PATH%;%GUROBI_HOME%/bin
     set LD_LIBRARY_PATH=%LD_LIBRARY_PATH%;%GUROBI_HOME%/lib
+
+
+Configuring where the command line solvers write their temporary files
+---------------------------------------------------------------------------
+
+In the case of solver APIs that use the command line (again, those that end in ``CMD``, sometimes a user wants to control where the files are written. There are plenty of options.
+
+By default, PuLP does not keep the intermediary files (the *.mps,  *.lp, *.mst, *.sol) and they are written in a temporary directory of the operating system. PuLP looks for the TEMP, TMP and TMPDIR environment variables to write the file (in that order). After using them, PuLP deletes them. If you change any of these environment variables before solving, you should be able to choose where you want PuLP to write the results.
+
+.. code-block:: python
+
+    import pulp as pl
+    model = pl.LpProblem("Example", pl.LpMinimize)
+    _var = pl.LpVariable('a')
+    _var2 = pl.LpVariable('b')
+    model += _var + _var2 == 1 
+    solver = pl.PULP_CBC_CMD()
+    result = model.solve(solver)
+
+Another option, is passing the argument `KeepFiles=True` to the solver. With this, the solver creates the files in the current directory and they are not deleted (although they will be overwritten if you re-execute).
+
+.. code-block:: python
+
+    import pulp as pl
+    model = pl.LpProblem("Example", pl.LpMinimize)
+    _var = pl.LpVariable('a')
+    _var2 = pl.LpVariable('b')
+    model += _var + _var2 == 1 
+    solver = pl.PULP_CBC_CMD(keepFiles=True)
+    result = model.solve(solver)
+
+Finally, one can manually edit the tmpDir attribute of the solver object before actually solving.
+
+.. code-block:: python
+
+    import pulp as pl
+    model = pl.LpProblem("Example", pl.LpMinimize)
+    _var = pl.LpVariable('a')
+    _var2 = pl.LpVariable('b')
+    model += _var + _var2 == 1 
+    solver = pl.PULP_CBC_CMD()
+    solver.tmpDir = 'PUT_SOME_ALTERNATIVE_PATH_HERE'
+    result = model.solve(solver)
+
+
+Using the official solver API
+-----------------------------------------
+
+PuLP has the integrations with the official python API solvers for the following solvers:
+
+* Mosek (MOSEK)
+* Gurobi (GUROBI)
+* Cplex (CPLEX_PY)
+
+These API offer a series of advantages over using the command line option:
+
+* They are usually faster to initialize a problem (they do not involve writing files to disk).
+* They offer a lot more functionality and information (extreme rays, dual prices, reduced costs).
+
+In order to access this functionality, the user needs to use the solver object included inside the PuLP problem. PuLP uses the `solverModel` attribute on the problem object. This attribute is created and filled when the method `buildSolverModel()` is executed.
+
+For example, using the `CPLEX_PY` API we can access the api object after the solving is done:
+
+.. code-block:: python
+
+    import pulp
+
+    x = pulp.LpVariable('x', lowBound=0)
+    prob = pulp.LpProblem('name', pulp.LpMinimize)
+    prob += x
+
+    solver = pulp.CPLEX_PY()
+    status = prob.solve(solver)
+    # you can now access the information from the cplex python object post-solving by calling:
+    prob.solverModel  
+
+Also, you can access the python api object before solving by using the lower-level methods:
+
+.. code-block:: python
+
+    import pulp
+
+    x = pulp.LpVariable('x', lowBound=0)
+    prob = pulp.LpProblem('name', pulp.LpMinimize)
+    prob += x
+
+    solver = pulp.CPLEX_PY()
+    solver.self.buildSolverModel(lp)
+    # you can now edit the object or do something with it before solving
+    solver.solverModel
+    # the, you can call tell the solver to solve the problem
+    self.callSolver(lp)
+    # finally, you fill the PuLP variables with the solution
+    status = self.findSolutionValues(lp)
+
+For more information on how to use the `solverModel`, one needs to check the official documentation depending on the solver.
 
