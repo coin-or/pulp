@@ -1163,7 +1163,7 @@ class LpProblem(object):
         self.__dict__.update(state)
         self._variable_ids = {}
         for v in self._variables:
-            self._variable_ids[id(v)] = v
+            self._variable_ids[v.hash] = v
 
     def copy(self):
         """Make a copy of self. Expressions are copied by reference"""
@@ -1248,9 +1248,9 @@ class LpProblem(object):
 
         @param variable: the variable to be added
         """
-        if id(variable) not in self._variable_ids:
+        if variable.hash not in self._variable_ids:
             self._variables.append(variable)
-            self._variable_ids[id(variable)] = variable
+            self._variable_ids[variable.hash] = variable
 
     def addVariables(self, variables):
         """
@@ -1275,12 +1275,8 @@ class LpProblem(object):
             self.addVariables(list(self.objective.keys()))
         for c in self.constraints.values():
             self.addVariables(list(c.keys()))
-        variables = self._variables
-        #sort the varibles DSU
-        variables = [[v.name, v] for v in variables]
-        variables.sort()
-        variables = [v for _, v in variables]
-        return variables
+        self._variables.sort(key=lambda v: v.name)
+        return self._variables
 
     def variablesDict(self):
         variables = {}
