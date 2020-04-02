@@ -139,37 +139,13 @@ problem is found in the examples directory BeerDistributionProblem.py
 
 First, start your Python file with a heading and the import PuLP statement:
 
-.. code-block:: python
-
-    """
-    The Beer Distribution Problem for the PuLP Modeller
-
-    Authors: Antony Phillips, Dr Stuart Mitchell    2007
-    """
-
-    # Import PuLP modeller functions
-    from pulp import *
+.. literalinclude:: ../../../examples/BeerDistributionProblem.py
+    :lines: 1:8
 
 The start of the formulation is a simple definition of the nodes and their limits/capacities. The node names are put into lists, and their associated capacities are put into dictionaries with the node names as the reference keys:
 
-.. code-block:: python
-
-    # Creates a list of all the supply nodes
-    Warehouses = ["A","B"]
-
-    # Creates a dictionary for the number of units of supply for each supply node
-    supply = {"A": 1000,
-            "B": 4000}
-
-    # Creates a list of all demand nodes
-    Bars = ["1", "2", "3", "4", "5"]
-
-    # Creates a dictionary for the number of units of demand for each demand node
-    demand = {"1": 500,
-            "2": 900,
-            "3": 1800,
-            "4": 200,
-            "5": 700}
+.. literalinclude:: ../../../examples/BeerDistributionProblem.py
+    :lines: 10:25
 
 The cost data is then inputted into a list, with two sub lists: the first 
 containing the costs of shipping from Warehouse A, and the second containing the 
@@ -183,30 +159,19 @@ default value for an arc cost. Once the cost dictionary is created, if
 warehouse A to bar 1, 2. If `costs["C"]["2"]` is called, it will return 0, since 
 this is the defined default.
 
-.. code-block:: python
-
-    # Creates a list of costs of each transportation path
-    costs = [   #Bars
-            #1 2 3 4 5
-             [2,4,5,2,1],#A  Warehouses
-            [3,1,3,2,3] #B
-             ]
-    }}}
+.. literalinclude:: ../../../examples/BeerDistributionProblem.py
+    :lines: 27:35
 
 The `prob` variable is created using the `LpProblem` function, with the usual 
 input parameters.
 
-.. code-block:: python
-
-    # Creates the prob variable to contain the problem data
-    prob = LpProblem("Beer Distribution Problem",LpMinimize)
+.. literalinclude:: ../../../examples/BeerDistributionProblem.py
+    :lines: 37:38
 
 A list of tuples is created containing all the arcs.
 
-.. code-block:: python
-
-    # Creates a list of tuples containing all the possible routes for transport
-    Routes = [(w,b) for w in Warehouses for b in Bars]
+.. literalinclude:: ../../../examples/BeerDistributionProblem.py
+    :lines: 40:41
 
 A dictionary called `route_var` is created which contains the LP variables. The 
 reference keys to the dictionary are the warehouse name, then the bar 
@@ -214,10 +179,8 @@ name(`["A"]["2"]`) , and the data is `Route_Tuple`. (e.g. `["A"]["2"]`:
 Route_A_2). The lower limit of zero is set, the upper limit of `None` is set, 
 and the variables are defined to be Integers.
 
-.. code-block:: python
-
-    # A dictionary called route_vars is created to contain the referenced variables (the routes)
-    route_vars = LpVariable.dicts("Route",(Warehouses,Bars),0,None,LpInteger)
+.. literalinclude:: ../../../examples/BeerDistributionProblem.py
+    :lines: 43:44
 
 The objective function is added to the variable `prob` using a list 
 comprehension. Since `route_vars` and `costs` are now dictionaries (with further 
@@ -225,10 +188,8 @@ internal dictionaries), they can be used as if they were tables, as `for (w,b)
 in Routes` will cycle through all the combinations/arcs. Note that `i` and `j` 
 could have been used, but `w` and `b` are more meaningful.
 
-.. code-block:: python
-
-    # The objective function is added to prob first
-    prob += lpSum([route_vars[w][b]*costs[w][b] for (w,b) in Routes]), "Sum of Transporting Costs"
+.. literalinclude:: ../../../examples/BeerDistributionProblem.py
+    :lines: 46:47
 
 The supply and demand constraints are added using a normal `for` loop and a list 
 comprehension. Supply Constraints: For each warehouse in turn, the values of the 
@@ -238,15 +199,8 @@ warehouse. Demand Constraints: For each bar in turn, the values of the decision
 variables (number on arc) from each of the warehouses is summed, and then 
 constrained to being greater than or equal to the demand minimum.
 
-.. code-block:: python
-
-    # The supply maximum constraints are added to prob for each supply node (warehouse)
-    for w in Warehouses:
-        prob += lpSum([route_vars[w][b] for b in Bars]) <= supply[w], "Sum of Products out of Warehouse %s"%w
-
-    # The demand minimum constraints are added to prob for each demand node (bar)
-    for b in Bars:
-        prob += lpSum([route_vars[w][b] for w in Warehouses]) >= demand[b], "Sum of Products into Bars %s"%b
+.. literalinclude:: ../../../examples/BeerDistributionProblem.py
+    :lines: 49:55
 
 Following this is the `prob.writeLP` line, and the rest as explained in previous 
 examples.
