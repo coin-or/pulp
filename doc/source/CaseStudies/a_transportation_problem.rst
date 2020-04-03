@@ -205,6 +205,8 @@ constrained to being greater than or equal to the demand minimum.
 Following this is the `prob.writeLP` line, and the rest as explained in previous 
 examples.
 
+The code for this example is found in  `BeerDistributionProblem.py <https://projects.coin-or.org/PuLP/browser/trunk/examples/BeerDistributionProblem.py?format=txt>`_
+
 You will notice that the linear programme solution was also an integer solution. 
 As long as Supply and Demand are integers, the linear programming solution will 
 always be an integer. Read about naturally integer solutions for more details.
