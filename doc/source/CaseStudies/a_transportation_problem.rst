@@ -241,25 +241,9 @@ This is added into the above model very simply. Since the objective function and
 constraints all operated on the original supply, demand and cost 
 lists/dictionaries, the only changes that must be made to include another demand node are:
 
-.. code-block:: python
+.. literalinclude:: ../../../examples/BeerDistributionProblemWarehouseExtension.py
+    :lines: 11:31
 
-    # Creates a list of all demand nodes
-    Bars = ["1","2","3","4","5","D"]
-
-    # Creates a dictionary for the number of units of demand for each demand node
-    demand = {"1": 500,
-                "2": 900,
-                "3": 1800,
-                "4": 200,
-                "5": 700,
-                "D": 900}
-
-    # Creates a list of costs of each transportation path
-    costs = [   #Bars
-         #1 2 3 4 5 D
-         [2,4,5,2,1,0],#A  Warehouses
-         [3,1,3,2,3,0] #B
-         ]
 
 The `Bars` list is expanded and the `Demand` dictionary is expanded to make the 
 Dummy Demand require 900 crates, to balance the problem. The cost list is also 
@@ -274,6 +258,9 @@ problem using a dummy supply node. Note that with excess demand, the problem is
 
 Assume there has been a production problem and only 4000 cases of beer could be 
 produced. Since the total demand is 4100, we need to get extra cases of beer from the dummy supply node.
+
+The code for this example is found in  `BeerDistributionProblemWarehouseExtension.py <https://projects.coin-or.org/PuLP/browser/trunk/examples/BeerDistributionProblemWarehouseExtension.py?format=txt>`_
+
     
 
 .. image:: images/extra_demand.jpg 
@@ -283,34 +270,10 @@ This dummy supply node is added in simply and logically into the `Warehouse`
 list, `Supply` dictionary, and `costs` list. The Supply value is chosen to 
 balance the problem, and cost of transport is zero to all demand nodes.
 
-.. code-block:: python
+.. literalinclude:: ../../../examples/BeerDistributionProblemCompetitorExtension.py
+    :lines:8:32
 
-    # Creates a list of all the supply nodes
-    Warehouses = ["A","B","D"]
-
-    # Creates a dictionary for the number of units of supply for each supply node
-    supply = {"A": 1000,
-          "B": 3000,
-          "D": 100}
-
-    # Creates a list of all demand nodes
-    Bars = ["1","2","3","4","5"]
-
-    # Creates a dictionary for the number of units of demand for each demand node
-    demand = {"1": 500,
-          "2": 900,
-          "3": 1800,
-          "4": 200,
-          "5": 700}
-
-    # Creates a list of costs of each transportation path
-    costs = [   #Bars
-         #1 2 3 4 5 D
-         [2,4,5,2,1], #A  
-         [3,1,3,2,3], #B  Warehouses
-         [0,0,0,0,0]  #D
-         ]
-
+The code for this example is found in  `BeerDistributionProblemCompetitorExtension.py <https://projects.coin-or.org/PuLP/browser/trunk/examples/BeerDistributionProblemCompetitorExtension.py?format=txt>`_
 
 Presentation of Solution and Analysis
 -------------------------------------
