@@ -312,7 +312,7 @@ try:
             if self.msg:
                 print("Cplex status=", solutionStatus.value)
             lp.resolveOK = True
-            for var in lp.variables():
+            for var in lp._variables:
                 var.isModified = False
             status = CplexLpStatus.get(solutionStatus.value, constants.LpStatusUndefined)
             lp.assignStatus(status)
@@ -415,7 +415,7 @@ try:
             self.callSolver(lp.isMIP())
             #get the solution information
             solutionStatus = self.findSolutionValues(lp, numcols, numrows)
-            for var in lp.variables():
+            for var in lp._variables:
                 var.modified = False
             return solutionStatus
 
@@ -600,7 +600,8 @@ else:
                     msg = True,
                     timeLimit = None,
                     epgap = None,
-                    logfilename = None):
+                    logfilename = None,
+                    mip_start=False):
             """
             Initializes the CPLEX_PY solver.
 
@@ -609,7 +610,7 @@ else:
             @param epgap: sets the integer bound gap
             @param logfilename: sets the filename of the cplex logfile
             """
-            LpSolver.__init__(self, mip, msg)
+            LpSolver.__init__(self, mip, msg, mip_start=mip_start)
             self.timeLimit = timeLimit
             self.epgap = epgap
             self.logfilename = logfilename
@@ -631,7 +632,7 @@ else:
             self.callSolver(lp)
             #get the solution information
             solutionStatus = self.findSolutionValues(lp)
-            for var in lp.variables():
+            for var in lp._variables:
                 var.modified = False
             for constraint in lp.constraints.values():
                 constraint.modified = False
@@ -641,8 +642,9 @@ else:
             """
             Takes the pulp lp model and translates it into a cplex model
             """
-            self.n2v = dict((var.name, var) for var in lp.variables())
-            if len(self.n2v) != len(lp.variables()):
+            model_variables = lp.variables()
+            self.n2v = dict((var.name, var) for var in model_variables)
+            if len(self.n2v) != len(model_variables):
                 raise PulpSolverError(
                         'Variables must have unique names for cplex solver')
             log.debug("create the cplex model")
@@ -654,26 +656,26 @@ else:
             if lp.sense == constants.LpMaximize:
                 lp.solverModel.objective.set_sense(
                                     lp.solverModel.objective.sense.maximize)
-            obj = [float(lp.objective.get(var, 0.0)) for var in lp.variables()]
+            obj = [float(lp.objective.get(var, 0.0)) for var in model_variables]
             def cplex_var_lb(var):
                 if var.lowBound is not None:
                     return float(var.lowBound)
                 else:
                     return -cplex.infinity
-            lb = [cplex_var_lb(var) for var in lp.variables()]
+            lb = [cplex_var_lb(var) for var in model_variables]
             def cplex_var_ub(var):
                 if var.upBound is not None:
                     return float(var.upBound)
                 else:
                     return cplex.infinity
-            ub = [cplex_var_ub(var) for var in lp.variables()]
-            colnames = [var.name for var in lp.variables()]
+            ub = [cplex_var_ub(var) for var in model_variables]
+            colnames = [var.name for var in model_variables]
             def cplex_var_types(var):
                 if var.cat == constants.LpInteger:
                     return 'I'
                 else:
                     return 'C'
-            ctype = [cplex_var_types(var) for var in lp.variables()]
+            ctype = [cplex_var_types(var) for var in model_variables]
             ctype = "".join(ctype)
             lp.solverModel.variables.add(obj=obj, lb=lb, ub=ub, types=ctype,
                        names=colnames)
@@ -716,6 +718,12 @@ else:
                 self.changeEpgap(self.epgap)
             if self.timeLimit is not None:
                 self.setTimeLimit(self.timeLimit)
+            if self.mip_start:
+                # We assume "auto" for the effort_level
+                effort = self.solverModel.MIP_starts.effort_level.auto
+                start = [(k, v.value()) for k, v in self.n2v.items() if v.value() is not None]
+                ind, val = zip(*start)
+                self.solverModel.MIP_starts.add(cplex.SparsePair(ind=ind, val=val), effort, '1')
 
         def setlogfile(self, filename):
             """
@@ -759,14 +767,20 @@ else:
                              lp.solverModel.solution.status.abort_relaxed: constants.LpStatusNotSolved,
                              lp.solverModel.solution.status.abort_time_limit: constants.LpStatusNotSolved,
                              lp.solverModel.solution.status.abort_user: constants.LpStatusNotSolved,
-                             lp.solverModel.solution.status.MIP_abort_feasible: constants.LpStatusOptimal}
+                             lp.solverModel.solution.status.MIP_abort_feasible: constants.LpStatusOptimal,
+                             lp.solverModel.solution.status.MIP_time_limit_feasible: constants.LpStatusOptimal,
+                             lp.solverModel.solution.status.MIP_time_limit_infeasible: constants.LpStatusInfeasible,
+                             }
             lp.cplex_status = lp.solverModel.solution.get_status()
             status = CplexLpStatus.get(lp.cplex_status, constants.LpStatusUndefined)
-            sol_status = None
-            if lp.cplex_status == lp.solverModel.solution.status.MIP_abort_feasible:
-                sol_status = constants.LpSolutionIntegerFeasible
+            CplexSolStatus = {lp.solverModel.solution.status.MIP_time_limit_feasible: constants.LpSolutionIntegerFeasible,
+                              lp.solverModel.solution.status.MIP_abort_feasible: constants.LpSolutionIntegerFeasible,
+                              lp.solverModel.solution.status.MIP_feasible: constants.LpSolutionIntegerFeasible,
+                              }
+            # TODO: I did not find the following status: CPXMIP_NODE_LIM_FEAS, CPXMIP_MEM_LIM_FEAS
+            sol_status = CplexSolStatus.get(lp.cplex_status)
             lp.assignStatus(status, sol_status)
-            var_names = [var.name for var in lp.variables()]
+            var_names = [var.name for var in lp._variables]
             con_names = [con for con in lp.constraints]
             try:
                 objectiveValue = lp.solverModel.solution.get_objective_value()
@@ -787,7 +801,7 @@ else:
             if self.msg:
                 print("Cplex status=", lp.cplex_status)
             lp.resolveOK = True
-            for var in lp.variables():
+            for var in lp._variables:
                 var.isModified = False
             return status
 
