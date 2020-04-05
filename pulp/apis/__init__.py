@@ -7,7 +7,7 @@ from .mipcl_api import *
 from .mosek_api import *
 from .scip_api import *
 from .xpress_api import *
-from .core import cplex_dll_path, coinMP_path, config_filename, Parser
+from .core import *
 
 # Default solver selection
 if PULP_CBC_CMD().available():
