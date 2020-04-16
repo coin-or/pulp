@@ -164,13 +164,14 @@ cplex_dll_path, ilm_cplex_license, ilm_cplex_license_signature, coinMP_path,\
 class LpSolver:
     """A generic LP Solver"""
 
-    def __init__(self, mip = True, msg = True, options = None, mip_start=False, *args, **kwargs):
+    def __init__(self, mip = True, msg = True, options = None, mip_start=False, timeLimit=None, *args, **kwargs):
         if options is None:
             options = []
         self.mip = mip
         self.msg = msg
         self.options = options
         self.mip_start = mip_start
+        self.timelimit = timeLimit
 
     def available(self):
         """True if the solver is available"""
@@ -302,8 +303,8 @@ class LpSolver_CMD(LpSolver):
         # .lp, .mip, .sol, .mst, etc.
     # TODO: also handle the deletion of files afterwards
 
-    def __init__(self, path=None, keepFiles=0, mip=1, msg=1, options=None, mip_start=False):
-        LpSolver.__init__(self, mip=mip, msg=msg, options=options, mip_start=mip_start)
+    def __init__(self, path=None, keepFiles=0, *args, **kwargs):
+        LpSolver.__init__(self, *args, **kwargs)
         if path is None:
             self.path = self.defaultPath()
         else:
