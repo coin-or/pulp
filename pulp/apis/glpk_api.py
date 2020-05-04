@@ -93,7 +93,7 @@ class GLPK_CMD(LpSolver_CMD):
             except: pass
         return status
 
-    def readsol(self,filename):
+    def readsol(self, filename):
         """Read a GLPK solution file"""
         with open(filename) as f:
             f.readline()
@@ -111,25 +111,34 @@ class GLPK_CMD(LpSolver_CMD):
                 "UNDEFINED": constants.LpStatusUndefined,
                 "INTEGER EMPTY": constants.LpStatusInfeasible
                 }
-            #print "statusString ",statusString
             if statusString not in glpkStatus:
                 raise PulpSolverError("Unknown status returned by GLPK")
             status = glpkStatus[statusString]
-            isInteger = statusString in ["INTEGER NON-OPTIMAL","INTEGER OPTIMAL","INTEGER UNDEFINED"]
+            isInteger = statusString in [
+                        "INTEGER NON-OPTIMAL",
+                         "INTEGER OPTIMAL",
+                         "INTEGER UNDEFINED",
+                         "INTEGER EMPTY"
+                         ]
             values = {}
-            for i in range(4): f.readline()
+            for i in range(4):
+                f.readline()
             for i in range(rows):
                 line = f.readline().split()
-                if len(line) ==2: f.readline()
+                if len(line) == 2:
+                    f.readline()
             for i in range(3):
                 f.readline()
             for i in range(cols):
                 line = f.readline().split()
                 name = line[1]
-                if len(line) ==2: line = [0,0]+f.readline().split()
+                if len(line) == 2:
+                    line = [0,0] + f.readline().split()
                 if isInteger:
-                    if line[2] == "*": value = int(float(line[3]))
-                    else: value = float(line[2])
+                    if line[2] == "*":
+                        value = int(float(line[3]))
+                    else:
+                        value = float(line[2])
                 else:
                     value = float(line[3])
                 values[name] = value
