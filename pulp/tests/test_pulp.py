@@ -663,7 +663,7 @@ def suite():
                GLPK_CMD,
                XPRESS,
                GUROBI,
-               # GUROBI_CMD,
+               GUROBI_CMD,
                PYGLPK,
                YAPOSIB,
                PULP_CHOCO_CMD,
