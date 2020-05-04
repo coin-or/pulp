@@ -732,7 +732,8 @@ else:
             """
             sets the logfile for cplex output
             """
-            self.solverModel.set_log_stream(filename)
+            with open(filename, 'w') as cplexlog:
+                self.solverModel.set_log_stream(cplexlog)
 
         def changeEpgap(self, epgap = 10**-4):
             """
