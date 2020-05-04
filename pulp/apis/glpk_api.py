@@ -32,6 +32,8 @@ from .. import constants
 
 
 class GLPK_CMD(LpSolver_CMD):
+    rows = 0
+    cols = 0
     """The GLPK LP solver"""
     def defaultPath(self):
         return self.executableExtension(glpk_path)
@@ -48,11 +50,13 @@ class GLPK_CMD(LpSolver_CMD):
             uuid = uuid4().hex
             tmpLp = os.path.join(self.tmpDir, "%s-pulp.lp" % uuid)
             tmpSol = os.path.join(self.tmpDir, "%s-pulp.sol" % uuid)
+            tmpSensi = os.path.join(self.tmpDir, "%s-pulp.an" % uuid)
         else:
             tmpLp = lp.name+"-pulp.lp"
             tmpSol = lp.name+"-pulp.sol"
+            tmpSensi = lp.name+"-pulp.an"
         lp.writeLP(tmpLp, writeSOS = 0)
-        proc = ["glpsol", "--cpxlp", tmpLp, "-o", tmpSol]
+        proc = ["glpsol", "--cpxlp", tmpLp, "-o", tmpSol, "--ranges", tmpSensi]
         if not self.mip: proc.append('--nomip')
         proc.extend(self.options)
 
@@ -85,6 +89,11 @@ class GLPK_CMD(LpSolver_CMD):
         status, values = self.readsol(tmpSol)
         lp.assignVarsVals(values)
         lp.assignStatus(status)
+
+        reducedCosts, shadowPrices, slacks = self.readSensi(tmpSensi)
+        lp.assignVarsDj(reducedCosts)
+        lp.assignConsPi(shadowPrices)
+        lp.assignConsSlack(slacks, activity=True)
         if not self.keepFiles:
             try: os.remove(tmpLp)
             except: pass
@@ -96,8 +105,8 @@ class GLPK_CMD(LpSolver_CMD):
         """Read a GLPK solution file"""
         with open(filename) as f:
             f.readline()
-            rows = int(f.readline().split()[1])
-            cols = int(f.readline().split()[1])
+            self.rows = int(f.readline().split()[1])
+            self.cols = int(f.readline().split()[1])
             f.readline()
             statusString = f.readline()[12:-1]
             glpkStatus = {
@@ -117,12 +126,12 @@ class GLPK_CMD(LpSolver_CMD):
             isInteger = statusString in ["INTEGER NON-OPTIMAL","INTEGER OPTIMAL","INTEGER UNDEFINED"]
             values = {}
             for i in range(4): f.readline()
-            for i in range(rows):
+            for i in range(self.rows):
                 line = f.readline().split()
                 if len(line) ==2: f.readline()
             for i in range(3):
                 f.readline()
-            for i in range(cols):
+            for i in range(self.cols):
                 line = f.readline().split()
                 name = line[1]
                 if len(line) ==2: line = [0,0]+f.readline().split()
@@ -133,6 +142,41 @@ class GLPK_CMD(LpSolver_CMD):
                     value = float(line[3])
                 values[name] = value
         return status, values
+
+    def readSensi(self,filename):
+        """Read a GLPK sensitivity analysis file"""
+        with open(filename) as f:
+            reducedCosts={}
+            shadowPrices={}
+            slacks={}
+
+            for i in range(8): f.readline()
+            for i in range(self.rows):
+                line = f.readline().split()
+                name = line[1]
+                if len(line) ==2:
+                    line = f.readline().split()
+                    slack = line[2]
+                else:
+                    slack = line[4]
+                slacks[name] = float(slack) if slack != '.' else 0
+                
+                shadowPrice = f.readline().split()[0]
+                shadowPrices[name] = float(reducedCost) if reducedCost != '.' else 0
+                
+                f.readline()
+
+            for i in range(8): f.readline()
+            for i in range(self.cols):
+                name = f.readline().split()[1]
+                
+                reducedCost = f.readline().split()[0]
+                reducedCosts[name] = float(shadowPrice) if shadowPrice != '.' else 0
+                
+                f.readline()
+
+        return reducedCosts, shadowPrices, slacks
+
 GLPK = GLPK_CMD
 
 #get the glpk name in global scope
