@@ -28,14 +28,13 @@ from .core import LpSolver_CMD, subprocess, PulpSolverError
 import os
 from uuid import uuid4
 from .. import constants
+import warnings
 
 
 class XPRESS(LpSolver_CMD):
     """The XPRESS LP solver"""
-    def __init__(self, path=None, keepFiles=0, mip=1,
-            msg=0, maxSeconds=None, targetGap=None, heurFreq=None,
-            heurStra=None, coverCuts=None, preSolve=None,
-            options=None):
+    def __init__(self, maxSeconds=None, targetGap=None, heurFreq=None,
+            heurStra=None, coverCuts=None, preSolve=None, *args, **kwargs):
         """
         Initializes the Xpress solver.
 
@@ -50,8 +49,13 @@ class XPRESS(LpSolver_CMD):
                         More about Xpress options and control parameters please see
                         http://tomopt.com/docs/xpress/tomlab_xpress008.php
         """
-        LpSolver_CMD.__init__(self, path, keepFiles, mip, msg, options)
-        self.maxSeconds = maxSeconds
+        LpSolver_CMD.__init__(self, *args, **kwargs)
+        if maxSeconds:
+            warnings.warn("Parameter maxSeconds is being depreciated for standard 'timeLimit'")
+            if self.timelimit:
+                warnings.warn("Parameter timeLimit and maxSeconds passed, using timeLimit ")
+            else:
+                self.timelimit = maxSeconds
         self.targetGap = targetGap
         self.heurFreq = heurFreq
         self.heurStra = heurStra
@@ -81,8 +85,8 @@ class XPRESS(LpSolver_CMD):
         if not self.msg:
             xpress.stdin.write("OUTPUTLOG=0\n")
         xpress.stdin.write("READPROB "+tmpLp+"\n")
-        if self.maxSeconds:
-            xpress.stdin.write("MAXTIME=%d\n" % self.maxSeconds)
+        if self.timelimit:
+            xpress.stdin.write("MAXTIME=%d\n" % self.timelimit)
         if self.targetGap:
             xpress.stdin.write("MIPRELSTOP=%f\n" % self.targetGap)
         if self.heurFreq:

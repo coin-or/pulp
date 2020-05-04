@@ -31,6 +31,7 @@ from uuid import uuid4
 from .. import constants
 from tempfile import mktemp
 import ctypes
+import warnings
 
 
 class COIN_CMD(LpSolver_CMD):
@@ -41,17 +42,22 @@ class COIN_CMD(LpSolver_CMD):
     def defaultPath(self):
         return self.executableExtension(cbc_path)
 
-    def __init__(self, path = None, keepFiles = 0, mip = 1,
-            msg = 0, cuts = None, presolve = None, dual = None,
-            strong = None, options = None,
-            fracGap = None, maxSeconds = None, threads = None, mip_start=False):
-        LpSolver_CMD.__init__(self, path, keepFiles, mip, msg, options, mip_start)
+    def __init__(self, cuts = None, presolve = None, dual = None,
+                 strong = None, fracGap = None, maxSeconds = None, threads = None,
+                 *args, **kwargs):
+
+        LpSolver_CMD.__init__(self, *args, **kwargs)
         self.cuts = cuts
         self.presolve = presolve
         self.dual = dual
         self.strong = strong
         self.fracGap = fracGap
-        self.maxSeconds = maxSeconds
+        if maxSeconds:
+            warnings.warn("Parameter maxSeconds is being depreciated for standard 'timeLimit'")
+            if self.timelimit:
+                warnings.warn("Parameter timeLimit and maxSeconds passed, using timeLimit ")
+            else:
+                self.timelimit = maxSeconds
         self.threads = threads
         #TODO hope this gets fixed in cbc as it does not like the c:\ in windows paths
         if os.name == 'nt':
@@ -109,8 +115,8 @@ class COIN_CMD(LpSolver_CMD):
             cmds += "threads %s "%self.threads
         if self.fracGap is not None:
             cmds += "ratio %s "%self.fracGap
-        if self.maxSeconds is not None:
-            cmds += "sec %s "%self.maxSeconds
+        if self.timelimit is not None:
+            cmds += "sec %s "%self.timelimit
         if self.presolve:
             cmds += "presolve on "
         if self.strong:
@@ -144,7 +150,7 @@ class COIN_CMD(LpSolver_CMD):
         if not os.path.exists(tmpSol):
             raise PulpSolverError("Pulp: Error while executing "+self.path)
         status, values, reducedCosts, shadowPrices, slacks, sol_status = \
-            self.readsol_MPS(tmpSol, lp, lp.variables(), variablesNames, constraintsNames)
+            self.readsol_MPS(tmpSol, lp, vs, variablesNames, constraintsNames)
         lp.assignVarsVals(values)
         lp.assignVarsDj(reducedCosts)
         lp.assignConsPi(shadowPrices)
@@ -313,16 +319,15 @@ class COINMP_DLL(LpSolver):
         lib.CoinGetObjectValue.restype=ctypes.c_double
         lib.CoinGetMipBestBound.restype=ctypes.c_double
 
-        def __init__(self, mip = 1, msg = 1, cuts = 1, presolve = 1, dual = 1,
+        def __init__(self, cuts = 1, presolve = 1, dual = 1,
             crash = 0, scale = 1, rounding = 1, integerPresolve = 1, strong = 5,
-            timeLimit = None, epgap = None):
-            LpSolver.__init__(self, mip, msg)
-            self.maxSeconds = None
-            if timeLimit is not None:
-                self.maxSeconds = float(timeLimit)
+            epgap = None, *args, **kwargs):
+            LpSolver.__init__(self, *args, **kwargs)
             self.fracGap = None
             if epgap is not None:
                 self.fracGap = float(epgap)
+            if self.timelimit is not None:
+                self.timelimit = float(self.timelimit)
             #Todo: these options are not yet implemented
             self.cuts = cuts
             self.presolve = presolve
@@ -372,13 +377,13 @@ class COINMP_DLL(LpSolver):
             #set problem options
             self.lib.CoinSetIntOption(hProb, self.COIN_INT_LOGLEVEL, ctypes.c_int(self.msg))
 
-            if self.maxSeconds:
+            if self.timelimit:
                 if self.mip:
                     self.lib.CoinSetRealOption(hProb, self.COIN_REAL_MIPMAXSEC,
-                                          ctypes.c_double(self.maxSeconds))
+                                          ctypes.c_double(self.timelimit))
                 else:
                     self.lib.CoinSetRealOption(hProb, self.COIN_REAL_MAXSECONDS,
-                                          ctypes.c_double(self.maxSeconds))
+                                          ctypes.c_double(self.timelimit))
             if self.fracGap:
                #Hopefully this is the bound gap tolerance
                self.lib.CoinSetRealOption(hProb, self.COIN_REAL_MIPFRACGAP,

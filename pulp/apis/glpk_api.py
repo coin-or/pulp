@@ -33,6 +33,7 @@ from .. import constants
 
 class GLPK_CMD(LpSolver_CMD):
     """The GLPK LP solver"""
+
     def defaultPath(self):
         return self.executableExtension(glpk_path)
 

@@ -68,6 +68,8 @@ class CHOCO_CMD(LpSolver_CMD):
         except:
             pass
         cmd = java_path + ' -cp ' + self.path + ' org.chocosolver.parser.mps.ChocoMPS'
+        if self.timelimit is not None:
+            cmd += ' -tl %s' % self.timelimit * 1000
         cmd += ' ' + ' '.join(['%s %s' % (key, value)
                                for key, value in self.options])
         cmd += ' %s' % tmpMps
