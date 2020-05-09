@@ -19,7 +19,7 @@ def pulpTestAll(test_docs=False):
     # we run all tests at the same time
     ret = runner.run(suite_all)
     if not ret.wasSuccessful():
-        raise  pulp.PulpError("Tests Failed")
+        raise pulp.PulpError("Tests Failed")
 
 if __name__ == '__main__':
     pulpTestAll(test_docs=True)

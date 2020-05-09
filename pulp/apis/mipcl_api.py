@@ -68,6 +68,8 @@ class MIPCL_CMD(LpSolver_CMD):
         cmd = self.path
         cmd += ' %s' % tmpMps
         cmd += ' -solfile %s' % tmpSol
+        if self.timelimit is not None:
+            cmd += ' -time %s' % self.timelimit
         for option in self.options:
             cmd += ' ' + option
         if lp.isMIP():

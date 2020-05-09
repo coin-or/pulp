@@ -1187,16 +1187,9 @@ class LpProblem(object):
         return lpcopy
 
     def normalisedNames(self):
-        constraintsNames = {}
-        i = 0
-        for k in self.constraints:
-            constraintsNames[k] = "C%07d" % i
-            i += 1
-        variablesNames = {}
-        i = 0
-        for k in self.variables():
-            variablesNames[k.name] = "X%07d" % i
-            i += 1
+        constraintsNames = {k: "C%07d" % i for i, k in enumerate(self.constraints)}
+        _variables = self.variables()
+        variablesNames = {k.name: "X%07d" % i for i, k in enumerate(_variables)}
         return constraintsNames, variablesNames, "OBJ"
 
     def isMIP(self):
@@ -1412,7 +1405,6 @@ class LpProblem(object):
 
     def writeMPS(self, filename, mpsSense = 0, rename = 0, mip = 1):
         wasNone, dummyVar = self.fixObjective()
-        f = open(filename, "w")
         if mpsSense == 0: mpsSense = self.sense
         cobj = self.objective
         if mpsSense != self.sense:
@@ -1420,88 +1412,102 @@ class LpProblem(object):
             cobj = - cobj
             cobj.name = n
         if rename:
-            constraintsNames, variablesNames, cobj.name = self.normalisedNames()
-        f.write("*SENSE:"+ const.LpSenses[mpsSense]+"\n")
-        n = self.name
-        if rename: n = "MODEL"
-        f.write("NAME          "+n+"\n")
-        vs = self.variables()
-        # constraints
-        f.write("ROWS\n")
+            constrNames, varNames, cobj.name = self.normalisedNames()
+            # No need to call self.variables() again, we have just filled self._variables:
+            vs = self._variables
+        else:
+            vs = self.variables()
+            varNames = dict((v.name, v.name) for v in vs)
+            constrNames = dict((c, c) for c in self.constraints)
+        model_name = self.name
+        if rename:
+            model_name = "MODEL"
         objName = cobj.name
-        if not objName: objName = "OBJ"
-        f.write(" N  %s\n" % objName)
-        mpsConstraintType = {const.LpConstraintLE:"L", const.LpConstraintEQ:"E", const.LpConstraintGE:"G"}
-        for k,c in self.constraints.items():
-            if rename: k = constraintsNames[k]
-            f.write(" "+mpsConstraintType[c.sense]+"  "+k+"\n")
+        if not objName:
+            objName = "OBJ"
+
+        # constraints
+        mpsConstraintType = {const.LpConstraintLE: "L", const.LpConstraintEQ: "E", const.LpConstraintGE: "G"}
+        row_lines = [" "+mpsConstraintType[c.sense] + "  " + constrNames[k] + "\n"
+                     for k, c in self.constraints.items()]
         # matrix
-        f.write("COLUMNS\n")
         # Creation of a dict of dict:
-        # coefs[nomVariable][nomContrainte] = coefficient
-        coefs = {}
-        for k,c in self.constraints.items():
-            if rename: k = constraintsNames[k]
-            for v in c:
-                n = v.name
-                if rename: n = variablesNames[n]
-                if n in coefs:
-                    coefs[n][k] = c[v]
-                else:
-                    coefs[n] = {k:c[v]}
+        # coefs[variable_name][constraint_name] = coefficient
+        coefs = {varNames[v.name]: {} for v in vs}
+        for k, c in self.constraints.items():
+            k = constrNames[k]
+            for v, value in c.items():
+                coefs[varNames[v.name]][k] = value
 
+        columns_lines = []
         for v in vs:
-            if mip and v.cat == const.LpInteger:
-                f.write("    MARK      'MARKER'                 'INTORG'\n")
-            n = v.name
-            if rename: n = variablesNames[n]
-            if n in coefs:
-                cv = coefs[n]
-                # Most of the work is done here
-                for k in cv: f.write("    %-8s  %-8s  % .12e\n" % (n,k,cv[k]))
-
-            # objective function
-            if v in cobj: f.write("    %-8s  %-8s  % .12e\n" % (n,objName,cobj[v]))
-            if mip and v.cat == const.LpInteger:
-                f.write("    MARK      'MARKER'                 'INTEND'\n")
+            name = varNames[v.name]
+            columns_lines.extend(self.MPS_column_lines(coefs[name], v, mip, name, cobj, objName))
         # right hand side
-        f.write("RHS\n")
-        for k,c in self.constraints.items():
-            c = -c.constant
-            if rename: k = constraintsNames[k]
-            if c == 0: c = 0
-            f.write("    RHS       %-8s  % .12e\n" % (k,c))
+        rhs_lines = ["    RHS       %-8s  % .12e\n" % (constrNames[k], -c.constant if c.constant != 0 else 0)
+                     for k, c in self.constraints.items()]
         # bounds
-        f.write("BOUNDS\n")
+        bound_lines = []
         for v in vs:
-            n = v.name
-            if rename: n = variablesNames[n]
-            if v.lowBound != None and v.lowBound == v.upBound:
-                f.write(" FX BND       %-8s  % .12e\n" % (n, v.lowBound))
-            elif v.lowBound == 0 and v.upBound == 1 and mip and v.cat == const.LpInteger:
-                f.write(" BV BND       %-8s\n" % n)
-            else:
-                if v.lowBound != None:
-                    # In MPS files, variables with no bounds (i.e. >= 0)
-                    # are assumed BV by COIN and CPLEX.
-                    # So we explicitly write a 0 lower bound in this case.
-                    if v.lowBound != 0 or (mip and v.cat == const.LpInteger and v.upBound == None):
-                        f.write(" LO BND       %-8s  % .12e\n" % (n, v.lowBound))
-                else:
-                    if v.upBound != None:
-                        f.write(" MI BND       %-8s\n" % n)
-                    else:
-                        f.write(" FR BND       %-8s\n" % n)
-                if v.upBound != None:
-                    f.write(" UP BND       %-8s  % .12e\n" % (n, v.upBound))
-        f.write("ENDATA\n")
-        f.close()
+            bound_lines.extend(self.MPS_bound_lines(varNames[v.name], v, mip))
+
+        with open(filename, "w") as f:
+            f.write("*SENSE:"+ const.LpSenses[mpsSense]+"\n")
+            f.write("NAME          " + model_name + "\n")
+            f.write("ROWS\n")
+            f.write(" N  %s\n" % objName)
+            f.write(''.join(row_lines))
+            f.write("COLUMNS\n")
+            f.write(''.join(columns_lines))
+            f.write("RHS\n")
+            f.write(''.join(rhs_lines))
+            f.write("BOUNDS\n")
+            f.write(''.join(bound_lines))
+            f.write("ENDATA\n")
         self.restoreObjective(wasNone, dummyVar)
         # returns the variables, in writing order
         if rename == 0:
             return vs
         else:
-            return vs, variablesNames, constraintsNames, cobj.name
+            return vs, varNames, constrNames, cobj.name
+
+    @staticmethod
+    def MPS_column_lines(cv, variable, mip, name, cobj, objName):
+        columns_lines = []
+        if mip and variable.cat == const.LpInteger:
+            columns_lines.append("    MARK      'MARKER'                 'INTORG'\n")
+        # Most of the work is done here
+        _tmp = ["    %-8s  %-8s  % .12e\n" % (name, k, v) for k, v in cv.items()]
+        columns_lines.extend(_tmp)
+
+        # objective function
+        if variable in cobj:
+            columns_lines.append("    %-8s  %-8s  % .12e\n" % (name, objName, cobj[variable]))
+        if mip and variable.cat == const.LpInteger:
+            columns_lines.append("    MARK      'MARKER'                 'INTEND'\n")
+        return columns_lines
+
+    @staticmethod
+    def MPS_bound_lines(name, variable, mip):
+        if variable.lowBound is not None and variable.lowBound == variable.upBound:
+            return [" FX BND       %-8s  % .12e\n" % (name, variable.lowBound)]
+        elif variable.lowBound == 0 and variable.upBound == 1 and mip and variable.cat == const.LpInteger:
+            return [" BV BND       %-8s\n" % name]
+        bound_lines = []
+        if variable.lowBound is not None:
+            # In MPS files, variables with no bounds (i.e. >= 0)
+            # are assumed BV by COIN and CPLEX.
+            # So we explicitly write a 0 lower bound in this case.
+            if variable.lowBound != 0 or (mip and variable.cat == const.LpInteger and variable.upBound is None):
+                bound_lines.append(" LO BND       %-8s  % .12e\n" % (name, variable.lowBound))
+        else:
+            if variable.upBound is not None:
+                bound_lines.append(" MI BND       %-8s\n" % name)
+            else:
+                bound_lines.append(" FR BND       %-8s\n" % name)
+        if variable.upBound is not None:
+            bound_lines.append(" UP BND       %-8s  % .12e\n" % (name, variable.upBound))
+        return bound_lines
 
     def writeLP(self, filename, writeSOS = 1, mip = 1, max_length=100):
         """
@@ -1516,7 +1522,7 @@ class LpProblem(object):
             - The file is created.
         """
         f = open(filename, "w")
-        f.write("\\* "+self.name+" *\\\n")
+        f.write("\\* "+self.name + " *\\\n")
         if self.sense == 1:
             f.write("Minimize\n")
         else:

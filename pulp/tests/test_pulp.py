@@ -369,6 +369,20 @@ class PuLPTest(unittest.TestCase):
         else:
             pulpTestCheck(prob, self.solver, [const.LpStatusInfeasible])
 
+    def test_pulp_061(self):
+        # Integer Infeasible
+        prob = LpProblem('sample', const.LpMaximize)
+
+        dummy = LpVariable('dummy')
+        c1 = LpVariable('c1', 0, 1, const.LpBinary)
+        c2 = LpVariable('c2', 0, 1, const.LpBinary)
+
+        prob += dummy
+        prob += c1 + c2 == 2
+        prob += c1 <= 0
+        print("\t Testing another integer infeasible problem")
+        pulpTestCheck(prob, self.solver, [const.LpStatusInfeasible])
+
     def test_pulp_070(self):
         # Column Based modelling of test_pulp_1
         prob = LpProblem("test070", const.LpMinimize)

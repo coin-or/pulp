@@ -4,17 +4,20 @@ from .core import cplex_dll_path, ctypesArrayFill, ilm_cplex_license, ilm_cplex_
 from .. import constants, sparse
 import os
 from uuid import uuid4
+import warnings
 
 
 class CPLEX_CMD(LpSolver_CMD):
     """The CPLEX LP solver"""
 
-    def __init__(self, path = None, keepFiles = 0, mip = 1,
-            msg = 0, options = None, timelimit = None, mip_start=False):
-        if options is None:
-            options = []
-        LpSolver_CMD.__init__(self, path, keepFiles, mip, msg, options, mip_start)
-        self.timelimit = timelimit
+    def __init__(self, timelimit = None, *args, **kwargs):
+        LpSolver_CMD.__init__(self, *args, **kwargs)
+        if timelimit:
+            warnings.warn("Parameter timelimit is being depreciated for standard 'timeLimit'")
+            if self.timelimit:
+                warnings.warn("Parameter timeLimit and timelimit passed, using timeLimit ")
+            else:
+                self.timelimit = timelimit
 
     def defaultPath(self):
         return self.executableExtension("cplex")
@@ -729,7 +732,8 @@ else:
             """
             sets the logfile for cplex output
             """
-            self.solverModel.set_log_stream(filename)
+            with open(filename, 'w') as cplexlog:
+                self.solverModel.set_log_stream(cplexlog)
 
         def changeEpgap(self, epgap = 10**-4):
             """
