@@ -155,35 +155,41 @@ class GLPK_CMD(LpSolver_CMD):
 
     def readSensi(self,filename):
         """Read a GLPK sensitivity analysis file"""
-        with open(filename) as f:
-            reducedCosts={}
-            shadowPrices={}
-            slacks={}
+        reducedCosts={}
+        shadowPrices={}
+        slacks={}
 
-            for i in range(8): f.readline()
-            for i in range(self.rows):
-                line = f.readline().split()
-                name = line[1]
-                if len(line) ==2:
+        try:
+            with open(filename) as f:
+                for i in range(8): f.readline()
+                for i in range(self.rows):
                     line = f.readline().split()
-                    slack = line[2]
-                else:
-                    slack = line[4]
-                slacks[name] = float(slack) if slack != '.' else 0
-                
-                shadowPrice = f.readline().split()[0]
-                shadowPrices[name] = float(reducedCost) if reducedCost != '.' else 0
-                
-                f.readline()
+                    name = line[1]
+                    if len(line) ==2:
+                        line = f.readline().split()
+                        slack = line[2]
+                    else:
+                        slack = line[4]
+                    slacks[name] = float(slack) if slack != '.' else 0
+                    
+                    shadowPrice = f.readline().split()[0]
+                    shadowPrices[name] = float(shadowPrice) if shadowPrice != '.' else 0
+                    
+                    f.readline()
 
-            for i in range(8): f.readline()
-            for i in range(self.cols):
-                name = f.readline().split()[1]
-                
-                reducedCost = f.readline().split()[0]
-                reducedCosts[name] = float(shadowPrice) if shadowPrice != '.' else 0
-                
-                f.readline()
+                for i in range(8): f.readline()
+                for i in range(self.cols):
+                    line = f.readline().split()
+                    name = line[1]
+                    if len(line) ==2:
+                        f.readline()
+                    
+                    reducedCost = f.readline().split()[0]
+                    reducedCosts[name] = float(reducedCost) if reducedCost != '.' else 0
+                    
+                    f.readline()
+        except FileNotFoundError:
+            pass
 
         return reducedCosts, shadowPrices, slacks
 
