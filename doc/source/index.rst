@@ -23,27 +23,8 @@ relevant information you will need.
 
    main/index
    CaseStudies/index
-..  comment block
-   main/Concepts
-   main/Introduction
-   main/Installing%20Python InstallingPythonatHome
-   main/BasicPythonCoding
-   main/Introduction to PuLP
-   main/InstallingPulpatHome
-   main/CaseStudies/ABLendingProblem
-   main/UsingElasticConstraints
-   main/Using FractionalConstraints
-   main/SequentialOptimisation
-   main/ExtraCaseStudies
-
-PuLP Internal Documentation
-===========================
-.. toctree::
-   :maxdepth: 1
-
-   constants
-   pulp
-   solvers
+   guides/index
+   technical/index
    
 Authors
 =======
@@ -51,7 +32,6 @@ Authors
 The authors of this documentation (the pulp documentation team) include:
 
 .. include:: AUTHORS.txt
-
 
 
 Indices and tables

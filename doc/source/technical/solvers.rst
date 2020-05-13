@@ -1,11 +1,12 @@
 
-:mod:`pulp.solvers` Interface to Solvers
+:mod:`pulp.apis` Interface to Solvers
 ========================================
 
 
-.. automodule:: pulp.solvers
+.. automodule:: pulp.apis
    :members:
    :undoc-members:
+   :imported-members:
    :show-inheritance:
    
 

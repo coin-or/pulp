@@ -64,7 +64,7 @@ except ImportError:
     pass
 else:
     from pyparsing import alphas, nums, alphanums, delimitedList, oneOf
-    from pyparsing import Combine, Dict, Forward, Group, Literal, NotAny
+    from pyparsing import Combine, Dict, Forward, Group, Literal, NotAny, Keyword
     from pyparsing import OneOrMore, Optional, ParseResults, QuotedString
     from pyparsing import StringEnd, Suppress, Word, ZeroOrMore, SkipTo, lineEnd
 
@@ -290,6 +290,7 @@ else:
             self.name = tokens.name
             self.records = tokens.records
             self.default = tokens.get('default', 0)
+            self.tokens = tokens
 
         def __repr__(self):
             return '<%s: %s = %s>' % (self.__class__.__name__, self.name,
@@ -303,7 +304,8 @@ else:
                 obj = ParamObject()
 
             if obj.subscripts == 0:
-                assert len(self.records) == 1
+                if len(self.records) != 1:
+                    raise AmplyError("Error in number of records of {} when reading {}".format(self.name, self.tokens))
                 assert len(self.records[0]) == 1
                 amply._addSymbol(self.name, self.records[0][0])
             else:
@@ -639,7 +641,7 @@ else:
     simple_data = Group(NotAny('(tr)') + data + ZeroOrMore(Optional(Suppress(',')) + data))
     # the first element of a set data record  cannot be 'dimen', or else
     # these would match set_def_stmts
-    non_dimen_simple_data = ~Literal('dimen') + simple_data
+    non_dimen_simple_data = ~Keyword('dimen') + simple_data
 
     matrix_row = Group(single + OneOrMore(PLUS | MINUS))
     matrix_data = ":" + OneOrMore(single).setResultsName('columns') \
@@ -657,13 +659,13 @@ else:
     set_record = simple_data | _set_record
     non_dimen_set_record = non_dimen_simple_data | _set_record
 
-    set_def_stmt = "set" + symbol + Optional(subscript_domain) + \
-            Optional("dimen" + integer.setResultsName('dimen')) + END
+    set_def_stmt = Keyword("set") + symbol + Optional(subscript_domain) + \
+            Optional(Keyword("dimen") + integer.setResultsName('dimen')) + END
     set_def_stmt.setParseAction(SetDefStmt)
 
     set_member = LBRACKET + delimitedList(data) + RBRACKET
 
-    set_stmt = "set" + symbol + Optional(set_member).setResultsName("member") + \
+    set_stmt = Keyword("set") + symbol + Optional(set_member).setResultsName("member") + \
             Group(non_dimen_set_record + ZeroOrMore(Optional(Suppress(',')) + set_record)) \
             .setResultsName("records") + END
     set_stmt.setParseAction(SetStmt)
@@ -691,22 +693,20 @@ else:
     param_record = param_slice_record | plain_data_record | tabular_record | \
             tr_tabular_record | Suppress(":=")
 
-    param_default = Optional("default" + single.setResultsName('default'))
+    param_default = Optional(Keyword("default") + single.setResultsName('default'))
 
-    param_stmt = "param" + symbol.setResultsName('name') + param_default + \
+    param_stmt = Keyword("param") + ~Keyword("default") + symbol.setResultsName('name') + param_default + \
             Group(OneOrMore(param_record)).setResultsName('records') + END
     param_stmt.setParseAction(ParamStmt)
 
-    param_tabbing_stmt = "param" + param_default + ':' + Optional(symbol + ':') + \
+    param_tabbing_stmt = Keyword("param") + param_default + ':' + Optional(symbol + ': ') + \
             OneOrMore(data).setResultsName('params') \
-            + ':=' + OneOrMore(single).setResultsName('data') + END
+            + ':=' + ZeroOrMore(single).setResultsName('data') + END
     param_tabbing_stmt.setParseAction(ParamTabbingStmt)
 
-    param_def_stmt = "param" + symbol + Optional(subscript_domain) + \
+    param_def_stmt = Keyword("param") + symbol + Optional(subscript_domain) + \
             param_default + END
     param_def_stmt.setParseAction(ParamDefStmt)
-
-    # comment = "#" + SkipTo(lineEnd)
 
     stmts = set_stmt | set_def_stmt | param_stmt | param_def_stmt | \
             param_tabbing_stmt

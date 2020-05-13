@@ -529,6 +529,65 @@ class AmplyTest(unittest.TestCase):
         assert result[2,3] == 4
         assert result[3,4] == 5
 
+    def test_empty_tabbing_parameter_statement(self):
+
+        result = amply.Amply(
+            """
+            set x;
+            param square {x};
+            param default 99 : square :=
+            ;
+            """
+        )
+        assert 'square' in result.symbols.keys()
+        assert result.square == {}
+
+    def test_empty_tabbing_parameters(self):
+
+        result = amply.Amply(
+            """
+            set x;
+            param square {x};
+            param triangle {x};
+            param default 99 : square triangle :=
+            ;
+            """
+        )
+        assert 'square' in result.symbols.keys()
+        assert result.square == {}
+
+    def test_empty_parameter_statement(self):
+        result = amply.Amply(
+            """
+            param square {x};
+            param square default 99 :=
+            ;
+            """
+        )
+        assert 'square' in result.symbols.keys()
+        assert result.square == {}
+
+    def test_high_dim_tabbing(self):
+        result = amply.Amply(
+            """
+            set x;
+            set y;
+            param square {x,y};
+            param default 99 : square :=
+            a a 34
+            a b 35
+            a c 36
+            b a 53
+            b b 45.3
+            b c 459.2
+            ;
+            """
+        )
+        assert 'square' in result.symbols.keys()
+        print(result.square['b'])
+        assert result.square['a'] == {'a': 34.0, 'b': 35.0, 'c': 36.0}
+        assert result.square['b'] == {'a': 53.0, 'b': 45.3, 'c': 459.2}
+
 
 if __name__ == '__main__':
     unittest.main()
