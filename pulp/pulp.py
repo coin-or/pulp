@@ -32,8 +32,6 @@ problems.
 
 See the examples directory for examples.
 
-PuLP requires Python >= 2.5.
-
 The examples require at least a solver in your PATH or a shared library file.
 
 Documentation is found on https://www.coin-or.org/PuLP/.
@@ -54,7 +52,7 @@ problem.
 
 If you add an expression (not a constraint), it will
 become the objective.
->>> prob += -4*x + y
+>>> prob += -4 * x + y
 
 Choose a solver and solve the problem. ex:
 >>> status = prob.solve(PULP_CBC_CMD(msg = 0))
@@ -130,6 +128,11 @@ if sys.platform not in ['cli']:
         _DICT_TYPE = OrderedDict
     except ImportError:
         pass
+
+try:
+    import ujson as json
+except ImportError:
+    import json
 
 
 class LpElement(object):
@@ -237,15 +240,37 @@ class LpVariable(LpElement):
         self.cat = cat
         self.varValue = None
         self.dj = None
-        self.init = 0
-        #code to add a variable to constraints for column based
-        # modelling
         if cat == const.LpBinary:
             self.lowBound = 0
             self.upBound = 1
             self.cat = const.LpInteger
+        #code to add a variable to constraints for column based
+        # modelling
         if e:
             self.add_expression(e)
+
+    def to_dict(self):
+        """
+        Exports a variable into a dictionary with its relevant information
+        :return:
+        """
+        return dict(lowBound=self.lowBound, upBound=self.upBound, cat=self.cat,
+                    varValue=self.varValue, dj=self.dj, name=self.name)
+
+    @classmethod
+    def from_dict(cls, dj=None, varValue=None, **kwargs):
+        """
+        Initializes a variable object from information that comes from a dictionary (kwargs)
+
+        :param dj:
+        :param varValue:
+        :param kwargs:
+        :return:
+        """
+        var = cls(**kwargs)
+        var.dj = dj
+        var.varValue = varValue
+        return var
 
     def add_expression(self,e):
         self.expression = e
@@ -766,7 +791,6 @@ class LpAffineExpression(_DICT_TYPE):
     def __isub__(self, other):
         return (self).subInPlace(other)
 
-
     def __mul__(self, other):
         e = self.emptyCopy()
         if isinstance(other, LpAffineExpression):
@@ -839,6 +863,9 @@ class LpAffineExpression(_DICT_TYPE):
 
     def __eq__(self, other):
         return LpConstraint(self - other, const.LpConstraintEQ)
+
+    def to_dict(self):
+        return {k.name: v for k, v in self.items()}
 
 
 class LpConstraint(LpAffineExpression):
@@ -1017,6 +1044,28 @@ class LpConstraint(LpAffineExpression):
         """
         return FixedElasticSubProblem(self, *args, **kwargs)
 
+    def to_dict(self):
+        """
+        exports constraint information into a dictonary
+        :return:
+        """
+        return dict(sense=self.sense,
+                    pi=self.pi,
+                    constant=self.constant,
+                    name = self.name,
+                    coefficients=LpAffineExpression.to_dict(self))
+
+    @classmethod
+    def from_dict(cls, _dict):
+        """
+        Initializes a constraint object from a dictionary with necessary information
+        :param _dict: dictionary with data
+        :return:
+        """
+        const = cls(e=_dict['coefficients'], rhs=-_dict['constant'], name=_dict['name'], sense=_dict['sense'])
+        const.pi = _dict['pi']
+        return const
+
 
 class LpFractionConstraint(LpConstraint):
     """
@@ -1123,7 +1172,6 @@ class LpProblem(object):
         self.sol_status = const.LpSolutionNoSolutionFound
         self.noOverlap = 1
         self.solver = None
-        self.initialValues = {}
         self.modifiedVariables = []
         self.modifiedConstraints = []
         self.resolveOK = False
@@ -1185,6 +1233,81 @@ class LpProblem(object):
         lpcopy.sos1 = self.sos1.copy()
         lpcopy.sos2 = self.sos2.copy()
         return lpcopy
+
+    def to_dict(self):
+        """
+        creates a dictionary from the model with as much data as possible.
+        It replaces variables by variable names.
+        So it requires to have unique names for variables.
+
+        :return: dictionary with model data
+        """
+        try:
+            self.checkDuplicateVars()
+        except const.PulpError:
+            raise const.PulpError("Duplicated names found in variables:\nto export the model, variable names need to be unique")
+        variables = self.variables()
+        return \
+            dict(objective=dict(name=self.objective.name, coefficients=self.objective.to_dict()),
+             constraints={k: v.to_dict() for k, v in self.constraints.items()},
+             variables={v.name: v.to_dict() for v in variables},
+             parameters=dict(name=self.name,
+                             sense=self.sense,
+                             status=self.status,
+                             sol_status=self.sol_status),
+             sos1=self.sos1,
+             sos2=self.sos2
+             )
+
+    @classmethod
+    def from_dict(cls, _dict):
+        """
+        Takes a dictionary with all necessary information to build a model.
+        And returns a dictionary of variables and a problem object
+
+        :param _dict: dictionary with the model stored
+        :return:
+        """
+
+        # we instantiate the problem
+        params = _dict['parameters']
+        pb_params = {'name', 'sense'}
+        args = {k: params[k] for k in pb_params}
+        pb = cls(**args)
+        pb.status = params['status']
+        pb.sol_status = params['sol_status']
+
+        # recreate the variables.
+        var = {k: LpVariable.from_dict(**v) for k, v in _dict['variables'].items()}
+
+        # objective function.
+        # we change the names for the objects:
+        obj_e = {var[k]: v for k, v in _dict['objective']['coefficients'].items()}
+        pb += LpAffineExpression(e=obj_e, name=_dict['objective']['name'])
+
+        # constraints
+        # we change the names for the objects:
+        def edit_const(const):
+            const['coefficients'] = {var[k]: v for k, v in const['coefficients'].items()}
+            return const
+
+        constraints = [edit_const(v) for v in _dict['constraints'].values()]
+        for c in constraints:
+            pb += LpConstraint.from_dict(c)
+
+        # last, parameters, other options
+        pb.sos1 = _dict['sos1']
+        pb.sos2 = _dict['sos2']
+
+        return var, pb
+
+    def to_json(self, **kwargs):
+        return json.dumps(self.to_dict(), **kwargs)
+
+    @classmethod
+    def from_json(cls, file_name):
+        data = json.loads(file_name)
+        return cls.from_dict(data)
 
     def normalisedNames(self):
         constraintsNames = {k: "C%07d" % i for i, k in enumerate(self.constraints)}
@@ -1430,7 +1553,6 @@ class LpProblem(object):
         mpsConstraintType = {const.LpConstraintLE: "L", const.LpConstraintEQ: "E", const.LpConstraintGE: "G"}
         row_lines = [" "+mpsConstraintType[c.sense] + "  " + constrNames[k] + "\n"
                      for k, c in self.constraints.items()]
-        # matrix
         # Creation of a dict of dict:
         # coefs[variable_name][constraint_name] = coefficient
         coefs = {varNames[v.name]: {} for v in vs}
@@ -1439,10 +1561,12 @@ class LpProblem(object):
             for v, value in c.items():
                 coefs[varNames[v.name]][k] = value
 
+        # matrix
         columns_lines = []
         for v in vs:
             name = varNames[v.name]
             columns_lines.extend(self.MPS_column_lines(coefs[name], v, mip, name, cobj, objName))
+
         # right hand side
         rhs_lines = ["    RHS       %-8s  % .12e\n" % (constrNames[k], -c.constant if c.constant != 0 else 0)
                      for k, c in self.constraints.items()]
@@ -1580,12 +1704,12 @@ class LpProblem(object):
             if self.sos1:
                 for sos in self.sos1.values():
                     f.write("S1:: \n")
-                    for v,val in sos.items():
+                    for v, val in sos.items():
                         f.write(" %s: %.12g\n" % (v.name, val))
             if self.sos2:
                 for sos in self.sos2.values():
                     f.write("S2:: \n")
-                    for v,val in sos.items():
+                    for v, val in sos.items():
                         f.write(" %s: %.12g\n" % (v.name, val))
         f.write("End\n")
         f.close()
@@ -1635,7 +1759,7 @@ class LpProblem(object):
         for name in values:
             try:
                 if activity:
-                    #reports the activitynot the slack
+                    # reports the activity not the slack
                     self.constraints[name].slack = -1 * (
                             self.constraints[name].constant + float(values[name]))
                 else:
@@ -1751,9 +1875,6 @@ class LpProblem(object):
         resolve
         """
         self.solver = solver
-
-    def setInitial(self,values):
-        self.initialValues = values
 
     def numVariables(self):
         return len(self._variable_ids)

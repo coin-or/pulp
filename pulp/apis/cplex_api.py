@@ -488,7 +488,7 @@ try:
             i=0
             for v in vars:
                 colNames[i] = str(v.name)
-                initValues[i] = v.init
+                initValues[i] = v.varValue if v.varValue is not None else 0
                 if v.lowBound != None:
                     lowerBounds[i] = v.lowBound
                 else:
