@@ -184,6 +184,10 @@ class COIN_CMD(LpSolver_CMD):
                 l = l.split()
                 #incase the solution is infeasible
                 if l[0] == '**':
+                    if status == 1:
+                        exception = """.sol file says optimal, but at least
+                        one constraint is unsatisfied"""
+                        raise Exception(exception)
                     l = l[1:]
                 vn = l[1]
                 val = l[2]
