@@ -865,7 +865,7 @@ class LpAffineExpression(_DICT_TYPE):
         return LpConstraint(self - other, const.LpConstraintEQ)
 
     def to_dict(self):
-        return {k.name: v for k, v in self.items()}
+        return [dict(name=k.name, value=v) for k, v in self.items()]
 
 
 class LpConstraint(LpAffineExpression):
@@ -1046,13 +1046,13 @@ class LpConstraint(LpAffineExpression):
 
     def to_dict(self):
         """
-        exports constraint information into a dictonary
+        exports constraint information into a dictionary
         :return:
         """
         return dict(sense=self.sense,
                     pi=self.pi,
                     constant=self.constant,
-                    name = self.name,
+                    name=self.name,
                     coefficients=LpAffineExpression.to_dict(self))
 
     @classmethod
@@ -1249,8 +1249,8 @@ class LpProblem(object):
         variables = self.variables()
         return \
             dict(objective=dict(name=self.objective.name, coefficients=self.objective.to_dict()),
-             constraints={k: v.to_dict() for k, v in self.constraints.items()},
-             variables={v.name: v.to_dict() for v in variables},
+             constraints=[v.to_dict() for v in self.constraints.values()],
+             variables=[v.to_dict() for v in variables],
              parameters=dict(name=self.name,
                              sense=self.sense,
                              status=self.status,
@@ -1278,20 +1278,20 @@ class LpProblem(object):
         pb.sol_status = params['sol_status']
 
         # recreate the variables.
-        var = {k: LpVariable.from_dict(**v) for k, v in _dict['variables'].items()}
+        var = {v['name']: LpVariable.from_dict(**v) for v in _dict['variables']}
 
         # objective function.
         # we change the names for the objects:
-        obj_e = {var[k]: v for k, v in _dict['objective']['coefficients'].items()}
+        obj_e = {var[v['name']]: v['value'] for v in _dict['objective']['coefficients']}
         pb += LpAffineExpression(e=obj_e, name=_dict['objective']['name'])
 
         # constraints
         # we change the names for the objects:
         def edit_const(const):
-            const['coefficients'] = {var[k]: v for k, v in const['coefficients'].items()}
+            const['coefficients'] = {var[v['name']]: v['value'] for v in const['coefficients']}
             return const
 
-        constraints = [edit_const(v) for v in _dict['constraints'].values()]
+        constraints = [edit_const(v) for v in _dict['constraints']]
         for c in constraints:
             pb += LpConstraint.from_dict(c)
 
@@ -1301,12 +1301,14 @@ class LpProblem(object):
 
         return var, pb
 
-    def to_json(self, **kwargs):
-        return json.dumps(self.to_dict(), **kwargs)
+    def to_json(self, filename, *args, **kwargs):
+        with open(filename, 'w') as f:
+            json.dump(self.to_dict(), f, *args,  **kwargs)
 
     @classmethod
-    def from_json(cls, file_name):
-        data = json.loads(file_name)
+    def from_json(cls, filename):
+        with open(filename, 'r') as f:
+            data = json.load(f)
         return cls.from_dict(data)
 
     def normalisedNames(self):

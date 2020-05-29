@@ -646,10 +646,8 @@ class PuLPTest(unittest.TestCase):
         else:
             pulpTestCheck(prob, self.solver, [const.LpStatusUnbounded])
 
-    def test_pulp_210(self):
-        # export dict
-        # Continuous
-        prob = LpProblem("test210", const.LpMinimize)
+    def test_export_dict_LP(self):
+        prob = LpProblem("test_export_dict_LP", const.LpMinimize)
         x = LpVariable("x", 0, 4)
         y = LpVariable("y", -1, 1)
         z = LpVariable("z", 0)
@@ -661,18 +659,34 @@ class PuLPTest(unittest.TestCase):
         prob += w >= 0, "c4"
         data = prob.to_dict()
         var1, prob1 = prob.from_dict(data)
-        x = var1['x']
-        y = var1['y']
-        z = var1['z']
-        w = var1['w']
+        x, y, z, w = [var1[name] for name in ['x', 'y', 'z', 'w']]
         print("\t Testing continuous LP solution")
-        # solution = {var1['x']: 4, var1['y']: -1, var1['z']: 6, var1['w']: 0}
         pulpTestCheck(prob1, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
 
-    def test_pulp_220(self):
-        # export dict
-        # MIP
-        prob = LpProblem("test220", const.LpMinimize)
+    def test_export_json_LP(self):
+        prob = LpProblem("test_export_json_LP", const.LpMinimize)
+        x = LpVariable("x", 0, 4)
+        y = LpVariable("y", -1, 1)
+        z = LpVariable("z", 0)
+        w = LpVariable("w", 0)
+        prob += x + 4 * y + 9 * z, "obj"
+        prob += x + y <= 5, "c1"
+        prob += x + z >= 10, "c2"
+        prob += -y + z == 7, "c3"
+        prob += w >= 0, "c4"
+        filename = 'test_export_json_LP.json'
+        prob.to_json(filename, indent=4)
+        var1, prob1 = prob.from_json(filename)
+        try:
+            os.remove(filename)
+        except:
+            pass
+        x, y, z, w = [var1[name] for name in ['x', 'y', 'z', 'w']]
+        print("\t Testing continuous LP solution")
+        pulpTestCheck(prob1, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
+
+    def test_export_dict_MIP(self):
+        prob = LpProblem("test_export_dict_MIP", const.LpMinimize)
         x = LpVariable("x", 0, 4)
         y = LpVariable("y", -1, 1)
         z = LpVariable("z", 0, None, const.LpInteger)
@@ -682,16 +696,12 @@ class PuLPTest(unittest.TestCase):
         prob += -y + z == 7.5, "c3"
         data = prob.to_dict()
         var1, prob1 = prob.from_dict(data)
-        x = var1['x']
-        y = var1['y']
-        z = var1['z']
+        x, y, z = [var1[name] for name in ['x', 'y', 'z']]
         print("\t Testing MIP solution")
         pulpTestCheck(prob1, self.solver, [const.LpStatusOptimal], {x: 3, y: -0.5, z: 7})
 
-    def test_pulp_211(self):
-        # export dict
-        # Continuous Maximisation
-        prob = LpProblem("test211", const.LpMaximize)
+    def test_export_dict_max(self):
+        prob = LpProblem("test_export_dict_max", const.LpMaximize)
         x = LpVariable("x", 0, 4)
         y = LpVariable("y", -1, 1)
         z = LpVariable("z", 0)
@@ -702,13 +712,8 @@ class PuLPTest(unittest.TestCase):
         prob += -y + z == 7, "c3"
         prob += w >= 0, "c4"
         data = prob.to_dict()
-        with open('test_pulp_211.json', 'w') as f:
-            f.write(prob.to_json(indent=4))
         var1, prob1 = prob.from_dict(data)
-        x = var1['x']
-        y = var1['y']
-        z = var1['z']
-        w = var1['w']
+        x, y, z, w = [var1[name] for name in ['x', 'y', 'z', 'w']]
         print("\t Testing maximize continuous LP solution")
         pulpTestCheck(prob1, self.solver, [const.LpStatusOptimal], {x: 4, y: 1, z: 8, w: 0})
 

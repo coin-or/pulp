@@ -107,16 +107,16 @@ class COIN_CMD(LpSolver_CMD):
             variablesNames = dict((v.name, v.name) for v in vs)
             constraintsNames = dict((c, c) for c in lp.constraints)
             objectiveName = None
-            cmds = ' '+tmpLp+" "
+            cmds = ' ' + tmpLp + " "
         if self.mip_start:
             self.writesol(tmpSol_init, lp, vs, variablesNames, constraintsNames)
             cmds += 'mips {} '.format(tmpSol_init)
         if self.threads:
-            cmds += "threads %s "%self.threads
+            cmds += "threads %s " % self.threads
         if self.fracGap is not None:
-            cmds += "ratio %s "%self.fracGap
+            cmds += "ratio %s " % self.fracGap
         if self.timelimit is not None:
-            cmds += "sec %s "%self.timelimit
+            cmds += "sec %s " % self.timelimit
         if self.presolve:
             cmds += "presolve on "
         if self.strong:
