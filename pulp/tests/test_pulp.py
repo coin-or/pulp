@@ -381,7 +381,10 @@ class PuLPTest(unittest.TestCase):
         prob += c1 + c2 == 2
         prob += c1 <= 0
         print("\t Testing another integer infeasible problem")
-        pulpTestCheck(prob, self.solver, [const.LpStatusInfeasible])
+        if self.solver.__class__ in [GUROBI_CMD]:
+            pulpTestCheck(prob, self.solver, [const.LpStatusNotSolved])
+        else:
+            pulpTestCheck(prob, self.solver, [const.LpStatusInfeasible])
 
     def test_pulp_070(self):
         # Column Based modelling of test_pulp_1

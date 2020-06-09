@@ -97,32 +97,6 @@ class GUROBI(LpSolver):
                                    GRB.INTERRUPTED: constants.LpStatusNotSolved,
                                    GRB.NUMERIC: constants.LpStatusNotSolved,
                                    }
-            #populate pulp solution values
-            try:
-                for var, value in zip(lp.variables(), model.getAttr(GRB.Attr.X, model.getVars())):
-                    var.varValue = value
-            except (gurobipy.GurobiError, AttributeError):
-                pass
-
-            try:
-                for var, value in zip(lp.variables(), model.getAttr(GRB.Attr.RC, model.getVars())):
-                    var.dj = value
-            except (gurobipy.GurobiError, AttributeError):
-                pass
-
-            #put pi and slack variables against the constraints
-            try:
-                for constr, value in zip(lp.constraints.values(), model.getAttr(GRB.Pi, model.getConstrs())):
-                    constr.pi = value
-            except (gurobipy.GurobiError, AttributeError):
-                pass
-
-            try:
-                for constr, value in zip(lp.constraints.values(), model.getAttr(GRB.Slack, model.getConstrs())):
-                    constr.slack = value
-            except (gurobipy.GurobiError, AttributeError):
-                pass
-
             if self.msg:
                 print("Gurobi status=", solutionStatus)
             lp.resolveOK = True
@@ -130,6 +104,25 @@ class GUROBI(LpSolver):
                 var.isModified = False
             status = gurobiLpStatus.get(solutionStatus, constants.LpStatusUndefined)
             lp.assignStatus(status)
+            if status != constants.LpStatusOptimal:
+                return status
+
+            #populate pulp solution values
+            for var, value in zip(lp.variables(), model.getAttr(GRB.Attr.X, model.getVars())):
+                var.varValue = value
+
+            # populate pulp constraints slack
+            for constr, value in zip(lp.constraints.values(), model.getAttr(GRB.Attr.Slack, model.getConstrs())):
+                constr.slack = value
+
+            if not model.getAttr(GRB.Attr.IsMIP):
+                for var, value in zip(lp.variables(), model.getAttr(GRB.Attr.RC, model.getVars())):
+                    var.dj = value
+
+                #put pi and slack variables against the constraints
+                for constr, value in zip(lp.constraints.values(), model.getAttr(GRB.Attr.Pi, model.getConstrs())):
+                    constr.pi = value
+
             return status
 
         def available(self):
@@ -290,10 +283,11 @@ class GUROBI_CMD(LpSolver_CMD):
         if return_code != 0:
             raise PulpSolverError("PuLP: Error while trying to execute "+self.path)
         if not os.path.exists(tmpSol):
-            warnings.warn('GUROBI_CMD does provide good solution status of non optimal solutions')
+            # TODO: the status should be infeasible here, I think
             status = constants.LpStatusNotSolved
             values = reducedCosts = shadowPrices = slacks = None
         else:
+            # TODO: the status should be infeasible here, I think
             status, values, reducedCosts, shadowPrices, slacks = self.readsol(tmpSol)
         if not self.keepFiles:
             for f in [tmpSol, tmpMst, tmpLp, "gurobi.log"]:
@@ -314,7 +308,6 @@ class GUROBI_CMD(LpSolver_CMD):
                 next(my_file) # skip the objective value
             except StopIteration:
                 # Empty file not solved
-                warnings.warn('GUROBI_CMD does provide good solution status of non optimal solutions')
                 status = constants.LpStatusNotSolved
                 return status, {}, {}, {}, {}
             #We have no idea what the status is assume optimal
