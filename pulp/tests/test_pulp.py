@@ -383,6 +383,9 @@ class PuLPTest(unittest.TestCase):
         print("\t Testing another integer infeasible problem")
         if self.solver.__class__ in [GUROBI_CMD]:
             pulpTestCheck(prob, self.solver, [const.LpStatusNotSolved])
+        elif self.solver.__class__ in [GLPK_CMD]:
+            # GLPK_CMD returns InfeasibleOrUnbounded
+            pulpTestCheck(prob, self.solver, [const.LpStatusInfeasible, const.LpStatusUndefined])
         else:
             pulpTestCheck(prob, self.solver, [const.LpStatusInfeasible])
 
