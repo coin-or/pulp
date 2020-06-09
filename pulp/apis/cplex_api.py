@@ -102,8 +102,8 @@ class CPLEX_CMD(LpSolver_CMD):
                  maxMemory = 'set mip limits treememory {}',
                  threads = 'set threads {}'
                  )
-        return [v.format(self.options_dict[k]) for k, v in params_eq.items()
-                if k in self.options_dict]
+        return [v.format(self.optionsDict[k]) for k, v in params_eq.items()
+                if k in self.optionsDict]
 
     def readsol(self,filename):
         """Read a CPLEX solution file"""
@@ -745,10 +745,10 @@ class CPLEX_PY(LpSolver):
                 self.solverModel.set_log_stream(None)
                 self.solverModel.set_warning_stream(None)
                 self.solverModel.set_results_stream(None)
-            logPath = self.options_dict.get('logPath')
+            logPath = self.optionsDict.get('logPath')
             if logPath is not None:
                 self.setlogfile(logPath)
-            gapRel = self.options_dict.get('gapRel')
+            gapRel = self.optionsDict.get('gapRel')
             if gapRel is not None:
                 self.changeEpgap(gapRel)
             if self.timeLimit is not None:

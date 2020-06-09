@@ -190,7 +190,7 @@ class LpSolver:
 
         # here we will store all other relevant information including:
         # gapRel, gapAbs, maxMemory, maxNodes, threads, logPath
-        self.options_dict = kwargs
+        self.optionsDict = kwargs
 
     def available(self):
         """True if the solver is available"""
@@ -324,7 +324,7 @@ class LpSolver:
                 data[k] = getattr(self, v)
             except AttributeError:
                 pass
-        data.update(self.options_dict)
+        data.update(self.optionsDict)
         return data
 
     def to_json(self, filename, *args, **kwargs):

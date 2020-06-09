@@ -43,9 +43,13 @@ class COIN_CMD(LpSolver_CMD):
     def defaultPath(self):
         return self.executableExtension(cbc_path)
 
-    def __init__(self, *args, cuts = None, presolve = None, dual = None,
-                 strong = None, fracGap = None, maxSeconds = None,
-                 **kwargs):
+    def __init__(self, fracGap = None, maxSeconds = None, *args, **kwargs):
+        """
+        :param fracGap:
+        :param maxSeconds:
+        :param args:
+        :param kwargs: includes presolve, cuts, strong
+        """
 
         if fracGap:
             warnings.warn("Parameter fracGap is being depreciated for standard 'gapRel'")
@@ -54,10 +58,6 @@ class COIN_CMD(LpSolver_CMD):
             else:
                 kwargs['gapRel'] = fracGap
         LpSolver_CMD.__init__(self, *args, **kwargs)
-        self.cuts = cuts
-        self.presolve = presolve
-        self.dual = dual
-        self.strong = strong
         if maxSeconds:
             warnings.warn("Parameter maxSeconds is being depreciated for standard 'timeLimit'")
             if self.timeLimit:
@@ -71,10 +71,7 @@ class COIN_CMD(LpSolver_CMD):
     def copy(self):
         """Make a copy of self"""
         aCopy = LpSolver_CMD.copy(self)
-        aCopy.cuts = self.cuts
-        aCopy.presolve = self.presolve
-        aCopy.dual = self.dual
-        aCopy.strong = self.strong
+        aCopy.optionsDict = self.optionsDict
         return aCopy
 
     def actualSolve(self, lp, **kwargs):
@@ -118,14 +115,6 @@ class COIN_CMD(LpSolver_CMD):
             cmds += 'mips {} '.format(tmpSol_init)
         if self.timeLimit is not None:
             cmds += "sec %s " % self.timeLimit
-        if self.presolve:
-            cmds += "presolve on "
-        if self.strong:
-            cmds += "strong %d " % self.strong
-        if self.cuts:
-            cmds += "gomory on "
-            cmds += "knapsack on "
-            cmds += "probing on "
         options = self.options + self.getOptions()
         for option in options:
             cmds += option+" "
@@ -171,10 +160,14 @@ class COIN_CMD(LpSolver_CMD):
             dict(timeLimit="sec {}",
                  gapRel = "ratio {}",
                  gapAbs = 'allow {}',
-                 threads = 'threads {}'
+                 threads = 'threads {}',
+                 presolve = 'presolve on',
+                 strong = 'strong {}',
+                 cuts = "gomory on knapsack on probing on"
                  )
-        return [v.format(self.options_dict[k]) for k, v in params_eq.items()
-                  if k in self.options_dict]
+
+        return [v.format(self.optionsDict[k]) for k, v in params_eq.items()
+                if k in self.optionsDict]
 
     def readsol_MPS(self, filename, lp, vs, variablesNames, constraintsNames, objectiveName=None):
         """

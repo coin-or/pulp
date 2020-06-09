@@ -162,7 +162,7 @@ class GUROBI(LpSolver):
                 lp.solverModel.setAttr("ModelSense", -1)
             if self.timeLimit:
                 lp.solverModel.setParam("TimeLimit", self.timeLimit)
-            gapRel = self.options_dict.get('gapRel')
+            gapRel = self.optionsDict.get('gapRel')
             if gapRel:
                 lp.solverModel.setParam("MIPGap", gapRel)
             log.debug("add the variables to the problem")
@@ -364,5 +364,5 @@ class GUROBI_CMD(LpSolver_CMD):
                  gapAbs='MIPGapAbs',
                  threads='Threads'
                  )
-        return [(v, self.options_dict[k]) for k, v in params_eq.items()
-                if k in self.options_dict]
+        return [(v, self.optionsDict[k]) for k, v in params_eq.items()
+                if k in self.optionsDict]
