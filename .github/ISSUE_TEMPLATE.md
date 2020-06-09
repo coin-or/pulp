@@ -39,7 +39,7 @@ below with an "x", then click the "Submit new issue" button at the bottom
 #### I installed PuLP via:
 
 - [ ] pypi (pip install pulp)
-- [ ] github
+- [ ] github (pip install -U git+https://github.com/coin-or/pulp)
 - [ ] Other: ___
 
 #### I have also:
