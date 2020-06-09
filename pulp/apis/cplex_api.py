@@ -72,9 +72,9 @@ class CPLEX_CMD(LpSolver_CMD):
             raise PulpSolverError("PuLP: Error while trying to execute "+self.path)
         if not os.path.exists(tmpSol):
             status = constants.LpStatusInfeasible
-            values = reducedCosts = shadowPrices = slacks = None
+            values = reducedCosts = shadowPrices = slacks = solStatus = None
         else:
-            status, values, reducedCosts, shadowPrices, slacks = self.readsol(tmpSol)
+            status, values, reducedCosts, shadowPrices, slacks, solStatus = self.readsol(tmpSol)
         if not self.keepFiles:
             for file in [tmpMst, tmpMst, tmpSol, "cplex.log"]:
                 try:
@@ -86,7 +86,7 @@ class CPLEX_CMD(LpSolver_CMD):
             lp.assignVarsDj(reducedCosts)
             lp.assignConsPi(shadowPrices)
             lp.assignConsSlack(slacks)
-        lp.assignStatus(status)
+        lp.assignStatus(status, solStatus)
         return status
 
     def readsol(self,filename):
@@ -98,14 +98,31 @@ class CPLEX_CMD(LpSolver_CMD):
         solutionXML = et.parse(filename).getroot()
         solutionheader = solutionXML.find("header")
         statusString = solutionheader.get("solutionStatusString")
-        # TODO: check status for Integer Feasible
+        statusValue = solutionheader.get("solutionStatusValue")
         cplexStatus = {
-            "optimal": constants.LpStatusOptimal,
+            "1": constants.LpStatusOptimal,    #  optimal
+            "101": constants.LpStatusOptimal,  #  mip optimal
+            "102": constants.LpStatusOptimal,  #  mip optimal tolerance
+            "104": constants.LpStatusOptimal,  #  max solution limit
+            "105": constants.LpStatusOptimal,  #  node limit feasible
+            "107": constants.LpStatusOptimal,  # time lim feasible
+            "109": constants.LpStatusOptimal,  #  fail but feasible
+            "113": constants.LpStatusOptimal,  # abort feasible
             }
-        if statusString not in cplexStatus:
-            raise PulpSolverError("Unknown status returned by CPLEX: "+statusString)
-        status = cplexStatus[statusString]
-
+        if statusValue not in cplexStatus:
+            raise PulpSolverError("Unknown status returned by CPLEX: \ncode: '{}', string: '{}'".
+                                  format(statusValue, statusString))
+        status = cplexStatus[statusValue]
+        # we check for integer feasible status to differentiate from optimal in solution status
+        cplexSolStatus = {
+            "104": constants.LpSolutionIntegerFeasible,  # max solution limit
+            "105": constants.LpSolutionIntegerFeasible,  # node limit feasible
+            "107": constants.LpSolutionIntegerFeasible,  # time lim feasible
+            "109": constants.LpSolutionIntegerFeasible,  # fail but feasible
+            "111": constants.LpSolutionIntegerFeasible,  # memory limit feasible
+            "113": constants.LpSolutionIntegerFeasible,  # abort feasible
+            }
+        solStatus = cplexSolStatus.get(statusValue)
         shadowPrices = {}
         slacks = {}
         constraints = solutionXML.find("linearConstraints")
@@ -125,7 +142,7 @@ class CPLEX_CMD(LpSolver_CMD):
                 values[name] = float(value)
                 reducedCosts[name] = float(reducedCost)
 
-        return status, values, reducedCosts, shadowPrices, slacks
+        return status, values, reducedCosts, shadowPrices, slacks, solStatus
 
     def writesol(self, filename, vs):
         """Writes a CPLEX solution file"""
