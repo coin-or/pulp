@@ -38,27 +38,32 @@ class COIN_CMD(LpSolver_CMD):
     """The COIN CLP/CBC LP solver
     now only uses cbc
     """
+    name = 'COIN_CMD'
 
     def defaultPath(self):
         return self.executableExtension(cbc_path)
 
-    def __init__(self, cuts = None, presolve = None, dual = None,
-                 strong = None, fracGap = None, maxSeconds = None, threads = None,
-                 *args, **kwargs):
+    def __init__(self, *args, cuts = None, presolve = None, dual = None,
+                 strong = None, fracGap = None, maxSeconds = None,
+                 **kwargs):
 
+        if fracGap:
+            warnings.warn("Parameter fracGap is being depreciated for standard 'gapRel'")
+            if 'gapRel' in kwargs:
+                warnings.warn("Parameter kwargs and fracGap passed, using kwargs")
+            else:
+                kwargs['gapRel'] = fracGap
         LpSolver_CMD.__init__(self, *args, **kwargs)
         self.cuts = cuts
         self.presolve = presolve
         self.dual = dual
         self.strong = strong
-        self.fracGap = fracGap
         if maxSeconds:
             warnings.warn("Parameter maxSeconds is being depreciated for standard 'timeLimit'")
-            if self.timelimit:
+            if self.timeLimit:
                 warnings.warn("Parameter timeLimit and maxSeconds passed, using timeLimit ")
             else:
-                self.timelimit = maxSeconds
-        self.threads = threads
+                self.timeLimit = maxSeconds
         #TODO hope this gets fixed in cbc as it does not like the c:\ in windows paths
         if os.name == 'nt':
             self.tmpDir = ''
@@ -108,15 +113,11 @@ class COIN_CMD(LpSolver_CMD):
             constraintsNames = dict((c, c) for c in lp.constraints)
             objectiveName = None
             cmds = ' ' + tmpLp + " "
-        if self.mip_start:
+        if self.warmStart:
             self.writesol(tmpSol_init, lp, vs, variablesNames, constraintsNames)
             cmds += 'mips {} '.format(tmpSol_init)
-        if self.threads:
-            cmds += "threads %s " % self.threads
-        if self.fracGap is not None:
-            cmds += "ratio %s " % self.fracGap
-        if self.timelimit is not None:
-            cmds += "sec %s " % self.timelimit
+        if self.timeLimit is not None:
+            cmds += "sec %s " % self.timeLimit
         if self.presolve:
             cmds += "presolve on "
         if self.strong:
@@ -125,7 +126,8 @@ class COIN_CMD(LpSolver_CMD):
             cmds += "gomory on "
             cmds += "knapsack on "
             cmds += "probing on "
-        for option in self.options:
+        options = self.options + self.getOptions()
+        for option in options:
             cmds += option+" "
         if self.mip:
             cmds += "branch "
@@ -163,6 +165,16 @@ class COIN_CMD(LpSolver_CMD):
                 except:
                     pass
         return status
+
+    def getOptions(self):
+        params_eq  = \
+            dict(timeLimit="sec {}",
+                 gapRel = "ratio {}",
+                 gapAbs = 'allow {}',
+                 threads = 'threads {}'
+                 )
+        return [v.format(self.options_dict[k]) for k, v in params_eq.items()
+                  if k in self.options_dict]
 
     def readsol_MPS(self, filename, lp, vs, variablesNames, constraintsNames, objectiveName=None):
         """
@@ -253,6 +265,7 @@ class PULP_CBC_CMD(COIN_CMD):
     """
     This solver uses a precompiled version of cbc provided with the package
     """
+    name = 'PULP_CBC_CMD'
     pulp_cbc_path = pulp_cbc_path
     try:
         if os.name != 'nt':
@@ -276,6 +289,7 @@ class PULP_CBC_CMD(COIN_CMD):
             #check that the file is executable
             COIN_CMD.__init__(self, path=self.pulp_cbc_path, *args, **kwargs)
 
+
 def COINMP_DLL_load_dll(path):
     """
     function that loads the DLL useful for debugging installation problems
@@ -298,6 +312,7 @@ class COINMP_DLL(LpSolver):
     :param timeLimit: The number of seconds before forcing the solver to exit
     :param epgap: The fractional mip tolerance
     """
+    name = 'COINMP_DLL'
     try:
         lib = COINMP_DLL_load_dll(coinMP_path)
     except (ImportError, OSError):
@@ -479,6 +494,7 @@ class YAPOSIB(LpSolver):
     The yaposib constraints are available in constraint.solverConstraint
     The Model is in prob.solverModel
     """
+    name = 'YAPOSIB'
     try:
         #import the model into the global scope
         global yaposib

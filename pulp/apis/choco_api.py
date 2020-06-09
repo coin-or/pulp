@@ -33,6 +33,7 @@ import warnings
 
 class CHOCO_CMD(LpSolver_CMD):
     """The CHOCO_CMD solver"""
+    name = 'CHOCO_CMD'
 
     def defaultPath(self):
         raise PulpSolverError("PuLP: default path does not exist por CHOCO_CMD")
@@ -68,8 +69,8 @@ class CHOCO_CMD(LpSolver_CMD):
         except:
             pass
         cmd = java_path + ' -cp ' + self.path + ' org.chocosolver.parser.mps.ChocoMPS'
-        if self.timelimit is not None:
-            cmd += ' -tl %s' % self.timelimit * 1000
+        if self.timeLimit is not None:
+            cmd += ' -tl %s' % self.timeLimit * 1000
         cmd += ' ' + ' '.join(['%s %s' % (key, value)
                                for key, value in self.options])
         cmd += ' %s' % tmpMps
@@ -149,6 +150,7 @@ class PULP_CHOCO_CMD(CHOCO_CMD):
     This solver uses a packaged version of choco provided with the package
     """
     pulp_choco_path = pulp_choco_path
+    name = 'PULP_CHOCO_CMD'
     try:
         if os.name != 'nt':
             if not os.access(pulp_choco_path, os.X_OK):

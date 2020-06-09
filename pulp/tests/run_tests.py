@@ -22,4 +22,4 @@ def pulpTestAll(test_docs=False):
         raise pulp.PulpError("Tests Failed")
 
 if __name__ == '__main__':
-    pulpTestAll(test_docs=True)
+    pulpTestAll(test_docs=False)

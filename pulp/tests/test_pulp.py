@@ -664,7 +664,8 @@ class PuLPTest(unittest.TestCase):
         pulpTestCheck(prob1, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
 
     def test_export_json_LP(self):
-        prob = LpProblem("test_export_json_LP", const.LpMinimize)
+        name = 'test_export_json_LP'
+        prob = LpProblem(name, const.LpMinimize)
         x = LpVariable("x", 0, 4)
         y = LpVariable("y", -1, 1)
         z = LpVariable("z", 0)
@@ -674,7 +675,7 @@ class PuLPTest(unittest.TestCase):
         prob += x + z >= 10, "c2"
         prob += -y + z == 7, "c3"
         prob += w >= 0, "c4"
-        filename = 'test_export_json_LP.json'
+        filename = name + '.json'
         prob.to_json(filename, indent=4)
         var1, prob1 = prob.from_json(filename)
         try:
@@ -717,6 +718,43 @@ class PuLPTest(unittest.TestCase):
         print("\t Testing maximize continuous LP solution")
         pulpTestCheck(prob1, self.solver, [const.LpStatusOptimal], {x: 4, y: 1, z: 8, w: 0})
 
+    def test_export_solver_dict_LP(self):
+        prob = LpProblem("test_export_dict_LP", const.LpMinimize)
+        x = LpVariable("x", 0, 4)
+        y = LpVariable("y", -1, 1)
+        z = LpVariable("z", 0)
+        w = LpVariable("w", 0)
+        prob += x + 4 * y + 9 * z, "obj"
+        prob += x + y <= 5, "c1"
+        prob += x + z >= 10, "c2"
+        prob += -y + z == 7, "c3"
+        prob += w >= 0, "c4"
+        data = self.solver.to_dict()
+        solver1 = get_solver_from_dict(data)
+        print("\t Testing continuous LP solution")
+        pulpTestCheck(prob, solver1, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
+
+    def test_export_solver_json(self):
+        name = 'test_export_solver_json'
+        prob = LpProblem(name, const.LpMinimize)
+        x = LpVariable("x", 0, 4)
+        y = LpVariable("y", -1, 1)
+        z = LpVariable("z", 0)
+        w = LpVariable("w", 0)
+        prob += x + 4 * y + 9 * z, "obj"
+        prob += x + y <= 5, "c1"
+        prob += x + z >= 10, "c2"
+        prob += -y + z == 7, "c3"
+        prob += w >= 0, "c4"
+        filename = name + '.json'
+        self.solver.to_json(filename, indent=4)
+        solver1 = get_solver_from_json(filename)
+        try:
+            os.remove(filename)
+        except:
+            pass
+        print("\t Testing continuous LP solution")
+        pulpTestCheck(prob, solver1, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
 
 def pulpTestCheck(prob, solver, okstatus, sol=None,
                   reducedcosts=None,

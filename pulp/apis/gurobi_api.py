@@ -35,6 +35,7 @@ import warnings
 
 # to import the gurobipy name into the module scope
 gurobipy = None
+
 class GUROBI(LpSolver):
     """
     The Gurobi LP/MIP solver (via its python interface)
@@ -43,13 +44,16 @@ class GUROBI(LpSolver):
     Constriaints in constraint.solverConstraint
     and the Model is in prob.solverModel
     """
+    name = 'GUROBI'
+
     try:
         sys.path.append(gurobi_path)
         # to import the name into the module scope
         global gurobipy
         import gurobipy
+        gurobipy.setParam("_test", 0)
     except: # FIXME: Bug because gurobi returns
-            #a gurobi exception on failed imports
+            #  a gurobi exception on failed imports
         def available(self):
             """True if the solver is available"""
             return False
@@ -71,13 +75,16 @@ class GUROBI(LpSolver):
             @param timeLimit: sets the maximum time for solution
             @param epgap: sets the integer bound gap
             """
-            LpSolver.__init__(self, mip, msg)
-            self.timeLimit = timeLimit
-            self.epgap = epgap
+            LpSolver.__init__(self, mip, msg, timeLimit=timeLimit, gapRel=epgap)
             #set the output of gurobi
             if not self.msg:
                 gurobipy.setParam("OutputFlag", 0)
-            #set the gurobi parameter values
+
+            # TODO: this does not follow the solvers interface
+            #  it solverParams should go to LpSolver
+            #  and have uniform naming
+            #  we should still leave this as a possibility
+            # set the gurobi parameter values
             for key,value in solverParams.items():
                 gurobipy.setParam(key, value)
 
@@ -155,8 +162,9 @@ class GUROBI(LpSolver):
                 lp.solverModel.setAttr("ModelSense", -1)
             if self.timeLimit:
                 lp.solverModel.setParam("TimeLimit", self.timeLimit)
-            if self.epgap:
-                lp.solverModel.setParam("MIPGap", self.epgap)
+            gapRel = self.options_dict.get('gapRel')
+            if gapRel:
+                lp.solverModel.setParam("MIPGap", gapRel)
             log.debug("add the variables to the problem")
             for var in lp.variables():
                 lowBound = var.lowBound
@@ -232,6 +240,8 @@ class GUROBI(LpSolver):
 
 class GUROBI_CMD(LpSolver_CMD):
     """The GUROBI_CMD solver"""
+    name = 'GUROBI_CMD'
+
     def defaultPath(self):
         return self.executableExtension("gurobi_cl")
 
@@ -265,10 +275,11 @@ class GUROBI_CMD(LpSolver_CMD):
         try: os.remove(tmpSol)
         except: pass
         cmd = self.path
+        options = self.options + self.getOptions()
         cmd += ' ' + ' '.join(['%s=%s' % (key, value)
-                    for key, value in self.options])
+                               for key, value in options])
         cmd += ' ResultFile=%s' % tmpSol
-        if self.mip_start:
+        if self.warmStart:
             self.writesol(filename=tmpMst, vs=vs)
             cmd += ' InputFile=%s' % tmpMst
 
@@ -344,3 +355,14 @@ class GUROBI_CMD(LpSolver_CMD):
             f.write('\n'.join(rows))
         return True
 
+    def getOptions(self):
+        # GUROBI parameters: http://www.gurobi.com/documentation/7.5/refman/parameters.html#sec:Parameters
+        params_eq  = \
+            dict(logPath='LogFile',
+                 timeLimit='TimeLimit',
+                 gapRel='MIPGap',
+                 gapAbs='MIPGapAbs',
+                 threads='Threads'
+                 )
+        return [(v, self.options_dict[k]) for k, v in params_eq.items()
+                if k in self.options_dict]

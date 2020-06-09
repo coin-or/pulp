@@ -48,7 +48,14 @@ except AttributeError:
 from .. import sparse
 from .. import constants as const
 
+import warnings
 import logging
+
+try:
+    import ujson as json
+except ImportError:
+    import json
+
 log = logging.getLogger(__name__)
 
 if os.name == "posix" and sys.version_info[0] < 3:
@@ -163,15 +170,27 @@ cplex_dll_path, ilm_cplex_license, ilm_cplex_license_signature, coinMP_path,\
 # See later for LpSolverDefault definition
 class LpSolver:
     """A generic LP Solver"""
+    name = 'LpSolver'
 
-    def __init__(self, mip = True, msg = True, options = None, mip_start=False, timeLimit=None, *args, **kwargs):
+    def __init__(self, mip = True, msg = True, options = None, mip_start=False, timeLimit=None,
+                 warmStart=False, *args, **kwargs):
         if options is None:
             options = []
         self.mip = mip
         self.msg = msg
         self.options = options
-        self.mip_start = mip_start
-        self.timelimit = timeLimit
+        self.warmStart = warmStart
+        if mip_start:
+            warnings.warn("Parameter mip_start is being depreciated for standard 'warmStart'")
+            if warmStart:
+                warnings.warn("Parameter mipStart and mip_start passed, using warmStart")
+            else:
+                self.warmStart = mip_start
+        self.timeLimit = timeLimit
+
+        # here we will store all other relevant information including:
+        # gapRel, gapAbs, maxMemory, maxNodes, threads, logPath
+        self.options_dict = kwargs
 
     def available(self):
         """True if the solver is available"""
@@ -296,12 +315,29 @@ class LpSolver:
             elemBase, lowerBounds, upperBounds, initValues, colNames,
             rowNames, columnType, self.n2v, self.n2c)
 
+    def to_dict(self):
+        data = dict(solver=self.name)
+        translate = {}
+        for v in ['mip', 'msg', 'warmStart', 'timeLimit', 'options', 'keepFiles']:
+            k = translate.get(v, v)
+            try:
+                data[k] = getattr(self, v)
+            except AttributeError:
+                pass
+        data.update(self.options_dict)
+        return data
+
+    def to_json(self, filename, *args, **kwargs):
+        with open(filename, 'w') as f:
+            json.dump(self.to_dict(), f, *args,  **kwargs)
+
 
 class LpSolver_CMD(LpSolver):
     """A generic command line LP Solver"""
     # TODO: make a general naming function for file names dictionary.
-        # .lp, .mip, .sol, .mst, etc.
+    #  .lp, .mip, .sol, .mst, etc.
     # TODO: also handle the deletion of files afterwards
+    name = 'LpSolver_CMD'
 
     def __init__(self, path=None, keepFiles=0, *args, **kwargs):
         LpSolver.__init__(self, *args, **kwargs)

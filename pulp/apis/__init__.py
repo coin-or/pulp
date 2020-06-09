@@ -9,6 +9,16 @@ from .scip_api import *
 from .xpress_api import *
 from .core import *
 
+_all_solvers = [GLPK_CMD, PYGLPK, CPLEX_CMD, CPLEX_PY, CPLEX_DLL, GUROBI, GUROBI_CMD,
+                MOSEK, XPRESS, PULP_CBC_CMD, COIN_CMD, COINMP_DLL,
+                CHOCO_CMD, PULP_CHOCO_CMD, MIPCL_CMD, SCIP_CMD,
+                LpSolver, LpSolver_CMD]
+
+try:
+    import ujson as json
+except ImportError:
+    import json
+
 # Default solver selection
 if PULP_CBC_CMD().available():
     LpSolverDefault = PULP_CBC_CMD()
@@ -55,3 +65,27 @@ def configSolvers():
         if value:
             configdict[key] = value
     setConfigInformation(**configdict)
+
+
+def get_solver(solver, *args, **kwargs):
+    mapping = {k.name: k for k in _all_solvers}
+    try:
+        return mapping[solver](*args, **kwargs)
+    except KeyError:
+        raise PulpSolverError(
+            'The solver {} does not exist in PuLP.\nPossible options are: \n{}'.
+                format(solver, mapping.keys())
+        )
+
+
+def get_solver_from_dict(data):
+    solver = data.pop('solver', None)
+    if solver is None:
+        raise PulpSolverError('The json file has no solver attribute.')
+    return get_solver(solver, **data)
+
+
+def get_solver_from_json(filename):
+    with open(filename, 'r') as f:
+        data = json.load(f)
+    return get_solver_from_dict(data)

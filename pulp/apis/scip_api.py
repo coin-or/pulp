@@ -34,6 +34,7 @@ import sys
 
 class SCIP_CMD(LpSolver_CMD):
     """The SCIP optimization solver"""
+    name ='SCIP_CMD'
 
     SCIP_STATUSES = {
         'unknown': constants.LpStatusUndefined,

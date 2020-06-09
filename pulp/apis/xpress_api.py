@@ -33,6 +33,8 @@ import warnings
 
 class XPRESS(LpSolver_CMD):
     """The XPRESS LP solver"""
+    name = 'XPRESS'
+
     def __init__(self, maxSeconds=None, targetGap=None, heurFreq=None,
             heurStra=None, coverCuts=None, preSolve=None, *args, **kwargs):
         """

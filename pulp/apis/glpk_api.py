@@ -33,6 +33,7 @@ from .. import constants
 
 class GLPK_CMD(LpSolver_CMD):
     """The GLPK LP solver"""
+    name = 'GLPK_CMD'
 
     def defaultPath(self):
         return self.executableExtension(glpk_path)
@@ -157,6 +158,8 @@ class PYGLPK(LpSolver):
     The glpk constraints are available in constraint.solverConstraint
     The Model is in prob.solverModel
     """
+    name = 'PYGLPK'
+
     try:
         #import the model into the global scope
         global glpk

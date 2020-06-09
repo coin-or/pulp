@@ -235,8 +235,8 @@ class LpVariable(LpElement):
     def __init__(self, name, lowBound = None, upBound = None,
                   cat = const.LpContinuous, e = None):
         LpElement.__init__(self,name)
-        self.lowBound = lowBound
-        self.upBound = upBound
+        self._lowbound_original = self.lowBound = lowBound
+        self._upbound_original = self.upBound = upBound
         self.cat = cat
         self.varValue = None
         self.dj = None
@@ -516,10 +516,17 @@ class LpVariable(LpElement):
         changes lower bound and upper bound to the initial value if exists.
         :return:
         """
+        self._lowbound_unfix = self.lowBound
+        self._upbound_unfix = self.upBound
         val = self.varValue
         if val is not None:
             self.bounds(val, val)
 
+    def isFixed(self):
+        return self.upBound == self.lowBound
+
+    def unfixValue(self):
+        self.bounds(self._lowbound_original, self._upbound_original)
 
 class LpAffineExpression(_DICT_TYPE):
     """

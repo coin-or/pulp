@@ -33,6 +33,7 @@ import warnings
 
 class MIPCL_CMD(LpSolver_CMD):
     """The MIPCL_CMD solver"""
+    name = 'MIPCL_CMD'
 
     def defaultPath(self):
         return self.executableExtension("mps_mipcl")
@@ -68,8 +69,8 @@ class MIPCL_CMD(LpSolver_CMD):
         cmd = self.path
         cmd += ' %s' % tmpMps
         cmd += ' -solfile %s' % tmpSol
-        if self.timelimit is not None:
-            cmd += ' -time %s' % self.timelimit
+        if self.timeLimit is not None:
+            cmd += ' -time %s' % self.timeLimit
         for option in self.options:
             cmd += ' ' + option
         if lp.isMIP():
