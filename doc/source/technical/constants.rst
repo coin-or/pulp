@@ -7,7 +7,19 @@
      :undoc-members:
      :inherited-members:
      :show-inheritance:
-     
+
+.. data:: LpContinuous
+
+    LpContinuous= "Continuous"
+
+.. data:: LpInteger = "Integer"
+
+    LpInteger= "Integer"
+
+.. data:: LpBinary = "Binary"
+
+    LpBinary= "Binary"
+
 .. data:: LpStatus
   
     Return status from solver:
@@ -46,6 +58,24 @@
  
     LpStatusUndefined = -3
   
+  .. data:: LpSolution
+  
+    Return solution status from solver:
+  
+      +-----------------------------+---------------+-----------------+
+      |  LpStatus  key                      | string value  | numerical value |
+      +=============================+===============+=================+
+      |  :data:`LpSolutionOptimal`          | "Optimal Solution Found"     |          1      |
+      +-----------------------------+---------------+-----------------+
+      |  :data:`LpSolutionNoSolutionFound`  | "No Solution Found"  |          0      |
+      +-----------------------------+---------------+-----------------+
+      |  :data:`LpSolutionStatusInfeasible` | "Infeasible"  |         -1      |
+      +-----------------------------+---------------+-----------------+
+      |  :data:`LpSolutionStatusUnbounded`  | "Unbounded"   |          -2     |
+      +-----------------------------+---------------+-----------------+
+      |  :data:`LpSolutionIntegerFeasible`  | "Integer Solution Found"   |          2     |
+      +-----------------------------+---------------+-----------------+
+      
   
   .. data:: LpSenses
      
