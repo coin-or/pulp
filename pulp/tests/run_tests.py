@@ -12,9 +12,9 @@ def pulpTestAll(test_docs=False):
     amply = loader.loadTestsFromTestCase(test_amply.AmplyTest)
     suite_all.addTests(amply)
     # We add examples and docs tests
-    # this assumes python 2.6
-    docs_examples = loader.loadTestsFromTestCase(test_examples.Examples_DocsTests)
-    suite_all.addTests(docs_examples)
+    if test_docs:
+        docs_examples = loader.loadTestsFromTestCase(test_examples.Examples_DocsTests)
+        suite_all.addTests(docs_examples)
     # we run all tests at the same time
     ret = runner.run(suite_all)
     if not ret.wasSuccessful():
