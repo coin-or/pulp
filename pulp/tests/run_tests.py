@@ -1,4 +1,3 @@
-import sys
 import unittest
 import pulp
 from pulp.tests import test_amply, test_pulp, test_examples
@@ -13,9 +12,9 @@ def pulpTestAll(test_docs=False):
     amply = loader.loadTestsFromTestCase(test_amply.AmplyTest)
     suite_all.addTests(amply)
     # We add examples and docs tests
-    if sys.version_info > (2, 6) and test_docs:
-        docs_examples = loader.loadTestsFromTestCase(test_examples.Examples_DocsTests)
-        suite_all.addTests(docs_examples)
+    # this assumes python 2.6
+    docs_examples = loader.loadTestsFromTestCase(test_examples.Examples_DocsTests)
+    suite_all.addTests(docs_examples)
     # we run all tests at the same time
     ret = runner.run(suite_all)
     if not ret.wasSuccessful():
