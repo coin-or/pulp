@@ -730,7 +730,7 @@ class CPLEX_PY(LpSolver):
             senses = []
             rhs = []
             rownames = []
-            for name,constraint in lp.constraints.items():
+            for name, constraint in lp.constraints.items():
                 #build the expression
                 expr = [(var.name, float(coeff)) for var, coeff in constraint.items()]
                 if not expr:
@@ -749,7 +749,7 @@ class CPLEX_PY(LpSolver):
                 rownames.append(name)
                 rhs.append(float(-constraint.constant))
             lp.solverModel.linear_constraints.add(lin_expr=rows, senses=senses,
-                                rhs=rhs, names=rownames)
+                                                  rhs=rhs, names=rownames)
             log.debug("set the type of the problem")
             if not self.mip:
                 self.solverModel.set_problem_type(cplex.Cplex.problem_type.LP)
@@ -791,7 +791,7 @@ class CPLEX_PY(LpSolver):
             """
             Make cplex limit the time it takes --added CBM 8/28/09
             """
-            self.solverModel.parameters.timeLimit.set(timeLimit)
+            self.solverModel.parameters.timelimit.set(timeLimit)
 
         def callSolver(self, isMIP):
             """Solves the problem with cplex
@@ -855,7 +855,7 @@ class CPLEX_PY(LpSolver):
                 var.isModified = False
             return status
 
-        def actualResolve(self,lp, **kwargs):
+        def actualResolve(self, lp, **kwargs):
             """
             looks at which variables have been modified and changes them
             """

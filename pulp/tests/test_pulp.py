@@ -757,6 +757,23 @@ class PuLPTest(unittest.TestCase):
         print("\t Testing continuous LP solution")
         pulpTestCheck(prob, solver1, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
 
+    def test_timeLimit(self):
+        name = 'test_timelimit'
+        prob = LpProblem(name, const.LpMinimize)
+        x = LpVariable("x", 0, 4)
+        y = LpVariable("y", -1, 1)
+        z = LpVariable("z", 0)
+        w = LpVariable("w", 0)
+        prob += x + 4 * y + 9 * z, "obj"
+        prob += x + y <= 5, "c1"
+        prob += x + z >= 10, "c2"
+        prob += -y + z == 7, "c3"
+        prob += w >= 0, "c4"
+        self.solver.timeLimit = 20
+        if self.solver.name != 'PULP_CHOCO_CMD':
+            pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
+
+
 def pulpTestCheck(prob, solver, okstatus, sol=None,
                   reducedcosts=None,
                   duals=None,
