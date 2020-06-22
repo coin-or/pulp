@@ -4,7 +4,7 @@ pulp
     :target: https://travis-ci.org/coin-or/pulp
 
 PuLP is an LP modeler written in Python. PuLP can generate MPS or LP files
-and call GLPK[1], COIN CLP/CBC[2], CPLEX[3], and GUROBI[4] to solve linear
+and call GLPK[1], COIN-OR CLP/CBC[2], CPLEX[3], and GUROBI[4] to solve linear
 problems.
 
 Installation
@@ -105,7 +105,7 @@ pulp-or-discuss@googlegroups.com
 References:
 
 [1] http://www.gnu.org/software/glpk/glpk.html
-[2] http://www.coin-or.org/
+[2] https://github.com/coin-or/Cbc
 [3] http://www.cplex.com/
 [4] http://www.gurobi.com/
  
