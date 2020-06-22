@@ -100,7 +100,8 @@ class CPLEX_CMD(LpSolver_CMD):
                  gapRel = 'set mip tolerances mipgap {}',
                  gapAbs = 'set mip tolerances absmipgap {}',
                  maxMemory = 'set mip limits treememory {}',
-                 threads = 'set threads {}'
+                 threads = 'set threads {}',
+                 maxNodes = 'set mip limits nodes {}',
                  )
         return [v.format(self.optionsDict[k]) for k, v in params_eq.items()
                 if k in self.optionsDict]
@@ -771,6 +772,9 @@ class CPLEX_PY(LpSolver):
                 # We assume "auto" for the effort_level
                 effort = self.solverModel.MIP_starts.effort_level.auto
                 start = [(k, v.value()) for k, v in self.n2v.items() if v.value() is not None]
+                if not start:
+                    warnings.warn('No variable with value found: mipStart aborted')
+                    return
                 ind, val = zip(*start)
                 self.solverModel.MIP_starts.add(cplex.SparsePair(ind=ind, val=val), effort, '1')
 
@@ -779,7 +783,7 @@ class CPLEX_PY(LpSolver):
             sets the logfile for cplex output
             """
             with open(filename, 'w') as cplexlog:
-                self.solverModel.set_log_stream(cplexlog)
+                return self.solverModel.set_log_stream(cplexlog)
 
         def changeEpgap(self, epgap = 10**-4):
             """

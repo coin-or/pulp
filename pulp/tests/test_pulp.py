@@ -747,6 +747,14 @@ class PuLPTest(unittest.TestCase):
         prob += x + z >= 10, "c2"
         prob += -y + z == 7, "c3"
         prob += w >= 0, "c4"
+        self.solver.timeLimit = 10
+        self.solver.mip = True
+        self.solver.msg = True
+        self.solver.warmStart = True
+        self.solver.msg = True
+        logFilename = name + '.log'
+        self.solver.optionsDict = dict(gapRel=0.1, gapAbs=1, maxMemory=1000,
+                                       maxNodes=1, threads=1, logPath=logFilename)
         filename = name + '.json'
         self.solver.to_json(filename, indent=4)
         solver1 = get_solver_from_json(filename)
