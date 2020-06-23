@@ -28,7 +28,6 @@
 from .core import LpSolver_CMD, LpSolver, subprocess, PulpSolverError, clock, log
 from .core import gurobi_path
 import os
-from uuid import uuid4
 import sys
 from .. import constants
 import warnings
@@ -234,29 +233,15 @@ class GUROBI_CMD(LpSolver_CMD):
 
     def actualSolve(self, lp):
         """Solve a well formulated lp problem"""
-        # TODO: workaround for python not reading LD_LIBRARY_PATH
-        # in my version of ubuntu
-        if 'GUROBI_HOME' in os.environ:
-            if 'LD_LIBRARY_PATH' not in os.environ:
-                os.environ['LD_LIBRARY_PATH'] = ""
-            os.environ['LD_LIBRARY_PATH'] += ':' + os.environ['GUROBI_HOME'] + "/lib"
 
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute "+self.path)
-
-        if not self.keepFiles:
-            uuid = uuid4().hex
-            tmpLp = os.path.join(self.tmpDir, "%s-pulp.lp" % uuid)
-            tmpSol = os.path.join(self.tmpDir, "%s-pulp.sol" % uuid)
-            tmpMst = os.path.join(self.tmpDir, "%s-pulp.mst" % uuid)
-        else:
-            tmpLp = lp.name+"-pulp.lp"
-            tmpSol = lp.name+"-pulp.sol"
-            tmpMst = lp.name + "-pulp.mst"
-
+        tmpLp, tmpSol, tmpMst = self.create_tmp_files('lp', 'sol', 'mst', name=lp.name)
         vs = lp.writeLP(tmpLp, writeSOS = 1)
-        try: os.remove(tmpSol)
-        except: pass
+        try:
+            os.remove(tmpSol)
+        except:
+            pass
         cmd = self.path
         cmd += ' ' + ' '.join(['%s=%s' % (key, value)
                     for key, value in self.options])
@@ -289,10 +274,7 @@ class GUROBI_CMD(LpSolver_CMD):
         else:
             # TODO: the status should be infeasible here, I think
             status, values, reducedCosts, shadowPrices, slacks = self.readsol(tmpSol)
-        if not self.keepFiles:
-            for f in [tmpSol, tmpMst, tmpLp, "gurobi.log"]:
-                try: os.remove(f)
-                except: pass
+        self.delete_tmp_files(tmpLp, tmpMst, tmpSol, "gurobi.log")
         if status != constants.LpStatusInfeasible:
             lp.assignVarsVals(values)
             lp.assignVarsDj(reducedCosts)

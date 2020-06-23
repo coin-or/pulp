@@ -66,6 +66,8 @@ if sys.version_info[0] < 3:
 else:
     devnull = subprocess.DEVNULL
 
+from uuid import uuid4
+
 
 class PulpSolverError(const.PulpError):
     """
@@ -160,11 +162,22 @@ cplex_dll_path, ilm_cplex_license, ilm_cplex_license_signature, coinMP_path,\
         initialize(config_filename, operating_system, arch)
 
 
-# See later for LpSolverDefault definition
 class LpSolver:
     """A generic LP Solver"""
 
     def __init__(self, mip = True, msg = True, options = None, mip_start=False, timeLimit=None, *args, **kwargs):
+        """
+
+        :param bool mip: if False, assume LP even if integer variables.
+        :param bool msg: if False, no log is shown.
+        :param list options:
+        :param bool mip_start:
+        :param float timeLimit: maximum time for solver
+        :param args:
+        :param kwargs: optional named options to pass to each solver,
+                        e.g. gapRel=0.1, gapAbs=10, logFile="",
+
+        """
         if options is None:
             options = []
         self.mip = mip
@@ -299,11 +312,15 @@ class LpSolver:
 
 class LpSolver_CMD(LpSolver):
     """A generic command line LP Solver"""
-    # TODO: make a general naming function for file names dictionary.
-        # .lp, .mip, .sol, .mst, etc.
-    # TODO: also handle the deletion of files afterwards
 
     def __init__(self, path=None, keepFiles=0, *args, **kwargs):
+        """
+
+        :param str path: a path to the solver binary
+        :param bool keepFiles: if True, files are saved in the current directory and not deleted after solving
+        :param args: parameters to pass to :py:class:`LpSolver`
+        :param kwargs: parameters to pass to :py:class:`LpSolver`
+        """
         LpSolver.__init__(self, *args, **kwargs)
         if path is None:
             self.path = self.defaultPath()
@@ -337,6 +354,22 @@ class LpSolver_CMD(LpSolver):
             self.tmpDir = ""
         elif not os.access(self.tmpDir, os.F_OK + os.W_OK):
             self.tmpDir = ""
+
+    def create_tmp_files(self, *args, name=''):
+        if self.keepFiles:
+            prefix = name
+        else:
+            prefix = os.path.join(self.tmpDir, uuid4().hex)
+        return ("%s-pulp.%s" % (prefix, n) for n in args)
+
+    def delete_tmp_files(self, *args):
+        if self.keepFiles:
+            return
+        for file in args:
+            try:
+                os.remove(file)
+            except:
+                pass
 
     def defaultPath(self):
         raise NotImplementedError

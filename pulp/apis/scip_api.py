@@ -27,7 +27,6 @@
 from .core import LpSolver_CMD, subprocess, PulpSolverError, clock
 from .core import scip_path
 import os
-from uuid import uuid4
 from .. import constants
 import sys
 
@@ -65,15 +64,7 @@ class SCIP_CMD(LpSolver_CMD):
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute "+self.path)
 
-        # TODO: should we use tempfile instead?
-        if not self.keepFiles:
-            uuid = uuid4().hex
-            tmpLp = os.path.join(self.tmpDir, "%s-pulp.lp" % uuid)
-            tmpSol = os.path.join(self.tmpDir, "%s-pulp.sol" % uuid)
-        else:
-            tmpLp = lp.name + "-pulp.lp"
-            tmpSol = lp.name + "-pulp.sol"
-
+        tmpLp, tmpSol = self.create_tmp_files('lp', 'sol', name=lp.name)
         lp.writeLP(tmpLp)
         proc = [
             '%s' % self.path, '-c', 'read "%s"' % tmpLp, '-c', 'optimize',
@@ -99,14 +90,7 @@ class SCIP_CMD(LpSolver_CMD):
 
         lp.assignVarsVals(finalVals)
         lp.assignStatus(status)
-
-        if not self.keepFiles:
-            for f in (tmpLp, tmpSol):
-                try:
-                    os.remove(f)
-                except:
-                    pass
-
+        self.delete_tmp_files(tmpLp, tmpSol)
         return status
 
     @staticmethod
