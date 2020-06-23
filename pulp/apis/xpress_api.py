@@ -71,7 +71,7 @@ class XPRESS(LpSolver_CMD):
         """Solve a well formulated lp problem"""
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute "+self.path)
-        tmpLp, tmpSol = self.create_tmp_files('lp', 'prt', name=lp.name)
+        tmpLp, tmpSol = self.create_tmp_files(lp.name, 'lp', 'prt')
         lp.writeLP(tmpLp, writeSOS=1, mip=self.mip)
         xpress = subprocess.Popen([self.path, lp.name], shell=True, stdin=subprocess.PIPE, universal_newlines=True)
         if not self.msg:

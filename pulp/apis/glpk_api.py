@@ -44,7 +44,7 @@ class GLPK_CMD(LpSolver_CMD):
         """Solve a well formulated lp problem"""
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute "+self.path)
-        tmpLp, tmpSol = self.create_tmp_files('lp', 'sol', name=lp.name)
+        tmpLp, tmpSol = self.create_tmp_files(lp.name, 'lp', 'sol')
         lp.writeLP(tmpLp, writeSOS = 0)
         proc = ["glpsol", "--cpxlp", tmpLp, "-o", tmpSol]
         if not self.mip: proc.append('--nomip')

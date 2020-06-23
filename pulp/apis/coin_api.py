@@ -84,7 +84,7 @@ class COIN_CMD(LpSolver_CMD):
         if not self.executable(self.path):
             raise PulpSolverError("Pulp: cannot execute %s cwd: %s"%(self.path,
                                    os.getcwd()))
-        tmpLp, tmpMps, tmpSol, tmpMst = self.create_tmp_files('lp', 'mps', 'sol', 'mst', name=lp.name)
+        tmpLp, tmpMps, tmpSol, tmpMst = self.create_tmp_files(lp.name, 'lp', 'mps', 'sol', 'mst')
         if use_mps:
             vs, variablesNames, constraintsNames, objectiveName = lp.writeMPS(tmpMps, rename = 1)
             cmds = ' '+tmpMps+" "

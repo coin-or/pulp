@@ -44,7 +44,7 @@ class MIPCL_CMD(LpSolver_CMD):
         """Solve a well formulated lp problem"""
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute " + self.path)
-        tmpMps, tmpSol = self.create_tmp_files('mps', 'sol', name=lp.name)
+        tmpMps, tmpSol = self.create_tmp_files(lp.name, 'mps', 'sol')
         if lp.sense == constants.LpMaximize:
             # we swap the objectives
             # because it does not handle maximization.

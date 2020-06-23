@@ -64,7 +64,7 @@ class SCIP_CMD(LpSolver_CMD):
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute "+self.path)
 
-        tmpLp, tmpSol = self.create_tmp_files('lp', 'sol', name=lp.name)
+        tmpLp, tmpSol = self.create_tmp_files(lp.name, 'lp', 'sol')
         lp.writeLP(tmpLp)
         proc = [
             '%s' % self.path, '-c', 'read "%s"' % tmpLp, '-c', 'optimize',

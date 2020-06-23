@@ -49,7 +49,7 @@ class CHOCO_CMD(LpSolver_CMD):
             raise PulpSolverError("PuLP: java needs to be installed and accesible in order to use CHOCO_CMD")
         if not os.path.exists(self.path):
             raise PulpSolverError("PuLP: cannot execute "+self.path)
-        tmpMps, tmpLp, tmpSol = self.create_tmp_files('mps', 'lp', 'sol', name=lp.name)
+        tmpMps, tmpLp, tmpSol = self.create_tmp_files(lp.name, 'mps', 'lp', 'sol')
         # just to report duplicated variables:
         lp.checkDuplicateVars()
 

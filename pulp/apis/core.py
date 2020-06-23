@@ -355,7 +355,7 @@ class LpSolver_CMD(LpSolver):
         elif not os.access(self.tmpDir, os.F_OK + os.W_OK):
             self.tmpDir = ""
 
-    def create_tmp_files(self, *args, name=''):
+    def create_tmp_files(self, name, *args):
         if self.keepFiles:
             prefix = name
         else:
