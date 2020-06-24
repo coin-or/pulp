@@ -3,7 +3,6 @@ from .core import LpSolver_CMD, LpSolver, subprocess, PulpSolverError, clock, lo
 from .core import cplex_dll_path, ctypesArrayFill, ilm_cplex_license, ilm_cplex_license_signature
 from .. import constants, sparse
 import os
-from uuid import uuid4
 import warnings
 
 
@@ -31,18 +30,12 @@ class CPLEX_CMD(LpSolver_CMD):
         """Solve a well formulated lp problem"""
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute "+self.path)
-        if not self.keepFiles:
-            uuid = uuid4().hex
-            tmpLp = os.path.join(self.tmpDir, "%s-pulp.lp" % uuid)
-            tmpSol = os.path.join(self.tmpDir, "%s-pulp.sol" % uuid)
-            tmpMst = os.path.join(self.tmpDir, "%s-pulp.mst" % uuid)
-        else:
-            tmpLp = lp.name+"-pulp.lp"
-            tmpSol = lp.name+"-pulp.sol"
-            tmpMst = lp.name+"-pulp.mst"
+        tmpLp, tmpSol, tmpMst = self.create_tmp_files(lp.name, 'lp', 'sol', 'mst')
         vs = lp.writeLP(tmpLp, writeSOS = 1)
-        try: os.remove(tmpSol)
-        except: pass
+        try:
+            os.remove(tmpSol)
+        except:
+            pass
         if not self.msg:
             cplex = subprocess.Popen(self.path, stdin = subprocess.PIPE,
                 stdout = subprocess.PIPE, stderr = subprocess.PIPE)
@@ -77,12 +70,7 @@ class CPLEX_CMD(LpSolver_CMD):
             values = reducedCosts = shadowPrices = slacks = solStatus = None
         else:
             status, values, reducedCosts, shadowPrices, slacks, solStatus = self.readsol(tmpSol)
-        if not self.keepFiles:
-            for file in [tmpMst, tmpMst, tmpSol, "cplex.log"]:
-                try:
-                    os.remove(file)
-                except:
-                    pass
+        self.delete_tmp_files(tmpLp, tmpMst, tmpSol, "cplex.log")
         if status != constants.LpStatusInfeasible:
             lp.assignVarsVals(values)
             lp.assignVarsDj(reducedCosts)
@@ -106,7 +94,7 @@ class CPLEX_CMD(LpSolver_CMD):
         return [v.format(self.optionsDict[k]) for k, v in params_eq.items()
                 if k in self.optionsDict]
 
-    def readsol(self,filename):
+    def readsol(self, filename):
         """Read a CPLEX solution file"""
         # CPLEX solution codes: http://www-eio.upc.es/lceio/manuals/cplex-11/html/overviewcplex/statuscodes.html
         try:

@@ -32,7 +32,7 @@ Copyright 2007- Stuart Mitchell (s.mitchell@auckland.ac.nz)
 from .constants import VERSION
 
 from .pulp import *
-from .amply import *
+from amply import *
 from .apis import *
 from .utilities import *
 from .constants import *

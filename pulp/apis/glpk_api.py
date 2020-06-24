@@ -27,7 +27,6 @@
 from .core import LpSolver_CMD, LpSolver, subprocess, PulpSolverError, clock
 from .core import glpk_path, operating_system, log
 import os
-from uuid import uuid4
 from .. import constants
 
 
@@ -46,13 +45,7 @@ class GLPK_CMD(LpSolver_CMD):
         """Solve a well formulated lp problem"""
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute "+self.path)
-        if not self.keepFiles:
-            uuid = uuid4().hex
-            tmpLp = os.path.join(self.tmpDir, "%s-pulp.lp" % uuid)
-            tmpSol = os.path.join(self.tmpDir, "%s-pulp.sol" % uuid)
-        else:
-            tmpLp = lp.name+"-pulp.lp"
-            tmpSol = lp.name+"-pulp.sol"
+        tmpLp, tmpSol = self.create_tmp_files(lp.name, 'lp', 'sol')
         lp.writeLP(tmpLp, writeSOS = 0)
         proc = ["glpsol", "--cpxlp", tmpLp, "-o", tmpSol]
         if not self.mip: proc.append('--nomip')
@@ -87,11 +80,7 @@ class GLPK_CMD(LpSolver_CMD):
         status, values = self.readsol(tmpSol)
         lp.assignVarsVals(values)
         lp.assignStatus(status)
-        if not self.keepFiles:
-            try: os.remove(tmpLp)
-            except: pass
-            try: os.remove(tmpSol)
-            except: pass
+        self.delete_tmp_files(tmpLp, tmpSol)
         return status
 
     def readsol(self, filename):

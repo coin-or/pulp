@@ -25,8 +25,6 @@
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."""
 
 from .core import LpSolver_CMD, subprocess, PulpSolverError
-import os
-from uuid import uuid4
 from .. import constants
 import warnings
 
@@ -75,13 +73,7 @@ class XPRESS(LpSolver_CMD):
         """Solve a well formulated lp problem"""
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute "+self.path)
-        if not self.keepFiles:
-            uuid = uuid4().hex
-            tmpLp = os.path.join(self.tmpDir, "%s-pulp.lp" % uuid)
-            tmpSol = os.path.join(self.tmpDir, "%s-pulp.prt" % uuid)
-        else:
-            tmpLp = lp.name+"-pulp.lp"
-            tmpSol = lp.name+"-pulp.prt"
+        tmpLp, tmpSol = self.create_tmp_files(lp.name, 'lp', 'prt')
         lp.writeLP(tmpLp, writeSOS=1, mip=self.mip)
         xpress = subprocess.Popen([self.path, lp.name], shell=True, stdin=subprocess.PIPE, universal_newlines=True)
         if not self.msg:
@@ -112,12 +104,7 @@ class XPRESS(LpSolver_CMD):
         if xpress.wait() != 0:
             raise PulpSolverError("PuLP: Error while executing "+self.path)
         status, values = self.readsol(tmpSol)
-        if not self.keepFiles:
-            for f in [tmpLp, tmpSol]:
-                try:
-                    os.remove(f)
-                except:
-                    pass
+        self.delete_tmp_files(tmpLp, tmpSol)
         lp.assignVarsVals(values)
         if abs(lp.infeasibilityGap(self.mip)) > 1e-5:  # Arbitrary
             status = constants.LpStatusInfeasible

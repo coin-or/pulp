@@ -26,7 +26,6 @@
 
 from .core import LpSolver_CMD, subprocess, PulpSolverError
 import os
-from uuid import uuid4
 from .. import constants
 import warnings
 
@@ -46,13 +45,7 @@ class MIPCL_CMD(LpSolver_CMD):
         """Solve a well formulated lp problem"""
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute " + self.path)
-        if not self.keepFiles:
-            uuid = uuid4().hex
-            tmpMps = os.path.join(self.tmpDir, "%s-pulp.mps" % uuid)
-            tmpSol = os.path.join(self.tmpDir, "%s-pulp.sol" % uuid)
-        else:
-            tmpMps = lp.name+"-pulp.mps"
-            tmpSol = lp.name+"-pulp.sol"
+        tmpMps, tmpSol = self.create_tmp_files(lp.name, 'mps', 'sol')
         if lp.sense == constants.LpMaximize:
             # we swap the objectives
             # because it does not handle maximization.
@@ -95,13 +88,7 @@ class MIPCL_CMD(LpSolver_CMD):
             values = None
         else:
             status, values, status_sol = self.readsol(tmpSol)
-        if not self.keepFiles:
-            for _file in [tmpMps, tmpSol]:
-                try:
-                    os.remove(_file)
-                except:
-                    pass
-
+        self.delete_tmp_files(tmpMps, tmpSol)
         lp.assignStatus(status, status_sol)
         if status not in [constants.LpStatusInfeasible, constants.LpStatusNotSolved]:
             lp.assignVarsVals(values)

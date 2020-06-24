@@ -27,7 +27,6 @@
 from .core import LpSolver_CMD, LpSolver, subprocess, PulpSolverError, clock, log
 from .core import cbc_path, pulp_cbc_path, coinMP_path, devnull
 import os
-from uuid import uuid4
 from .. import constants
 from tempfile import mktemp
 import ctypes
@@ -87,17 +86,7 @@ class COIN_CMD(LpSolver_CMD):
         if not self.executable(self.path):
             raise PulpSolverError("Pulp: cannot execute %s cwd: %s"%(self.path,
                                    os.getcwd()))
-        if not self.keepFiles:
-            uuid = uuid4().hex
-            tmpLp = os.path.join(self.tmpDir, "%s-pulp.lp" % uuid)
-            tmpMps = os.path.join(self.tmpDir, "%s-pulp.mps" % uuid)
-            tmpSol = os.path.join(self.tmpDir, "%s-pulp.sol" % uuid)
-            tmpSol_init = os.path.join(self.tmpDir, "%s-pulp_init.sol" % uuid)
-        else:
-            tmpLp = lp.name+"-pulp.lp"
-            tmpMps = lp.name+"-pulp.mps"
-            tmpSol = lp.name+"-pulp.sol"
-            tmpSol_init = lp.name + "-pulp_init.sol"
+        tmpLp, tmpMps, tmpSol, tmpMst = self.create_tmp_files(lp.name, 'lp', 'mps', 'sol', 'mst')
         if use_mps:
             vs, variablesNames, constraintsNames, objectiveName = lp.writeMPS(tmpMps, rename = 1)
             cmds = ' '+tmpMps+" "
@@ -111,8 +100,8 @@ class COIN_CMD(LpSolver_CMD):
             objectiveName = None
             cmds = ' ' + tmpLp + " "
         if self.warmStart:
-            self.writesol(tmpSol_init, lp, vs, variablesNames, constraintsNames)
-            cmds += 'mips {} '.format(tmpSol_init)
+            self.writesol(tmpMst, lp, vs, variablesNames, constraintsNames)
+            cmds += 'mips {} '.format(tmpMst)
         if self.timeLimit is not None:
             cmds += "sec %s " % self.timeLimit
         options = self.options + self.getOptions()
@@ -134,7 +123,7 @@ class COIN_CMD(LpSolver_CMD):
         args.extend(cmds[1:].split())
         cbc = subprocess.Popen(args, stdout = pipe, stderr = pipe, stdin=devnull)
         if cbc.wait() != 0:
-            raise PulpSolverError("Pulp: Error while trying to execute " +  \
+            raise PulpSolverError("Pulp: Error while trying to execute, use msg=True for more details" +  \
                                     self.path)
         if pipe:
             pipe.close()
@@ -147,12 +136,7 @@ class COIN_CMD(LpSolver_CMD):
         lp.assignConsPi(shadowPrices)
         lp.assignConsSlack(slacks, activity=True)
         lp.assignStatus(status, sol_status)
-        if not self.keepFiles:
-            for f in [tmpMps, tmpLp, tmpSol, tmpSol_init]:
-                try:
-                    os.remove(f)
-                except:
-                    pass
+        self.delete_tmp_files(tmpMps, tmpLp, tmpSol, tmpMst)
         return status
 
     def getOptions(self):

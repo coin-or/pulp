@@ -27,7 +27,6 @@
 from .core import LpSolver_CMD, subprocess, PulpSolverError
 from .core import pulp_choco_path
 import os
-from uuid import uuid4
 from .. import constants
 import warnings
 
@@ -51,15 +50,7 @@ class CHOCO_CMD(LpSolver_CMD):
             raise PulpSolverError("PuLP: java needs to be installed and accesible in order to use CHOCO_CMD")
         if not os.path.exists(self.path):
             raise PulpSolverError("PuLP: cannot execute "+self.path)
-        if not self.keepFiles:
-            uuid = uuid4().hex
-            tmpLp = os.path.join(self.tmpDir, "%s-pulp.lp" % uuid)
-            tmpMps = os.path.join(self.tmpDir, "%s-pulp.mps" % uuid)
-            tmpSol = os.path.join(self.tmpDir, "%s-pulp.sol" % uuid)
-        else:
-            tmpLp = lp.name + "-pulp.lp"
-            tmpMps = lp.name+"-pulp.mps"
-            tmpSol = lp.name+"-pulp.sol"
+        tmpMps, tmpLp, tmpSol = self.create_tmp_files(lp.name, 'mps', 'lp', 'sol')
         # just to report duplicated variables:
         lp.checkDuplicateVars()
 
@@ -88,23 +79,13 @@ class CHOCO_CMD(LpSolver_CMD):
 
         if return_code != 0:
             raise PulpSolverError("PuLP: Error while trying to execute "+self.path)
-        if not self.keepFiles:
-            try:
-                os.remove(tmpMps)
-                os.remove(tmpLp)
-            except:
-                pass
         if not os.path.exists(tmpSol):
             status = constants.LpStatusNotSolved
             status_sol = constants.LpSolutionNoSolutionFound
             values = None
         else:
             status, values, status_sol = self.readsol(tmpSol)
-        if not self.keepFiles:
-            try:
-                os.remove(tmpSol)
-            except:
-                pass
+        self.delete_tmp_files(tmpMps, tmpLp, tmpSol)
 
         lp.assignStatus(status, status_sol)
         if status not in [constants.LpStatusInfeasible, constants.LpStatusNotSolved]:

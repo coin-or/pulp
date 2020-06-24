@@ -3,13 +3,10 @@
 Setup script for PuLP added by Stuart Mitchell 2007
 Copyright 2007 Stuart Mitchell
 """
-import sys
 from setuptools import setup
 
 readme_name = 'README.rst'
 Description = open(readme_name).read()
-
-# License = open('LICENSE').read()
 
 # read the version number safely from the constants.py file
 version_dict = {}
@@ -25,7 +22,6 @@ setup(name="PuLP",
       "PuLP is an LP modeler written in python. PuLP can generate MPS or LP files and call GLPK, COIN CLP/CBC, CPLEX, and GUROBI to solve linear problems.",
       long_description = long_description,
       long_description_content_type = "text/x-rst",
-      # license = License,
       keywords = ["Optimization", "Linear Programming", "Operations Research"],
       author="J.S. Roy and S.A. Mitchell",
       author_email="pulp@stuartmitchell.com",
@@ -56,10 +52,11 @@ setup(name="PuLP",
                       'pulp.solverdir.choco' : ['*','*.*'],
                       },
       include_package_data=True,
-      install_requires = ['pyparsing>=2.0.1'],
+      install_requires = ['pyparsing>=2.0.1', 'amply>=0.1.2'],
       entry_points = ("""
       [console_scripts]
       pulptest = pulp.tests.run_tests:pulpTestAll
       """
       ),
+      test_suite='pulp.tests.run_tests.get_test_suit',
 )
