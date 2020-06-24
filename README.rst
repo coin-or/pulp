@@ -29,9 +29,9 @@ Examples
 
 See the examples directory for examples.
 
-PuLP requires Python >= 2.7.
+PuLP requires Python 2.7 or Python >= 3.4.
 
-The examples use the default solver (CBC), to use other solvers they must be available.
+The examples use the default solver (CBC). To use other solvers they must be available (installed and accessible). For more information on how to do that, see the `guide on configuring solvers <https://coin-or.github.io/pulp/guides/how_to_configure_solvers.html>`_.
 
 Documentation
 ================
