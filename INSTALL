@@ -84,43 +84,105 @@ following command and note that the output should be similar.
 The output below is what you would expect if you have not installed any other
 solvers and the CBC_ solver bundled with pulp works.
 
->>> import pulp
->>> pulp.pulpTestAll()
-         Testing zero subtraction
-         Testing continuous LP solution
-         Testing maximize continuous LP solution
-         Testing unbounded continuous LP solution
-         Testing Long Names
-         Testing repeated Names
-         Testing zero constraint
-         Testing zero objective
-         Testing LpVariable (not LpAffineExpression) objective
-         Testing Long lines in LP
-         Testing LpAffineExpression divide
-         Testing MIP solution
-         Testing MIP relaxation
-         Testing feasibility problem (no objective)
-         Testing an infeasible problem
-         Testing an integer infeasible problem
-         Testing column based modelling
-         Testing dual variables and slacks reporting
-         Testing fractional constraints
-         Testing elastic constraints (no change)
-         Testing elastic constraints (freebound)
-         Testing elastic constraints (penalty unchanged)
-         Testing elastic constraints (penalty unbounded)
-* Solver pulp.solvers.PULP_CBC_CMD passed.
-Solver pulp.solvers.CPLEX_DLL unavailable
-Solver pulp.solvers.CPLEX_CMD unavailable
-Solver pulp.solvers.CPLEX_PY unavailable
-Solver pulp.solvers.COIN_CMD unavailable
-Solver pulp.solvers.COINMP_DLL unavailable
-Solver pulp.solvers.GLPK_CMD unavailable
-Solver pulp.solvers.XPRESS unavailable
-Solver pulp.solvers.GUROBI unavailable
-Solver pulp.solvers.GUROBI_CMD unavailable
-Solver pulp.solvers.PYGLPK unavailable
-Solver pulp.solvers.YAPOSIB unavailable
+.. code-block:: sh
+
+    $ python3 pulp/tests/run_tests.py
+
+    Solver <class 'pulp.apis.coin_api.PULP_CBC_CMD'> available
+    Solver <class 'pulp.apis.cplex_api.CPLEX_DLL'> unavailable
+    Solver <class 'pulp.apis.cplex_api.CPLEX_CMD'> unavailable
+    Solver <class 'pulp.apis.cplex_api.CPLEX_PY'> unavailable
+    Solver <class 'pulp.apis.coin_api.COIN_CMD'> unavailable
+    Solver <class 'pulp.apis.coin_api.COINMP_DLL'> unavailable
+    Solver <class 'pulp.apis.glpk_api.GLPK_CMD'> unavailable
+    Solver <class 'pulp.apis.xpress_api.XPRESS'> unavailable
+    Solver <class 'pulp.apis.gurobi_api.GUROBI'> unavailable
+    Solver <class 'pulp.apis.gurobi_api.GUROBI_CMD'> unavailable
+    Solver <class 'pulp.apis.glpk_api.PYGLPK'> unavailable
+    Solver <class 'pulp.apis.coin_api.YAPOSIB'> unavailable
+    Solver <class 'pulp.apis.choco_api.PULP_CHOCO_CMD'> available
+    Solver <class 'pulp.apis.mipcl_api.MIPCL_CMD'> unavailable
+    Solver <class 'pulp.apis.mosek_api.MOSEK'> unavailable
+        Testing zero subtraction
+        Testing inconsistant lp solution
+        Testing continuous LP solution
+        Testing maximize continuous LP solution
+        Testing unbounded continuous LP solution
+        Testing Long Names
+        Testing repeated Names
+        Testing zero constraint
+        Testing zero objective
+        Testing LpVariable (not LpAffineExpression) objective
+        Testing Long lines in LP
+        Testing LpAffineExpression divide
+        Testing MIP solution
+        Testing MIP solution with floats in objective
+        Testing MIP relaxation
+        Testing feasibility problem (no objective)
+        Testing an infeasible problem
+        Testing an integer infeasible problem
+        Testing another integer infeasible problem
+        Testing column based modelling
+        Testing dual variables and slacks reporting
+        Testing fractional constraints
+        Testing elastic constraints (no change)
+        Testing elastic constraints (freebound)
+        Testing elastic constraints (penalty unchanged)
+        Testing elastic constraints (penalty unbounded)
+        Testing zero subtraction
+        Testing inconsistant lp solution
+        Testing continuous LP solution
+        Testing maximize continuous LP solution
+        Testing unbounded continuous LP solution
+        Testing Long Names
+        Testing repeated Names
+        Testing zero constraint
+        Testing zero objective
+        Testing LpVariable (not LpAffineExpression) objective
+        Testing LpAffineExpression divide
+        Testing MIP solution
+        Testing MIP solution with floats in objective
+        Testing MIP relaxation
+        Testing feasibility problem (no objective)
+        Testing an infeasible problem
+        Testing an integer infeasible problem
+        Testing another integer infeasible problem
+        Testing column based modelling
+        Testing fractional constraints
+        Testing elastic constraints (no change)
+        Testing elastic constraints (freebound)
+        Testing elastic constraints (penalty unchanged)
+        Testing elastic constraints (penalty unbounded)
+        Testing zero subtraction
+        Testing inconsistant lp solution
+        Testing continuous LP solution
+        Testing maximize continuous LP solution
+        Testing unbounded continuous LP solution
+        Testing Long Names
+        Testing repeated Names
+        Testing zero constraint
+        Testing zero objective
+        Testing LpVariable (not LpAffineExpression) objective
+        Testing LpAffineExpression divide
+        Testing MIP solution
+        Testing MIP solution with floats in objective
+        Testing MIP relaxation
+        Testing feasibility problem (no objective)
+        Testing an infeasible problem
+        Testing an integer infeasible problem
+        Testing another integer infeasible problem
+        Testing column based modelling
+        Testing fractional constraints
+        Testing elastic constraints (no change)
+        Testing elastic constraints (freebound)
+        Testing elastic constraints (penalty unchanged)
+        Testing elastic constraints (penalty unbounded)
+    {'a': 53.0, 'b': 45.3, 'c': 459.2}
+    ..........................................................
+    ----------------------------------------------------------------------
+    Ran 130 tests in 13.354s
+
+    OK
 
 .. _`installing python`: http://www.diveintopython.org/installing_python/index.html
 .. _github: https://github.com/stumitchell/pulp-or
