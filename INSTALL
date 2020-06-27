@@ -79,7 +79,7 @@ Linux Installation
 
 Testing your PuLP installation
 ------------------------------
-To test that that you pulp installation is working correctly please type the
+To test that that your pulp installation is working correctly please type the
 following into a python interpreter and note that the output should be similar.
 The output below is what you would expect if you have not installed any other
 solvers and the CBC_ solver bundled with pulp works.
