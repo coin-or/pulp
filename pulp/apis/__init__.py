@@ -11,8 +11,7 @@ from .core import *
 
 _all_solvers = [GLPK_CMD, PYGLPK, CPLEX_CMD, CPLEX_PY, CPLEX_DLL, GUROBI, GUROBI_CMD,
                 MOSEK, XPRESS, PULP_CBC_CMD, COIN_CMD, COINMP_DLL,
-                CHOCO_CMD, PULP_CHOCO_CMD, MIPCL_CMD, SCIP_CMD,
-                LpSolver, LpSolver_CMD]
+                CHOCO_CMD, PULP_CHOCO_CMD, MIPCL_CMD, SCIP_CMD]
 
 try:
     import ujson as json
@@ -89,3 +88,11 @@ def get_solver_from_json(filename):
     with open(filename, 'r') as f:
         data = json.load(f)
     return get_solver_from_dict(data)
+
+
+def list_solvers(onlyAvailable=False):
+    solvers = [s() for s in _all_solvers]
+    if onlyAvailable:
+        return [solver.name for solver in solvers if solver.available()]
+    return[solver.name for solver in solvers]
+

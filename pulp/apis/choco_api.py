@@ -35,8 +35,7 @@ class CHOCO_CMD(LpSolver_CMD):
     name = 'CHOCO_CMD'
 
     def defaultPath(self):
-        raise PulpSolverError("PuLP: default path does not exist por CHOCO_CMD")
-        # return self.executableExtension("choco-parsers-4.0.5-SNAPSHOT-with-dependencies.jar")
+        return self.executableExtension("choco-parsers-with-dependencies.jar")
 
     def available(self):
         """True if the solver is available"""

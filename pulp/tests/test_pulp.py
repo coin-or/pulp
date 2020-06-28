@@ -845,6 +845,7 @@ def suite():
                PYGLPK,
                YAPOSIB,
                PULP_CHOCO_CMD,
+               CHOCO_CMD,
                MIPCL_CMD,
                MOSEK
                ]
