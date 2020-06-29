@@ -36,6 +36,7 @@ from amply import *
 from .apis import *
 from .utilities import *
 from .constants import *
+from .tests import pulpTestAll
 
 __doc__ = pulp.__doc__
 __version__ = VERSION
