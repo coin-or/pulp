@@ -30,6 +30,7 @@ import sys
 
 class MOSEK(LpSolver):
     """Mosek lp and mip solver (via Mosek Optimizer API)."""
+    name = 'MOSEK'
     try:
         global mosek
         import mosek 
