@@ -52,7 +52,7 @@ setup(name="PuLP",
                       'pulp.solverdir.choco' : ['*','*.*'],
                       },
       include_package_data=True,
-      install_requires = ['pyparsing>=2.0.1', 'amply>=0.1.2'],
+      install_requires = ['amply>=0.1.2'],
       entry_points = ("""
       [console_scripts]
       pulptest = pulp.tests.run_tests:pulpTestAll

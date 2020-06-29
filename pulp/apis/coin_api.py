@@ -63,9 +63,6 @@ class COIN_CMD(LpSolver_CMD):
                 warnings.warn("Parameter timeLimit and maxSeconds passed, using timeLimit ")
             else:
                 self.timeLimit = maxSeconds
-        #TODO hope this gets fixed in cbc as it does not like the c:\ in windows paths
-        if os.name == 'nt':
-            self.tmpDir = ''
 
     def copy(self):
         """Make a copy of self"""

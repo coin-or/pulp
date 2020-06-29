@@ -197,7 +197,7 @@ def findCPLEX_DLL():
     if not libs:
         raise OSError('We did not find the cplex library, be sure to add it to LD_LIBRARY_PATH')
     possible_paths = libs.split(':')
-    regex_str = 'libcplex\d+\.\w+'
+    regex_str = r'libcplex\d+\.\w+'
     for path in possible_paths:
         files = os.listdir(path)
         for f in files:
@@ -230,7 +230,7 @@ class CPLEX_DLL(LpSolver):
 
         def actualSolve(self, lp):
             """Solve a well formulated lp problem"""
-            raise PulpSolverError("CPLEX_DLL: Not Available:\n {}".format(self.err))
+            raise PulpSolverError("CPLEX_DLL: Not Available:\n{}".format(self.err))
     else:
 
         #parameters manually found in solver manual
@@ -248,6 +248,7 @@ class CPLEX_DLL(LpSolver):
         lib.CPXfopen.restype = ctypes.c_void_p
         lib.CPXsetlogfile.argtypes = [ctypes.c_void_p,
                                       ctypes.c_void_p]
+        name = 'CPLEX_DLL'
 
         def __init__(self,
                     mip = True,
@@ -646,7 +647,7 @@ class CPLEX_PY(LpSolver):
             return False
         def actualSolve(self, lp):
             """Solve a well formulated lp problem"""
-            raise PulpSolverError("CPLEX_PY: Not Available:\n {}".format(self.err))
+            raise PulpSolverError("CPLEX_PY: Not Available:\n{}".format(self.err))
     else:
         def __init__(self,
                     epgap = None,
