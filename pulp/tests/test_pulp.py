@@ -747,7 +747,6 @@ class PuLPTest(unittest.TestCase):
         prob += x + z >= 10, "c2"
         prob += -y + z == 7, "c3"
         prob += w >= 0, "c4"
-        self.solver.timeLimit = 10
         self.solver.mip = True
         self.solver.msg = True
         self.solver.warmStart = True
@@ -778,6 +777,7 @@ class PuLPTest(unittest.TestCase):
         prob += -y + z == 7, "c3"
         prob += w >= 0, "c4"
         self.solver.timeLimit = 20
+        # CHOCO has issues when given a time limit
         if self.solver.name != 'PULP_CHOCO_CMD':
             pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
 
@@ -794,40 +794,40 @@ def pulpTestCheck(prob, solver, okstatus, sol=None,
         status = prob.solve(solver, **kwargs)
     if status not in okstatus:
         dumpTestProblem(prob)
-        raise PulpError("Tests failed for solver {}: status == {} not in {}\\Failure: status == {} not in {}".
+        raise PulpError("Tests failed for solver {}:\nstatus == {} not in {}\nstatus == {} not in {}".
                         format(solver, status, okstatus,
                                const.LpStatus[status], [const.LpStatus[s] for s in okstatus]))
     if sol is not None:
         for v, x in sol.items():
             if abs(v.varValue - x) > eps:
                 dumpTestProblem(prob)
-                raise PulpError("Tests failed for solver {}: var {} == {} != {}".
+                raise PulpError("Tests failed for solver {}:\nvar {} == {} != {}".
                                 format(solver, v, v.varValue, x))
     if reducedcosts:
         for v, dj in reducedcosts.items():
             if abs(v.dj - dj) > eps:
                 dumpTestProblem(prob)
-                raise PulpError("Tests failed for solver {} : Test failed: var.dj {} == {} != {}".
+                raise PulpError("Tests failed for solver {}:\nTest failed: var.dj {} == {} != {}".
                                 format(solver, v, v.dj, dj))
     if duals:
         for cname, p in duals.items():
             c = prob.constraints[cname]
             if abs(c.pi - p) > eps:
                 dumpTestProblem(prob)
-                raise PulpError("Tests failed for solver {}: constraint.pi {} == {} != {}".
+                raise PulpError("Tests failed for solver {}:\nconstraint.pi {} == {} != {}".
                                 format(solver, cname, c.pi, p))
     if slacks:
         for cname, slack in slacks.items():
             c = prob.constraints[cname]
             if abs(c.slack - slack) > eps:
                 dumpTestProblem(prob)
-                raise PulpError("Tests failed for solver {}: constraint.slack {} == {} != {}".
+                raise PulpError("Tests failed for solver {}:\nconstraint.slack {} == {} != {}".
                                 format(solver, cname, c.slack, slack))
     if objective is not None:
         z = prob.objective.value()
         if abs(z - objective) > eps:
             dumpTestProblem(prob)
-            raise PulpError("Tests failed for solver {}: objective {} != {}".
+            raise PulpError("Tests failed for solver {}:\nobjective {} != {}".
                             format(solver, z, objective))
 
 
