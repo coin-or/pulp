@@ -37,35 +37,37 @@ class COIN_CMD(LpSolver_CMD):
     """The COIN CLP/CBC LP solver
     now only uses cbc
     """
+    name = 'COIN_CMD'
 
     def defaultPath(self):
         return self.executableExtension(cbc_path)
 
-    def __init__(self, cuts = None, presolve = None, dual = None,
-                 strong = None, fracGap = None, maxSeconds = None, threads = None,
-                 *args, **kwargs):
+    def __init__(self, fracGap = None, maxSeconds = None, *args, **kwargs):
+        """
+        :param fracGap:
+        :param maxSeconds:
+        :param args:
+        :param kwargs: includes presolve, cuts, strong
+        """
 
+        if fracGap:
+            warnings.warn("Parameter fracGap is being depreciated for standard 'gapRel'")
+            if 'gapRel' in kwargs:
+                warnings.warn("Parameter kwargs and fracGap passed, using kwargs")
+            else:
+                kwargs['gapRel'] = fracGap
         LpSolver_CMD.__init__(self, *args, **kwargs)
-        self.cuts = cuts
-        self.presolve = presolve
-        self.dual = dual
-        self.strong = strong
-        self.fracGap = fracGap
         if maxSeconds:
             warnings.warn("Parameter maxSeconds is being depreciated for standard 'timeLimit'")
-            if self.timelimit:
+            if self.timeLimit:
                 warnings.warn("Parameter timeLimit and maxSeconds passed, using timeLimit ")
             else:
-                self.timelimit = maxSeconds
-        self.threads = threads
+                self.timeLimit = maxSeconds
 
     def copy(self):
         """Make a copy of self"""
         aCopy = LpSolver_CMD.copy(self)
-        aCopy.cuts = self.cuts
-        aCopy.presolve = self.presolve
-        aCopy.dual = self.dual
-        aCopy.strong = self.strong
+        aCopy.optionsDict = self.optionsDict
         return aCopy
 
     def actualSolve(self, lp, **kwargs):
@@ -93,25 +95,14 @@ class COIN_CMD(LpSolver_CMD):
             variablesNames = dict((v.name, v.name) for v in vs)
             constraintsNames = dict((c, c) for c in lp.constraints)
             objectiveName = None
-            cmds = ' '+tmpLp+" "
-        if self.mip_start:
+            cmds = ' ' + tmpLp + " "
+        if self.warmStart:
             self.writesol(tmpMst, lp, vs, variablesNames, constraintsNames)
             cmds += 'mips {} '.format(tmpMst)
-        if self.threads:
-            cmds += "threads %s "%self.threads
-        if self.fracGap is not None:
-            cmds += "ratio %s "%self.fracGap
-        if self.timelimit is not None:
-            cmds += "sec %s "%self.timelimit
-        if self.presolve:
-            cmds += "presolve on "
-        if self.strong:
-            cmds += "strong %d " % self.strong
-        if self.cuts:
-            cmds += "gomory on "
-            cmds += "knapsack on "
-            cmds += "probing on "
-        for option in self.options:
+        if self.timeLimit is not None:
+            cmds += "sec %s " % self.timeLimit
+        options = self.options + self.getOptions()
+        for option in options:
             cmds += option+" "
         if self.mip:
             cmds += "branch "
@@ -144,6 +135,20 @@ class COIN_CMD(LpSolver_CMD):
         lp.assignStatus(status, sol_status)
         self.delete_tmp_files(tmpMps, tmpLp, tmpSol, tmpMst)
         return status
+
+    def getOptions(self):
+        params_eq  = \
+            dict(timeLimit="sec {}",
+                 gapRel = "ratio {}",
+                 gapAbs = 'allow {}',
+                 threads = 'threads {}',
+                 presolve = 'presolve on',
+                 strong = 'strong {}',
+                 cuts = "gomory on knapsack on probing on"
+                 )
+
+        return [v.format(self.optionsDict[k]) for k, v in params_eq.items()
+                if k in self.optionsDict]
 
     def readsol_MPS(self, filename, lp, vs, variablesNames, constraintsNames, objectiveName=None):
         """
@@ -234,6 +239,7 @@ class PULP_CBC_CMD(COIN_CMD):
     """
     This solver uses a precompiled version of cbc provided with the package
     """
+    name = 'PULP_CBC_CMD'
     pulp_cbc_path = pulp_cbc_path
     try:
         if os.name != 'nt':
@@ -257,6 +263,7 @@ class PULP_CBC_CMD(COIN_CMD):
             #check that the file is executable
             COIN_CMD.__init__(self, path=self.pulp_cbc_path, *args, **kwargs)
 
+
 def COINMP_DLL_load_dll(path):
     """
     function that loads the DLL useful for debugging installation problems
@@ -279,6 +286,7 @@ class COINMP_DLL(LpSolver):
     :param timeLimit: The number of seconds before forcing the solver to exit
     :param epgap: The fractional mip tolerance
     """
+    name = 'COINMP_DLL'
     try:
         lib = COINMP_DLL_load_dll(coinMP_path)
     except (ImportError, OSError):
@@ -460,6 +468,7 @@ class YAPOSIB(LpSolver):
     The yaposib constraints are available in constraint.solverConstraint
     The Model is in prob.solverModel
     """
+    name = 'YAPOSIB'
     try:
         #import the model into the global scope
         global yaposib

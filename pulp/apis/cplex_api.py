@@ -8,15 +8,16 @@ import warnings
 
 class CPLEX_CMD(LpSolver_CMD):
     """The CPLEX LP solver"""
+    name = 'CPLEX_CMD'
 
     def __init__(self, timelimit = None, *args, **kwargs):
         LpSolver_CMD.__init__(self, *args, **kwargs)
         if timelimit:
             warnings.warn("Parameter timelimit is being depreciated for standard 'timeLimit'")
-            if self.timelimit:
+            if self.timeLimit:
                 warnings.warn("Parameter timeLimit and timelimit passed, using timeLimit ")
             else:
-                self.timelimit = timelimit
+                self.timeLimit = timelimit
 
     def defaultPath(self):
         return self.executableExtension("cplex")
@@ -41,14 +42,15 @@ class CPLEX_CMD(LpSolver_CMD):
         else:
             cplex = subprocess.Popen(self.path, stdin = subprocess.PIPE)
         cplex_cmds = "read " + tmpLp + "\n"
-        if self.mip_start:
+        if self.warmStart:
             self.writesol(filename=tmpMst, vs=vs)
             cplex_cmds += "read " + tmpMst + "\n"
             cplex_cmds += 'set advance 1\n'
 
-        if self.timelimit is not None:
-            cplex_cmds += "set timelimit " + str(self.timelimit) + "\n"
-        for option in self.options:
+        if self.timeLimit is not None:
+            cplex_cmds += "set timelimit " + str(self.timeLimit) + "\n"
+        options = self.options + self.getOptions()
+        for option in options:
             cplex_cmds += option+"\n"
         if lp.isMIP():
             if self.mip:
@@ -77,8 +79,24 @@ class CPLEX_CMD(LpSolver_CMD):
         lp.assignStatus(status, solStatus)
         return status
 
+    def getOptions(self):
+        # CPLEX parameters: https://www.ibm.com/support/knowledgecenter/en/SSSA5P_12.6.0/ilog.odms.cplex.help/CPLEX/GettingStarted/topics/tutorials/InteractiveOptimizer/settingParams.html
+        # CPLEX status: https://www.ibm.com/support/knowledgecenter/en/SSSA5P_12.10.0/ilog.odms.cplex.help/refcallablelibrary/macros/Solution_status_codes.html
+        params_eq  = \
+            dict(logPath='set logFile {}',
+                 timeLimit='set timelimit {}',
+                 gapRel = 'set mip tolerances mipgap {}',
+                 gapAbs = 'set mip tolerances absmipgap {}',
+                 maxMemory = 'set mip limits treememory {}',
+                 threads = 'set threads {}',
+                 maxNodes = 'set mip limits nodes {}',
+                 )
+        return [v.format(self.optionsDict[k]) for k, v in params_eq.items()
+                if k in self.optionsDict]
+
     def readsol(self, filename):
         """Read a CPLEX solution file"""
+        # CPLEX solution codes: http://www-eio.upc.es/lceio/manuals/cplex-11/html/overviewcplex/statuscodes.html
         try:
             import xml.etree.ElementTree as et
         except ImportError:
@@ -192,6 +210,7 @@ try:
         lib.CPXfopen.restype = ctypes.c_void_p
         lib.CPXsetlogfile.argtypes = [ctypes.c_void_p,
                                       ctypes.c_void_p]
+        name = 'CPLEX_DLL'
 
         def __init__(self,
                     mip = True,
@@ -493,7 +512,7 @@ try:
             i=0
             for v in vars:
                 colNames[i] = str(v.name)
-                initValues[i] = v.init
+                initValues[i] = v.varValue if v.varValue is not None else 0
                 if v.lowBound != None:
                     lowerBounds[i] = v.lowBound
                 else:
@@ -573,6 +592,7 @@ try:
 except (ImportError,OSError):
     class CPLEX_DLL(LpSolver):
         """The CPLEX LP/MIP solver PHANTOM Something went wrong!!!!"""
+        name = 'CPLEX_DLL'
         def available(self):
             """True if the solver is available"""
             return False
@@ -581,35 +601,33 @@ except (ImportError,OSError):
             raise PulpSolverError("CPLEX_DLL: Not Available")
     CPLEX = CPLEX_CMD
 
-try:
-    import cplex
-except (Exception) as e:
-    class CPLEX_PY(LpSolver):
+cplex = None
+class CPLEX_PY(LpSolver):
+    """
+    The CPLEX LP/MIP solver (via a Python Binding)
+
+    This solver wraps the python api of cplex.
+    It has been tested against cplex 12.3.
+    For api functions that have not been wrapped in this solver please use
+    the base cplex classes
+    """
+    name = 'CPLEX_PY'
+    try:
+        global cplex
+        import cplex
+    except (Exception) as e:
         """The CPLEX LP/MIP solver from python PHANTOM Something went wrong!!!!"""
         def available(self):
             """True if the solver is available"""
             return False
         def actualSolve(self, lp):
             """Solve a well formulated lp problem"""
-            raise PulpSolverError("CPLEX_PY: Not Available: " + str(e))
-else:
-    class CPLEX_PY(LpSolver):
-        """
-        The CPLEX LP/MIP solver (via a Python Binding)
-
-        This solver wraps the python api of cplex.
-        It has been tested against cplex 12.3.
-        For api functions that have not been wrapped in this solver please use
-        the base cplex classes
-        """
-
+            raise PulpSolverError("CPLEX_PY: Not Available")
+    else:
         def __init__(self,
-                    mip = True,
-                    msg = True,
-                    timeLimit = None,
                     epgap = None,
                     logfilename = None,
-                    mip_start=False):
+                     *args, **kwargs):
             """
             Initializes the CPLEX_PY solver.
 
@@ -618,10 +636,20 @@ else:
             @param epgap: sets the integer bound gap
             @param logfilename: sets the filename of the cplex logfile
             """
-            LpSolver.__init__(self, mip, msg, mip_start=mip_start)
-            self.timeLimit = timeLimit
-            self.epgap = epgap
-            self.logfilename = logfilename
+            if epgap:
+                warnings.warn("Parameter epgap is being depreciated for standard 'gapRel'")
+                if 'gapRel' in kwargs:
+                    warnings.warn("Parameter gapRel and epgap passed, using gapRel")
+                else:
+                    kwargs['gapRel'] = epgap
+            if logfilename:
+                warnings.warn("Parameter logfilename is being depreciated for standard 'logPath'")
+                if 'logPath' in kwargs:
+                    warnings.warn("Parameter logPath and logfilename passed, using logPath")
+                else:
+                    kwargs['logPath'] = logfilename
+
+            LpSolver.__init__(self, *args, **kwargs)
 
         def available(self):
             """True if the solver is available"""
@@ -691,7 +719,7 @@ else:
             senses = []
             rhs = []
             rownames = []
-            for name,constraint in lp.constraints.items():
+            for name, constraint in lp.constraints.items():
                 #build the expression
                 expr = [(var.name, float(coeff)) for var, coeff in constraint.items()]
                 if not expr:
@@ -710,7 +738,7 @@ else:
                 rownames.append(name)
                 rhs.append(float(-constraint.constant))
             lp.solverModel.linear_constraints.add(lin_expr=rows, senses=senses,
-                                rhs=rhs, names=rownames)
+                                                  rhs=rhs, names=rownames)
             log.debug("set the type of the problem")
             if not self.mip:
                 self.solverModel.set_problem_type(cplex.Cplex.problem_type.LP)
@@ -720,16 +748,21 @@ else:
                 self.solverModel.set_log_stream(None)
                 self.solverModel.set_warning_stream(None)
                 self.solverModel.set_results_stream(None)
-            if self.logfilename is not None:
-                self.setlogfile(self.logfilename)
-            if self.epgap is not None:
-                self.changeEpgap(self.epgap)
+            logPath = self.optionsDict.get('logPath')
+            if logPath is not None:
+                self.setlogfile(logPath)
+            gapRel = self.optionsDict.get('gapRel')
+            if gapRel is not None:
+                self.changeEpgap(gapRel)
             if self.timeLimit is not None:
                 self.setTimeLimit(self.timeLimit)
-            if self.mip_start:
+            if self.warmStart:
                 # We assume "auto" for the effort_level
                 effort = self.solverModel.MIP_starts.effort_level.auto
                 start = [(k, v.value()) for k, v in self.n2v.items() if v.value() is not None]
+                if not start:
+                    warnings.warn('No variable with value found: mipStart aborted')
+                    return
                 ind, val = zip(*start)
                 self.solverModel.MIP_starts.add(cplex.SparsePair(ind=ind, val=val), effort, '1')
 
@@ -738,7 +771,7 @@ else:
             sets the logfile for cplex output
             """
             with open(filename, 'w') as cplexlog:
-                self.solverModel.set_log_stream(cplexlog)
+                return self.solverModel.set_log_stream(cplexlog)
 
         def changeEpgap(self, epgap = 10**-4):
             """
@@ -814,11 +847,10 @@ else:
                 var.isModified = False
             return status
 
-        def actualResolve(self,lp, **kwargs):
+        def actualResolve(self, lp, **kwargs):
             """
             looks at which variables have been modified and changes them
             """
             raise NotImplementedError("Resolves in CPLEX_PY not yet implemented")
 
-    CPLEX = CPLEX_PY
 
