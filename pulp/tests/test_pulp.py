@@ -297,6 +297,46 @@ class PuLPTest(unittest.TestCase):
         pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], {x: 3, y: -0.5, z: 7},
                       objective=64.95)
 
+    def test_pulp_022(self):
+        # Initial value
+        prob = LpProblem("test022", const.LpMinimize)
+        x = LpVariable("x", 0, 4)
+        y = LpVariable("y", -1, 1)
+        z = LpVariable("z", 0, None, const.LpInteger)
+        prob += x + 4 * y + 9 * z, "obj"
+        prob += x + y <= 5, "c1"
+        prob += x + z >= 10, "c2"
+        prob += -y + z == 7.5, "c3"
+        # if we give the actual optimal solution to CBC (x=3)
+        #   it returns a weird solution with mip_start
+        x.setInitialValue(4)
+        y.setInitialValue(-0.5)
+        z.setInitialValue(7)
+        self.solver.mip_start = True
+        print("\t Testing MIP solution")
+        if self.solver.__class__ in [COIN_CMD, PULP_CBC_CMD]:
+            warnings.warn("CBC gives a wrong solution with mip start.")
+        else:
+            pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], {x: 3, y: -0.5, z: 7})
+
+    def test_pulp_023(self):
+        # Initial value (fixed)
+        prob = LpProblem("test023", const.LpMinimize)
+        x = LpVariable("x", 0, 4)
+        y = LpVariable("y", -1, 1)
+        z = LpVariable("z", 0, None, const.LpInteger)
+        prob += x + 4 * y + 9 * z, "obj"
+        prob += x + y <= 5, "c1"
+        prob += x + z >= 10, "c2"
+        prob += -y + z == 7.5, "c3"
+        solution = {x: 4, y: -0.5, z: 7}
+        for v in [x, y, z]:
+            v.setInitialValue(solution[v])
+            v.fixValue()
+        self.solver.mip_start = True
+        print("\t Testing MIP solution")
+        pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], solution)
+
     def test_pulp_030(self):
         # relaxed MIP
         prob = LpProblem("test030", const.LpMinimize)
@@ -614,6 +654,141 @@ class PuLPTest(unittest.TestCase):
         from pulp import pulpTestAll
         print("\t Testing the availability of the function pulpTestAll")
 
+    def test_export_dict_LP(self):
+        prob = LpProblem("test_export_dict_LP", const.LpMinimize)
+        x = LpVariable("x", 0, 4)
+        y = LpVariable("y", -1, 1)
+        z = LpVariable("z", 0)
+        w = LpVariable("w", 0)
+        prob += x + 4 * y + 9 * z, "obj"
+        prob += x + y <= 5, "c1"
+        prob += x + z >= 10, "c2"
+        prob += -y + z == 7, "c3"
+        prob += w >= 0, "c4"
+        data = prob.to_dict()
+        var1, prob1 = prob.from_dict(data)
+        x, y, z, w = [var1[name] for name in ['x', 'y', 'z', 'w']]
+        print("\t Testing continuous LP solution")
+        pulpTestCheck(prob1, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
+
+    def test_export_json_LP(self):
+        name = 'test_export_json_LP'
+        prob = LpProblem(name, const.LpMinimize)
+        x = LpVariable("x", 0, 4)
+        y = LpVariable("y", -1, 1)
+        z = LpVariable("z", 0)
+        w = LpVariable("w", 0)
+        prob += x + 4 * y + 9 * z, "obj"
+        prob += x + y <= 5, "c1"
+        prob += x + z >= 10, "c2"
+        prob += -y + z == 7, "c3"
+        prob += w >= 0, "c4"
+        filename = name + '.json'
+        prob.to_json(filename, indent=4)
+        var1, prob1 = prob.from_json(filename)
+        try:
+            os.remove(filename)
+        except:
+            pass
+        x, y, z, w = [var1[name] for name in ['x', 'y', 'z', 'w']]
+        print("\t Testing continuous LP solution")
+        pulpTestCheck(prob1, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
+
+    def test_export_dict_MIP(self):
+        prob = LpProblem("test_export_dict_MIP", const.LpMinimize)
+        x = LpVariable("x", 0, 4)
+        y = LpVariable("y", -1, 1)
+        z = LpVariable("z", 0, None, const.LpInteger)
+        prob += x + 4 * y + 9 * z, "obj"
+        prob += x + y <= 5, "c1"
+        prob += x + z >= 10, "c2"
+        prob += -y + z == 7.5, "c3"
+        data = prob.to_dict()
+        var1, prob1 = prob.from_dict(data)
+        x, y, z = [var1[name] for name in ['x', 'y', 'z']]
+        print("\t Testing MIP solution")
+        pulpTestCheck(prob1, self.solver, [const.LpStatusOptimal], {x: 3, y: -0.5, z: 7})
+
+    def test_export_dict_max(self):
+        prob = LpProblem("test_export_dict_max", const.LpMaximize)
+        x = LpVariable("x", 0, 4)
+        y = LpVariable("y", -1, 1)
+        z = LpVariable("z", 0)
+        w = LpVariable("w", 0)
+        prob += x + 4 * y + 9 * z, "obj"
+        prob += x + y <= 5, "c1"
+        prob += x + z >= 10, "c2"
+        prob += -y + z == 7, "c3"
+        prob += w >= 0, "c4"
+        data = prob.to_dict()
+        var1, prob1 = prob.from_dict(data)
+        x, y, z, w = [var1[name] for name in ['x', 'y', 'z', 'w']]
+        print("\t Testing maximize continuous LP solution")
+        pulpTestCheck(prob1, self.solver, [const.LpStatusOptimal], {x: 4, y: 1, z: 8, w: 0})
+
+    def test_export_solver_dict_LP(self):
+        prob = LpProblem("test_export_dict_LP", const.LpMinimize)
+        x = LpVariable("x", 0, 4)
+        y = LpVariable("y", -1, 1)
+        z = LpVariable("z", 0)
+        w = LpVariable("w", 0)
+        prob += x + 4 * y + 9 * z, "obj"
+        prob += x + y <= 5, "c1"
+        prob += x + z >= 10, "c2"
+        prob += -y + z == 7, "c3"
+        prob += w >= 0, "c4"
+        data = self.solver.to_dict()
+        solver1 = get_solver_from_dict(data)
+        print("\t Testing continuous LP solution")
+        pulpTestCheck(prob, solver1, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
+
+    def test_export_solver_json(self):
+        name = 'test_export_solver_json'
+        prob = LpProblem(name, const.LpMinimize)
+        x = LpVariable("x", 0, 4)
+        y = LpVariable("y", -1, 1)
+        z = LpVariable("z", 0)
+        w = LpVariable("w", 0)
+        prob += x + 4 * y + 9 * z, "obj"
+        prob += x + y <= 5, "c1"
+        prob += x + z >= 10, "c2"
+        prob += -y + z == 7, "c3"
+        prob += w >= 0, "c4"
+        self.solver.mip = True
+        self.solver.msg = True
+        self.solver.warmStart = True
+        self.solver.msg = True
+        logFilename = name + '.log'
+        self.solver.optionsDict = dict(gapRel=0.1, gapAbs=1, maxMemory=1000,
+                                       maxNodes=1, threads=1, logPath=logFilename)
+        filename = name + '.json'
+        self.solver.to_json(filename, indent=4)
+        solver1 = get_solver_from_json(filename)
+        try:
+            os.remove(filename)
+        except:
+            pass
+        print("\t Testing continuous LP solution")
+        pulpTestCheck(prob, solver1, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
+
+    def test_timeLimit(self):
+        name = 'test_timelimit'
+        prob = LpProblem(name, const.LpMinimize)
+        x = LpVariable("x", 0, 4)
+        y = LpVariable("y", -1, 1)
+        z = LpVariable("z", 0)
+        w = LpVariable("w", 0)
+        prob += x + 4 * y + 9 * z, "obj"
+        prob += x + y <= 5, "c1"
+        prob += x + z >= 10, "c2"
+        prob += -y + z == 7, "c3"
+        prob += w >= 0, "c4"
+        self.solver.timeLimit = 20
+        # CHOCO has issues when given a time limit
+        if self.solver.name != 'PULP_CHOCO_CMD':
+            pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
+
+
 def pulpTestCheck(prob, solver, okstatus, sol=None,
                   reducedcosts=None,
                   duals=None,
@@ -626,43 +801,41 @@ def pulpTestCheck(prob, solver, okstatus, sol=None,
         status = prob.solve(solver, **kwargs)
     if status not in okstatus:
         dumpTestProblem(prob)
-        print("Failure: status ==", status, "not in", okstatus)
-        print("Failure: status ==", const.LpStatus[status], "not in", \
-              [const.LpStatus[s] for s in okstatus])
-        raise PulpError("Tests failed for solver %s" % solver)
+        raise PulpError("Tests failed for solver {}:\nstatus == {} not in {}\nstatus == {} not in {}".
+                        format(solver, status, okstatus,
+                               const.LpStatus[status], [const.LpStatus[s] for s in okstatus]))
     if sol is not None:
         for v, x in sol.items():
             if abs(v.varValue - x) > eps:
                 dumpTestProblem(prob)
-                print("Test failed: var", v, "==", v.varValue, "!=", x)
-                raise PulpError("Tests failed for solver %s" % solver)
+                raise PulpError("Tests failed for solver {}:\nvar {} == {} != {}".
+                                format(solver, v, v.varValue, x))
     if reducedcosts:
         for v, dj in reducedcosts.items():
             if abs(v.dj - dj) > eps:
                 dumpTestProblem(prob)
-                print("Test failed: var.dj", v, "==", v.dj, "!=", dj)
-                raise PulpError("Tests failed for solver %s" % solver)
+                raise PulpError("Tests failed for solver {}:\nTest failed: var.dj {} == {} != {}".
+                                format(solver, v, v.dj, dj))
     if duals:
         for cname, p in duals.items():
             c = prob.constraints[cname]
             if abs(c.pi - p) > eps:
                 dumpTestProblem(prob)
-                print("Test failed: constraint.pi", cname, "==", c.pi, "!=", p)
-                raise PulpError("Tests failed for solver %s" % solver)
+                raise PulpError("Tests failed for solver {}:\nconstraint.pi {} == {} != {}".
+                                format(solver, cname, c.pi, p))
     if slacks:
         for cname, slack in slacks.items():
             c = prob.constraints[cname]
             if abs(c.slack - slack) > eps:
                 dumpTestProblem(prob)
-                print("Test failed: constraint.slack", cname, "==",
-                      c.slack, "!=", slack)
-                raise PulpError("Tests failed for solver %s" % solver)
+                raise PulpError("Tests failed for solver {}:\nconstraint.slack {} == {} != {}".
+                                format(solver, cname, c.slack, slack))
     if objective is not None:
         z = prob.objective.value()
         if abs(z - objective) > eps:
             dumpTestProblem(prob)
-            print("Test failed: objective ", z, " != ", objective)
-            raise PulpError("Tests failed for solver %s" % solver)
+            raise PulpError("Tests failed for solver {}:\nobjective {} != {}".
+                            format(solver, z, objective))
 
 
 def suite():
@@ -679,6 +852,7 @@ def suite():
                PYGLPK,
                YAPOSIB,
                PULP_CHOCO_CMD,
+               CHOCO_CMD,
                MIPCL_CMD,
                MOSEK
                ]

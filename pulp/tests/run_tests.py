@@ -25,4 +25,4 @@ def get_test_suit(test_docs=False):
     return suite_all
 
 if __name__ == '__main__':
-    pulpTestAll(test_docs=True)
+    pulpTestAll(test_docs=False)
