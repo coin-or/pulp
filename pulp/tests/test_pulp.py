@@ -651,8 +651,8 @@ class PuLPTest(unittest.TestCase):
         """
         Test the availability of the function pulpTestAll
         """
-        from pulp import pulpTestAll
         print("\t Testing the availability of the function pulpTestAll")
+        from pulp import pulpTestAll
 
     def test_export_dict_LP(self):
         prob = LpProblem("test_export_dict_LP", const.LpMinimize)
