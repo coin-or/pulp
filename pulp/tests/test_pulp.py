@@ -647,6 +647,13 @@ class PuLPTest(unittest.TestCase):
         else:
             pulpTestCheck(prob, self.solver, [const.LpStatusUnbounded])
 
+    def test_pulpTestAll(self):
+        """
+        Test the availability of the function pulpTestAll
+        """
+        print("\t Testing the availability of the function pulpTestAll")
+        from pulp import pulpTestAll
+
     def test_export_dict_LP(self):
         prob = LpProblem("test_export_dict_LP", const.LpMinimize)
         x = LpVariable("x", 0, 4)
