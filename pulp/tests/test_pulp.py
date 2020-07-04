@@ -45,7 +45,7 @@ class PuLPTest(unittest.TestCase):
         unittest.TestCase.__init__(self, testName)
         self.solver = solver.copy()
 
-    def tearDown(self) -> None:
+    def tearDown(self):
         for ext in ['mst', 'log', 'lp', 'mps', 'sol']:
             filename = "{}.{}".format(self._testMethodName, ext)
             try:
