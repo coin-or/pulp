@@ -2,8 +2,6 @@
 Main Topics 
 =====================
 
-
-
 .. toctree::
    :maxdepth: 2
 
@@ -12,5 +10,4 @@ Main Topics
    basic_python_coding
    installing_pulp_at_home
    amply
-   
-   
+   README <includeme>

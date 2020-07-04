@@ -3,6 +3,33 @@ How to configure a solver in PuLP
 
 A typical problem PuLP users have is trying to connect to a solver that is installed in their pc. Here, we show the main concepts and ways to be sure PuLP can talk to the solver in question.
 
+Checking which solvers PuLP has acces to
+------------------------------------------------
+
+PuLP has some helper functions that permit a user to query which solvers are available and initialize a solver from its name.
+
+.. code-block:: python
+
+    import pulp as pl
+    solver_list = pl.list_solvers()
+    # ['GLPK_CMD', 'PYGLPK', 'CPLEX_CMD', 'CPLEX_PY', 'CPLEX_DLL', 'GUROBI', 'GUROBI_CMD', 'MOSEK', 'XPRESS', 'PULP_CBC_CMD', 'COIN_CMD', 'COINMP_DLL', 'CHOCO_CMD', 'PULP_CHOCO_CMD', 'MIPCL_CMD', 'SCIP_CMD']
+
+If passed the `only_available=True` argument, PuLP lists the solvers that are currently available::
+
+    import pulp as pl
+    solver_list = pl.list_solvers(available_only=True)
+    # ['GLPK_CMD', 'CPLEX_CMD', 'CPLEX_PY', 'GUROBI', 'GUROBI_CMD', 'PULP_CBC_CMD', 'COIN_CMD', 'PULP_CHOCO_CMD']
+
+Also, it's possible to get a solver object by using the name of the solver. Any arguments passes to this function are passed to the constructor:
+
+.. code-block:: python
+
+    import pulp as pl
+    solver = pl.get_solver('CPLEX_CMD')
+    solver = pl.get_solver('CPLEX_CMD', timeLimite=10)
+
+In the next sections, we will explain how to configure a solver to be accesible by pulp.
+
 What is an environment variable
 --------------------------------------
 
@@ -91,12 +118,11 @@ CPLEX
 
 **Windows: add the following environment variables (via the command line or the graphical user interface)**::
 
-    set CPLEX_HOME=/opt/ibm/ILOG/CPLEX_Studio128/cplex
-    set CPO_HOME=/opt/ibm/ILOG/CPLEX_Studio128/cpoptimizer
-    set PATH=%PATH%;%CPLEX_HOME%/bin/x86-64_linux;%CPO_HOME%/bin/x86-64_linux
-    set LD_LIBRARY_PATH=%LD_LIBRARY_PATH%;%CPLEX_HOME%/bin/x86-64_linux;%CPO_HOME%/bin/x86-64_linux
-    set PYTHONPATH=%PYTHONPATH%;/opt/ibm/ILOG/CPLEX_Studio128/cplex/python/3.5/x86-64_linux
-
+    set CPLEX_HOME=C:/Program Files/IBM/ILOG/CPLEX_Studio128/cplex
+    set CPO_HOME=C:/Program Files/IBM/ILOG/CPLEX_Studio128/cpoptimizer
+    set PATH=%PATH%;%CPLEX_HOME%/bin/x64_win64;%CPO_HOME%/bin/x64_win64
+    set LD_LIBRARY_PATH=%LD_LIBRARY_PATH%;%CPLEX_HOME%/bin/x64_win64;%CPO_HOME%/bin/x64_win64
+    set PYTHONPATH=%PYTHONPATH%;/opt/ibm/ILOG/CPLEX_Studio128/cplex/python/3.5/x64_win64
 
 GUROBI
 *******
@@ -113,3 +139,136 @@ GUROBI
     set PATH=%PATH%;%GUROBI_HOME%/bin
     set LD_LIBRARY_PATH=%LD_LIBRARY_PATH%;%GUROBI_HOME%/lib
 
+
+Configuring where the CMD solvers write their temporary files
+---------------------------------------------------------------------------
+
+In the case of solver APIs that use the command line (again, those that end in ``CMD``, sometimes a user wants to control where the files are written. There are plenty of options.
+
+By default, PuLP does not keep the intermediary files (the \*.mps, \*.lp, \*.mst, \*.sol) and they are written in a temporary directory of the operating system. PuLP looks for the TEMP, TMP and TMPDIR environment variables to write the file (in that order). After using them, PuLP deletes them. If you change any of these environment variables before solving, you should be able to choose where you want PuLP to write the results.
+
+.. code-block:: python
+
+    import pulp as pl
+    model = pl.LpProblem("Example", pl.LpMinimize)
+    _var = pl.LpVariable('a')
+    _var2 = pl.LpVariable('b')
+    model += _var + _var2 == 1 
+    solver = pl.PULP_CBC_CMD()
+    result = model.solve(solver)
+
+Another option, is passing the argument `KeepFiles=True` to the solver. With this, the solver creates the files in the current directory and they are not deleted (although they will be overwritten if you re-execute).
+
+.. code-block:: python
+
+    import pulp as pl
+    model = pl.LpProblem("Example", pl.LpMinimize)
+    _var = pl.LpVariable('a')
+    _var2 = pl.LpVariable('b')
+    model += _var + _var2 == 1 
+    solver = pl.PULP_CBC_CMD(keepFiles=True)
+    result = model.solve(solver)
+
+Finally, one can manually edit the tmpDir attribute of the solver object before actually solving.
+
+.. code-block:: python
+
+    import pulp as pl
+    model = pl.LpProblem("Example", pl.LpMinimize)
+    _var = pl.LpVariable('a')
+    _var2 = pl.LpVariable('b')
+    model += _var + _var2 == 1 
+    solver = pl.PULP_CBC_CMD()
+    solver.tmpDir = 'PUT_SOME_ALTERNATIVE_PATH_HERE'
+    result = model.solve(solver)
+
+
+Using the official solver API
+-----------------------------------------
+
+PuLP has the integrations with the official python API solvers for the following solvers:
+
+* Mosek (MOSEK)
+* Gurobi (GUROBI)
+* Cplex (CPLEX_PY)
+
+These API offer a series of advantages over using the command line option:
+
+* They are usually faster to initialize a problem (they do not involve writing files to disk).
+* They offer a lot more functionality and information (extreme rays, dual prices, reduced costs).
+
+In order to access this functionality, the user needs to use the solver object included inside the PuLP problem. PuLP uses the ``solverModel`` attribute on the problem object. This attribute is created and filled when the method ``buildSolverModel()`` is executed.
+
+For example, using the ``CPLEX_PY`` API we can access the api object after the solving is done:
+
+.. code-block:: python
+
+    import pulp
+
+    x = pulp.LpVariable('x', lowBound=0)
+    prob = pulp.LpProblem('name', pulp.LpMinimize)
+    prob += x
+
+    solver = pulp.CPLEX_PY()
+    status = prob.solve(solver)
+    # you can now access the information from the cplex API python object
+    prob.solverModel  
+
+Also, you can access the python api object before solving by using the lower-level methods:
+
+.. code-block:: python
+
+    import pulp
+
+    x = pulp.LpVariable('x', lowBound=0)
+    prob = pulp.LpProblem('name', pulp.LpMinimize)
+    prob += x
+
+    solver = pulp.CPLEX_PY()
+    solver.self.buildSolverModel(lp)
+    # you can now edit the object or do something with it before solving
+    solver.solverModel
+    # the, you can call the solver to solve the problem
+    solver.callSolver(lp)
+    # finally, you fill the PuLP variables with the solution
+    status = solver.findSolutionValues(lp)
+
+For more information on how to use the `solverModel`, one needs to check the official documentation depending on the solver.
+
+
+Importing and exporting a solver
+-----------------------------------
+
+Exporting a solver can be useful to backup the configuration that was used to solve a model.
+
+In order to export it one needs can export it to a dictionary or a json file::
+
+    import pulp
+    solver = pulp.PULP_CBC_CMD()
+    solver_dict = solver.to_dict()
+
+The structure of the produce dictionary is quite simple::
+
+    {'keepFiles': 0,
+     'mip': True,
+     'msg': True,
+     'options': [],
+     'solver': 'PULP_CBC_CMD',
+     'timeLimit': None,
+     'warmStart': False}
+
+It's also possible to export it directly to a json file::
+
+    solver.to_json("some_file_name.json")
+
+In order to import it, one needs to do::
+
+    import pulp
+    solver = pulp.get_solver_from_dict(solver_dict)
+
+Or from a file::
+
+    import pulp
+    solver = pulp.get_solver_from_json("some_file_name.json")
+
+For json, we use the base `json` package. But if `ujson` is available, we use that so the import / export can be really fast.

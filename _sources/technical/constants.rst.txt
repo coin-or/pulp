@@ -7,7 +7,19 @@
      :undoc-members:
      :inherited-members:
      :show-inheritance:
-     
+
+.. data:: LpContinuous
+
+    LpContinuous= "Continuous"
+
+.. data:: LpInteger = "Integer"
+
+    LpInteger= "Integer"
+
+.. data:: LpBinary = "Binary"
+
+    LpBinary= "Binary"
+
 .. data:: LpStatus
   
     Return status from solver:
@@ -34,25 +46,43 @@
  
     LpStatusNotSolved = 0
  
- .. data:: LpStatusInfeasible
- 
+.. data:: LpStatusInfeasible
+
     LpStatusInfeasible = -1
- 
- .. data:: LpStatusUnbounded 
- 
+
+.. data:: LpStatusUnbounded 
+
     LpStatusUnbounded = -2
- 
- .. data:: LpStatusUndefined 
- 
+
+.. data:: LpStatusUndefined 
+
     LpStatusUndefined = -3
+
+.. data:: LpSolution
+
+Return solution status from solver:
+
+  +----------------------------------------+------------------------------+-----------------+
+  |  LpStatus  key                         | string value                 | numerical value |
+  +========================================+==============================+=================+
+  |  :data:`LpSolutionOptimal`             | "Optimal Solution Found"     |          1      |
+  +----------------------------------------+------------------------------+-----------------+
+  |  :data:`LpSolutionNoSolutionFound`     | "No Solution Found"          |          0      |
+  +----------------------------------------+------------------------------+-----------------+
+  |  :data:`LpSolutionStatusInfeasible`    |"No Solution Exists"          |         -1      |
+  +----------------------------------------+------------------------------+-----------------+
+  |  :data:`LpSolutionStatusUnbounded`     | "Solution is Unbounded"      |          -2     |
+  +----------------------------------------+------------------------------+-----------------+
+  |  :data:`LpSolutionIntegerFeasible`     | "Solution Found"             |          2      |
+  +----------------------------------------+------------------------------+-----------------+
   
-  
-  .. data:: LpSenses
-     
-    Dictionary of values for :attr:`~pulp.pulp.LpProblem.sense`:
-  
-       LpSenses =
-       {:data:`LpMaximize`:"Maximize", :data:`LpMinimize`:"Minimize"}
+
+.. data:: LpSenses
+ 
+Dictionary of values for :attr:`~pulp.pulp.LpProblem.sense`:
+
+   LpSenses =
+   {:data:`LpMaximize`:"Maximize", :data:`LpMinimize`:"Minimize"}
   
  .. data::   LpMinimize 
   

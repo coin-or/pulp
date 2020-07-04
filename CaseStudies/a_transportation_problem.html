@@ -1,57 +1,126 @@
 
+
+
 <!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>A Transportation Problem &mdash; PuLP 2.2 documentation</title>
+  
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta charset="utf-8" />
-    <title>A Transportation Problem &#8212; PuLP 2.0 documentation</title>
-    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="../_static/language_data.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="A Two Stage Production Planning Problem" href="a_two_stage_production_planning_problem.html" />
-    <link rel="prev" title="A Sudoku Problem formulated as an LP" href="a_sudoku_problem.html" />
-   
-  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
   
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+  
+  
 
-  </head><body>
-  <div class="document">
+  
+
+  
+  
     
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../index.html">PuLP</a></h1>
 
+  
 
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
 
+  
+    <link rel="stylesheet" href="../_static/jquery.fancybox.min.css" type="text/css" />
+  
+    <link rel="stylesheet" href="../_static/glpi.css" type="text/css" />
+  
 
+  
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
+    <link rel="top" title="PuLP 2.2 documentation" href="../index.html"/>
+        <link rel="up" title="Case Studies" href="index.html"/>
+        <link rel="next" title="A Two Stage Production Planning Problem" href="a_two_stage_production_planning_problem.html"/>
+        <link rel="prev" title="A Sudoku Problem formulated as an LP" href="a_sudoku_problem.html"/> 
 
+  
+  <script src="../_static/js/modernizr.min.js"></script>
 
-<p>
-<iframe src="https://ghbtns.com/github-btn.html?user=coin-or&repo=pulp&type=watch&count=true&size=large&v=2"
-  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
-</p>
+</head>
 
+<body class="wy-body-for-nav" role="document">
 
+   
+  <div class="wy-grid-for-nav">
 
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
 
+          
+            <a href="../index.html" class="icon icon-home"> PuLP
+          
 
-<h3>Navigation</h3>
-<ul class="current">
+          
+          </a>
+
+          
+            
+              <div class="version">
+                2.2
+
+                
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../main/index.html">Main Topics</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Case Studies</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="a_blending_problem.html">A Blending Problem</a></li>
 <li class="toctree-l2"><a class="reference internal" href="a_set_partitioning_problem.html">A Set Partitioning Problem</a></li>
 <li class="toctree-l2"><a class="reference internal" href="a_sudoku_problem.html">A Sudoku Problem formulated as an LP</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">A Transportation Problem</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">A Transportation Problem</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#problem-description">Problem Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#formulation">Formulation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#identify-the-decision-variables">Identify the Decision Variables</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#formulate-the-objective-function">Formulate the Objective Function</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#formulate-the-constraints">Formulate the Constraints</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp-model">PuLP Model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#extensions">Extensions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#validation">Validation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#storage-and-buying-in">Storage and “Buying In”</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#presentation-of-solution-and-analysis">Presentation of Solution and Analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ongoing-monitoring">Ongoing Monitoring</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="a_two_stage_production_planning_problem.html">A Two Stage Production Planning Problem</a></li>
 </ul>
 </li>
@@ -59,42 +128,77 @@
 <li class="toctree-l1"><a class="reference internal" href="../technical/index.html">PuLP Internal Documentation</a></li>
 </ul>
 
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../index.html">Documentation overview</a><ul>
-  <li><a href="index.html">Case Studies</a><ul>
-      <li>Previous: <a href="a_sudoku_problem.html" title="previous chapter">A Sudoku Problem formulated as an LP</a></li>
-      <li>Next: <a href="a_two_stage_production_planning_problem.html" title="next chapter">A Two Stage Production Planning Problem</a></li>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-
-
-
-
-
-
-
-
+            
+          
         </div>
       </div>
-      <div class="documentwrapper">
-        <div class="bodywrapper">
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PuLP</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
           
 
-          <div class="body" role="main">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Case Studies</a> &raquo;</li>
+        
+      <li>A Transportation Problem</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/CaseStudies/a_transportation_problem.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <div class="rst-breadcrumbs-buttons" role="navigation" aria-label="breadcrumb navigation">
+      
+        <a href="a_two_stage_production_planning_problem.html" class="btn btn-neutral float-right" title="A Two Stage Production Planning Problem" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="a_sudoku_problem.html" class="btn btn-neutral" title="A Sudoku Problem formulated as an LP" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+  </div>
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
             
   <div class="section" id="a-transportation-problem">
 <h1>A Transportation Problem<a class="headerlink" href="#a-transportation-problem" title="Permalink to this headline">¶</a></h1>
@@ -246,33 +350,33 @@ way as the <cite>A Blending Problem</cite> (Whiskas), for Transportation Problem
 a more efficient way which we will use in this course. The example file for this
 problem is found in the examples directory BeerDistributionProblem.py</p>
 <p>First, start your Python file with a heading and the import PuLP statement:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">The Beer Distribution Problem for the PuLP Modeller</span>
 
-<span class="sd">Authors: Antony Phillips, Dr Stuart Mitchell    2007</span>
+<span class="sd">Authors: Antony Phillips, Dr Stuart Mitchell  2007</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="c1"># Import PuLP modeller functions</span>
-<span class="kn">from</span> <span class="nn">pulp</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="c1"># Import PuLP modeler functions</span>
+<span class="kn">from</span> <span class="nn">pulp</span> <span class="k">import</span> <span class="o">*</span>
 </pre></div>
 </div>
 <p>The start of the formulation is a simple definition of the nodes and their limits/capacities. The node names are put into lists, and their associated capacities are put into dictionaries with the node names as the reference keys:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Creates a list of all the supply nodes</span>
-<span class="n">Warehouses</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">,</span><span class="s2">&quot;B&quot;</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Creates a list of all the supply nodes</span>
+<span class="n">Warehouses</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="s2">&quot;B&quot;</span><span class="p">]</span>
 
 <span class="c1"># Creates a dictionary for the number of units of supply for each supply node</span>
 <span class="n">supply</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;A&quot;</span><span class="p">:</span> <span class="mi">1000</span><span class="p">,</span>
-        <span class="s2">&quot;B&quot;</span><span class="p">:</span> <span class="mi">4000</span><span class="p">}</span>
+          <span class="s2">&quot;B&quot;</span><span class="p">:</span> <span class="mi">4000</span><span class="p">}</span>
 
 <span class="c1"># Creates a list of all demand nodes</span>
 <span class="n">Bars</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;2&quot;</span><span class="p">,</span> <span class="s2">&quot;3&quot;</span><span class="p">,</span> <span class="s2">&quot;4&quot;</span><span class="p">,</span> <span class="s2">&quot;5&quot;</span><span class="p">]</span>
 
 <span class="c1"># Creates a dictionary for the number of units of demand for each demand node</span>
-<span class="n">demand</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;1&quot;</span><span class="p">:</span> <span class="mi">500</span><span class="p">,</span>
-        <span class="s2">&quot;2&quot;</span><span class="p">:</span> <span class="mi">900</span><span class="p">,</span>
-        <span class="s2">&quot;3&quot;</span><span class="p">:</span> <span class="mi">1800</span><span class="p">,</span>
-        <span class="s2">&quot;4&quot;</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span>
-        <span class="s2">&quot;5&quot;</span><span class="p">:</span> <span class="mi">700</span><span class="p">}</span>
+<span class="n">demand</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;1&quot;</span><span class="p">:</span><span class="mi">500</span><span class="p">,</span>
+          <span class="s2">&quot;2&quot;</span><span class="p">:</span><span class="mi">900</span><span class="p">,</span>
+          <span class="s2">&quot;3&quot;</span><span class="p">:</span><span class="mi">1800</span><span class="p">,</span>
+          <span class="s2">&quot;4&quot;</span><span class="p">:</span><span class="mi">200</span><span class="p">,</span>
+          <span class="s2">&quot;5&quot;</span><span class="p">:</span><span class="mi">700</span><span class="p">,}</span>
 </pre></div>
 </div>
 <p>The cost data is then inputted into a list, with two sub lists: the first
@@ -286,23 +390,25 @@ default value for an arc cost. Once the cost dictionary is created, if
 <cite>costs[“A”][“1”]</cite> is called, it will return the cost of transporting from
 warehouse A to bar 1, 2. If <cite>costs[“C”][“2”]</cite> is called, it will return 0, since
 this is the defined default.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Creates a list of costs of each transportation path</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Creates a list of costs of each transportation path</span>
 <span class="n">costs</span> <span class="o">=</span> <span class="p">[</span>   <span class="c1">#Bars</span>
-        <span class="c1">#1 2 3 4 5</span>
-         <span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span><span class="c1">#A  Warehouses</span>
-        <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">]</span> <span class="c1">#B</span>
+         <span class="c1">#1 2 3 4 5</span>
+         <span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span><span class="c1">#A   Warehouses</span>
+         <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">]</span> <span class="c1">#B</span>
          <span class="p">]</span>
-<span class="p">}}}</span>
+
+<span class="c1"># The cost data is made into a dictionary</span>
+<span class="n">costs</span> <span class="o">=</span> <span class="n">makeDict</span><span class="p">([</span><span class="n">Warehouses</span><span class="p">,</span><span class="n">Bars</span><span class="p">],</span><span class="n">costs</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The <cite>prob</cite> variable is created using the <cite>LpProblem</cite> function, with the usual
 input parameters.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Creates the prob variable to contain the problem data</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Creates the &#39;prob&#39; variable to contain the problem data</span>
 <span class="n">prob</span> <span class="o">=</span> <span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;Beer Distribution Problem&quot;</span><span class="p">,</span><span class="n">LpMinimize</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>A list of tuples is created containing all the arcs.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Creates a list of tuples containing all the possible routes for transport</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Creates a list of tuples containing all the possible routes for transport</span>
 <span class="n">Routes</span> <span class="o">=</span> <span class="p">[(</span><span class="n">w</span><span class="p">,</span><span class="n">b</span><span class="p">)</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">Warehouses</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">Bars</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -311,8 +417,8 @@ reference keys to the dictionary are the warehouse name, then the bar
 name(<cite>[“A”][“2”]</cite>) , and the data is <cite>Route_Tuple</cite>. (e.g. <cite>[“A”][“2”]</cite>:
 Route_A_2). The lower limit of zero is set, the upper limit of <cite>None</cite> is set,
 and the variables are defined to be Integers.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># A dictionary called route_vars is created to contain the referenced variables (the routes)</span>
-<span class="n">route_vars</span> <span class="o">=</span> <span class="n">LpVariable</span><span class="o">.</span><span class="n">dicts</span><span class="p">(</span><span class="s2">&quot;Route&quot;</span><span class="p">,(</span><span class="n">Warehouses</span><span class="p">,</span><span class="n">Bars</span><span class="p">),</span><span class="mi">0</span><span class="p">,</span><span class="bp">None</span><span class="p">,</span><span class="n">LpInteger</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># A dictionary called &#39;Vars&#39; is created to contain the referenced variables(the routes)</span>
+<span class="nb">vars</span> <span class="o">=</span> <span class="n">LpVariable</span><span class="o">.</span><span class="n">dicts</span><span class="p">(</span><span class="s2">&quot;Route&quot;</span><span class="p">,(</span><span class="n">Warehouses</span><span class="p">,</span><span class="n">Bars</span><span class="p">),</span><span class="mi">0</span><span class="p">,</span><span class="kc">None</span><span class="p">,</span><span class="n">LpInteger</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The objective function is added to the variable <cite>prob</cite> using a list
@@ -320,8 +426,8 @@ comprehension. Since <cite>route_vars</cite> and <cite>costs</cite> are now dict
 internal dictionaries), they can be used as if they were tables, as <cite>for (w,b)
 in Routes</cite> will cycle through all the combinations/arcs. Note that <cite>i</cite> and <cite>j</cite>
 could have been used, but <cite>w</cite> and <cite>b</cite> are more meaningful.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># The objective function is added to prob first</span>
-<span class="n">prob</span> <span class="o">+=</span> <span class="n">lpSum</span><span class="p">([</span><span class="n">route_vars</span><span class="p">[</span><span class="n">w</span><span class="p">][</span><span class="n">b</span><span class="p">]</span><span class="o">*</span><span class="n">costs</span><span class="p">[</span><span class="n">w</span><span class="p">][</span><span class="n">b</span><span class="p">]</span> <span class="k">for</span> <span class="p">(</span><span class="n">w</span><span class="p">,</span><span class="n">b</span><span class="p">)</span> <span class="ow">in</span> <span class="n">Routes</span><span class="p">]),</span> <span class="s2">&quot;Sum of Transporting Costs&quot;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># The objective function is added to &#39;prob&#39; first</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">lpSum</span><span class="p">([</span><span class="nb">vars</span><span class="p">[</span><span class="n">w</span><span class="p">][</span><span class="n">b</span><span class="p">]</span><span class="o">*</span><span class="n">costs</span><span class="p">[</span><span class="n">w</span><span class="p">][</span><span class="n">b</span><span class="p">]</span> <span class="k">for</span> <span class="p">(</span><span class="n">w</span><span class="p">,</span><span class="n">b</span><span class="p">)</span> <span class="ow">in</span> <span class="n">Routes</span><span class="p">]),</span> <span class="s2">&quot;Sum_of_Transporting_Costs&quot;</span>
 </pre></div>
 </div>
 <p>The supply and demand constraints are added using a normal <cite>for</cite> loop and a list
@@ -331,17 +437,18 @@ and then constrained to being less than or equal to the supply max for that
 warehouse. Demand Constraints: For each bar in turn, the values of the decision
 variables (number on arc) from each of the warehouses is summed, and then
 constrained to being greater than or equal to the demand minimum.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># The supply maximum constraints are added to prob for each supply node (warehouse)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># The supply maximum constraints are added to prob for each supply node (warehouse)</span>
 <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">Warehouses</span><span class="p">:</span>
-    <span class="n">prob</span> <span class="o">+=</span> <span class="n">lpSum</span><span class="p">([</span><span class="n">route_vars</span><span class="p">[</span><span class="n">w</span><span class="p">][</span><span class="n">b</span><span class="p">]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">Bars</span><span class="p">])</span> <span class="o">&lt;=</span> <span class="n">supply</span><span class="p">[</span><span class="n">w</span><span class="p">],</span> <span class="s2">&quot;Sum of Products out of Warehouse </span><span class="si">%s</span><span class="s2">&quot;</span><span class="o">%</span><span class="n">w</span>
+    <span class="n">prob</span> <span class="o">+=</span> <span class="n">lpSum</span><span class="p">([</span><span class="nb">vars</span><span class="p">[</span><span class="n">w</span><span class="p">][</span><span class="n">b</span><span class="p">]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">Bars</span><span class="p">])</span><span class="o">&lt;=</span><span class="n">supply</span><span class="p">[</span><span class="n">w</span><span class="p">],</span> <span class="s2">&quot;Sum_of_Products_out_of_Warehouse_</span><span class="si">%s</span><span class="s2">&quot;</span><span class="o">%</span><span class="n">w</span>
 
 <span class="c1"># The demand minimum constraints are added to prob for each demand node (bar)</span>
 <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">Bars</span><span class="p">:</span>
-    <span class="n">prob</span> <span class="o">+=</span> <span class="n">lpSum</span><span class="p">([</span><span class="n">route_vars</span><span class="p">[</span><span class="n">w</span><span class="p">][</span><span class="n">b</span><span class="p">]</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">Warehouses</span><span class="p">])</span> <span class="o">&gt;=</span> <span class="n">demand</span><span class="p">[</span><span class="n">b</span><span class="p">],</span> <span class="s2">&quot;Sum of Products into Bars </span><span class="si">%s</span><span class="s2">&quot;</span><span class="o">%</span><span class="n">b</span>
+    <span class="n">prob</span> <span class="o">+=</span> <span class="n">lpSum</span><span class="p">([</span><span class="nb">vars</span><span class="p">[</span><span class="n">w</span><span class="p">][</span><span class="n">b</span><span class="p">]</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">Warehouses</span><span class="p">])</span><span class="o">&gt;=</span><span class="n">demand</span><span class="p">[</span><span class="n">b</span><span class="p">],</span> <span class="s2">&quot;Sum_of_Products_into_Bar</span><span class="si">%s</span><span class="s2">&quot;</span><span class="o">%</span><span class="n">b</span>
 </pre></div>
 </div>
 <p>Following this is the <cite>prob.writeLP</cite> line, and the rest as explained in previous
 examples.</p>
+<p>The code for this example is found in  <a class="reference external" href="https://projects.coin-or.org/PuLP/browser/trunk/examples/BeerDistributionProblem.py?format=txt">BeerDistributionProblem.py</a></p>
 <p>You will notice that the linear programme solution was also an integer solution.
 As long as Supply and Demand are integers, the linear programming solution will
 always be an integer. Read about naturally integer solutions for more details.</p>
@@ -369,23 +476,27 @@ storage cost at each of the supply nodes.</p>
 <p>This is added into the above model very simply. Since the objective function and
 constraints all operated on the original supply, demand and cost
 lists/dictionaries, the only changes that must be made to include another demand node are:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Creates a list of all demand nodes</span>
-<span class="n">Bars</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;1&quot;</span><span class="p">,</span><span class="s2">&quot;2&quot;</span><span class="p">,</span><span class="s2">&quot;3&quot;</span><span class="p">,</span><span class="s2">&quot;4&quot;</span><span class="p">,</span><span class="s2">&quot;5&quot;</span><span class="p">,</span><span class="s2">&quot;D&quot;</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Creates a dictionary for the number of units of supply for each supply node</span>
+<span class="n">supply</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;A&quot;</span><span class="p">:</span> <span class="mi">1000</span><span class="p">,</span>
+          <span class="s2">&quot;B&quot;</span><span class="p">:</span> <span class="mi">4000</span><span class="p">}</span>
+
+<span class="c1"># Creates a list of all demand nodes</span>
+<span class="n">Bars</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;2&quot;</span><span class="p">,</span> <span class="s2">&quot;3&quot;</span><span class="p">,</span> <span class="s2">&quot;4&quot;</span><span class="p">,</span> <span class="s2">&quot;5&quot;</span><span class="p">,</span> <span class="s2">&quot;D&quot;</span><span class="p">]</span>
 
 <span class="c1"># Creates a dictionary for the number of units of demand for each demand node</span>
-<span class="n">demand</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;1&quot;</span><span class="p">:</span> <span class="mi">500</span><span class="p">,</span>
-            <span class="s2">&quot;2&quot;</span><span class="p">:</span> <span class="mi">900</span><span class="p">,</span>
-            <span class="s2">&quot;3&quot;</span><span class="p">:</span> <span class="mi">1800</span><span class="p">,</span>
-            <span class="s2">&quot;4&quot;</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span>
-            <span class="s2">&quot;5&quot;</span><span class="p">:</span> <span class="mi">700</span><span class="p">,</span>
-            <span class="s2">&quot;D&quot;</span><span class="p">:</span> <span class="mi">900</span><span class="p">}</span>
+<span class="n">demand</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;1&quot;</span><span class="p">:</span><span class="mi">500</span><span class="p">,</span>
+          <span class="s2">&quot;2&quot;</span><span class="p">:</span><span class="mi">900</span><span class="p">,</span>
+          <span class="s2">&quot;3&quot;</span><span class="p">:</span><span class="mi">1800</span><span class="p">,</span>
+          <span class="s2">&quot;4&quot;</span><span class="p">:</span><span class="mi">200</span><span class="p">,</span>
+          <span class="s2">&quot;5&quot;</span><span class="p">:</span><span class="mi">700</span><span class="p">,</span>
+          <span class="s2">&quot;D&quot;</span><span class="p">:</span><span class="mi">900</span><span class="p">}</span>
 
 <span class="c1"># Creates a list of costs of each transportation path</span>
 <span class="n">costs</span> <span class="o">=</span> <span class="p">[</span>   <span class="c1">#Bars</span>
-     <span class="c1">#1 2 3 4 5 D</span>
-     <span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span><span class="c1">#A  Warehouses</span>
-     <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="c1">#B</span>
-     <span class="p">]</span>
+         <span class="c1">#1 2 3 4 5 D</span>
+         <span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span><span class="c1">#A   Warehouses</span>
+         <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="c1">#B</span>
+         <span class="p">]</span>
 </pre></div>
 </div>
 <p>The <cite>Bars</cite> list is expanded and the <cite>Demand</cite> dictionary is expanded to make the
@@ -399,37 +510,39 @@ problem using a dummy supply node. Note that with excess demand, the problem is
 “Infeasible” when unbalanced.</p>
 <p>Assume there has been a production problem and only 4000 cases of beer could be
 produced. Since the total demand is 4100, we need to get extra cases of beer from the dummy supply node.</p>
+<p>The code for this example is found in  <a class="reference external" href="https://projects.coin-or.org/PuLP/browser/trunk/examples/BeerDistributionProblemWarehouseExtension.py?format=txt">BeerDistributionProblemWarehouseExtension.py</a></p>
 <img alt="../_images/extra_demand.jpg" src="../_images/extra_demand.jpg" />
 <p>This dummy supply node is added in simply and logically into the <cite>Warehouse</cite>
 list, <cite>Supply</cite> dictionary, and <cite>costs</cite> list. The Supply value is chosen to
 balance the problem, and cost of transport is zero to all demand nodes.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Creates a list of all the supply nodes</span>
-<span class="n">Warehouses</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">,</span><span class="s2">&quot;B&quot;</span><span class="p">,</span><span class="s2">&quot;D&quot;</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Creates a list of all the supply nodes</span>
+<span class="n">Warehouses</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="s2">&quot;B&quot;</span><span class="p">,</span> <span class="s2">&quot;C&quot;</span><span class="p">]</span>
 
 <span class="c1"># Creates a dictionary for the number of units of supply for each supply node</span>
 <span class="n">supply</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;A&quot;</span><span class="p">:</span> <span class="mi">1000</span><span class="p">,</span>
-      <span class="s2">&quot;B&quot;</span><span class="p">:</span> <span class="mi">3000</span><span class="p">,</span>
-      <span class="s2">&quot;D&quot;</span><span class="p">:</span> <span class="mi">100</span><span class="p">}</span>
+          <span class="s2">&quot;B&quot;</span><span class="p">:</span> <span class="mi">4000</span><span class="p">,</span>
+          <span class="s2">&quot;C&quot;</span><span class="p">:</span> <span class="mi">100</span><span class="p">}</span>
 
 <span class="c1"># Creates a list of all demand nodes</span>
-<span class="n">Bars</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;1&quot;</span><span class="p">,</span><span class="s2">&quot;2&quot;</span><span class="p">,</span><span class="s2">&quot;3&quot;</span><span class="p">,</span><span class="s2">&quot;4&quot;</span><span class="p">,</span><span class="s2">&quot;5&quot;</span><span class="p">]</span>
+<span class="n">Bars</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;2&quot;</span><span class="p">,</span> <span class="s2">&quot;3&quot;</span><span class="p">,</span> <span class="s2">&quot;4&quot;</span><span class="p">,</span> <span class="s2">&quot;5&quot;</span><span class="p">]</span>
 
 <span class="c1"># Creates a dictionary for the number of units of demand for each demand node</span>
-<span class="n">demand</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;1&quot;</span><span class="p">:</span> <span class="mi">500</span><span class="p">,</span>
-      <span class="s2">&quot;2&quot;</span><span class="p">:</span> <span class="mi">900</span><span class="p">,</span>
-      <span class="s2">&quot;3&quot;</span><span class="p">:</span> <span class="mi">1800</span><span class="p">,</span>
-      <span class="s2">&quot;4&quot;</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span>
-      <span class="s2">&quot;5&quot;</span><span class="p">:</span> <span class="mi">700</span><span class="p">}</span>
+<span class="n">demand</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;1&quot;</span><span class="p">:</span><span class="mi">500</span><span class="p">,</span>
+          <span class="s2">&quot;2&quot;</span><span class="p">:</span><span class="mi">900</span><span class="p">,</span>
+          <span class="s2">&quot;3&quot;</span><span class="p">:</span><span class="mi">1800</span><span class="p">,</span>
+          <span class="s2">&quot;4&quot;</span><span class="p">:</span><span class="mi">200</span><span class="p">,</span>
+          <span class="s2">&quot;5&quot;</span><span class="p">:</span><span class="mi">700</span><span class="p">,}</span>
 
 <span class="c1"># Creates a list of costs of each transportation path</span>
 <span class="n">costs</span> <span class="o">=</span> <span class="p">[</span>   <span class="c1">#Bars</span>
-     <span class="c1">#1 2 3 4 5 D</span>
-     <span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="c1">#A</span>
-     <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span> <span class="c1">#B  Warehouses</span>
-     <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>  <span class="c1">#D</span>
-     <span class="p">]</span>
+         <span class="c1">#1 2 3 4 5</span>
+         <span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span><span class="c1">#A   Warehouses</span>
+         <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span> <span class="c1">#B</span>
+         <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+         <span class="p">]</span>
 </pre></div>
 </div>
+<p>The code for this example is found in  <a class="reference external" href="https://projects.coin-or.org/PuLP/browser/trunk/examples/BeerDistributionProblemCompetitorExtension.py?format=txt">BeerDistributionProblemCompetitorExtension.py</a></p>
 </div>
 </div>
 <div class="section" id="presentation-of-solution-and-analysis">
@@ -495,31 +608,84 @@ The total transportation cost of this shipping schedule is $_____.
 </div>
 
 
+           </div>
+           <div class="articleComments">
+            
+           </div>
           </div>
-          
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="a_two_stage_production_planning_problem.html" class="btn btn-neutral float-right" title="A Two Stage Production Planning Problem" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="a_sudoku_problem.html" class="btn btn-neutral" title="A Sudoku Problem formulated as an LP" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2009-, pulp documentation team..
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
         </div>
       </div>
-    <div class="clearer"></div>
+
+    </section>
+
   </div>
+  
 
-    <div class="footer">
-      &copy;2009-, pulp documentation team..
-      
-      |
-      <a href="../_sources/CaseStudies/a_transportation_problem.rst.txt"
-          rel="nofollow">Page source</a>
-    </div>
 
-    
-    <a href="https://github.com/coin-or/pulp" class="github">
-        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
-    </a>
-    
+  
 
-     
-<center>
-<a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/nz/"><img alt="Creative Commons License" style="border-width:0" src="http://i.creativecommons.org/l/by-sa/3.0/nz/88x31.png" /></a><br /><span xmlns:dc="http://purl.org/dc/elements/1.1/" href="http://purl.org/dc/dcmitype/Text" property="dc:title" rel="dc:type">PuLP documentation</span> by <span xmlns:cc="http://creativecommons.org/ns#" property="cc:attributionName">Pulp documentation team</span> is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/nz/">Creative Commons Attribution-Share Alike 3.0 New Zealand License</a>.
-</center>
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'2.2',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="../_static/language_data.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="../_static/jquery.fancybox.min.js"></script>
 
-  </body>
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+  
+  <script type="text/javascript">
+    $(function(){
+      $('.image-reference').fancybox();
+    })
+  </script>
+
+</body>
 </html>

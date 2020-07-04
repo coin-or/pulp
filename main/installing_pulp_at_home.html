@@ -1,57 +1,119 @@
 
+
+
 <!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Installing PuLP at Home &mdash; PuLP 2.2 documentation</title>
+  
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta charset="utf-8" />
-    <title>Installing PuLP at Home &#8212; PuLP 2.0 documentation</title>
-    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="../_static/language_data.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Amply" href="amply.html" />
-    <link rel="prev" title="Basic Python Coding" href="basic_python_coding.html" />
-   
-  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
   
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+  
+  
 
-  </head><body>
-  <div class="document">
+  
+
+  
+  
     
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../index.html">PuLP</a></h1>
 
+  
 
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
 
+  
+    <link rel="stylesheet" href="../_static/jquery.fancybox.min.css" type="text/css" />
+  
+    <link rel="stylesheet" href="../_static/glpi.css" type="text/css" />
+  
 
+  
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
+    <link rel="top" title="PuLP 2.2 documentation" href="../index.html"/>
+        <link rel="up" title="Main Topics" href="index.html"/>
+        <link rel="next" title="Amply" href="amply.html"/>
+        <link rel="prev" title="Basic Python Coding" href="basic_python_coding.html"/> 
 
+  
+  <script src="../_static/js/modernizr.min.js"></script>
 
-<p>
-<iframe src="https://ghbtns.com/github-btn.html?user=coin-or&repo=pulp&type=watch&count=true&size=large&v=2"
-  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
-</p>
+</head>
 
+<body class="wy-body-for-nav" role="document">
 
+   
+  <div class="wy-grid-for-nav">
 
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
 
+          
+            <a href="../index.html" class="icon icon-home"> PuLP
+          
 
-<h3>Navigation</h3>
-<ul class="current">
+          
+          </a>
+
+          
+            
+              <div class="version">
+                2.2
+
+                
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Main Topics</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="the_optimisation_process.html">The Optimisation Process</a></li>
 <li class="toctree-l2"><a class="reference internal" href="optimisation_concepts.html">Optimisation Concepts</a></li>
 <li class="toctree-l2"><a class="reference internal" href="basic_python_coding.html">Basic Python Coding</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Installing PuLP at Home</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Installing PuLP at Home</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id1">Installation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pip-and-pypi-installation">Pip and pypi installation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#windows-installation-from-source">Windows installation from source</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#linux-installation">Linux Installation</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#testing-your-pulp-installation">Testing your PuLP installation</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="amply.html">Amply</a></li>
+<li class="toctree-l2"><a class="reference internal" href="includeme.html">README</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../CaseStudies/index.html">Case Studies</a></li>
@@ -59,42 +121,77 @@
 <li class="toctree-l1"><a class="reference internal" href="../technical/index.html">PuLP Internal Documentation</a></li>
 </ul>
 
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../index.html">Documentation overview</a><ul>
-  <li><a href="index.html">Main Topics</a><ul>
-      <li>Previous: <a href="basic_python_coding.html" title="previous chapter">Basic Python Coding</a></li>
-      <li>Next: <a href="amply.html" title="next chapter">Amply</a></li>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-
-
-
-
-
-
-
-
+            
+          
         </div>
       </div>
-      <div class="documentwrapper">
-        <div class="bodywrapper">
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PuLP</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
           
 
-          <div class="body" role="main">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Main Topics</a> &raquo;</li>
+        
+      <li>Installing PuLP at Home</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/main/installing_pulp_at_home.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <div class="rst-breadcrumbs-buttons" role="navigation" aria-label="breadcrumb navigation">
+      
+        <a href="amply.html" class="btn btn-neutral float-right" title="Amply" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="basic_python_coding.html" class="btn btn-neutral" title="Basic Python Coding" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+  </div>
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
             
   <div class="section" id="installing-pulp-at-home">
 <span id="installation"></span><h1>Installing PuLP at Home<a class="headerlink" href="#installing-pulp-at-home" title="Permalink to this headline">¶</a></h1>
@@ -106,17 +203,12 @@ use python commands to manipulate and display the solution.</p>
 <h2>Installation<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
 <p>Note that to install PuLP you must first have a working python installation as
 described in <a class="reference external" href="http://www.diveintopython.org/installing_python/index.html">installing python</a>.</p>
-<p>PuLP requires Python &gt;= 2.7.</p>
-<p>The latest version of PuLP can be freely obtained from <a class="reference external" href="https://github.com/stumitchell/pulp-or">github</a>.
-Please note that this version of PuLP has not been tested with operating systems
-other than Microsoft Windows and Ubuntu Linux.</p>
+<p>PuLP requires Python &gt;= 2.7 or Python &gt;= 3.4.</p>
+<p>The latest version of PuLP can be freely obtained from <a class="reference external" href="https://github.com/coin-or/pulp-or">github</a>.</p>
 <div class="section" id="pip-and-pypi-installation">
 <h3>Pip and pypi installation<a class="headerlink" href="#pip-and-pypi-installation" title="Permalink to this headline">¶</a></h3>
-<p>By far the easiest way to install pulp is through the use of <a class="reference external" href="https://pypi.python.org/pypi/pip">pip</a> and
-<a class="reference external" href="http://pypi.python.org">CheeseShop</a>.</p>
+<p>By far the easiest way to install pulp is through the use of <a class="reference external" href="https://pypi.python.org/pypi/pip">pip</a>.</p>
 <ul>
-<li><dl>
-<dt>Install pip</dt><dd><ul>
 <li><p>In  windows (please make sure pip is on your path):</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">:</span>\<span class="n">Python34</span>\<span class="n">Scripts</span>\<span class="o">&gt;</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">pulp</span>
 </pre></div>
@@ -128,42 +220,35 @@ $ sudo pulptest             #needed to get the default solver to work
 </pre></div>
 </div>
 </li>
-</ul>
-</dd>
-</dl>
-</li>
 <li><p>Then follow the instructions below to test your installation</p></li>
 </ul>
-<p>To access the examples and pulp source code use the instructions below
-to install from source</p>
+<p>To access the examples and pulp source code use the instructions below to install from source.</p>
 </div>
 <div class="section" id="windows-installation-from-source">
 <h3>Windows installation from source<a class="headerlink" href="#windows-installation-from-source" title="Permalink to this headline">¶</a></h3>
-<ul class="simple">
+<ul>
 <li><p>Install python (<a class="reference external" href="http://www.diveintopython.org/installing_python/index.html">installing python</a>)</p></li>
-<li><p>Download the <a class="reference external" href="https://github.com/stumitchell/pulp-or/archive/master.zip">PuLP zipfile</a></p></li>
-<li><dl class="simple">
-<dt>Extract the zipfile to a suitable location (such as the desktop - the folder will be no longer required after installation)</dt><dd><ul>
+<li><p>Download the <a class="reference external" href="https://github.com/coi-nor/pulp-or/archive/master.zip">PuLP zipfile</a></p></li>
+<li><p>Extract the zipfile to a suitable location (such as the desktop: the folder will be no longer required after installation)</p>
+<blockquote>
+<div><ul class="simple">
 <li><p>Open a command prompt by clicking “Run” in the Start Menu, and type ‘cmd’ in the window and push enter.</p></li>
 <li><p>Navigate to the extracted folder with the setup file in it. [Do this by typing ‘cd foldername’ at the prompt, where ‘cd’ stands for current directory and the ‘foldername’ is the name of the folder to open in the path already listed to the left of the prompt. To return back to a root drive, type ‘cd C:’]</p></li>
 <li><p>Type ‘setup.py install’ at the command prompt. This will install all the PuLP functions into Python’s site-packages directory.</p></li>
 </ul>
-</dd>
-</dl>
+</div></blockquote>
 </li>
 </ul>
 <p>The PuLP function library is now able to be imported from any python command line. Go to IDLE or PyDev and type</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pulp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pulp</span> <span class="k">import</span> <span class="o">*</span>
 </pre></div>
 </div>
-<p>to load in the functions. (You need to re-import the functions each time after
-you close the GUI) PuLP is written in a programming language called Python, and
-to use PuLP you must write Python code to describe your optimization problem.</p>
+<p>to load in the functions. (You need to re-import the functions each time after you close the GUI) PuLP is written in a programming language called Python, and to use PuLP you must write Python code to describe your optimization problem.</p>
 </div>
 <div class="section" id="linux-installation">
 <h3>Linux Installation<a class="headerlink" href="#linux-installation" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p>Extract the <a class="reference external" href="https://github.com/stumitchell/pulp-or/archive/master.zip">PuLP zipfile</a> folder to a suitable location (such as your home directory - the folder will be no longer required after installation)</p></li>
+<li><p>Extract the <a class="reference external" href="https://github.com/coi-nor/pulp-or/archive/master.zip">PuLP zipfile</a> folder to a suitable location (such as your home directory - the folder will be no longer required after installation)</p></li>
 <li><p>Open a command line navigate to the extracted zipfile with the setup file in it. [Do this by typing ‘cd foldername’ at the prompt]</p></li>
 <li><p>Type the following at the command prompt. This will install all the PuLP functions into Python’s callable modules.</p></li>
 </ul>
@@ -171,8 +256,9 @@ to use PuLP you must write Python code to describe your optimization problem.</p
 </pre></div>
 </div>
 <ul>
-<li><dl>
-<dt>install a solver for pulp to use either</dt><dd><ul class="simple">
+<li><p>install a solver for pulp to use either</p>
+<blockquote>
+<div><ul class="simple">
 <li><p>use the included 64 or 32-bit binaries cbc-32 and cbc-64</p></li>
 <li><p>install <a class="reference external" href="http://www.gnu.org/software/glpk/">glpk</a>  debain based distributions may use the following</p></li>
 </ul>
@@ -183,8 +269,7 @@ to use PuLP you must write Python code to describe your optimization problem.</p
 <li><p>install <a class="reference external" href="http://gurobi.com">gurobi</a> (free academic licenses)</p></li>
 <li><p>install <a class="reference external" href="http://cplex.com">cplex</a> (also a license for academics)</p></li>
 </ul>
-</dd>
-</dl>
+</div></blockquote>
 </li>
 </ul>
 </div>
@@ -195,7 +280,7 @@ to use PuLP you must write Python code to describe your optimization problem.</p
 following into a python interpreter and note that the output should be similar.
 The output below is what you would expect if you have not installed any other
 solvers and the <a class="reference external" href="https://projects.coin-or.org/Cbc">CBC</a> solver bundled with pulp works.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pulp</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pulp</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">pulp</span><span class="o">.</span><span class="n">pulpTestAll</span><span class="p">()</span>
 <span class="go">         Testing zero subtraction</span>
 <span class="go">         Testing continuous LP solution</span>
@@ -238,31 +323,84 @@ solvers and the <a class="reference external" href="https://projects.coin-or.org
 </div>
 
 
+           </div>
+           <div class="articleComments">
+            
+           </div>
           </div>
-          
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="amply.html" class="btn btn-neutral float-right" title="Amply" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="basic_python_coding.html" class="btn btn-neutral" title="Basic Python Coding" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2009-, pulp documentation team..
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
         </div>
       </div>
-    <div class="clearer"></div>
+
+    </section>
+
   </div>
+  
 
-    <div class="footer">
-      &copy;2009-, pulp documentation team..
-      
-      |
-      <a href="../_sources/main/installing_pulp_at_home.rst.txt"
-          rel="nofollow">Page source</a>
-    </div>
 
-    
-    <a href="https://github.com/coin-or/pulp" class="github">
-        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
-    </a>
-    
+  
 
-     
-<center>
-<a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/nz/"><img alt="Creative Commons License" style="border-width:0" src="http://i.creativecommons.org/l/by-sa/3.0/nz/88x31.png" /></a><br /><span xmlns:dc="http://purl.org/dc/elements/1.1/" href="http://purl.org/dc/dcmitype/Text" property="dc:title" rel="dc:type">PuLP documentation</span> by <span xmlns:cc="http://creativecommons.org/ns#" property="cc:attributionName">Pulp documentation team</span> is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/nz/">Creative Commons Attribution-Share Alike 3.0 New Zealand License</a>.
-</center>
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'2.2',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="../_static/language_data.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="../_static/jquery.fancybox.min.js"></script>
 
-  </body>
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+  
+  <script type="text/javascript">
+    $(function(){
+      $('.image-reference').fancybox();
+    })
+  </script>
+
+</body>
 </html>
