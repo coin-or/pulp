@@ -2,6 +2,11 @@
 
 When contributing to this repository, please first discuss the change you wish to make with the owners of this repository by creating an issue before making a change. 
 
+## Contributor License Agreement
+
+This project belongs to the [COIN-OR](coinor) community and thus follows its guidelines, listed [here](coinor_guidelines). 
+In order to sign the contribution agreement, we use [cla-assistant](_cla_assistant). When a new PR is created, a link will appear that asks the submitter to sign it virtually, in case the github user has not done so already. The only requisite is to have a github account. The link to pulp's CLA is [here](cla).
+
 ## Pull Request Process
 
 1. Create a Fork of the project to your own repository.
@@ -16,7 +21,7 @@ When contributing to this repository, please first discuss the change you wish t
 
 ## Want to contribute but do not know where to start?
 
-Check the [Roadmap][roadmap] for the project to see what you can help with. We're always looking for more examples and better documentation.
+Check the [Roadmap][roadmap] for the project to see what you can help with. We're always looking for more examples and better documentation. Or check the issues that have the "help wanted" or "bug" tag.
 
 ### Attribution
 
@@ -26,3 +31,7 @@ available at [http://contributor-covenant.org/version/1/4][version]
 [homepage]: http://contributor-covenant.org
 [version]: http://contributor-covenant.org/version/1/4/
 [roadmap]: https://github.com/coin-or/pulp/projects/1
+[coinor]: https://www.coin-or.org/
+[coinor_guidelines]: https://www.coin-or.org/contributing/code/
+[cla]: https://cla-assistant.io/coin-or/pulp
+[_cla_assistant]: https://github.com/cla-assistant/cla-assistant

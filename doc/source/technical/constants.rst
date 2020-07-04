@@ -58,31 +58,31 @@
  
     LpStatusUndefined = -3
   
-  .. data:: LpSolution
+.. data:: LpSolution
+
+Return solution status from solver:
+
+  +----------------------------------------+------------------------------+-----------------+
+  |  LpStatus  key                         | string value                 | numerical value |
+  +========================================+==============================+=================+
+  |  :data:`LpSolutionOptimal`             | "Optimal Solution Found"     |          1      |
+  +----------------------------------------+------------------------------+-----------------+
+  |  :data:`LpSolutionNoSolutionFound`     | "No Solution Found"          |          0      |
+  +----------------------------------------+------------------------------+-----------------+
+  |  :data:`LpSolutionStatusInfeasible`    |"Solution prove Infeasible"   |         -1      |
+  +----------------------------------------+------------------------------+-----------------+
+  |  :data:`LpSolutionStatusUnbounded`     | "Solution proved Unbounded"  |          -2     |
+  +----------------------------------------+------------------------------+-----------------+
+  |  :data:`LpSolutionIntegerFeasible`     | "Integer Solution Found"     |          2      |
+  +----------------------------------------+------------------------------+-----------------+
   
-    Return solution status from solver:
-  
-      +-----------------------------+---------------+-----------------+
-      |  LpStatus  key                      | string value  | numerical value |
-      +=============================+===============+=================+
-      |  :data:`LpSolutionOptimal`          | "Optimal Solution Found"     |          1      |
-      +-----------------------------+---------------+-----------------+
-      |  :data:`LpSolutionNoSolutionFound`  | "No Solution Found"  |          0      |
-      +-----------------------------+---------------+-----------------+
-      |  :data:`LpSolutionStatusInfeasible` | "Infeasible"  |         -1      |
-      +-----------------------------+---------------+-----------------+
-      |  :data:`LpSolutionStatusUnbounded`  | "Unbounded"   |          -2     |
-      +-----------------------------+---------------+-----------------+
-      |  :data:`LpSolutionIntegerFeasible`  | "Integer Solution Found"   |          2     |
-      +-----------------------------+---------------+-----------------+
-      
-  
-  .. data:: LpSenses
-     
-    Dictionary of values for :attr:`~pulp.pulp.LpProblem.sense`:
-  
-       LpSenses =
-       {:data:`LpMaximize`:"Maximize", :data:`LpMinimize`:"Minimize"}
+
+.. data:: LpSenses
+ 
+Dictionary of values for :attr:`~pulp.pulp.LpProblem.sense`:
+
+   LpSenses =
+   {:data:`LpMaximize`:"Maximize", :data:`LpMinimize`:"Minimize"}
   
  .. data::   LpMinimize 
   
