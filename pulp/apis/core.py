@@ -70,8 +70,10 @@ else:
 
 if sys.version_info[0] < 3:
     devnull = open(os.devnull, 'wb')
+    to_string = lambda _obj: str(_obj)
 else:
     devnull = subprocess.DEVNULL
+    to_string = lambda _obj: str(_obj).encode()
 
 from uuid import uuid4
 
@@ -272,7 +274,7 @@ class LpSolver:
         upperBounds = NumVarDoubleArray()
         initValues = NumVarDoubleArray()
         for v in lp.variables():
-            colNames[self.v2n[v]] = str(v.name)
+            colNames[self.v2n[v]] = to_string(v.name)
             initValues[self.v2n[v]] = 0.0
             if v.lowBound != None:
                 lowerBounds[self.v2n[v]] = v.lowBound
@@ -298,8 +300,8 @@ class LpSolver:
             rhsValues[i] = -lp.constraints[c].constant
             #for ranged constraints a<= constraint >=b
             rangeValues[i] = 0.0
-            rowNames[i] = str(c)
-            rowType[i] = senseDict[lp.constraints[c].sense]
+            rowNames[i] = to_string(c)
+            rowType[i] = to_string(senseDict[lp.constraints[c].sense])
             self.c2n[c] = i
             self.n2c[i] = c
             i = i+1
@@ -319,7 +321,7 @@ class LpSolver:
         columnType = NumVarCharArray()
         if lp.isMIP():
             for v in lp.variables():
-                columnType[self.v2n[v]] = LpVarCategories[v.cat]
+                columnType[self.v2n[v]] = to_string(LpVarCategories[v.cat])
         self.addedVars = numVars
         self.addedRows = numRows
         return  (numVars, numRows, numels, rangeCount,

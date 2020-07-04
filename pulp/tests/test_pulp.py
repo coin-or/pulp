@@ -839,30 +839,32 @@ def pulpTestCheck(prob, solver, okstatus, sol=None,
 
 
 def suite():
-    solvers = [PULP_CBC_CMD,
-               CPLEX_DLL,
-               CPLEX_CMD,
-               CPLEX_PY,
-               COIN_CMD,
-               COINMP_DLL,
-               GLPK_CMD,
-               XPRESS,
-               GUROBI,
-               GUROBI_CMD,
-               PYGLPK,
-               YAPOSIB,
-               PULP_CHOCO_CMD,
-               CHOCO_CMD,
-               MIPCL_CMD,
-               MOSEK
-               ]
+    solvers = [
+        PULP_CBC_CMD,
+        CPLEX_DLL,
+        CPLEX_CMD,
+        CPLEX_PY,
+        COIN_CMD,
+        COINMP_DLL,
+        GLPK_CMD,
+        XPRESS,
+        GUROBI,
+        GUROBI_CMD,
+        PYGLPK,
+        YAPOSIB,
+        PULP_CHOCO_CMD,
+        CHOCO_CMD,
+        MIPCL_CMD,
+        MOSEK,
+    ]
 
     loader = TestLoaderWithKwargs()
     suite = unittest.TestSuite()
     for solver in solvers:
-        if solver().available():
+        _solver = solver(msg=0)
+        if _solver.available():
             print("Solver %s available" % solver)
-            tests = loader.loadTestsFromTestCase(PuLPTest, solver=solver(msg=0))
+            tests = loader.loadTestsFromTestCase(PuLPTest, solver=_solver)
             suite.addTests(tests)
         else:
             print("Solver %s unavailable" % solver)
