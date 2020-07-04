@@ -1,6 +1,6 @@
 
 from .core import LpSolver_CMD, LpSolver, subprocess, PulpSolverError, clock, log
-from .core import cplex_dll_path, ctypesArrayFill, ilm_cplex_license, ilm_cplex_license_signature
+from .core import cplex_dll_path, ctypesArrayFill, ilm_cplex_license, ilm_cplex_license_signature, to_string
 from .. import constants, sparse
 import os
 import warnings
@@ -174,20 +174,13 @@ class CPLEX_CMD(LpSolver_CMD):
         return True
 
 
-def CPLEX_DLL_load_dll(path):
-    """
-    function that loads the DLL useful for debugging installation problems
-    """
-    import ctypes
-    if os.name in ['nt','dos']:
-        lib = ctypes.windll.LoadLibrary(str(path))
-    else:
-        lib = ctypes.cdll.LoadLibrary(str(path))
-    return lib
-
-
+ctypes = None
+_ctypes = None
 def findCPLEX_DLL():
     # for compatibility
+    global ctypes, _ctypes
+    import ctypes
+    import _ctypes
     try:
         return CPLEX_DLL_load_dll(cplex_dll_path)
     except OSError:
@@ -206,7 +199,25 @@ def findCPLEX_DLL():
                 return CPLEX_DLL_load_dll(full_path)
 
 
-ctypes = None
+def CPLEX_DLL_load_dll(path):
+    """
+    function that loads the DLL useful for debugging installation problems
+    """
+    lib = ctypes.CDLL(str(path))
+    return lib
+
+
+def CPLEX_DLL_unload_dll(lib):
+    import _ctypes
+    libHandle = lib._handle
+    del lib
+    if os.name in ['nt','dos']:
+        func = _ctypes.FreeLibrary
+    else:
+        func = _ctypes.dlclose
+    func(libHandle)
+
+
 class CPLEX_DLL(LpSolver):
     """
     The CPLEX LP/MIP solver (via a Dynamic library DLL - windows or SO - Linux)
@@ -218,8 +229,6 @@ class CPLEX_DLL(LpSolver):
     """
 
     try:
-        global ctypes
-        import ctypes
         lib = findCPLEX_DLL()
 
     except (ImportError, OSError) as e:
@@ -256,7 +265,8 @@ class CPLEX_DLL(LpSolver):
                     timeLimit = None,
                     epgap = None,
                     logfilename = None,
-                    emphasizeMemory = False):
+                    emphasizeMemory = False,
+                    **kwargs):
             """
             Initializes the CPLEX_DLL solver.
 
@@ -484,7 +494,6 @@ class CPLEX_DLL(LpSolver):
                 var.modified = False
             return solutionStatus
 
-
         def actualResolve(self, lp, **kwargs):
             """looks at which variables have been modified and changes them
             """
@@ -549,7 +558,7 @@ class CPLEX_DLL(LpSolver):
             initValues =  (ctypes.c_double * numVars)()
             i=0
             for v in vars:
-                colNames[i] = str(v.name)
+                colNames[i] = to_string(v.name)
                 initValues[i] = v.varValue if v.varValue is not None else 0
                 if v.lowBound != None:
                     lowerBounds[i] = v.lowBound

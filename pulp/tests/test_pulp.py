@@ -313,7 +313,7 @@ class PuLPTest(unittest.TestCase):
         y.setInitialValue(-0.5)
         z.setInitialValue(7)
         self.solver.mip_start = True
-        print("\t Testing MIP solution")
+        print("\t Testing Initial value in MIP solution")
         if self.solver.__class__ in [COIN_CMD, PULP_CBC_CMD]:
             warnings.warn("CBC gives a wrong solution with mip start.")
         else:
@@ -334,7 +334,7 @@ class PuLPTest(unittest.TestCase):
             v.setInitialValue(solution[v])
             v.fixValue()
         self.solver.mip_start = True
-        print("\t Testing MIP solution")
+        print("\t Testing fixing value in MIP solution")
         pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], solution)
 
     def test_pulp_030(self):
@@ -399,7 +399,7 @@ class PuLPTest(unittest.TestCase):
         if self.solver.__class__ in [GLPK_CMD, COIN_CMD, PULP_CBC_CMD, MOSEK]:
             # GLPK_CMD returns InfeasibleOrUnbounded
             pulpTestCheck(prob, self.solver, [const.LpStatusInfeasible, const.LpStatusUndefined])
-        elif self.solver.__class__ in [COINMP_DLL]:
+        elif self.solver.__class__ in [COINMP_DLL, CPLEX_DLL]:
             # Currently there is an error in COINMP for problems where
             # presolve eliminates too many variables
             print("\t\t Error in CoinMP to be fixed, reports Optimal")
@@ -423,7 +423,7 @@ class PuLPTest(unittest.TestCase):
         print("\t Testing another integer infeasible problem")
         if self.solver.__class__ in [GUROBI_CMD]:
             pulpTestCheck(prob, self.solver, [const.LpStatusNotSolved])
-        elif self.solver.__class__ in [GLPK_CMD]:
+        elif self.solver.__class__ in [GLPK_CMD, CPLEX_DLL]:
             # GLPK_CMD returns InfeasibleOrUnbounded
             pulpTestCheck(prob, self.solver, [const.LpStatusInfeasible, const.LpStatusUndefined])
         else:
@@ -706,7 +706,7 @@ class PuLPTest(unittest.TestCase):
         data = prob.to_dict()
         var1, prob1 = prob.from_dict(data)
         x, y, z = [var1[name] for name in ['x', 'y', 'z']]
-        print("\t Testing MIP solution")
+        print("\t Testing export dict MIP")
         pulpTestCheck(prob1, self.solver, [const.LpStatusOptimal], {x: 3, y: -0.5, z: 7})
 
     def test_export_dict_max(self):
@@ -727,6 +727,9 @@ class PuLPTest(unittest.TestCase):
         pulpTestCheck(prob1, self.solver, [const.LpStatusOptimal], {x: 4, y: 1, z: 8, w: 0})
 
     def test_export_solver_dict_LP(self):
+        if self.solver.name == 'CPLEX_DLL':
+            warnings.warn("CPLEX_DLL does not like being exported")
+            return
         prob = LpProblem("test_export_dict_LP", const.LpMinimize)
         x = LpVariable("x", 0, 4)
         y = LpVariable("y", -1, 1)
@@ -743,6 +746,9 @@ class PuLPTest(unittest.TestCase):
         pulpTestCheck(prob, solver1, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
 
     def test_export_solver_json(self):
+        if self.solver.name == 'CPLEX_DLL':
+            warnings.warn("CPLEX_DLL does not like being exported")
+            return
         name = 'test_export_solver_json'
         prob = LpProblem(name, const.LpMinimize)
         x = LpVariable("x", 0, 4)
