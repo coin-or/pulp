@@ -134,14 +134,19 @@ try:
 except ImportError:
     import json
 
+import re
 
 class LpElement(object):
     """Base class for LpVariable and LpConstraintVar
     """
     #to remove illegal characters from the names
-    trans = maketrans("-+[] ->/","________")
-    def setName(self,name):
+    illegal_chars = "-+[] ->/"
+    expression = re.compile("[{}]".format(re.escape(illegal_chars)))
+    trans = maketrans(illegal_chars, "________")
+    def setName(self, name):
         if name:
+            if self.expression.match(name):
+                warnings.warn("The name {} has illegal characters that will be replaced by _".format(name))
             self.__name = str(name).translate(self.trans)
         else:
             self.__name = None
