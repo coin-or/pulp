@@ -46,18 +46,18 @@
  
     LpStatusNotSolved = 0
  
- .. data:: LpStatusInfeasible
- 
+.. data:: LpStatusInfeasible
+
     LpStatusInfeasible = -1
- 
- .. data:: LpStatusUnbounded 
- 
+
+.. data:: LpStatusUnbounded 
+
     LpStatusUnbounded = -2
- 
- .. data:: LpStatusUndefined 
- 
+
+.. data:: LpStatusUndefined 
+
     LpStatusUndefined = -3
-  
+
 .. data:: LpSolution
 
 Return solution status from solver:
@@ -69,11 +69,11 @@ Return solution status from solver:
   +----------------------------------------+------------------------------+-----------------+
   |  :data:`LpSolutionNoSolutionFound`     | "No Solution Found"          |          0      |
   +----------------------------------------+------------------------------+-----------------+
-  |  :data:`LpSolutionStatusInfeasible`    |"Solution prove Infeasible"   |         -1      |
+  |  :data:`LpSolutionStatusInfeasible`    |"No Solution Exists"          |         -1      |
   +----------------------------------------+------------------------------+-----------------+
-  |  :data:`LpSolutionStatusUnbounded`     | "Solution proved Unbounded"  |          -2     |
+  |  :data:`LpSolutionStatusUnbounded`     | "Solution is Unbounded"      |          -2     |
   +----------------------------------------+------------------------------+-----------------+
-  |  :data:`LpSolutionIntegerFeasible`     | "Integer Solution Found"     |          2      |
+  |  :data:`LpSolutionIntegerFeasible`     | "Solution Found"             |          2      |
   +----------------------------------------+------------------------------+-----------------+
   
 

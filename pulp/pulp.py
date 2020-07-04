@@ -252,7 +252,9 @@ class LpVariable(LpElement):
     def to_dict(self):
         """
         Exports a variable into a dictionary with its relevant information
-        :return:
+
+        :return: a dictionary with the variable information
+        :rtype: dict
         """
         return dict(lowBound=self.lowBound, upBound=self.upBound, cat=self.cat,
                     varValue=self.varValue, dj=self.dj, name=self.name)
@@ -262,10 +264,11 @@ class LpVariable(LpElement):
         """
         Initializes a variable object from information that comes from a dictionary (kwargs)
 
-        :param dj:
-        :param varValue:
-        :param kwargs:
-        :return:
+        :param dj: shadow price of the variable
+        :param float varValue: the value to set the variable
+        :param kwargs: arguments to initialize the variable
+        :return: a :py:class:`LpVariable`
+        :rtype: :LpVariable
         """
         var = cls(**kwargs)
         var.dj = dj
@@ -296,10 +299,7 @@ class LpVariable(LpElement):
     def dicts(self, name, indexs, lowBound = None, upBound = None, cat = const.LpContinuous,
         indexStart = []):
         """
-        Creates a dictionary of LP variables
-
-        This function creates a dictionary of LP Variables with the specified
-            associated parameters.
+        This function creates a dictionary of :py:class:`LpVariable` with the specified associated parameters.
 
         :param name: The prefix to the name of each LP variable created
         :param indexs: A list of strings of the keys to the dictionary of LP
@@ -311,7 +311,7 @@ class LpVariable(LpElement):
         :param cat: The category these variables are in, Integer or
             Continuous(default)
 
-        :return: A dictionary of LP Variables
+        :return: A dictionary of :py:class:`LpVariable`
         """
         if not isinstance(indexs, tuple): indexs = (indexs,)
         if "%" not in name: name += "_%s" * len(indexs)
@@ -421,10 +421,10 @@ class LpVariable(LpElement):
             return 0
 
     def valid(self, eps):
-        if self.varValue == None: return False
-        if self.upBound != None and self.varValue > self.upBound + eps:
+        if self.varValue is None: return False
+        if self.upBound is not None and self.varValue > self.upBound + eps:
             return False
-        if self.lowBound != None and self.varValue < self.lowBound - eps:
+        if self.lowBound is not None and self.varValue < self.lowBound - eps:
             return False
         if self.cat == const.LpInteger and abs(round(self.varValue) - self.varValue) > eps:
             return False
@@ -447,13 +447,13 @@ class LpVariable(LpElement):
         return self.cat == const.LpInteger
 
     def isFree(self):
-        return self.lowBound == None and self.upBound == None
+        return self.lowBound is None and self.upBound is None
 
     def isConstant(self):
-        return self.lowBound != None and self.upBound == self.lowBound
+        return self.lowBound is not None and self.upBound == self.lowBound
 
     def isPositive(self):
-        return self.lowBound == 0 and self.upBound == None
+        return self.lowBound == 0 and self.upBound is None
 
     def asCplexLpVariable(self):
         if self.isFree(): return self.name + " free"
@@ -467,7 +467,7 @@ class LpVariable(LpElement):
         else:
             s= "%.12g <= " % self.lowBound
         s += self.name
-        if self.upBound != None:
+        if self.upBound is not None:
             s += " <= %.12g" % self.upBound
         return s
 
@@ -493,9 +493,14 @@ class LpVariable(LpElement):
             constraint.addVariable(self,coeff)
 
     def setInitialValue(self, val, check=True):
-        """sets the initial value of the Variable to val
-        may of may not be supported by the solver
-        if check is True: we confirm the value is really possible
+        """
+        sets the initial value of the variable to `val`
+        May be used for warmStart a solver, if supported by the solver
+
+        :param float val: value to set to variable
+        :param bool check: if True, we check if the value fits inside the variable bounds
+        :return: True if the value was set
+        :raises ValueError: if check=True and the value does not fit inside the bounds
         """
         lb = self.lowBound
         ub = self.upBound
@@ -514,7 +519,7 @@ class LpVariable(LpElement):
     def fixValue(self):
         """
         changes lower bound and upper bound to the initial value if exists.
-        :return:
+        :return: None
         """
         self._lowbound_unfix = self.lowBound
         self._upbound_unfix = self.upBound
@@ -523,10 +528,16 @@ class LpVariable(LpElement):
             self.bounds(val, val)
 
     def isFixed(self):
-        return self.upBound == self.lowBound
+        """
+
+        :return: True if upBound and lowBound are the same
+        :rtype: bool
+        """
+        return self.isConstant()
 
     def unfixValue(self):
         self.bounds(self._lowbound_original, self._upbound_original)
+
 
 class LpAffineExpression(_DICT_TYPE):
     """
@@ -872,6 +883,13 @@ class LpAffineExpression(_DICT_TYPE):
         return LpConstraint(self - other, const.LpConstraintEQ)
 
     def to_dict(self):
+        """
+        exports the :py:class:`LpAffineExpression` into a list of dictionaries with the coefficients
+        it does not export the constant
+
+        :return: list of dictionaries with the coefficients
+        :rtype: list
+        """
         return [dict(name=k.name, value=v) for k, v in self.items()]
 
 
@@ -1054,7 +1072,8 @@ class LpConstraint(LpAffineExpression):
     def to_dict(self):
         """
         exports constraint information into a dictionary
-        :return:
+
+        :return: dictionary with all the constraint information
         """
         return dict(sense=self.sense,
                     pi=self.pi,
@@ -1066,8 +1085,9 @@ class LpConstraint(LpAffineExpression):
     def from_dict(cls, _dict):
         """
         Initializes a constraint object from a dictionary with necessary information
-        :param _dict: dictionary with data
-        :return:
+
+        :param dict _dict: dictionary with data
+        :return: a new :py:class:`LpConstraint`
         """
         const = cls(e=_dict['coefficients'], rhs=-_dict['constant'], name=_dict['name'], sense=_dict['sense'])
         const.pi = _dict['pi']
@@ -1186,7 +1206,6 @@ class LpProblem(object):
         self._variable_ids = {}  #old school using dict.keys() for a set
         self.dummyVar = None
 
-
         # locals
         self.lastUnused = 0
 
@@ -1248,6 +1267,7 @@ class LpProblem(object):
         So it requires to have unique names for variables.
 
         :return: dictionary with model data
+        :rtype: dict
         """
         try:
             self.checkDuplicateVars()
@@ -1255,16 +1275,17 @@ class LpProblem(object):
             raise const.PulpError("Duplicated names found in variables:\nto export the model, variable names need to be unique")
         variables = self.variables()
         return \
-            dict(objective=dict(name=self.objective.name, coefficients=self.objective.to_dict()),
-             constraints=[v.to_dict() for v in self.constraints.values()],
-             variables=[v.to_dict() for v in variables],
-             parameters=dict(name=self.name,
-                             sense=self.sense,
-                             status=self.status,
-                             sol_status=self.sol_status),
-             sos1=self.sos1,
-             sos2=self.sos2
-             )
+            dict(
+                objective=dict(name=self.objective.name, coefficients=self.objective.to_dict()),
+                constraints=[v.to_dict() for v in self.constraints.values()],
+                variables=[v.to_dict() for v in variables],
+                parameters=dict(name=self.name,
+                                sense=self.sense,
+                                status=self.status,
+                                sol_status=self.sol_status),
+                sos1=self.sos1,
+                sos2=self.sos2
+            )
 
     @classmethod
     def from_dict(cls, _dict):
@@ -1273,7 +1294,7 @@ class LpProblem(object):
         And returns a dictionary of variables and a problem object
 
         :param _dict: dictionary with the model stored
-        :return:
+        :return: a tuple with a dictionary of variables and a :py:class:`LpProblem`
         """
 
         # we instantiate the problem
@@ -1309,11 +1330,26 @@ class LpProblem(object):
         return var, pb
 
     def to_json(self, filename, *args, **kwargs):
+        """
+        Creates a json file from the LpProblem information
+
+        :param str filename: filename to write json
+        :param args: additional arguments for json function
+        :param kwargs: additional keyword arguments for json function
+        :return: None
+        """
         with open(filename, 'w') as f:
             json.dump(self.to_dict(), f, *args,  **kwargs)
 
     @classmethod
     def from_json(cls, filename):
+        """
+        Creates a new Lp Problem from a json file with information
+
+        :param str filename: json file name
+        :return: a tuple with a dictionary of variables and an LpProblem
+        :rtype: (dict, :py:class:`LpProblem`)
+        """
         with open(filename, 'r') as f:
             data = json.load(f)
         return cls.from_dict(data)
@@ -1536,6 +1572,17 @@ class LpProblem(object):
         return coefs
 
     def writeMPS(self, filename, mpsSense = 0, rename = 0, mip = 1):
+        """
+        Writes an mps files from the problem information
+
+        :param str filename: name of the file to write
+        :param int mpsSense:
+        :param bool rename: if True, normalized names are used for variables and constraints
+        :param mip: variables and variable renames
+        :return:
+        Side Effects:
+            - The file is created.
+        """
         wasNone, dummyVar = self.fixObjective()
         if mpsSense == 0: mpsSense = self.sense
         cobj = self.objective
@@ -1649,8 +1696,8 @@ class LpProblem(object):
         This function writes the specifications (objective function,
         constraints, variables) of the defined Lp problem to a file.
 
-        :param filename:  the name of the file to be created.
-        return variables
+        :param str filename: the name of the file to be created.
+        :return: variables
         Side Effects:
             - The file is created.
         """
@@ -1726,6 +1773,11 @@ class LpProblem(object):
         return vs
 
     def checkDuplicateVars(self):
+        """
+        Checks if there are at least two variables with the same name
+        :return: 1
+        :raises `const.PulpError`: if there ar duplicates
+        """
         vs = self.variables()
 
         repeated_names = {}
@@ -1738,6 +1790,12 @@ class LpProblem(object):
         return 1
 
     def checkLengthVars(self, max_length):
+        """
+        Checks if variables have names smaller than `max_length`
+        :param int max_length: max size for variable name
+        :return:
+        :raises const.PulpError: if there is at least one variable that has a long name
+        """
         vs = self.variables()
         long_names = [v.name for v in vs if len(v.name) > max_length]
         if long_names:
@@ -1879,16 +1937,24 @@ class LpProblem(object):
         else:
             return self.solve(solver = solver, **kwargs)
 
-    def setSolver(self,solver = LpSolverDefault):
+    def setSolver(self, solver = LpSolverDefault):
         """Sets the Solver for this problem useful if you are using
         resolve
         """
         self.solver = solver
 
     def numVariables(self):
+        """
+
+        :return: number of variables in model
+        """
         return len(self._variable_ids)
 
     def numConstraints(self):
+        """
+
+        :return: number of constraints in model
+        """
         return len(self.constraints)
 
     def getSense(self):

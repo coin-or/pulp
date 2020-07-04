@@ -38,14 +38,14 @@ class XPRESS(LpSolver_CMD):
         """
         Initializes the Xpress solver.
 
-        @param maxSeconds: the maximum time that the Optimizer will run before it terminates
-        @param targetGap: global search will terminate if:
+        :param maxSeconds: the maximum time that the Optimizer will run before it terminates
+        :param targetGap: global search will terminate if:
                           abs(MIPOBJVAL - BESTBOUND) <= MIPRELSTOP * BESTBOUND
-        @param heurFreq: the frequency at which heuristics are used in the tree search
-        @param heurStra: heuristic strategy
-        @param coverCuts: the number of rounds of lifted cover inequalities at the top node
-        @param preSolve: whether presolving should be performed before the main algorithm
-        @param options: Adding more options, e.g. options = ["NODESELECTION=1", "HEURDEPTH=5"]
+        :param heurFreq: the frequency at which heuristics are used in the tree search
+        :param heurStra: heuristic strategy
+        :param coverCuts: the number of rounds of lifted cover inequalities at the top node
+        :param preSolve: whether presolving should be performed before the main algorithm
+        :param options: Adding more options, e.g. options = ["NODESELECTION=1", "HEURDEPTH=5"]
                         More about Xpress options and control parameters please see
                         http://tomopt.com/docs/xpress/tomlab_xpress008.php
         """
