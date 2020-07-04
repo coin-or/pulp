@@ -3,6 +3,33 @@ How to configure a solver in PuLP
 
 A typical problem PuLP users have is trying to connect to a solver that is installed in their pc. Here, we show the main concepts and ways to be sure PuLP can talk to the solver in question.
 
+Checking which solvers PuLP has acces to
+------------------------------------------------
+
+PuLP has some helper functions that permit a user to query which solvers are available and initialize a solver from its name.
+
+.. code-block:: python
+
+    import pulp as pl
+    solver_list = pl.list_solvers()
+    # ['GLPK_CMD', 'PYGLPK', 'CPLEX_CMD', 'CPLEX_PY', 'CPLEX_DLL', 'GUROBI', 'GUROBI_CMD', 'MOSEK', 'XPRESS', 'PULP_CBC_CMD', 'COIN_CMD', 'COINMP_DLL', 'CHOCO_CMD', 'PULP_CHOCO_CMD', 'MIPCL_CMD', 'SCIP_CMD']
+
+If passed the `only_available=True` argument, PuLP lists the solvers that are currently available::
+
+    import pulp as pl
+    solver_list = pl.list_solvers(available_only=True)
+    # ['GLPK_CMD', 'CPLEX_CMD', 'CPLEX_PY', 'GUROBI', 'GUROBI_CMD', 'PULP_CBC_CMD', 'COIN_CMD', 'PULP_CHOCO_CMD']
+
+Also, it's possible to get a solver object by using the name of the solver. Any arguments passes to this function are passed to the constructor:
+
+.. code-block:: python
+
+    import pulp as pl
+    solver = pl.get_solver('CPLEX_CMD')
+    solver = pl.get_solver('CPLEX_CMD', timeLimite=10)
+
+In the next sections, we will explain how to configure a solver to be accesible by pulp.
+
 What is an environment variable
 --------------------------------------
 
@@ -208,3 +235,40 @@ Also, you can access the python api object before solving by using the lower-lev
 
 For more information on how to use the `solverModel`, one needs to check the official documentation depending on the solver.
 
+
+Importing and exporting a solver
+-----------------------------------
+
+Exporting a solver can be useful to backup the configuration that was used to solve a model.
+
+In order to export it one needs can export it to a dictionary or a json file::
+
+    import pulp
+    solver = pulp.PULP_CBC_CMD()
+    solver_dict = solver.to_dict()
+
+The structure of the produce dictionary is quite simple::
+
+    {'keepFiles': 0,
+     'mip': True,
+     'msg': True,
+     'options': [],
+     'solver': 'PULP_CBC_CMD',
+     'timeLimit': None,
+     'warmStart': False}
+
+It's also possible to export it directly to a json file::
+
+    solver.to_json("some_file_name.json")
+
+In order to import it, one needs to do::
+
+    import pulp
+    solver = pulp.get_solver_from_dict(solver_dict)
+
+Or from a file::
+
+    import pulp
+    solver = pulp.get_solver_from_json("some_file_name.json")
+
+For json, we use the base `json` package. But if `ujson` is available, we use that so the import / export can be really fast.

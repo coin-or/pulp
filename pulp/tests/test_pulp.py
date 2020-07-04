@@ -675,7 +675,7 @@ class PuLPTest(unittest.TestCase):
         prob += -y + z == 7, "c3"
         prob += w >= 0, "c4"
         data = prob.to_dict()
-        var1, prob1 = prob.from_dict(data)
+        var1, prob1 = LpProblem.from_dict(data)
         x, y, z, w = [var1[name] for name in ['x', 'y', 'z', 'w']]
         print("\t Testing continuous LP solution")
         pulpTestCheck(prob1, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
@@ -694,7 +694,7 @@ class PuLPTest(unittest.TestCase):
         prob += w >= 0, "c4"
         filename = name + '.json'
         prob.to_json(filename, indent=4)
-        var1, prob1 = prob.from_json(filename)
+        var1, prob1 = LpProblem.from_json(filename)
         try:
             os.remove(filename)
         except:
@@ -713,7 +713,7 @@ class PuLPTest(unittest.TestCase):
         prob += x + z >= 10, "c2"
         prob += -y + z == 7.5, "c3"
         data = prob.to_dict()
-        var1, prob1 = prob.from_dict(data)
+        var1, prob1 = LpProblem.from_dict(data)
         x, y, z = [var1[name] for name in ['x', 'y', 'z']]
         print("\t Testing MIP solution")
         pulpTestCheck(prob1, self.solver, [const.LpStatusOptimal], {x: 3, y: -0.5, z: 7})
@@ -730,7 +730,7 @@ class PuLPTest(unittest.TestCase):
         prob += -y + z == 7, "c3"
         prob += w >= 0, "c4"
         data = prob.to_dict()
-        var1, prob1 = prob.from_dict(data)
+        var1, prob1 = LpProblem.from_dict(data)
         x, y, z, w = [var1[name] for name in ['x', 'y', 'z', 'w']]
         print("\t Testing maximize continuous LP solution")
         pulpTestCheck(prob1, self.solver, [const.LpStatusOptimal], {x: 4, y: 1, z: 8, w: 0})
