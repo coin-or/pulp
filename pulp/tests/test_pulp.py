@@ -45,6 +45,15 @@ class PuLPTest(unittest.TestCase):
         unittest.TestCase.__init__(self, testName)
         self.solver = solver.copy()
 
+    def tearDown(self):
+        for ext in ['mst', 'log', 'lp', 'mps', 'sol']:
+            filename = "{}.{}".format(self._testMethodName, ext)
+            try:
+                os.remove(filename)
+            except:
+                pass
+        pass
+
     def test_pulp_001(self):
         """
         Test that a variable is deleted when it is suptracted to 0
@@ -672,7 +681,7 @@ class PuLPTest(unittest.TestCase):
         pulpTestCheck(prob1, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
 
     def test_export_json_LP(self):
-        name = 'test_export_json_LP'
+        name = self._testMethodName
         prob = LpProblem(name, const.LpMinimize)
         x = LpVariable("x", 0, 4)
         y = LpVariable("y", -1, 1)
@@ -743,7 +752,7 @@ class PuLPTest(unittest.TestCase):
         pulpTestCheck(prob, solver1, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
 
     def test_export_solver_json(self):
-        name = 'test_export_solver_json'
+        name = self._testMethodName
         prob = LpProblem(name, const.LpMinimize)
         x = LpVariable("x", 0, 4)
         y = LpVariable("y", -1, 1)
@@ -755,9 +764,7 @@ class PuLPTest(unittest.TestCase):
         prob += -y + z == 7, "c3"
         prob += w >= 0, "c4"
         self.solver.mip = True
-        self.solver.msg = True
         self.solver.warmStart = True
-        self.solver.msg = True
         logFilename = name + '.log'
         self.solver.optionsDict = dict(gapRel=0.1, gapAbs=1, maxMemory=1000,
                                        maxNodes=1, threads=1, logPath=logFilename)
@@ -772,7 +779,7 @@ class PuLPTest(unittest.TestCase):
         pulpTestCheck(prob, solver1, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
 
     def test_timeLimit(self):
-        name = 'test_timelimit'
+        name = self._testMethodName
         prob = LpProblem(name, const.LpMinimize)
         x = LpVariable("x", 0, 4)
         y = LpVariable("y", -1, 1)
@@ -787,6 +794,27 @@ class PuLPTest(unittest.TestCase):
         # CHOCO has issues when given a time limit
         if self.solver.name != 'PULP_CHOCO_CMD':
             pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
+
+    def test_logPath(self):
+        name = self._testMethodName
+        prob = LpProblem(name, const.LpMinimize)
+        x = LpVariable("x", 0, 4)
+        y = LpVariable("y", -1, 1)
+        z = LpVariable("z", 0)
+        w = LpVariable("w", 0)
+        prob += x + 4 * y + 9 * z, "obj"
+        prob += x + y <= 5, "c1"
+        prob += x + z >= 10, "c2"
+        prob += -y + z == 7, "c3"
+        prob += w >= 0, "c4"
+        logFilename = name + '.log'
+        self.solver.optionsDict['logPath'] = logFilename
+        if self.solver.name in ['CPLEX_PY', 'CPLEX_CMD', 'GUROBI', 'GUROBI_CMD', 'PULP_CBC_CMD']:
+            pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
+            if not os.path.exists(logFilename):
+                raise PulpError("Test failed for solver: {}".format(self.solver))
+            if not os.path.getsize(logFilename):
+                raise PulpError("Test failed for solver: {}".format(self.solver))
 
 
 def pulpTestCheck(prob, solver, okstatus, sol=None,
