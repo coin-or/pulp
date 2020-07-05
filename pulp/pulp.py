@@ -1901,7 +1901,12 @@ class LpProblem(object):
         :param sol_status: code for the status of the solution
         :return:
         """
-        # TODO: check if status are valid status codes
+        if status not in const.LpStatus:
+            raise const.PulpError("Invalid status code: "+str(status))
+
+        if sol_status is not None and sol_status not in const.LpSolution:
+            raise const.PulpError("Invalid solution status code: "+str(sol_status))
+
         self.status = status
         if sol_status is None:
             sol_status = const.LpStatusToSolution.get(status, const.LpSolutionNoSolutionFound)
