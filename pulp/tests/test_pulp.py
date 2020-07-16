@@ -817,21 +817,34 @@ class PuLPTest(unittest.TestCase):
             if not os.path.getsize(logFilename):
                 raise PulpError("Test failed for solver: {}".format(self.solver))
 
-    def test_makeDict(self):
+    def test_makeDict_behavior(self):
         """
-        Test if the makeDict function is behaving correctly.
+        Test if the makeDict funcion is behaving correctly.
+        """
+        headers = [["A", "B"], ["C", "D"]]
+        values = [[1, 2], [3, 4]]
+        target = {"A": {"C": 1, "D": 2}, "B": {"C": 3, "D": 4}}
+        dict_with_default = makeDict(headers, values, default=0)
+        dict_without_default = makeDict(headers, values)
+        print("\t Testing makeDict behavior")
+        assert dict_with_default == target
+        assert dict_without_default == target
+
+    def test_makeDict_default_value(self):
+        """
+        Test if the makeDict function is returning a defaultdict when default is specified.
         """
         headers = [["A", "B"], ["C", "D"]]
         values = [[1, 2], [3, 4]]
         dict_with_default = makeDict(headers, values, default=0)
         dict_without_default = makeDict(headers, values)
 
-        print("\t Testing makeDict behavior")
+        print("\t Testing makeDict default value behavior")
         # Check if a default value is passed, and if a KeyError is raised
         assert dict_with_default["X"]["Y"] == 0
         try:
             z = dict_without_default["X"]["Y"]
-            raise PulpError("Test for makeDict failed")
+            raise PulpError("Test for makeDict default value failed")
         except KeyError:
             pass
 
