@@ -5,6 +5,7 @@ from pulp.constants import PulpError
 from pulp.apis import *
 from pulp import LpVariable, LpProblem, lpSum, LpConstraintVar, LpFractionConstraint
 from pulp import constants as const
+from pulp.utilities import makeDict
 import unittest
 
 
@@ -815,6 +816,24 @@ class PuLPTest(unittest.TestCase):
                 raise PulpError("Test failed for solver: {}".format(self.solver))
             if not os.path.getsize(logFilename):
                 raise PulpError("Test failed for solver: {}".format(self.solver))
+
+    def test_makeDict(self):
+        """
+        Test if the makeDict function is behaving correctly.
+        """
+        headers = [["A", "B"], ["C", "D"]]
+        values = [[1, 2], [3, 4]]
+        dict_with_default = makeDict(headers, values, default=0)
+        dict_without_default = makeDict(headers, values)
+
+        print("\t Testing makeDict behavior")
+        # Check if a default value is passed, and if a KeyError is raised
+        assert dict_with_default["X"]["Y"] == 0
+        try:
+            z = dict_without_default["X"]["Y"]
+            raise PulpError("Test for makeDict failed")
+        except KeyError:
+            pass
 
 
 def pulpTestCheck(prob, solver, okstatus, sol=None,
