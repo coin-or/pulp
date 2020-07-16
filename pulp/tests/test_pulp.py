@@ -819,7 +819,7 @@ class PuLPTest(unittest.TestCase):
 
     def test_makeDict_behavior(self):
         """
-        Test if the makeDict funcion is behaving correctly.
+        Test if the makeDict function is returning the expected value.
         """
         headers = [["A", "B"], ["C", "D"]]
         values = [[1, 2], [3, 4]]
