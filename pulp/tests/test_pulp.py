@@ -5,6 +5,7 @@ from pulp.constants import PulpError
 from pulp.apis import *
 from pulp import LpVariable, LpProblem, lpSum, LpConstraintVar, LpFractionConstraint
 from pulp import constants as const
+from pulp.utilities import makeDict
 import unittest
 
 
@@ -815,6 +816,34 @@ class PuLPTest(unittest.TestCase):
                 raise PulpError("Test failed for solver: {}".format(self.solver))
             if not os.path.getsize(logFilename):
                 raise PulpError("Test failed for solver: {}".format(self.solver))
+
+    def test_makeDict_behavior(self):
+        """
+        Test if makeDict is returning the expected value.
+        """
+        headers = [["A", "B"], ["C", "D"]]
+        values = [[1, 2], [3, 4]]
+        target = {"A": {"C": 1, "D": 2}, "B": {"C": 3, "D": 4}}
+        dict_with_default = makeDict(headers, values, default=0)
+        dict_without_default = makeDict(headers, values)
+        print("\t Testing makeDict general behavior")
+        self.assertEqual(dict_with_default, target)
+        self.assertEqual(dict_without_default, target)
+
+    def test_makeDict_default_value(self):
+        """
+        Test if makeDict is returning a default value when specified.
+        """
+        headers = [["A", "B"], ["C", "D"]]
+        values = [[1, 2], [3, 4]]
+        dict_with_default = makeDict(headers, values, default=0)
+        dict_without_default = makeDict(headers, values)
+        print("\t Testing makeDict default value behavior")
+        # Check if a default value is passed
+        self.assertEqual(dict_with_default["X"]["Y"], 0)
+        # Check if a KeyError is raised
+        _func = lambda: dict_without_default["X"]["Y"]
+        self.assertRaises(KeyError, _func)
 
 
 def pulpTestCheck(prob, solver, okstatus, sol=None,

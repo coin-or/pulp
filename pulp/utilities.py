@@ -156,7 +156,7 @@ def __makeDict(headers, array, default=None):
     else:
         for i, h in enumerate(headers[0]):
             result[h], defaultvalue = __makeDict(headers[1:], array[i], default)
-    if default is None:
+    if default is not None:
         f = lambda: defaultvalue
         defresult = collections.defaultdict(f)
         defresult.update(result)
