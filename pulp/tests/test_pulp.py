@@ -826,9 +826,9 @@ class PuLPTest(unittest.TestCase):
         target = {"A": {"C": 1, "D": 2}, "B": {"C": 3, "D": 4}}
         dict_with_default = makeDict(headers, values, default=0)
         dict_without_default = makeDict(headers, values)
-        print("\t Testing makeDict behavior")
-        assert dict_with_default == target
-        assert dict_without_default == target
+        print("\t Testing makeDict general behavior")
+        self.assertEqual(dict_with_default, target)
+        self.assertEqual(dict_without_default, target)
 
     def test_makeDict_default_value(self):
         """
@@ -838,15 +838,12 @@ class PuLPTest(unittest.TestCase):
         values = [[1, 2], [3, 4]]
         dict_with_default = makeDict(headers, values, default=0)
         dict_without_default = makeDict(headers, values)
-
         print("\t Testing makeDict default value behavior")
-        # Check if a default value is passed, and if a KeyError is raised
-        assert dict_with_default["X"]["Y"] == 0
-        try:
-            z = dict_without_default["X"]["Y"]
-            raise PulpError("Test for makeDict default value failed")
-        except KeyError:
-            pass
+        # Check if a default value is passed
+        self.assertEqual(dict_with_default["X"]["Y"], 0)
+        # Check if a KeyError is raised
+        _func = lambda: dict_without_default["X"]["Y"]
+        self.assertRaises(KeyError, _func)
 
 
 def pulpTestCheck(prob, solver, okstatus, sol=None,
