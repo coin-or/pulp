@@ -819,7 +819,7 @@ class PuLPTest(unittest.TestCase):
 
     def test_makeDict_behavior(self):
         """
-        Test if the makeDict function is returning the expected value.
+        Test if makeDict is returning the expected value.
         """
         headers = [["A", "B"], ["C", "D"]]
         values = [[1, 2], [3, 4]]
@@ -832,7 +832,7 @@ class PuLPTest(unittest.TestCase):
 
     def test_makeDict_default_value(self):
         """
-        Test if the makeDict function is returning a defaultdict when default is specified.
+        Test if makeDict is returning a default value when specified.
         """
         headers = [["A", "B"], ["C", "D"]]
         values = [[1, 2], [3, 4]]
