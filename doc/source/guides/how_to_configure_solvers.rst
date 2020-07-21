@@ -3,7 +3,7 @@ How to configure a solver in PuLP
 
 A typical problem PuLP users have is trying to connect to a solver that is installed in their pc. Here, we show the main concepts and ways to be sure PuLP can talk to the solver in question.
 
-Checking which solvers PuLP has acces to
+Checking which solvers PuLP has access to
 ------------------------------------------------
 
 PuLP has some helper functions that permit a user to query which solvers are available and initialize a solver from its name.
