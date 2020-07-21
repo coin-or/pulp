@@ -787,7 +787,13 @@ class PuLPTest(unittest.TestCase):
         # CHOCO has issues when given a time limit
         if self.solver.name != 'PULP_CHOCO_CMD':
             pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
-
+    
+    def test_assignInvalidStatus(self):
+        print("\t Testing invalid status")
+        t = LpProblem('test')
+        Invalid = -100
+        self.assertRaises(const.PulpError, lambda: t.assignStatus(Invalid))
+        self.assertRaises(const.PulpError, lambda: t.assignStatus(0, Invalid))
 
 def pulpTestCheck(prob, solver, okstatus, sol=None,
                   reducedcosts=None,
