@@ -7,12 +7,12 @@ Many solvers permit the possibility of giving a valid (or parcially valid in som
 Supported solver APIs
 -----------------------
 
-The present solver APIs that work with PuLP mip-start are the following: ``CPLEX_CMD``, ``GUROBI_CMD``, ``PULP_CBC_CMD``, ``CBC_CMD``.
+The present solver APIs that work with PuLP mip-start are the following: ``CPLEX_CMD``, ``GUROBI_CMD``, ``PULP_CBC_CMD``, ``CBC_CMD``. ``CPLEX_PY``.
 
 Example problem
 ----------------
 
-We will use as example the model in :ref:`set-partitioning-problem`. Below is the complete modified code.
+We will use as example the model in :ref:`set-partitioning-problem`. At the end is the complete modified code.
 
 
 Filling a variable with a value

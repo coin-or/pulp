@@ -114,6 +114,10 @@ class COIN_CMD(LpSolver_CMD):
             pipe = None
         else:
             pipe = open(os.devnull, 'w')
+        if 'logPath' in self.optionsDict:
+            if self.msg:
+                warnings.warn('`logPath` argument replaces `msg=1`. The output will be redirected to the log file.')
+            pipe = open(self.optionsDict['logPath'], 'w')
         log.debug(self.path + cmds)
         args = []
         args.append(self.path)

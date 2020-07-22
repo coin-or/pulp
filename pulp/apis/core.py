@@ -184,7 +184,7 @@ class LpSolver:
         :param float timeLimit: maximum time for solver
         :param args:
         :param kwargs: optional named options to pass to each solver,
-                        e.g. gapRel=0.1, gapAbs=10, logFile="",
+                        e.g. gapRel=0.1, gapAbs=10, logPath="",
 
         """
         if options is None:

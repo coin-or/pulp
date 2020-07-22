@@ -5,6 +5,7 @@ from pulp.constants import PulpError
 from pulp.apis import *
 from pulp import LpVariable, LpProblem, lpSum, LpConstraintVar, LpFractionConstraint
 from pulp import constants as const
+from pulp.utilities import makeDict
 import unittest
 
 
@@ -44,6 +45,15 @@ class PuLPTest(unittest.TestCase):
     def __init__(self, testName, solver, *args, **kwargs):
         unittest.TestCase.__init__(self, testName)
         self.solver = solver.copy()
+
+    def tearDown(self):
+        for ext in ['mst', 'log', 'lp', 'mps', 'sol']:
+            filename = "{}.{}".format(self._testMethodName, ext)
+            try:
+                os.remove(filename)
+            except:
+                pass
+        pass
 
     def test_pulp_001(self):
         """
@@ -666,13 +676,13 @@ class PuLPTest(unittest.TestCase):
         prob += -y + z == 7, "c3"
         prob += w >= 0, "c4"
         data = prob.to_dict()
-        var1, prob1 = prob.from_dict(data)
+        var1, prob1 = LpProblem.from_dict(data)
         x, y, z, w = [var1[name] for name in ['x', 'y', 'z', 'w']]
         print("\t Testing continuous LP solution")
         pulpTestCheck(prob1, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
 
     def test_export_json_LP(self):
-        name = 'test_export_json_LP'
+        name = self._testMethodName
         prob = LpProblem(name, const.LpMinimize)
         x = LpVariable("x", 0, 4)
         y = LpVariable("y", -1, 1)
@@ -685,7 +695,7 @@ class PuLPTest(unittest.TestCase):
         prob += w >= 0, "c4"
         filename = name + '.json'
         prob.to_json(filename, indent=4)
-        var1, prob1 = prob.from_json(filename)
+        var1, prob1 = LpProblem.from_json(filename)
         try:
             os.remove(filename)
         except:
@@ -704,7 +714,7 @@ class PuLPTest(unittest.TestCase):
         prob += x + z >= 10, "c2"
         prob += -y + z == 7.5, "c3"
         data = prob.to_dict()
-        var1, prob1 = prob.from_dict(data)
+        var1, prob1 = LpProblem.from_dict(data)
         x, y, z = [var1[name] for name in ['x', 'y', 'z']]
         print("\t Testing MIP solution")
         pulpTestCheck(prob1, self.solver, [const.LpStatusOptimal], {x: 3, y: -0.5, z: 7})
@@ -721,7 +731,7 @@ class PuLPTest(unittest.TestCase):
         prob += -y + z == 7, "c3"
         prob += w >= 0, "c4"
         data = prob.to_dict()
-        var1, prob1 = prob.from_dict(data)
+        var1, prob1 = LpProblem.from_dict(data)
         x, y, z, w = [var1[name] for name in ['x', 'y', 'z', 'w']]
         print("\t Testing maximize continuous LP solution")
         pulpTestCheck(prob1, self.solver, [const.LpStatusOptimal], {x: 4, y: 1, z: 8, w: 0})
@@ -743,7 +753,7 @@ class PuLPTest(unittest.TestCase):
         pulpTestCheck(prob, solver1, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
 
     def test_export_solver_json(self):
-        name = 'test_export_solver_json'
+        name = self._testMethodName
         prob = LpProblem(name, const.LpMinimize)
         x = LpVariable("x", 0, 4)
         y = LpVariable("y", -1, 1)
@@ -755,9 +765,7 @@ class PuLPTest(unittest.TestCase):
         prob += -y + z == 7, "c3"
         prob += w >= 0, "c4"
         self.solver.mip = True
-        self.solver.msg = True
         self.solver.warmStart = True
-        self.solver.msg = True
         logFilename = name + '.log'
         self.solver.optionsDict = dict(gapRel=0.1, gapAbs=1, maxMemory=1000,
                                        maxNodes=1, threads=1, logPath=logFilename)
@@ -772,7 +780,7 @@ class PuLPTest(unittest.TestCase):
         pulpTestCheck(prob, solver1, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
 
     def test_timeLimit(self):
-        name = 'test_timelimit'
+        name = self._testMethodName
         prob = LpProblem(name, const.LpMinimize)
         x = LpVariable("x", 0, 4)
         y = LpVariable("y", -1, 1)
@@ -794,6 +802,55 @@ class PuLPTest(unittest.TestCase):
         Invalid = -100
         self.assertRaises(const.PulpError, lambda: t.assignStatus(Invalid))
         self.assertRaises(const.PulpError, lambda: t.assignStatus(0, Invalid))
+
+    def test_logPath(self):
+        name = self._testMethodName
+        prob = LpProblem(name, const.LpMinimize)
+        x = LpVariable("x", 0, 4)
+        y = LpVariable("y", -1, 1)
+        z = LpVariable("z", 0)
+        w = LpVariable("w", 0)
+        prob += x + 4 * y + 9 * z, "obj"
+        prob += x + y <= 5, "c1"
+        prob += x + z >= 10, "c2"
+        prob += -y + z == 7, "c3"
+        prob += w >= 0, "c4"
+        logFilename = name + '.log'
+        self.solver.optionsDict['logPath'] = logFilename
+        if self.solver.name in ['CPLEX_PY', 'CPLEX_CMD', 'GUROBI', 'GUROBI_CMD', 'PULP_CBC_CMD']:
+            pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
+            if not os.path.exists(logFilename):
+                raise PulpError("Test failed for solver: {}".format(self.solver))
+            if not os.path.getsize(logFilename):
+                raise PulpError("Test failed for solver: {}".format(self.solver))
+
+    def test_makeDict_behavior(self):
+        """
+        Test if makeDict is returning the expected value.
+        """
+        headers = [["A", "B"], ["C", "D"]]
+        values = [[1, 2], [3, 4]]
+        target = {"A": {"C": 1, "D": 2}, "B": {"C": 3, "D": 4}}
+        dict_with_default = makeDict(headers, values, default=0)
+        dict_without_default = makeDict(headers, values)
+        print("\t Testing makeDict general behavior")
+        self.assertEqual(dict_with_default, target)
+        self.assertEqual(dict_without_default, target)
+
+    def test_makeDict_default_value(self):
+        """
+        Test if makeDict is returning a default value when specified.
+        """
+        headers = [["A", "B"], ["C", "D"]]
+        values = [[1, 2], [3, 4]]
+        dict_with_default = makeDict(headers, values, default=0)
+        dict_without_default = makeDict(headers, values)
+        print("\t Testing makeDict default value behavior")
+        # Check if a default value is passed
+        self.assertEqual(dict_with_default["X"]["Y"], 0)
+        # Check if a KeyError is raised
+        _func = lambda: dict_without_default["X"]["Y"]
+        self.assertRaises(KeyError, _func)
 
 def pulpTestCheck(prob, solver, okstatus, sol=None,
                   reducedcosts=None,

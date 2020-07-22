@@ -67,6 +67,14 @@ def configSolvers():
 
 
 def get_solver(solver, *args, **kwargs):
+    """
+    Instantiates a solver from its name
+
+    :param str solver: solver name to create
+    :param args: additional arguments to the solver
+    :param kwargs: additional keyword arguments to the solver
+    :return: solver of type :py:class:`LpSolver`
+    """
     mapping = {k.name: k for k in _all_solvers}
     try:
         return mapping[solver](*args, **kwargs)
@@ -78,6 +86,15 @@ def get_solver(solver, *args, **kwargs):
 
 
 def get_solver_from_dict(data):
+    """
+    Instantiates a solver from a dictionary with its data
+
+    :param dict data: a dictionary with, at least an "solver" key with the name
+        of the solver to create
+    :return: a solver of type :py:class:`LpSolver`
+    :raises PulpSolverError: if the dictionary does not have the "solver" key
+    :rtype: LpSolver
+    """
     solver = data.pop('solver', None)
     if solver is None:
         raise PulpSolverError('The json file has no solver attribute.')
@@ -85,12 +102,26 @@ def get_solver_from_dict(data):
 
 
 def get_solver_from_json(filename):
+    """
+    Instantiates a solver from a json file with its data
+
+    :param str filename: name of the json file to read
+    :return: a solver of type :py:class:`LpSolver`
+    :rtype: LpSolver
+    """
     with open(filename, 'r') as f:
         data = json.load(f)
     return get_solver_from_dict(data)
 
 
 def list_solvers(onlyAvailable=False):
+    """
+    List the names of all the existing solvers in PuLP
+
+    :param bool onlyAvailable: if True, only show the available solvers
+    :return: list of solver names
+    :rtype: list
+    """
     solvers = [s() for s in _all_solvers]
     if onlyAvailable:
         return [solver.name for solver in solvers if solver.available()]

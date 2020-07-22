@@ -101,7 +101,6 @@ print("Status:", pulp.LpStatus[gemstoneprob.status])
 for v in gemstoneprob.variables():
     print(v.name, "=", v.varValue)
 production = [v.varValue for v in gemstoneprob.variables()]
-production
 
 # The optimised objective function value is printed to the console
 print("Total price = ", pulp.value(gemstoneprob.objective))

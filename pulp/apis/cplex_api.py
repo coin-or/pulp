@@ -744,13 +744,12 @@ class CPLEX_PY(LpSolver):
                 self.solverModel.set_problem_type(cplex.Cplex.problem_type.LP)
             log.debug("set the logging")
             if not self.msg:
-                self.solverModel.set_error_stream(None)
-                self.solverModel.set_log_stream(None)
-                self.solverModel.set_warning_stream(None)
-                self.solverModel.set_results_stream(None)
+                self.setlogfile(None)
             logPath = self.optionsDict.get('logPath')
             if logPath is not None:
-                self.setlogfile(logPath)
+                if self.msg:
+                    warnings.warn('`logPath` argument replaces `msg=1`. The output will be redirected to the log file.')
+                self.setlogfile(open(logPath, 'w'))
             gapRel = self.optionsDict.get('gapRel')
             if gapRel is not None:
                 self.changeEpgap(gapRel)
@@ -766,12 +765,14 @@ class CPLEX_PY(LpSolver):
                 ind, val = zip(*start)
                 self.solverModel.MIP_starts.add(cplex.SparsePair(ind=ind, val=val), effort, '1')
 
-        def setlogfile(self, filename):
+        def setlogfile(self, fileobj):
             """
             sets the logfile for cplex output
             """
-            with open(filename, 'w') as cplexlog:
-                return self.solverModel.set_log_stream(cplexlog)
+            self.solverModel.set_error_stream(fileobj)
+            self.solverModel.set_log_stream(fileobj)
+            self.solverModel.set_warning_stream(fileobj)
+            self.solverModel.set_results_stream(fileobj)
 
         def changeEpgap(self, epgap = 10**-4):
             """

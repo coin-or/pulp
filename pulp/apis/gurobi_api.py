@@ -40,7 +40,7 @@ class GUROBI(LpSolver):
     The Gurobi LP/MIP solver (via its python interface)
 
     The Gurobi variables are available (after a solve) in var.solverVar
-    Constriaints in constraint.solverConstraint
+    Constraints in constraint.solverConstraint
     and the Model is in prob.solverModel
     """
     name = 'GUROBI'
@@ -155,8 +155,12 @@ class GUROBI(LpSolver):
             if self.timeLimit:
                 lp.solverModel.setParam("TimeLimit", self.timeLimit)
             gapRel = self.optionsDict.get('gapRel')
+            logPath = self.optionsDict.get('logPath')
             if gapRel:
                 lp.solverModel.setParam("MIPGap", gapRel)
+            if logPath:
+                lp.solverModel.setParam("LogFile", logPath)
+
             log.debug("add the variables to the problem")
             for var in lp.variables():
                 lowBound = var.lowBound
