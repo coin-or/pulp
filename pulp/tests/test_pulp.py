@@ -703,6 +703,7 @@ class PuLPTest(unittest.TestCase):
         pulpTestCheck(prob1, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
 
     def test_export_dict_MIP(self):
+        import copy
         prob = LpProblem("test_export_dict_MIP", const.LpMinimize)
         x = LpVariable("x", 0, 4)
         y = LpVariable("y", -1, 1)
@@ -712,10 +713,13 @@ class PuLPTest(unittest.TestCase):
         prob += x + z >= 10, "c2"
         prob += -y + z == 7.5, "c3"
         data = prob.to_dict()
+        data_backup = copy.deepcopy(data)
         var1, prob1 = LpProblem.from_dict(data)
         x, y, z = [var1[name] for name in ['x', 'y', 'z']]
         print("\t Testing MIP solution")
         pulpTestCheck(prob1, self.solver, [const.LpStatusOptimal], {x: 3, y: -0.5, z: 7})
+        # we also test that we have not modified the dictionary when importing it
+        self.assertDictEqual(data, data_backup)
 
     def test_export_dict_max(self):
         prob = LpProblem("test_export_dict_max", const.LpMaximize)
