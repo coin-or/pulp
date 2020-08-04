@@ -178,7 +178,7 @@ class GUROBI(LpSolver):
                 var.solverVar = lp.solverModel.addVar(lowBound, upBound,
                             vtype = varType,
                             obj = obj, name = var.name)
-            if self.warmStart:
+            if self.optionsDict.get('warmStart', False):
                 # Once lp.variables() has been used at least once in the building of the model.
                 # we can use the lp._variables with the cache.
                 for var in lp._variables:
@@ -298,7 +298,7 @@ class GUROBI_CMD(LpSolver_CMD):
         cmd += ' ' + ' '.join(['%s=%s' % (key, value)
                                for key, value in options])
         cmd += ' ResultFile=%s' % tmpSol
-        if self.warmStart:
+        if self.optionsDict.get('warmStart', False):
             self.writesol(filename=tmpMst, vs=vs)
             cmd += ' InputFile=%s' % tmpMst
 

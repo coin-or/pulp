@@ -122,7 +122,7 @@ class COIN_CMD(LpSolver_CMD):
             constraintsNames = dict((c, c) for c in lp.constraints)
             objectiveName = None
             cmds = ' ' + tmpLp + " "
-        if self.warmStart:
+        if self.optionsDict.get('warmStart', False):
             self.writesol(tmpMst, lp, vs, variablesNames, constraintsNames)
             cmds += 'mips {} '.format(tmpMst)
         if self.timeLimit is not None:
@@ -290,27 +290,6 @@ class PULP_CBC_CMD(COIN_CMD):
                      presolve=None, cuts=None, strong=None, options=None,
                      warmStart=False, keepFiles=False, path=None, threads=None,
                      logPath=None, mip_start=False):
-            """
-            just loads up COIN_CMD with the path set
-
-            :param bool mip: if False, assume LP even if integer variables
-            :param bool msg: if False, no log is shown
-            :param float timeLimit: maximum time for solver (in seconds)
-            :param float gapRel: relative gap tolerance for the solver to stop (in fraction)
-            :param float gapAbs: absolute gap tolerance for the solver to stop
-            :param int threads: sets the maximum number of threads
-            :param list options: list of additional options to pass to solver
-            :param bool warmStart: if True, the solver will use the current value of variables as a start
-            :param bool keepFiles: if True, files are saved in the current directory and not deleted after solving
-            :param str path: path to the solver binary
-            :param str logPath: path to the log file
-            :param bool presolve: if True, adds presolve on
-            :param bool cuts: if True, adds gomory on knapsack on probing on
-            :param bool strong: if True, adds strong
-            :param float fracGap: deprecated for gapRel
-            :param float maxSeconds: deprecated for timeLimit
-            :param bool mip_start: deprecated for warmStart
-            """
             if path is not None:
                 raise PulpSolverError('Use COIN_CMD if you want to set a path')
             #check that the file is executable

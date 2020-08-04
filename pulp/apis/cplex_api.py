@@ -71,7 +71,7 @@ class CPLEX_CMD(LpSolver_CMD):
         else:
             cplex = subprocess.Popen(self.path, stdin = subprocess.PIPE)
         cplex_cmds = "read " + tmpLp + "\n"
-        if self.warmStart:
+        if self.optionsDict.get('warmStart', False):
             self.writesol(filename=tmpMst, vs=vs)
             cplex_cmds += "read " + tmpMst + "\n"
             cplex_cmds += 'set advance 1\n'
@@ -787,7 +787,7 @@ class CPLEX_PY(LpSolver):
                 self.changeEpgap(gapRel)
             if self.timeLimit is not None:
                 self.setTimeLimit(self.timeLimit)
-            if self.warmStart:
+            if self.optionsDict.get('warmStart', False):
                 # We assume "auto" for the effort_level
                 effort = self.solverModel.MIP_starts.effort_level.auto
                 start = [(k, v.value()) for k, v in self.n2v.items() if v.value() is not None]

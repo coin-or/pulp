@@ -159,16 +159,6 @@ class PULP_CHOCO_CMD(CHOCO_CMD):
             raise PulpSolverError("PULP_CHOCO_CMD: Not Available (check permissions on %s)" % self.pulp_choco_path)
     else:
         def __init__(self, path=None, keepFiles=0, mip=True, msg=True, options=None, timeLimit=None):
-            """
-            just loads up CHOCO_CMD with the path set
-
-            :param bool mip: if False, assume LP even if integer variables
-            :param bool msg: if False, no log is shown
-            :param float timeLimit: maximum time for solver (in seconds)
-            :param list options: list of additional options to pass to solver
-            :param bool keepFiles: if True, files are saved in the current directory and not deleted after solving
-            :param float timelimit: deprecated for timeLimit
-            """
             if path is not None:
                 raise PulpSolverError('Use CHOCO_CMD if you want to set a path')
             # check that the file is executable

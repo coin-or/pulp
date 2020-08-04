@@ -174,25 +174,21 @@ class LpSolver:
     name = 'LpSolver'
 
     def __init__(self, mip=True, msg=True, options=None, timeLimit=None,
-                 warmStart=False, *args, **kwargs):
+                 *args, **kwargs):
         """
-
         :param bool mip: if False, assume LP even if integer variables
         :param bool msg: if False, no log is shown
         :param list options:
-        :param bool warmStart: if True, the solver will use the current value of variables as a start
         :param float timeLimit: maximum time for solver (in seconds)
         :param args:
         :param kwargs: optional named options to pass to each solver,
                         e.g. gapRel=0.1, gapAbs=10, logPath="",
-
         """
         if options is None:
             options = []
         self.mip = mip
         self.msg = msg
         self.options = options
-        self.warmStart = warmStart
         self.timeLimit = timeLimit
 
         # here we will store all other relevant information including:
@@ -329,7 +325,7 @@ class LpSolver:
                 data[k] = getattr(self, k)
             except AttributeError:
                 pass
-        for k in ['warmStart', 'timeLimit', 'options']:
+        for k in ['timeLimit', 'options']:
             # with these ones, we only export if it has some content:
             try:
                 value = getattr(self, k)
@@ -353,6 +349,10 @@ class LpSolver_CMD(LpSolver):
     def __init__(self, path=None, keepFiles=False, *args, **kwargs):
         """
 
+        :param bool mip: if False, assume LP even if integer variables
+        :param bool msg: if False, no log is shown
+        :param list options: list of additional options to pass to solver (format depends on the solver)
+        :param float timeLimit: maximum time for solver (in seconds)
         :param str path: a path to the solver binary
         :param bool keepFiles: if True, files are saved in the current directory and not deleted after solving
         :param args: parameters to pass to :py:class:`LpSolver`
