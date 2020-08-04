@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pulp.apis Interface to Solvers &mdash; PuLP 2.2 documentation</title>
+  <title>pulp.apis Interface to Solvers &mdash; PuLP 2.3 documentation</title>
   
 
   
@@ -40,8 +40,9 @@
         <link rel="index" title="Index"
               href="../genindex.html"/>
         <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="PuLP 2.2 documentation" href="../index.html"/>
+    <link rel="top" title="PuLP 2.3 documentation" href="../index.html"/>
         <link rel="up" title="PuLP Internal Documentation" href="index.html"/>
+        <link rel="next" title="Plugins" href="../plugins/index.html"/>
         <link rel="prev" title="pulp: Pulp classes" href="pulp.html"/> 
 
   
@@ -70,7 +71,7 @@
           
             
               <div class="version">
-                2.2
+                2.3
 
                 
               </div>
@@ -106,6 +107,7 @@
 <li class="toctree-l2 current"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp.apis</span></code> Interface to Solvers</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="../plugins/index.html">Plugins</a></li>
 </ul>
 
             
@@ -168,6 +170,8 @@
   
   <div class="rst-breadcrumbs-buttons" role="navigation" aria-label="breadcrumb navigation">
       
+        <a href="../plugins/index.html" class="btn btn-neutral float-right" title="Plugins" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
       
         <a href="pulp.html" class="btn btn-neutral" title="pulp: Pulp classes" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
@@ -182,16 +186,18 @@
 <span id="pulp-apis-interface-to-solvers"></span><h1><a class="reference internal" href="#module-pulp.apis" title="pulp.apis"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp.apis</span></code></a> Interface to Solvers<a class="headerlink" href="#module-pulp.apis" title="Permalink to this headline">¶</a></h1>
 <dl class="py class">
 <dt id="pulp.apis.CHOCO_CMD">
-<em class="property">class </em><code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">CHOCO_CMD</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">keepFiles</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CHOCO_CMD" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">CHOCO_CMD</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">keepFiles</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">mip</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">msg</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">options</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">timeLimit</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CHOCO_CMD" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.core.LpSolver_CMD</span></code></p>
 <p>The CHOCO_CMD solver</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – a path to the solver binary</p></li>
+<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
+<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, no log is shown</p></li>
+<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
+<li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a>) – list of additional options to pass to solver</p></li>
 <li><p><strong>keepFiles</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if True, files are saved in the current directory and not deleted after solving</p></li>
-<li><p><strong>args</strong> – parameters to pass to <a class="reference internal" href="#pulp.apis.LpSolver" title="pulp.apis.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpSolver</span></code></a></p></li>
-<li><p><strong>kwargs</strong> – parameters to pass to <a class="reference internal" href="#pulp.apis.LpSolver" title="pulp.apis.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpSolver</span></code></a></p></li>
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – path to the solver binary</p></li>
 </ul>
 </dd>
 </dl>
@@ -233,7 +239,7 @@
 
 <dl class="py class">
 <dt id="pulp.apis.COINMP_DLL">
-<em class="property">class </em><code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">COINMP_DLL</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mip</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">msg</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">options</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">mip_start</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">timeLimit</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">warmStart</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.COINMP_DLL" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">COINMP_DLL</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mip</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">msg</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">options</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">timeLimit</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.COINMP_DLL" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.core.LpSolver</span></code></p>
 <p>The COIN_MP LP MIP solver (via a DLL or linux so)</p>
 <dl class="field-list simple">
@@ -241,11 +247,10 @@
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – The number of seconds before forcing the solver to exit</p></li>
 <li><p><strong>epgap</strong> – The fractional mip tolerance</p></li>
-<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, assume LP even if integer variables.</p></li>
-<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, no log is shown.</p></li>
+<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
+<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, no log is shown</p></li>
 <li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a>) – </p></li>
-<li><p><strong>warmStart</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – </p></li>
-<li><p><strong>timeLimit</strong> – maximum time for solver</p></li>
+<li><p><strong>timeLimit</strong> – maximum time for solver (in seconds)</p></li>
 <li><p><strong>args</strong> – </p></li>
 <li><p><strong>kwargs</strong> – optional named options to pass to each solver,
 e.g. gapRel=0.1, gapAbs=10, logPath=”“,</p></li>
@@ -279,17 +284,30 @@ e.g. gapRel=0.1, gapAbs=10, logPath=”“,</p></li>
 
 <dl class="py class">
 <dt id="pulp.apis.COIN_CMD">
-<em class="property">class </em><code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">COIN_CMD</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fracGap</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">maxSeconds</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.COIN_CMD" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">COIN_CMD</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mip</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">msg</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">timeLimit</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">fracGap</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">maxSeconds</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">gapRel</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">gapAbs</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">presolve</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">cuts</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">strong</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">options</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">warmStart</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">keepFiles</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">threads</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">logPath</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">mip_start</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.COIN_CMD" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.core.LpSolver_CMD</span></code></p>
 <p>The COIN CLP/CBC LP solver
 now only uses cbc</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>fracGap</strong> – </p></li>
-<li><p><strong>maxSeconds</strong> – </p></li>
-<li><p><strong>args</strong> – </p></li>
-<li><p><strong>kwargs</strong> – includes presolve, cuts, strong</p></li>
+<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
+<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, no log is shown</p></li>
+<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
+<li><p><strong>gapRel</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – relative gap tolerance for the solver to stop (in fraction)</p></li>
+<li><p><strong>gapAbs</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – absolute gap tolerance for the solver to stop</p></li>
+<li><p><strong>threads</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – sets the maximum number of threads</p></li>
+<li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a>) – list of additional options to pass to solver</p></li>
+<li><p><strong>warmStart</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if True, the solver will use the current value of variables as a start</p></li>
+<li><p><strong>keepFiles</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if True, files are saved in the current directory and not deleted after solving</p></li>
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – path to the solver binary</p></li>
+<li><p><strong>logPath</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – path to the log file</p></li>
+<li><p><strong>presolve</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if True, adds presolve on</p></li>
+<li><p><strong>cuts</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if True, adds gomory on knapsack on probing on</p></li>
+<li><p><strong>strong</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if True, adds strong</p></li>
+<li><p><strong>fracGap</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – deprecated for gapRel</p></li>
+<li><p><strong>maxSeconds</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – deprecated for timeLimit</p></li>
+<li><p><strong>mip_start</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – deprecated for warmStart</p></li>
 </ul>
 </dd>
 </dl>
@@ -367,16 +385,27 @@ returns True on success</p>
 
 <dl class="py class">
 <dt id="pulp.apis.CPLEX_CMD">
-<em class="property">class </em><code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">CPLEX_CMD</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">timelimit</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPLEX_CMD" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">CPLEX_CMD</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">timelimit</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">mip</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">msg</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">timeLimit</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">gapRel</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">gapAbs</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">options</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">warmStart</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">keepFiles</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">threads</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">logPath</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">maxMemory</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">maxNodes</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">mip_start</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPLEX_CMD" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.core.LpSolver_CMD</span></code></p>
 <p>The CPLEX LP solver</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – a path to the solver binary</p></li>
+<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
+<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, no log is shown</p></li>
+<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
+<li><p><strong>gapRel</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – relative gap tolerance for the solver to stop (in fraction)</p></li>
+<li><p><strong>gapAbs</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – absolute gap tolerance for the solver to stop</p></li>
+<li><p><strong>threads</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – sets the maximum number of threads</p></li>
+<li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a>) – list of additional options to pass to solver</p></li>
+<li><p><strong>warmStart</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if True, the solver will use the current value of variables as a start</p></li>
 <li><p><strong>keepFiles</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if True, files are saved in the current directory and not deleted after solving</p></li>
-<li><p><strong>args</strong> – parameters to pass to <a class="reference internal" href="#pulp.apis.LpSolver" title="pulp.apis.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpSolver</span></code></a></p></li>
-<li><p><strong>kwargs</strong> – parameters to pass to <a class="reference internal" href="#pulp.apis.LpSolver" title="pulp.apis.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpSolver</span></code></a></p></li>
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – path to the solver binary</p></li>
+<li><p><strong>logPath</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – path to the log file</p></li>
+<li><p><strong>maxMemory</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – max memory to use during the solving. Stops the solving when reached.</p></li>
+<li><p><strong>maxNodes</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – max number of nodes during branching. Stops the solving when reached.</p></li>
+<li><p><strong>mip_start</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – deprecated for warmStart</p></li>
+<li><p><strong>timelimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – deprecated for timeLimit</p></li>
 </ul>
 </dd>
 </dl>
@@ -423,17 +452,16 @@ returns True on success</p>
 
 <dl class="py class">
 <dt id="pulp.apis.CPLEX_DLL">
-<em class="property">class </em><code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">CPLEX_DLL</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mip</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">msg</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">options</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">mip_start</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">timeLimit</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">warmStart</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPLEX_DLL" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">CPLEX_DLL</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mip</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">msg</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">options</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">timeLimit</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPLEX_DLL" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.core.LpSolver</span></code></p>
 <p>The CPLEX LP/MIP solver PHANTOM Something went wrong!!!!</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, assume LP even if integer variables.</p></li>
-<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, no log is shown.</p></li>
+<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
+<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, no log is shown</p></li>
 <li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a>) – </p></li>
-<li><p><strong>warmStart</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – </p></li>
-<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – maximum time for solver</p></li>
+<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
 <li><p><strong>args</strong> – </p></li>
 <li><p><strong>kwargs</strong> – optional named options to pass to each solver,
 e.g. gapRel=0.1, gapAbs=10, logPath=”“,</p></li>
@@ -467,18 +495,27 @@ e.g. gapRel=0.1, gapAbs=10, logPath=”“,</p></li>
 
 <dl class="py class">
 <dt id="pulp.apis.CPLEX_PY">
-<em class="property">class </em><code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">CPLEX_PY</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">epgap</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">logfilename</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPLEX_PY" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">CPLEX_PY</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mip</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">msg</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">timeLimit</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">gapRel</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">warmStart</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">logPath</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">epgap</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">logfilename</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPLEX_PY" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.core.LpSolver</span></code></p>
 <p>The CPLEX LP/MIP solver (via a Python Binding)</p>
 <p>This solver wraps the python api of cplex.
 It has been tested against cplex 12.3.
 For api functions that have not been wrapped in this solver please use
 the base cplex classes</p>
-<p>Initializes the CPLEX_PY solver.</p>
-<p>&#64;param mip: if False the solver will solve a MIP as an LP
-&#64;param msg: displays information from the solver to stdout
-&#64;param epgap: sets the integer bound gap
-&#64;param logfilename: sets the filename of the cplex logfile</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
+<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, no log is shown</p></li>
+<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
+<li><p><strong>gapRel</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – relative gap tolerance for the solver to stop (in fraction)</p></li>
+<li><p><strong>warmStart</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if True, the solver will use the current value of variables as a start</p></li>
+<li><p><strong>logPath</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – path to the log file</p></li>
+<li><p><strong>epgap</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – deprecated for gapRel</p></li>
+<li><p><strong>logfilename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – deprecated for logPath</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
 <dt id="pulp.apis.CPLEX_PY.actualResolve">
 <code class="sig-name descname">actualResolve</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lp</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPLEX_PY.actualResolve" title="Permalink to this definition">¶</a></dt>
@@ -549,16 +586,18 @@ them to the lp model which it then solves</p>
 
 <dl class="py class">
 <dt id="pulp.apis.GLPK_CMD">
-<em class="property">class </em><code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">GLPK_CMD</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">keepFiles</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.GLPK_CMD" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">GLPK_CMD</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">keepFiles</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">mip</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">msg</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">options</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">timeLimit</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.GLPK_CMD" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.core.LpSolver_CMD</span></code></p>
 <p>The GLPK LP solver</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – a path to the solver binary</p></li>
+<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
+<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, no log is shown</p></li>
+<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
+<li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a>) – list of additional options to pass to solver</p></li>
 <li><p><strong>keepFiles</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if True, files are saved in the current directory and not deleted after solving</p></li>
-<li><p><strong>args</strong> – parameters to pass to <a class="reference internal" href="#pulp.apis.LpSolver" title="pulp.apis.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpSolver</span></code></a></p></li>
-<li><p><strong>kwargs</strong> – parameters to pass to <a class="reference internal" href="#pulp.apis.LpSolver" title="pulp.apis.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpSolver</span></code></a></p></li>
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – path to the solver binary</p></li>
 </ul>
 </dd>
 </dl>
@@ -594,17 +633,25 @@ them to the lp model which it then solves</p>
 
 <dl class="py class">
 <dt id="pulp.apis.GUROBI">
-<em class="property">class </em><code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">GUROBI</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mip</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">msg</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">timeLimit</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">epgap</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">solverParams</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.GUROBI" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">GUROBI</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mip</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">msg</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">timeLimit</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">epgap</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">gapRel</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">warmStart</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">logPath</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">solverParams</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.GUROBI" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.core.LpSolver</span></code></p>
 <p>The Gurobi LP/MIP solver (via its python interface)</p>
 <p>The Gurobi variables are available (after a solve) in var.solverVar
 Constraints in constraint.solverConstraint
 and the Model is in prob.solverModel</p>
-<p>Initializes the Gurobi solver.</p>
-<p>&#64;param mip: if False the solver will solve a MIP as an LP
-&#64;param msg: displays information from the solver to stdout
-&#64;param timeLimit: sets the maximum time for solution
-&#64;param epgap: sets the integer bound gap</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
+<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, no log is shown</p></li>
+<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
+<li><p><strong>gapRel</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – relative gap tolerance for the solver to stop (in fraction)</p></li>
+<li><p><strong>warmStart</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if True, the solver will use the current value of variables as a start</p></li>
+<li><p><strong>logPath</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – path to the log file</p></li>
+<li><p><strong>epgap</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – deprecated for gapRel</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
 <dt id="pulp.apis.GUROBI.actualResolve">
 <code class="sig-name descname">actualResolve</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lp</span></em>, <em class="sig-param"><span class="n">callback</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.GUROBI.actualResolve" title="Permalink to this definition">¶</a></dt>
@@ -652,16 +699,24 @@ them to the lp model which it then solves</p>
 
 <dl class="py class">
 <dt id="pulp.apis.GUROBI_CMD">
-<em class="property">class </em><code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">GUROBI_CMD</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">keepFiles</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.GUROBI_CMD" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">GUROBI_CMD</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mip</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">msg</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">timeLimit</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">gapRel</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">gapAbs</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">options</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">warmStart</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">keepFiles</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">threads</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">logPath</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">mip_start</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.GUROBI_CMD" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.core.LpSolver_CMD</span></code></p>
 <p>The GUROBI_CMD solver</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – a path to the solver binary</p></li>
+<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
+<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, no log is shown</p></li>
+<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
+<li><p><strong>gapRel</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – relative gap tolerance for the solver to stop (in fraction)</p></li>
+<li><p><strong>gapAbs</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – absolute gap tolerance for the solver to stop</p></li>
+<li><p><strong>threads</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – sets the maximum number of threads</p></li>
+<li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a>) – list of additional options to pass to solver</p></li>
+<li><p><strong>warmStart</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if True, the solver will use the current value of variables as a start</p></li>
 <li><p><strong>keepFiles</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if True, files are saved in the current directory and not deleted after solving</p></li>
-<li><p><strong>args</strong> – parameters to pass to <a class="reference internal" href="#pulp.apis.LpSolver" title="pulp.apis.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpSolver</span></code></a></p></li>
-<li><p><strong>kwargs</strong> – parameters to pass to <a class="reference internal" href="#pulp.apis.LpSolver" title="pulp.apis.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpSolver</span></code></a></p></li>
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – path to the solver binary</p></li>
+<li><p><strong>logPath</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – path to the log file</p></li>
+<li><p><strong>mip_start</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – deprecated for warmStart</p></li>
 </ul>
 </dd>
 </dl>
@@ -708,17 +763,16 @@ them to the lp model which it then solves</p>
 
 <dl class="py class">
 <dt id="pulp.apis.LpSolver">
-<em class="property">class </em><code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">LpSolver</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mip</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">msg</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">options</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">mip_start</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">timeLimit</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">warmStart</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.LpSolver" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">LpSolver</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mip</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">msg</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">options</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">timeLimit</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.LpSolver" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>A generic LP Solver</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, assume LP even if integer variables.</p></li>
-<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, no log is shown.</p></li>
+<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
+<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, no log is shown</p></li>
 <li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a>) – </p></li>
-<li><p><strong>warmStart</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – </p></li>
-<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – maximum time for solver</p></li>
+<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
 <li><p><strong>args</strong> – </p></li>
 <li><p><strong>kwargs</strong> – optional named options to pass to each solver,
 e.g. gapRel=0.1, gapAbs=10, logPath=”“,</p></li>
@@ -784,12 +838,16 @@ or other solvers that are similar</p>
 
 <dl class="py class">
 <dt id="pulp.apis.LpSolver_CMD">
-<em class="property">class </em><code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">LpSolver_CMD</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">keepFiles</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.LpSolver_CMD" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">LpSolver_CMD</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">keepFiles</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.LpSolver_CMD" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.core.LpSolver</span></code></p>
 <p>A generic command line LP Solver</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
+<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
+<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, no log is shown</p></li>
+<li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a>) – list of additional options to pass to solver (format depends on the solver)</p></li>
+<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
 <li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – a path to the solver binary</p></li>
 <li><p><strong>keepFiles</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if True, files are saved in the current directory and not deleted after solving</p></li>
 <li><p><strong>args</strong> – parameters to pass to <a class="reference internal" href="#pulp.apis.LpSolver" title="pulp.apis.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpSolver</span></code></a></p></li>
@@ -846,16 +904,18 @@ directory</p>
 
 <dl class="py class">
 <dt id="pulp.apis.MIPCL_CMD">
-<em class="property">class </em><code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">MIPCL_CMD</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">keepFiles</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.MIPCL_CMD" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">MIPCL_CMD</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">keepFiles</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">mip</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">msg</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">options</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">timeLimit</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.MIPCL_CMD" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.core.LpSolver_CMD</span></code></p>
 <p>The MIPCL_CMD solver</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – a path to the solver binary</p></li>
+<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
+<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, no log is shown</p></li>
+<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
+<li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a>) – list of additional options to pass to solver</p></li>
 <li><p><strong>keepFiles</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if True, files are saved in the current directory and not deleted after solving</p></li>
-<li><p><strong>args</strong> – parameters to pass to <a class="reference internal" href="#pulp.apis.LpSolver" title="pulp.apis.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpSolver</span></code></a></p></li>
-<li><p><strong>kwargs</strong> – parameters to pass to <a class="reference internal" href="#pulp.apis.LpSolver" title="pulp.apis.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpSolver</span></code></a></p></li>
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – path to the solver binary</p></li>
 </ul>
 </dd>
 </dl>
@@ -891,17 +951,16 @@ directory</p>
 
 <dl class="py class">
 <dt id="pulp.apis.MOSEK">
-<em class="property">class </em><code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">MOSEK</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mip</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">msg</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">options</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">mip_start</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">timeLimit</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">warmStart</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.MOSEK" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">MOSEK</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mip</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">msg</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">options</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">timeLimit</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.MOSEK" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.core.LpSolver</span></code></p>
 <p>Mosek lp and mip solver (via Mosek Optimizer API).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, assume LP even if integer variables.</p></li>
-<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, no log is shown.</p></li>
+<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
+<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, no log is shown</p></li>
 <li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a>) – </p></li>
-<li><p><strong>warmStart</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – </p></li>
-<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – maximum time for solver</p></li>
+<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
 <li><p><strong>args</strong> – </p></li>
 <li><p><strong>kwargs</strong> – optional named options to pass to each solver,
 e.g. gapRel=0.1, gapAbs=10, logPath=”“,</p></li>
@@ -929,10 +988,32 @@ e.g. gapRel=0.1, gapAbs=10, logPath=”“,</p></li>
 
 <dl class="py class">
 <dt id="pulp.apis.PULP_CBC_CMD">
-<em class="property">class </em><code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">PULP_CBC_CMD</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.PULP_CBC_CMD" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">PULP_CBC_CMD</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mip</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">msg</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">timeLimit</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">fracGap</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">maxSeconds</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">gapRel</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">gapAbs</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">presolve</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">cuts</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">strong</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">options</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">warmStart</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">keepFiles</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">threads</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">logPath</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">mip_start</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.PULP_CBC_CMD" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.coin_api.COIN_CMD</span></code></p>
 <p>This solver uses a precompiled version of cbc provided with the package</p>
-<p>just loads up COIN_CMD with the path set</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
+<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, no log is shown</p></li>
+<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
+<li><p><strong>gapRel</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – relative gap tolerance for the solver to stop (in fraction)</p></li>
+<li><p><strong>gapAbs</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – absolute gap tolerance for the solver to stop</p></li>
+<li><p><strong>threads</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – sets the maximum number of threads</p></li>
+<li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a>) – list of additional options to pass to solver</p></li>
+<li><p><strong>warmStart</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if True, the solver will use the current value of variables as a start</p></li>
+<li><p><strong>keepFiles</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if True, files are saved in the current directory and not deleted after solving</p></li>
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – path to the solver binary</p></li>
+<li><p><strong>logPath</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – path to the log file</p></li>
+<li><p><strong>presolve</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if True, adds presolve on</p></li>
+<li><p><strong>cuts</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if True, adds gomory on knapsack on probing on</p></li>
+<li><p><strong>strong</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if True, adds strong</p></li>
+<li><p><strong>fracGap</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – deprecated for gapRel</p></li>
+<li><p><strong>maxSeconds</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – deprecated for timeLimit</p></li>
+<li><p><strong>mip_start</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – deprecated for warmStart</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py attribute">
 <dt id="pulp.apis.PULP_CBC_CMD.name">
 <code class="sig-name descname">name</code><em class="property"> = 'PULP_CBC_CMD'</em><a class="headerlink" href="#pulp.apis.PULP_CBC_CMD.name" title="Permalink to this definition">¶</a></dt>
@@ -947,10 +1028,21 @@ e.g. gapRel=0.1, gapAbs=10, logPath=”“,</p></li>
 
 <dl class="py class">
 <dt id="pulp.apis.PULP_CHOCO_CMD">
-<em class="property">class </em><code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">PULP_CHOCO_CMD</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.PULP_CHOCO_CMD" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">PULP_CHOCO_CMD</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">keepFiles</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">mip</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">msg</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">options</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">timeLimit</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.PULP_CHOCO_CMD" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.choco_api.CHOCO_CMD</span></code></p>
 <p>This solver uses a packaged version of choco provided with the package</p>
-<p>just loads up CHOCO_CMD with the path set</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
+<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, no log is shown</p></li>
+<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
+<li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a>) – list of additional options to pass to solver</p></li>
+<li><p><strong>keepFiles</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if True, files are saved in the current directory and not deleted after solving</p></li>
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – path to the solver binary</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py attribute">
 <dt id="pulp.apis.PULP_CHOCO_CMD.name">
 <code class="sig-name descname">name</code><em class="property"> = 'PULP_CHOCO_CMD'</em><a class="headerlink" href="#pulp.apis.PULP_CHOCO_CMD.name" title="Permalink to this definition">¶</a></dt>
@@ -965,7 +1057,7 @@ e.g. gapRel=0.1, gapAbs=10, logPath=”“,</p></li>
 
 <dl class="py class">
 <dt id="pulp.apis.PYGLPK">
-<em class="property">class </em><code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">PYGLPK</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mip</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">msg</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">options</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">mip_start</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">timeLimit</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">warmStart</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.PYGLPK" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">PYGLPK</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mip</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">msg</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">options</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">timeLimit</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.PYGLPK" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.core.LpSolver</span></code></p>
 <p>The glpk LP/MIP solver (via its python interface)</p>
 <p>Copyright Christophe-Marie Duquesne 2012</p>
@@ -975,11 +1067,10 @@ The Model is in prob.solverModel</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, assume LP even if integer variables.</p></li>
-<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, no log is shown.</p></li>
+<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
+<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, no log is shown</p></li>
 <li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a>) – </p></li>
-<li><p><strong>warmStart</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – </p></li>
-<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – maximum time for solver</p></li>
+<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
 <li><p><strong>args</strong> – </p></li>
 <li><p><strong>kwargs</strong> – optional named options to pass to each solver,
 e.g. gapRel=0.1, gapAbs=10, logPath=”“,</p></li>
@@ -1026,16 +1117,17 @@ e.g. gapRel=0.1, gapAbs=10, logPath=”“,</p></li>
 
 <dl class="py class">
 <dt id="pulp.apis.SCIP_CMD">
-<em class="property">class </em><code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">SCIP_CMD</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">keepFiles</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.SCIP_CMD" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">SCIP_CMD</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">keepFiles</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">mip</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">msg</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">options</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.SCIP_CMD" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.core.LpSolver_CMD</span></code></p>
 <p>The SCIP optimization solver</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – a path to the solver binary</p></li>
+<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
+<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, no log is shown</p></li>
+<li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a>) – list of additional options to pass to solver</p></li>
 <li><p><strong>keepFiles</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if True, files are saved in the current directory and not deleted after solving</p></li>
-<li><p><strong>args</strong> – parameters to pass to <a class="reference internal" href="#pulp.apis.LpSolver" title="pulp.apis.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpSolver</span></code></a></p></li>
-<li><p><strong>kwargs</strong> – parameters to pass to <a class="reference internal" href="#pulp.apis.LpSolver" title="pulp.apis.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpSolver</span></code></a></p></li>
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – path to the solver binary</p></li>
 </ul>
 </dd>
 </dl>
@@ -1076,16 +1168,19 @@ e.g. gapRel=0.1, gapAbs=10, logPath=”“,</p></li>
 
 <dl class="py class">
 <dt id="pulp.apis.XPRESS">
-<em class="property">class </em><code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">XPRESS</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">maxSeconds</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">targetGap</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">heurFreq</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">heurStra</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">coverCuts</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">preSolve</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.XPRESS" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">XPRESS</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mip</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">msg</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">timeLimit</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">gapRel</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">options</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">keepFiles</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">maxSeconds</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">targetGap</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">heurFreq</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">heurStra</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">coverCuts</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">preSolve</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.XPRESS" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.core.LpSolver_CMD</span></code></p>
 <p>The XPRESS LP solver</p>
 <p>Initializes the Xpress solver.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>maxSeconds</strong> – the maximum time that the Optimizer will run before it terminates</p></li>
-<li><p><strong>targetGap</strong> – global search will terminate if:
-abs(MIPOBJVAL - BESTBOUND) &lt;= MIPRELSTOP * BESTBOUND</p></li>
+<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
+<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, no log is shown</p></li>
+<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
+<li><p><strong>gapRel</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – relative gap tolerance for the solver to stop (in fraction)</p></li>
+<li><p><strong>maxSeconds</strong> – deprecated for timeLimit</p></li>
+<li><p><strong>targetGap</strong> – deprecated for gapRel</p></li>
 <li><p><strong>heurFreq</strong> – the frequency at which heuristics are used in the tree search</p></li>
 <li><p><strong>heurStra</strong> – heuristic strategy</p></li>
 <li><p><strong>coverCuts</strong> – the number of rounds of lifted cover inequalities at the top node</p></li>
@@ -1128,7 +1223,7 @@ More about Xpress options and control parameters please see
 
 <dl class="py class">
 <dt id="pulp.apis.YAPOSIB">
-<em class="property">class </em><code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">YAPOSIB</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mip</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">msg</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">options</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">mip_start</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">timeLimit</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">warmStart</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.YAPOSIB" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">YAPOSIB</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mip</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">msg</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">options</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">timeLimit</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.YAPOSIB" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.core.LpSolver</span></code></p>
 <p>COIN OSI (via its python interface)</p>
 <p>Copyright Christophe-Marie Duquesne 2012</p>
@@ -1138,11 +1233,10 @@ The Model is in prob.solverModel</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, assume LP even if integer variables.</p></li>
-<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, no log is shown.</p></li>
+<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
+<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, no log is shown</p></li>
 <li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a>) – </p></li>
-<li><p><strong>warmStart</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – </p></li>
-<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – maximum time for solver</p></li>
+<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
 <li><p><strong>args</strong> – </p></li>
 <li><p><strong>kwargs</strong> – optional named options to pass to each solver,
 e.g. gapRel=0.1, gapAbs=10, logPath=”“,</p></li>
@@ -1309,6 +1403,8 @@ the keyword value pairs come from the keywords dictionary</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
+        <a href="../plugins/index.html" class="btn btn-neutral float-right" title="Plugins" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
       
         <a href="pulp.html" class="btn btn-neutral" title="pulp: Pulp classes" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
@@ -1341,7 +1437,7 @@ the keyword value pairs come from the keywords dictionary</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'2.2',
+            VERSION:'2.3',
             LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',

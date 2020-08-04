@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>How to warm-start a solver &mdash; PuLP 2.2 documentation</title>
+  <title>How to warm-start a solver &mdash; PuLP 2.3 documentation</title>
   
 
   
@@ -40,7 +40,7 @@
         <link rel="index" title="Index"
               href="../genindex.html"/>
         <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="PuLP 2.2 documentation" href="../index.html"/>
+    <link rel="top" title="PuLP 2.3 documentation" href="../index.html"/>
         <link rel="up" title="User Guides" href="index.html"/>
         <link rel="next" title="Elastic Constraints" href="how_to_elastic_constraints.html"/>
         <link rel="prev" title="How to configure a solver in PuLP" href="how_to_configure_solvers.html"/> 
@@ -71,7 +71,7 @@
           
             
               <div class="version">
-                2.2
+                2.3
 
                 
               </div>
@@ -113,9 +113,11 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="how_to_elastic_constraints.html">Elastic Constraints</a></li>
 <li class="toctree-l2"><a class="reference internal" href="how_to_export_models.html">How to export models in PuLP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how_to_debug.html">How to debug most errors during solving</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../technical/index.html">PuLP Internal Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../plugins/index.html">Plugins</a></li>
 </ul>
 
             
@@ -192,10 +194,10 @@
             
   <div class="section" id="how-to-warm-start-a-solver">
 <h1>How to warm-start a solver<a class="headerlink" href="#how-to-warm-start-a-solver" title="Permalink to this headline">¶</a></h1>
-<p>Many solvers permit the possibility of giving a valid (or parcially valid in some cases) solution so the solver can start from that solution. This can lead in performance gains.</p>
+<p>Many solvers permit the possibility of giving a valid (or parcially valid in some cases) solution so the solver can start from that solution. This can lead to performance gains.</p>
 <div class="section" id="supported-solver-apis">
 <h2>Supported solver APIs<a class="headerlink" href="#supported-solver-apis" title="Permalink to this headline">¶</a></h2>
-<p>The present solver APIs that work with PuLP mip-start are the following: <code class="docutils literal notranslate"><span class="pre">CPLEX_CMD</span></code>, <code class="docutils literal notranslate"><span class="pre">GUROBI_CMD</span></code>, <code class="docutils literal notranslate"><span class="pre">PULP_CBC_CMD</span></code>, <code class="docutils literal notranslate"><span class="pre">CBC_CMD</span></code>. <code class="docutils literal notranslate"><span class="pre">CPLEX_PY</span></code>.</p>
+<p>The present solver APIs that work with PuLP warm-start are the following: <code class="docutils literal notranslate"><span class="pre">CPLEX_CMD</span></code>, <code class="docutils literal notranslate"><span class="pre">GUROBI_CMD</span></code>, <code class="docutils literal notranslate"><span class="pre">PULP_CBC_CMD</span></code>, <code class="docutils literal notranslate"><span class="pre">CBC_CMD</span></code>, <code class="docutils literal notranslate"><span class="pre">CPLEX_PY</span></code>, <code class="docutils literal notranslate"><span class="pre">GUROBI</span></code>.</p>
 </div>
 <div class="section" id="example-problem">
 <h2>Example problem<a class="headerlink" href="#example-problem" title="Permalink to this headline">¶</a></h2>
@@ -218,9 +220,9 @@
 </div>
 <div class="section" id="activating-mip-start">
 <h2>Activating MIP start<a class="headerlink" href="#activating-mip-start" title="Permalink to this headline">¶</a></h2>
-<p>Once we have assigned values to all variables and we want to run a model while reusing those values, we just need to pass the <code class="docutils literal notranslate"><span class="pre">mip_start=True</span></code> argument to the solver when initiating it.</p>
+<p>Once we have assigned values to all variables and we want to run a model while reusing those values, we just need to pass the <code class="docutils literal notranslate"><span class="pre">warmStart=True</span></code> argument to the solver when initiating it.</p>
 <p>For example, using the default PuLP solver we would do:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">seating_model</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">pulp</span><span class="o">.</span><span class="n">PULP_CBC_CMD</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">mip_start</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">seating_model</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">pulp</span><span class="o">.</span><span class="n">PULP_CBC_CMD</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">warmStart</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
 </pre></div>
 </div>
 <p>I usually turn <code class="docutils literal notranslate"><span class="pre">msg=True</span></code> so I can see the messages from the solver confirming it loaded the solution correctly.</p>
@@ -238,7 +240,7 @@
 </div>
 <div class="section" id="whole-example">
 <h2>Whole Example<a class="headerlink" href="#whole-example" title="Permalink to this headline">¶</a></h2>
-<p>If you want to see the complete code of the mip start version of the example, <a class="reference download internal" download="" href="../_downloads/8b0aa99c9eb3dd70e13e42f4859826bc/wedding_initial.py"><code class="xref download docutils literal notranslate"><span class="pre">click</span> <span class="pre">here</span></code></a> or see below.</p>
+<p>If you want to see the complete code of the warm start version of the example, <a class="reference download internal" download="" href="../_downloads/8b0aa99c9eb3dd70e13e42f4859826bc/wedding_initial.py"><code class="xref download docutils literal notranslate"><span class="pre">click</span> <span class="pre">here</span></code></a> or see below.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">A set partitioning model of a wedding seating problem</span>
 <span class="sd">Adaptation where an initial solution is given to solvers: CPLEX_CMD, GUROBI_CMD, PULP_CBC_CMD</span>
@@ -273,15 +275,15 @@
 
 <span class="n">seating_model</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;Wedding Seating Model&quot;</span><span class="p">,</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
 
-<span class="n">seating_model</span> <span class="o">+=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">happiness</span><span class="p">(</span><span class="n">table</span><span class="p">)</span> <span class="o">*</span> <span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span><span class="p">])</span>
+<span class="n">seating_model</span> <span class="o">+=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">lpSum</span><span class="p">([</span><span class="n">happiness</span><span class="p">(</span><span class="n">table</span><span class="p">)</span> <span class="o">*</span> <span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span><span class="p">])</span>
 
 <span class="c1"># specify the maximum number of tables</span>
-<span class="n">seating_model</span> <span class="o">+=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span><span class="p">])</span> <span class="o">&lt;=</span> <span class="n">max_tables</span><span class="p">,</span> \
+<span class="n">seating_model</span> <span class="o">+=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">lpSum</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span><span class="p">])</span> <span class="o">&lt;=</span> <span class="n">max_tables</span><span class="p">,</span> \
                  <span class="s2">&quot;Maximum_number_of_tables&quot;</span>
 
 <span class="c1"># A guest must seated at one and only one table</span>
 <span class="k">for</span> <span class="n">guest</span> <span class="ow">in</span> <span class="n">guests</span><span class="p">:</span>
-    <span class="n">seating_model</span> <span class="o">+=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span>
+    <span class="n">seating_model</span> <span class="o">+=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">lpSum</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span>
                           <span class="k">if</span> <span class="n">guest</span> <span class="ow">in</span> <span class="n">table</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;Must_seat_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">guest</span>
 
 <span class="c1"># I&#39;ve taken the optimal solution from a previous solving. x is the variable dictionary.</span>
@@ -305,8 +307,6 @@
 <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span><span class="p">:</span>
     <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">()</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
-
-
 </pre></div>
 </div>
 </div>
@@ -356,7 +356,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'2.2',
+            VERSION:'2.3',
             LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',

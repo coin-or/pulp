@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>How to export models in PuLP &mdash; PuLP 2.2 documentation</title>
+  <title>How to export models in PuLP &mdash; PuLP 2.3 documentation</title>
   
 
   
@@ -40,9 +40,9 @@
         <link rel="index" title="Index"
               href="../genindex.html"/>
         <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="PuLP 2.2 documentation" href="../index.html"/>
+    <link rel="top" title="PuLP 2.3 documentation" href="../index.html"/>
         <link rel="up" title="User Guides" href="index.html"/>
-        <link rel="next" title="PuLP Internal Documentation" href="../technical/index.html"/>
+        <link rel="next" title="How to debug most errors during solving" href="how_to_debug.html"/>
         <link rel="prev" title="Elastic Constraints" href="how_to_elastic_constraints.html"/> 
 
   
@@ -71,7 +71,7 @@
           
             
               <div class="version">
-                2.2
+                2.3
 
                 
               </div>
@@ -110,9 +110,11 @@
 <li class="toctree-l3"><a class="reference internal" href="#example-2">Example 2</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="how_to_debug.html">How to debug most errors during solving</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../technical/index.html">PuLP Internal Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../plugins/index.html">Plugins</a></li>
 </ul>
 
             
@@ -175,7 +177,7 @@
   
   <div class="rst-breadcrumbs-buttons" role="navigation" aria-label="breadcrumb navigation">
       
-        <a href="../technical/index.html" class="btn btn-neutral float-right" title="PuLP Internal Documentation" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="how_to_debug.html" class="btn btn-neutral float-right" title="How to debug most errors during solving" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="how_to_elastic_constraints.html" class="btn btn-neutral" title="Elastic Constraints" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
@@ -189,8 +191,7 @@
             
   <div class="section" id="how-to-export-models-in-pulp">
 <h1>How to export models in PuLP<a class="headerlink" href="#how-to-export-models-in-pulp" title="Permalink to this headline">¶</a></h1>
-<p>Warning! This is experimental. Use at your own risk. And write an issue if you see anything weird.</p>
-<p>Exporting a model can be useful when the building time takes too long or when the model needs to be passed to another computer to solve. Or many other reasons.
+<p>Exporting a model can be useful when the building time takes too long or when the model needs to be passed to another computer to solve. Or many other reason.
 PuLP offers a way to export a model into a dictionary of a json file. The json file saves enough data to be able to rebuild a new model on reading it.</p>
 <div class="section" id="considerations">
 <h2>Considerations<a class="headerlink" href="#considerations" title="Permalink to this headline">¶</a></h2>
@@ -287,8 +288,7 @@ PuLP offers a way to export a model into a dictionary of a json file. The json f
 <span class="c1"># 0 &lt;= z Integer</span>
 </pre></div>
 </div>
-<p>As you can see we need get a tuple with a variables dictionary and a PuLP model object.
-We can now solve that problem:</p>
+<p>As you can see we get a tuple with size 2 with: (1) a variables dictionary and (2) a PuLP model object. We can now solve that problem:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">prob1</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -326,19 +326,19 @@ We can now solve that problem:</p>
 
 <span class="n">seating_model</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;Wedding_Seating_Model&quot;</span><span class="p">,</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
 
-<span class="n">seating_model</span> <span class="o">+=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">happiness</span><span class="p">(</span><span class="n">table</span><span class="p">)</span> <span class="o">*</span> <span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span><span class="p">])</span>
+<span class="n">seating_model</span> <span class="o">+=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">lpSum</span><span class="p">([</span><span class="n">happiness</span><span class="p">(</span><span class="n">table</span><span class="p">)</span> <span class="o">*</span> <span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span><span class="p">])</span>
 
 <span class="c1">#specify the maximum number of tables</span>
-<span class="n">seating_model</span> <span class="o">+=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span><span class="p">])</span> <span class="o">&lt;=</span> <span class="n">max_tables</span><span class="p">,</span> \
+<span class="n">seating_model</span> <span class="o">+=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">lpSum</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span><span class="p">])</span> <span class="o">&lt;=</span> <span class="n">max_tables</span><span class="p">,</span> \
                             <span class="s2">&quot;Maximum_number_of_tables&quot;</span>
 
 <span class="c1">#A guest must seated at one and only one table</span>
 <span class="k">for</span> <span class="n">guest</span> <span class="ow">in</span> <span class="n">guests</span><span class="p">:</span>
-    <span class="n">seating_model</span> <span class="o">+=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span>
+    <span class="n">seating_model</span> <span class="o">+=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">lpSum</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span>
                                 <span class="k">if</span> <span class="n">guest</span> <span class="ow">in</span> <span class="n">table</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;Must_seat_</span><span class="si">%s</span><span class="s2">&quot;</span><span class="o">%</span><span class="n">guest</span>
 </pre></div>
 </div>
-<p>Right now, we could directly solve the model doing:</p>
+<p>We <em>could</em> directly solve the model doing:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">seating_model</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -350,13 +350,13 @@ We can now solve that problem:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">wedding_vars</span><span class="p">,</span> <span class="n">wedding_model</span> <span class="o">=</span> <span class="n">LpProblem</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="s2">&quot;seating_model.json&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>We can inspect the variables:</p>
+<p>We inspect the variables:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">wedding_vars</span>
 <span class="p">{</span><span class="s2">&quot;table_(&#39;A&#39;,)&quot;</span><span class="p">:</span> <span class="n">table_</span><span class="p">(</span><span class="s1">&#39;A&#39;</span><span class="p">,),</span> <span class="s2">&quot;table_(&#39;A&#39;,_&#39;B&#39;)&quot;</span><span class="p">:</span> <span class="n">table_</span><span class="p">(</span><span class="s1">&#39;A&#39;</span><span class="p">,</span><span class="n">_</span><span class="s1">&#39;B&#39;</span><span class="p">),</span> <span class="s2">&quot;table_(&#39;A&#39;,_&#39;B&#39;,_&#39;C&#39;)&quot;</span><span class="p">:</span> <span class="n">table_</span><span class="p">(</span><span class="s1">&#39;A&#39;</span><span class="p">,</span><span class="n">_</span><span class="s1">&#39;B&#39;</span><span class="p">,</span><span class="n">_</span><span class="s1">&#39;C&#39;</span><span class="p">),</span> <span class="s2">&quot;table_(&#39;A&#39;,_&#39;B&#39;,_&#39;C&#39;,_&#39;D&#39;)&quot;</span><span class="p">:</span> <span class="n">table_</span><span class="p">(</span><span class="s1">&#39;A&#39;</span><span class="p">,</span><span class="n">_</span><span class="s1">&#39;B&#39;</span><span class="p">,</span><span class="n">_</span><span class="s1">&#39;C&#39;</span><span class="p">,</span><span class="n">_</span><span class="s1">&#39;D&#39;</span><span class="p">),</span> <span class="s2">&quot;table_(&#39;A&#39;,_&#39;B&#39;,_&#39;C&#39;,_&#39;E&#39;)&quot;</span><span class="p">:</span> <span class="n">table_</span><span class="p">(</span><span class="s1">&#39;A&#39;</span><span class="p">,</span><span class="n">_</span><span class="s1">&#39;B&#39;</span><span class="p">,</span><span class="n">_</span><span class="s1">&#39;C&#39;</span><span class="p">,</span><span class="n">_</span><span class="s1">&#39;E&#39;</span><span class="p">),</span> <span class="o">...</span><span class="p">}</span>
 </pre></div>
 </div>
-<p>As can be seen, it is no longer a dictionary indexed by the original tuples. Sadly, it has become a dictionary of concatenated names.</p>
-<p>We can still solve the model though:</p>
+<p>As can be seen, it is no longer a dictionary indexed by the original tuples. Unfortunately, it has become a flat dictionary with concatenated names.</p>
+<p>We can still solve the model, though:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">wedding_model</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -378,7 +378,7 @@ We can now solve that problem:</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../technical/index.html" class="btn btn-neutral float-right" title="PuLP Internal Documentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="how_to_debug.html" class="btn btn-neutral float-right" title="How to debug most errors during solving" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="how_to_elastic_constraints.html" class="btn btn-neutral" title="Elastic Constraints" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
@@ -412,7 +412,7 @@ We can now solve that problem:</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'2.2',
+            VERSION:'2.3',
             LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',

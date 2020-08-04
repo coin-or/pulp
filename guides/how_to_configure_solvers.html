@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>How to configure a solver in PuLP &mdash; PuLP 2.2 documentation</title>
+  <title>How to configure a solver in PuLP &mdash; PuLP 2.3 documentation</title>
   
 
   
@@ -40,7 +40,7 @@
         <link rel="index" title="Index"
               href="../genindex.html"/>
         <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="PuLP 2.2 documentation" href="../index.html"/>
+    <link rel="top" title="PuLP 2.3 documentation" href="../index.html"/>
         <link rel="up" title="User Guides" href="index.html"/>
         <link rel="next" title="How to warm-start a solver" href="how_to_mip_start.html"/>
         <link rel="prev" title="User Guides" href="index.html"/> 
@@ -71,7 +71,7 @@
           
             
               <div class="version">
-                2.2
+                2.3
 
                 
               </div>
@@ -102,7 +102,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../CaseStudies/index.html">Case Studies</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">User Guides</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">How to configure a solver in PuLP</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#checking-which-solvers-pulp-has-acces-to">Checking which solvers PuLP has acces to</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#checking-which-solvers-pulp-has-access-to">Checking which solvers PuLP has access to</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#what-is-an-environment-variable">What is an environment variable</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#types-of-pulp-integrations-api-to-solvers">Types of PuLP integrations (API) to solvers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#configuring-the-path-to-the-solver">Configuring the path to the solver</a></li>
@@ -119,9 +119,11 @@
 <li class="toctree-l2"><a class="reference internal" href="how_to_mip_start.html">How to warm-start a solver</a></li>
 <li class="toctree-l2"><a class="reference internal" href="how_to_elastic_constraints.html">Elastic Constraints</a></li>
 <li class="toctree-l2"><a class="reference internal" href="how_to_export_models.html">How to export models in PuLP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how_to_debug.html">How to debug most errors during solving</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../technical/index.html">PuLP Internal Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../plugins/index.html">Plugins</a></li>
 </ul>
 
             
@@ -199,8 +201,8 @@
   <div class="section" id="how-to-configure-a-solver-in-pulp">
 <h1>How to configure a solver in PuLP<a class="headerlink" href="#how-to-configure-a-solver-in-pulp" title="Permalink to this headline">¶</a></h1>
 <p>A typical problem PuLP users have is trying to connect to a solver that is installed in their pc. Here, we show the main concepts and ways to be sure PuLP can talk to the solver in question.</p>
-<div class="section" id="checking-which-solvers-pulp-has-acces-to">
-<h2>Checking which solvers PuLP has acces to<a class="headerlink" href="#checking-which-solvers-pulp-has-acces-to" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="checking-which-solvers-pulp-has-access-to">
+<h2>Checking which solvers PuLP has access to<a class="headerlink" href="#checking-which-solvers-pulp-has-access-to" title="Permalink to this headline">¶</a></h2>
 <p>PuLP has some helper functions that permit a user to query which solvers are available and initialize a solver from its name.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pulp</span> <span class="kn">as</span> <span class="nn">pl</span>
 <span class="n">solver_list</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">list_solvers</span><span class="p">()</span>
@@ -213,13 +215,13 @@
 <span class="c1"># [&#39;GLPK_CMD&#39;, &#39;CPLEX_CMD&#39;, &#39;CPLEX_PY&#39;, &#39;GUROBI&#39;, &#39;GUROBI_CMD&#39;, &#39;PULP_CBC_CMD&#39;, &#39;COIN_CMD&#39;, &#39;PULP_CHOCO_CMD&#39;]</span>
 </pre></div>
 </div>
-<p>Also, it’s possible to get a solver object by using the name of the solver. Any arguments passes to this function are passed to the constructor:</p>
+<p>Also, it’s possible to get a solver object by using the name of the solver. Any arguments passed to this function are passed to the constructor:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pulp</span> <span class="kn">as</span> <span class="nn">pl</span>
 <span class="n">solver</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">get_solver</span><span class="p">(</span><span class="s1">&#39;CPLEX_CMD&#39;</span><span class="p">)</span>
-<span class="n">solver</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">get_solver</span><span class="p">(</span><span class="s1">&#39;CPLEX_CMD&#39;</span><span class="p">,</span> <span class="n">timeLimite</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">solver</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">get_solver</span><span class="p">(</span><span class="s1">&#39;CPLEX_CMD&#39;</span><span class="p">,</span> <span class="n">timeLimit</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>In the next sections, we will explain how to configure a solver to be accesible by pulp.</p>
+<p>In the next sections, we will explain how to configure a solver to be accessible by PuLP.</p>
 </div>
 <div class="section" id="what-is-an-environment-variable">
 <h2>What is an environment variable<a class="headerlink" href="#what-is-an-environment-variable" title="Permalink to this headline">¶</a></h2>
@@ -232,13 +234,12 @@
 </div>
 <div class="section" id="types-of-pulp-integrations-api-to-solvers">
 <h2>Types of PuLP integrations (API) to solvers<a class="headerlink" href="#types-of-pulp-integrations-api-to-solvers" title="Permalink to this headline">¶</a></h2>
-<p>API = Application Programming Interface.
-PuLP has usually several ways to connect to solvers. Depending on the way it connects to the solver, configuring the connection may vary. We can summarize the integrations in two big groups:</p>
+<p>API means “Application Programming Interface”. PuLP has usually several ways to connect to solvers. Depending on the way it connects to the solver, configuring the connection may vary. We can summarize the integrations in two big groups:</p>
 <ul class="simple">
 <li><p>Using the command line interface of the solver.</p></li>
 <li><p>Using the python library of the solver.</p></li>
 </ul>
-<p>Not all solvers have a python library, but most have a command line interface. I’m not going to cover each one here. If you want to know which one are you using it’s easy. If the name of the solver API ends with <code class="docutils literal notranslate"><span class="pre">CMD</span></code> (such as <code class="docutils literal notranslate"><span class="pre">PULP_CBC_CMD</span></code>, <code class="docutils literal notranslate"><span class="pre">CPLEX_CMD</span></code>, <code class="docutils literal notranslate"><span class="pre">GUROBI_CMD</span></code>, etc.) it’s the former. Otherwise, it is the latter.</p>
+<p>Not all solvers have a python library, but most have a command line interface. If you want to know which one are you using it’s easy. If the name of the solver API ends with <code class="docutils literal notranslate"><span class="pre">CMD</span></code> (such as <code class="docutils literal notranslate"><span class="pre">PULP_CBC_CMD</span></code>, <code class="docutils literal notranslate"><span class="pre">CPLEX_CMD</span></code>, <code class="docutils literal notranslate"><span class="pre">GUROBI_CMD</span></code>, etc.) it’s the former. Otherwise, it is the latter.</p>
 </div>
 <div class="section" id="configuring-the-path-to-the-solver">
 <h2>Configuring the path to the solver<a class="headerlink" href="#configuring-the-path-to-the-solver" title="Permalink to this headline">¶</a></h2>
@@ -248,8 +249,8 @@ PuLP has usually several ways to connect to solvers. Depending on the way it con
 <li><p>The user has configured the PATH environment variable to the directory where the solver is.</p></li>
 </ol>
 <p><strong>We will do the example for CPLEX in Windows, but the idea is the same for other solvers and other Operating Systems</strong>.</p>
-<p>Both imply knowing where is solver is. So first we have to go look for it in our pc. Mine is in <code class="docutils literal notranslate"><span class="pre">C:\Program</span> <span class="pre">Files\IBM\ILOG\CPLEX_Studio128\cplex\bin\x64_win64\cplex.exe</span></code>.</p>
-<p>The first one is really easy. Imagine using the <code class="docutils literal notranslate"><span class="pre">CPLEX_CMD</span></code> solver:</p>
+<p>Both options imply knowing where the solver is. So first we have to go look for it in the pc. Mine is in <code class="docutils literal notranslate"><span class="pre">C:\Program</span> <span class="pre">Files\IBM\ILOG\CPLEX_Studio128\cplex\bin\x64_win64\cplex.exe</span></code>.</p>
+<p>Imagine using the <code class="docutils literal notranslate"><span class="pre">CPLEX_CMD</span></code> solver, the first one is really simple:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">path_to_cplex</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;C:\Program Files\IBM\ILOG\CPLEX_Studio128\cplex\bin\x64_win64\cplex.exe&#39;</span>
 <span class="kn">import</span> <span class="nn">pulp</span> <span class="kn">as</span> <span class="nn">pl</span>
 <span class="n">model</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;Example&quot;</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
@@ -260,8 +261,8 @@ PuLP has usually several ways to connect to solvers. Depending on the way it con
 <span class="n">result</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>The only thing I had to do was to look for the ‘cplex.exe’ file (in Windows, although in Linux and Mac is something similar but with ‘cplex’) and pass the absolute path to the solver.</p>
-<p>The second one is a little more cumbersome but you only do it once. You need to configure the <code class="docutils literal notranslate"><span class="pre">PATH</span></code> environment variable to include the path to the <code class="docutils literal notranslate"><span class="pre">C:\Program</span> <span class="pre">Files\IBM\ILOG\CPLEX_Studio128\cplex\bin\x64_win64</span></code> directory.</p>
+<p>The only to do was to look for the ‘cplex.exe’ file (in Windows, although in Linux and Mac is something similar but with ‘cplex’) and pass the absolute path to the solver.</p>
+<p>The second one is a little more cumbersome but you only do it once per machine. You need to configure the <code class="docutils literal notranslate"><span class="pre">PATH</span></code> environment variable to include the path to the <code class="docutils literal notranslate"><span class="pre">C:\Program</span> <span class="pre">Files\IBM\ILOG\CPLEX_Studio128\cplex\bin\x64_win64</span></code> directory.</p>
 <p>Here is one random guide to editing environment variables in: <a class="reference external" href="https://opentechguides.com/how-to/article/windows-10/113/windows-10-set-path.html">Windows</a> or <a class="reference external" href="https://askubuntu.com/questions/730/how-do-i-set-environment-variables">Linux or Mac</a>. The idea is that once it is correctly configured you can forget about it (until you change pc or solver version).</p>
 <p>Once we have done that, we just do something very similar to the previous example:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pulp</span> <span class="kn">as</span> <span class="nn">pl</span>
@@ -278,10 +279,10 @@ PuLP has usually several ways to connect to solvers. Depending on the way it con
 <div class="section" id="additional-environment-variables-per-solver">
 <h2>Additional environment variables per solver<a class="headerlink" href="#additional-environment-variables-per-solver" title="Permalink to this headline">¶</a></h2>
 <p>Sometimes, giving the path to the solver is not enough. This can be because the solver needs to know where other files are found (dynamic libraries it will use when running) or the PuLP API needs to import some specific python packages that are deployed with the solver (in case of the solvers that do not have a <code class="docutils literal notranslate"><span class="pre">_CMD</span></code> at the end).</p>
-<p>Whatever the reason, it’s better to be safe than sorry. This means knowing what variables are usually used by which solver. Here I’m adding the necessary environment variables that are needed for each solver. The procedure is very similar to what we did with the <code class="docutils literal notranslate"><span class="pre">PATH</span></code> variable: sometimes you need to edit an existing variable and sometimes you need to create a new environment variable. So it looks explicit, I will be using my own paths to variables, but you will have to adapt them to your actual paths (e.g., if the version of the solver is not the same). I will be using my <strong>Linux paths, since it just implies copying the last lines of my .bash_profile file</strong>. I’ve adapted them to the Windows command line but, preferably, you would like to edit them via the GUI in windows.</p>
+<p>Whatever the reason, it’s better to be safe than sorry and this means knowing what variables are usually used by which solver. Here are the necessary environment variables that are needed for each solver. The procedure is very similar to what we did with the <code class="docutils literal notranslate"><span class="pre">PATH</span></code> variable: sometimes you need to edit an existing environment variable and sometimes you need to create a new environment variable. So it looks explicit, I will be using my own paths to variables, but you will have to adapt them to your actual paths (e.g., if the version of the solver is not the same). I will be using my <strong>Linux paths, since it just implies copying the last lines of my ~.bashrc file</strong>. I’ve adapted them to the Windows command line but, preferably, you would like to edit them via the GUI in windows.</p>
 <div class="section" id="cplex">
 <h3>CPLEX<a class="headerlink" href="#cplex" title="Permalink to this headline">¶</a></h3>
-<p><strong>Linux / Mac: add the following lines to the .bash_profile file</strong>:</p>
+<p><strong>Linux / Mac: add the following lines to the ~.bashrc file</strong>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">export</span> <span class="n">CPLEX_HOME</span><span class="o">=</span><span class="s2">&quot;/opt/ibm/ILOG/CPLEX_Studio128/cplex&quot;</span>
 <span class="n">export</span> <span class="n">CPO_HOME</span><span class="o">=</span><span class="s2">&quot;/opt/ibm/ILOG/CPLEX_Studio128/cpoptimizer&quot;</span>
 <span class="n">export</span> <span class="n">PATH</span><span class="o">=</span><span class="s2">&quot;$</span><span class="si">{PATH}</span><span class="s2">:$</span><span class="si">{CPLEX_HOME}</span><span class="s2">/bin/x86-64_linux:$</span><span class="si">{CPO_HOME}</span><span class="s2">/bin/x86-64_linux&quot;</span>
@@ -300,7 +301,7 @@ PuLP has usually several ways to connect to solvers. Depending on the way it con
 </div>
 <div class="section" id="gurobi">
 <h3>GUROBI<a class="headerlink" href="#gurobi" title="Permalink to this headline">¶</a></h3>
-<p><strong>Linux / Mac: add the following lines to the .bash_profile file</strong>:</p>
+<p><strong>Linux / Mac: add the following lines to the ~.bashrc file</strong>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">export</span> <span class="n">GUROBI_HOME</span><span class="o">=</span><span class="s2">&quot;/opt/gurobi801/linux64&quot;</span>
 <span class="n">export</span> <span class="n">PATH</span><span class="o">=</span><span class="s2">&quot;$</span><span class="si">{PATH}</span><span class="s2">:$</span><span class="si">{GUROBI_HOME}</span><span class="s2">/bin&quot;</span>
 <span class="n">export</span> <span class="n">LD_LIBRARY_PATH</span><span class="o">=</span><span class="s2">&quot;$</span><span class="si">{GUROBI_HOME}</span><span class="s2">/lib&quot;</span>
@@ -404,7 +405,7 @@ PuLP has usually several ways to connect to solvers. Depending on the way it con
 <span class="n">solver_dict</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>The structure of the produce dictionary is quite simple:</p>
+<p>The structure of the returned dictionary is quite simple:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;keepFiles&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
  <span class="s1">&#39;mip&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
  <span class="s1">&#39;msg&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
@@ -476,7 +477,7 @@ PuLP has usually several ways to connect to solvers. Depending on the way it con
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'2.2',
+            VERSION:'2.3',
             LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',

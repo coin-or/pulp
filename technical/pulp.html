@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pulp: Pulp classes &mdash; PuLP 2.2 documentation</title>
+  <title>pulp: Pulp classes &mdash; PuLP 2.3 documentation</title>
   
 
   
@@ -40,7 +40,7 @@
         <link rel="index" title="Index"
               href="../genindex.html"/>
         <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="PuLP 2.2 documentation" href="../index.html"/>
+    <link rel="top" title="PuLP 2.3 documentation" href="../index.html"/>
         <link rel="up" title="PuLP Internal Documentation" href="index.html"/>
         <link rel="next" title="pulp.apis Interface to Solvers" href="solvers.html"/>
         <link rel="prev" title="pulp.constants" href="constants.html"/> 
@@ -71,7 +71,7 @@
           
             
               <div class="version">
-                2.2
+                2.3
 
                 
               </div>
@@ -113,6 +113,7 @@
 <li class="toctree-l2"><a class="reference internal" href="solvers.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp.apis</span></code> Interface to Solvers</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="../plugins/index.html">Plugins</a></li>
 </ul>
 
             
@@ -331,7 +332,7 @@ constraints, variables) of the defined Lp problem to a file.</p>
 </dl>
 <dl class="simple">
 <dt>Side Effects:</dt><dd><ul class="simple">
-<li><p>The file is created.</p></li>
+<li><p>The file is created</p></li>
 </ul>
 </dd>
 </dl>
@@ -356,7 +357,7 @@ constraints, variables) of the defined Lp problem to a file.</p>
 </dl>
 <dl class="simple">
 <dt>Side Effects:</dt><dd><ul class="simple">
-<li><p>The file is created.</p></li>
+<li><p>The file is created</p></li>
 </ul>
 </dd>
 </dl>
@@ -775,32 +776,10 @@ rhs</p>
 <h2>Combinations  and Permutations<a class="headerlink" href="#combinations-and-permutations" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
 <dt id="pulp.combination">
-<code class="sig-prename descclassname">pulp.</code><code class="sig-name descname">combination</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">orgset</span></em>, <em class="sig-param"><span class="n">k</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.combination" title="Permalink to this definition">¶</a></dt>
-<dd><p>returns an iterator that lists the combinations of orgset of
-length k</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>orgset</strong> – the list to be iterated</p></li>
-<li><p><strong>k</strong> – the cardinality of the subsets</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>an iterator of the subsets</p>
-</dd>
-</dl>
-<p>example:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">combination</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">],</span><span class="mi">2</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">c</span><span class="p">:</span>
-<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
-<span class="go">(1, 2)</span>
-<span class="go">(1, 3)</span>
-<span class="go">(1, 4)</span>
-<span class="go">(2, 3)</span>
-<span class="go">(2, 4)</span>
-<span class="go">(3, 4)</span>
-</pre></div>
-</div>
+<code class="sig-prename descclassname">pulp.</code><code class="sig-name descname">combination</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.combination" title="Permalink to this definition">¶</a></dt>
+<dd><p>combinations(iterable, r) –&gt; combinations object</p>
+<p>Return successive r-length combinations of elements in the iterable.</p>
+<p>combinations(range(4), 3) –&gt; (0,1,2), (0,1,3), (0,2,3), (1,2,3)</p>
 </dd></dl>
 
 <dl class="py function">
@@ -838,38 +817,10 @@ length k</p>
 
 <dl class="py function">
 <dt id="pulp.permutation">
-<code class="sig-prename descclassname">pulp.</code><code class="sig-name descname">permutation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">orgset</span></em>, <em class="sig-param"><span class="n">k</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.permutation" title="Permalink to this definition">¶</a></dt>
-<dd><p>returns an iterator that lists the permutations of orgset of
-length k</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>orgset</strong> – the list to be iterated</p></li>
-<li><p><strong>k</strong> – the cardinality of the subsets</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>an iterator of the subsets</p>
-</dd>
-</dl>
-<p>example:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">permutation</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">],</span><span class="mi">2</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">c</span><span class="p">:</span>
-<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
-<span class="go">(1, 2)</span>
-<span class="go">(1, 3)</span>
-<span class="go">(1, 4)</span>
-<span class="go">(2, 1)</span>
-<span class="go">(2, 3)</span>
-<span class="go">(2, 4)</span>
-<span class="go">(3, 1)</span>
-<span class="go">(3, 2)</span>
-<span class="go">(3, 4)</span>
-<span class="go">(4, 1)</span>
-<span class="go">(4, 2)</span>
-<span class="go">(4, 3)</span>
-</pre></div>
-</div>
+<code class="sig-prename descclassname">pulp.</code><code class="sig-name descname">permutation</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.permutation" title="Permalink to this definition">¶</a></dt>
+<dd><p>permutations(iterable[, r]) –&gt; permutations object</p>
+<p>Return successive r-length permutations of elements in the iterable.</p>
+<p>permutations(range(3), 2) –&gt; (0,1), (0,2), (1,0), (1,2), (2,0), (2,1)</p>
 </dd></dl>
 
 <dl class="py function">
@@ -964,7 +915,7 @@ length k</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'2.2',
+            VERSION:'2.3',
             LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',

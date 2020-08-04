@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>A Set Partitioning Problem &mdash; PuLP 2.2 documentation</title>
+  <title>A Set Partitioning Problem &mdash; PuLP 2.3 documentation</title>
   
 
   
@@ -40,7 +40,7 @@
         <link rel="index" title="Index"
               href="../genindex.html"/>
         <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="PuLP 2.2 documentation" href="../index.html"/>
+    <link rel="top" title="PuLP 2.3 documentation" href="../index.html"/>
         <link rel="up" title="Case Studies" href="index.html"/>
         <link rel="next" title="A Sudoku Problem formulated as an LP" href="a_sudoku_problem.html"/>
         <link rel="prev" title="A Blending Problem" href="a_blending_problem.html"/> 
@@ -71,7 +71,7 @@
           
             
               <div class="version">
-                2.2
+                2.3
 
                 
               </div>
@@ -109,6 +109,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/index.html">User Guides</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../technical/index.html">PuLP Internal Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../plugins/index.html">Plugins</a></li>
 </ul>
 
             
@@ -220,19 +221,19 @@ possible table seatings.</p>
 happiness function used in this script would be difficult to model in any other way.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">seating_model</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;Wedding Seating Model&quot;</span><span class="p">,</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
 
-<span class="n">seating_model</span> <span class="o">+=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">happiness</span><span class="p">(</span><span class="n">table</span><span class="p">)</span> <span class="o">*</span> <span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span><span class="p">])</span>
+<span class="n">seating_model</span> <span class="o">+=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">lpSum</span><span class="p">([</span><span class="n">happiness</span><span class="p">(</span><span class="n">table</span><span class="p">)</span> <span class="o">*</span> <span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span><span class="p">])</span>
 </pre></div>
 </div>
 <p>We specify the total number of tables allowed in the solution.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#specify the maximum number of tables</span>
-<span class="n">seating_model</span> <span class="o">+=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span><span class="p">])</span> <span class="o">&lt;=</span> <span class="n">max_tables</span><span class="p">,</span> \
+<span class="n">seating_model</span> <span class="o">+=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">lpSum</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span><span class="p">])</span> <span class="o">&lt;=</span> <span class="n">max_tables</span><span class="p">,</span> \
 </pre></div>
 </div>
 <p>This set of constraints defines the set partitioning problem by guaranteeing that a guest is allocated to
 exactly one table.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#A guest must seated at one and only one table</span>
 <span class="k">for</span> <span class="n">guest</span> <span class="ow">in</span> <span class="n">guests</span><span class="p">:</span>
-    <span class="n">seating_model</span> <span class="o">+=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span>
+    <span class="n">seating_model</span> <span class="o">+=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">lpSum</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span>
                                 <span class="k">if</span> <span class="n">guest</span> <span class="ow">in</span> <span class="n">table</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;Must_seat_</span><span class="si">%s</span><span class="s2">&quot;</span><span class="o">%</span><span class="n">guest</span>
 </pre></div>
 </div>
@@ -268,15 +269,15 @@ exactly one table.</p>
 
 <span class="n">seating_model</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;Wedding Seating Model&quot;</span><span class="p">,</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
 
-<span class="n">seating_model</span> <span class="o">+=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">happiness</span><span class="p">(</span><span class="n">table</span><span class="p">)</span> <span class="o">*</span> <span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span><span class="p">])</span>
+<span class="n">seating_model</span> <span class="o">+=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">lpSum</span><span class="p">([</span><span class="n">happiness</span><span class="p">(</span><span class="n">table</span><span class="p">)</span> <span class="o">*</span> <span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span><span class="p">])</span>
 
 <span class="c1">#specify the maximum number of tables</span>
-<span class="n">seating_model</span> <span class="o">+=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span><span class="p">])</span> <span class="o">&lt;=</span> <span class="n">max_tables</span><span class="p">,</span> \
+<span class="n">seating_model</span> <span class="o">+=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">lpSum</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span><span class="p">])</span> <span class="o">&lt;=</span> <span class="n">max_tables</span><span class="p">,</span> \
                             <span class="s2">&quot;Maximum_number_of_tables&quot;</span>
 
 <span class="c1">#A guest must seated at one and only one table</span>
 <span class="k">for</span> <span class="n">guest</span> <span class="ow">in</span> <span class="n">guests</span><span class="p">:</span>
-    <span class="n">seating_model</span> <span class="o">+=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span>
+    <span class="n">seating_model</span> <span class="o">+=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">lpSum</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span>
                                 <span class="k">if</span> <span class="n">guest</span> <span class="ow">in</span> <span class="n">table</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;Must_seat_</span><span class="si">%s</span><span class="s2">&quot;</span><span class="o">%</span><span class="n">guest</span>
 
 <span class="n">seating_model</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
@@ -285,8 +286,6 @@ exactly one table.</p>
 <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span><span class="p">:</span>
     <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">()</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
-
-
 </pre></div>
 </div>
 </div>
@@ -335,7 +334,7 @@ exactly one table.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'2.2',
+            VERSION:'2.3',
             LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',

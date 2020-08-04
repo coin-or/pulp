@@ -25,6 +25,7 @@ relevant information you will need.
    CaseStudies/index
    guides/index
    technical/index
+   plugins/index
    
 Authors
 =======
