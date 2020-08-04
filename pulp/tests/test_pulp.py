@@ -317,15 +317,13 @@ class PuLPTest(unittest.TestCase):
         prob += x + y <= 5, "c1"
         prob += x + z >= 10, "c2"
         prob += -y + z == 7.5, "c3"
-        # if we give the actual optimal solution to CBC (x=3)
-        #   it returns a weird solution with mip_start
-        x.setInitialValue(4)
+        x.setInitialValue(3)
         y.setInitialValue(-0.5)
         z.setInitialValue(7)
-        self.solver.mip_start = True
+        self.solver.warmStart = True
         print("\t Testing MIP solution")
         if self.solver.__class__ in [COIN_CMD, PULP_CBC_CMD]:
-            warnings.warn("CBC gives a wrong solution with mip start.")
+            warnings.warn("CBC gives a wrong solution with warmStart.")
         else:
             pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], {x: 3, y: -0.5, z: 7})
 
@@ -343,7 +341,7 @@ class PuLPTest(unittest.TestCase):
         for v in [x, y, z]:
             v.setInitialValue(solution[v])
             v.fixValue()
-        self.solver.mip_start = True
+        self.solver.warmStart = True
         print("\t Testing MIP solution")
         pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], solution)
 
@@ -817,7 +815,7 @@ class PuLPTest(unittest.TestCase):
         prob += w >= 0, "c4"
         logFilename = name + '.log'
         self.solver.optionsDict['logPath'] = logFilename
-        if self.solver.name in ['CPLEX_PY', 'CPLEX_CMD', 'GUROBI', 'GUROBI_CMD', 'PULP_CBC_CMD']:
+        if self.solver.name in ['CPLEX_PY', 'CPLEX_CMD', 'GUROBI', 'GUROBI_CMD', 'PULP_CBC_CMD', 'COIN_CMD']:
             pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
             if not os.path.exists(logFilename):
                 raise PulpError("Test failed for solver: {}".format(self.solver))

@@ -106,7 +106,7 @@ class GUROBI(LpSolver):
             if self.msg:
                 print("Gurobi status=", solutionStatus)
             lp.resolveOK = True
-            for var in lp.variables():
+            for var in lp._variables:
                 var.isModified = False
             status = gurobiLpStatus.get(solutionStatus, constants.LpStatusUndefined)
             lp.assignStatus(status)
@@ -114,7 +114,7 @@ class GUROBI(LpSolver):
                 return status
 
             #populate pulp solution values
-            for var, value in zip(lp.variables(), model.getAttr(GRB.Attr.X, model.getVars())):
+            for var, value in zip(lp._variables, model.getAttr(GRB.Attr.X, model.getVars())):
                 var.varValue = value
 
             # populate pulp constraints slack
@@ -122,7 +122,7 @@ class GUROBI(LpSolver):
                 constr.slack = value
 
             if not model.getAttr(GRB.Attr.IsMIP):
-                for var, value in zip(lp.variables(), model.getAttr(GRB.Attr.RC, model.getVars())):
+                for var, value in zip(lp._variables, model.getAttr(GRB.Attr.RC, model.getVars())):
                     var.dj = value
 
                 #put pi and slack variables against the constraints
@@ -176,6 +176,12 @@ class GUROBI(LpSolver):
                 var.solverVar = lp.solverModel.addVar(lowBound, upBound,
                             vtype = varType,
                             obj = obj, name = var.name)
+            if self.warmStart:
+                # Once lp.variables() has been used at least once in the building of the model.
+                # we can use the lp._variables with the cache.
+                for var in lp._variables:
+                    var.solverVar.start = var.varValue
+
             lp.solverModel.update()
             log.debug("add the Constraints to the problem")
             for name,constraint in lp.constraints.items():
@@ -207,7 +213,7 @@ class GUROBI(LpSolver):
             self.callSolver(lp, callback = callback)
             #get the solution information
             solutionStatus = self.findSolutionValues(lp)
-            for var in lp.variables():
+            for var in lp._variables:
                 var.modified = False
             for constraint in lp.constraints.values():
                 constraint.modified = False
@@ -228,7 +234,7 @@ class GUROBI(LpSolver):
             self.callSolver(lp, callback = callback)
             #get the solution information
             solutionStatus = self.findSolutionValues(lp)
-            for var in lp.variables():
+            for var in lp._variables:
                 var.modified = False
             for constraint in lp.constraints.values():
                 constraint.modified = False
