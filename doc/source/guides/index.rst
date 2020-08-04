@@ -9,3 +9,4 @@
     how_to_mip_start
     how_to_elastic_constraints
     how_to_export_models
+    how_to_debug

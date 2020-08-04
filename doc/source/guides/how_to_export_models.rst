@@ -1,9 +1,7 @@
 How to export models in PuLP
 ======================================
 
-Warning! This is experimental. Use at your own risk. And write an issue if you see anything weird.
-
-Exporting a model can be useful when the building time takes too long or when the model needs to be passed to another computer to solve. Or many other reasons.
+Exporting a model can be useful when the building time takes too long or when the model needs to be passed to another computer to solve. Or many other reason.
 PuLP offers a way to export a model into a dictionary of a json file. The json file saves enough data to be able to rebuild a new model on reading it.
 
 Considerations
@@ -103,8 +101,7 @@ We can now import this dictionary::
     # -1 <= y <= 1 Continuous
     # 0 <= z Integer
 
-As you can see we need get a tuple with a variables dictionary and a PuLP model object.
-We can now solve that problem::
+As you can see we get a tuple with size 2 with: (1) a variables dictionary and (2) a PuLP model object. We can now solve that problem::
 
     prob1.solve()
 
@@ -155,8 +152,7 @@ We will use as example the model in :ref:`set-partitioning-problem`::
         seating_model += pulp.lpSum([x[table] for table in possible_tables
                                     if guest in table]) == 1, "Must_seat_%s"%guest
 
-
-Right now, we could directly solve the model doing::
+We *could* directly solve the model doing::
 
     seating_model.solve()
 
@@ -168,14 +164,14 @@ And re-import it::
 
     wedding_vars, wedding_model = LpProblem.from_json("seating_model.json")
 
-We can inspect the variables::
+We inspect the variables::
 
     wedding_vars
     {"table_('A',)": table_('A',), "table_('A',_'B')": table_('A',_'B'), "table_('A',_'B',_'C')": table_('A',_'B',_'C'), "table_('A',_'B',_'C',_'D')": table_('A',_'B',_'C',_'D'), "table_('A',_'B',_'C',_'E')": table_('A',_'B',_'C',_'E'), ...}
 
-As can be seen, it is no longer a dictionary indexed by the original tuples. Sadly, it has become a dictionary of concatenated names.
+As can be seen, it is no longer a dictionary indexed by the original tuples. Unfortunately, it has become a flat dictionary with concatenated names.
 
-We can still solve the model though::
+We can still solve the model, though::
 
     wedding_model.solve()
 
