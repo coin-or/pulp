@@ -10,14 +10,43 @@ class CPLEX_CMD(LpSolver_CMD):
     """The CPLEX LP solver"""
     name = 'CPLEX_CMD'
 
-    def __init__(self, timelimit = None, *args, **kwargs):
-        LpSolver_CMD.__init__(self, *args, **kwargs)
-        if timelimit:
-            warnings.warn("Parameter timelimit is being depreciated for standard 'timeLimit'")
-            if self.timeLimit:
+    def __init__(self, timelimit=None, mip=True, msg=True, timeLimit=None,
+                 gapRel=None, gapAbs=None, options=None,
+                 warmStart=False, keepFiles=False, path=None, threads=None, logPath=None,
+                 maxMemory=None, maxNodes=None, mip_start=False):
+        """
+        :param bool mip: if False, assume LP even if integer variables
+        :param bool msg: if False, no log is shown
+        :param float timeLimit: maximum time for solver (in seconds)
+        :param float gapRel: relative gap tolerance for the solver to stop (in fraction)
+        :param float gapAbs: absolute gap tolerance for the solver to stop
+        :param int threads: sets the maximum number of threads
+        :param list options: list of additional options to pass to solver
+        :param bool warmStart: if True, the solver will use the current value of variables as a start
+        :param bool keepFiles: if True, files are saved in the current directory and not deleted after solving
+        :param str path: path to the solver binary
+        :param str logPath: path to the log file
+        :param float maxMemory: max memory to use during the solving. Stops the solving when reached.
+        :param int maxNodes: max number of nodes during branching. Stops the solving when reached.
+        :param bool mip_start: deprecated for warmStart
+        :param float timelimit: deprecated for timeLimit
+        """
+        if timelimit is not None:
+            warnings.warn("Parameter timelimit is being depreciated for timeLimit")
+            if timeLimit is not None:
                 warnings.warn("Parameter timeLimit and timelimit passed, using timeLimit ")
             else:
-                self.timeLimit = timelimit
+                timeLimit = timelimit
+        if mip_start:
+            warnings.warn("Parameter mip_start is being depreciated for warmStart")
+            if warmStart:
+                warnings.warn("Parameter mipStart and mip_start passed, using warmStart")
+            else:
+                warmStart = mip_start
+        LpSolver_CMD.__init__(self, gapRel=gapRel, mip=mip, msg=msg, timeLimit=timeLimit,
+                              options=options, maxMemory=maxMemory, maxNodes=maxNodes,
+                              warmStart=warmStart, path=path, keepFiles=keepFiles,
+                              threads=threads, gapAbs=gapAbs, logPath=logPath)
 
     def defaultPath(self):
         return self.executableExtension("cplex")
@@ -92,7 +121,7 @@ class CPLEX_CMD(LpSolver_CMD):
                  maxNodes = 'set mip limits nodes {}',
                  )
         return [v.format(self.optionsDict[k]) for k, v in params_eq.items()
-                if k in self.optionsDict]
+                if k in self.optionsDict and self.optionsDict[k] is not None]
 
     def readsol(self, filename):
         """Read a CPLEX solution file"""
@@ -624,32 +653,35 @@ class CPLEX_PY(LpSolver):
             """Solve a well formulated lp problem"""
             raise PulpSolverError("CPLEX_PY: Not Available")
     else:
-        def __init__(self,
-                    epgap = None,
-                    logfilename = None,
-                     *args, **kwargs):
+        def __init__(self, mip=True, msg=True, timeLimit=None,
+                     gapRel=None, warmStart=False, logPath=None,
+                     epgap=None, logfilename=None,
+                     ):
             """
-            Initializes the CPLEX_PY solver.
-
-            @param mip: if False the solver will solve a MIP as an LP
-            @param msg: displays information from the solver to stdout
-            @param epgap: sets the integer bound gap
-            @param logfilename: sets the filename of the cplex logfile
+            :param bool mip: if False, assume LP even if integer variables
+            :param bool msg: if False, no log is shown
+            :param float timeLimit: maximum time for solver (in seconds)
+            :param float gapRel: relative gap tolerance for the solver to stop (in fraction)
+            :param bool warmStart: if True, the solver will use the current value of variables as a start
+            :param str logPath: path to the log file
+            :param float epgap: deprecated for gapRel
+            :param str logfilename: deprecated for logPath
             """
-            if epgap:
-                warnings.warn("Parameter epgap is being depreciated for standard 'gapRel'")
-                if 'gapRel' in kwargs:
+            if epgap is not None:
+                warnings.warn("Parameter epgap is being depreciated for gapRel")
+                if gapRel is not None:
                     warnings.warn("Parameter gapRel and epgap passed, using gapRel")
                 else:
-                    kwargs['gapRel'] = epgap
-            if logfilename:
-                warnings.warn("Parameter logfilename is being depreciated for standard 'logPath'")
-                if 'logPath' in kwargs:
+                    gapRel = epgap
+            if logfilename is not None:
+                warnings.warn("Parameter logfilename is being depreciated for logPath")
+                if logPath is not None:
                     warnings.warn("Parameter logPath and logfilename passed, using logPath")
                 else:
-                    kwargs['logPath'] = logfilename
+                    logPath = logfilename
 
-            LpSolver.__init__(self, *args, **kwargs)
+            LpSolver.__init__(self, gapRel=gapRel, mip=mip, msg=msg, timeLimit=timeLimit,
+                                  warmStart=warmStart, logPath=logPath)
 
         def available(self):
             """True if the solver is available"""

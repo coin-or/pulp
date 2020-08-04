@@ -34,6 +34,18 @@ class GLPK_CMD(LpSolver_CMD):
     """The GLPK LP solver"""
     name = 'GLPK_CMD'
 
+    def __init__(self, path=None, keepFiles=False, mip=True, msg=True, options=None, timeLimit=None):
+        """
+        :param bool mip: if False, assume LP even if integer variables
+        :param bool msg: if False, no log is shown
+        :param float timeLimit: maximum time for solver (in seconds)
+        :param list options: list of additional options to pass to solver
+        :param bool keepFiles: if True, files are saved in the current directory and not deleted after solving
+        :param str path: path to the solver binary
+        """
+        LpSolver_CMD.__init__(self, mip=mip, msg=msg, timeLimit=timeLimit,
+                              options=options, path=path, keepFiles=keepFiles)
+
     def defaultPath(self):
         return self.executableExtension(glpk_path)
 
@@ -48,6 +60,8 @@ class GLPK_CMD(LpSolver_CMD):
         tmpLp, tmpSol = self.create_tmp_files(lp.name, 'lp', 'sol')
         lp.writeLP(tmpLp, writeSOS = 0)
         proc = ["glpsol", "--cpxlp", tmpLp, "-o", tmpSol]
+        if self.timeLimit:
+            proc.extend(['--tmlim', str(self.timeLimit)])
         if not self.mip: proc.append('--nomip')
         proc.extend(self.options)
 

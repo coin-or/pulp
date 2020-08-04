@@ -320,12 +320,11 @@ class PuLPTest(unittest.TestCase):
         x.setInitialValue(3)
         y.setInitialValue(-0.5)
         z.setInitialValue(7)
-        self.solver.warmStart = True
-        print("\t Testing MIP solution")
-        if self.solver.__class__ in [COIN_CMD, PULP_CBC_CMD]:
+        if self.solver.name in ['GUROBI', 'GUROBI_CMD', 'CPLEX_CMD', 'CPLEX_PY']:
             warnings.warn("CBC gives a wrong solution with warmStart.")
-        else:
-            pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], {x: 3, y: -0.5, z: 7})
+            self.solver.warmStart = True
+        print("\t Testing MIP solution")
+        pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], {x: 3, y: -0.5, z: 7})
 
     def test_pulp_023(self):
         # Initial value (fixed)
@@ -767,10 +766,14 @@ class PuLPTest(unittest.TestCase):
         prob += -y + z == 7, "c3"
         prob += w >= 0, "c4"
         self.solver.mip = True
-        self.solver.warmStart = True
         logFilename = name + '.log'
-        self.solver.optionsDict = dict(gapRel=0.1, gapAbs=1, maxMemory=1000,
-                                       maxNodes=1, threads=1, logPath=logFilename)
+        if self.solver.name == 'CPLEX_CMD':
+            self.solver.optionsDict = dict(gapRel=0.1, gapAbs=1, maxMemory=1000,
+                                           maxNodes=1, threads=1, logPath=logFilename)
+            self.solver.warmStart = True
+        elif self.solver.name in ['GUROBI_CMD', 'COIN_CMD', 'PULP_CBC_CMD']:
+            self.solver.optionsDict = dict(gapRel=0.1, gapAbs=1, threads=1, logPath=logFilename)
+            self.solver.warmStart = True
         filename = name + '.json'
         self.solver.to_json(filename, indent=4)
         solver1 = get_solver_from_json(filename)
