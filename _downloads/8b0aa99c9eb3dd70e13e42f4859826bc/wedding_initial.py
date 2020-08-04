@@ -54,9 +54,11 @@ solution = {
 for k, v in solution.items():
     x[k].setInitialValue(v)
 
-solver = pulp.PULP_CBC_CMD(msg=1, mip_start=1)
-# solver = pulp.CPLEX_CMD(msg=1, mip_start=1)
-# solver = pulp.GUROBI_CMD(msg=1, mip_start=1)
+solver = pulp.PULP_CBC_CMD(msg=True, warmStart=True)
+# solver = pulp.CPLEX_CMD(msg=True, warmStart=True)
+# solver = pulp.GUROBI_CMD(msg=True, warmStart=True)
+# solver = pulp.CPLEX_PY(msg=True, warmStart=True)
+# solver = pulp.GUROBI(msg=True, warmStart=True)
 seating_model.solve(solver)
 
 

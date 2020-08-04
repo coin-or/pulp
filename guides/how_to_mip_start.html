@@ -297,9 +297,11 @@
 <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">solution</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
     <span class="n">x</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">setInitialValue</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
 
-<span class="n">solver</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">PULP_CBC_CMD</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">mip_start</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<span class="c1"># solver = pulp.CPLEX_CMD(msg=1, mip_start=1)</span>
-<span class="c1"># solver = pulp.GUROBI_CMD(msg=1, mip_start=1)</span>
+<span class="n">solver</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">PULP_CBC_CMD</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">warmStart</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="c1"># solver = pulp.CPLEX_CMD(msg=True, warmStart=True)</span>
+<span class="c1"># solver = pulp.GUROBI_CMD(msg=True, warmStart=True)</span>
+<span class="c1"># solver = pulp.CPLEX_PY(msg=True, warmStart=True)</span>
+<span class="c1"># solver = pulp.GUROBI(msg=True, warmStart=True)</span>
 <span class="n">seating_model</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="p">)</span>
 
 
