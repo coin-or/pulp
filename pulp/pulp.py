@@ -1588,7 +1588,7 @@ class LpProblem(object):
         :param mip: variables and variable renames
         :return:
         Side Effects:
-            - The file is created.
+            - The file is created
         """
         wasNone, dummyVar = self.fixObjective()
         if mpsSense == 0: mpsSense = self.sense
@@ -1706,7 +1706,7 @@ class LpProblem(object):
         :param str filename: the name of the file to be created.
         :return: variables
         Side Effects:
-            - The file is created.
+            - The file is created
         """
         f = open(filename, "w")
         f.write("\\* "+self.name + " *\\\n")

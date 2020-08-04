@@ -35,6 +35,16 @@ class SCIP_CMD(LpSolver_CMD):
     """The SCIP optimization solver"""
     name ='SCIP_CMD'
 
+    def __init__(self, path=None, keepFiles=False, mip=True, msg=True, options=None):
+        """
+        :param bool mip: if False, assume LP even if integer variables
+        :param bool msg: if False, no log is shown
+        :param list options: list of additional options to pass to solver
+        :param bool keepFiles: if True, files are saved in the current directory and not deleted after solving
+        :param str path: path to the solver binary
+        """
+        LpSolver_CMD.__init__(self, mip=mip, msg=msg, options=options, path=path, keepFiles=keepFiles)
+
     SCIP_STATUSES = {
         'unknown': constants.LpStatusUndefined,
         'user interrupt': constants.LpStatusNotSolved,
