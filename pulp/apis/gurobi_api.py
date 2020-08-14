@@ -50,7 +50,7 @@ class GUROBI(LpSolver):
         # to import the name into the module scope
         global gurobipy
         import gurobipy
-        gurobipy.setParam("_test", 0)
+        gurobipy.gurobi._getdefaultenv()
     except: # FIXME: Bug because gurobi returns
             #  a gurobi exception on failed imports
         def available(self):
