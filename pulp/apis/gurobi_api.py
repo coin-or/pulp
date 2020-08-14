@@ -61,28 +61,30 @@ class GUROBI(LpSolver):
             raise PulpSolverError("GUROBI: Not Available")
     else:
         def __init__(self,
-                    mip = True,
-                    msg = True,
-                    timeLimit = None,
-                    epgap = None,
-                    **solverParams):
+                     mip=True, msg=True, timeLimit=None, epgap=None,
+                     gapRel=None, warmStart=False, logPath=None,
+                     **solverParams):
             """
-            Initializes the Gurobi solver.
-
-            @param mip: if False the solver will solve a MIP as an LP
-            @param msg: displays information from the solver to stdout
-            @param timeLimit: sets the maximum time for solution
-            @param epgap: sets the integer bound gap
+            :param bool mip: if False, assume LP even if integer variables
+            :param bool msg: if False, no log is shown
+            :param float timeLimit: maximum time for solver (in seconds)
+            :param float gapRel: relative gap tolerance for the solver to stop (in fraction)
+            :param bool warmStart: if True, the solver will use the current value of variables as a start
+            :param str logPath: path to the log file
+            :param float epgap: deprecated for gapRel
             """
-            LpSolver.__init__(self, mip, msg, timeLimit=timeLimit, gapRel=epgap)
+            if epgap is not None:
+                warnings.warn("Parameter epgap is being depreciated for gapRel")
+                if gapRel is not None:
+                    warnings.warn("Parameter gapRel and epgap passed, using gapRel")
+                else:
+                    gapRel = epgap
+            LpSolver.__init__(self, mip=mip, msg=msg, timeLimit=timeLimit, gapRel=gapRel,
+                              logPath=logPath, warmStart=warmStart)
             #set the output of gurobi
             if not self.msg:
                 gurobipy.setParam("OutputFlag", 0)
 
-            # TODO: this does not follow the solvers interface
-            #  it solverParams should go to LpSolver
-            #  and have uniform naming
-            #  we should still leave this as a possibility
             # set the gurobi parameter values
             for key,value in solverParams.items():
                 gurobipy.setParam(key, value)
@@ -106,7 +108,7 @@ class GUROBI(LpSolver):
             if self.msg:
                 print("Gurobi status=", solutionStatus)
             lp.resolveOK = True
-            for var in lp.variables():
+            for var in lp._variables:
                 var.isModified = False
             status = gurobiLpStatus.get(solutionStatus, constants.LpStatusUndefined)
             lp.assignStatus(status)
@@ -114,7 +116,7 @@ class GUROBI(LpSolver):
                 return status
 
             #populate pulp solution values
-            for var, value in zip(lp.variables(), model.getAttr(GRB.Attr.X, model.getVars())):
+            for var, value in zip(lp._variables, model.getAttr(GRB.Attr.X, model.getVars())):
                 var.varValue = value
 
             # populate pulp constraints slack
@@ -122,7 +124,7 @@ class GUROBI(LpSolver):
                 constr.slack = value
 
             if not model.getAttr(GRB.Attr.IsMIP):
-                for var, value in zip(lp.variables(), model.getAttr(GRB.Attr.RC, model.getVars())):
+                for var, value in zip(lp._variables, model.getAttr(GRB.Attr.RC, model.getVars())):
                     var.dj = value
 
                 #put pi and slack variables against the constraints
@@ -176,6 +178,13 @@ class GUROBI(LpSolver):
                 var.solverVar = lp.solverModel.addVar(lowBound, upBound,
                             vtype = varType,
                             obj = obj, name = var.name)
+            if self.optionsDict.get('warmStart', False):
+                # Once lp.variables() has been used at least once in the building of the model.
+                # we can use the lp._variables with the cache.
+                for var in lp._variables:
+                    if var.varValue is not None:
+                        var.solverVar.start = var.varValue
+
             lp.solverModel.update()
             log.debug("add the Constraints to the problem")
             for name,constraint in lp.constraints.items():
@@ -207,7 +216,7 @@ class GUROBI(LpSolver):
             self.callSolver(lp, callback = callback)
             #get the solution information
             solutionStatus = self.findSolutionValues(lp)
-            for var in lp.variables():
+            for var in lp._variables:
                 var.modified = False
             for constraint in lp.constraints.values():
                 constraint.modified = False
@@ -228,7 +237,7 @@ class GUROBI(LpSolver):
             self.callSolver(lp, callback = callback)
             #get the solution information
             solutionStatus = self.findSolutionValues(lp)
-            for var in lp.variables():
+            for var in lp._variables:
                 var.modified = False
             for constraint in lp.constraints.values():
                 constraint.modified = False
@@ -237,6 +246,34 @@ class GUROBI(LpSolver):
 class GUROBI_CMD(LpSolver_CMD):
     """The GUROBI_CMD solver"""
     name = 'GUROBI_CMD'
+
+    def __init__(self, mip=True, msg=True, timeLimit=None,
+                 gapRel=None, gapAbs=None, options=None,
+                 warmStart=False, keepFiles=False, path=None, threads=None, logPath=None,
+                 mip_start=False):
+        """
+        :param bool mip: if False, assume LP even if integer variables
+        :param bool msg: if False, no log is shown
+        :param float timeLimit: maximum time for solver (in seconds)
+        :param float gapRel: relative gap tolerance for the solver to stop (in fraction)
+        :param float gapAbs: absolute gap tolerance for the solver to stop
+        :param int threads: sets the maximum number of threads
+        :param list options: list of additional options to pass to solver
+        :param bool warmStart: if True, the solver will use the current value of variables as a start
+        :param bool keepFiles: if True, files are saved in the current directory and not deleted after solving
+        :param str path: path to the solver binary
+        :param str logPath: path to the log file
+        :param bool mip_start: deprecated for warmStart
+        """
+        if mip_start:
+            warnings.warn("Parameter mip_start is being depreciated for warmStart")
+            if warmStart:
+                warnings.warn("Parameter mipStart and mip_start passed, using warmStart")
+            else:
+                warmStart = mip_start
+        LpSolver_CMD.__init__(self, gapRel=gapRel, mip=mip, msg=msg, timeLimit=timeLimit,
+                              options=options,  warmStart=warmStart, path=path, keepFiles=keepFiles,
+                              threads=threads, gapAbs=gapAbs, logPath=logPath)
 
     def defaultPath(self):
         return self.executableExtension("gurobi_cl")
@@ -261,7 +298,7 @@ class GUROBI_CMD(LpSolver_CMD):
         cmd += ' ' + ' '.join(['%s=%s' % (key, value)
                                for key, value in options])
         cmd += ' ResultFile=%s' % tmpSol
-        if self.warmStart:
+        if self.optionsDict.get('warmStart', False):
             self.writesol(filename=tmpMst, vs=vs)
             cmd += ' InputFile=%s' % tmpMst
 
@@ -274,7 +311,7 @@ class GUROBI_CMD(LpSolver_CMD):
         else:
             pipe = open(os.devnull, 'w')
 
-        return_code = subprocess.call(cmd.split(), stdout = pipe, stderr = pipe)
+        return_code = subprocess.call(cmd.split(), stdout=pipe, stderr=pipe)
 
         # Close the pipe now if we used it.
         if pipe is not None:
@@ -344,4 +381,4 @@ class GUROBI_CMD(LpSolver_CMD):
                  threads='Threads'
                  )
         return [(v, self.optionsDict[k]) for k, v in params_eq.items()
-                if k in self.optionsDict]
+                if k in self.optionsDict and self.optionsDict[k] is not None]

@@ -1288,8 +1288,8 @@ class LpProblem(object):
                                 sense=self.sense,
                                 status=self.status,
                                 sol_status=self.sol_status),
-                sos1=self.sos1,
-                sos2=self.sos2
+                sos1=list(self.sos1.values()),
+                sos2=list(self.sos2.values())
             )
 
     @classmethod
@@ -1321,6 +1321,7 @@ class LpProblem(object):
         # constraints
         # we change the names for the objects:
         def edit_const(const):
+            const = dict(const)
             const['coefficients'] = {var[v['name']]: v['value'] for v in const['coefficients']}
             return const
 
@@ -1329,8 +1330,9 @@ class LpProblem(object):
             pb += LpConstraint.from_dict(c)
 
         # last, parameters, other options
-        pb.sos1 = _dict['sos1']
-        pb.sos2 = _dict['sos2']
+        list_to_dict = lambda v: {k: v for k, v in enumerate(v)}
+        pb.sos1 = list_to_dict(_dict['sos1'])
+        pb.sos2 = list_to_dict(_dict['sos2'])
 
         return var, pb
 
@@ -1586,7 +1588,7 @@ class LpProblem(object):
         :param mip: variables and variable renames
         :return:
         Side Effects:
-            - The file is created.
+            - The file is created
         """
         wasNone, dummyVar = self.fixObjective()
         if mpsSense == 0: mpsSense = self.sense
@@ -1704,7 +1706,7 @@ class LpProblem(object):
         :param str filename: the name of the file to be created.
         :return: variables
         Side Effects:
-            - The file is created.
+            - The file is created
         """
         f = open(filename, "w")
         f.write("\\* "+self.name + " *\\\n")

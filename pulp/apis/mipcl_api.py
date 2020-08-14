@@ -34,6 +34,18 @@ class MIPCL_CMD(LpSolver_CMD):
     """The MIPCL_CMD solver"""
     name = 'MIPCL_CMD'
 
+    def __init__(self, path=None, keepFiles=False, mip=True, msg=True, options=None, timeLimit=None):
+        """
+        :param bool mip: if False, assume LP even if integer variables
+        :param bool msg: if False, no log is shown
+        :param float timeLimit: maximum time for solver (in seconds)
+        :param list options: list of additional options to pass to solver
+        :param bool keepFiles: if True, files are saved in the current directory and not deleted after solving
+        :param str path: path to the solver binary
+        """
+        LpSolver_CMD.__init__(self, mip=mip, msg=msg, timeLimit=timeLimit,
+                              options=options, path=path, keepFiles=keepFiles)
+
     def defaultPath(self):
         return self.executableExtension("mps_mipcl")
 
@@ -49,6 +61,8 @@ class MIPCL_CMD(LpSolver_CMD):
         if lp.sense == constants.LpMaximize:
             # we swap the objectives
             # because it does not handle maximization.
+            warnings.warn('MIPCL_CMD does not allow maximization, '
+                          'we will minimize the inverse of the objective function.')
             lp += -lp.objective
         lp.checkDuplicateVars()
         lp.checkLengthVars(52)
@@ -77,8 +91,6 @@ class MIPCL_CMD(LpSolver_CMD):
         return_code = subprocess.call(cmd.split(), stdout=pipe, stderr=pipe)
         # We need to undo the objective swap before finishing
         if lp.sense == constants.LpMaximize:
-            warnings.warn('MIPCL_CMD does not allow maximization, '
-                          'we will minimize the inverse of the objective function.')
             lp += -lp.objective
         if return_code != 0:
             raise PulpSolverError("PuLP: Error while trying to execute "+self.path)

@@ -3,7 +3,7 @@ How to configure a solver in PuLP
 
 A typical problem PuLP users have is trying to connect to a solver that is installed in their pc. Here, we show the main concepts and ways to be sure PuLP can talk to the solver in question.
 
-Checking which solvers PuLP has acces to
+Checking which solvers PuLP has access to
 ------------------------------------------------
 
 PuLP has some helper functions that permit a user to query which solvers are available and initialize a solver from its name.
@@ -20,15 +20,15 @@ If passed the `only_available=True` argument, PuLP lists the solvers that are cu
     solver_list = pl.list_solvers(available_only=True)
     # ['GLPK_CMD', 'CPLEX_CMD', 'CPLEX_PY', 'GUROBI', 'GUROBI_CMD', 'PULP_CBC_CMD', 'COIN_CMD', 'PULP_CHOCO_CMD']
 
-Also, it's possible to get a solver object by using the name of the solver. Any arguments passes to this function are passed to the constructor:
+Also, it's possible to get a solver object by using the name of the solver. Any arguments passed to this function are passed to the constructor:
 
 .. code-block:: python
 
     import pulp as pl
     solver = pl.get_solver('CPLEX_CMD')
-    solver = pl.get_solver('CPLEX_CMD', timeLimite=10)
+    solver = pl.get_solver('CPLEX_CMD', timeLimit=10)
 
-In the next sections, we will explain how to configure a solver to be accesible by pulp.
+In the next sections, we will explain how to configure a solver to be accessible by PuLP.
 
 What is an environment variable
 --------------------------------------
@@ -44,13 +44,12 @@ It has many advantages such as not leaving any trace in the pc and being fairly 
 Types of PuLP integrations (API) to solvers
 --------------------------------------------------------
 
-API = Application Programming Interface.  
-PuLP has usually several ways to connect to solvers. Depending on the way it connects to the solver, configuring the connection may vary. We can summarize the integrations in two big groups:
+API means "Application Programming Interface". PuLP has usually several ways to connect to solvers. Depending on the way it connects to the solver, configuring the connection may vary. We can summarize the integrations in two big groups:
 
 * Using the command line interface of the solver.
 * Using the python library of the solver.
 
-Not all solvers have a python library, but most have a command line interface. I'm not going to cover each one here. If you want to know which one are you using it's easy. If the name of the solver API ends with ``CMD`` (such as ``PULP_CBC_CMD``, ``CPLEX_CMD``, ``GUROBI_CMD``, etc.) it's the former. Otherwise, it is the latter.
+Not all solvers have a python library, but most have a command line interface. If you want to know which one are you using it's easy. If the name of the solver API ends with ``CMD`` (such as ``PULP_CBC_CMD``, ``CPLEX_CMD``, ``GUROBI_CMD``, etc.) it's the former. Otherwise, it is the latter.
 
 Configuring the path to the solver
 --------------------------------------------
@@ -62,9 +61,9 @@ In order for PuLP to be able to use a solver via the CMD API, the solver needs t
 
 **We will do the example for CPLEX in Windows, but the idea is the same for other solvers and other Operating Systems**.
 
-Both imply knowing where is solver is. So first we have to go look for it in our pc. Mine is in ``C:\Program Files\IBM\ILOG\CPLEX_Studio128\cplex\bin\x64_win64\cplex.exe``.
+Both options imply knowing where the solver is. So first we have to go look for it in the pc. Mine is in ``C:\Program Files\IBM\ILOG\CPLEX_Studio128\cplex\bin\x64_win64\cplex.exe``.
 
-The first one is really easy. Imagine using the ``CPLEX_CMD`` solver:
+Imagine using the ``CPLEX_CMD`` solver, the first one is really simple:
 
 .. code-block:: python
 
@@ -77,9 +76,9 @@ The first one is really easy. Imagine using the ``CPLEX_CMD`` solver:
     model += _var + _var2 == 1 
     result = model.solve(solver)
 
-The only thing I had to do was to look for the 'cplex.exe' file (in Windows, although in Linux and Mac is something similar but with 'cplex') and pass the absolute path to the solver.
+The only to do was to look for the 'cplex.exe' file (in Windows, although in Linux and Mac is something similar but with 'cplex') and pass the absolute path to the solver.
 
-The second one is a little more cumbersome but you only do it once. You need to configure the ``PATH`` environment variable to include the path to the ``C:\Program Files\IBM\ILOG\CPLEX_Studio128\cplex\bin\x64_win64`` directory.
+The second one is a little more cumbersome but you only do it once per machine. You need to configure the ``PATH`` environment variable to include the path to the ``C:\Program Files\IBM\ILOG\CPLEX_Studio128\cplex\bin\x64_win64`` directory.
 
 Here is one random guide to editing environment variables in: `Windows <https://opentechguides.com/how-to/article/windows-10/113/windows-10-set-path.html>`_ or `Linux or Mac <https://askubuntu.com/questions/730/how-do-i-set-environment-variables>`_. The idea is that once it is correctly configured you can forget about it (until you change pc or solver version).
 
@@ -102,13 +101,13 @@ Additional environment variables per solver
 
 Sometimes, giving the path to the solver is not enough. This can be because the solver needs to know where other files are found (dynamic libraries it will use when running) or the PuLP API needs to import some specific python packages that are deployed with the solver (in case of the solvers that do not have a ``_CMD`` at the end).
 
-Whatever the reason, it's better to be safe than sorry. This means knowing what variables are usually used by which solver. Here I'm adding the necessary environment variables that are needed for each solver. The procedure is very similar to what we did with the ``PATH`` variable: sometimes you need to edit an existing variable and sometimes you need to create a new environment variable. So it looks explicit, I will be using my own paths to variables, but you will have to adapt them to your actual paths (e.g., if the version of the solver is not the same). I will be using my **Linux paths, since it just implies copying the last lines of my .bash_profile file**. I've adapted them to the Windows command line but, preferably, you would like to edit them via the GUI in windows.
+Whatever the reason, it's better to be safe than sorry and this means knowing what variables are usually used by which solver. Here are the necessary environment variables that are needed for each solver. The procedure is very similar to what we did with the ``PATH`` variable: sometimes you need to edit an existing environment variable and sometimes you need to create a new environment variable. So it looks explicit, I will be using my own paths to variables, but you will have to adapt them to your actual paths (e.g., if the version of the solver is not the same). I will be using my **Linux paths, since it just implies copying the last lines of my ~.bashrc file**. I've adapted them to the Windows command line but, preferably, you would like to edit them via the GUI in windows.
 
 
 CPLEX
 *******
 
-**Linux / Mac: add the following lines to the .bash_profile file**::
+**Linux / Mac: add the following lines to the ~.bashrc file**::
 
     export CPLEX_HOME="/opt/ibm/ILOG/CPLEX_Studio128/cplex"
     export CPO_HOME="/opt/ibm/ILOG/CPLEX_Studio128/cpoptimizer"
@@ -127,7 +126,7 @@ CPLEX
 GUROBI
 *******
 
-**Linux / Mac: add the following lines to the .bash_profile file**::
+**Linux / Mac: add the following lines to the ~.bashrc file**::
 
     export GUROBI_HOME="/opt/gurobi801/linux64"
     export PATH="${PATH}:${GUROBI_HOME}/bin"
@@ -247,7 +246,7 @@ In order to export it one needs can export it to a dictionary or a json file::
     solver = pulp.PULP_CBC_CMD()
     solver_dict = solver.to_dict()
 
-The structure of the produce dictionary is quite simple::
+The structure of the returned dictionary is quite simple::
 
     {'keepFiles': 0,
      'mip': True,

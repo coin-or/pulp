@@ -317,17 +317,14 @@ class PuLPTest(unittest.TestCase):
         prob += x + y <= 5, "c1"
         prob += x + z >= 10, "c2"
         prob += -y + z == 7.5, "c3"
-        # if we give the actual optimal solution to CBC (x=3)
-        #   it returns a weird solution with mip_start
-        x.setInitialValue(4)
+        x.setInitialValue(3)
         y.setInitialValue(-0.5)
         z.setInitialValue(7)
-        self.solver.mip_start = True
+        if self.solver.name in ['GUROBI', 'GUROBI_CMD', 'CPLEX_CMD', 'CPLEX_PY']:
+            warnings.warn("CBC gives a wrong solution with warmStart.")
+            self.solver.optionsDict['warmStart'] = True
         print("\t Testing MIP solution")
-        if self.solver.__class__ in [COIN_CMD, PULP_CBC_CMD]:
-            warnings.warn("CBC gives a wrong solution with mip start.")
-        else:
-            pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], {x: 3, y: -0.5, z: 7})
+        pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], {x: 3, y: -0.5, z: 7})
 
     def test_pulp_023(self):
         # Initial value (fixed)
@@ -343,7 +340,7 @@ class PuLPTest(unittest.TestCase):
         for v in [x, y, z]:
             v.setInitialValue(solution[v])
             v.fixValue()
-        self.solver.mip_start = True
+        self.solver.optionsDict['warmStart'] = True
         print("\t Testing MIP solution")
         pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], solution)
 
@@ -705,6 +702,7 @@ class PuLPTest(unittest.TestCase):
         pulpTestCheck(prob1, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
 
     def test_export_dict_MIP(self):
+        import copy
         prob = LpProblem("test_export_dict_MIP", const.LpMinimize)
         x = LpVariable("x", 0, 4)
         y = LpVariable("y", -1, 1)
@@ -714,10 +712,13 @@ class PuLPTest(unittest.TestCase):
         prob += x + z >= 10, "c2"
         prob += -y + z == 7.5, "c3"
         data = prob.to_dict()
+        data_backup = copy.deepcopy(data)
         var1, prob1 = LpProblem.from_dict(data)
         x, y, z = [var1[name] for name in ['x', 'y', 'z']]
         print("\t Testing MIP solution")
         pulpTestCheck(prob1, self.solver, [const.LpStatusOptimal], {x: 3, y: -0.5, z: 7})
+        # we also test that we have not modified the dictionary when importing it
+        self.assertDictEqual(data, data_backup)
 
     def test_export_dict_max(self):
         prob = LpProblem("test_export_dict_max", const.LpMaximize)
@@ -765,10 +766,14 @@ class PuLPTest(unittest.TestCase):
         prob += -y + z == 7, "c3"
         prob += w >= 0, "c4"
         self.solver.mip = True
-        self.solver.warmStart = True
         logFilename = name + '.log'
-        self.solver.optionsDict = dict(gapRel=0.1, gapAbs=1, maxMemory=1000,
-                                       maxNodes=1, threads=1, logPath=logFilename)
+        if self.solver.name == 'CPLEX_CMD':
+            self.solver.optionsDict = dict(gapRel=0.1, gapAbs=1, maxMemory=1000,
+                                           maxNodes=1, threads=1, logPath=logFilename,
+                                           warmStart=True)
+        elif self.solver.name in ['GUROBI_CMD', 'COIN_CMD', 'PULP_CBC_CMD']:
+            self.solver.optionsDict = dict(gapRel=0.1, gapAbs=1, threads=1, logPath=logFilename,
+                                           warmStart=True)
         filename = name + '.json'
         self.solver.to_json(filename, indent=4)
         solver1 = get_solver_from_json(filename)
@@ -817,7 +822,7 @@ class PuLPTest(unittest.TestCase):
         prob += w >= 0, "c4"
         logFilename = name + '.log'
         self.solver.optionsDict['logPath'] = logFilename
-        if self.solver.name in ['CPLEX_PY', 'CPLEX_CMD', 'GUROBI', 'GUROBI_CMD', 'PULP_CBC_CMD']:
+        if self.solver.name in ['CPLEX_PY', 'CPLEX_CMD', 'GUROBI', 'GUROBI_CMD', 'PULP_CBC_CMD', 'COIN_CMD']:
             pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
             if not os.path.exists(logFilename):
                 raise PulpError("Test failed for solver: {}".format(self.solver))

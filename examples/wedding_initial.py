@@ -32,15 +32,15 @@ x = pulp.LpVariable.dicts('table', possible_tables,
 
 seating_model = pulp.LpProblem("Wedding Seating Model", pulp.LpMinimize)
 
-seating_model += sum([happiness(table) * x[table] for table in possible_tables])
+seating_model += pulp.lpSum([happiness(table) * x[table] for table in possible_tables])
 
 # specify the maximum number of tables
-seating_model += sum([x[table] for table in possible_tables]) <= max_tables, \
+seating_model += pulp.lpSum([x[table] for table in possible_tables]) <= max_tables, \
                  "Maximum_number_of_tables"
 
 # A guest must seated at one and only one table
 for guest in guests:
-    seating_model += sum([x[table] for table in possible_tables
+    seating_model += pulp.lpSum([x[table] for table in possible_tables
                           if guest in table]) == 1, "Must_seat_%s" % guest
 
 # I've taken the optimal solution from a previous solving. x is the variable dictionary.
@@ -64,5 +64,3 @@ print("The choosen tables are out of a total of %s:" % len(possible_tables))
 for table in possible_tables:
     if x[table].value() == 1.0:
         print(table)
-
-
