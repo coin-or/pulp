@@ -62,6 +62,11 @@ class SCIP_CMD(LpSolver_CMD):
         'unbounded': constants.LpStatusUnbounded,
         'infeasible or unbounded': constants.LpStatusNotSolved,
     }
+    NO_SOLUTION_STATUSES = {
+        constants.LpStatusInfeasible,
+        constants.LpStatusUnbounded,
+        constants.LpStatusNotSolved,
+    }
 
     def defaultPath(self):
         return self.executableExtension(scip_path)
@@ -108,35 +113,38 @@ class SCIP_CMD(LpSolver_CMD):
     def readsol(filename):
         """Read a SCIP solution file"""
         with open(filename) as f:
-            # First line must containt 'solution status: <something>'
+            values = {}
+
+            # First line must contain 'solution status: <something>'
             try:
                 line = f.readline()
                 comps = line.split(': ')
                 assert comps[0] == 'solution status'
                 assert len(comps) == 2
-            except:
-                raise PulpSolverError("Can't read SCIP solver output: %r" % line)
+            except Exception:
+                raise PulpSolverError("Can't get SCIP solver status: %r" % line)
 
             status = SCIP_CMD.SCIP_STATUSES.get(comps[1].strip(), constants.LpStatusUndefined)
 
-            # Look for an objective value. If we can't find one, stop.
-            try:
-                line = f.readline()
-                comps = line.split(': ')
-                assert comps[0] == 'objective value'
-                assert len(comps) == 2
-                float(comps[1].strip())
-            except:
-                raise PulpSolverError("Can't read SCIP solver output: %r" % line)
+            if status not in SCIP_CMD.NO_SOLUTION_STATUSES:
 
-            # Parse the variable values.
-            values = {}
-            for line in f:
+                # Look for an objective value. If we can't find one, stop.
                 try:
-                    comps = line.split()
-                    values[comps[0]] = float(comps[1])
-                except:
-                    raise PulpSolverError("Can't read SCIP solver output: %r" % line)
+                    line = f.readline()
+                    comps = line.split(': ')
+                    assert comps[0] == 'objective value'
+                    assert len(comps) == 2
+                    float(comps[1].strip())
+                except Exception:
+                    raise PulpSolverError("Can't get SCIP solver objective: %r" % line)
+
+                # Parse the variable values.
+                for line in f:
+                    try:
+                        comps = line.split()
+                        values[comps[0]] = float(comps[1])
+                    except:
+                        raise PulpSolverError("Can't read SCIP solver output: %r" % line)
 
         return status, values
 
