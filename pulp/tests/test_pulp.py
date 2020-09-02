@@ -145,11 +145,11 @@ class PuLPTest(unittest.TestCase):
         elif self.solver.__class__ is GLPK_CMD:
             # GLPK_CMD Does not report unbounded problems, correctly
             pulpTestCheck(prob, self.solver, [const.LpStatusUndefined])
-        elif self.solver.__class__ in [CPLEX_DLL, GUROBI_CMD]:
+        elif self.solver.__class__ in [CPLEX_DLL, GUROBI_CMD, SCIP_CMD]:
             # CPLEX_DLL Does not report unbounded problems, correctly
             # GUROBI_CMD has a very simple interface
             pulpTestCheck(prob, self.solver, [const.LpStatusNotSolved])
-        elif self.solver.__class__ in [PULP_CHOCO_CMD, CHOCO_CMD, SCIP_CMD]:
+        elif self.solver.__class__ in [PULP_CHOCO_CMD, CHOCO_CMD]:
             # choco bounds all variables. Would not return unbounded status
             pass
         else:
