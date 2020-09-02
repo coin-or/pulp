@@ -307,14 +307,21 @@ class GUROBI_CMD(LpSolver_CMD):
                 warnings.warn('GUROBI_CMD does not allow a problem to be relaxed')
         cmd += ' %s' % tmpLp
         if self.msg:
-            pipe = None
+            pipe = subprocess.PIPE #This will allow the output to consider the things also being printed in the terminal by the subprocess
         else:
             pipe = open(os.devnull, 'w')
 
-        return_code = subprocess.call(cmd.split(), stdout=pipe, stderr=pipe)
-
-        # Close the pipe now if we used it.
-        if pipe is not None:
+        return_code = subprocess.Popen(cmd.split(), stdout=pipe, stdin=pipe, stderr=pipe)
+        #If the terminal prints something then the output is also going to be printed
+        #This way IPython users (Jupyter, Spyder) can see the solver log by running the cell 
+        #with the pulp.GUROBI_CMD
+        if pipe == subprocess.PIPE: #If the stream is to the terminal
+            while return_code.poll() is None: #While it has not finished
+                l = return_code.stdout.readline().decode("utf-8") #The output is saved, decode serves to avoid \n\r in the text
+                sys.stdout.write(l) #sys for python2 compatibility (?)
+            sys.stdout.write(return_code.stdout.read().decode("utf-8")) #The final report of gurobi is also printed
+        # Close the pipe now if we used it. 
+        if pipe !=subprocess.PIPE: #Necessary because if it is subprocess.PIPE there is nothing to close
             pipe.close()
 
         if return_code != 0:

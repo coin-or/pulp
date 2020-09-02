@@ -857,6 +857,27 @@ class PuLPTest(unittest.TestCase):
         _func = lambda: dict_without_default["X"]["Y"]
         self.assertRaises(KeyError, _func)
 
+    def IPython_msg_test(self):
+        """
+        Test if the terminal output from gurobi and CBC appears in an IPython cell (jupyter, spyder, etc.)
+        when activating the argument msg=1 in the configuration of the solver
+        """
+        name = self._testMethodName
+        prob = LpProblem(name, const.LpMinimize)
+        x = LpVariable("x", 0, 4,cat='Integer')
+        y = LpVariable("y", -1, 1)
+        z = LpVariable("z", 0)
+        w = LpVariable("w", 0)
+        prob += x + 4 * y + 9 * z, "obj"
+        prob += x + y <= 5, "c1"
+        prob += x + z >= 10, "c2"
+        prob += -y + z == 7, "c3"
+        prob += w >= 0, "c4"
+        print("\t Testing IPython cell output. Please make this test from an IPython terminal")
+        prob.solve(PULP_CBC_CMD(msg=1))
+        prob.solve(GUROBI_CMD(msg=1))
+        return pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
+
 def pulpTestCheck(prob, solver, okstatus, sol=None,
                   reducedcosts=None,
                   duals=None,
@@ -939,10 +960,10 @@ def suite():
 
 if __name__ == '__main__':
     # Tests
-    runner = unittest.TextTestRunner(verbosity=0)
-    runner.run(suite())
+    #runner = unittest.TextTestRunner(verbosity=0)
+    #runner.run(IPython_msg_test())
     # To run a single test:
-    # suite = unittest.TestSuite()
-    # suite.addTest(PuLPTest('test_pulp_060', PULP_CBC_CMD(msg=0)))
-    # unittest.TextTestRunner(verbosity=0).run(suite)
+    suite = unittest.TestSuite()
+    suite.addTest(PuLPTest('IPython_msg_test', PULP_CBC_CMD(msg=1)))
+    unittest.TextTestRunner(verbosity=0).run(suite)
 

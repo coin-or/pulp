@@ -136,8 +136,9 @@ class COIN_CMD(LpSolver_CMD):
             cmds += "initialSolve "
         cmds += "printingOptions all "
         cmds += "solution "+tmpSol+" "
+
         if self.msg:
-            pipe = None
+            pipe = subprocess.PIPE #This will allow the output to consider the things also being printed in the terminal by the subprocess
         else:
             pipe = open(os.devnull, 'w')
         logPath = self.optionsDict.get('logPath')
@@ -149,12 +150,21 @@ class COIN_CMD(LpSolver_CMD):
         args = []
         args.append(self.path)
         args.extend(cmds[1:].split())
-        cbc = subprocess.Popen(args, stdout = pipe, stderr = pipe, stdin=devnull)
+        cbc = subprocess.Popen(args, stdout = pipe, stderr = pipe, stdin=pipe)
+        #If the terminal prints something then the output is also going to be printed
+        #This way IPython users (Jupyter, Spyder) can see the solver log by running the cell 
+        #with the pulp.PULP_CBC_CMD
+        if pipe == subprocess.PIPE: #If the stream is to the terminal
+            while cbc.poll() is None: #While it has not finished
+                l = cbc.stdout.readline().decode("utf-8") #The output is saved, decode serves to avoid \n\r in the text
+                sys.stdout.write(l) #sys for python 2 compatibility (?)
+            sys.stdout.write(cbc.stdout.read().decode("utf-8")) #The final report of cbc is also printed
         if cbc.wait() != 0:
             raise PulpSolverError("Pulp: Error while trying to execute, use msg=True for more details" +  \
                                     self.path)
-        if pipe:
+        if pipe != subprocess.PIPE: #Necessary because if it is subprocess.PIPE there is nothing to close
             pipe.close()
+
         if not os.path.exists(tmpSol):
             raise PulpSolverError("Pulp: Error while executing "+self.path)
         status, values, reducedCosts, shadowPrices, slacks, sol_status = \
