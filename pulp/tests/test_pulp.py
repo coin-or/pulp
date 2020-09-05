@@ -79,7 +79,7 @@ class PuLPTest(unittest.TestCase):
         prob += x + z >= 10, "c2"
         prob += -y + z == 7, "c3"
         prob += w >= 0, "c4"
-        print("\t Testing inconsistant lp solution")
+        print("\t Testing inconsistent lp solution")
         # this was a problem with use_mps=false
         if self.solver.__class__ in [PULP_CBC_CMD, COIN_CMD]:
             pulpTestCheck(prob, self.solver, [const.LpStatusInfeasible], {x: 4, y: -1, z: 6, w: 0},
@@ -145,7 +145,7 @@ class PuLPTest(unittest.TestCase):
         elif self.solver.__class__ is GLPK_CMD:
             # GLPK_CMD Does not report unbounded problems, correctly
             pulpTestCheck(prob, self.solver, [const.LpStatusUndefined])
-        elif self.solver.__class__ in [CPLEX_DLL, GUROBI_CMD]:
+        elif self.solver.__class__ in [CPLEX_DLL, GUROBI_CMD, SCIP_CMD]:
             # CPLEX_DLL Does not report unbounded problems, correctly
             # GUROBI_CMD has a very simple interface
             pulpTestCheck(prob, self.solver, [const.LpStatusNotSolved])
@@ -168,7 +168,7 @@ class PuLPTest(unittest.TestCase):
         prob += -y + z == 7, "c3"
         prob += w >= 0, "c4"
         print("\t Testing Long Names")
-        if self.solver.__class__ in [CPLEX_CMD, GLPK_CMD, GUROBI_CMD, MIPCL_CMD]:
+        if self.solver.__class__ in [CPLEX_CMD, GLPK_CMD, GUROBI_CMD, MIPCL_CMD, SCIP_CMD]:
             try:
                 pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
             except PulpError:
@@ -192,7 +192,8 @@ class PuLPTest(unittest.TestCase):
         print("\t Testing repeated Names")
         if self.solver.__class__ in [COIN_CMD, COINMP_DLL, PULP_CBC_CMD,
                                 CPLEX_CMD, CPLEX_DLL, CPLEX_PY,
-                                GLPK_CMD, GUROBI_CMD, PULP_CHOCO_CMD, CHOCO_CMD, MIPCL_CMD, MOSEK]:
+                                GLPK_CMD, GUROBI_CMD, PULP_CHOCO_CMD, CHOCO_CMD,
+                                MIPCL_CMD, MOSEK, SCIP_CMD]:
             try:
                 pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
             except PulpError:
@@ -356,7 +357,7 @@ class PuLPTest(unittest.TestCase):
         prob += -y + z == 7.5, "c3"
         self.solver.mip = 0
         print("\t Testing MIP relaxation")
-        if self.solver.__class__ in [GUROBI_CMD, PULP_CHOCO_CMD, CHOCO_CMD, MIPCL_CMD]:
+        if self.solver.__class__ in [GUROBI_CMD, PULP_CHOCO_CMD, CHOCO_CMD, MIPCL_CMD, SCIP_CMD]:
             # gurobi command, choco and mipcl do not let the problem be relaxed
             pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], {x: 3.0, y: -0.5, z: 7})
         else:
@@ -428,7 +429,7 @@ class PuLPTest(unittest.TestCase):
         prob += c1 + c2 == 2
         prob += c1 <= 0
         print("\t Testing another integer infeasible problem")
-        if self.solver.__class__ in [GUROBI_CMD]:
+        if self.solver.__class__ in [GUROBI_CMD, SCIP_CMD]:
             pulpTestCheck(prob, self.solver, [const.LpStatusNotSolved])
         elif self.solver.__class__ in [GLPK_CMD]:
             # GLPK_CMD returns InfeasibleOrUnbounded
@@ -645,7 +646,7 @@ class PuLPTest(unittest.TestCase):
         elif self.solver.__class__ is GLPK_CMD:
             # GLPK_CMD Does not report unbounded problems, correctly
             pulpTestCheck(prob, self.solver, [const.LpStatusUndefined])
-        elif self.solver.__class__ in [CPLEX_DLL, GUROBI_CMD]:
+        elif self.solver.__class__ in [CPLEX_DLL, GUROBI_CMD, SCIP_CMD]:
             # GLPK_CMD Does not report unbounded problems, correctly
             pulpTestCheck(prob, self.solver, [const.LpStatusNotSolved])
         elif self.solver.__class__ in [PULP_CHOCO_CMD, CHOCO_CMD]:
@@ -675,7 +676,7 @@ class PuLPTest(unittest.TestCase):
         data = prob.to_dict()
         var1, prob1 = LpProblem.from_dict(data)
         x, y, z, w = [var1[name] for name in ['x', 'y', 'z', 'w']]
-        print("\t Testing continuous LP solution")
+        print("\t Testing continuous LP solution - export dict")
         pulpTestCheck(prob1, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
 
     def test_export_json_LP(self):
@@ -698,7 +699,7 @@ class PuLPTest(unittest.TestCase):
         except:
             pass
         x, y, z, w = [var1[name] for name in ['x', 'y', 'z', 'w']]
-        print("\t Testing continuous LP solution")
+        print("\t Testing continuous LP solution - export JSON")
         pulpTestCheck(prob1, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
 
     def test_export_dict_MIP(self):
@@ -750,7 +751,7 @@ class PuLPTest(unittest.TestCase):
         prob += w >= 0, "c4"
         data = self.solver.to_dict()
         solver1 = get_solver_from_dict(data)
-        print("\t Testing continuous LP solution")
+        print("\t Testing continuous LP solution - export solver dict")
         pulpTestCheck(prob, solver1, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
 
     def test_export_solver_json(self):
@@ -781,7 +782,7 @@ class PuLPTest(unittest.TestCase):
             os.remove(filename)
         except:
             pass
-        print("\t Testing continuous LP solution")
+        print("\t Testing continuous LP solution - export solver JSON")
         pulpTestCheck(prob, solver1, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
 
     def test_timeLimit(self):
@@ -800,7 +801,7 @@ class PuLPTest(unittest.TestCase):
         # CHOCO has issues when given a time limit
         if self.solver.name != 'PULP_CHOCO_CMD':
             pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
-    
+
     def test_assignInvalidStatus(self):
         print("\t Testing invalid status")
         t = LpProblem('test')
@@ -907,23 +908,25 @@ def pulpTestCheck(prob, solver, okstatus, sol=None,
 
 
 def suite():
-    solvers = [PULP_CBC_CMD,
-               CPLEX_DLL,
-               CPLEX_CMD,
-               CPLEX_PY,
-               COIN_CMD,
-               COINMP_DLL,
-               GLPK_CMD,
-               XPRESS,
-               GUROBI,
-               GUROBI_CMD,
-               PYGLPK,
-               YAPOSIB,
-               PULP_CHOCO_CMD,
-               CHOCO_CMD,
-               MIPCL_CMD,
-               MOSEK
-               ]
+    solvers = [
+        PULP_CBC_CMD,
+        CPLEX_DLL,
+        CPLEX_CMD,
+        CPLEX_PY,
+        COIN_CMD,
+        COINMP_DLL,
+        GLPK_CMD,
+        XPRESS,
+        GUROBI,
+        GUROBI_CMD,
+        PYGLPK,
+        YAPOSIB,
+        PULP_CHOCO_CMD,
+        CHOCO_CMD,
+        MIPCL_CMD,
+        MOSEK,
+        SCIP_CMD,
+    ]
 
     loader = TestLoaderWithKwargs()
     suite = unittest.TestSuite()
@@ -945,4 +948,3 @@ if __name__ == '__main__':
     # suite = unittest.TestSuite()
     # suite.addTest(PuLPTest('test_pulp_060', PULP_CBC_CMD(msg=0)))
     # unittest.TextTestRunner(verbosity=0).run(suite)
-
