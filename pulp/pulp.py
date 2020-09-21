@@ -82,7 +82,7 @@ Exported Functions:
       as a constraint or variable
 
 Comments, bug reports, patches and suggestions are welcome.
-pulp-or-discuss@googlegroups.com
+https://github.com/coin-or/pulp
 
 References:
 [1] http://www.gnu.org/software/glpk/glpk.html

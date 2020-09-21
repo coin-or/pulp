@@ -103,7 +103,10 @@ Exported Functions:
 * `lpDot()` --given two lists of the form [a1, a2, ..., an] and [ x1, x2, ..., xn] will construct a linear epression to be used as a constraint or variable
 
 Comments, bug reports, patches and suggestions are welcome.
-pulp-or-discuss@googlegroups.com
+
+* Comments and suggestions: https://github.com/coin-or/pulp/discussions
+* Bug reports: https://github.com/coin-or/pulp/issues
+* Patches: https://github.com/coin-or/pulp/pulls
 
      Copyright J.S. Roy (js@jeannot.org), 2003-2005
      Copyright Stuart A. Mitchell (stu@stuartmitchell.com)

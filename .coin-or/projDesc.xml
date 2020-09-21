@@ -58,6 +58,6 @@
     <documentation>https://coin-or.github.io/pulp/</documentation>
     <sourceCodeDownload>https://github.com/coin-or/pulp</sourceCodeDownload>
     <binaryDownload/>
-    <mailingList>http://groups.google.co.nz/group/pulp-or-discuss</mailingList>
+    <mailingList>https://github.com/coin-or/pulp/discussions</mailingList>
   </leftMenuLinks>
 </projectData>

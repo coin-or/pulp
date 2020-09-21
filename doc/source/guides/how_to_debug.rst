@@ -6,11 +6,10 @@ Here I will put all the main questions and advice from years of solving and help
 Giving feedback and asking for help
 ----------------------------------------
 
-The three ways one can ask for help or report a problem are:
+The two ways one can ask for help or report a problem are:
 
-1. The PuLP mailing list: https://groups.google.com/forum/#!forum/pulp-or-discuss
-2. The github issues page: https://github.com/coin-or/pulp/issues
-3. Stack Overflow `pulp` tag: https://stackoverflow.com/questions/tagged/pulp
+1. The PuLP Github Discussions page: https://github.com/coin-or/pulp/discussions
+2. Stack Overflow `pulp` tag: https://stackoverflow.com/questions/tagged/pulp
 
 Of course, the questions /problems (and their answers/ solutions) already in these sites can (and often do) include sufficient information to solve or understand the issue. So a good look at old questions and issues is highly recommended.
 
