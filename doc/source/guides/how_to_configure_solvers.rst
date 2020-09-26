@@ -72,7 +72,7 @@ Imagine using the ``CPLEX_CMD`` solver, the first one is really simple:
     model = pl.LpProblem("Example", pl.LpMinimize)
     solver = pl.CPLEX_CMD(path=path_to_cplex)
     _var = pl.LpVariable('a')
-    _var2 = pl.LpVariable('b')
+    _var2 = pl.LpVariable('a2')
     model += _var + _var2 == 1 
     result = model.solve(solver)
 
@@ -90,7 +90,7 @@ Once we have done that, we just do something very similar to the previous exampl
     model = pl.LpProblem("Example", pl.LpMinimize)
     solver = pl.CPLEX_CMD()
     _var = pl.LpVariable('a')
-    _var2 = pl.LpVariable('b')
+    _var2 = pl.LpVariable('a2')
     model += _var + _var2 == 1 
     result = model.solve(solver)
 
@@ -151,7 +151,7 @@ By default, PuLP does not keep the intermediary files (the \*.mps, \*.lp, \*.mst
     import pulp as pl
     model = pl.LpProblem("Example", pl.LpMinimize)
     _var = pl.LpVariable('a')
-    _var2 = pl.LpVariable('b')
+    _var2 = pl.LpVariable('a2')
     model += _var + _var2 == 1 
     solver = pl.PULP_CBC_CMD()
     result = model.solve(solver)
@@ -163,7 +163,7 @@ Another option, is passing the argument `KeepFiles=True` to the solver. With thi
     import pulp as pl
     model = pl.LpProblem("Example", pl.LpMinimize)
     _var = pl.LpVariable('a')
-    _var2 = pl.LpVariable('b')
+    _var2 = pl.LpVariable('a2')
     model += _var + _var2 == 1 
     solver = pl.PULP_CBC_CMD(keepFiles=True)
     result = model.solve(solver)
@@ -175,7 +175,7 @@ Finally, one can manually edit the tmpDir attribute of the solver object before 
     import pulp as pl
     model = pl.LpProblem("Example", pl.LpMinimize)
     _var = pl.LpVariable('a')
-    _var2 = pl.LpVariable('b')
+    _var2 = pl.LpVariable('a2')
     model += _var + _var2 == 1 
     solver = pl.PULP_CBC_CMD()
     solver.tmpDir = 'PUT_SOME_ALTERNATIVE_PATH_HERE'
