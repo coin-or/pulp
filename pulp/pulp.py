@@ -757,6 +757,8 @@ class LpAffineExpression(_DICT_TYPE):
         elif isinstance(other,dict):
             for e in other.values():
                 self.addInPlace(e)
+        elif isinstance(other,str):
+            raise TypeError("strings cannot be added to LpAffineExpression")
         elif (isinstance(other,list)
               or isinstance(other, Iterable)):
            for e in other:
@@ -778,6 +780,8 @@ class LpAffineExpression(_DICT_TYPE):
         elif isinstance(other,dict):
             for e in other.values():
                 self.subInPlace(e)
+        elif isinstance(other,str):
+            raise TypeError("strings cannot be subtracted from LpAffineExpression")
         elif (isinstance(other,list)
               or isinstance(other, Iterable)):
             for e in other:
