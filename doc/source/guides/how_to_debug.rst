@@ -58,7 +58,7 @@ And see what message you get.
 Infeasible problems
 ----------------------------------------
 
-1. Add slack variables. As described `here <https://stackoverflow.com/a/62771338/6508131>`_.
+1. Add slack variables. As described `in this SO post <https://stackoverflow.com/a/62771338/6508131>`_.
 2. Take out constraints and see if the problem becomes feasible.
 3. Generate lp file :meth:`~pulp.LpProblem.writeLP` for the problem and open it with a text editor to see if the constraints are correctly built.
 4. Check the solver logs to additional message from the solver regarding the constraint or variable involved. The log can be seen by giving `msg=` as argument or exported with the `logPath` argument in some cases.
