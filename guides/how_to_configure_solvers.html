@@ -205,20 +205,20 @@
 <h2>Checking which solvers PuLP has access to<a class="headerlink" href="#checking-which-solvers-pulp-has-access-to" title="Permalink to this headline">¶</a></h2>
 <p>PuLP has some helper functions that permit a user to query which solvers are available and initialize a solver from its name.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pulp</span> <span class="kn">as</span> <span class="nn">pl</span>
-<span class="n">solver_list</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">list_solvers</span><span class="p">()</span>
+<span class="n">solver_list</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">listSolvers</span><span class="p">()</span>
 <span class="c1"># [&#39;GLPK_CMD&#39;, &#39;PYGLPK&#39;, &#39;CPLEX_CMD&#39;, &#39;CPLEX_PY&#39;, &#39;CPLEX_DLL&#39;, &#39;GUROBI&#39;, &#39;GUROBI_CMD&#39;, &#39;MOSEK&#39;, &#39;XPRESS&#39;, &#39;PULP_CBC_CMD&#39;, &#39;COIN_CMD&#39;, &#39;COINMP_DLL&#39;, &#39;CHOCO_CMD&#39;, &#39;PULP_CHOCO_CMD&#39;, &#39;MIPCL_CMD&#39;, &#39;SCIP_CMD&#39;]</span>
 </pre></div>
 </div>
 <p>If passed the <cite>only_available=True</cite> argument, PuLP lists the solvers that are currently available:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pulp</span> <span class="k">as</span> <span class="nn">pl</span>
-<span class="n">solver_list</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">list_solvers</span><span class="p">(</span><span class="n">available_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">solver_list</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">listSolvers</span><span class="p">(</span><span class="n">onlyAvailable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="c1"># [&#39;GLPK_CMD&#39;, &#39;CPLEX_CMD&#39;, &#39;CPLEX_PY&#39;, &#39;GUROBI&#39;, &#39;GUROBI_CMD&#39;, &#39;PULP_CBC_CMD&#39;, &#39;COIN_CMD&#39;, &#39;PULP_CHOCO_CMD&#39;]</span>
 </pre></div>
 </div>
 <p>Also, it’s possible to get a solver object by using the name of the solver. Any arguments passed to this function are passed to the constructor:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pulp</span> <span class="kn">as</span> <span class="nn">pl</span>
-<span class="n">solver</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">get_solver</span><span class="p">(</span><span class="s1">&#39;CPLEX_CMD&#39;</span><span class="p">)</span>
-<span class="n">solver</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">get_solver</span><span class="p">(</span><span class="s1">&#39;CPLEX_CMD&#39;</span><span class="p">,</span> <span class="n">timeLimit</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">solver</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">getSolver</span><span class="p">(</span><span class="s1">&#39;CPLEX_CMD&#39;</span><span class="p">)</span>
+<span class="n">solver</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">getSolver</span><span class="p">(</span><span class="s1">&#39;CPLEX_CMD&#39;</span><span class="p">,</span> <span class="n">timeLimit</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>In the next sections, we will explain how to configure a solver to be accessible by PuLP.</p>
@@ -256,7 +256,7 @@
 <span class="n">model</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;Example&quot;</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
 <span class="n">solver</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">CPLEX_CMD</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">path_to_cplex</span><span class="p">)</span>
 <span class="n">_var</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpVariable</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)</span>
-<span class="n">_var2</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpVariable</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">)</span>
+<span class="n">_var2</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpVariable</span><span class="p">(</span><span class="s1">&#39;a2&#39;</span><span class="p">)</span>
 <span class="n">model</span> <span class="o">+=</span> <span class="n">_var</span> <span class="o">+</span> <span class="n">_var2</span> <span class="o">==</span> <span class="mi">1</span>
 <span class="n">result</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="p">)</span>
 </pre></div>
@@ -269,7 +269,7 @@
 <span class="n">model</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;Example&quot;</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
 <span class="n">solver</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">CPLEX_CMD</span><span class="p">()</span>
 <span class="n">_var</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpVariable</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)</span>
-<span class="n">_var2</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpVariable</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">)</span>
+<span class="n">_var2</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpVariable</span><span class="p">(</span><span class="s1">&#39;a2&#39;</span><span class="p">)</span>
 <span class="n">model</span> <span class="o">+=</span> <span class="n">_var</span> <span class="o">+</span> <span class="n">_var2</span> <span class="o">==</span> <span class="mi">1</span>
 <span class="n">result</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="p">)</span>
 </pre></div>
@@ -322,7 +322,7 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pulp</span> <span class="kn">as</span> <span class="nn">pl</span>
 <span class="n">model</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;Example&quot;</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
 <span class="n">_var</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpVariable</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)</span>
-<span class="n">_var2</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpVariable</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">)</span>
+<span class="n">_var2</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpVariable</span><span class="p">(</span><span class="s1">&#39;a2&#39;</span><span class="p">)</span>
 <span class="n">model</span> <span class="o">+=</span> <span class="n">_var</span> <span class="o">+</span> <span class="n">_var2</span> <span class="o">==</span> <span class="mi">1</span>
 <span class="n">solver</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">PULP_CBC_CMD</span><span class="p">()</span>
 <span class="n">result</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="p">)</span>
@@ -332,7 +332,7 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pulp</span> <span class="kn">as</span> <span class="nn">pl</span>
 <span class="n">model</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;Example&quot;</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
 <span class="n">_var</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpVariable</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)</span>
-<span class="n">_var2</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpVariable</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">)</span>
+<span class="n">_var2</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpVariable</span><span class="p">(</span><span class="s1">&#39;a2&#39;</span><span class="p">)</span>
 <span class="n">model</span> <span class="o">+=</span> <span class="n">_var</span> <span class="o">+</span> <span class="n">_var2</span> <span class="o">==</span> <span class="mi">1</span>
 <span class="n">solver</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">PULP_CBC_CMD</span><span class="p">(</span><span class="n">keepFiles</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 <span class="n">result</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="p">)</span>
@@ -342,7 +342,7 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pulp</span> <span class="kn">as</span> <span class="nn">pl</span>
 <span class="n">model</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;Example&quot;</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
 <span class="n">_var</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpVariable</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)</span>
-<span class="n">_var2</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpVariable</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">)</span>
+<span class="n">_var2</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpVariable</span><span class="p">(</span><span class="s1">&#39;a2&#39;</span><span class="p">)</span>
 <span class="n">model</span> <span class="o">+=</span> <span class="n">_var</span> <span class="o">+</span> <span class="n">_var2</span> <span class="o">==</span> <span class="mi">1</span>
 <span class="n">solver</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">PULP_CBC_CMD</span><span class="p">()</span>
 <span class="n">solver</span><span class="o">.</span><span class="n">tmpDir</span> <span class="o">=</span> <span class="s1">&#39;PUT_SOME_ALTERNATIVE_PATH_HERE&#39;</span>
@@ -402,7 +402,7 @@
 <p>In order to export it one needs can export it to a dictionary or a json file:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pulp</span>
 <span class="n">solver</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">PULP_CBC_CMD</span><span class="p">()</span>
-<span class="n">solver_dict</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+<span class="n">solver_dict</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">toDict</span><span class="p">()</span>
 </pre></div>
 </div>
 <p>The structure of the returned dictionary is quite simple:</p>
@@ -416,17 +416,17 @@
 </pre></div>
 </div>
 <p>It’s also possible to export it directly to a json file:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">solver</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="s2">&quot;some_file_name.json&quot;</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">solver</span><span class="o">.</span><span class="n">toJson</span><span class="p">(</span><span class="s2">&quot;some_file_name.json&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>In order to import it, one needs to do:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pulp</span>
-<span class="n">solver</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">get_solver_from_dict</span><span class="p">(</span><span class="n">solver_dict</span><span class="p">)</span>
+<span class="n">solver</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">getSolverFromDict</span><span class="p">(</span><span class="n">solver_dict</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Or from a file:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pulp</span>
-<span class="n">solver</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">get_solver_from_json</span><span class="p">(</span><span class="s2">&quot;some_file_name.json&quot;</span><span class="p">)</span>
+<span class="n">solver</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">getSolverFromJson</span><span class="p">(</span><span class="s2">&quot;some_file_name.json&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>For json, we use the base <cite>json</cite> package. But if <cite>ujson</cite> is available, we use that so the import / export can be really fast.</p>

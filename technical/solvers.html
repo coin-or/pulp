@@ -825,6 +825,16 @@ or other solvers that are similar</p>
 </dd></dl>
 
 <dl class="py method">
+<dt id="pulp.apis.LpSolver.toDict">
+<code class="sig-name descname">toDict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.LpSolver.toDict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="pulp.apis.LpSolver.toJson">
+<code class="sig-name descname">toJson</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.LpSolver.toJson" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
 <dt id="pulp.apis.LpSolver.to_dict">
 <code class="sig-name descname">to_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.LpSolver.to_dict" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -1021,7 +1031,7 @@ e.g. gapRel=0.1, gapAbs=10, logPath=”“,</p></li>
 
 <dl class="py attribute">
 <dt id="pulp.apis.PULP_CBC_CMD.pulp_cbc_path">
-<code class="sig-name descname">pulp_cbc_path</code><em class="property"> = '/home/pchtsp/Documents/resources/pulp/pulp/apis/../solverdir/cbc/linux/64/cbc'</em><a class="headerlink" href="#pulp.apis.PULP_CBC_CMD.pulp_cbc_path" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">pulp_cbc_path</code><em class="property"> = '/home/pchtsp/.local/lib/python3.6/site-packages/pulp/apis/../solverdir/cbc/linux/64/cbc'</em><a class="headerlink" href="#pulp.apis.PULP_CBC_CMD.pulp_cbc_path" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -1050,7 +1060,7 @@ e.g. gapRel=0.1, gapAbs=10, logPath=”“,</p></li>
 
 <dl class="py attribute">
 <dt id="pulp.apis.PULP_CHOCO_CMD.pulp_choco_path">
-<code class="sig-name descname">pulp_choco_path</code><em class="property"> = '/home/pchtsp/Documents/resources/pulp/pulp/apis/../solverdir/choco/choco-parsers-with-dependencies.jar'</em><a class="headerlink" href="#pulp.apis.PULP_CHOCO_CMD.pulp_choco_path" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">pulp_choco_path</code><em class="property"> = '/home/pchtsp/.local/lib/python3.6/site-packages/pulp/apis/../solverdir/choco/choco-parsers-with-dependencies.jar'</em><a class="headerlink" href="#pulp.apis.PULP_CHOCO_CMD.pulp_choco_path" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -1131,6 +1141,11 @@ e.g. gapRel=0.1, gapAbs=10, logPath=”“,</p></li>
 </ul>
 </dd>
 </dl>
+<dl class="py attribute">
+<dt id="pulp.apis.SCIP_CMD.NO_SOLUTION_STATUSES">
+<code class="sig-name descname">NO_SOLUTION_STATUSES</code><em class="property"> = {-2, -1, 0}</em><a class="headerlink" href="#pulp.apis.SCIP_CMD.NO_SOLUTION_STATUSES" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="py attribute">
 <dt id="pulp.apis.SCIP_CMD.SCIP_STATUSES">
 <code class="sig-name descname">SCIP_STATUSES</code><em class="property"> = {'gap limit reached': 0, 'infeasible': -1, 'infeasible or unbounded': 0, 'memory limit reached': 0, 'node limit reached': 0, 'optimal solution found': 1, 'restart limit reached': 0, 'solution improvement limit reached': 0, 'solution limit reached': 0, 'stall node limit reached': 0, 'time limit reached': 0, 'total node limit reached': 0, 'unbounded': -2, 'unknown': -3, 'user interrupt': 0}</em><a class="headerlink" href="#pulp.apis.SCIP_CMD.SCIP_STATUSES" title="Permalink to this definition">¶</a></dt>
@@ -1285,6 +1300,62 @@ type is the type of the c array</p>
 </dd></dl>
 
 <dl class="py function">
+<dt id="pulp.apis.getSolver">
+<code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">getSolver</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">solver</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.getSolver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Instantiates a solver from its name</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>solver</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – solver name to create</p></li>
+<li><p><strong>args</strong> – additional arguments to the solver</p></li>
+<li><p><strong>kwargs</strong> – additional keyword arguments to the solver</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>solver of type <a class="reference internal" href="#pulp.apis.LpSolver" title="pulp.apis.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpSolver</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="pulp.apis.getSolverFromDict">
+<code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">getSolverFromDict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.getSolverFromDict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Instantiates a solver from a dictionary with its data</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>data</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a>) – a dictionary with, at least an “solver” key with the name
+of the solver to create</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a solver of type <a class="reference internal" href="#pulp.apis.LpSolver" title="pulp.apis.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpSolver</span></code></a></p>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#pulp.apis.PulpSolverError" title="pulp.apis.PulpSolverError"><strong>PulpSolverError</strong></a> – if the dictionary does not have the “solver” key</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="#pulp.apis.LpSolver" title="pulp.apis.LpSolver">LpSolver</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="pulp.apis.getSolverFromJson">
+<code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">getSolverFromJson</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.getSolverFromJson" title="Permalink to this definition">¶</a></dt>
+<dd><p>Instantiates a solver from a json file with its data</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – name of the json file to read</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a solver of type <a class="reference internal" href="#pulp.apis.LpSolver" title="pulp.apis.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpSolver</span></code></a></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#pulp.apis.LpSolver" title="pulp.apis.LpSolver">LpSolver</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt id="pulp.apis.get_solver">
 <code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">get_solver</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">solver</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.get_solver" title="Permalink to this definition">¶</a></dt>
 <dd><p>Instantiates a solver from its name</p>
@@ -1344,6 +1415,23 @@ of the solver to create</p>
 <dt id="pulp.apis.initialize">
 <code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">initialize</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span></em>, <em class="sig-param"><span class="n">operating_system</span><span class="o">=</span><span class="default_value">'linux'</span></em>, <em class="sig-param"><span class="n">arch</span><span class="o">=</span><span class="default_value">'64'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.initialize" title="Permalink to this definition">¶</a></dt>
 <dd><p>reads the configuration file to initialise the module</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="pulp.apis.listSolvers">
+<code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">listSolvers</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">onlyAvailable</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.listSolvers" title="Permalink to this definition">¶</a></dt>
+<dd><p>List the names of all the existing solvers in PuLP</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>onlyAvailable</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if True, only show the available solvers</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>list of solver names</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)">list</a></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">

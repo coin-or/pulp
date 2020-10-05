@@ -364,8 +364,8 @@ constraints, variables) of the defined Lp problem to a file.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="pulp.LpProblem.to_json">
-<code class="sig-name descname">to_json</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpProblem.to_json" title="Permalink to this definition">¶</a></dt>
+<dt id="pulp.LpProblem.toJson">
+<code class="sig-name descname">toJson</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpProblem.toJson" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a json file from the LpProblem information</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -382,8 +382,8 @@ constraints, variables) of the defined Lp problem to a file.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="pulp.LpProblem.from_json">
-<em class="property">classmethod </em><code class="sig-name descname">from_json</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpProblem.from_json" title="Permalink to this definition">¶</a></dt>
+<dt id="pulp.LpProblem.fromJson">
+<em class="property">classmethod </em><code class="sig-name descname">fromJson</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpProblem.fromJson" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a new Lp Problem from a json file with information</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -468,6 +468,27 @@ Continuous(default)</p></li>
 </dd></dl>
 
 <dl class="py method">
+<dt id="pulp.LpVariable.fromDict">
+<em class="property">classmethod </em><code class="sig-name descname">fromDict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dj</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">varValue</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable.fromDict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes a variable object from information that comes from a dictionary (kwargs)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dj</strong> – shadow price of the variable</p></li>
+<li><p><strong>varValue</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – the value to set the variable</p></li>
+<li><p><strong>kwargs</strong> – arguments to initialize the variable</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a <a class="reference internal" href="#pulp.LpVariable" title="pulp.LpVariable"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpVariable</span></code></a></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>:LpVariable</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt id="pulp.LpVariable.from_dict">
 <em class="property">classmethod </em><code class="sig-name descname">from_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dj</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">varValue</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable.from_dict" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initializes a variable object from information that comes from a dictionary (kwargs)</p>
@@ -518,6 +539,20 @@ May be used for warmStart a solver, if supported by the solver</p>
 </dd>
 <dt class="field-odd">Raises</dt>
 <dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.8)"><strong>ValueError</strong></a> – if check=True and the value does not fit inside the bounds</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pulp.LpVariable.toDict">
+<code class="sig-name descname">toDict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable.toDict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exports a variable into a dictionary with its relevant information</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>a dictionary with the variable information</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)">dict</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -603,6 +638,21 @@ I])} = \sum_{i \in I} a_i x_i\)</span> where  (note the order):</p>
 </dd></dl>
 
 <dl class="py method">
+<dt id="pulp.LpAffineExpression.toDict">
+<code class="sig-name descname">toDict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpAffineExpression.toDict" title="Permalink to this definition">¶</a></dt>
+<dd><p>exports the <a class="reference internal" href="#pulp.LpAffineExpression" title="pulp.LpAffineExpression"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpAffineExpression</span></code></a> into a list of dictionaries with the coefficients
+it does not export the constant</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>list of dictionaries with the coefficients</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)">list</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt id="pulp.LpAffineExpression.to_dict">
 <code class="sig-name descname">to_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpAffineExpression.to_dict" title="Permalink to this definition">¶</a></dt>
 <dd><p>exports the <a class="reference internal" href="#pulp.LpAffineExpression" title="pulp.LpAffineExpression"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpAffineExpression</span></code></a> into a list of dictionaries with the coefficients
@@ -668,6 +718,20 @@ it does not export the constant</p>
 </dd></dl>
 
 <dl class="py method">
+<dt id="pulp.LpConstraint.fromDict">
+<em class="property">classmethod </em><code class="sig-name descname">fromDict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">_dict</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpConstraint.fromDict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes a constraint object from a dictionary with necessary information</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>_dict</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a>) – dictionary with data</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a new <a class="reference internal" href="#pulp.LpConstraint" title="pulp.LpConstraint"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpConstraint</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt id="pulp.LpConstraint.from_dict">
 <em class="property">classmethod </em><code class="sig-name descname">from_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">_dict</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpConstraint.from_dict" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initializes a constraint object from a dictionary with necessary information</p>
@@ -689,8 +753,8 @@ it does not export the constant</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="pulp.LpConstraint.to_dict">
-<code class="sig-name descname">to_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpConstraint.to_dict" title="Permalink to this definition">¶</a></dt>
+<dt id="pulp.LpConstraint.toDict">
+<code class="sig-name descname">toDict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpConstraint.toDict" title="Permalink to this definition">¶</a></dt>
 <dd><p>exports constraint information into a dictionary</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
