@@ -750,7 +750,7 @@ class PuLPTest(unittest.TestCase):
         prob += -y + z == 7, "c3"
         prob += w >= 0, "c4"
         data = self.solver.toDict()
-        solver1 = get_solver_from_dict(data)
+        solver1 = getSolverFromDict(data)
         print("\t Testing continuous LP solution - export solver dict")
         pulpTestCheck(prob, solver1, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
 
@@ -777,7 +777,7 @@ class PuLPTest(unittest.TestCase):
                                            warmStart=True)
         filename = name + '.json'
         self.solver.toJson(filename, indent=4)
-        solver1 = get_solver_from_json(filename)
+        solver1 = getSolverFromJson(filename)
         try:
             os.remove(filename)
         except:
