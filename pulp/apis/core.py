@@ -318,7 +318,7 @@ class LpSolver:
             elemBase, lowerBounds, upperBounds, initValues, colNames,
             rowNames, columnType, self.n2v, self.n2c)
 
-    def to_dict(self):
+    def toDict(self):
         data = dict(solver=self.name)
         for k in ['mip', 'msg', 'keepFiles']:
             try:
@@ -335,11 +335,12 @@ class LpSolver:
                 pass
         data.update(self.optionsDict)
         return data
+    to_dict = toDict
 
-    def to_json(self, filename, *args, **kwargs):
+    def toJson(self, filename, *args, **kwargs):
         with open(filename, 'w') as f:
-            json.dump(self.to_dict(), f, *args,  **kwargs)
-
+            json.dump(self.toDict(), f, *args, **kwargs)
+    to_json = toJson
 
 class LpSolver_CMD(LpSolver):
     """A generic command line LP Solver"""

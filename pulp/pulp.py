@@ -254,7 +254,7 @@ class LpVariable(LpElement):
         if e:
             self.add_expression(e)
 
-    def to_dict(self):
+    def toDict(self):
         """
         Exports a variable into a dictionary with its relevant information
 
@@ -263,9 +263,10 @@ class LpVariable(LpElement):
         """
         return dict(lowBound=self.lowBound, upBound=self.upBound, cat=self.cat,
                     varValue=self.varValue, dj=self.dj, name=self.name)
+    to_dict = toDict
 
     @classmethod
-    def from_dict(cls, dj=None, varValue=None, **kwargs):
+    def fromDict(cls, dj=None, varValue=None, **kwargs):
         """
         Initializes a variable object from information that comes from a dictionary (kwargs)
 
@@ -279,6 +280,7 @@ class LpVariable(LpElement):
         var.dj = dj
         var.varValue = varValue
         return var
+    from_dict = fromDict
 
     def add_expression(self,e):
         self.expression = e
@@ -887,7 +889,7 @@ class LpAffineExpression(_DICT_TYPE):
     def __eq__(self, other):
         return LpConstraint(self - other, const.LpConstraintEQ)
 
-    def to_dict(self):
+    def toDict(self):
         """
         exports the :py:class:`LpAffineExpression` into a list of dictionaries with the coefficients
         it does not export the constant
@@ -896,7 +898,7 @@ class LpAffineExpression(_DICT_TYPE):
         :rtype: list
         """
         return [dict(name=k.name, value=v) for k, v in self.items()]
-
+    to_dict = toDict
 
 class LpConstraint(LpAffineExpression):
     """An LP constraint"""
@@ -1074,7 +1076,7 @@ class LpConstraint(LpAffineExpression):
         """
         return FixedElasticSubProblem(self, *args, **kwargs)
 
-    def to_dict(self):
+    def toDict(self):
         """
         exports constraint information into a dictionary
 
@@ -1084,10 +1086,10 @@ class LpConstraint(LpAffineExpression):
                     pi=self.pi,
                     constant=self.constant,
                     name=self.name,
-                    coefficients=LpAffineExpression.to_dict(self))
+                    coefficients=LpAffineExpression.toDict(self))
 
     @classmethod
-    def from_dict(cls, _dict):
+    def fromDict(cls, _dict):
         """
         Initializes a constraint object from a dictionary with necessary information
 
@@ -1097,6 +1099,7 @@ class LpConstraint(LpAffineExpression):
         const = cls(e=_dict['coefficients'], rhs=-_dict['constant'], name=_dict['name'], sense=_dict['sense'])
         const.pi = _dict['pi']
         return const
+    from_dict = fromDict
 
 
 class LpFractionConstraint(LpConstraint):
@@ -1265,7 +1268,7 @@ class LpProblem(object):
         lpcopy.sos2 = self.sos2.copy()
         return lpcopy
 
-    def to_dict(self):
+    def toDict(self):
         """
         creates a dictionary from the model with as much data as possible.
         It replaces variables by variable names.
@@ -1281,9 +1284,9 @@ class LpProblem(object):
         variables = self.variables()
         return \
             dict(
-                objective=dict(name=self.objective.name, coefficients=self.objective.to_dict()),
-                constraints=[v.to_dict() for v in self.constraints.values()],
-                variables=[v.to_dict() for v in variables],
+                objective=dict(name=self.objective.name, coefficients=self.objective.toDict()),
+                constraints=[v.toDict() for v in self.constraints.values()],
+                variables=[v.toDict() for v in variables],
                 parameters=dict(name=self.name,
                                 sense=self.sense,
                                 status=self.status,
@@ -1292,8 +1295,9 @@ class LpProblem(object):
                 sos2=list(self.sos2.values())
             )
 
+    to_dict = toDict
     @classmethod
-    def from_dict(cls, _dict):
+    def fromDict(cls, _dict):
         """
         Takes a dictionary with all necessary information to build a model.
         And returns a dictionary of variables and a problem object
@@ -1311,7 +1315,7 @@ class LpProblem(object):
         pb.sol_status = params['sol_status']
 
         # recreate the variables.
-        var = {v['name']: LpVariable.from_dict(**v) for v in _dict['variables']}
+        var = {v['name']: LpVariable.fromDict(**v) for v in _dict['variables']}
 
         # objective function.
         # we change the names for the objects:
@@ -1327,7 +1331,7 @@ class LpProblem(object):
 
         constraints = [edit_const(v) for v in _dict['constraints']]
         for c in constraints:
-            pb += LpConstraint.from_dict(c)
+            pb += LpConstraint.fromDict(c)
 
         # last, parameters, other options
         list_to_dict = lambda v: {k: v for k, v in enumerate(v)}
@@ -1335,8 +1339,9 @@ class LpProblem(object):
         pb.sos2 = list_to_dict(_dict['sos2'])
 
         return var, pb
+    from_dict = fromDict
 
-    def to_json(self, filename, *args, **kwargs):
+    def toJson(self, filename, *args, **kwargs):
         """
         Creates a json file from the LpProblem information
 
@@ -1346,10 +1351,12 @@ class LpProblem(object):
         :return: None
         """
         with open(filename, 'w') as f:
-            json.dump(self.to_dict(), f, *args,  **kwargs)
+            json.dump(self.toDict(), f, *args, **kwargs)
+
+    to_json = toJson
 
     @classmethod
-    def from_json(cls, filename):
+    def fromJson(cls, filename):
         """
         Creates a new Lp Problem from a json file with information
 
@@ -1359,7 +1366,9 @@ class LpProblem(object):
         """
         with open(filename, 'r') as f:
             data = json.load(f)
-        return cls.from_dict(data)
+        return cls.fromDict(data)
+
+    from_json = fromJson
 
     def normalisedNames(self):
         constraintsNames = {k: "C%07d" % i for i, k in enumerate(self.constraints)}
