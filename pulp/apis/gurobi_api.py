@@ -50,7 +50,6 @@ class GUROBI(LpSolver):
         # to import the name into the module scope
         global gurobipy
         import gurobipy
-        gurobipy.setParam("_test", 0)
     except: # FIXME: Bug because gurobi returns
             #  a gurobi exception on failed imports
         def available(self):
@@ -135,6 +134,11 @@ class GUROBI(LpSolver):
 
         def available(self):
             """True if the solver is available"""
+            try:
+                gurobipy.setParam("_test", 0)
+            except gurobipy.GurobiError as e:
+                warnings.warn('GUROBI error: {}.'.format(e))
+                return False
             return True
 
         def callSolver(self, lp, callback = None):
@@ -280,7 +284,18 @@ class GUROBI_CMD(LpSolver_CMD):
 
     def available(self):
         """True if the solver is available"""
-        return self.executable(self.path)
+        if not self.executable(self.path):
+            return False
+        # we execute gurobi once to check the return code.
+        # this is to test that the license is active
+        result = subprocess.Popen(self.path, stdout=subprocess.PIPE, universal_newlines=True)
+        out, err = result.communicate()
+        if result.returncode == 0:
+            # normal execution
+            return True
+        # error: we display the gurobi message
+        warnings.warn('GUROBI error: {}.'.format(out))
+        return False
 
     def actualSolve(self, lp):
         """Solve a well formulated lp problem"""
