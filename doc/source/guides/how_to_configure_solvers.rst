@@ -11,13 +11,13 @@ PuLP has some helper functions that permit a user to query which solvers are ava
 .. code-block:: python
 
     import pulp as pl
-    solver_list = pl.list_solvers()
+    solver_list = pl.listSolvers()
     # ['GLPK_CMD', 'PYGLPK', 'CPLEX_CMD', 'CPLEX_PY', 'CPLEX_DLL', 'GUROBI', 'GUROBI_CMD', 'MOSEK', 'XPRESS', 'PULP_CBC_CMD', 'COIN_CMD', 'COINMP_DLL', 'CHOCO_CMD', 'PULP_CHOCO_CMD', 'MIPCL_CMD', 'SCIP_CMD']
 
 If passed the `only_available=True` argument, PuLP lists the solvers that are currently available::
 
     import pulp as pl
-    solver_list = pl.list_solvers(available_only=True)
+    solver_list = pl.listSolvers(onlyAvailable=True)
     # ['GLPK_CMD', 'CPLEX_CMD', 'CPLEX_PY', 'GUROBI', 'GUROBI_CMD', 'PULP_CBC_CMD', 'COIN_CMD', 'PULP_CHOCO_CMD']
 
 Also, it's possible to get a solver object by using the name of the solver. Any arguments passed to this function are passed to the constructor:
@@ -25,8 +25,8 @@ Also, it's possible to get a solver object by using the name of the solver. Any 
 .. code-block:: python
 
     import pulp as pl
-    solver = pl.get_solver('CPLEX_CMD')
-    solver = pl.get_solver('CPLEX_CMD', timeLimit=10)
+    solver = pl.getSolver('CPLEX_CMD')
+    solver = pl.getSolver('CPLEX_CMD', timeLimit=10)
 
 In the next sections, we will explain how to configure a solver to be accessible by PuLP.
 
@@ -244,7 +244,7 @@ In order to export it one needs can export it to a dictionary or a json file::
 
     import pulp
     solver = pulp.PULP_CBC_CMD()
-    solver_dict = solver.to_dict()
+    solver_dict = solver.toDict()
 
 The structure of the returned dictionary is quite simple::
 
@@ -258,16 +258,16 @@ The structure of the returned dictionary is quite simple::
 
 It's also possible to export it directly to a json file::
 
-    solver.to_json("some_file_name.json")
+    solver.toJson("some_file_name.json")
 
 In order to import it, one needs to do::
 
     import pulp
-    solver = pulp.get_solver_from_dict(solver_dict)
+    solver = pulp.getSolverFromDict(solver_dict)
 
 Or from a file::
 
     import pulp
-    solver = pulp.get_solver_from_json("some_file_name.json")
+    solver = pulp.getSolverFromJson("some_file_name.json")
 
 For json, we use the base `json` package. But if `ujson` is available, we use that so the import / export can be really fast.

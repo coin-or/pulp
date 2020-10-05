@@ -66,7 +66,7 @@ def configSolvers():
     setConfigInformation(**configdict)
 
 
-def get_solver(solver, *args, **kwargs):
+def getSolver(solver, *args, **kwargs):
     """
     Instantiates a solver from its name
 
@@ -85,7 +85,7 @@ def get_solver(solver, *args, **kwargs):
         )
 
 
-def get_solver_from_dict(data):
+def getSolverFromDict(data):
     """
     Instantiates a solver from a dictionary with its data
 
@@ -98,10 +98,10 @@ def get_solver_from_dict(data):
     solver = data.pop('solver', None)
     if solver is None:
         raise PulpSolverError('The json file has no solver attribute.')
-    return get_solver(solver, **data)
+    return getSolver(solver, **data)
 
 
-def get_solver_from_json(filename):
+def getSolverFromJson(filename):
     """
     Instantiates a solver from a json file with its data
 
@@ -111,10 +111,10 @@ def get_solver_from_json(filename):
     """
     with open(filename, 'r') as f:
         data = json.load(f)
-    return get_solver_from_dict(data)
+    return getSolverFromDict(data)
 
 
-def list_solvers(onlyAvailable=False):
+def listSolvers(onlyAvailable=False):
     """
     List the names of all the existing solvers in PuLP
 
@@ -127,3 +127,8 @@ def list_solvers(onlyAvailable=False):
         return [solver.name for solver in solvers if solver.available()]
     return[solver.name for solver in solvers]
 
+# DEPRECATED aliases:
+get_solver = getSolver
+get_solver_from_json = getSolverFromJson
+get_solver_from_dict = getSolverFromDict
+list_solvers = listSolvers
