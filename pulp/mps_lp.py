@@ -269,26 +269,26 @@ def MPSBoundLines(name, variable, mip):
     return bound_lines
 
 
-def writeLP(self, filename, writeSOS = 1, mip = 1, max_length=100):
+def writeLP(LpProblem, filename, writeSOS = 1, mip = 1, max_length=100):
     f = open(filename, "w")
-    f.write("\\* " + self.name + " *\\\n")
-    if self.sense == 1:
+    f.write("\\* " + LpProblem.name + " *\\\n")
+    if LpProblem.sense == 1:
         f.write("Minimize\n")
     else:
         f.write("Maximize\n")
-    wasNone, objectiveDummyVar = self.fixObjective()
-    objName = self.objective.name
+    wasNone, objectiveDummyVar = LpProblem.fixObjective()
+    objName = LpProblem.objective.name
     if not objName: objName = "OBJ"
-    f.write(self.objective.asCplexLpAffineExpression(objName, constant=0))
+    f.write(LpProblem.objective.asCplexLpAffineExpression(objName, constant=0))
     f.write("Subject To\n")
-    ks = list(self.constraints.keys())
+    ks = list(LpProblem.constraints.keys())
     ks.sort()
     dummyWritten = False
     for k in ks:
-        constraint = self.constraints[k]
+        constraint = LpProblem.constraints[k]
         if not list(constraint.keys()):
             # empty constraint add the dummyVar
-            dummyVar = self.get_dummyVar()
+            dummyVar = LpProblem.get_dummyVar()
             constraint += dummyVar
             # set this dummyvar to zero so infeasible problems are not made feasible
             if not dummyWritten:
@@ -296,10 +296,10 @@ def writeLP(self, filename, writeSOS = 1, mip = 1, max_length=100):
                 dummyWritten = True
         f.write(constraint.asCplexLpConstraint(k))
     # check if any names are longer than 100 characters
-    self.checkLengthVars(max_length)
-    vs = self.variables()
+    LpProblem.checkLengthVars(max_length)
+    vs = LpProblem.variables()
     # check for repeated names
-    self.checkDuplicateVars()
+    LpProblem.checkDuplicateVars()
     # Bounds on non-"positive" variables
     # Note: XPRESS and CPLEX do not interpret integer variables without
     # explicit bounds
@@ -324,19 +324,19 @@ def writeLP(self, filename, writeSOS = 1, mip = 1, max_length=100):
             f.write("Binaries\n")
             for v in vg: f.write("%s\n" % v.name)
     # Special Ordered Sets
-    if writeSOS and (self.sos1 or self.sos2):
+    if writeSOS and (LpProblem.sos1 or LpProblem.sos2):
         f.write("SOS\n")
-        if self.sos1:
-            for sos in self.sos1.values():
+        if LpProblem.sos1:
+            for sos in LpProblem.sos1.values():
                 f.write("S1:: \n")
                 for v, val in sos.items():
                     f.write(" %s: %.12g\n" % (v.name, val))
-        if self.sos2:
-            for sos in self.sos2.values():
+        if LpProblem.sos2:
+            for sos in LpProblem.sos2.values():
                 f.write("S2:: \n")
                 for v, val in sos.items():
                     f.write(" %s: %.12g\n" % (v.name, val))
     f.write("End\n")
     f.close()
-    self.restoreObjective(wasNone, objectiveDummyVar)
+    LpProblem.restoreObjective(wasNone, objectiveDummyVar)
     return vs

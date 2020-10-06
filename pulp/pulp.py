@@ -1622,7 +1622,7 @@ class LpProblem(object):
         Side Effects:
             - The file is created
         """
-        mpslp.writeLP(filename, writeSOS = writeSOS, mip = mip, max_length=max_length)
+        return mpslp.writeLP(self, filename=filename, writeSOS = writeSOS, mip = mip, max_length=max_length)
 
 
     def checkDuplicateVars(self):
