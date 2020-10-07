@@ -799,6 +799,7 @@ class PuLPTest(unittest.TestCase):
         prob += w >= 0, "c4"
         self.solver.timeLimit = 20
         # CHOCO has issues when given a time limit
+        print("\t Testing timeLimit argument")
         if self.solver.name != 'PULP_CHOCO_CMD':
             pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
 
@@ -824,6 +825,7 @@ class PuLPTest(unittest.TestCase):
         logFilename = name + '.log'
         self.solver.optionsDict['logPath'] = logFilename
         if self.solver.name in ['CPLEX_PY', 'CPLEX_CMD', 'GUROBI', 'GUROBI_CMD', 'PULP_CBC_CMD', 'COIN_CMD']:
+            print("\t Testing logPath argument")
             pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
             if not os.path.exists(logFilename):
                 raise PulpError("Test failed for solver: {}".format(self.solver))
@@ -875,6 +877,7 @@ class PuLPTest(unittest.TestCase):
         _vars, prob2 = LpProblem.fromMPS(filename, sense=prob.sense)
         _dict1 = getSortedDict(prob)
         _dict2 = getSortedDict(prob2)
+        print("\t Testing reading MPS files - maximize")
         self.assertDictEqual(_dict1, _dict2)
 
     def test_importMPS_integer(self):
@@ -892,6 +895,7 @@ class PuLPTest(unittest.TestCase):
         _vars, prob2 = LpProblem.fromMPS(filename, sense=prob.sense)
         _dict1 = getSortedDict(prob)
         _dict2 = getSortedDict(prob2)
+        print("\t Testing reading MPS files - integer variable")
         self.assertDictEqual(_dict1, _dict2)
 
     def test_importMPS_binary(self):
@@ -908,6 +912,7 @@ class PuLPTest(unittest.TestCase):
         _vars, prob2 = LpProblem.fromMPS(filename, sense=prob.sense, drop_constraint_names=True)
         _dict1 = getSortedDict(prob, keyCons='constant')
         _dict2 = getSortedDict(prob2, keyCons='constant')
+        print("\t Testing reading MPS files - binary variable, no constraint names")
         self.assertDictEqual(_dict1, _dict2)
 
 
