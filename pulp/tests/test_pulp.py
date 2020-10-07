@@ -873,7 +873,9 @@ class PuLPTest(unittest.TestCase):
         filename = name + '.mps'
         prob.writeMPS(filename)
         _vars, prob2 = LpProblem.fromMPS(filename, sense=prob.sense)
-        self.assertDictEqual(prob.toDict(), prob2.toDict())
+        _dict1 = getSortedDict(prob)
+        _dict2 = getSortedDict(prob2)
+        self.assertDictEqual(_dict1, _dict2)
 
     def test_importMPS_integer(self):
         name = self._testMethodName
@@ -888,7 +890,9 @@ class PuLPTest(unittest.TestCase):
         filename = name + '.mps'
         prob.writeMPS(filename)
         _vars, prob2 = LpProblem.fromMPS(filename, sense=prob.sense)
-        self.assertDictEqual(prob.toDict(), prob2.toDict())
+        _dict1 = getSortedDict(prob)
+        _dict2 = getSortedDict(prob2)
+        self.assertDictEqual(_dict1, _dict2)
 
     def test_importMPS_binary(self):
         name = self._testMethodName
@@ -902,7 +906,9 @@ class PuLPTest(unittest.TestCase):
         filename = name + '.mps'
         prob.writeMPS(filename)
         _vars, prob2 = LpProblem.fromMPS(filename, sense=prob.sense, drop_constraint_names=True)
-        self.assertDictEqual(prob.toDict(), prob2.toDict())
+        _dict1 = getSortedDict(prob, keyCons='constant')
+        _dict2 = getSortedDict(prob2, keyCons='constant')
+        self.assertDictEqual(_dict1, _dict2)
 
 
 def pulpTestCheck(prob, solver, okstatus, sol=None,
@@ -986,6 +992,12 @@ def suite():
             print("Solver %s unavailable" % solver)
     return suite
 
+
+def getSortedDict(prob, keyCons='name', keyVars='name'):
+    _dict = prob.toDict()
+    _dict['constraints'].sort(key=lambda v: v[keyCons])
+    _dict['variables'].sort(key=lambda v: v[keyVars])
+    return _dict
 
 if __name__ == '__main__':
     # Tests
