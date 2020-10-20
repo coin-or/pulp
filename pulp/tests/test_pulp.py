@@ -909,7 +909,7 @@ class PuLPTest(unittest.TestCase):
         prob += c1 <= 0
         filename = name + '.mps'
         prob.writeMPS(filename)
-        _vars, prob2 = LpProblem.fromMPS(filename, sense=prob.sense, drop_constraint_names=True)
+        _vars, prob2 = LpProblem.fromMPS(filename, sense=prob.sense, dropConsNames=True)
         _dict1 = getSortedDict(prob, keyCons='constant')
         _dict2 = getSortedDict(prob2, keyCons='constant')
         print("\t Testing reading MPS files - binary variable, no constraint names")
