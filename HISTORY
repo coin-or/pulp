@@ -2,6 +2,11 @@
 #       Copyright S.A.Mitchell (s.mitchell@auckland.ac.nz), 2007-
 #       Copyright F.Peschiera (pchtsp@gmail.com), 2019-
 # See the LICENSE file for copyright information.
+2.3.1 2020-10-22
+    change naming of solver utility functions to camelcase.
+    fixed gurobi license detection.
+    fixed scip options and added timeLimit argument
+    changed docs.
 2.3 2020-08-04
     Added plugin page in docs
     Standardize arguments of solvers to appear in docs
