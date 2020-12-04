@@ -81,8 +81,8 @@ LpStatusToSolution = {
 LpConstraintLE = -1
 LpConstraintEQ = 0
 LpConstraintGE = 1
+LpConstraintTypeToMps = {LpConstraintLE: "L", LpConstraintEQ: "E", LpConstraintGE: "G"}
 LpConstraintSenses = {LpConstraintEQ:"=", LpConstraintLE:"<=", LpConstraintGE:">="}
-
 # LP line size
 LpCplexLPLineSize = 78
 

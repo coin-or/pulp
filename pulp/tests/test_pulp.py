@@ -799,6 +799,7 @@ class PuLPTest(unittest.TestCase):
         prob += w >= 0, "c4"
         self.solver.timeLimit = 20
         # CHOCO has issues when given a time limit
+        print("\t Testing timeLimit argument")
         if self.solver.name != 'PULP_CHOCO_CMD':
             pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
 
@@ -824,6 +825,7 @@ class PuLPTest(unittest.TestCase):
         logFilename = name + '.log'
         self.solver.optionsDict['logPath'] = logFilename
         if self.solver.name in ['CPLEX_PY', 'CPLEX_CMD', 'GUROBI', 'GUROBI_CMD', 'PULP_CBC_CMD', 'COIN_CMD']:
+            print("\t Testing logPath argument")
             pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
             if not os.path.exists(logFilename):
                 raise PulpError("Test failed for solver: {}".format(self.solver))
@@ -857,6 +859,62 @@ class PuLPTest(unittest.TestCase):
         # Check if a KeyError is raised
         _func = lambda: dict_without_default["X"]["Y"]
         self.assertRaises(KeyError, _func)
+
+    def test_importMPS_maximize(self):
+        name = self._testMethodName
+        prob = LpProblem(name, const.LpMaximize)
+        x = LpVariable("x", 0, 4)
+        y = LpVariable("y", -1, 1)
+        z = LpVariable("z", 0)
+        w = LpVariable("w", 0)
+        prob += x + 4 * y + 9 * z, "obj"
+        prob += x + y <= 5, "c1"
+        prob += x + z >= 10, "c2"
+        prob += -y + z == 7, "c3"
+        prob += w >= 0, "c4"
+        filename = name + '.mps'
+        prob.writeMPS(filename)
+        _vars, prob2 = LpProblem.fromMPS(filename, sense=prob.sense)
+        _dict1 = getSortedDict(prob)
+        _dict2 = getSortedDict(prob2)
+        print("\t Testing reading MPS files - maximize")
+        self.assertDictEqual(_dict1, _dict2)
+
+    def test_importMPS_integer(self):
+        name = self._testMethodName
+        prob = LpProblem(name, const.LpMinimize)
+        x = LpVariable("x", 0, 4)
+        y = LpVariable("y", -1, 1)
+        z = LpVariable("z", 0, None, const.LpInteger)
+        prob += 1.1 * x + 4.1 * y + 9.1 * z, "obj"
+        prob += x + y <= 5, "c1"
+        prob += x + z >= 10, "c2"
+        prob += -y + z == 7.5, "c3"
+        filename = name + '.mps'
+        prob.writeMPS(filename)
+        _vars, prob2 = LpProblem.fromMPS(filename, sense=prob.sense)
+        _dict1 = getSortedDict(prob)
+        _dict2 = getSortedDict(prob2)
+        print("\t Testing reading MPS files - integer variable")
+        self.assertDictEqual(_dict1, _dict2)
+
+    def test_importMPS_binary(self):
+        name = self._testMethodName
+        prob = LpProblem(name, const.LpMaximize)
+        dummy = LpVariable('dummy')
+        c1 = LpVariable('c1', 0, 1, const.LpBinary)
+        c2 = LpVariable('c2', 0, 1, const.LpBinary)
+        prob += dummy
+        prob += c1 + c2 == 2
+        prob += c1 <= 0
+        filename = name + '.mps'
+        prob.writeMPS(filename)
+        _vars, prob2 = LpProblem.fromMPS(filename, sense=prob.sense, dropConsNames=True)
+        _dict1 = getSortedDict(prob, keyCons='constant')
+        _dict2 = getSortedDict(prob2, keyCons='constant')
+        print("\t Testing reading MPS files - binary variable, no constraint names")
+        self.assertDictEqual(_dict1, _dict2)
+
 
 def pulpTestCheck(prob, solver, okstatus, sol=None,
                   reducedcosts=None,
@@ -939,6 +997,12 @@ def suite():
             print("Solver %s unavailable" % solver)
     return suite
 
+
+def getSortedDict(prob, keyCons='name', keyVars='name'):
+    _dict = prob.toDict()
+    _dict['constraints'].sort(key=lambda v: v[keyCons])
+    _dict['variables'].sort(key=lambda v: v[keyVars])
+    return _dict
 
 if __name__ == '__main__':
     # Tests

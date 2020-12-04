@@ -107,7 +107,7 @@ Whatever the reason, it's better to be safe than sorry and this means knowing wh
 CPLEX
 *******
 
-**Linux / Mac: add the following lines to the ~.bashrc file**::
+**Linux / Mac: add the following lines to the ~.bashrc (or ~.profile or /etc/profile or /etc/bash.bashrc) file**::
 
     export CPLEX_HOME="/opt/ibm/ILOG/CPLEX_Studio128/cplex"
     export CPO_HOME="/opt/ibm/ILOG/CPLEX_Studio128/cpoptimizer"
@@ -126,7 +126,7 @@ CPLEX
 GUROBI
 *******
 
-**Linux / Mac: add the following lines to the ~.bashrc file**::
+**Linux / Mac: add the following lines to the ~.bashrc (or ~.profile or /etc/profile or /etc/bash.bashrc) file**::
 
     export GUROBI_HOME="/opt/gurobi801/linux64"
     export PATH="${PATH}:${GUROBI_HOME}/bin"
@@ -195,6 +195,31 @@ These API offer a series of advantages over using the command line option:
 
 * They are usually faster to initialize a problem (they do not involve writing files to disk).
 * They offer a lot more functionality and information (extreme rays, dual prices, reduced costs).
+
+Installing CPLEX_PY
+***********************
+
+For this solver to work there are two options:
+
+1. Installing the python package that comes with the CPLEX installation (it is not installed automatically).
+2. (**recomended**) Adding the path to the package to the ``PYTHON_PATH`` environment variable.
+
+The second step is already shown in the example above. The first one requires admin rights, the second one does not.
+
+Installing GUROBI
+***********************
+
+For this solver to work, the only option is to install the python package that comes with the gurobi installation.
+
+Following my installation paths it would be (Linux):
+
+     cd /opt/gurobi801/linux64/
+     sudo python3 setup.py install
+
+As you can see, it is necessary to have admin rights to install it.
+
+Using solver-specific functionality
+**********************************************
 
 In order to access this functionality, the user needs to use the solver object included inside the PuLP problem. PuLP uses the ``solverModel`` attribute on the problem object. This attribute is created and filled when the method ``buildSolverModel()`` is executed.
 

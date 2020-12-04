@@ -98,6 +98,7 @@ from .apis import LpSolverDefault, PULP_CBC_CMD
 from .apis.core import clock
 from .utilities import value
 from . import constants as const
+from . import mps_lp as mpslp
 
 try:
     from collections.abc import Iterable
@@ -1370,6 +1371,11 @@ class LpProblem(object):
 
     from_json = fromJson
 
+    @classmethod
+    def fromMPS(cls, filename, sense=0, **kwargs):
+        data = mpslp.readMPS(filename, sense=sense, **kwargs)
+        return cls.fromDict(data)
+
     def normalisedNames(self):
         constraintsNames = {k: "C%07d" % i for i, k in enumerate(self.constraints)}
         _variables = self.variables()
@@ -1529,7 +1535,9 @@ class LpProblem(object):
             if self.objective is not None:
                 warnings.warn("Overwriting previously set objective.")
             self.objective = other
-            self.objective.name = name
+            if name is not None:
+                # we may keep the LpAffineExpression name
+                self.objective.name = name
         elif isinstance(other, LpVariable) or isinstance(other, (int, float)):
             if self.objective is not None:
                 warnings.warn("Overwriting previously set objective.")
@@ -1599,111 +1607,8 @@ class LpProblem(object):
         Side Effects:
             - The file is created
         """
-        wasNone, dummyVar = self.fixObjective()
-        if mpsSense == 0: mpsSense = self.sense
-        cobj = self.objective
-        if mpsSense != self.sense:
-            n = cobj.name
-            cobj = - cobj
-            cobj.name = n
-        if rename:
-            constrNames, varNames, cobj.name = self.normalisedNames()
-            # No need to call self.variables() again, we have just filled self._variables:
-            vs = self._variables
-        else:
-            vs = self.variables()
-            varNames = dict((v.name, v.name) for v in vs)
-            constrNames = dict((c, c) for c in self.constraints)
-        model_name = self.name
-        if rename:
-            model_name = "MODEL"
-        objName = cobj.name
-        if not objName:
-            objName = "OBJ"
+        return mpslp.writeMPS(self, filename, mpsSense = mpsSense, rename = rename, mip = mip)
 
-        # constraints
-        mpsConstraintType = {const.LpConstraintLE: "L", const.LpConstraintEQ: "E", const.LpConstraintGE: "G"}
-        row_lines = [" "+mpsConstraintType[c.sense] + "  " + constrNames[k] + "\n"
-                     for k, c in self.constraints.items()]
-        # Creation of a dict of dict:
-        # coefs[variable_name][constraint_name] = coefficient
-        coefs = {varNames[v.name]: {} for v in vs}
-        for k, c in self.constraints.items():
-            k = constrNames[k]
-            for v, value in c.items():
-                coefs[varNames[v.name]][k] = value
-
-        # matrix
-        columns_lines = []
-        for v in vs:
-            name = varNames[v.name]
-            columns_lines.extend(self.MPS_column_lines(coefs[name], v, mip, name, cobj, objName))
-
-        # right hand side
-        rhs_lines = ["    RHS       %-8s  % .12e\n" % (constrNames[k], -c.constant if c.constant != 0 else 0)
-                     for k, c in self.constraints.items()]
-        # bounds
-        bound_lines = []
-        for v in vs:
-            bound_lines.extend(self.MPS_bound_lines(varNames[v.name], v, mip))
-
-        with open(filename, "w") as f:
-            f.write("*SENSE:"+ const.LpSenses[mpsSense]+"\n")
-            f.write("NAME          " + model_name + "\n")
-            f.write("ROWS\n")
-            f.write(" N  %s\n" % objName)
-            f.write(''.join(row_lines))
-            f.write("COLUMNS\n")
-            f.write(''.join(columns_lines))
-            f.write("RHS\n")
-            f.write(''.join(rhs_lines))
-            f.write("BOUNDS\n")
-            f.write(''.join(bound_lines))
-            f.write("ENDATA\n")
-        self.restoreObjective(wasNone, dummyVar)
-        # returns the variables, in writing order
-        if rename == 0:
-            return vs
-        else:
-            return vs, varNames, constrNames, cobj.name
-
-    @staticmethod
-    def MPS_column_lines(cv, variable, mip, name, cobj, objName):
-        columns_lines = []
-        if mip and variable.cat == const.LpInteger:
-            columns_lines.append("    MARK      'MARKER'                 'INTORG'\n")
-        # Most of the work is done here
-        _tmp = ["    %-8s  %-8s  % .12e\n" % (name, k, v) for k, v in cv.items()]
-        columns_lines.extend(_tmp)
-
-        # objective function
-        if variable in cobj:
-            columns_lines.append("    %-8s  %-8s  % .12e\n" % (name, objName, cobj[variable]))
-        if mip and variable.cat == const.LpInteger:
-            columns_lines.append("    MARK      'MARKER'                 'INTEND'\n")
-        return columns_lines
-
-    @staticmethod
-    def MPS_bound_lines(name, variable, mip):
-        if variable.lowBound is not None and variable.lowBound == variable.upBound:
-            return [" FX BND       %-8s  % .12e\n" % (name, variable.lowBound)]
-        elif variable.lowBound == 0 and variable.upBound == 1 and mip and variable.cat == const.LpInteger:
-            return [" BV BND       %-8s\n" % name]
-        bound_lines = []
-        if variable.lowBound is not None:
-            # In MPS files, variables with no bounds (i.e. >= 0)
-            # are assumed BV by COIN and CPLEX.
-            # So we explicitly write a 0 lower bound in this case.
-            if variable.lowBound != 0 or (mip and variable.cat == const.LpInteger and variable.upBound is None):
-                bound_lines.append(" LO BND       %-8s  % .12e\n" % (name, variable.lowBound))
-        else:
-            if variable.upBound is not None:
-                bound_lines.append(" MI BND       %-8s\n" % name)
-            else:
-                bound_lines.append(" FR BND       %-8s\n" % name)
-        if variable.upBound is not None:
-            bound_lines.append(" UP BND       %-8s  % .12e\n" % (name, variable.upBound))
-        return bound_lines
 
     def writeLP(self, filename, writeSOS = 1, mip = 1, max_length=100):
         """
@@ -1717,76 +1622,8 @@ class LpProblem(object):
         Side Effects:
             - The file is created
         """
-        f = open(filename, "w")
-        f.write("\\* "+self.name + " *\\\n")
-        if self.sense == 1:
-            f.write("Minimize\n")
-        else:
-            f.write("Maximize\n")
-        wasNone, objectiveDummyVar = self.fixObjective()
-        objName = self.objective.name
-        if not objName: objName = "OBJ"
-        f.write(self.objective.asCplexLpAffineExpression(objName, constant = 0))
-        f.write("Subject To\n")
-        ks = list(self.constraints.keys())
-        ks.sort()
-        dummyWritten = False
-        for k in ks:
-            constraint = self.constraints[k]
-            if not list(constraint.keys()):
-                #empty constraint add the dummyVar
-                dummyVar = self.get_dummyVar()
-                constraint += dummyVar
-                #set this dummyvar to zero so infeasible problems are not made feasible
-                if not dummyWritten:
-                    f.write((dummyVar == 0.0).asCplexLpConstraint("_dummy"))
-                    dummyWritten = True
-            f.write(constraint.asCplexLpConstraint(k))
-        # check if any names are longer than 100 characters
-        self.checkLengthVars(max_length)
-        vs = self.variables()
-        # check for repeated names
-        self.checkDuplicateVars()
-        # Bounds on non-"positive" variables
-        # Note: XPRESS and CPLEX do not interpret integer variables without
-        # explicit bounds
-        if mip:
-            vg = [v for v in vs if not (v.isPositive() and v.cat == const.LpContinuous) \
-                and not v.isBinary()]
-        else:
-            vg = [v for v in vs if not v.isPositive()]
-        if vg:
-            f.write("Bounds\n")
-            for v in vg:
-                f.write("%s\n" % v.asCplexLpVariable())
-        # Integer non-binary variables
-        if mip:
-            vg = [v for v in vs if v.cat == const.LpInteger and not v.isBinary()]
-            if vg:
-                f.write("Generals\n")
-                for v in vg: f.write("%s\n" % v.name)
-            # Binary variables
-            vg = [v for v in vs if v.isBinary()]
-            if vg:
-                f.write("Binaries\n")
-                for v in vg: f.write("%s\n" % v.name)
-        # Special Ordered Sets
-        if writeSOS and (self.sos1 or self.sos2):
-            f.write("SOS\n")
-            if self.sos1:
-                for sos in self.sos1.values():
-                    f.write("S1:: \n")
-                    for v, val in sos.items():
-                        f.write(" %s: %.12g\n" % (v.name, val))
-            if self.sos2:
-                for sos in self.sos2.values():
-                    f.write("S2:: \n")
-                    for v, val in sos.items():
-                        f.write(" %s: %.12g\n" % (v.name, val))
-        f.write("End\n")
-        f.close()
-        self.restoreObjective(wasNone, objectiveDummyVar)
-        return vs
+        return mpslp.writeLP(self, filename=filename, writeSOS = writeSOS, mip = mip, max_length=max_length)
+
 
     def checkDuplicateVars(self):
         """
