@@ -179,7 +179,7 @@ class COIN_CMD(LpSolver_CMD):
                  )
 
         return [v.format(self.optionsDict[k]) for k, v in params_eq.items()
-                if k in self.optionsDict]
+                if self.optionsDict.get(k) is not None]
 
     def readsol_MPS(self, filename, lp, vs, variablesNames, constraintsNames, objectiveName=None):
         """

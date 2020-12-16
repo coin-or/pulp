@@ -2,11 +2,15 @@
 #       Copyright S.A.Mitchell (s.mitchell@auckland.ac.nz), 2007-
 #       Copyright F.Peschiera (pchtsp@gmail.com), 2019-
 # See the LICENSE file for copyright information.
+2.4 2020-12-22
+    added mps reading support
+    updated docs
+    fix bug with no objective in prob.toDict()
 2.3.1 2020-10-22
-    change naming of solver utility functions to camelcase.
-    fixed gurobi license detection.
+    change naming of solver utility functions to camelcase
+    fixed gurobi license detection
     fixed scip options and added timeLimit argument
-    changed docs.
+    changed docs
 2.3 2020-08-04
     Added plugin page in docs
     Standardize arguments of solvers to appear in docs
@@ -14,7 +18,7 @@
     Added warm start to GUROBI
 2.2 2020-04-06
     Contribution files
-    Standard arguments: logPath, gapRel, gapAbs.
+    Standard arguments: logPath, gapRel, gapAbs
     Import and export solver objects
     Import and export LpProblem
     Took out amply to its own package

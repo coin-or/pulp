@@ -1,8 +1,14 @@
-How to export models in PuLP
-======================================
+How to import and export models in PuLP
+==========================================
 
-Exporting a model can be useful when the building time takes too long or when the model needs to be passed to another computer to solve. Or many other reason.
-PuLP offers a way to export a model into a dictionary of a json file. The json file saves enough data to be able to rebuild a new model on reading it.
+Exporting a model can be useful when the building time takes too long or when the model needs to be passed to another computer to solve. Or any other reason.
+PuLP offers two ways to export a model: to an mps file or to a dictionary /json file. Each offers advantages over the other.
+
+**The mps format** is an industry standard. But it is not very flexible so some information cannot be stored. It stores only variables and constraints. It does not store the values of variables.
+
+**The dictionary/ json format** is made to fit how pulp stores the information and so it does not lose information: this format file saves enough data to be able to restore a complete pulp model on reading it.
+
+The interface to import and export for both formats is similar as can be seen in the Example 1 below.
 
 Considerations
 ------------------
@@ -10,20 +16,21 @@ Considerations
 The following considerations need to be taken into account:
 
 #. Variable names need to be unique. PuLP permits having variable names because it uses an internal code for each one. But we do not export that code. So we identify variables by their name only.
-#. Variables are not exported in a grouped way. This means that if you had several `dictionaries of many variables each` you will end up with a very long list of variables. This can be seen in the Example 2.
-#. Output information is also written. This means that the status, solution status, the values of variables and shadow prices / reduced costs are exported too. This means that it is possible to export a model that has been solved and then read it again only to see the values of the variables.
+#. Variables are not exported in a grouped way. This means that if you have several `dictionaries of many variables each` you will end up with a very long list of variables. This can be seen in the Example 2.
+#. Output information is also written to the json format. This means that the status, solution status, the values of variables and shadow prices / reduced costs are exported too. This means that it is possible to export a model that has been solved and then read it again only to see the values of the variables.
 #. For json, we use the base `json` package. But if `ujson` is available, we use that so the import / export can be really fast.
 
-Example 1
+Example 1: json
 ----------------
 
 A very simple example taken from the internal tests. Imagine the following problem::
 
     from pulp import *
-    prob = LpProblem("test_export_dict_MIP", const.LpMinimize)
+
+    prob = LpProblem("test_export_dict_MIP", LpMinimize)
     x = LpVariable("x", 0, 4)
     y = LpVariable("y", -1, 1)
-    z = LpVariable("z", 0, None, const.LpInteger)
+    z = LpVariable("z", 0, None, LpInteger)
     prob += x + 4 * y + 9 * z, "obj"
     prob += x + y <= 5, "c1"
     prob += x + z >= 10, "c2"
@@ -82,7 +89,6 @@ We now have a dictionary with a lot of data::
                     'upBound': None,
                     'varValue': None}]}
 
-
 We can now import this dictionary::
 
     var1, prob1 = LpProblem.from_dict(data)
@@ -111,8 +117,47 @@ And the result will be available in our *new* variables::
     # 3.0
 
 
-Example 2
+Example 1: mps
 ----------------
+
+The same model::
+
+    from pulp import *
+    prob = LpProblem("test_export_dict_MIP", LpMinimize)
+    x = LpVariable("x", 0, 4)
+    y = LpVariable("y", -1, 1)
+    z = LpVariable("z", 0, None, LpInteger)
+    prob += x + 4 * y + 9 * z, "obj"
+    prob += x + y <= 5, "c1"
+    prob += x + z >= 10, "c2"
+    prob += -y + z == 7.5, "c3"
+
+We can now export the problem into an mps file::
+
+    prob.writeMPS("test.mps")
+
+We can now import this file::
+
+    var1, prob1 = LpProblem.fromMPS("test.mps")
+    var1
+    # {'x': x, 'y': y, 'z': z}
+    prob1
+    # test_export_dict_MIP:
+    # MINIMIZE
+    # 1*x + 4*y + 9*z + 0
+    # SUBJECT TO
+    # c1: x + y <= 5
+    # c2: x + z >= 10
+    # c3: - y + z = 7.5
+    # VARIABLES
+    # x <= 4 Continuous
+    # -1 <= y <= 1 Continuous
+    # 0 <= z Integer
+
+The resulting tuple is exactly the same format as the previous one.
+
+Example 2: json
+------------------
 
 We will use as example the model in :ref:`set-partitioning-problem`::
 
@@ -179,3 +224,10 @@ And inspect some of the values::
 
     wedding_vars["table_('M',_'N')"].value()
     # 1.0
+
+
+Grouping variables
+------------------------------------
+
+As the "Considerations" section mentions, the grouping of variables is not restored automatically. Nevertheless, by using some strict naming convention on variable names and clever parsing, one can reconstruct the original structure of the variables.
+
