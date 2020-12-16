@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>How to configure a solver in PuLP &mdash; PuLP 2.3 documentation</title>
+  <title>How to configure a solver in PuLP &mdash; PuLP 2.4 documentation</title>
   
 
   
@@ -40,7 +40,7 @@
         <link rel="index" title="Index"
               href="../genindex.html"/>
         <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="PuLP 2.3 documentation" href="../index.html"/>
+    <link rel="top" title="PuLP 2.4 documentation" href="../index.html"/>
         <link rel="up" title="User Guides" href="index.html"/>
         <link rel="next" title="How to warm-start a solver" href="how_to_mip_start.html"/>
         <link rel="prev" title="User Guides" href="index.html"/> 
@@ -71,7 +71,7 @@
           
             
               <div class="version">
-                2.3
+                2.4
 
                 
               </div>
@@ -112,13 +112,18 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#configuring-where-the-cmd-solvers-write-their-temporary-files">Configuring where the CMD solvers write their temporary files</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#using-the-official-solver-api">Using the official solver API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#using-the-official-solver-api">Using the official solver API</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#installing-cplex-py">Installing CPLEX_PY</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#installing-gurobi">Installing GUROBI</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#using-solver-specific-functionality">Using solver-specific functionality</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#importing-and-exporting-a-solver">Importing and exporting a solver</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="how_to_mip_start.html">How to warm-start a solver</a></li>
 <li class="toctree-l2"><a class="reference internal" href="how_to_elastic_constraints.html">Elastic Constraints</a></li>
-<li class="toctree-l2"><a class="reference internal" href="how_to_export_models.html">How to export models in PuLP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how_to_export_models.html">How to import and export models in PuLP</a></li>
 <li class="toctree-l2"><a class="reference internal" href="how_to_debug.html">How to debug most errors during solving</a></li>
 </ul>
 </li>
@@ -282,7 +287,7 @@
 <p>Whatever the reason, it’s better to be safe than sorry and this means knowing what variables are usually used by which solver. Here are the necessary environment variables that are needed for each solver. The procedure is very similar to what we did with the <code class="docutils literal notranslate"><span class="pre">PATH</span></code> variable: sometimes you need to edit an existing environment variable and sometimes you need to create a new environment variable. So it looks explicit, I will be using my own paths to variables, but you will have to adapt them to your actual paths (e.g., if the version of the solver is not the same). I will be using my <strong>Linux paths, since it just implies copying the last lines of my ~.bashrc file</strong>. I’ve adapted them to the Windows command line but, preferably, you would like to edit them via the GUI in windows.</p>
 <div class="section" id="cplex">
 <h3>CPLEX<a class="headerlink" href="#cplex" title="Permalink to this headline">¶</a></h3>
-<p><strong>Linux / Mac: add the following lines to the ~.bashrc file</strong>:</p>
+<p><strong>Linux / Mac: add the following lines to the ~.bashrc (or ~.profile or /etc/profile or /etc/bash.bashrc) file</strong>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">export</span> <span class="n">CPLEX_HOME</span><span class="o">=</span><span class="s2">&quot;/opt/ibm/ILOG/CPLEX_Studio128/cplex&quot;</span>
 <span class="n">export</span> <span class="n">CPO_HOME</span><span class="o">=</span><span class="s2">&quot;/opt/ibm/ILOG/CPLEX_Studio128/cpoptimizer&quot;</span>
 <span class="n">export</span> <span class="n">PATH</span><span class="o">=</span><span class="s2">&quot;$</span><span class="si">{PATH}</span><span class="s2">:$</span><span class="si">{CPLEX_HOME}</span><span class="s2">/bin/x86-64_linux:$</span><span class="si">{CPO_HOME}</span><span class="s2">/bin/x86-64_linux&quot;</span>
@@ -301,7 +306,7 @@
 </div>
 <div class="section" id="gurobi">
 <h3>GUROBI<a class="headerlink" href="#gurobi" title="Permalink to this headline">¶</a></h3>
-<p><strong>Linux / Mac: add the following lines to the ~.bashrc file</strong>:</p>
+<p><strong>Linux / Mac: add the following lines to the ~.bashrc (or ~.profile or /etc/profile or /etc/bash.bashrc) file</strong>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">export</span> <span class="n">GUROBI_HOME</span><span class="o">=</span><span class="s2">&quot;/opt/gurobi801/linux64&quot;</span>
 <span class="n">export</span> <span class="n">PATH</span><span class="o">=</span><span class="s2">&quot;$</span><span class="si">{PATH}</span><span class="s2">:$</span><span class="si">{GUROBI_HOME}</span><span class="s2">/bin&quot;</span>
 <span class="n">export</span> <span class="n">LD_LIBRARY_PATH</span><span class="o">=</span><span class="s2">&quot;$</span><span class="si">{GUROBI_HOME}</span><span class="s2">/lib&quot;</span>
@@ -363,6 +368,27 @@
 <li><p>They are usually faster to initialize a problem (they do not involve writing files to disk).</p></li>
 <li><p>They offer a lot more functionality and information (extreme rays, dual prices, reduced costs).</p></li>
 </ul>
+<div class="section" id="installing-cplex-py">
+<h3>Installing CPLEX_PY<a class="headerlink" href="#installing-cplex-py" title="Permalink to this headline">¶</a></h3>
+<p>For this solver to work there are two options:</p>
+<ol class="arabic simple">
+<li><p>Installing the python package that comes with the CPLEX installation (it is not installed automatically).</p></li>
+<li><p>(<strong>recomended</strong>) Adding the path to the package to the <code class="docutils literal notranslate"><span class="pre">PYTHON_PATH</span></code> environment variable.</p></li>
+</ol>
+<p>The second step is already shown in the example above. The first one requires admin rights, the second one does not.</p>
+</div>
+<div class="section" id="installing-gurobi">
+<h3>Installing GUROBI<a class="headerlink" href="#installing-gurobi" title="Permalink to this headline">¶</a></h3>
+<p>For this solver to work, the only option is to install the python package that comes with the gurobi installation.</p>
+<p>Following my installation paths it would be (Linux):</p>
+<blockquote>
+<div><p>cd /opt/gurobi801/linux64/
+sudo python3 setup.py install</p>
+</div></blockquote>
+<p>As you can see, it is necessary to have admin rights to install it.</p>
+</div>
+<div class="section" id="using-solver-specific-functionality">
+<h3>Using solver-specific functionality<a class="headerlink" href="#using-solver-specific-functionality" title="Permalink to this headline">¶</a></h3>
 <p>In order to access this functionality, the user needs to use the solver object included inside the PuLP problem. PuLP uses the <code class="docutils literal notranslate"><span class="pre">solverModel</span></code> attribute on the problem object. This attribute is created and filled when the method <code class="docutils literal notranslate"><span class="pre">buildSolverModel()</span></code> is executed.</p>
 <p>For example, using the <code class="docutils literal notranslate"><span class="pre">CPLEX_PY</span></code> API we can access the api object after the solving is done:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pulp</span>
@@ -395,6 +421,7 @@
 </pre></div>
 </div>
 <p>For more information on how to use the <cite>solverModel</cite>, one needs to check the official documentation depending on the solver.</p>
+</div>
 </div>
 <div class="section" id="importing-and-exporting-a-solver">
 <h2>Importing and exporting a solver<a class="headerlink" href="#importing-and-exporting-a-solver" title="Permalink to this headline">¶</a></h2>
@@ -477,7 +504,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'2.3',
+            VERSION:'2.4',
             LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',

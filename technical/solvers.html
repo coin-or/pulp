@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pulp.apis Interface to Solvers &mdash; PuLP 2.3 documentation</title>
+  <title>pulp.apis Interface to Solvers &mdash; PuLP 2.4 documentation</title>
   
 
   
@@ -40,7 +40,7 @@
         <link rel="index" title="Index"
               href="../genindex.html"/>
         <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="PuLP 2.3 documentation" href="../index.html"/>
+    <link rel="top" title="PuLP 2.4 documentation" href="../index.html"/>
         <link rel="up" title="PuLP Internal Documentation" href="index.html"/>
         <link rel="next" title="Plugins" href="../plugins/index.html"/>
         <link rel="prev" title="pulp: Pulp classes" href="pulp.html"/> 
@@ -71,7 +71,7 @@
           
             
               <div class="version">
-                2.3
+                2.4
 
                 
               </div>
@@ -192,12 +192,12 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
-<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, no log is shown</p></li>
-<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
-<li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a>) – list of additional options to pass to solver</p></li>
-<li><p><strong>keepFiles</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if True, files are saved in the current directory and not deleted after solving</p></li>
-<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – path to the solver binary</p></li>
+<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
+<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if False, no log is shown</p></li>
+<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
+<li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a>) – list of additional options to pass to solver</p></li>
+<li><p><strong>keepFiles</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if True, files are saved in the current directory and not deleted after solving</p></li>
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – path to the solver binary</p></li>
 </ul>
 </dd>
 </dl>
@@ -245,11 +245,11 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – The number of seconds before forcing the solver to exit</p></li>
+<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – The number of seconds before forcing the solver to exit</p></li>
 <li><p><strong>epgap</strong> – The fractional mip tolerance</p></li>
-<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
-<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, no log is shown</p></li>
-<li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a>) – </p></li>
+<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
+<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if False, no log is shown</p></li>
+<li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a>) – </p></li>
 <li><p><strong>timeLimit</strong> – maximum time for solver (in seconds)</p></li>
 <li><p><strong>args</strong> – </p></li>
 <li><p><strong>kwargs</strong> – optional named options to pass to each solver,
@@ -291,23 +291,23 @@ now only uses cbc</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
-<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, no log is shown</p></li>
-<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
-<li><p><strong>gapRel</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – relative gap tolerance for the solver to stop (in fraction)</p></li>
-<li><p><strong>gapAbs</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – absolute gap tolerance for the solver to stop</p></li>
-<li><p><strong>threads</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – sets the maximum number of threads</p></li>
-<li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a>) – list of additional options to pass to solver</p></li>
-<li><p><strong>warmStart</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if True, the solver will use the current value of variables as a start</p></li>
-<li><p><strong>keepFiles</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if True, files are saved in the current directory and not deleted after solving</p></li>
-<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – path to the solver binary</p></li>
-<li><p><strong>logPath</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – path to the log file</p></li>
-<li><p><strong>presolve</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if True, adds presolve on</p></li>
-<li><p><strong>cuts</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if True, adds gomory on knapsack on probing on</p></li>
-<li><p><strong>strong</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if True, adds strong</p></li>
-<li><p><strong>fracGap</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – deprecated for gapRel</p></li>
-<li><p><strong>maxSeconds</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – deprecated for timeLimit</p></li>
-<li><p><strong>mip_start</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – deprecated for warmStart</p></li>
+<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
+<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if False, no log is shown</p></li>
+<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
+<li><p><strong>gapRel</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – relative gap tolerance for the solver to stop (in fraction)</p></li>
+<li><p><strong>gapAbs</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – absolute gap tolerance for the solver to stop</p></li>
+<li><p><strong>threads</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – sets the maximum number of threads</p></li>
+<li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a>) – list of additional options to pass to solver</p></li>
+<li><p><strong>warmStart</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if True, the solver will use the current value of variables as a start</p></li>
+<li><p><strong>keepFiles</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if True, files are saved in the current directory and not deleted after solving</p></li>
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – path to the solver binary</p></li>
+<li><p><strong>logPath</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – path to the log file</p></li>
+<li><p><strong>presolve</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if True, adds presolve on</p></li>
+<li><p><strong>cuts</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if True, adds gomory on knapsack on probing on</p></li>
+<li><p><strong>strong</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if True, adds strong</p></li>
+<li><p><strong>fracGap</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – deprecated for gapRel</p></li>
+<li><p><strong>maxSeconds</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – deprecated for timeLimit</p></li>
+<li><p><strong>mip_start</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – deprecated for warmStart</p></li>
 </ul>
 </dd>
 </dl>
@@ -391,21 +391,21 @@ returns True on success</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
-<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, no log is shown</p></li>
-<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
-<li><p><strong>gapRel</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – relative gap tolerance for the solver to stop (in fraction)</p></li>
-<li><p><strong>gapAbs</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – absolute gap tolerance for the solver to stop</p></li>
-<li><p><strong>threads</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – sets the maximum number of threads</p></li>
-<li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a>) – list of additional options to pass to solver</p></li>
-<li><p><strong>warmStart</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if True, the solver will use the current value of variables as a start</p></li>
-<li><p><strong>keepFiles</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if True, files are saved in the current directory and not deleted after solving</p></li>
-<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – path to the solver binary</p></li>
-<li><p><strong>logPath</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – path to the log file</p></li>
-<li><p><strong>maxMemory</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – max memory to use during the solving. Stops the solving when reached.</p></li>
-<li><p><strong>maxNodes</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – max number of nodes during branching. Stops the solving when reached.</p></li>
-<li><p><strong>mip_start</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – deprecated for warmStart</p></li>
-<li><p><strong>timelimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – deprecated for timeLimit</p></li>
+<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
+<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if False, no log is shown</p></li>
+<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
+<li><p><strong>gapRel</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – relative gap tolerance for the solver to stop (in fraction)</p></li>
+<li><p><strong>gapAbs</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – absolute gap tolerance for the solver to stop</p></li>
+<li><p><strong>threads</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – sets the maximum number of threads</p></li>
+<li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a>) – list of additional options to pass to solver</p></li>
+<li><p><strong>warmStart</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if True, the solver will use the current value of variables as a start</p></li>
+<li><p><strong>keepFiles</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if True, files are saved in the current directory and not deleted after solving</p></li>
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – path to the solver binary</p></li>
+<li><p><strong>logPath</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – path to the log file</p></li>
+<li><p><strong>maxMemory</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – max memory to use during the solving. Stops the solving when reached.</p></li>
+<li><p><strong>maxNodes</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – max number of nodes during branching. Stops the solving when reached.</p></li>
+<li><p><strong>mip_start</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – deprecated for warmStart</p></li>
+<li><p><strong>timelimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – deprecated for timeLimit</p></li>
 </ul>
 </dd>
 </dl>
@@ -458,10 +458,10 @@ returns True on success</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
-<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, no log is shown</p></li>
-<li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a>) – </p></li>
-<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
+<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
+<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if False, no log is shown</p></li>
+<li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a>) – </p></li>
+<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
 <li><p><strong>args</strong> – </p></li>
 <li><p><strong>kwargs</strong> – optional named options to pass to each solver,
 e.g. gapRel=0.1, gapAbs=10, logPath=”“,</p></li>
@@ -505,14 +505,14 @@ the base cplex classes</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
-<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, no log is shown</p></li>
-<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
-<li><p><strong>gapRel</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – relative gap tolerance for the solver to stop (in fraction)</p></li>
-<li><p><strong>warmStart</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if True, the solver will use the current value of variables as a start</p></li>
-<li><p><strong>logPath</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – path to the log file</p></li>
-<li><p><strong>epgap</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – deprecated for gapRel</p></li>
-<li><p><strong>logfilename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – deprecated for logPath</p></li>
+<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
+<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if False, no log is shown</p></li>
+<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
+<li><p><strong>gapRel</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – relative gap tolerance for the solver to stop (in fraction)</p></li>
+<li><p><strong>warmStart</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if True, the solver will use the current value of variables as a start</p></li>
+<li><p><strong>logPath</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – path to the log file</p></li>
+<li><p><strong>epgap</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – deprecated for gapRel</p></li>
+<li><p><strong>logfilename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – deprecated for logPath</p></li>
 </ul>
 </dd>
 </dl>
@@ -592,12 +592,12 @@ them to the lp model which it then solves</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
-<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, no log is shown</p></li>
-<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
-<li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a>) – list of additional options to pass to solver</p></li>
-<li><p><strong>keepFiles</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if True, files are saved in the current directory and not deleted after solving</p></li>
-<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – path to the solver binary</p></li>
+<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
+<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if False, no log is shown</p></li>
+<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
+<li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a>) – list of additional options to pass to solver</p></li>
+<li><p><strong>keepFiles</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if True, files are saved in the current directory and not deleted after solving</p></li>
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – path to the solver binary</p></li>
 </ul>
 </dd>
 </dl>
@@ -642,13 +642,13 @@ and the Model is in prob.solverModel</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
-<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, no log is shown</p></li>
-<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
-<li><p><strong>gapRel</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – relative gap tolerance for the solver to stop (in fraction)</p></li>
-<li><p><strong>warmStart</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if True, the solver will use the current value of variables as a start</p></li>
-<li><p><strong>logPath</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – path to the log file</p></li>
-<li><p><strong>epgap</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – deprecated for gapRel</p></li>
+<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
+<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if False, no log is shown</p></li>
+<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
+<li><p><strong>gapRel</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – relative gap tolerance for the solver to stop (in fraction)</p></li>
+<li><p><strong>warmStart</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if True, the solver will use the current value of variables as a start</p></li>
+<li><p><strong>logPath</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – path to the log file</p></li>
+<li><p><strong>epgap</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – deprecated for gapRel</p></li>
 </ul>
 </dd>
 </dl>
@@ -705,18 +705,18 @@ them to the lp model which it then solves</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
-<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, no log is shown</p></li>
-<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
-<li><p><strong>gapRel</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – relative gap tolerance for the solver to stop (in fraction)</p></li>
-<li><p><strong>gapAbs</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – absolute gap tolerance for the solver to stop</p></li>
-<li><p><strong>threads</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – sets the maximum number of threads</p></li>
-<li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a>) – list of additional options to pass to solver</p></li>
-<li><p><strong>warmStart</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if True, the solver will use the current value of variables as a start</p></li>
-<li><p><strong>keepFiles</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if True, files are saved in the current directory and not deleted after solving</p></li>
-<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – path to the solver binary</p></li>
-<li><p><strong>logPath</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – path to the log file</p></li>
-<li><p><strong>mip_start</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – deprecated for warmStart</p></li>
+<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
+<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if False, no log is shown</p></li>
+<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
+<li><p><strong>gapRel</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – relative gap tolerance for the solver to stop (in fraction)</p></li>
+<li><p><strong>gapAbs</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – absolute gap tolerance for the solver to stop</p></li>
+<li><p><strong>threads</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – sets the maximum number of threads</p></li>
+<li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a>) – list of additional options to pass to solver</p></li>
+<li><p><strong>warmStart</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if True, the solver will use the current value of variables as a start</p></li>
+<li><p><strong>keepFiles</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if True, files are saved in the current directory and not deleted after solving</p></li>
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – path to the solver binary</p></li>
+<li><p><strong>logPath</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – path to the log file</p></li>
+<li><p><strong>mip_start</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – deprecated for warmStart</p></li>
 </ul>
 </dd>
 </dl>
@@ -764,15 +764,15 @@ them to the lp model which it then solves</p>
 <dl class="py class">
 <dt id="pulp.apis.LpSolver">
 <em class="property">class </em><code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">LpSolver</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mip</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">msg</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">options</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">timeLimit</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.LpSolver" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>A generic LP Solver</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
-<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, no log is shown</p></li>
-<li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a>) – </p></li>
-<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
+<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
+<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if False, no log is shown</p></li>
+<li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a>) – </p></li>
+<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
 <li><p><strong>args</strong> – </p></li>
 <li><p><strong>kwargs</strong> – optional named options to pass to each solver,
 e.g. gapRel=0.1, gapAbs=10, logPath=”“,</p></li>
@@ -854,12 +854,12 @@ or other solvers that are similar</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
-<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, no log is shown</p></li>
-<li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a>) – list of additional options to pass to solver (format depends on the solver)</p></li>
-<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
-<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – a path to the solver binary</p></li>
-<li><p><strong>keepFiles</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if True, files are saved in the current directory and not deleted after solving</p></li>
+<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
+<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if False, no log is shown</p></li>
+<li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a>) – list of additional options to pass to solver (format depends on the solver)</p></li>
+<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – a path to the solver binary</p></li>
+<li><p><strong>keepFiles</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if True, files are saved in the current directory and not deleted after solving</p></li>
 <li><p><strong>args</strong> – parameters to pass to <a class="reference internal" href="#pulp.apis.LpSolver" title="pulp.apis.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpSolver</span></code></a></p></li>
 <li><p><strong>kwargs</strong> – parameters to pass to <a class="reference internal" href="#pulp.apis.LpSolver" title="pulp.apis.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpSolver</span></code></a></p></li>
 </ul>
@@ -920,12 +920,12 @@ directory</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
-<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, no log is shown</p></li>
-<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
-<li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a>) – list of additional options to pass to solver</p></li>
-<li><p><strong>keepFiles</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if True, files are saved in the current directory and not deleted after solving</p></li>
-<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – path to the solver binary</p></li>
+<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
+<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if False, no log is shown</p></li>
+<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
+<li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a>) – list of additional options to pass to solver</p></li>
+<li><p><strong>keepFiles</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if True, files are saved in the current directory and not deleted after solving</p></li>
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – path to the solver binary</p></li>
 </ul>
 </dd>
 </dl>
@@ -967,10 +967,10 @@ directory</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
-<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, no log is shown</p></li>
-<li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a>) – </p></li>
-<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
+<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
+<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if False, no log is shown</p></li>
+<li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a>) – </p></li>
+<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
 <li><p><strong>args</strong> – </p></li>
 <li><p><strong>kwargs</strong> – optional named options to pass to each solver,
 e.g. gapRel=0.1, gapAbs=10, logPath=”“,</p></li>
@@ -1004,23 +1004,23 @@ e.g. gapRel=0.1, gapAbs=10, logPath=”“,</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
-<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, no log is shown</p></li>
-<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
-<li><p><strong>gapRel</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – relative gap tolerance for the solver to stop (in fraction)</p></li>
-<li><p><strong>gapAbs</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – absolute gap tolerance for the solver to stop</p></li>
-<li><p><strong>threads</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – sets the maximum number of threads</p></li>
-<li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a>) – list of additional options to pass to solver</p></li>
-<li><p><strong>warmStart</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if True, the solver will use the current value of variables as a start</p></li>
-<li><p><strong>keepFiles</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if True, files are saved in the current directory and not deleted after solving</p></li>
-<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – path to the solver binary</p></li>
-<li><p><strong>logPath</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – path to the log file</p></li>
-<li><p><strong>presolve</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if True, adds presolve on</p></li>
-<li><p><strong>cuts</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if True, adds gomory on knapsack on probing on</p></li>
-<li><p><strong>strong</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if True, adds strong</p></li>
-<li><p><strong>fracGap</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – deprecated for gapRel</p></li>
-<li><p><strong>maxSeconds</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – deprecated for timeLimit</p></li>
-<li><p><strong>mip_start</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – deprecated for warmStart</p></li>
+<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
+<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if False, no log is shown</p></li>
+<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
+<li><p><strong>gapRel</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – relative gap tolerance for the solver to stop (in fraction)</p></li>
+<li><p><strong>gapAbs</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – absolute gap tolerance for the solver to stop</p></li>
+<li><p><strong>threads</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – sets the maximum number of threads</p></li>
+<li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a>) – list of additional options to pass to solver</p></li>
+<li><p><strong>warmStart</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if True, the solver will use the current value of variables as a start</p></li>
+<li><p><strong>keepFiles</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if True, files are saved in the current directory and not deleted after solving</p></li>
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – path to the solver binary</p></li>
+<li><p><strong>logPath</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – path to the log file</p></li>
+<li><p><strong>presolve</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if True, adds presolve on</p></li>
+<li><p><strong>cuts</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if True, adds gomory on knapsack on probing on</p></li>
+<li><p><strong>strong</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if True, adds strong</p></li>
+<li><p><strong>fracGap</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – deprecated for gapRel</p></li>
+<li><p><strong>maxSeconds</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – deprecated for timeLimit</p></li>
+<li><p><strong>mip_start</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – deprecated for warmStart</p></li>
 </ul>
 </dd>
 </dl>
@@ -1031,7 +1031,7 @@ e.g. gapRel=0.1, gapAbs=10, logPath=”“,</p></li>
 
 <dl class="py attribute">
 <dt id="pulp.apis.PULP_CBC_CMD.pulp_cbc_path">
-<code class="sig-name descname">pulp_cbc_path</code><em class="property"> = '/home/pchtsp/.local/lib/python3.6/site-packages/pulp/apis/../solverdir/cbc/linux/64/cbc'</em><a class="headerlink" href="#pulp.apis.PULP_CBC_CMD.pulp_cbc_path" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">pulp_cbc_path</code><em class="property"> = '/home/pchtsp/Documents/resources/pulp/pulp/apis/../solverdir/cbc/linux/64/cbc'</em><a class="headerlink" href="#pulp.apis.PULP_CBC_CMD.pulp_cbc_path" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -1044,12 +1044,12 @@ e.g. gapRel=0.1, gapAbs=10, logPath=”“,</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
-<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, no log is shown</p></li>
-<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
-<li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a>) – list of additional options to pass to solver</p></li>
-<li><p><strong>keepFiles</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if True, files are saved in the current directory and not deleted after solving</p></li>
-<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – path to the solver binary</p></li>
+<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
+<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if False, no log is shown</p></li>
+<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
+<li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a>) – list of additional options to pass to solver</p></li>
+<li><p><strong>keepFiles</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if True, files are saved in the current directory and not deleted after solving</p></li>
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – path to the solver binary</p></li>
 </ul>
 </dd>
 </dl>
@@ -1060,7 +1060,7 @@ e.g. gapRel=0.1, gapAbs=10, logPath=”“,</p></li>
 
 <dl class="py attribute">
 <dt id="pulp.apis.PULP_CHOCO_CMD.pulp_choco_path">
-<code class="sig-name descname">pulp_choco_path</code><em class="property"> = '/home/pchtsp/.local/lib/python3.6/site-packages/pulp/apis/../solverdir/choco/choco-parsers-with-dependencies.jar'</em><a class="headerlink" href="#pulp.apis.PULP_CHOCO_CMD.pulp_choco_path" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">pulp_choco_path</code><em class="property"> = '/home/pchtsp/Documents/resources/pulp/pulp/apis/../solverdir/choco/choco-parsers-with-dependencies.jar'</em><a class="headerlink" href="#pulp.apis.PULP_CHOCO_CMD.pulp_choco_path" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -1077,10 +1077,10 @@ The Model is in prob.solverModel</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
-<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, no log is shown</p></li>
-<li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a>) – </p></li>
-<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
+<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
+<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if False, no log is shown</p></li>
+<li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a>) – </p></li>
+<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
 <li><p><strong>args</strong> – </p></li>
 <li><p><strong>kwargs</strong> – optional named options to pass to each solver,
 e.g. gapRel=0.1, gapAbs=10, logPath=”“,</p></li>
@@ -1109,7 +1109,7 @@ e.g. gapRel=0.1, gapAbs=10, logPath=”“,</p></li>
 <dl class="py attribute">
 <dt id="pulp.apis.Parser">
 <code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">Parser</code><a class="headerlink" href="#pulp.apis.Parser" title="Permalink to this definition">¶</a></dt>
-<dd><p>alias of <a class="reference external" href="https://docs.python.org/3/library/configparser.html#configparser.ConfigParser" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">configparser.ConfigParser</span></code></a></p>
+<dd><p>alias of <a class="reference external" href="https://docs.python.org/3/library/configparser.html#configparser.ConfigParser" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">configparser.ConfigParser</span></code></a></p>
 </dd></dl>
 
 <dl class="py exception">
@@ -1127,17 +1127,19 @@ e.g. gapRel=0.1, gapAbs=10, logPath=”“,</p></li>
 
 <dl class="py class">
 <dt id="pulp.apis.SCIP_CMD">
-<em class="property">class </em><code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">SCIP_CMD</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">keepFiles</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">mip</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">msg</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">options</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.SCIP_CMD" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">SCIP_CMD</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">keepFiles</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">mip</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">msg</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">options</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">timeLimit</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">maxNodes</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.SCIP_CMD" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.core.LpSolver_CMD</span></code></p>
 <p>The SCIP optimization solver</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
-<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, no log is shown</p></li>
-<li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a>) – list of additional options to pass to solver</p></li>
-<li><p><strong>keepFiles</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if True, files are saved in the current directory and not deleted after solving</p></li>
-<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – path to the solver binary</p></li>
+<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
+<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if False, no log is shown</p></li>
+<li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a>) – list of additional options to pass to solver</p></li>
+<li><p><strong>keepFiles</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if True, files are saved in the current directory and not deleted after solving</p></li>
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – path to the solver binary</p></li>
+<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
+<li><p><strong>maxNodes</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – max number of nodes during branching. Stops the solving when reached.</p></li>
 </ul>
 </dd>
 </dl>
@@ -1190,10 +1192,10 @@ e.g. gapRel=0.1, gapAbs=10, logPath=”“,</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
-<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, no log is shown</p></li>
-<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
-<li><p><strong>gapRel</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – relative gap tolerance for the solver to stop (in fraction)</p></li>
+<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
+<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if False, no log is shown</p></li>
+<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
+<li><p><strong>gapRel</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – relative gap tolerance for the solver to stop (in fraction)</p></li>
 <li><p><strong>maxSeconds</strong> – deprecated for timeLimit</p></li>
 <li><p><strong>targetGap</strong> – deprecated for gapRel</p></li>
 <li><p><strong>heurFreq</strong> – the frequency at which heuristics are used in the tree search</p></li>
@@ -1248,10 +1250,10 @@ The Model is in prob.solverModel</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
-<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if False, no log is shown</p></li>
-<li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a>) – </p></li>
-<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
+<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
+<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if False, no log is shown</p></li>
+<li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a>) – </p></li>
+<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
 <li><p><strong>args</strong> – </p></li>
 <li><p><strong>kwargs</strong> – optional named options to pass to each solver,
 e.g. gapRel=0.1, gapAbs=10, logPath=”“,</p></li>
@@ -1306,7 +1308,7 @@ type is the type of the c array</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>solver</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – solver name to create</p></li>
+<li><p><strong>solver</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – solver name to create</p></li>
 <li><p><strong>args</strong> – additional arguments to the solver</p></li>
 <li><p><strong>kwargs</strong> – additional keyword arguments to the solver</p></li>
 </ul>
@@ -1323,7 +1325,7 @@ type is the type of the c array</p>
 <dd><p>Instantiates a solver from a dictionary with its data</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>data</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a>) – a dictionary with, at least an “solver” key with the name
+<dd class="field-odd"><p><strong>data</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – a dictionary with, at least an “solver” key with the name
 of the solver to create</p>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -1344,7 +1346,7 @@ of the solver to create</p>
 <dd><p>Instantiates a solver from a json file with its data</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – name of the json file to read</p>
+<dd class="field-odd"><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – name of the json file to read</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>a solver of type <a class="reference internal" href="#pulp.apis.LpSolver" title="pulp.apis.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpSolver</span></code></a></p>
@@ -1362,7 +1364,7 @@ of the solver to create</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>solver</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – solver name to create</p></li>
+<li><p><strong>solver</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – solver name to create</p></li>
 <li><p><strong>args</strong> – additional arguments to the solver</p></li>
 <li><p><strong>kwargs</strong> – additional keyword arguments to the solver</p></li>
 </ul>
@@ -1379,7 +1381,7 @@ of the solver to create</p>
 <dd><p>Instantiates a solver from a dictionary with its data</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>data</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a>) – a dictionary with, at least an “solver” key with the name
+<dd class="field-odd"><p><strong>data</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – a dictionary with, at least an “solver” key with the name
 of the solver to create</p>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -1400,7 +1402,7 @@ of the solver to create</p>
 <dd><p>Instantiates a solver from a json file with its data</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – name of the json file to read</p>
+<dd class="field-odd"><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – name of the json file to read</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>a solver of type <a class="reference internal" href="#pulp.apis.LpSolver" title="pulp.apis.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpSolver</span></code></a></p>
@@ -1423,13 +1425,13 @@ of the solver to create</p>
 <dd><p>List the names of all the existing solvers in PuLP</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>onlyAvailable</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if True, only show the available solvers</p>
+<dd class="field-odd"><p><strong>onlyAvailable</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if True, only show the available solvers</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>list of solver names</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)">list</a></p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)">list</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -1440,13 +1442,13 @@ of the solver to create</p>
 <dd><p>List the names of all the existing solvers in PuLP</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>onlyAvailable</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – if True, only show the available solvers</p>
+<dd class="field-odd"><p><strong>onlyAvailable</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if True, only show the available solvers</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>list of solver names</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)">list</a></p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)">list</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -1525,7 +1527,7 @@ the keyword value pairs come from the keywords dictionary</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'2.3',
+            VERSION:'2.4',
             LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',

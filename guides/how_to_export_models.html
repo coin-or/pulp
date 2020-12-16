@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>How to export models in PuLP &mdash; PuLP 2.3 documentation</title>
+  <title>How to import and export models in PuLP &mdash; PuLP 2.4 documentation</title>
   
 
   
@@ -40,7 +40,7 @@
         <link rel="index" title="Index"
               href="../genindex.html"/>
         <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="PuLP 2.3 documentation" href="../index.html"/>
+    <link rel="top" title="PuLP 2.4 documentation" href="../index.html"/>
         <link rel="up" title="User Guides" href="index.html"/>
         <link rel="next" title="How to debug most errors during solving" href="how_to_debug.html"/>
         <link rel="prev" title="Elastic Constraints" href="how_to_elastic_constraints.html"/> 
@@ -71,7 +71,7 @@
           
             
               <div class="version">
-                2.3
+                2.4
 
                 
               </div>
@@ -104,10 +104,12 @@
 <li class="toctree-l2"><a class="reference internal" href="how_to_configure_solvers.html">How to configure a solver in PuLP</a></li>
 <li class="toctree-l2"><a class="reference internal" href="how_to_mip_start.html">How to warm-start a solver</a></li>
 <li class="toctree-l2"><a class="reference internal" href="how_to_elastic_constraints.html">Elastic Constraints</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">How to export models in PuLP</a><ul>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">How to import and export models in PuLP</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#considerations">Considerations</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#example-1">Example 1</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#example-2">Example 2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#example-1-json">Example 1: json</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#example-1-mps">Example 1: mps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#example-2-json">Example 2: json</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grouping-variables">Grouping variables</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="how_to_debug.html">How to debug most errors during solving</a></li>
@@ -161,7 +163,7 @@
         
           <li><a href="index.html">User Guides</a> &raquo;</li>
         
-      <li>How to export models in PuLP</li>
+      <li>How to import and export models in PuLP</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -189,28 +191,32 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="how-to-export-models-in-pulp">
-<h1>How to export models in PuLP<a class="headerlink" href="#how-to-export-models-in-pulp" title="Permalink to this headline">¶</a></h1>
-<p>Exporting a model can be useful when the building time takes too long or when the model needs to be passed to another computer to solve. Or many other reason.
-PuLP offers a way to export a model into a dictionary of a json file. The json file saves enough data to be able to rebuild a new model on reading it.</p>
+  <div class="section" id="how-to-import-and-export-models-in-pulp">
+<h1>How to import and export models in PuLP<a class="headerlink" href="#how-to-import-and-export-models-in-pulp" title="Permalink to this headline">¶</a></h1>
+<p>Exporting a model can be useful when the building time takes too long or when the model needs to be passed to another computer to solve. Or any other reason.
+PuLP offers two ways to export a model: to an mps file or to a dictionary /json file. Each offers advantages over the other.</p>
+<p><strong>The mps format</strong> is an industry standard. But it is not very flexible so some information cannot be stored. It stores only variables and constraints. It does not store the values of variables.</p>
+<p><strong>The dictionary/ json format</strong> is made to fit how pulp stores the information and so it does not lose information: this format file saves enough data to be able to restore a complete pulp model on reading it.</p>
+<p>The interface to import and export for both formats is similar as can be seen in the Example 1 below.</p>
 <div class="section" id="considerations">
 <h2>Considerations<a class="headerlink" href="#considerations" title="Permalink to this headline">¶</a></h2>
 <p>The following considerations need to be taken into account:</p>
 <ol class="arabic simple">
 <li><p>Variable names need to be unique. PuLP permits having variable names because it uses an internal code for each one. But we do not export that code. So we identify variables by their name only.</p></li>
-<li><p>Variables are not exported in a grouped way. This means that if you had several <cite>dictionaries of many variables each</cite> you will end up with a very long list of variables. This can be seen in the Example 2.</p></li>
-<li><p>Output information is also written. This means that the status, solution status, the values of variables and shadow prices / reduced costs are exported too. This means that it is possible to export a model that has been solved and then read it again only to see the values of the variables.</p></li>
+<li><p>Variables are not exported in a grouped way. This means that if you have several <cite>dictionaries of many variables each</cite> you will end up with a very long list of variables. This can be seen in the Example 2.</p></li>
+<li><p>Output information is also written to the json format. This means that the status, solution status, the values of variables and shadow prices / reduced costs are exported too. This means that it is possible to export a model that has been solved and then read it again only to see the values of the variables.</p></li>
 <li><p>For json, we use the base <cite>json</cite> package. But if <cite>ujson</cite> is available, we use that so the import / export can be really fast.</p></li>
 </ol>
 </div>
-<div class="section" id="example-1">
-<h2>Example 1<a class="headerlink" href="#example-1" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="example-1-json">
+<h2>Example 1: json<a class="headerlink" href="#example-1-json" title="Permalink to this headline">¶</a></h2>
 <p>A very simple example taken from the internal tests. Imagine the following problem:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pulp</span> <span class="k">import</span> <span class="o">*</span>
-<span class="n">prob</span> <span class="o">=</span> <span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;test_export_dict_MIP&quot;</span><span class="p">,</span> <span class="n">const</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
+
+<span class="n">prob</span> <span class="o">=</span> <span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;test_export_dict_MIP&quot;</span><span class="p">,</span> <span class="n">LpMinimize</span><span class="p">)</span>
 <span class="n">x</span> <span class="o">=</span> <span class="n">LpVariable</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
 <span class="n">y</span> <span class="o">=</span> <span class="n">LpVariable</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-<span class="n">z</span> <span class="o">=</span> <span class="n">LpVariable</span><span class="p">(</span><span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">const</span><span class="o">.</span><span class="n">LpInteger</span><span class="p">)</span>
+<span class="n">z</span> <span class="o">=</span> <span class="n">LpVariable</span><span class="p">(</span><span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">LpInteger</span><span class="p">)</span>
 <span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span> <span class="o">+</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">y</span> <span class="o">+</span> <span class="mi">9</span> <span class="o">*</span> <span class="n">z</span><span class="p">,</span> <span class="s2">&quot;obj&quot;</span>
 <span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">&quot;c1&quot;</span>
 <span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">z</span> <span class="o">&gt;=</span> <span class="mi">10</span><span class="p">,</span> <span class="s2">&quot;c2&quot;</span>
@@ -298,8 +304,46 @@ PuLP offers a way to export a model into a dictionary of a json file. The json f
 </pre></div>
 </div>
 </div>
-<div class="section" id="example-2">
-<h2>Example 2<a class="headerlink" href="#example-2" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="example-1-mps">
+<h2>Example 1: mps<a class="headerlink" href="#example-1-mps" title="Permalink to this headline">¶</a></h2>
+<p>The same model:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pulp</span> <span class="k">import</span> <span class="o">*</span>
+<span class="n">prob</span> <span class="o">=</span> <span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;test_export_dict_MIP&quot;</span><span class="p">,</span> <span class="n">LpMinimize</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">LpVariable</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">LpVariable</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">z</span> <span class="o">=</span> <span class="n">LpVariable</span><span class="p">(</span><span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">LpInteger</span><span class="p">)</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span> <span class="o">+</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">y</span> <span class="o">+</span> <span class="mi">9</span> <span class="o">*</span> <span class="n">z</span><span class="p">,</span> <span class="s2">&quot;obj&quot;</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">&quot;c1&quot;</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">z</span> <span class="o">&gt;=</span> <span class="mi">10</span><span class="p">,</span> <span class="s2">&quot;c2&quot;</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="o">-</span><span class="n">y</span> <span class="o">+</span> <span class="n">z</span> <span class="o">==</span> <span class="mf">7.5</span><span class="p">,</span> <span class="s2">&quot;c3&quot;</span>
+</pre></div>
+</div>
+<p>We can now export the problem into an mps file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">prob</span><span class="o">.</span><span class="n">writeMPS</span><span class="p">(</span><span class="s2">&quot;test.mps&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>We can now import this file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">var1</span><span class="p">,</span> <span class="n">prob1</span> <span class="o">=</span> <span class="n">LpProblem</span><span class="o">.</span><span class="n">fromMPS</span><span class="p">(</span><span class="s2">&quot;test.mps&quot;</span><span class="p">)</span>
+<span class="n">var1</span>
+<span class="c1"># {&#39;x&#39;: x, &#39;y&#39;: y, &#39;z&#39;: z}</span>
+<span class="n">prob1</span>
+<span class="c1"># test_export_dict_MIP:</span>
+<span class="c1"># MINIMIZE</span>
+<span class="c1"># 1*x + 4*y + 9*z + 0</span>
+<span class="c1"># SUBJECT TO</span>
+<span class="c1"># c1: x + y &lt;= 5</span>
+<span class="c1"># c2: x + z &gt;= 10</span>
+<span class="c1"># c3: - y + z = 7.5</span>
+<span class="c1"># VARIABLES</span>
+<span class="c1"># x &lt;= 4 Continuous</span>
+<span class="c1"># -1 &lt;= y &lt;= 1 Continuous</span>
+<span class="c1"># 0 &lt;= z Integer</span>
+</pre></div>
+</div>
+<p>The resulting tuple is exactly the same format as the previous one.</p>
+</div>
+<div class="section" id="example-2-json">
+<h2>Example 2: json<a class="headerlink" href="#example-2-json" title="Permalink to this headline">¶</a></h2>
 <p>We will use as example the model in <a class="reference internal" href="../CaseStudies/a_set_partitioning_problem.html#set-partitioning-problem"><span class="std std-ref">A Set Partitioning Problem</span></a>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pulp</span>
 
@@ -366,6 +410,10 @@ PuLP offers a way to export a model into a dictionary of a json file. The json f
 </pre></div>
 </div>
 </div>
+<div class="section" id="grouping-variables">
+<h2>Grouping variables<a class="headerlink" href="#grouping-variables" title="Permalink to this headline">¶</a></h2>
+<p>As the “Considerations” section mentions, the grouping of variables is not restored automatically. Nevertheless, by using some strict naming convention on variable names and clever parsing, one can reconstruct the original structure of the variables.</p>
+</div>
 </div>
 
 
@@ -412,7 +460,7 @@ PuLP offers a way to export a model into a dictionary of a json file. The json f
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'2.3',
+            VERSION:'2.4',
             LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
