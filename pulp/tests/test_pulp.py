@@ -679,6 +679,22 @@ class PuLPTest(unittest.TestCase):
         print("\t Testing continuous LP solution - export dict")
         pulpTestCheck(prob1, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
 
+    def test_export_dict_LP_no_obj(self):
+        prob = LpProblem("test_export_dict_LP_no_obj", const.LpMinimize)
+        x = LpVariable("x", 0, 4)
+        y = LpVariable("y", -1, 1)
+        z = LpVariable("z", 0)
+        w = LpVariable("w", 0, 0)
+        prob += x + y >= 5, "c1"
+        prob += x + z == 10, "c2"
+        prob += -y + z <= 7, "c3"
+        prob += w >= 0, "c4"
+        data = prob.toDict()
+        var1, prob1 = LpProblem.fromDict(data)
+        x, y, z, w = [var1[name] for name in ['x', 'y', 'z', 'w']]
+        print("\t Testing export dict for LP")
+        pulpTestCheck(prob1, self.solver, [const.LpStatusOptimal], {x: 4, y: 1, z: 6, w: 0})
+
     def test_export_json_LP(self):
         name = self._testMethodName
         prob = LpProblem(name, const.LpMinimize)

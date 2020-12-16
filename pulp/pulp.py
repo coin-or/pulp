@@ -1282,6 +1282,7 @@ class LpProblem(object):
             self.checkDuplicateVars()
         except const.PulpError:
             raise const.PulpError("Duplicated names found in variables:\nto export the model, variable names need to be unique")
+        self.fixObjective()
         variables = self.variables()
         return \
             dict(
