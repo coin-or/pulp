@@ -62,7 +62,7 @@ Linux Installation
 
     .. code-block:: sh
 
-        $ sudo apt-get install glpk
+        $ sudo apt-get install glpk-utils
 
     * install gurobi_ (free academic licenses)
     * install cplex_ (also a license for academics)
