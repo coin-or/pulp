@@ -115,12 +115,13 @@ html_theme_path = sphinx_glpi_theme.get_html_themes_path()
 # documentation.
 #html_theme_options = {}
 html_theme_options = {
-    'fixed_sidebar': True, 
-    'stickysidebar': True,
-    'github_banner': True,
-    'show_powered_by': False,
-    'github_user': 'coin-or',
-    'github_repo': 'pulp'}
+    # 'fixed_sidebar': True,
+    # 'stickysidebar': True,
+    # 'github_banner': True,
+    # 'show_powered_by': False,
+    # 'github_user': 'coin-or',
+    # 'github_repo': 'pulp'
+}
 # Add any paths that contain custom themes here, relative to this directory.
 #html_theme_path = []
 
