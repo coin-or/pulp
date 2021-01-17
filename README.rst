@@ -70,16 +70,17 @@ become the objective::
 
 To solve with the default included solver::
 
-     status = prob.solve()
+     prob.solve()
 
-To use another sovler to solve the problem::
+To use another solver to solve the problem::
 
-     status = prob.solve(GLPK(msg = 0))
+     prob.solve(GLPK(msg = 0))
 
 Display the status of the solution::
 
-     LpStatus[status]
-     > 'Optimal'
+     solutionStatus = prob.getSolutionStatus()
+     LpStatus[solutionStatus]
+     > 'Optimal Solution Found'
 
 You can get the value of the variables using value(). ex::
 
