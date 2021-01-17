@@ -297,13 +297,13 @@ class GUROBI_CMD(LpSolver_CMD):
         warnings.warn('GUROBI error: {}.'.format(out))
         return False
 
-    def actualSolve(self, lp):
+    def actualSolve(self, lp, lpMaxLength=255):
         """Solve a well formulated lp problem"""
 
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute "+self.path)
         tmpLp, tmpSol, tmpMst = self.create_tmp_files(lp.name, 'lp', 'sol', 'mst')
-        vs = lp.writeLP(tmpLp, writeSOS = 1)
+        vs = lp.writeLP(tmpLp, writeSOS = 1, max_length=lpMaxLength)
         try:
             os.remove(tmpSol)
         except:

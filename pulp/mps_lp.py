@@ -279,7 +279,7 @@ def writeMPSBoundLines(name, variable, mip):
     return bound_lines
 
 
-def writeLP(LpProblem, filename, writeSOS = 1, mip = 1, max_length=100):
+def writeLP(LpProblem, filename, writeSOS = 1, mip = 1):
     f = open(filename, "w")
     f.write("\\* " + LpProblem.name + " *\\\n")
     if LpProblem.sense == 1:
@@ -305,11 +305,7 @@ def writeLP(LpProblem, filename, writeSOS = 1, mip = 1, max_length=100):
                 f.write((dummyVar == 0.0).asCplexLpConstraint("_dummy"))
                 dummyWritten = True
         f.write(constraint.asCplexLpConstraint(k))
-    # check if any names are longer than 100 characters
-    LpProblem.checkLengthVars(max_length)
     vs = LpProblem.variables()
-    # check for repeated names
-    LpProblem.checkDuplicateVars()
     # Bounds on non-"positive" variables
     # Note: XPRESS and CPLEX do not interpret integer variables without
     # explicit bounds

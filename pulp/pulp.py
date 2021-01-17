@@ -1623,7 +1623,11 @@ class LpProblem(object):
         Side Effects:
             - The file is created
         """
-        return mpslp.writeLP(self, filename=filename, writeSOS = writeSOS, mip = mip, max_length=max_length)
+        # check if any names are longer than 100 characters
+        self.checkLengthVars(max_length)
+        # check for repeated names
+        self.checkDuplicateVars()
+        return mpslp.writeLP(self, filename=filename, writeSOS = writeSOS, mip = mip)
 
 
     def checkDuplicateVars(self):
@@ -1653,8 +1657,8 @@ class LpProblem(object):
         vs = self.variables()
         long_names = [v.name for v in vs if len(v.name) > max_length]
         if long_names:
-            raise const.PulpError('Variable names too long for Lp format\n'
-                                + str(long_names))
+            raise const.PulpError('Variable names too long (>{}) for Lp format\n{}'.
+                                  format(max_length, str(long_names)))
         return 1
 
     def assignVarsVals(self, values):
@@ -1832,6 +1836,22 @@ class LpProblem(object):
             sol_status = const.LpStatusToSolution.get(status, const.LpSolutionNoSolutionFound)
         self.sol_status = sol_status
         return True
+
+    @property
+    def status(self):
+        DeprecationWarning("Use of status property is deprecated.\n" +
+                           "Please use `getSolverStatus` or `getSolutionStatus`.")
+        return self._status
+
+    @status.setter
+    def status(self, new_status):
+        self._status = new_status
+
+    def getSolverStatus(self):
+        return self._status
+
+    def getSolutionStatus(self):
+        return self.sol_status
 
 
 class FixedElasticSubProblem(LpProblem):
