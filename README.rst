@@ -130,8 +130,8 @@ The home page for the documentation is pulp-or-docs/html/index.html which can be
 * Bug reports: https://github.com/coin-or/pulp/issues
 * Patches: https://github.com/coin-or/pulp/pulls
 
-     Copyright J.S. Roy (js@jeannot.org), 2003-2005
-     Copyright Stuart A. Mitchell (stu@stuartmitchell.com)
+     Copyright J.S. Roy, 2003-2005
+     Copyright Stuart A. Mitchell
      See the LICENSE file for copyright information.
 
 .. _Python: http://www.python.org/
