@@ -102,7 +102,29 @@ Exported Functions:
 * `lpSum()` -- given a list of the form [a1*x1, a2x2, ..., anxn] will construct a linear expression to be used as a constraint or variable
 * `lpDot()` --given two lists of the form [a1, a2, ..., an] and [ x1, x2, ..., xn] will construct a linear epression to be used as a constraint or variable
 
-Comments, bug reports, patches and suggestions are welcome.
+
+Building the documentation
+--------------------------
+
+The PuLP documentation is built with `Sphinx <https://www.sphinx-doc.org>`_.  We recommended using a 
+`virtual environment <https://docs.python.org/3/library/venv.html>`_ to build the documentation locally. 
+
+To build, run the following in a terminal window, in the PuLP root directory
+
+::
+
+     python -m pip install -r requirements-dev.txt
+     doc\make html
+	 
+A folder named *pulp-or-docs* will be created in the same folder as the PuLP root directory.
+The home page for the documentation is pulp-or-docs/html/index.html which can be opened in a browser.
+
+	 
+
+
+
+
+**Comments, bug reports, patches and suggestions are welcome.**
 
 * Comments and suggestions: https://github.com/coin-or/pulp/discussions
 * Bug reports: https://github.com/coin-or/pulp/issues
