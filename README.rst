@@ -114,7 +114,7 @@ To build, run the following in a terminal window, in the PuLP root directory
 ::
 
      python -m pip install -r requirements-dev.txt
-     doc\make html
+     doc/make html
 	 
 A folder named *pulp-or-docs* will be created in the same folder as the PuLP root directory.
 The home page for the documentation is pulp-or-docs/html/index.html which can be opened in a browser.
