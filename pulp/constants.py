@@ -102,3 +102,17 @@ class PulpError(Exception):
     Pulp Exception Class
     """
     pass
+
+
+class DuplicatedVars(PulpError):
+    """
+    PuLP duplicated variables Class
+    """
+    pass
+
+
+class VariableLength(PulpError):
+    """
+    PuLP variable too long exception class
+    """
+    pass

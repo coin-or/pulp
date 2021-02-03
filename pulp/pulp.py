@@ -1608,10 +1608,11 @@ class LpProblem(object):
         Side Effects:
             - The file is created
         """
+        self.checkDuplicateVars()
         return mpslp.writeMPS(self, filename, mpsSense = mpsSense, rename = rename, mip = mip)
 
 
-    def writeLP(self, filename, writeSOS = 1, mip = 1, max_length=100):
+    def writeLP(self, filename, writeSOS = 1, mip = 1, maxLength=100):
         """
         Write the given Lp problem to a .lp file.
 
@@ -1619,12 +1620,15 @@ class LpProblem(object):
         constraints, variables) of the defined Lp problem to a file.
 
         :param str filename: the name of the file to be created.
+        :param bool writeSOS: whether to write the SOS constraints or not.
+        :param mip: if 0, forces a relaxed problem
+        :param maxLength: maximum length of variable name to check
         :return: variables
         Side Effects:
             - The file is created
         """
         # check if any names are longer than 100 characters
-        self.checkLengthVars(max_length)
+        self.checkLengthVars(maxLength)
         # check for repeated names
         self.checkDuplicateVars()
         return mpslp.writeLP(self, filename=filename, writeSOS = writeSOS, mip = mip)
@@ -1644,7 +1648,7 @@ class LpProblem(object):
         repeated_names = [(key, value) for key, value in list(repeated_names.items())
                           if value >= 2]
         if repeated_names:
-            raise const.PulpError('Repeated variable names:\n' + str(repeated_names))
+            raise const.DuplicatedVars('Repeated variable names:\n' + str(repeated_names))
         return 1
 
     def checkLengthVars(self, max_length):
@@ -1657,8 +1661,8 @@ class LpProblem(object):
         vs = self.variables()
         long_names = [v.name for v in vs if len(v.name) > max_length]
         if long_names:
-            raise const.PulpError('Variable names too long (>{}) for Lp format\n{}'.
-                                  format(max_length, str(long_names)))
+            raise const.VariableLength('Variable names too long (>{}) for Lp format\n{}'.
+                                       format(max_length, str(long_names)))
         return 1
 
     def assignVarsVals(self, values):

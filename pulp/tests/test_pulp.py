@@ -1,7 +1,6 @@
 """
 Tests for pulp
 """
-from pulp.constants import PulpError
 from pulp.apis import *
 from pulp import LpVariable, LpProblem, lpSum, LpConstraintVar, LpFractionConstraint
 from pulp import constants as const
@@ -169,11 +168,9 @@ class PuLPTest(unittest.TestCase):
         prob += w >= 0, "c4"
         print("\t Testing Long Names")
         if self.solver.__class__ in [CPLEX_CMD, GLPK_CMD, GUROBI_CMD, MIPCL_CMD, SCIP_CMD]:
-            try:
-                pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
-            except PulpError:
-                # these solvers should raise an error'
-                pass
+            # these solvers should raise an error'
+            _func = lambda: pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
+            self.assertRaises(const.VariableLength, _func)
         else:
             pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
 
@@ -191,14 +188,12 @@ class PuLPTest(unittest.TestCase):
         prob += w >= 0, "c4"
         print("\t Testing repeated Names")
         if self.solver.__class__ in [COIN_CMD, COINMP_DLL, PULP_CBC_CMD,
-                                CPLEX_CMD, CPLEX_DLL, CPLEX_PY,
-                                GLPK_CMD, GUROBI_CMD, PULP_CHOCO_CMD, CHOCO_CMD,
-                                MIPCL_CMD, MOSEK, SCIP_CMD]:
-            try:
-                pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
-            except PulpError:
-                # these solvers should raise an error
-                pass
+                                     CPLEX_CMD, CPLEX_DLL, CPLEX_PY,
+                                     GLPK_CMD, GUROBI_CMD, PULP_CHOCO_CMD, CHOCO_CMD,
+                                     MIPCL_CMD, MOSEK, SCIP_CMD]:
+            # these solvers should raise an error
+            _func = lambda: pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
+            self.assertRaises(const.DuplicatedVars, _func)
         else:
             pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
 
@@ -844,9 +839,9 @@ class PuLPTest(unittest.TestCase):
             print("\t Testing logPath argument")
             pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
             if not os.path.exists(logFilename):
-                raise PulpError("Test failed for solver: {}".format(self.solver))
+                raise const.PulpError("Test failed for solver: {}".format(self.solver))
             if not os.path.getsize(logFilename):
-                raise PulpError("Test failed for solver: {}".format(self.solver))
+                raise const.PulpError("Test failed for solver: {}".format(self.solver))
 
     def test_makeDict_behavior(self):
         """
@@ -931,6 +926,41 @@ class PuLPTest(unittest.TestCase):
         print("\t Testing reading MPS files - binary variable, no constraint names")
         self.assertDictEqual(_dict1, _dict2)
 
+    def test_max_var_length(self):
+        name = self._testMethodName
+        prob = LpProblem(name, const.LpMinimize)
+        x = LpVariable("x"*101, 0, 4)
+        y = LpVariable("y", -1, 1)
+        z = LpVariable("z", 0)
+        w = LpVariable("w", 0)
+        prob += x + 4 * y + 9 * z, "obj"
+        prob += x + y <= 5, "c1"
+        prob += x + z >= 10, "c2"
+        prob += -y + z == 7, "c3"
+        prob += w >= 0, "c4"
+        _func = lambda: pulpTestCheck(prob, self.solver, [const.LpStatusOptimal],
+                                      {x: 4, y: -1, z: 6, w: 0})
+
+        self.assertRaises(const.VariableLength, _func, "sad")
+
+    def test_max_var_length_2(self):
+        name = self._testMethodName
+        prob = LpProblem(name, const.LpMinimize)
+        x = LpVariable("x" * 200, 0, 4)
+        y = LpVariable("y", -1, 1)
+        z = LpVariable("z", 0)
+        w = LpVariable("w", 0)
+        prob += x + 4 * y + 9 * z, "obj"
+        prob += x + y <= 5, "c1"
+        prob += x + z >= 10, "c2"
+        prob += -y + z == 7, "c3"
+        prob += w >= 0, "c4"
+        pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0},
+                                      max_length = 300)
+
+
+
+
 
 def pulpTestCheck(prob, solver, okstatus, sol=None,
                   reducedcosts=None,
@@ -944,40 +974,40 @@ def pulpTestCheck(prob, solver, okstatus, sol=None,
         status = prob.solve(solver, **kwargs)
     if status not in okstatus:
         dumpTestProblem(prob)
-        raise PulpError("Tests failed for solver {}:\nstatus == {} not in {}\nstatus == {} not in {}".
+        raise const.PulpError("Tests failed for solver {}:\nstatus == {} not in {}\nstatus == {} not in {}".
                         format(solver, status, okstatus,
                                const.LpStatus[status], [const.LpStatus[s] for s in okstatus]))
     if sol is not None:
         for v, x in sol.items():
             if abs(v.varValue - x) > eps:
                 dumpTestProblem(prob)
-                raise PulpError("Tests failed for solver {}:\nvar {} == {} != {}".
+                raise const.PulpError("Tests failed for solver {}:\nvar {} == {} != {}".
                                 format(solver, v, v.varValue, x))
     if reducedcosts:
         for v, dj in reducedcosts.items():
             if abs(v.dj - dj) > eps:
                 dumpTestProblem(prob)
-                raise PulpError("Tests failed for solver {}:\nTest failed: var.dj {} == {} != {}".
+                raise const.PulpError("Tests failed for solver {}:\nTest failed: var.dj {} == {} != {}".
                                 format(solver, v, v.dj, dj))
     if duals:
         for cname, p in duals.items():
             c = prob.constraints[cname]
             if abs(c.pi - p) > eps:
                 dumpTestProblem(prob)
-                raise PulpError("Tests failed for solver {}:\nconstraint.pi {} == {} != {}".
+                raise const.PulpError("Tests failed for solver {}:\nconstraint.pi {} == {} != {}".
                                 format(solver, cname, c.pi, p))
     if slacks:
         for cname, slack in slacks.items():
             c = prob.constraints[cname]
             if abs(c.slack - slack) > eps:
                 dumpTestProblem(prob)
-                raise PulpError("Tests failed for solver {}:\nconstraint.slack {} == {} != {}".
+                raise const.PulpError("Tests failed for solver {}:\nconstraint.slack {} == {} != {}".
                                 format(solver, cname, c.slack, slack))
     if objective is not None:
         z = prob.objective.value()
         if abs(z - objective) > eps:
             dumpTestProblem(prob)
-            raise PulpError("Tests failed for solver {}:\nobjective {} != {}".
+            raise const.PulpError("Tests failed for solver {}:\nobjective {} != {}".
                             format(solver, z, objective))
 
 

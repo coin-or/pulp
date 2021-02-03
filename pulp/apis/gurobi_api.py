@@ -303,7 +303,7 @@ class GUROBI_CMD(LpSolver_CMD):
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute "+self.path)
         tmpLp, tmpSol, tmpMst = self.create_tmp_files(lp.name, 'lp', 'sol', 'mst')
-        vs = lp.writeLP(tmpLp, writeSOS = 1, max_length=lpMaxLength)
+        vs = lp.writeLP(tmpLp, writeSOS = 1, maxLength=lpMaxLength)
         try:
             os.remove(tmpSol)
         except:
