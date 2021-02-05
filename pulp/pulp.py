@@ -1373,7 +1373,7 @@ class LpProblem(object):
     from_json = fromJson
 
     @classmethod
-    def fromMPS(cls, filename, sense=0, **kwargs):
+    def fromMPS(cls, filename, sense=const.LpMinimize, **kwargs):
         data = mpslp.readMPS(filename, sense=sense, **kwargs)
         return cls.fromDict(data)
 
