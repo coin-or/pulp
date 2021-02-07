@@ -931,6 +931,44 @@ class PuLPTest(unittest.TestCase):
         print("\t Testing reading MPS files - binary variable, no constraint names")
         self.assertDictEqual(_dict1, _dict2)
 
+    def test_unset_objective_value__is_valid(self):
+        """Given a valid problem that does not have
+        and driver in the objective function to direct it's minimisation
+        because the variable is multiplied by zero, assert that it
+        is still categorised as valid.
+        """
+        name = self._testMethodName
+        prob = LpProblem(name, const.LpMaximize)
+        x = LpVariable('x')
+        prob += (0 * x)
+        prob += (x >= 1)
+        prob.solve()
+        assert prob.valid() is True
+
+    def test_unbounded_problem__is_not_valid(self):
+        """Given an unbounded problem, where x will tend to infinity
+        to maximise the objective, assert that it is categorised
+        as invalid."""
+        name = self._testMethodName
+        prob = LpProblem(name, const.LpMaximize)
+        x = LpVariable('x')
+        prob += (1000 * x)
+        prob += (x >= 1)
+        prob.solve()
+        assert prob.valid() is False
+
+    def test_infeasible_problem__is_not_valid(self):
+        """Given a problem where x cannot converge to any value
+        given conflicting constraints, assert that it is invalid."""
+        name = self._testMethodName
+        prob = LpProblem(name, const.LpMaximize)
+        x = LpVariable('x')
+        prob += (1 * x)
+        prob += (x >= 2)  # Constraint x to be more than 2
+        prob += (x <= 1)  # Constraint x to be less than 1
+        prob.solve()
+        assert prob.valid() is False
+
 
 def pulpTestCheck(prob, solver, okstatus, sol=None,
                   reducedcosts=None,
