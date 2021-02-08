@@ -931,6 +931,18 @@ class PuLPTest(unittest.TestCase):
         print("\t Testing reading MPS files - binary variable, no constraint names")
         self.assertDictEqual(_dict1, _dict2)
 
+    def test_unbounded_problem__is_not_valid(self):
+        """Given an unbounded problem, where x will tend to infinity
+        to maximise the objective, assert that it is categorised
+        as invalid."""
+        name = self._testMethodName
+        prob = LpProblem(name, const.LpMaximize)
+        x = LpVariable('x')
+        prob += (1000 * x)
+        prob += (x >= 0)
+        prob.solve()
+        self.assertFalse(prob.valid())
+
 
 def pulpTestCheck(prob, solver, okstatus, sol=None,
                   reducedcosts=None,

@@ -76,6 +76,11 @@ LpStatusToSolution = {
     LpStatusUnbounded: LpSolutionUnbounded,
     LpStatusUndefined: LpSolutionInfeasible,
 }
+LpSolutionInvalidStatuses = {
+    LpSolutionNoSolutionFound,
+    LpSolutionInfeasible,
+    LpSolutionUnbounded,
+}
 
 # constraint sense
 LpConstraintLE = -1

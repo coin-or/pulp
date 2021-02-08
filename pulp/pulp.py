@@ -1414,6 +1414,8 @@ class LpProblem(object):
             if not v.valid(eps): return False
         for c in self.constraints.values():
             if not c.valid(eps): return False
+        if self.sol_status in const.LpSolutionInvalidStatuses:
+            return False
         else:
             return True
 
