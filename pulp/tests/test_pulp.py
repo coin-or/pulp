@@ -943,7 +943,8 @@ class PuLPTest(unittest.TestCase):
         prob += (0 * x)
         prob += (x >= 1)
         prob.solve()
-        assert prob.valid() is True
+        pulpTestCheck(prob, self.solver, [const.LpStatusOptimal])
+        self.assertTrue(prob.valid())
 
     def test_unbounded_problem__is_not_valid(self):
         """Given an unbounded problem, where x will tend to infinity
@@ -955,7 +956,7 @@ class PuLPTest(unittest.TestCase):
         prob += (1000 * x)
         prob += (x >= 1)
         prob.solve()
-        assert prob.valid() is False
+        self.assertFalse(prob.valid())
 
     def test_infeasible_problem__is_not_valid(self):
         """Given a problem where x cannot converge to any value
@@ -967,7 +968,8 @@ class PuLPTest(unittest.TestCase):
         prob += (x >= 2)  # Constraint x to be more than 2
         prob += (x <= 1)  # Constraint x to be less than 1
         prob.solve()
-        assert prob.valid() is False
+        pulpTestCheck(prob, self.solver, [const.LpStatusInfeasible, const.LpStatusUndefined])
+        self.assertFalse(prob.valid())
 
 
 def pulpTestCheck(prob, solver, okstatus, sol=None,
