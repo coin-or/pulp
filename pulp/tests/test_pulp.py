@@ -932,10 +932,8 @@ class PuLPTest(unittest.TestCase):
         self.assertDictEqual(_dict1, _dict2)
 
     def test_unset_objective_value__is_valid(self):
-        """Given a valid problem that does not have
-        and driver in the objective function to direct it's minimisation
-        because the variable is multiplied by zero, assert that it
-        is still categorised as valid.
+        """Given a valid problem that does not converge,
+        assert that it is still categorised as valid.
         """
         name = self._testMethodName
         prob = LpProblem(name, const.LpMaximize)
