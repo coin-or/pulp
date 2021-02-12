@@ -1,0 +1,46 @@
+name: docs
+
+on: push
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions/setup-python@v2
+      with:
+        # Semantic version range syntax or exact version of a Python version
+        python-version: '3.8'
+        architecture: 'x64'
+    # Standard drop-in approach that should work for most people.
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install -r requirements-dev.txt
+    - name: Building docs
+      run: cd docs && make html && cd ..
+    # Great extra actions to compose with:
+    # Publish built docs to gh-pages branch.
+    # ===============================
+    - name: Commit documentation changes
+      run: |
+        git clone https://github.com/coin-or/pulp.git --branch gh-pages --single-branch gh-pages
+        rm -rf gh-pages/*
+        cp -r docs/build/html/* gh-pages/
+        cd gh-pages
+        touch .nojekyll
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add .
+        git commit -m "Update documentation" -a || true
+        # The above command will fail if no changes were present, so we ignore
+        # that.
+    - name: Push changes
+      uses: ad-m/github-push-action@master
+      with:
+        branch: gh-pages
+        directory: gh-pages
+        github_token: ${{ secrets.GH_TOKEN }}
+    # ===============================
