@@ -26,35 +26,6 @@ def valueOrDefault(x):
         return x.valueOrDefault()
 
 
-def combination(orgset, k=None):
-    """
-    returns an iterator that lists the combinations of orgset of
-    length k
-
-    :param orgset: the list to be iterated
-    :param k: the cardinality of the subsets
-
-    :return: an iterator of the subsets
-
-    example:
-
-    >>> c = combination([1,2,3,4],2)
-    >>> for s in c:
-    ...     print(s)
-    (1, 2)
-    (1, 3)
-    (1, 4)
-    (2, 3)
-    (2, 4)
-    (3, 4)
-    """
-    try:
-        from itertools import combination as _it_combination
-        return _it_combination(orgset, k)
-    except ImportError:
-        return __combination(orgset, k)
-
-
 def __combination(orgset, k):
     """
     fall back if probstat is not installed note it is GPL so cannot
@@ -70,39 +41,13 @@ def __combination(orgset, k):
                 yield (x,) + s
 
 
-def permutation(orgset, k=None):
-    """
-    returns an iterator that lists the permutations of orgset of
-    length k
-
-    :param orgset: the list to be iterated
-    :param k: the cardinality of the subsets
-
-    :return: an iterator of the subsets
-
-    example:
-
-    >>> c = permutation([1,2,3,4],2)
-    >>> for s in c:
-    ...     print(s)
-    (1, 2)
-    (1, 3)
-    (1, 4)
-    (2, 1)
-    (2, 3)
-    (2, 4)
-    (3, 1)
-    (3, 2)
-    (3, 4)
-    (4, 1)
-    (4, 2)
-    (4, 3)
-    """
-    try:
-        from itertools import permutation as _it_permutation
-        return _it_permutation(orgset, k)
-    except ImportError:
-        return __permutation(orgset, k)
+try: # python >= 3.4
+    from itertools import combinations as combination
+except ImportError:
+    try: # python 2.7
+        from itertools import combination
+    except ImportError:  # pulp's
+        combination = __combination
 
 
 def __permutation(orgset, k):
@@ -118,6 +63,15 @@ def __permutation(orgset, k):
             # iterates though to near the end
             for s in __permutation(orgset[:i] + orgset[i+1:], k-1):
                 yield (x,) + s
+
+
+try:  # python >= 3.4
+    from itertools import permutations as permutation
+except ImportError:
+    try: # python 2.7
+        from itertools import permutation
+    except ImportError: # pulp's
+        permutation = __permutation
 
 
 def allpermutations(orgset, k):
@@ -202,7 +156,7 @@ def __makeDict(headers, array, default=None):
     else:
         for i, h in enumerate(headers[0]):
             result[h], defaultvalue = __makeDict(headers[1:], array[i], default)
-    if default is None:
+    if default is not None:
         f = lambda: defaultvalue
         defresult = collections.defaultdict(f)
         defresult.update(result)

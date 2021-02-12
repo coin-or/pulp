@@ -23,7 +23,7 @@ setup(name="PuLP",
       long_description = long_description,
       long_description_content_type = "text/x-rst",
       keywords = ["Optimization", "Linear Programming", "Operations Research"],
-      author="J.S. Roy and S.A. Mitchell",
+      author="J.S. Roy and S.A. Mitchell and F. Peschiera",
       author_email="pulp@stuartmitchell.com",
       url="https://github.com/coin-or/pulp",
       classifiers = ['Development Status :: 5 - Production/Stable',
@@ -52,7 +52,7 @@ setup(name="PuLP",
                       'pulp.solverdir.choco' : ['*','*.*'],
                       },
       include_package_data=True,
-      install_requires = ['amply>=0.1.2'],
+      install_requires = [],
       entry_points = ("""
       [console_scripts]
       pulptest = pulp.tests.run_tests:pulpTestAll

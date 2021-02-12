@@ -5,6 +5,7 @@ from pulp.constants import PulpError
 from pulp.apis import *
 from pulp import LpVariable, LpProblem, lpSum, LpConstraintVar, LpFractionConstraint
 from pulp import constants as const
+from pulp.utilities import makeDict
 import unittest
 
 
@@ -45,6 +46,15 @@ class PuLPTest(unittest.TestCase):
         unittest.TestCase.__init__(self, testName)
         self.solver = solver.copy()
 
+    def tearDown(self):
+        for ext in ['mst', 'log', 'lp', 'mps', 'sol']:
+            filename = "{}.{}".format(self._testMethodName, ext)
+            try:
+                os.remove(filename)
+            except:
+                pass
+        pass
+
     def test_pulp_001(self):
         """
         Test that a variable is deleted when it is suptracted to 0
@@ -69,7 +79,7 @@ class PuLPTest(unittest.TestCase):
         prob += x + z >= 10, "c2"
         prob += -y + z == 7, "c3"
         prob += w >= 0, "c4"
-        print("\t Testing inconsistant lp solution")
+        print("\t Testing inconsistent lp solution")
         # this was a problem with use_mps=false
         if self.solver.__class__ in [PULP_CBC_CMD, COIN_CMD]:
             pulpTestCheck(prob, self.solver, [const.LpStatusInfeasible], {x: 4, y: -1, z: 6, w: 0},
@@ -135,7 +145,7 @@ class PuLPTest(unittest.TestCase):
         elif self.solver.__class__ is GLPK_CMD:
             # GLPK_CMD Does not report unbounded problems, correctly
             pulpTestCheck(prob, self.solver, [const.LpStatusUndefined])
-        elif self.solver.__class__ in [CPLEX_DLL, GUROBI_CMD]:
+        elif self.solver.__class__ in [CPLEX_DLL, GUROBI_CMD, SCIP_CMD]:
             # CPLEX_DLL Does not report unbounded problems, correctly
             # GUROBI_CMD has a very simple interface
             pulpTestCheck(prob, self.solver, [const.LpStatusNotSolved])
@@ -158,7 +168,7 @@ class PuLPTest(unittest.TestCase):
         prob += -y + z == 7, "c3"
         prob += w >= 0, "c4"
         print("\t Testing Long Names")
-        if self.solver.__class__ in [CPLEX_CMD, GLPK_CMD, GUROBI_CMD, MIPCL_CMD]:
+        if self.solver.__class__ in [CPLEX_CMD, GLPK_CMD, GUROBI_CMD, MIPCL_CMD, SCIP_CMD]:
             try:
                 pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
             except PulpError:
@@ -182,7 +192,8 @@ class PuLPTest(unittest.TestCase):
         print("\t Testing repeated Names")
         if self.solver.__class__ in [COIN_CMD, COINMP_DLL, PULP_CBC_CMD,
                                 CPLEX_CMD, CPLEX_DLL, CPLEX_PY,
-                                GLPK_CMD, GUROBI_CMD, PULP_CHOCO_CMD, CHOCO_CMD, MIPCL_CMD, MOSEK]:
+                                GLPK_CMD, GUROBI_CMD, PULP_CHOCO_CMD, CHOCO_CMD,
+                                MIPCL_CMD, MOSEK, SCIP_CMD]:
             try:
                 pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
             except PulpError:
@@ -307,17 +318,13 @@ class PuLPTest(unittest.TestCase):
         prob += x + y <= 5, "c1"
         prob += x + z >= 10, "c2"
         prob += -y + z == 7.5, "c3"
-        # if we give the actual optimal solution to CBC (x=3)
-        #   it returns a weird solution with mip_start
-        x.setInitialValue(4)
+        x.setInitialValue(3)
         y.setInitialValue(-0.5)
         z.setInitialValue(7)
-        self.solver.mip_start = True
+        if self.solver.name in ['GUROBI', 'GUROBI_CMD', 'CPLEX_CMD', 'CPLEX_PY']:
+            self.solver.optionsDict['warmStart'] = True
         print("\t Testing Initial value in MIP solution")
-        if self.solver.__class__ in [COIN_CMD, PULP_CBC_CMD]:
-            warnings.warn("CBC gives a wrong solution with mip start.")
-        else:
-            pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], {x: 3, y: -0.5, z: 7})
+        pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], {x: 3, y: -0.5, z: 7})
 
     def test_pulp_023(self):
         # Initial value (fixed)
@@ -333,7 +340,7 @@ class PuLPTest(unittest.TestCase):
         for v in [x, y, z]:
             v.setInitialValue(solution[v])
             v.fixValue()
-        self.solver.mip_start = True
+        self.solver.optionsDict['warmStart'] = True
         print("\t Testing fixing value in MIP solution")
         pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], solution)
 
@@ -349,7 +356,7 @@ class PuLPTest(unittest.TestCase):
         prob += -y + z == 7.5, "c3"
         self.solver.mip = 0
         print("\t Testing MIP relaxation")
-        if self.solver.__class__ in [GUROBI_CMD, PULP_CHOCO_CMD, CHOCO_CMD, MIPCL_CMD]:
+        if self.solver.__class__ in [GUROBI_CMD, PULP_CHOCO_CMD, CHOCO_CMD, MIPCL_CMD, SCIP_CMD]:
             # gurobi command, choco and mipcl do not let the problem be relaxed
             pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], {x: 3.0, y: -0.5, z: 7})
         else:
@@ -421,7 +428,7 @@ class PuLPTest(unittest.TestCase):
         prob += c1 + c2 == 2
         prob += c1 <= 0
         print("\t Testing another integer infeasible problem")
-        if self.solver.__class__ in [GUROBI_CMD]:
+        if self.solver.__class__ in [GUROBI_CMD, SCIP_CMD]:
             pulpTestCheck(prob, self.solver, [const.LpStatusNotSolved])
         elif self.solver.__class__ in [GLPK_CMD, CPLEX_DLL]:
             # GLPK_CMD returns InfeasibleOrUnbounded
@@ -638,7 +645,7 @@ class PuLPTest(unittest.TestCase):
         elif self.solver.__class__ is GLPK_CMD:
             # GLPK_CMD Does not report unbounded problems, correctly
             pulpTestCheck(prob, self.solver, [const.LpStatusUndefined])
-        elif self.solver.__class__ in [CPLEX_DLL, GUROBI_CMD]:
+        elif self.solver.__class__ in [CPLEX_DLL, GUROBI_CMD, SCIP_CMD]:
             # GLPK_CMD Does not report unbounded problems, correctly
             pulpTestCheck(prob, self.solver, [const.LpStatusNotSolved])
         elif self.solver.__class__ in [PULP_CHOCO_CMD, CHOCO_CMD]:
@@ -665,14 +672,30 @@ class PuLPTest(unittest.TestCase):
         prob += x + z >= 10, "c2"
         prob += -y + z == 7, "c3"
         prob += w >= 0, "c4"
-        data = prob.to_dict()
-        var1, prob1 = prob.from_dict(data)
+        data = prob.toDict()
+        var1, prob1 = LpProblem.fromDict(data)
         x, y, z, w = [var1[name] for name in ['x', 'y', 'z', 'w']]
-        print("\t Testing continuous LP solution")
+        print("\t Testing continuous LP solution - export dict")
         pulpTestCheck(prob1, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
 
+    def test_export_dict_LP_no_obj(self):
+        prob = LpProblem("test_export_dict_LP_no_obj", const.LpMinimize)
+        x = LpVariable("x", 0, 4)
+        y = LpVariable("y", -1, 1)
+        z = LpVariable("z", 0)
+        w = LpVariable("w", 0, 0)
+        prob += x + y >= 5, "c1"
+        prob += x + z == 10, "c2"
+        prob += -y + z <= 7, "c3"
+        prob += w >= 0, "c4"
+        data = prob.toDict()
+        var1, prob1 = LpProblem.fromDict(data)
+        x, y, z, w = [var1[name] for name in ['x', 'y', 'z', 'w']]
+        print("\t Testing export dict for LP")
+        pulpTestCheck(prob1, self.solver, [const.LpStatusOptimal], {x: 4, y: 1, z: 6, w: 0})
+
     def test_export_json_LP(self):
-        name = 'test_export_json_LP'
+        name = self._testMethodName
         prob = LpProblem(name, const.LpMinimize)
         x = LpVariable("x", 0, 4)
         y = LpVariable("y", -1, 1)
@@ -684,17 +707,18 @@ class PuLPTest(unittest.TestCase):
         prob += -y + z == 7, "c3"
         prob += w >= 0, "c4"
         filename = name + '.json'
-        prob.to_json(filename, indent=4)
-        var1, prob1 = prob.from_json(filename)
+        prob.toJson(filename, indent=4)
+        var1, prob1 = LpProblem.fromJson(filename)
         try:
             os.remove(filename)
         except:
             pass
         x, y, z, w = [var1[name] for name in ['x', 'y', 'z', 'w']]
-        print("\t Testing continuous LP solution")
+        print("\t Testing continuous LP solution - export JSON")
         pulpTestCheck(prob1, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
 
     def test_export_dict_MIP(self):
+        import copy
         prob = LpProblem("test_export_dict_MIP", const.LpMinimize)
         x = LpVariable("x", 0, 4)
         y = LpVariable("y", -1, 1)
@@ -703,11 +727,14 @@ class PuLPTest(unittest.TestCase):
         prob += x + y <= 5, "c1"
         prob += x + z >= 10, "c2"
         prob += -y + z == 7.5, "c3"
-        data = prob.to_dict()
-        var1, prob1 = prob.from_dict(data)
+        data = prob.toDict()
+        data_backup = copy.deepcopy(data)
+        var1, prob1 = LpProblem.fromDict(data)
         x, y, z = [var1[name] for name in ['x', 'y', 'z']]
         print("\t Testing export dict MIP")
         pulpTestCheck(prob1, self.solver, [const.LpStatusOptimal], {x: 3, y: -0.5, z: 7})
+        # we also test that we have not modified the dictionary when importing it
+        self.assertDictEqual(data, data_backup)
 
     def test_export_dict_max(self):
         prob = LpProblem("test_export_dict_max", const.LpMaximize)
@@ -720,8 +747,8 @@ class PuLPTest(unittest.TestCase):
         prob += x + z >= 10, "c2"
         prob += -y + z == 7, "c3"
         prob += w >= 0, "c4"
-        data = prob.to_dict()
-        var1, prob1 = prob.from_dict(data)
+        data = prob.toDict()
+        var1, prob1 = LpProblem.fromDict(data)
         x, y, z, w = [var1[name] for name in ['x', 'y', 'z', 'w']]
         print("\t Testing maximize continuous LP solution")
         pulpTestCheck(prob1, self.solver, [const.LpStatusOptimal], {x: 4, y: 1, z: 8, w: 0})
@@ -740,16 +767,16 @@ class PuLPTest(unittest.TestCase):
         prob += x + z >= 10, "c2"
         prob += -y + z == 7, "c3"
         prob += w >= 0, "c4"
-        data = self.solver.to_dict()
-        solver1 = get_solver_from_dict(data)
-        print("\t Testing continuous LP solution")
+        data = self.solver.toDict()
+        solver1 = getSolverFromDict(data)
+        print("\t Testing continuous LP solution - export solver dict")
         pulpTestCheck(prob, solver1, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
 
     def test_export_solver_json(self):
         if self.solver.name == 'CPLEX_DLL':
             warnings.warn("CPLEX_DLL does not like being exported")
             return
-        name = 'test_export_solver_json'
+        name = self._testMethodName
         prob = LpProblem(name, const.LpMinimize)
         x = LpVariable("x", 0, 4)
         y = LpVariable("y", -1, 1)
@@ -761,24 +788,26 @@ class PuLPTest(unittest.TestCase):
         prob += -y + z == 7, "c3"
         prob += w >= 0, "c4"
         self.solver.mip = True
-        self.solver.msg = True
-        self.solver.warmStart = True
-        self.solver.msg = True
         logFilename = name + '.log'
-        self.solver.optionsDict = dict(gapRel=0.1, gapAbs=1, maxMemory=1000,
-                                       maxNodes=1, threads=1, logPath=logFilename)
+        if self.solver.name == 'CPLEX_CMD':
+            self.solver.optionsDict = dict(gapRel=0.1, gapAbs=1, maxMemory=1000,
+                                           maxNodes=1, threads=1, logPath=logFilename,
+                                           warmStart=True)
+        elif self.solver.name in ['GUROBI_CMD', 'COIN_CMD', 'PULP_CBC_CMD']:
+            self.solver.optionsDict = dict(gapRel=0.1, gapAbs=1, threads=1, logPath=logFilename,
+                                           warmStart=True)
         filename = name + '.json'
-        self.solver.to_json(filename, indent=4)
-        solver1 = get_solver_from_json(filename)
+        self.solver.toJson(filename, indent=4)
+        solver1 = getSolverFromJson(filename)
         try:
             os.remove(filename)
         except:
             pass
-        print("\t Testing continuous LP solution")
+        print("\t Testing continuous LP solution - export solver JSON")
         pulpTestCheck(prob, solver1, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
 
     def test_timeLimit(self):
-        name = 'test_timelimit'
+        name = self._testMethodName
         prob = LpProblem(name, const.LpMinimize)
         x = LpVariable("x", 0, 4)
         y = LpVariable("y", -1, 1)
@@ -791,8 +820,156 @@ class PuLPTest(unittest.TestCase):
         prob += w >= 0, "c4"
         self.solver.timeLimit = 20
         # CHOCO has issues when given a time limit
+        print("\t Testing timeLimit argument")
         if self.solver.name != 'PULP_CHOCO_CMD':
             pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
+
+    def test_assignInvalidStatus(self):
+        print("\t Testing invalid status")
+        t = LpProblem('test')
+        Invalid = -100
+        self.assertRaises(const.PulpError, lambda: t.assignStatus(Invalid))
+        self.assertRaises(const.PulpError, lambda: t.assignStatus(0, Invalid))
+
+    def test_logPath(self):
+        name = self._testMethodName
+        prob = LpProblem(name, const.LpMinimize)
+        x = LpVariable("x", 0, 4)
+        y = LpVariable("y", -1, 1)
+        z = LpVariable("z", 0)
+        w = LpVariable("w", 0)
+        prob += x + 4 * y + 9 * z, "obj"
+        prob += x + y <= 5, "c1"
+        prob += x + z >= 10, "c2"
+        prob += -y + z == 7, "c3"
+        prob += w >= 0, "c4"
+        logFilename = name + '.log'
+        self.solver.optionsDict['logPath'] = logFilename
+        if self.solver.name in ['CPLEX_PY', 'CPLEX_CMD', 'GUROBI', 'GUROBI_CMD', 'PULP_CBC_CMD', 'COIN_CMD']:
+            print("\t Testing logPath argument")
+            pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
+            if not os.path.exists(logFilename):
+                raise PulpError("Test failed for solver: {}".format(self.solver))
+            if not os.path.getsize(logFilename):
+                raise PulpError("Test failed for solver: {}".format(self.solver))
+
+    def test_makeDict_behavior(self):
+        """
+        Test if makeDict is returning the expected value.
+        """
+        headers = [["A", "B"], ["C", "D"]]
+        values = [[1, 2], [3, 4]]
+        target = {"A": {"C": 1, "D": 2}, "B": {"C": 3, "D": 4}}
+        dict_with_default = makeDict(headers, values, default=0)
+        dict_without_default = makeDict(headers, values)
+        print("\t Testing makeDict general behavior")
+        self.assertEqual(dict_with_default, target)
+        self.assertEqual(dict_without_default, target)
+
+    def test_makeDict_default_value(self):
+        """
+        Test if makeDict is returning a default value when specified.
+        """
+        headers = [["A", "B"], ["C", "D"]]
+        values = [[1, 2], [3, 4]]
+        dict_with_default = makeDict(headers, values, default=0)
+        dict_without_default = makeDict(headers, values)
+        print("\t Testing makeDict default value behavior")
+        # Check if a default value is passed
+        self.assertEqual(dict_with_default["X"]["Y"], 0)
+        # Check if a KeyError is raised
+        _func = lambda: dict_without_default["X"]["Y"]
+        self.assertRaises(KeyError, _func)
+
+    def test_importMPS_maximize(self):
+        name = self._testMethodName
+        prob = LpProblem(name, const.LpMaximize)
+        x = LpVariable("x", 0, 4)
+        y = LpVariable("y", -1, 1)
+        z = LpVariable("z", 0)
+        w = LpVariable("w", 0)
+        prob += x + 4 * y + 9 * z, "obj"
+        prob += x + y <= 5, "c1"
+        prob += x + z >= 10, "c2"
+        prob += -y + z == 7, "c3"
+        prob += w >= 0, "c4"
+        filename = name + '.mps'
+        prob.writeMPS(filename)
+        _vars, prob2 = LpProblem.fromMPS(filename, sense=prob.sense)
+        _dict1 = getSortedDict(prob)
+        _dict2 = getSortedDict(prob2)
+        print("\t Testing reading MPS files - maximize")
+        self.assertDictEqual(_dict1, _dict2)
+
+    def test_importMPS_integer(self):
+        name = self._testMethodName
+        prob = LpProblem(name, const.LpMinimize)
+        x = LpVariable("x", 0, 4)
+        y = LpVariable("y", -1, 1)
+        z = LpVariable("z", 0, None, const.LpInteger)
+        prob += 1.1 * x + 4.1 * y + 9.1 * z, "obj"
+        prob += x + y <= 5, "c1"
+        prob += x + z >= 10, "c2"
+        prob += -y + z == 7.5, "c3"
+        filename = name + '.mps'
+        prob.writeMPS(filename)
+        _vars, prob2 = LpProblem.fromMPS(filename, sense=prob.sense)
+        _dict1 = getSortedDict(prob)
+        _dict2 = getSortedDict(prob2)
+        print("\t Testing reading MPS files - integer variable")
+        self.assertDictEqual(_dict1, _dict2)
+
+    def test_importMPS_binary(self):
+        name = self._testMethodName
+        prob = LpProblem(name, const.LpMaximize)
+        dummy = LpVariable('dummy')
+        c1 = LpVariable('c1', 0, 1, const.LpBinary)
+        c2 = LpVariable('c2', 0, 1, const.LpBinary)
+        prob += dummy
+        prob += c1 + c2 == 2
+        prob += c1 <= 0
+        filename = name + '.mps'
+        prob.writeMPS(filename)
+        _vars, prob2 = LpProblem.fromMPS(filename, sense=prob.sense, dropConsNames=True)
+        _dict1 = getSortedDict(prob, keyCons='constant')
+        _dict2 = getSortedDict(prob2, keyCons='constant')
+        print("\t Testing reading MPS files - binary variable, no constraint names")
+        self.assertDictEqual(_dict1, _dict2)
+
+    def test_unset_objective_value__is_valid(self):
+        """Given a valid problem that does not converge,
+        assert that it is still categorised as valid.
+        """
+        name = self._testMethodName
+        prob = LpProblem(name, const.LpMaximize)
+        x = LpVariable('x')
+        prob += (0 * x)
+        prob += (x >= 1)
+        pulpTestCheck(prob, self.solver, [const.LpStatusOptimal])
+        self.assertTrue(prob.valid())
+
+    def test_unbounded_problem__is_not_valid(self):
+        """Given an unbounded problem, where x will tend to infinity
+        to maximise the objective, assert that it is categorised
+        as invalid."""
+        name = self._testMethodName
+        prob = LpProblem(name, const.LpMaximize)
+        x = LpVariable('x')
+        prob += (1000 * x)
+        prob += (x >= 1)
+        self.assertFalse(prob.valid())
+
+    def test_infeasible_problem__is_not_valid(self):
+        """Given a problem where x cannot converge to any value
+        given conflicting constraints, assert that it is invalid."""
+        name = self._testMethodName
+        prob = LpProblem(name, const.LpMaximize)
+        x = LpVariable('x')
+        prob += (1 * x)
+        prob += (x >= 2)  # Constraint x to be more than 2
+        prob += (x <= 1)  # Constraint x to be less than 1
+        pulpTestCheck(prob, self.solver, [const.LpStatusInfeasible, const.LpStatusUndefined])
+        self.assertFalse(prob.valid())
 
 
 def pulpTestCheck(prob, solver, okstatus, sol=None,
@@ -862,6 +1039,7 @@ def suite():
         CHOCO_CMD,
         MIPCL_CMD,
         MOSEK,
+        SCIP_CMD,
     ]
 
     loader = TestLoaderWithKwargs()
@@ -877,6 +1055,12 @@ def suite():
     return suite
 
 
+def getSortedDict(prob, keyCons='name', keyVars='name'):
+    _dict = prob.toDict()
+    _dict['constraints'].sort(key=lambda v: v[keyCons])
+    _dict['variables'].sort(key=lambda v: v[keyVars])
+    return _dict
+
 if __name__ == '__main__':
     # Tests
     runner = unittest.TextTestRunner(verbosity=0)
@@ -885,4 +1069,3 @@ if __name__ == '__main__':
     # suite = unittest.TestSuite()
     # suite.addTest(PuLPTest('test_pulp_060', PULP_CBC_CMD(msg=0)))
     # unittest.TextTestRunner(verbosity=0).run(suite)
-

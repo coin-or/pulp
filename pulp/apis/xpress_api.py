@@ -33,34 +33,43 @@ class XPRESS(LpSolver_CMD):
     """The XPRESS LP solver"""
     name = 'XPRESS'
 
-    def __init__(self, maxSeconds=None, targetGap=None, heurFreq=None,
-            heurStra=None, coverCuts=None, preSolve=None, *args, **kwargs):
+    def __init__(self, mip=True, msg=True, timeLimit=None,
+                 gapRel=None, options=None,
+                 keepFiles=False, path=None,
+                 maxSeconds=None, targetGap=None, heurFreq=None,
+                 heurStra=None, coverCuts=None, preSolve=None):
         """
         Initializes the Xpress solver.
 
-        @param maxSeconds: the maximum time that the Optimizer will run before it terminates
-        @param targetGap: global search will terminate if:
-                          abs(MIPOBJVAL - BESTBOUND) <= MIPRELSTOP * BESTBOUND
-        @param heurFreq: the frequency at which heuristics are used in the tree search
-        @param heurStra: heuristic strategy
-        @param coverCuts: the number of rounds of lifted cover inequalities at the top node
-        @param preSolve: whether presolving should be performed before the main algorithm
-        @param options: Adding more options, e.g. options = ["NODESELECTION=1", "HEURDEPTH=5"]
+        :param bool mip: if False, assume LP even if integer variables
+        :param bool msg: if False, no log is shown
+        :param float timeLimit: maximum time for solver (in seconds)
+        :param float gapRel: relative gap tolerance for the solver to stop (in fraction)
+        :param maxSeconds: deprecated for timeLimit
+        :param targetGap: deprecated for gapRel
+        :param heurFreq: the frequency at which heuristics are used in the tree search
+        :param heurStra: heuristic strategy
+        :param coverCuts: the number of rounds of lifted cover inequalities at the top node
+        :param preSolve: whether presolving should be performed before the main algorithm
+        :param options: Adding more options, e.g. options = ["NODESELECTION=1", "HEURDEPTH=5"]
                         More about Xpress options and control parameters please see
                         http://tomopt.com/docs/xpress/tomlab_xpress008.php
         """
-        LpSolver_CMD.__init__(self, *args, **kwargs)
         if maxSeconds:
-            warnings.warn("Parameter maxSeconds is being depreciated for standard 'timeLimit'")
-            if self.timelimit:
-                warnings.warn("Parameter timeLimit and maxSeconds passed, using timeLimit ")
+            warnings.warn("Parameter maxSeconds is being depreciated for timeLimit")
+            if timeLimit is not None:
+                warnings.warn("Parameter timeLimit and maxSeconds passed, using timeLimit")
             else:
-                self.timelimit = maxSeconds
-        self.targetGap = targetGap
-        self.heurFreq = heurFreq
-        self.heurStra = heurStra
-        self.coverCuts = coverCuts
-        self.preSolve = preSolve
+                timeLimit = maxSeconds
+        if targetGap is not None:
+            warnings.warn("Parameter targetGap is being depreciated for gapRel")
+            if gapRel is not None:
+                warnings.warn("Parameter gapRel and epgap passed, using gapRel")
+            else:
+                gapRel = targetGap
+        LpSolver_CMD.__init__(self, gapRel=gapRel, mip=mip, msg=msg, timeLimit=timeLimit,
+                              options=options, path=path, keepFiles=keepFiles, heurFreq=heurFreq,
+                              heurStra=heurStra, coverCuts=coverCuts, preSolve=preSolve)
 
     def defaultPath(self):
         return self.executableExtension("optimizer")
@@ -79,18 +88,23 @@ class XPRESS(LpSolver_CMD):
         if not self.msg:
             xpress.stdin.write("OUTPUTLOG=0\n")
         xpress.stdin.write("READPROB "+tmpLp+"\n")
-        if self.timelimit:
-            xpress.stdin.write("MAXTIME=%d\n" % self.timelimit)
-        if self.targetGap:
-            xpress.stdin.write("MIPRELSTOP=%f\n" % self.targetGap)
-        if self.heurFreq:
-            xpress.stdin.write("HEURFREQ=%d\n" % self.heurFreq)
-        if self.heurStra:
-            xpress.stdin.write("HEURSTRATEGY=%d\n" % self.heurStra)
-        if self.coverCuts:
-            xpress.stdin.write("COVERCUTS=%d\n" % self.coverCuts)
-        if self.preSolve:
-            xpress.stdin.write("PRESOLVE=%d\n" % self.preSolve)
+        if self.timeLimit:
+            xpress.stdin.write("MAXTIME=%d\n" % self.timeLimit)
+        targetGap = self.optionsDict.get('gapRel')
+        if targetGap:
+            xpress.stdin.write("MIPRELSTOP=%f\n" % targetGap)
+        heurFreq = self.optionsDict.get('heurFreq')
+        if heurFreq:
+            xpress.stdin.write("HEURFREQ=%d\n" % heurFreq)
+        heurStra = self.optionsDict.get('heurStra')
+        if heurStra:
+            xpress.stdin.write("HEURSTRATEGY=%d\n" % heurStra)
+        coverCuts = self.optionsDict.get('coverCuts')
+        if coverCuts:
+            xpress.stdin.write("COVERCUTS=%d\n" % coverCuts)
+        preSolve = self.optionsDict.get('preSolve')
+        if preSolve:
+            xpress.stdin.write("PRESOLVE=%d\n" % preSolve)
         for option in self.options:
             xpress.stdin.write(option+"\n")
         if lp.sense == constants.LpMaximize:

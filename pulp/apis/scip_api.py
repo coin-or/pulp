@@ -35,6 +35,19 @@ class SCIP_CMD(LpSolver_CMD):
     """The SCIP optimization solver"""
     name ='SCIP_CMD'
 
+    def __init__(self, path=None, keepFiles=False, mip=True, msg=True, options=None, timeLimit=None, maxNodes=None):
+        """
+        :param bool mip: if False, assume LP even if integer variables
+        :param bool msg: if False, no log is shown
+        :param list options: list of additional options to pass to solver
+        :param bool keepFiles: if True, files are saved in the current directory and not deleted after solving
+        :param str path: path to the solver binary
+        :param float timeLimit: maximum time for solver (in seconds)
+        :param int maxNodes: max number of nodes during branching. Stops the solving when reached.
+        """
+        LpSolver_CMD.__init__(self, mip=mip, msg=msg, options=options, path=path,
+                              keepFiles=keepFiles, timeLimit=timeLimit, maxNodes=maxNodes)
+
     SCIP_STATUSES = {
         'unknown': constants.LpStatusUndefined,
         'user interrupt': constants.LpStatusNotSolved,
@@ -52,6 +65,11 @@ class SCIP_CMD(LpSolver_CMD):
         'unbounded': constants.LpStatusUnbounded,
         'infeasible or unbounded': constants.LpStatusNotSolved,
     }
+    NO_SOLUTION_STATUSES = {
+        constants.LpStatusInfeasible,
+        constants.LpStatusUnbounded,
+        constants.LpStatusNotSolved,
+    }
 
     def defaultPath(self):
         return self.executableExtension(scip_path)
@@ -67,13 +85,18 @@ class SCIP_CMD(LpSolver_CMD):
 
         tmpLp, tmpSol = self.create_tmp_files(lp.name, 'lp', 'sol')
         lp.writeLP(tmpLp)
-        proc = [
-            '%s' % self.path, '-c', 'read "%s"' % tmpLp, '-c', 'optimize',
-            '-c', 'write solution "%s"' % tmpSol, '-c', 'quit'
-        ]
+
+        proc = ['%s' % self.path, '-c', 'read "%s"' % tmpLp]
+        if self.timeLimit is not None:
+            proc.extend(['-c', 'set limits time {}'.format(self.timeLimit)])
+
+        maxNodes = self.optionsDict.get('maxNodes')
+        if maxNodes is not None:
+            proc.extend(['-c', 'set limits nodes {}'.format(maxNodes)])
         proc.extend(self.options)
         if not self.msg:
             proc.append('-q')
+        proc.extend(['-c', 'optimize', '-c', 'write solution "%s"' % tmpSol, '-c', 'quit'])
 
         self.solution_time = clock()
         subprocess.check_call(proc, stdout=sys.stdout, stderr=sys.stderr)
@@ -98,16 +121,21 @@ class SCIP_CMD(LpSolver_CMD):
     def readsol(filename):
         """Read a SCIP solution file"""
         with open(filename) as f:
-            # First line must containt 'solution status: <something>'
+
+            # First line must contain 'solution status: <something>'
             try:
                 line = f.readline()
                 comps = line.split(': ')
                 assert comps[0] == 'solution status'
                 assert len(comps) == 2
-            except:
-                raise PulpSolverError("Can't read SCIP solver output: %r" % line)
+            except Exception:
+                raise PulpSolverError("Can't get SCIP solver status: %r" % line)
 
             status = SCIP_CMD.SCIP_STATUSES.get(comps[1].strip(), constants.LpStatusUndefined)
+            values = {}
+
+            if status in SCIP_CMD.NO_SOLUTION_STATUSES:
+                return status, values
 
             # Look for an objective value. If we can't find one, stop.
             try:
@@ -116,11 +144,10 @@ class SCIP_CMD(LpSolver_CMD):
                 assert comps[0] == 'objective value'
                 assert len(comps) == 2
                 float(comps[1].strip())
-            except:
-                raise PulpSolverError("Can't read SCIP solver output: %r" % line)
+            except Exception:
+                raise PulpSolverError("Can't get SCIP solver objective: %r" % line)
 
             # Parse the variable values.
-            values = {}
             for line in f:
                 try:
                     comps = line.split()
@@ -128,7 +155,7 @@ class SCIP_CMD(LpSolver_CMD):
                 except:
                     raise PulpSolverError("Can't read SCIP solver output: %r" % line)
 
-        return status, values
+            return status, values
 
 
 SCIP = SCIP_CMD

@@ -1,18 +1,18 @@
 How to warm-start a solver
 ======================================
 
-Many solvers permit the possibility of giving a valid (or parcially valid in some cases) solution so the solver can start from that solution. This can lead in performance gains.
+Many solvers permit the possibility of giving a valid (or parcially valid in some cases) solution so the solver can start from that solution. This can lead to performance gains.
 
 
 Supported solver APIs
 -----------------------
 
-The present solver APIs that work with PuLP mip-start are the following: ``CPLEX_CMD``, ``GUROBI_CMD``, ``PULP_CBC_CMD``, ``CBC_CMD``.
+The present solver APIs that work with PuLP warm-start are the following: ``CPLEX_CMD``, ``GUROBI_CMD``, ``PULP_CBC_CMD``, ``CBC_CMD``, ``CPLEX_PY``, ``GUROBI``.
 
 Example problem
 ----------------
 
-We will use as example the model in :ref:`set-partitioning-problem`. Below is the complete modified code.
+We will use as example the model in :ref:`set-partitioning-problem`. At the end is the complete modified code.
 
 
 Filling a variable with a value
@@ -40,13 +40,13 @@ In our example, if we want to get those two same values, we would do the followi
 Activating MIP start
 ---------------------
 
-Once we have assigned values to all variables and we want to run a model while reusing those values, we just need to pass the ``mip_start=True`` argument to the solver when initiating it.
+Once we have assigned values to all variables and we want to run a model while reusing those values, we just need to pass the ``warmStart=True`` argument to the solver when initiating it.
 
 For example, using the default PuLP solver we would do:
 
 .. code-block:: python
 
-    seating_model.solve(pulp.PULP_CBC_CMD(msg=True, mip_start=True))
+    seating_model.solve(pulp.PULP_CBC_CMD(msg=True, warmStart=True))
 
 I usually turn ``msg=True`` so I can see the messages from the solver confirming it loaded the solution correctly.
 
@@ -70,6 +70,6 @@ This implies setting the lower bound and the upperbound to the value of the vari
 Whole Example
 -------------
 
-If you want to see the complete code of the mip start version of the example, :download:`click here <../../../examples/wedding_initial.py>` or see below.
+If you want to see the complete code of the warm start version of the example, :download:`click here <../../../examples/wedding_initial.py>` or see below.
 
 .. literalinclude:: ../../../examples/wedding_initial.py

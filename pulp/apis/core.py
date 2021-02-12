@@ -175,32 +175,22 @@ class LpSolver:
     """A generic LP Solver"""
     name = 'LpSolver'
 
-    def __init__(self, mip = True, msg = True, options = None, mip_start=False, timeLimit=None,
-                 warmStart=False, *args, **kwargs):
+    def __init__(self, mip=True, msg=True, options=None, timeLimit=None,
+                 *args, **kwargs):
         """
-
-        :param bool mip: if False, assume LP even if integer variables.
-        :param bool msg: if False, no log is shown.
+        :param bool mip: if False, assume LP even if integer variables
+        :param bool msg: if False, no log is shown
         :param list options:
-        :param bool warmStart:
-        :param float timeLimit: maximum time for solver
+        :param float timeLimit: maximum time for solver (in seconds)
         :param args:
         :param kwargs: optional named options to pass to each solver,
-                        e.g. gapRel=0.1, gapAbs=10, logFile="",
-
+                        e.g. gapRel=0.1, gapAbs=10, logPath="",
         """
         if options is None:
             options = []
         self.mip = mip
         self.msg = msg
         self.options = options
-        self.warmStart = warmStart
-        if mip_start:
-            warnings.warn("Parameter mip_start is being depreciated for standard 'warmStart'")
-            if warmStart:
-                warnings.warn("Parameter mipStart and mip_start passed, using warmStart")
-            else:
-                self.warmStart = mip_start
         self.timeLimit = timeLimit
 
         # here we will store all other relevant information including:
@@ -330,31 +320,42 @@ class LpSolver:
             elemBase, lowerBounds, upperBounds, initValues, colNames,
             rowNames, columnType, self.n2v, self.n2c)
 
-    def to_dict(self):
+    def toDict(self):
         data = dict(solver=self.name)
-        translate = {}
-        for v in ['mip', 'msg', 'warmStart', 'timeLimit', 'options', 'keepFiles']:
-            k = translate.get(v, v)
+        for k in ['mip', 'msg', 'keepFiles']:
             try:
-                data[k] = getattr(self, v)
+                data[k] = getattr(self, k)
+            except AttributeError:
+                pass
+        for k in ['timeLimit', 'options']:
+            # with these ones, we only export if it has some content:
+            try:
+                value = getattr(self, k)
+                if value:
+                    data[k] = value
             except AttributeError:
                 pass
         data.update(self.optionsDict)
         return data
+    to_dict = toDict
 
-    def to_json(self, filename, *args, **kwargs):
+    def toJson(self, filename, *args, **kwargs):
         with open(filename, 'w') as f:
-            json.dump(self.to_dict(), f, *args,  **kwargs)
-
+            json.dump(self.toDict(), f, *args, **kwargs)
+    to_json = toJson
 
 class LpSolver_CMD(LpSolver):
     """A generic command line LP Solver"""
 
     name = 'LpSolver_CMD'
 
-    def __init__(self, path=None, keepFiles=0, *args, **kwargs):
+    def __init__(self, path=None, keepFiles=False, *args, **kwargs):
         """
 
+        :param bool mip: if False, assume LP even if integer variables
+        :param bool msg: if False, no log is shown
+        :param list options: list of additional options to pass to solver (format depends on the solver)
+        :param float timeLimit: maximum time for solver (in seconds)
         :param str path: a path to the solver binary
         :param bool keepFiles: if True, files are saved in the current directory and not deleted after solving
         :param args: parameters to pass to :py:class:`LpSolver`

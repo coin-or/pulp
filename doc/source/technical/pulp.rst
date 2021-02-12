@@ -44,6 +44,9 @@ The LpProblem Class
    .. automethod:: roundSolution
    .. automethod:: setObjective
    .. automethod:: writeLP
+   .. automethod:: writeMPS
+   .. automethod:: toJson
+   .. automethod:: fromJson
 
 Variables and Expressions
 -------------------------
@@ -68,7 +71,8 @@ integer.
 
 .. autoclass:: LpAffineExpression
    :show-inheritance:
-
+   :members:
+   
    In brief, :math:`\textsf{LpAffineExpression([(x[i],a[i]) for i in
    I])} = \sum_{i \in I} a_i x_i` where  (note the order):
 
@@ -82,9 +86,11 @@ integer.
 
 Constraints
 -----------
+
 .. autoclass::  LpConstraint
    :show-inheritance:
-   :members: makeElasticSubProblem
+   :members:
+
 
 .. autoclass:: FixedElasticSubProblem
    :show-inheritance:

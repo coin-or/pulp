@@ -25,6 +25,7 @@ relevant information you will need.
    CaseStudies/index
    guides/index
    technical/index
+   plugins/index
    
 Authors
 =======
@@ -32,12 +33,3 @@ Authors
 The authors of this documentation (the pulp documentation team) include:
 
 .. include:: AUTHORS.txt
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-

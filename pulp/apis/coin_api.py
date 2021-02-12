@@ -42,27 +42,53 @@ class COIN_CMD(LpSolver_CMD):
     def defaultPath(self):
         return self.executableExtension(cbc_path)
 
-    def __init__(self, fracGap = None, maxSeconds = None, *args, **kwargs):
+    def __init__(self, mip=True, msg=True, timeLimit=None,
+                 fracGap=None, maxSeconds=None, gapRel=None, gapAbs=None,
+                 presolve=None, cuts=None, strong=None, options=None,
+                 warmStart=False, keepFiles=False, path=None, threads=None,
+                 logPath=None, mip_start=False):
         """
-        :param fracGap:
-        :param maxSeconds:
-        :param args:
-        :param kwargs: includes presolve, cuts, strong
+        :param bool mip: if False, assume LP even if integer variables
+        :param bool msg: if False, no log is shown
+        :param float timeLimit: maximum time for solver (in seconds)
+        :param float gapRel: relative gap tolerance for the solver to stop (in fraction)
+        :param float gapAbs: absolute gap tolerance for the solver to stop
+        :param int threads: sets the maximum number of threads
+        :param list options: list of additional options to pass to solver
+        :param bool warmStart: if True, the solver will use the current value of variables as a start
+        :param bool keepFiles: if True, files are saved in the current directory and not deleted after solving
+        :param str path: path to the solver binary
+        :param str logPath: path to the log file
+        :param bool presolve: if True, adds presolve on
+        :param bool cuts: if True, adds gomory on knapsack on probing on
+        :param bool strong: if True, adds strong
+        :param float fracGap: deprecated for gapRel
+        :param float maxSeconds: deprecated for timeLimit
+        :param bool mip_start: deprecated for warmStart
         """
 
-        if fracGap:
-            warnings.warn("Parameter fracGap is being depreciated for standard 'gapRel'")
-            if 'gapRel' in kwargs:
-                warnings.warn("Parameter kwargs and fracGap passed, using kwargs")
+        if fracGap is not None:
+            warnings.warn("Parameter fracGap is being depreciated for gapRel")
+            if gapRel is not None:
+                warnings.warn("Parameter gapRel and fracGap passed, using gapRel")
             else:
-                kwargs['gapRel'] = fracGap
-        LpSolver_CMD.__init__(self, *args, **kwargs)
-        if maxSeconds:
-            warnings.warn("Parameter maxSeconds is being depreciated for standard 'timeLimit'")
-            if self.timeLimit:
-                warnings.warn("Parameter timeLimit and maxSeconds passed, using timeLimit ")
+                gapRel = fracGap
+        if maxSeconds is not None:
+            warnings.warn("Parameter maxSeconds is being depreciated for timeLimit")
+            if timeLimit is not None:
+                warnings.warn("Parameter timeLimit and maxSeconds passed, using timeLimit")
             else:
-                self.timeLimit = maxSeconds
+                timeLimit = maxSeconds
+        if mip_start:
+            warnings.warn("Parameter mip_start is being depreciated for warmStart")
+            if warmStart:
+                warnings.warn("Parameter mipStart and mip_start passed, using warmStart")
+            else:
+                warmStart = mip_start
+        LpSolver_CMD.__init__(self, gapRel=gapRel, mip=mip, msg=msg, timeLimit=timeLimit,
+                              presolve=presolve, cuts=cuts, strong=strong, options=options,
+                              warmStart=warmStart, path=path, keepFiles=keepFiles,
+                              threads=threads, gapAbs=gapAbs, logPath=logPath)
 
     def copy(self):
         """Make a copy of self"""
@@ -96,7 +122,7 @@ class COIN_CMD(LpSolver_CMD):
             constraintsNames = dict((c, c) for c in lp.constraints)
             objectiveName = None
             cmds = ' ' + tmpLp + " "
-        if self.warmStart:
+        if self.optionsDict.get('warmStart', False):
             self.writesol(tmpMst, lp, vs, variablesNames, constraintsNames)
             cmds += 'mips {} '.format(tmpMst)
         if self.timeLimit is not None:
@@ -114,6 +140,11 @@ class COIN_CMD(LpSolver_CMD):
             pipe = None
         else:
             pipe = open(os.devnull, 'w')
+        logPath = self.optionsDict.get('logPath')
+        if logPath:
+            if self.msg:
+                warnings.warn('`logPath` argument replaces `msg=1`. The output will be redirected to the log file.')
+            pipe = open(self.optionsDict['logPath'], 'w')
         log.debug(self.path + cmds)
         args = []
         args.append(self.path)
@@ -148,7 +179,7 @@ class COIN_CMD(LpSolver_CMD):
                  )
 
         return [v.format(self.optionsDict[k]) for k, v in params_eq.items()
-                if k in self.optionsDict]
+                if self.optionsDict.get(k) is not None]
 
     def readsol_MPS(self, filename, lp, vs, variablesNames, constraintsNames, objectiveName=None):
         """
@@ -254,14 +285,19 @@ class PULP_CBC_CMD(COIN_CMD):
             """Solve a well formulated lp problem"""
             raise PulpSolverError("PULP_CBC_CMD: Not Available (check permissions on %s)" % self.pulp_cbc_path)
     else:
-        def __init__(self, path=None, *args, **kwargs):
-            """
-            just loads up COIN_CMD with the path set
-            """
+        def __init__(self, mip=True, msg=True, timeLimit=None,
+                     fracGap=None, maxSeconds=None, gapRel=None, gapAbs=None,
+                     presolve=None, cuts=None, strong=None, options=None,
+                     warmStart=False, keepFiles=False, path=None, threads=None,
+                     logPath=None, mip_start=False):
             if path is not None:
                 raise PulpSolverError('Use COIN_CMD if you want to set a path')
             #check that the file is executable
-            COIN_CMD.__init__(self, path=self.pulp_cbc_path, *args, **kwargs)
+            COIN_CMD.__init__(self, path=self.pulp_cbc_path, mip=mip, msg=msg, timeLimit=timeLimit,
+                              fracGap=fracGap, maxSeconds=maxSeconds, gapRel=gapRel, gapAbs=gapAbs,
+                              presolve=presolve, cuts=cuts, strong=strong, options=options,
+                              warmStart=warmStart, keepFiles=keepFiles, threads=threads,
+                              logPath=logPath, mip_start=mip_start)
 
 
 def COINMP_DLL_load_dll(path):

@@ -4,32 +4,27 @@ Installation
 Note that to install PuLP you must first have a working python installation as
 described in `installing python`_.
 
-PuLP requires Python >= 2.7.
+PuLP requires Python >= 2.7 or Python >= 3.4.
 
 The latest version of PuLP can be freely obtained from github_.
-Please note that this version of PuLP has not been tested with operating systems
-other than Microsoft Windows and Ubuntu Linux.
 
 Pip and pypi installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-By far the easiest way to install pulp is through the use of pip_ and
-CheeseShop_.
+By far the easiest way to install pulp is through the use of pip_.
 
-* Install pip
-    * In  windows (please make sure pip is on your path)::
+* In  windows (please make sure pip is on your path)::
 
-        c:\Python34\Scripts\> pip install pulp
+    c:\Python34\Scripts\> pip install pulp
 
-    * In Linux::
+* In Linux::
 
-        $ sudo pip install pulp
-        $ sudo pulptest             #needed to get the default solver to work
+    $ sudo pip install pulp
+    $ sudo pulptest             #needed to get the default solver to work
 
 * Then follow the instructions below to test your installation
 
-To access the examples and pulp source code use the instructions below
-to install from source
+To access the examples and pulp source code use the instructions below to install from source.
 
 
 Windows installation from source
@@ -37,7 +32,8 @@ Windows installation from source
 
 * Install python (`installing python`_)
 * Download the `PuLP zipfile`_
-* Extract the zipfile to a suitable location (such as the desktop - the folder will be no longer required after installation)
+* Extract the zipfile to a suitable location (such as the desktop: the folder will be no longer required after installation)
+
    * Open a command prompt by clicking "Run" in the Start Menu, and type 'cmd' in the window and push enter.
    * Navigate to the extracted folder with the setup file in it. [Do this by typing 'cd foldername' at the prompt, where 'cd' stands for current directory and the 'foldername' is the name of the folder to open in the path already listed to the left of the prompt. To return back to a root drive, type 'cd C:\']
    * Type 'setup.py install' at the command prompt. This will install all the PuLP functions into Python's site-packages directory.
@@ -46,9 +42,7 @@ The PuLP function library is now able to be imported from any python command lin
 
 >>> from pulp import *
 
-to load in the functions. (You need to re-import the functions each time after
-you close the GUI) PuLP is written in a programming language called Python, and
-to use PuLP you must write Python code to describe your optimization problem.
+to load in the functions. (You need to re-import the functions each time after you close the GUI) PuLP is written in a programming language called Python, and to use PuLP you must write Python code to describe your optimization problem.
 
 Linux Installation
 ~~~~~~~~~~~~~~~~~~
@@ -62,12 +56,13 @@ Linux Installation
     $ sudo python setup.py install
 
 * install a solver for pulp to use either
+
     * use the included 64 or 32-bit binaries cbc-32 and cbc-64
     * install glpk_  debain based distributions may use the following
 
     .. code-block:: sh
 
-        $ sudo apt-get install glpk
+        $ sudo apt-get install glpk-utils
 
     * install gurobi_ (free academic licenses)
     * install cplex_ (also a license for academics)
@@ -123,8 +118,7 @@ Solver pulp.solvers.PYGLPK unavailable
 Solver pulp.solvers.YAPOSIB unavailable
 
 .. _`installing python`: http://www.diveintopython.org/installing_python/index.html
-.. _github: https://github.com/stumitchell/pulp-or
+.. _github: https://github.com/coin-or/pulp-or
 .. _pip: https://pypi.python.org/pypi/pip
-.. _CheeseShop: http://pypi.python.org
-.. _`PuLP zipfile`: https://github.com/stumitchell/pulp-or/archive/master.zip
+.. _`PuLP zipfile`: https://github.com/coi-nor/pulp-or/archive/master.zip
 

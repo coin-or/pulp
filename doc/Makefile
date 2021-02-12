@@ -3,9 +3,9 @@
 
 # You can set these variables from the command line.
 SPHINXOPTS    =
-SPHINXBUILD   = sphinx-build
+SPHINXBUILD   = python3 -msphinx
 SOURCEDIR     = source
-BUILDDIR      = ./../../pulp-or-docs
+BUILDDIR      = ./build
 PDFBUILDDIR   = /tmp
 PDF           = ../manual.pdf
 

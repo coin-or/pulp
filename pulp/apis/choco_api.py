@@ -34,6 +34,18 @@ class CHOCO_CMD(LpSolver_CMD):
     """The CHOCO_CMD solver"""
     name = 'CHOCO_CMD'
 
+    def __init__(self, path=None, keepFiles=False, mip=True, msg=True, options=None, timeLimit=None):
+        """
+        :param bool mip: if False, assume LP even if integer variables
+        :param bool msg: if False, no log is shown
+        :param float timeLimit: maximum time for solver (in seconds)
+        :param list options: list of additional options to pass to solver
+        :param bool keepFiles: if True, files are saved in the current directory and not deleted after solving
+        :param str path: path to the solver binary
+        """
+        LpSolver_CMD.__init__(self, mip=mip, msg=msg, timeLimit=timeLimit,
+                              options=options, path=path, keepFiles=keepFiles)
+
     def defaultPath(self):
         return self.executableExtension("choco-parsers-with-dependencies.jar")
 
@@ -146,11 +158,9 @@ class PULP_CHOCO_CMD(CHOCO_CMD):
             """Solve a well formulated lp problem"""
             raise PulpSolverError("PULP_CHOCO_CMD: Not Available (check permissions on %s)" % self.pulp_choco_path)
     else:
-        def __init__(self, path=None, *args, **kwargs):
-            """
-            just loads up CHOCO_CMD with the path set
-            """
+        def __init__(self, path=None, keepFiles=0, mip=True, msg=True, options=None, timeLimit=None):
             if path is not None:
                 raise PulpSolverError('Use CHOCO_CMD if you want to set a path')
             # check that the file is executable
-            CHOCO_CMD.__init__(self, path=self.pulp_choco_path, *args, **kwargs)
+            CHOCO_CMD.__init__(self, path=self.pulp_choco_path, keepFiles=keepFiles,
+                               mip=mip, msg=msg, options=options, timeLimit=timeLimit)

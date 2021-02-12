@@ -27,7 +27,7 @@
 This file contains the constant definitions for PuLP
 Note that hopefully these will be changed into something more pythonic
 """
-VERSION = '2.1'
+VERSION = '2.4'
 EPS = 1e-7
 
 # variable categories
@@ -65,24 +65,24 @@ LpSolutionUnbounded = -2
 LpSolution = {
     LpSolutionNoSolutionFound: "No Solution Found",
     LpSolutionOptimal: "Optimal Solution Found",
-    LpSolutionIntegerFeasible: "Integer Solution Found",
+    LpSolutionIntegerFeasible: "Solution Found",
     LpSolutionInfeasible: "No Solution Exists",
-    LpSolutionUnbounded: "Unbounded"
+    LpSolutionUnbounded: "Solution is Unbounded"
     }
 LpStatusToSolution = {
-    LpStatusNotSolved: LpSolutionNoSolutionFound,
+    LpStatusNotSolved: LpSolutionInfeasible,
     LpStatusOptimal: LpSolutionOptimal,
     LpStatusInfeasible: LpSolutionInfeasible,
     LpStatusUnbounded: LpSolutionUnbounded,
-    LpStatusUndefined: LpSolutionNoSolutionFound,
+    LpStatusUndefined: LpSolutionInfeasible,
 }
 
 # constraint sense
 LpConstraintLE = -1
 LpConstraintEQ = 0
 LpConstraintGE = 1
+LpConstraintTypeToMps = {LpConstraintLE: "L", LpConstraintEQ: "E", LpConstraintGE: "G"}
 LpConstraintSenses = {LpConstraintEQ:"=", LpConstraintLE:"<=", LpConstraintGE:">="}
-
 # LP line size
 LpCplexLPLineSize = 78
 
