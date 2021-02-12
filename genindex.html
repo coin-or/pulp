@@ -325,6 +325,8 @@
 </li>
       <li><a href="technical/solvers.html#pulp.apis.CPLEX_DLL_load_dll">CPLEX_DLL_load_dll() (in module pulp.apis)</a>
 </li>
+      <li><a href="technical/solvers.html#pulp.apis.CPLEX_DLL_unload_dll">CPLEX_DLL_unload_dll() (in module pulp.apis)</a>
+</li>
       <li><a href="technical/solvers.html#pulp.apis.CPLEX_PY">CPLEX_PY (class in pulp.apis)</a>
 </li>
       <li><a href="technical/solvers.html#pulp.apis.LpSolver_CMD.create_tmp_files">create_tmp_files() (pulp.apis.LpSolver_CMD method)</a>
@@ -371,10 +373,16 @@
 <h2 id="E">E</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="technical/solvers.html#pulp.apis.LpSolver_CMD.executable">executable() (pulp.apis.LpSolver_CMD static method)</a>
+      <li><a href="technical/solvers.html#pulp.apis.CPLEX_DLL.err">err (pulp.apis.CPLEX_DLL attribute)</a>
+
+      <ul>
+        <li><a href="technical/solvers.html#pulp.apis.CPLEX_PY.err">(pulp.apis.CPLEX_PY attribute)</a>
 </li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="technical/solvers.html#pulp.apis.LpSolver_CMD.executable">executable() (pulp.apis.LpSolver_CMD static method)</a>
+</li>
       <li><a href="technical/solvers.html#pulp.apis.LpSolver_CMD.executableExtension">executableExtension() (pulp.apis.LpSolver_CMD static method)</a>
 </li>
   </ul></td>
@@ -383,6 +391,8 @@
 <h2 id="F">F</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="technical/solvers.html#pulp.apis.findCPLEX_DLL">findCPLEX_DLL() (in module pulp.apis)</a>
+</li>
       <li><a href="technical/pulp.html#pulp.FixedElasticSubProblem.findDifferenceFromRHS">findDifferenceFromRHS() (pulp.FixedElasticSubProblem method)</a>
 </li>
       <li><a href="technical/pulp.html#pulp.FixedElasticSubProblem.findLHSValue">findLHSValue() (pulp.FixedElasticSubProblem method)</a>
@@ -391,14 +401,14 @@
 </li>
       <li><a href="technical/pulp.html#pulp.LpVariable.fixValue">fixValue() (pulp.LpVariable method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="technical/pulp.html#pulp.LpConstraint.from_dict">from_dict() (pulp.LpConstraint class method)</a>
 
       <ul>
         <li><a href="technical/pulp.html#pulp.LpVariable.from_dict">(pulp.LpVariable class method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="main/amply.html#Amply.from_file">from_file() (Amply static method)</a>
 </li>
       <li><a href="technical/pulp.html#pulp.LpConstraint.fromDict">fromDict() (pulp.LpConstraint class method)</a>
@@ -568,8 +578,6 @@
         <li><a href="technical/solvers.html#pulp.apis.COINMP_DLL.name">(pulp.apis.COINMP_DLL attribute)</a>
 </li>
         <li><a href="technical/solvers.html#pulp.apis.CPLEX_CMD.name">(pulp.apis.CPLEX_CMD attribute)</a>
-</li>
-        <li><a href="technical/solvers.html#pulp.apis.CPLEX_DLL.name">(pulp.apis.CPLEX_DLL attribute)</a>
 </li>
         <li><a href="technical/solvers.html#pulp.apis.CPLEX_PY.name">(pulp.apis.CPLEX_PY attribute)</a>
 </li>
@@ -741,6 +749,10 @@
       </ul></li>
       <li><a href="technical/solvers.html#pulp.apis.LpSolver.to_json">to_json() (pulp.apis.LpSolver method)</a>
 </li>
+      <li><a href="technical/solvers.html#pulp.apis.to_string">to_string() (in module pulp.apis)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="technical/solvers.html#pulp.apis.LpSolver.toDict">toDict() (pulp.apis.LpSolver method)</a>
 
       <ul>
@@ -751,8 +763,6 @@
         <li><a href="technical/pulp.html#pulp.LpVariable.toDict">(pulp.LpVariable method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="technical/solvers.html#pulp.apis.LpSolver.toJson">toJson() (pulp.apis.LpSolver method)</a>
 
       <ul>

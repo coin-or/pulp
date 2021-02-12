@@ -441,7 +441,11 @@ returns True on success</p>
 <dt id="pulp.apis.CPLEX_DLL">
 <em class="property">class </em><code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">CPLEX_DLL</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mip</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">msg</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">options</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">timeLimit</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPLEX_DLL" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.core.LpSolver</span></code></p>
-<p>The CPLEX LP/MIP solver PHANTOM Something went wrong!!!!</p>
+<p>The CPLEX LP/MIP solver (via a Dynamic library DLL - windows or SO - Linux)</p>
+<p>This solver wraps the c library api of cplex.
+It has been tested against cplex 11.
+For api functions that have not been wrapped in this solver please use
+the ctypes library interface to the cplex api in CPLEX_DLL.lib</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -468,8 +472,8 @@ e.g. gapRel=0.1, gapAbs=10, logPath=””,</p></li>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="pulp.apis.CPLEX_DLL.name">
-<code class="sig-name descname">name</code><em class="property"> = 'CPLEX_DLL'</em><a class="headerlink" href="#pulp.apis.CPLEX_DLL.name" title="Permalink to this definition">¶</a></dt>
+<dt id="pulp.apis.CPLEX_DLL.err">
+<code class="sig-name descname">err</code><em class="property"> = OSError('We did not find the cplex library, be sure to add it to LD_LIBRARY_PATH')</em><a class="headerlink" href="#pulp.apis.CPLEX_DLL.err" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -479,6 +483,11 @@ e.g. gapRel=0.1, gapAbs=10, logPath=””,</p></li>
 <code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">CPLEX_DLL_load_dll</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPLEX_DLL_load_dll" title="Permalink to this definition">¶</a></dt>
 <dd><p>function that loads the DLL useful for debugging installation problems</p>
 </dd></dl>
+
+<dl class="py function">
+<dt id="pulp.apis.CPLEX_DLL_unload_dll">
+<code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">CPLEX_DLL_unload_dll</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lib</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPLEX_DLL_unload_dll" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py class">
 <dt id="pulp.apis.CPLEX_PY">
@@ -513,6 +522,11 @@ e.g. gapRel=0.1, gapAbs=10, logPath=””,</p></li>
 <code class="sig-name descname">available</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPLEX_PY.available" title="Permalink to this definition">¶</a></dt>
 <dd><p>True if the solver is available</p>
 </dd></dl>
+
+<dl class="py attribute">
+<dt id="pulp.apis.CPLEX_PY.err">
+<code class="sig-name descname">err</code><em class="property"> = ModuleNotFoundError(&quot;No module named 'cplex'&quot;)</em><a class="headerlink" href="#pulp.apis.CPLEX_PY.err" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py attribute">
 <dt id="pulp.apis.CPLEX_PY.name">
@@ -1219,6 +1233,11 @@ type is the type of the c array</p>
 </dd></dl>
 
 <dl class="py function">
+<dt id="pulp.apis.findCPLEX_DLL">
+<code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">findCPLEX_DLL</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.findCPLEX_DLL" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
 <dt id="pulp.apis.getSolver">
 <code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">getSolver</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">solver</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.getSolver" title="Permalink to this definition">¶</a></dt>
 <dd><p>Instantiates a solver from its name</p>
@@ -1391,6 +1410,11 @@ the punch.</p>
 at the moment will only edit things in [locations]
 the keyword value pairs come from the keywords dictionary</p>
 </dd></dl>
+
+<dl class="py function">
+<dt id="pulp.apis.to_string">
+<code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">to_string</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">_obj</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.to_string" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py function">
 <dt id="pulp.apis.uuid4">
