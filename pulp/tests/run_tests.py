@@ -1,6 +1,6 @@
 import unittest
 import pulp
-from pulp.tests import test_amply, test_pulp, test_examples
+from pulp.tests import test_pulp, test_examples
 
 def pulpTestAll(test_docs=False):
     runner = unittest.TextTestRunner()
@@ -15,9 +15,6 @@ def get_test_suit(test_docs=False):
     loader = unittest.TestLoader()
     # we get suite with all PuLP tests
     suite_all = test_pulp.suite()
-    # we add Amply tests to the suite
-    amply = loader.loadTestsFromTestCase(test_amply.AmplyTest)
-    suite_all.addTests(amply)
     # We add examples and docs tests
     if test_docs:
         docs_examples = loader.loadTestsFromTestCase(test_examples.Examples_DocsTests)
