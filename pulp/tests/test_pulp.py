@@ -940,7 +940,6 @@ class PuLPTest(unittest.TestCase):
         x = LpVariable('x')
         prob += (0 * x)
         prob += (x >= 1)
-        prob.solve()
         pulpTestCheck(prob, self.solver, [const.LpStatusOptimal])
         self.assertTrue(prob.valid())
 
@@ -953,7 +952,6 @@ class PuLPTest(unittest.TestCase):
         x = LpVariable('x')
         prob += (1000 * x)
         prob += (x >= 1)
-        prob.solve()
         self.assertFalse(prob.valid())
 
     def test_infeasible_problem__is_not_valid(self):
@@ -965,7 +963,6 @@ class PuLPTest(unittest.TestCase):
         prob += (1 * x)
         prob += (x >= 2)  # Constraint x to be more than 2
         prob += (x <= 1)  # Constraint x to be less than 1
-        prob.solve()
         pulpTestCheck(prob, self.solver, [const.LpStatusInfeasible, const.LpStatusUndefined])
         self.assertFalse(prob.valid())
 
