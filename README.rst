@@ -14,14 +14,14 @@ The easiest way to install pulp is via `PyPi <https://pypi.python.org/pypi/PuLP>
 
 If pip is available on your system::
 
-     pip install pulp
+     python -m pip install pulp
 
 Otherwise follow the download instructions on the PyPi page.
 
 
 If you want to install the latest version from github you can run the following::
 
-    pip install -U git+https://github.com/coin-or/pulp
+    python -m pip install -U git+https://github.com/coin-or/pulp
 
 
 On Linux and OSX systems the tests must be run to make the default

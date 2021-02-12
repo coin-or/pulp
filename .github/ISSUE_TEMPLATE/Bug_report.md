@@ -47,9 +47,9 @@ The info below often helps, please fill it out if you're able to. :)
 
 #### I installed PuLP via:
 
-- [ ] pypi (pip install pulp)
-- [ ] github
-- [ ] Other: ___
+- [ ] pypi (python -m pip install pulp)
+- [ ] github (python -m pip install -U git+https://github.com/coin-or/pulp)
+- [ ] Other: ___ (conda?)
 
 #### Did you also
 
