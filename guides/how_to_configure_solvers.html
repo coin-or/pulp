@@ -1,64 +1,56 @@
 
 
-
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>How to configure a solver in PuLP &mdash; PuLP 2.4 documentation</title>
   
 
   
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
   
+  
+
   
   
 
   
 
   
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
 
-  
-
-  
-  
-    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  
-
-  
-    <link rel="stylesheet" href="../_static/jquery.fancybox.min.css" type="text/css" />
-  
-    <link rel="stylesheet" href="../_static/glpi.css" type="text/css" />
-  
-
-  
-        <link rel="index" title="Index"
-              href="../genindex.html"/>
-        <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="PuLP 2.4 documentation" href="../index.html"/>
-        <link rel="up" title="User Guides" href="index.html"/>
-        <link rel="next" title="How to warm-start a solver" href="how_to_mip_start.html"/>
-        <link rel="prev" title="User Guides" href="index.html"/> 
-
-  
-  <script src="../_static/js/modernizr.min.js"></script>
-
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="How to warm-start a solver" href="how_to_mip_start.html" />
+    <link rel="prev" title="User Guides" href="index.html" /> 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -70,10 +62,9 @@
 
           
             
+            
               <div class="version">
                 2.4
-
-                
               </div>
             
           
@@ -90,6 +81,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -134,13 +126,14 @@
             
           
         </div>
+        
       </div>
     </nav>
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">PuLP</a>
@@ -148,10 +141,13 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
+
+
 
 
 
@@ -171,7 +167,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../index.html">Docs</a> &raquo;</li>
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
           <li><a href="index.html">User Guides</a> &raquo;</li>
         
@@ -180,7 +176,7 @@
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="../_sources/guides/how_to_configure_solvers.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -188,15 +184,6 @@
     
   </ul>
 
-  
-  <div class="rst-breadcrumbs-buttons" role="navigation" aria-label="breadcrumb navigation">
-      
-        <a href="how_to_mip_start.html" class="btn btn-neutral float-right" title="How to warm-start a solver" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="index.html" class="btn btn-neutral" title="User Guides" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
-  </div>
   
   <hr/>
 </div>
@@ -209,7 +196,7 @@
 <div class="section" id="checking-which-solvers-pulp-has-access-to">
 <h2>Checking which solvers PuLP has access to<a class="headerlink" href="#checking-which-solvers-pulp-has-access-to" title="Permalink to this headline">¶</a></h2>
 <p>PuLP has some helper functions that permit a user to query which solvers are available and initialize a solver from its name.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pulp</span> <span class="kn">as</span> <span class="nn">pl</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pulp</span> <span class="k">as</span> <span class="nn">pl</span>
 <span class="n">solver_list</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">listSolvers</span><span class="p">()</span>
 <span class="c1"># [&#39;GLPK_CMD&#39;, &#39;PYGLPK&#39;, &#39;CPLEX_CMD&#39;, &#39;CPLEX_PY&#39;, &#39;CPLEX_DLL&#39;, &#39;GUROBI&#39;, &#39;GUROBI_CMD&#39;, &#39;MOSEK&#39;, &#39;XPRESS&#39;, &#39;PULP_CBC_CMD&#39;, &#39;COIN_CMD&#39;, &#39;COINMP_DLL&#39;, &#39;CHOCO_CMD&#39;, &#39;PULP_CHOCO_CMD&#39;, &#39;MIPCL_CMD&#39;, &#39;SCIP_CMD&#39;]</span>
 </pre></div>
@@ -221,7 +208,7 @@
 </pre></div>
 </div>
 <p>Also, it’s possible to get a solver object by using the name of the solver. Any arguments passed to this function are passed to the constructor:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pulp</span> <span class="kn">as</span> <span class="nn">pl</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pulp</span> <span class="k">as</span> <span class="nn">pl</span>
 <span class="n">solver</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">getSolver</span><span class="p">(</span><span class="s1">&#39;CPLEX_CMD&#39;</span><span class="p">)</span>
 <span class="n">solver</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">getSolver</span><span class="p">(</span><span class="s1">&#39;CPLEX_CMD&#39;</span><span class="p">,</span> <span class="n">timeLimit</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
 </pre></div>
@@ -257,7 +244,7 @@
 <p>Both options imply knowing where the solver is. So first we have to go look for it in the pc. Mine is in <code class="docutils literal notranslate"><span class="pre">C:\Program</span> <span class="pre">Files\IBM\ILOG\CPLEX_Studio128\cplex\bin\x64_win64\cplex.exe</span></code>.</p>
 <p>Imagine using the <code class="docutils literal notranslate"><span class="pre">CPLEX_CMD</span></code> solver, the first one is really simple:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">path_to_cplex</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;C:\Program Files\IBM\ILOG\CPLEX_Studio128\cplex\bin\x64_win64\cplex.exe&#39;</span>
-<span class="kn">import</span> <span class="nn">pulp</span> <span class="kn">as</span> <span class="nn">pl</span>
+<span class="kn">import</span> <span class="nn">pulp</span> <span class="k">as</span> <span class="nn">pl</span>
 <span class="n">model</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;Example&quot;</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
 <span class="n">solver</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">CPLEX_CMD</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">path_to_cplex</span><span class="p">)</span>
 <span class="n">_var</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpVariable</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)</span>
@@ -270,7 +257,7 @@
 <p>The second one is a little more cumbersome but you only do it once per machine. You need to configure the <code class="docutils literal notranslate"><span class="pre">PATH</span></code> environment variable to include the path to the <code class="docutils literal notranslate"><span class="pre">C:\Program</span> <span class="pre">Files\IBM\ILOG\CPLEX_Studio128\cplex\bin\x64_win64</span></code> directory.</p>
 <p>Here is one random guide to editing environment variables in: <a class="reference external" href="https://opentechguides.com/how-to/article/windows-10/113/windows-10-set-path.html">Windows</a> or <a class="reference external" href="https://askubuntu.com/questions/730/how-do-i-set-environment-variables">Linux or Mac</a>. The idea is that once it is correctly configured you can forget about it (until you change pc or solver version).</p>
 <p>Once we have done that, we just do something very similar to the previous example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pulp</span> <span class="kn">as</span> <span class="nn">pl</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pulp</span> <span class="k">as</span> <span class="nn">pl</span>
 <span class="n">model</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;Example&quot;</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
 <span class="n">solver</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">CPLEX_CMD</span><span class="p">()</span>
 <span class="n">_var</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpVariable</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)</span>
@@ -324,7 +311,7 @@
 <h2>Configuring where the CMD solvers write their temporary files<a class="headerlink" href="#configuring-where-the-cmd-solvers-write-their-temporary-files" title="Permalink to this headline">¶</a></h2>
 <p>In the case of solver APIs that use the command line (again, those that end in <code class="docutils literal notranslate"><span class="pre">CMD</span></code>, sometimes a user wants to control where the files are written. There are plenty of options.</p>
 <p>By default, PuLP does not keep the intermediary files (the *.mps, *.lp, *.mst, *.sol) and they are written in a temporary directory of the operating system. PuLP looks for the TEMP, TMP and TMPDIR environment variables to write the file (in that order). After using them, PuLP deletes them. If you change any of these environment variables before solving, you should be able to choose where you want PuLP to write the results.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pulp</span> <span class="kn">as</span> <span class="nn">pl</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pulp</span> <span class="k">as</span> <span class="nn">pl</span>
 <span class="n">model</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;Example&quot;</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
 <span class="n">_var</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpVariable</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)</span>
 <span class="n">_var2</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpVariable</span><span class="p">(</span><span class="s1">&#39;a2&#39;</span><span class="p">)</span>
@@ -334,17 +321,17 @@
 </pre></div>
 </div>
 <p>Another option, is passing the argument <cite>KeepFiles=True</cite> to the solver. With this, the solver creates the files in the current directory and they are not deleted (although they will be overwritten if you re-execute).</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pulp</span> <span class="kn">as</span> <span class="nn">pl</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pulp</span> <span class="k">as</span> <span class="nn">pl</span>
 <span class="n">model</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;Example&quot;</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
 <span class="n">_var</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpVariable</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)</span>
 <span class="n">_var2</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpVariable</span><span class="p">(</span><span class="s1">&#39;a2&#39;</span><span class="p">)</span>
 <span class="n">model</span> <span class="o">+=</span> <span class="n">_var</span> <span class="o">+</span> <span class="n">_var2</span> <span class="o">==</span> <span class="mi">1</span>
-<span class="n">solver</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">PULP_CBC_CMD</span><span class="p">(</span><span class="n">keepFiles</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">solver</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">PULP_CBC_CMD</span><span class="p">(</span><span class="n">keepFiles</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">result</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Finally, one can manually edit the tmpDir attribute of the solver object before actually solving.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pulp</span> <span class="kn">as</span> <span class="nn">pl</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pulp</span> <span class="k">as</span> <span class="nn">pl</span>
 <span class="n">model</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;Example&quot;</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
 <span class="n">_var</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpVariable</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)</span>
 <span class="n">_var2</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpVariable</span><span class="p">(</span><span class="s1">&#39;a2&#39;</span><span class="p">)</span>
@@ -462,34 +449,32 @@ sudo python3 setup.py install</p>
 
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="how_to_mip_start.html" class="btn btn-neutral float-right" title="How to warm-start a solver" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="index.html" class="btn btn-neutral" title="User Guides" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="how_to_mip_start.html" class="btn btn-neutral float-right" title="How to warm-start a solver" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="index.html" class="btn btn-neutral float-left" title="User Guides" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2009-, pulp documentation team..
+        &#169; Copyright 2009-, pulp documentation team..
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 
@@ -498,47 +483,16 @@ sudo python3 setup.py install</p>
   </div>
   
 
-
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../',
-            VERSION:'2.4',
-            LANGUAGE:'None',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="../_static/jquery.js"></script>
-      <script type="text/javascript" src="../_static/underscore.js"></script>
-      <script type="text/javascript" src="../_static/doctools.js"></script>
-      <script type="text/javascript" src="../_static/language_data.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-      <script type="text/javascript" src="../_static/jquery.fancybox.min.js"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-  
-
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
   </script>
+
   
-  <script type="text/javascript">
-    $(function(){
-      $('.image-reference').fancybox();
-    })
-  </script>
+  
+    
+   
 
 </body>
 </html>

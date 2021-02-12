@@ -1,64 +1,56 @@
 
 
-
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>pulp.apis Interface to Solvers &mdash; PuLP 2.4 documentation</title>
   
 
   
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
   
+  
+
   
   
 
   
 
   
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
 
-  
-
-  
-  
-    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  
-
-  
-    <link rel="stylesheet" href="../_static/jquery.fancybox.min.css" type="text/css" />
-  
-    <link rel="stylesheet" href="../_static/glpi.css" type="text/css" />
-  
-
-  
-        <link rel="index" title="Index"
-              href="../genindex.html"/>
-        <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="PuLP 2.4 documentation" href="../index.html"/>
-        <link rel="up" title="PuLP Internal Documentation" href="index.html"/>
-        <link rel="next" title="Plugins" href="../plugins/index.html"/>
-        <link rel="prev" title="pulp: Pulp classes" href="pulp.html"/> 
-
-  
-  <script src="../_static/js/modernizr.min.js"></script>
-
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Plugins" href="../plugins/index.html" />
+    <link rel="prev" title="pulp: Pulp classes" href="pulp.html" /> 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -70,10 +62,9 @@
 
           
             
+            
               <div class="version">
                 2.4
-
-                
               </div>
             
           
@@ -90,6 +81,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -113,13 +105,14 @@
             
           
         </div>
+        
       </div>
     </nav>
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">PuLP</a>
@@ -127,10 +120,13 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
+
+
 
 
 
@@ -150,7 +146,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../index.html">Docs</a> &raquo;</li>
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
           <li><a href="index.html">PuLP Internal Documentation</a> &raquo;</li>
         
@@ -159,7 +155,7 @@
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="../_sources/technical/solvers.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -167,15 +163,6 @@
     
   </ul>
 
-  
-  <div class="rst-breadcrumbs-buttons" role="navigation" aria-label="breadcrumb navigation">
-      
-        <a href="../plugins/index.html" class="btn btn-neutral float-right" title="Plugins" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="pulp.html" class="btn btn-neutral" title="pulp: Pulp classes" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
-  </div>
   
   <hr/>
 </div>
@@ -253,7 +240,7 @@
 <li><p><strong>timeLimit</strong> – maximum time for solver (in seconds)</p></li>
 <li><p><strong>args</strong> – </p></li>
 <li><p><strong>kwargs</strong> – optional named options to pass to each solver,
-e.g. gapRel=0.1, gapAbs=10, logPath=”“,</p></li>
+e.g. gapRel=0.1, gapAbs=10, logPath=””,</p></li>
 </ul>
 </dd>
 </dl>
@@ -464,7 +451,7 @@ returns True on success</p>
 <li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
 <li><p><strong>args</strong> – </p></li>
 <li><p><strong>kwargs</strong> – optional named options to pass to each solver,
-e.g. gapRel=0.1, gapAbs=10, logPath=”“,</p></li>
+e.g. gapRel=0.1, gapAbs=10, logPath=””,</p></li>
 </ul>
 </dd>
 </dl>
@@ -495,7 +482,7 @@ e.g. gapRel=0.1, gapAbs=10, logPath=”“,</p></li>
 
 <dl class="py class">
 <dt id="pulp.apis.CPLEX_PY">
-<em class="property">class </em><code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">CPLEX_PY</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mip</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">msg</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">timeLimit</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">gapRel</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">warmStart</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">logPath</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">epgap</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">logfilename</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPLEX_PY" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">CPLEX_PY</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mip</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">msg</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">options</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">timeLimit</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPLEX_PY" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.core.LpSolver</span></code></p>
 <p>The CPLEX LP/MIP solver (via a Python Binding)</p>
 <p>This solver wraps the python api of cplex.
@@ -507,27 +494,18 @@ the base cplex classes</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
 <li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if False, no log is shown</p></li>
+<li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a>) – </p></li>
 <li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
-<li><p><strong>gapRel</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – relative gap tolerance for the solver to stop (in fraction)</p></li>
-<li><p><strong>warmStart</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if True, the solver will use the current value of variables as a start</p></li>
-<li><p><strong>logPath</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – path to the log file</p></li>
-<li><p><strong>epgap</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – deprecated for gapRel</p></li>
-<li><p><strong>logfilename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – deprecated for logPath</p></li>
+<li><p><strong>args</strong> – </p></li>
+<li><p><strong>kwargs</strong> – optional named options to pass to each solver,
+e.g. gapRel=0.1, gapAbs=10, logPath=””,</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py method">
-<dt id="pulp.apis.CPLEX_PY.actualResolve">
-<code class="sig-name descname">actualResolve</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lp</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPLEX_PY.actualResolve" title="Permalink to this definition">¶</a></dt>
-<dd><p>looks at which variables have been modified and changes them</p>
-</dd></dl>
-
-<dl class="py method">
 <dt id="pulp.apis.CPLEX_PY.actualSolve">
-<code class="sig-name descname">actualSolve</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lp</span></em>, <em class="sig-param"><span class="n">callback</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPLEX_PY.actualSolve" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">actualSolve</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lp</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPLEX_PY.actualSolve" title="Permalink to this definition">¶</a></dt>
 <dd><p>Solve a well formulated lp problem</p>
-<p>creates a cplex model, variables and constraints and attaches
-them to the lp model which it then solves</p>
 </dd></dl>
 
 <dl class="py method">
@@ -536,45 +514,10 @@ them to the lp model which it then solves</p>
 <dd><p>True if the solver is available</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="pulp.apis.CPLEX_PY.buildSolverModel">
-<code class="sig-name descname">buildSolverModel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lp</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPLEX_PY.buildSolverModel" title="Permalink to this definition">¶</a></dt>
-<dd><p>Takes the pulp lp model and translates it into a cplex model</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="pulp.apis.CPLEX_PY.callSolver">
-<code class="sig-name descname">callSolver</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">isMIP</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPLEX_PY.callSolver" title="Permalink to this definition">¶</a></dt>
-<dd><p>Solves the problem with cplex</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="pulp.apis.CPLEX_PY.changeEpgap">
-<code class="sig-name descname">changeEpgap</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">epgap</span><span class="o">=</span><span class="default_value">0.0001</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPLEX_PY.changeEpgap" title="Permalink to this definition">¶</a></dt>
-<dd><p>Change cplex solver integer bound gap tolerence</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="pulp.apis.CPLEX_PY.findSolutionValues">
-<code class="sig-name descname">findSolutionValues</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lp</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPLEX_PY.findSolutionValues" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 <dl class="py attribute">
 <dt id="pulp.apis.CPLEX_PY.name">
 <code class="sig-name descname">name</code><em class="property"> = 'CPLEX_PY'</em><a class="headerlink" href="#pulp.apis.CPLEX_PY.name" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
-<dl class="py method">
-<dt id="pulp.apis.CPLEX_PY.setTimeLimit">
-<code class="sig-name descname">setTimeLimit</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">timeLimit</span><span class="o">=</span><span class="default_value">0.0</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPLEX_PY.setTimeLimit" title="Permalink to this definition">¶</a></dt>
-<dd><p>Make cplex limit the time it takes –added CBM 8/28/09</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="pulp.apis.CPLEX_PY.setlogfile">
-<code class="sig-name descname">setlogfile</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fileobj</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPLEX_PY.setlogfile" title="Permalink to this definition">¶</a></dt>
-<dd><p>sets the logfile for cplex output</p>
-</dd></dl>
 
 </dd></dl>
 
@@ -633,7 +576,7 @@ them to the lp model which it then solves</p>
 
 <dl class="py class">
 <dt id="pulp.apis.GUROBI">
-<em class="property">class </em><code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">GUROBI</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mip</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">msg</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">timeLimit</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">epgap</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">gapRel</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">warmStart</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">logPath</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">solverParams</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.GUROBI" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pulp.apis.</code><code class="sig-name descname">GUROBI</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mip</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">msg</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">options</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">timeLimit</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.GUROBI" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.core.LpSolver</span></code></p>
 <p>The Gurobi LP/MIP solver (via its python interface)</p>
 <p>The Gurobi variables are available (after a solve) in var.solverVar
@@ -644,27 +587,18 @@ and the Model is in prob.solverModel</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
 <li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if False, no log is shown</p></li>
+<li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a>) – </p></li>
 <li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
-<li><p><strong>gapRel</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – relative gap tolerance for the solver to stop (in fraction)</p></li>
-<li><p><strong>warmStart</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if True, the solver will use the current value of variables as a start</p></li>
-<li><p><strong>logPath</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – path to the log file</p></li>
-<li><p><strong>epgap</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – deprecated for gapRel</p></li>
+<li><p><strong>args</strong> – </p></li>
+<li><p><strong>kwargs</strong> – optional named options to pass to each solver,
+e.g. gapRel=0.1, gapAbs=10, logPath=””,</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py method">
-<dt id="pulp.apis.GUROBI.actualResolve">
-<code class="sig-name descname">actualResolve</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lp</span></em>, <em class="sig-param"><span class="n">callback</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.GUROBI.actualResolve" title="Permalink to this definition">¶</a></dt>
-<dd><p>Solve a well formulated lp problem</p>
-<p>uses the old solver and modifies the rhs of the modified constraints</p>
-</dd></dl>
-
-<dl class="py method">
 <dt id="pulp.apis.GUROBI.actualSolve">
 <code class="sig-name descname">actualSolve</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lp</span></em>, <em class="sig-param"><span class="n">callback</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.GUROBI.actualSolve" title="Permalink to this definition">¶</a></dt>
 <dd><p>Solve a well formulated lp problem</p>
-<p>creates a gurobi model, variables and constraints and attaches
-them to the lp model which it then solves</p>
 </dd></dl>
 
 <dl class="py method">
@@ -672,23 +606,6 @@ them to the lp model which it then solves</p>
 <code class="sig-name descname">available</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.GUROBI.available" title="Permalink to this definition">¶</a></dt>
 <dd><p>True if the solver is available</p>
 </dd></dl>
-
-<dl class="py method">
-<dt id="pulp.apis.GUROBI.buildSolverModel">
-<code class="sig-name descname">buildSolverModel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lp</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.GUROBI.buildSolverModel" title="Permalink to this definition">¶</a></dt>
-<dd><p>Takes the pulp lp model and translates it into a gurobi model</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="pulp.apis.GUROBI.callSolver">
-<code class="sig-name descname">callSolver</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lp</span></em>, <em class="sig-param"><span class="n">callback</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.GUROBI.callSolver" title="Permalink to this definition">¶</a></dt>
-<dd><p>Solves the problem with gurobi</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="pulp.apis.GUROBI.findSolutionValues">
-<code class="sig-name descname">findSolutionValues</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lp</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.GUROBI.findSolutionValues" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
 
 <dl class="py attribute">
 <dt id="pulp.apis.GUROBI.name">
@@ -775,7 +692,7 @@ them to the lp model which it then solves</p>
 <li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
 <li><p><strong>args</strong> – </p></li>
 <li><p><strong>kwargs</strong> – optional named options to pass to each solver,
-e.g. gapRel=0.1, gapAbs=10, logPath=”“,</p></li>
+e.g. gapRel=0.1, gapAbs=10, logPath=””,</p></li>
 </ul>
 </dd>
 </dl>
@@ -973,7 +890,7 @@ directory</p>
 <li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
 <li><p><strong>args</strong> – </p></li>
 <li><p><strong>kwargs</strong> – optional named options to pass to each solver,
-e.g. gapRel=0.1, gapAbs=10, logPath=”“,</p></li>
+e.g. gapRel=0.1, gapAbs=10, logPath=””,</p></li>
 </ul>
 </dd>
 </dl>
@@ -1031,7 +948,7 @@ e.g. gapRel=0.1, gapAbs=10, logPath=”“,</p></li>
 
 <dl class="py attribute">
 <dt id="pulp.apis.PULP_CBC_CMD.pulp_cbc_path">
-<code class="sig-name descname">pulp_cbc_path</code><em class="property"> = '/home/pchtsp/Documents/resources/pulp/pulp/apis/../solverdir/cbc/linux/64/cbc'</em><a class="headerlink" href="#pulp.apis.PULP_CBC_CMD.pulp_cbc_path" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">pulp_cbc_path</code><em class="property"> = '/home/runner/work/pulp/pulp/pulp/apis/../solverdir/cbc/linux/64/cbc'</em><a class="headerlink" href="#pulp.apis.PULP_CBC_CMD.pulp_cbc_path" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -1060,7 +977,7 @@ e.g. gapRel=0.1, gapAbs=10, logPath=”“,</p></li>
 
 <dl class="py attribute">
 <dt id="pulp.apis.PULP_CHOCO_CMD.pulp_choco_path">
-<code class="sig-name descname">pulp_choco_path</code><em class="property"> = '/home/pchtsp/Documents/resources/pulp/pulp/apis/../solverdir/choco/choco-parsers-with-dependencies.jar'</em><a class="headerlink" href="#pulp.apis.PULP_CHOCO_CMD.pulp_choco_path" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">pulp_choco_path</code><em class="property"> = '/home/runner/work/pulp/pulp/pulp/apis/../solverdir/choco/choco-parsers-with-dependencies.jar'</em><a class="headerlink" href="#pulp.apis.PULP_CHOCO_CMD.pulp_choco_path" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -1083,7 +1000,7 @@ The Model is in prob.solverModel</p>
 <li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
 <li><p><strong>args</strong> – </p></li>
 <li><p><strong>kwargs</strong> – optional named options to pass to each solver,
-e.g. gapRel=0.1, gapAbs=10, logPath=”“,</p></li>
+e.g. gapRel=0.1, gapAbs=10, logPath=””,</p></li>
 </ul>
 </dd>
 </dl>
@@ -1256,7 +1173,7 @@ The Model is in prob.solverModel</p>
 <li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
 <li><p><strong>args</strong> – </p></li>
 <li><p><strong>kwargs</strong> – optional named options to pass to each solver,
-e.g. gapRel=0.1, gapAbs=10, logPath=”“,</p></li>
+e.g. gapRel=0.1, gapAbs=10, logPath=””,</p></li>
 </ul>
 </dd>
 </dl>
@@ -1485,34 +1402,32 @@ the keyword value pairs come from the keywords dictionary</p>
 
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="../plugins/index.html" class="btn btn-neutral float-right" title="Plugins" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="pulp.html" class="btn btn-neutral" title="pulp: Pulp classes" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="../plugins/index.html" class="btn btn-neutral float-right" title="Plugins" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="pulp.html" class="btn btn-neutral float-left" title="pulp: Pulp classes" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2009-, pulp documentation team..
+        &#169; Copyright 2009-, pulp documentation team..
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 
@@ -1521,47 +1436,16 @@ the keyword value pairs come from the keywords dictionary</p>
   </div>
   
 
-
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../',
-            VERSION:'2.4',
-            LANGUAGE:'None',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="../_static/jquery.js"></script>
-      <script type="text/javascript" src="../_static/underscore.js"></script>
-      <script type="text/javascript" src="../_static/doctools.js"></script>
-      <script type="text/javascript" src="../_static/language_data.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-      <script type="text/javascript" src="../_static/jquery.fancybox.min.js"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-  
-
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
   </script>
+
   
-  <script type="text/javascript">
-    $(function(){
-      $('.image-reference').fancybox();
-    })
-  </script>
+  
+    
+   
 
 </body>
 </html>
