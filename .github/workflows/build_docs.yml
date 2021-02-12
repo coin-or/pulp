@@ -20,7 +20,7 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install -r requirements-dev.txt
     - name: Building docs
-      run: cd docs && make html && cd ..
+      run: cd doc && make html && cd ..
     # Great extra actions to compose with:
     # Publish built docs to gh-pages branch.
     # ===============================
