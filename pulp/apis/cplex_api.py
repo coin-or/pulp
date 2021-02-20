@@ -1,9 +1,10 @@
 
 from .core import LpSolver_CMD, LpSolver, subprocess, PulpSolverError, clock, log
-from .core import cplex_dll_path, ctypesArrayFill, ilm_cplex_license, ilm_cplex_license_signature
+from .core import cplex_dll_path, ctypesArrayFill, ilm_cplex_license, ilm_cplex_license_signature, to_string
 from .. import constants, sparse
 import os
 import warnings
+import re
 
 
 class CPLEX_CMD(LpSolver_CMD):
@@ -201,29 +202,64 @@ class CPLEX_CMD(LpSolver_CMD):
 
         return True
 
+
+ctypes = None
+_ctypes = None
+def findCPLEX_DLL():
+    # for compatibility
+    global ctypes, _ctypes
+    import ctypes
+    import _ctypes
+    try:
+        return CPLEX_DLL_load_dll(cplex_dll_path)
+    except OSError:
+        pass
+    # now we look for the correct file in LD_LIBRARY_PATH:
+    libs = os.environ.get('LD_LIBRARY_PATH')
+    if not libs:
+        raise OSError('We did not find the cplex library, be sure to add it to LD_LIBRARY_PATH')
+    possible_paths = libs.split(':')
+    regex_str = r'libcplex\d+\.\w+'
+    for path in possible_paths:
+        files = os.listdir(path)
+        for f in files:
+            if re.match(regex_str, f):
+                full_path = os.path.join(path, f)
+                return CPLEX_DLL_load_dll(full_path)
+    raise OSError('We did not find the cplex library, be sure to add it to LD_LIBRARY_PATH')
+
 def CPLEX_DLL_load_dll(path):
     """
     function that loads the DLL useful for debugging installation problems
     """
-    import ctypes
-    if os.name in ['nt','dos']:
-        lib = ctypes.windll.LoadLibrary(str(path))
-    else:
-        lib = ctypes.cdll.LoadLibrary(str(path))
+    lib = ctypes.CDLL(str(path))
     return lib
 
-try:
-    import ctypes
-    class CPLEX_DLL(LpSolver):
-        """
-        The CPLEX LP/MIP solver (via a Dynamic library DLL - windows or SO - Linux)
 
-        This solver wraps the c library api of cplex.
-        It has been tested against cplex 11.
-        For api functions that have not been wrapped in this solver please use
-        the ctypes library interface to the cplex api in CPLEX_DLL.lib
-        """
-        lib = CPLEX_DLL_load_dll(cplex_dll_path)
+def CPLEX_DLL_unload_dll(lib):
+    import _ctypes
+    libHandle = lib._handle
+    del lib
+    if os.name in ['nt','dos']:
+        func = _ctypes.FreeLibrary
+    else:
+        func = _ctypes.dlclose
+    func(libHandle)
+
+
+class CPLEX_DLL(LpSolver):
+    """
+    The CPLEX LP/MIP solver (via a Dynamic library DLL - windows or SO - Linux)
+
+    This solver wraps the c library api of cplex.
+    It has been tested against cplex 11.
+    For api functions that have not been wrapped in this solver please use
+    the ctypes library interface to the cplex api in CPLEX_DLL.lib
+    """
+
+    try:
+        lib = findCPLEX_DLL()
+
         #parameters manually found in solver manual
         CPX_PARAM_EPGAP = 2009
         CPX_PARAM_MEMORYEMPHASIS = 1082 # from Cplex 11.0 manual
@@ -239,6 +275,18 @@ try:
         lib.CPXfopen.restype = ctypes.c_void_p
         lib.CPXsetlogfile.argtypes = [ctypes.c_void_p,
                                       ctypes.c_void_p]
+        
+    except (ImportError, OSError, AttributeError) as e:
+        err = e
+        def available(self):
+            """True if the solver is available"""
+            return False
+
+        def actualSolve(self, lp):
+            """Solve a well formulated lp problem"""
+            raise PulpSolverError("CPLEX_DLL: Not Available:\n{}".format(self.err))
+    else:
+
         name = 'CPLEX_DLL'
 
         def __init__(self,
@@ -247,7 +295,8 @@ try:
                     timeLimit = None,
                     epgap = None,
                     logfilename = None,
-                    emphasizeMemory = False):
+                    emphasizeMemory = False,
+                    **kwargs):
             """
             Initializes the CPLEX_DLL solver.
 
@@ -475,7 +524,6 @@ try:
                 var.modified = False
             return solutionStatus
 
-
         def actualResolve(self, lp, **kwargs):
             """looks at which variables have been modified and changes them
             """
@@ -540,7 +588,7 @@ try:
             initValues =  (ctypes.c_double * numVars)()
             i=0
             for v in vars:
-                colNames[i] = str(v.name)
+                colNames[i] = to_string(v.name)
                 initValues[i] = v.varValue if v.varValue is not None else 0
                 if v.lowBound != None:
                     lowerBounds[i] = v.lowBound
@@ -616,20 +664,6 @@ try:
                         for v, i in v2n.items())
 
 
-
-    CPLEX = CPLEX_DLL
-except (ImportError,OSError):
-    class CPLEX_DLL(LpSolver):
-        """The CPLEX LP/MIP solver PHANTOM Something went wrong!!!!"""
-        name = 'CPLEX_DLL'
-        def available(self):
-            """True if the solver is available"""
-            return False
-        def actualSolve(self, lp):
-            """Solve a well formulated lp problem"""
-            raise PulpSolverError("CPLEX_DLL: Not Available")
-    CPLEX = CPLEX_CMD
-
 cplex = None
 class CPLEX_PY(LpSolver):
     """
@@ -645,13 +679,14 @@ class CPLEX_PY(LpSolver):
         global cplex
         import cplex
     except (Exception) as e:
+        err = e
         """The CPLEX LP/MIP solver from python PHANTOM Something went wrong!!!!"""
         def available(self):
             """True if the solver is available"""
             return False
         def actualSolve(self, lp):
             """Solve a well formulated lp problem"""
-            raise PulpSolverError("CPLEX_PY: Not Available")
+            raise PulpSolverError("CPLEX_PY: Not Available:\n{}".format(self.err))
     else:
         def __init__(self, mip=True, msg=True, timeLimit=None,
                      gapRel=None, warmStart=False, logPath=None,
@@ -887,3 +922,4 @@ class CPLEX_PY(LpSolver):
             raise NotImplementedError("Resolves in CPLEX_PY not yet implemented")
 
 
+CPLEX = CPLEX_CMD

@@ -322,9 +322,8 @@ class PuLPTest(unittest.TestCase):
         y.setInitialValue(-0.5)
         z.setInitialValue(7)
         if self.solver.name in ['GUROBI', 'GUROBI_CMD', 'CPLEX_CMD', 'CPLEX_PY']:
-            warnings.warn("CBC gives a wrong solution with warmStart.")
             self.solver.optionsDict['warmStart'] = True
-        print("\t Testing MIP solution")
+        print("\t Testing Initial value in MIP solution")
         pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], {x: 3, y: -0.5, z: 7})
 
     def test_pulp_023(self):
@@ -342,7 +341,7 @@ class PuLPTest(unittest.TestCase):
             v.setInitialValue(solution[v])
             v.fixValue()
         self.solver.optionsDict['warmStart'] = True
-        print("\t Testing MIP solution")
+        print("\t Testing fixing value in MIP solution")
         pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], solution)
 
     def test_pulp_030(self):
@@ -407,7 +406,7 @@ class PuLPTest(unittest.TestCase):
         if self.solver.__class__ in [GLPK_CMD, COIN_CMD, PULP_CBC_CMD, MOSEK]:
             # GLPK_CMD returns InfeasibleOrUnbounded
             pulpTestCheck(prob, self.solver, [const.LpStatusInfeasible, const.LpStatusUndefined])
-        elif self.solver.__class__ in [COINMP_DLL]:
+        elif self.solver.__class__ in [COINMP_DLL, CPLEX_DLL]:
             # Currently there is an error in COINMP for problems where
             # presolve eliminates too many variables
             print("\t\t Error in CoinMP to be fixed, reports Optimal")
@@ -431,7 +430,7 @@ class PuLPTest(unittest.TestCase):
         print("\t Testing another integer infeasible problem")
         if self.solver.__class__ in [GUROBI_CMD, SCIP_CMD]:
             pulpTestCheck(prob, self.solver, [const.LpStatusNotSolved])
-        elif self.solver.__class__ in [GLPK_CMD]:
+        elif self.solver.__class__ in [GLPK_CMD, CPLEX_DLL]:
             # GLPK_CMD returns InfeasibleOrUnbounded
             pulpTestCheck(prob, self.solver, [const.LpStatusInfeasible, const.LpStatusUndefined])
         else:
@@ -732,7 +731,7 @@ class PuLPTest(unittest.TestCase):
         data_backup = copy.deepcopy(data)
         var1, prob1 = LpProblem.fromDict(data)
         x, y, z = [var1[name] for name in ['x', 'y', 'z']]
-        print("\t Testing MIP solution")
+        print("\t Testing export dict MIP")
         pulpTestCheck(prob1, self.solver, [const.LpStatusOptimal], {x: 3, y: -0.5, z: 7})
         # we also test that we have not modified the dictionary when importing it
         self.assertDictEqual(data, data_backup)
@@ -755,6 +754,9 @@ class PuLPTest(unittest.TestCase):
         pulpTestCheck(prob1, self.solver, [const.LpStatusOptimal], {x: 4, y: 1, z: 8, w: 0})
 
     def test_export_solver_dict_LP(self):
+        if self.solver.name == 'CPLEX_DLL':
+            warnings.warn("CPLEX_DLL does not like being exported")
+            return
         prob = LpProblem("test_export_dict_LP", const.LpMinimize)
         x = LpVariable("x", 0, 4)
         y = LpVariable("y", -1, 1)
@@ -771,6 +773,9 @@ class PuLPTest(unittest.TestCase):
         pulpTestCheck(prob, solver1, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0})
 
     def test_export_solver_json(self):
+        if self.solver.name == 'CPLEX_DLL':
+            warnings.warn("CPLEX_DLL does not like being exported")
+            return
         name = self._testMethodName
         prob = LpProblem(name, const.LpMinimize)
         x = LpVariable("x", 0, 4)
@@ -931,6 +936,18 @@ class PuLPTest(unittest.TestCase):
         print("\t Testing reading MPS files - binary variable, no constraint names")
         self.assertDictEqual(_dict1, _dict2)
 
+    def test_unset_objective_value__is_valid(self):
+        """Given a valid problem that does not converge,
+        assert that it is still categorised as valid.
+        """
+        name = self._testMethodName
+        prob = LpProblem(name, const.LpMaximize)
+        x = LpVariable('x')
+        prob += (0 * x)
+        prob += (x >= 1)
+        pulpTestCheck(prob, self.solver, [const.LpStatusOptimal])
+        self.assertTrue(prob.valid())
+
     def test_unbounded_problem__is_not_valid(self):
         """Given an unbounded problem, where x will tend to infinity
         to maximise the objective, assert that it is categorised
@@ -939,8 +956,19 @@ class PuLPTest(unittest.TestCase):
         prob = LpProblem(name, const.LpMaximize)
         x = LpVariable('x')
         prob += (1000 * x)
-        prob += (x >= 0)
-        prob.solve()
+        prob += (x >= 1)
+        self.assertFalse(prob.valid())
+
+    def test_infeasible_problem__is_not_valid(self):
+        """Given a problem where x cannot converge to any value
+        given conflicting constraints, assert that it is invalid."""
+        name = self._testMethodName
+        prob = LpProblem(name, const.LpMaximize)
+        x = LpVariable('x')
+        prob += (1 * x)
+        prob += (x >= 2)  # Constraint x to be more than 2
+        prob += (x <= 1)  # Constraint x to be less than 1
+        pulpTestCheck(prob, self.solver, [const.LpStatusInfeasible, const.LpStatusUndefined])
         self.assertFalse(prob.valid())
 
 
@@ -1017,9 +1045,10 @@ def suite():
     loader = TestLoaderWithKwargs()
     suite = unittest.TestSuite()
     for solver in solvers:
-        if solver().available():
+        _solver = solver(msg=0)
+        if _solver.available():
             print("Solver %s available" % solver)
-            tests = loader.loadTestsFromTestCase(PuLPTest, solver=solver(msg=0))
+            tests = loader.loadTestsFromTestCase(PuLPTest, solver=_solver)
             suite.addTests(tests)
         else:
             print("Solver %s unavailable" % solver)

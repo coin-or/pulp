@@ -429,7 +429,10 @@ class LpVariable(LpElement):
             return 0
 
     def valid(self, eps):
-        if self.varValue is None: return False
+        if self.name == '__dummy' and self.varValue is None:
+            return True
+        if self.varValue is None:
+            return False
         if self.upBound is not None and self.varValue > self.upBound + eps:
             return False
         if self.lowBound is not None and self.varValue < self.lowBound - eps:
@@ -1373,7 +1376,7 @@ class LpProblem(object):
     from_json = fromJson
 
     @classmethod
-    def fromMPS(cls, filename, sense=0, **kwargs):
+    def fromMPS(cls, filename, sense=const.LpMinimize, **kwargs):
         data = mpslp.readMPS(filename, sense=sense, **kwargs)
         return cls.fromDict(data)
 

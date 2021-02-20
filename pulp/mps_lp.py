@@ -34,10 +34,10 @@ def readMPS(path, sense, dropConsNames=False):
     returns a dictionary with the contents of the model.
     This dictionary can be used to generate an LpProblem
 
-    :param path:
-    :param sense:
-    :param dropConsNames:
-    :return:
+    :param path: path of mps file
+    :param sense: 1 for minimize, -1 for maximize
+    :param dropConsNames: if True, do not store the names of constraints
+    :return: a dictionary with all the problem data
     """
 
     mode = ""
@@ -171,7 +171,7 @@ def readMPSSetRhs(line, constraintsDict):
     return
 
 
-def writeMPS(LpProblem, filename, mpsSense = 0, rename = 0, mip = 1):
+def writeMPS(LpProblem, filename, mpsSense=0, rename=0, mip=1):
     wasNone, dummyVar = LpProblem.fixObjective()
     if mpsSense == 0: mpsSense = LpProblem.sense
     cobj = LpProblem.objective
