@@ -956,7 +956,7 @@ class PuLPTest(unittest.TestCase):
         prob = LpProblem(name, const.LpMaximize)
         x = LpVariable('x')
         prob += (1000 * x)
-        prob += (x >= 1)
+        prob += (x >= 0)
         self.assertFalse(prob.valid())
 
     def test_infeasible_problem__is_not_valid(self):
