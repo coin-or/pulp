@@ -100,7 +100,9 @@ class CPLEX_CMD(LpSolver_CMD):
             values = reducedCosts = shadowPrices = slacks = solStatus = None
         else:
             status, values, reducedCosts, shadowPrices, slacks, solStatus = self.readsol(tmpSol)
-        self.delete_tmp_files(tmpLp, tmpMst, tmpSol, "cplex.log")
+        self.delete_tmp_files(tmpLp, tmpMst, tmpSol)
+        if self.optionsDict.get('logPath') != "cplex.log":
+            self.delete_tmp_files("cplex.log")
         if status != constants.LpStatusInfeasible:
             lp.assignVarsVals(values)
             lp.assignVarsDj(reducedCosts)
