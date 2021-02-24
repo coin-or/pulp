@@ -114,7 +114,6 @@ class CPLEX_CMD(LpSolver_CMD):
         # CPLEX status: https://www.ibm.com/support/knowledgecenter/en/SSSA5P_12.10.0/ilog.odms.cplex.help/refcallablelibrary/macros/Solution_status_codes.html
         params_eq  = \
             dict(logPath='set logFile {}',
-                 timeLimit='set timelimit {}',
                  gapRel = 'set mip tolerances mipgap {}',
                  gapAbs = 'set mip tolerances absmipgap {}',
                  maxMemory = 'set mip limits treememory {}',

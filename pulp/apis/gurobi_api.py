@@ -35,6 +35,7 @@ import warnings
 # to import the gurobipy name into the module scope
 gurobipy = None
 
+
 class GUROBI(LpSolver):
     """
     The Gurobi LP/MIP solver (via its python interface)
@@ -310,6 +311,8 @@ class GUROBI_CMD(LpSolver_CMD):
             pass
         cmd = self.path
         options = self.options + self.getOptions()
+        if self.timeLimit is not None:
+            options.append(("TimeLimit", self.timeLimit))
         cmd += ' ' + ' '.join(['%s=%s' % (key, value)
                                for key, value in options])
         cmd += ' ResultFile=%s' % tmpSol
@@ -390,7 +393,6 @@ class GUROBI_CMD(LpSolver_CMD):
         # GUROBI parameters: http://www.gurobi.com/documentation/7.5/refman/parameters.html#sec:Parameters
         params_eq  = \
             dict(logPath='LogFile',
-                 timeLimit='TimeLimit',
                  gapRel='MIPGap',
                  gapAbs='MIPGapAbs',
                  threads='Threads'
