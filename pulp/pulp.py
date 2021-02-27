@@ -137,6 +137,7 @@ except ImportError:
 
 import re
 
+
 class LpElement(object):
     """Base class for LpVariable and LpConstraintVar
     """
@@ -144,6 +145,7 @@ class LpElement(object):
     illegal_chars = "-+[] ->/"
     expression = re.compile("[{}]".format(re.escape(illegal_chars)))
     trans = maketrans(illegal_chars, "________")
+
     def setName(self, name):
         if name:
             if self.expression.match(name):
@@ -151,9 +153,11 @@ class LpElement(object):
             self.__name = str(name).translate(self.trans)
         else:
             self.__name = None
+
     def getName(self):
         return self.__name
-    name = property(fget = getName,fset = setName)
+
+    name = property(fget=getName, fset=setName)
 
     def __init__(self, name):
         self.name = name
@@ -162,11 +166,14 @@ class LpElement(object):
         self.hash = id(self)
         self.modified = True
 
+        self.expressions = []
+
     def __hash__(self):
         return self.hash
 
     def __str__(self):
         return self.name
+
     def __repr__(self):
         return self.name
 
@@ -204,13 +211,19 @@ class LpElement(object):
         raise TypeError("Expressions cannot be divided by a variable")
 
     def __le__(self, other):
-        return LpAffineExpression(self) <= other
+        expression = LpAffineExpression(self) <= other
+        self.expressions.append(expression)
+        return self.expressions
 
     def __ge__(self, other):
-        return LpAffineExpression(self) >= other
+        expression = LpAffineExpression(self) >= other
+        self.expressions.append(expression)
+        return self.expressions
 
     def __eq__(self, other):
-        return LpAffineExpression(self) == other
+        expression = LpAffineExpression(self) == other
+        self.expressions.append(expression)
+        return self.expressions
 
     def __ne__(self, other):
         if isinstance(other, LpVariable):
@@ -283,7 +296,7 @@ class LpVariable(LpElement):
         return var
     from_dict = fromDict
 
-    def add_expression(self,e):
+    def add_expression(self, e):
         self.expression = e
         self.addVariableToConstraints(e)
 
@@ -1478,7 +1491,7 @@ class LpProblem(object):
     def add(self, constraint, name = None):
         self.addConstraint(constraint, name)
 
-    def addConstraint(self, constraint, name = None):
+    def addConstraint(self, constraint, name=None):
         if not isinstance(constraint, LpConstraint):
             raise TypeError("Can only add LpConstraint objects")
         if name:
@@ -1547,6 +1560,9 @@ class LpProblem(object):
                 warnings.warn("Overwriting previously set objective.")
             self.objective = LpAffineExpression(other)
             self.objective.name = name
+        elif isinstance(other, list):
+            for item in other:
+                self = self.__iadd__(item)
         else:
             raise TypeError("Can only add LpConstraintVar, LpConstraint, LpAffineExpression or True objects")
         return self
