@@ -98,7 +98,7 @@ class SCIP_CMD(LpSolver_CMD):
             proc.append('-q')
         proc.extend(['-c', 'optimize', '-c', 'write solution "%s"' % tmpSol, '-c', 'quit'])
 
-        self.solution_time = clock()
+        self.solution_time = -clock()
         subprocess.check_call(proc, stdout=sys.stdout, stderr=sys.stderr)
         self.solution_time += clock()
 
