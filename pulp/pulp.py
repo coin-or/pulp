@@ -166,7 +166,7 @@ class LpElement(object):
         self.hash = id(self)
         self.modified = True
 
-        self.expressions = []
+        self.constraint = None
 
     def __hash__(self):
         return self.hash
@@ -210,20 +210,24 @@ class LpElement(object):
     def __rdiv__(self, other):
         raise TypeError("Expressions cannot be divided by a variable")
 
+    def add_constraint(self, constraint):
+        if self.constraint is None:
+            self.constraint = constraint
+        else:
+            self.constraint.add(constraint)
+        return self.constraint
+
     def __le__(self, other):
-        expression = LpAffineExpression(self) <= other
-        self.expressions.append(expression)
-        return self.expressions
+        constraint = LpAffineExpression(self) <= other
+        return self.add_constraint(constraint)
 
     def __ge__(self, other):
-        expression = LpAffineExpression(self) >= other
-        self.expressions.append(expression)
-        return self.expressions
+        constraint = LpAffineExpression(self) >= other
+        return self.add_constraint(constraint)
 
     def __eq__(self, other):
-        expression = LpAffineExpression(self) == other
-        self.expressions.append(expression)
-        return self.expressions
+        constraint = LpAffineExpression(self) == other
+        return self.add_constraint(constraint)
 
     def __ne__(self, other):
         if isinstance(other, LpVariable):
@@ -587,6 +591,7 @@ class LpAffineExpression(_DICT_TYPE):
     """
     #to remove illegal characters from the names
     trans = maketrans("-+[] ","_____")
+
     def setName(self,name):
         if name:
             self.__name = str(name).translate(self.trans)
@@ -697,8 +702,10 @@ class LpAffineExpression(_DICT_TYPE):
         return result
 
     def __repr__(self):
-        l = [str(self[v]) + "*" + str(v)
-                        for v in self.sorted_keys()]
+        l = [
+            str(self[v]) + "*" + str(v)
+            for v in self.sorted_keys()
+        ]
         l.append(str(self.constant))
         s = " + ".join(l)
         return s
@@ -917,8 +924,10 @@ class LpAffineExpression(_DICT_TYPE):
         return [dict(name=k.name, value=v) for k, v in self.items()]
     to_dict = toDict
 
+
 class LpConstraint(LpAffineExpression):
     """An LP constraint"""
+
     def __init__(self, e = None, sense = const.LpConstraintEQ,
                   name = None, rhs = None):
         """
@@ -934,6 +943,12 @@ class LpConstraint(LpAffineExpression):
         self.pi = None
         self.slack = None
         self.modified = True
+        self.sub_constraints = []
+
+        self.add(self)
+
+    def add(self, sub_constraint):
+        self.sub_constraints.append(sub_constraint)
 
     def getLb(self):
         if ( (self.sense == const.LpConstraintGE) or
@@ -964,7 +979,7 @@ class LpConstraint(LpAffineExpression):
             line += ["0"]
         c = -self.constant
         if c == 0:
-            c = 0 # Supress sign
+            c = 0 # Suppress sign
         term = " %s %.12g" % (const.LpConstraintSenses[self.sense], c)
         if self._count_characters(line)+len(term) > const.LpCplexLPLineSize:
             result += ["".join(line)]
@@ -983,10 +998,14 @@ class LpConstraint(LpAffineExpression):
         self.modified = True
 
     def __repr__(self):
-        s = LpAffineExpression.__repr__(self)
-        if self.sense is not None:
-            s += " " + const.LpConstraintSenses[self.sense] + " 0"
-        return s
+        expressions_name = ""
+        for i, expression in enumerate(self.sub_constraints):
+            expressions_name += LpAffineExpression.__repr__(expression)
+            if self.sense is not None:
+                expressions_name += " " + const.LpConstraintSenses[self.sense] + " 0"
+            if (i + 1) < len(self.sub_constraints):
+                expressions_name += ", "
+        return expressions_name
 
     def copy(self):
         """Make a copy of self"""
@@ -1547,7 +1566,8 @@ class LpProblem(object):
         if isinstance(other, LpConstraintVar):
             self.addConstraint(other.constraint)
         elif isinstance(other, LpConstraint):
-            self.addConstraint(other, name)
+            for expression in other.sub_constraints:
+                self.addConstraint(expression, name)
         elif isinstance(other, LpAffineExpression):
             if self.objective is not None:
                 warnings.warn("Overwriting previously set objective.")
@@ -1560,9 +1580,6 @@ class LpProblem(object):
                 warnings.warn("Overwriting previously set objective.")
             self.objective = LpAffineExpression(other)
             self.objective.name = name
-        elif isinstance(other, list):
-            for item in other:
-                self = self.__iadd__(item)
         else:
             raise TypeError("Can only add LpConstraintVar, LpConstraint, LpAffineExpression or True objects")
         return self

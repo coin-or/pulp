@@ -971,11 +971,29 @@ class PuLPTest(unittest.TestCase):
         pulpTestCheck(prob, self.solver, [const.LpStatusInfeasible, const.LpStatusUndefined])
         self.assertFalse(prob.valid())
 
-    def test_double_constraint_respected(self):
+    def test_double_constraint_respected__point_right(self):
         name = self._testMethodName
         prob = LpProblem(name, const.LpMinimize)
         x = LpVariable('x')
         prob += 1 <= x <= 5
+        prob += x
+        prob.solve()
+        assert x.value() == 1
+
+    def test_double_constraint_respected__point_left(self):
+        name = self._testMethodName
+        prob = LpProblem(name, const.LpMinimize)
+        x = LpVariable('x')
+        prob += 5 >= x >= 1
+        prob += x
+        prob.solve()
+        assert x.value() == 1
+
+    def test_double_constraint_respected__with_equals(self):
+        name = self._testMethodName
+        prob = LpProblem(name, const.LpMinimize)
+        x = LpVariable('x')
+        prob += 1 == x <= 5
         prob += x
         prob.solve()
         assert x.value() == 1
@@ -1072,9 +1090,9 @@ def getSortedDict(prob, keyCons='name', keyVars='name'):
 
 if __name__ == '__main__':
     # Tests
-    # runner = unittest.TextTestRunner(verbosity=0)
-    # runner.run(suite())
-    # To run a single test:
-    suite = unittest.TestSuite()
-    suite.addTest(PuLPTest('test_double_constraint_respected', PULP_CBC_CMD(msg=0)))
-    unittest.TextTestRunner(verbosity=0).run(suite)
+    runner = unittest.TextTestRunner(verbosity=0)
+    runner.run(suite())
+    # # To run a single test:
+    # suite = unittest.TestSuite()
+    # suite.addTest(PuLPTest('test_infeasible_problem__is_not_valid', PULP_CBC_CMD(msg=0)))
+    # unittest.TextTestRunner(verbosity=0).run(suite)
