@@ -153,7 +153,7 @@ class LpElement(object):
             self.__name = None
     def getName(self):
         return self.__name
-    name = property(fget = getName, fset = setName)
+    name = property(fget = getName,fset = setName)
 
     def __init__(self, name):
         self.name = name
