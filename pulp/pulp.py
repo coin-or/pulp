@@ -586,7 +586,6 @@ class LpAffineExpression(_DICT_TYPE):
     """
     #to remove illegal characters from the names
     trans = maketrans("-+[] ","_____")
-
     def setName(self,name):
         if name:
             self.__name = str(name).translate(self.trans)
@@ -1505,7 +1504,7 @@ class LpProblem(object):
     def add(self, constraint, name = None):
         self.addConstraint(constraint, name)
 
-    def addConstraint(self, constraint, name=None):
+    def addConstraint(self, constraint, name = None):
         if not isinstance(constraint, LpConstraint):
             raise TypeError("Can only add LpConstraint objects")
         if name:
