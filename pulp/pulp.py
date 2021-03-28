@@ -137,7 +137,6 @@ except ImportError:
 
 import re
 
-
 class LpElement(object):
     """Base class for LpVariable and LpConstraintVar
     """
@@ -145,7 +144,6 @@ class LpElement(object):
     illegal_chars = "-+[] ->/"
     expression = re.compile("[{}]".format(re.escape(illegal_chars)))
     trans = maketrans(illegal_chars, "________")
-
     def setName(self, name):
         if name:
             if self.expression.match(name):
@@ -153,10 +151,8 @@ class LpElement(object):
             self.__name = str(name).translate(self.trans)
         else:
             self.__name = None
-
     def getName(self):
         return self.__name
-
     name = property(fget=getName, fset=setName)
 
     def __init__(self, name):
@@ -173,7 +169,6 @@ class LpElement(object):
 
     def __str__(self):
         return self.name
-
     def __repr__(self):
         return self.name
 
@@ -300,7 +295,7 @@ class LpVariable(LpElement):
         return var
     from_dict = fromDict
 
-    def add_expression(self, e):
+    def add_expression(self,e):
         self.expression = e
         self.addVariableToConstraints(e)
 
@@ -702,10 +697,8 @@ class LpAffineExpression(_DICT_TYPE):
         return result
 
     def __repr__(self):
-        l = [
-            str(self[v]) + "*" + str(v)
-            for v in self.sorted_keys()
-        ]
+        l = [str(self[v]) + "*" + str(v)
+             for v in self.sorted_keys()]
         l.append(str(self.constant))
         s = " + ".join(l)
         return s
@@ -924,10 +917,8 @@ class LpAffineExpression(_DICT_TYPE):
         return [dict(name=k.name, value=v) for k, v in self.items()]
     to_dict = toDict
 
-
 class LpConstraint(LpAffineExpression):
     """An LP constraint"""
-
     def __init__(self, e = None, sense = const.LpConstraintEQ,
                   name = None, rhs = None):
         """
