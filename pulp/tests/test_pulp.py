@@ -993,7 +993,8 @@ class PuLPTest(unittest.TestCase):
         name = self._testMethodName
         prob = LpProblem(name, const.LpMinimize)
         x = LpVariable('x')
-        prob += 1 == x <= 5
+        prob += (1 == x <= 5)
+        prob += x <= 1
         prob += x
         prob.solve()
         assert x.value() == 1
@@ -1088,11 +1089,12 @@ def getSortedDict(prob, keyCons='name', keyVars='name'):
     _dict['variables'].sort(key=lambda v: v[keyVars])
     return _dict
 
+
 if __name__ == '__main__':
     # Tests
     runner = unittest.TextTestRunner(verbosity=0)
     runner.run(suite())
-    # # To run a single test:
+    # To run a single test:
     # suite = unittest.TestSuite()
-    # suite.addTest(PuLPTest('test_infeasible_problem__is_not_valid', PULP_CBC_CMD(msg=0)))
+    # suite.addTest(PuLPTest('test_pulp_060', PULP_CBC_CMD(msg=0)))
     # unittest.TextTestRunner(verbosity=0).run(suite)

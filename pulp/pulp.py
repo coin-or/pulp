@@ -943,12 +943,20 @@ class LpConstraint(LpAffineExpression):
         self.pi = None
         self.slack = None
         self.modified = True
-        self.sub_constraints = []
+        self._sub_constraints = []
+        self._new_sub_constraints = []
 
         self.add(self)
 
+    @property
+    def sub_constraints_to_add(self):
+        new_sub_constraints = self._new_sub_constraints
+        self._new_sub_constraints = []
+        return new_sub_constraints
+
     def add(self, sub_constraint):
-        self.sub_constraints.append(sub_constraint)
+        self._sub_constraints.append(sub_constraint)
+        self._new_sub_constraints.append(sub_constraint)
 
     def getLb(self):
         if ( (self.sense == const.LpConstraintGE) or
@@ -998,14 +1006,10 @@ class LpConstraint(LpAffineExpression):
         self.modified = True
 
     def __repr__(self):
-        expressions_name = ""
-        for i, expression in enumerate(self.sub_constraints):
-            expressions_name += LpAffineExpression.__repr__(expression)
-            if self.sense is not None:
-                expressions_name += " " + const.LpConstraintSenses[self.sense] + " 0"
-            if (i + 1) < len(self.sub_constraints):
-                expressions_name += ", "
-        return expressions_name
+        s = LpAffineExpression.__repr__(self)
+        if self.sense is not None:
+            s += " " + const.LpConstraintSenses[self.sense] + " 0"
+        return s
 
     def copy(self):
         """Make a copy of self"""
@@ -1566,7 +1570,7 @@ class LpProblem(object):
         if isinstance(other, LpConstraintVar):
             self.addConstraint(other.constraint)
         elif isinstance(other, LpConstraint):
-            for expression in other.sub_constraints:
+            for expression in other.sub_constraints_to_add:
                 self.addConstraint(expression, name)
         elif isinstance(other, LpAffineExpression):
             if self.objective is not None:
