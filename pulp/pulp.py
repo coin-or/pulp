@@ -940,11 +940,16 @@ class LpConstraint(LpAffineExpression):
 
     @property
     def sub_constraints_to_add(self):
+        """Get the sub constraints which have not yet been added to the
+        model. Set the list of new constraints which have not yet been
+        added as empty. The full list of constraints remains tracked
+        within _sub_constraints."""
         new_sub_constraints = self._new_sub_constraints
         self._new_sub_constraints = []
         return new_sub_constraints
 
     def add(self, sub_constraint):
+        """Add a sub constraint."""
         self._sub_constraints.append(sub_constraint)
         self._new_sub_constraints.append(sub_constraint)
 
