@@ -27,6 +27,7 @@
 from .core import LpSolver_CMD, subprocess, PulpSolverError, clock
 from .core import scip_path
 import os
+import io
 from .. import constants
 import sys
 
@@ -98,8 +99,11 @@ class SCIP_CMD(LpSolver_CMD):
             proc.append('-q')
         proc.extend(['-c', 'optimize', '-c', 'write solution "%s"' % tmpSol, '-c', 'quit'])
 
+        stdout = self.none_if_fileno_unsupported(sys.stdout)
+        stderr = self.none_if_fileno_unsupported(sys.stderr)
+
         self.solution_time = -clock()
-        subprocess.check_call(proc, stdout=sys.stdout, stderr=sys.stderr)
+        subprocess.check_call(proc, stdout=stdout, stderr=stderr)
         self.solution_time += clock()
 
         if not os.path.exists(tmpSol):
@@ -155,7 +159,15 @@ class SCIP_CMD(LpSolver_CMD):
                 except:
                     raise PulpSolverError("Can't read SCIP solver output: %r" % line)
 
-            return status, values
+            return status, values\
 
+
+    @staticmethod
+    def none_if_fileno_unsupported(stream):
+        try:
+            stream.fileno()
+            return stream
+        except io.UnsupportedOperation:
+            return None
 
 SCIP = SCIP_CMD
