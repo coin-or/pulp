@@ -30,13 +30,16 @@ import os
 import io
 from .. import constants
 import sys
+import resource
+import itertools
 
 
 class SCIP_CMD(LpSolver_CMD):
     """The SCIP optimization solver"""
     name ='SCIP_CMD'
 
-    def __init__(self, path=None, keepFiles=False, mip=True, msg=True, options=None, timeLimit=None, maxNodes=None):
+    def __init__(self, path=None, keepFiles=False, mip=True, msg=True, options=None,
+                 timeLimit=None, gapRel=None, gapAbs=None, maxNodes=None):
         """
         :param bool mip: if False, assume LP even if integer variables
         :param bool msg: if False, no log is shown
@@ -44,10 +47,13 @@ class SCIP_CMD(LpSolver_CMD):
         :param bool keepFiles: if True, files are saved in the current directory and not deleted after solving
         :param str path: path to the solver binary
         :param float timeLimit: maximum time for solver (in seconds)
+        :param float gapRel: relative gap tolerance for the solver to stop (in fraction)
+        :param float gapAbs: absolute gap tolerance for the solver to stop
         :param int maxNodes: max number of nodes during branching. Stops the solving when reached.
         """
         LpSolver_CMD.__init__(self, mip=mip, msg=msg, options=options, path=path,
-                              keepFiles=keepFiles, timeLimit=timeLimit, maxNodes=maxNodes)
+                              keepFiles=keepFiles, timeLimit=timeLimit,
+                              gapRel=gapRel, gapAbs=gapAbs, maxNodes=maxNodes)
 
     SCIP_STATUSES = {
         'unknown': constants.LpStatusUndefined,
@@ -57,7 +63,7 @@ class SCIP_CMD(LpSolver_CMD):
         'stall node limit reached': constants.LpStatusNotSolved,
         'time limit reached': constants.LpStatusNotSolved,
         'memory limit reached': constants.LpStatusNotSolved,
-        'gap limit reached': constants.LpStatusNotSolved,
+        'gap limit reached': constants.LpStatusOptimal,
         'solution limit reached': constants.LpStatusNotSolved,
         'solution improvement limit reached': constants.LpStatusNotSolved,
         'restart limit reached': constants.LpStatusNotSolved,
@@ -91,9 +97,10 @@ class SCIP_CMD(LpSolver_CMD):
         if self.timeLimit is not None:
             proc.extend(['-c', 'set limits time {}'.format(self.timeLimit)])
 
-        maxNodes = self.optionsDict.get('maxNodes')
-        if maxNodes is not None:
-            proc.extend(['-c', 'set limits nodes {}'.format(maxNodes)])
+        options = self.options + self.getOptions()
+        options = list(itertools.chain(*[("-c",o) for o in options]))
+        proc.extend(options)
+
         proc.extend(self.options)
         if not self.msg:
             proc.append('-q')
@@ -102,9 +109,9 @@ class SCIP_CMD(LpSolver_CMD):
         stdout = self.firstWithFilenoSupport(sys.stdout, sys.__stdout__)
         stderr = self.firstWithFilenoSupport(sys.stderr, sys.__stderr__)
 
-        self.solution_time = -clock()
+        self.solution_time = -resource.getrusage(resource.RUSAGE_CHILDREN).ru_utime
         subprocess.check_call(proc, stdout=stdout, stderr=stderr)
-        self.solution_time += clock()
+        self.solution_time += resource.getrusage(resource.RUSAGE_CHILDREN).ru_utime
 
         if not os.path.exists(tmpSol):
             raise PulpSolverError("PuLP: Error while executing "+self.path)
@@ -120,6 +127,17 @@ class SCIP_CMD(LpSolver_CMD):
         lp.assignStatus(status)
         self.delete_tmp_files(tmpLp, tmpSol)
         return status
+
+    def getOptions(self):
+        params_eq  = dict(
+            timeLimit="set limits time {}",
+            gapRel="set limits gap {}",
+            gapAbs="set limits absgap {}",
+            maxNodes="set limits nodes {}"
+        )
+
+        return [v.format(self.optionsDict[k]) for k, v in params_eq.items()
+                 if self.optionsDict.get(k) is not None]
 
     @staticmethod
     def readsol(filename):
