@@ -99,8 +99,8 @@ class SCIP_CMD(LpSolver_CMD):
             proc.append('-q')
         proc.extend(['-c', 'optimize', '-c', 'write solution "%s"' % tmpSol, '-c', 'quit'])
 
-        stdout = self.none_if_fileno_unsupported(sys.stdout)
-        stderr = self.none_if_fileno_unsupported(sys.stderr)
+        stdout = self.firstWithFilenoSupport(sys.stdout, sys.__stdout__)
+        stderr = self.firstWithFilenoSupport(sys.stderr, sys.__stderr__)
 
         self.solution_time = -clock()
         subprocess.check_call(proc, stdout=stdout, stderr=stderr)
@@ -159,15 +159,17 @@ class SCIP_CMD(LpSolver_CMD):
                 except:
                     raise PulpSolverError("Can't read SCIP solver output: %r" % line)
 
-            return status, values\
+            return status, values
 
 
     @staticmethod
-    def none_if_fileno_unsupported(stream):
-        try:
-            stream.fileno()
-            return stream
-        except io.UnsupportedOperation:
-            return None
+    def firstWithFilenoSupport(*streams):
+        for stream in streams:
+            try:
+                stream.fileno()
+                return stream
+            except io.UnsupportedOperation:
+                pass
+        return None
 
 SCIP = SCIP_CMD
