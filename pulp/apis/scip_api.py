@@ -30,7 +30,6 @@ import os
 import io
 from .. import constants
 import sys
-import resource
 import itertools
 
 
@@ -109,9 +108,9 @@ class SCIP_CMD(LpSolver_CMD):
         stdout = self.firstWithFilenoSupport(sys.stdout, sys.__stdout__)
         stderr = self.firstWithFilenoSupport(sys.stderr, sys.__stderr__)
 
-        self.solution_time = -resource.getrusage(resource.RUSAGE_CHILDREN).ru_utime
+        self.solution_time = -clock()
         subprocess.check_call(proc, stdout=stdout, stderr=stderr)
-        self.solution_time += resource.getrusage(resource.RUSAGE_CHILDREN).ru_utime
+        self.solution_time += clock()
 
         if not os.path.exists(tmpSol):
             raise PulpSolverError("PuLP: Error while executing "+self.path)
