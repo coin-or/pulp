@@ -37,14 +37,14 @@ def __combination(orgset, k):
     elif k > 1:
         for i, x in enumerate(orgset):
             # iterates though to near the end
-            for s in __combination(orgset[i+1:], k-1):
+            for s in __combination(orgset[i + 1 :], k - 1):
                 yield (x,) + s
 
 
-try: # python >= 3.4
+try:  # python >= 3.4
     from itertools import combinations as combination
 except ImportError:
-    try: # python 2.7
+    try:  # python 2.7
         from itertools import combination
     except ImportError:  # pulp's
         combination = __combination
@@ -61,16 +61,16 @@ def __permutation(orgset, k):
     elif k > 1:
         for i, x in enumerate(orgset):
             # iterates though to near the end
-            for s in __permutation(orgset[:i] + orgset[i+1:], k-1):
+            for s in __permutation(orgset[:i] + orgset[i + 1 :], k - 1):
                 yield (x,) + s
 
 
 try:  # python >= 3.4
     from itertools import permutations as permutation
 except ImportError:
-    try: # python 2.7
+    try:  # python 2.7
         from itertools import permutation
-    except ImportError: # pulp's
+    except ImportError:  # pulp's
         permutation = __permutation
 
 
@@ -105,7 +105,7 @@ def allpermutations(orgset, k):
     (4, 2)
     (4, 3)
     """
-    return itertools.chain(*[permutation(orgset, i) for i in range(1, k+1)])
+    return itertools.chain(*[permutation(orgset, i) for i in range(1, k + 1)])
 
 
 def allcombinations(orgset, k):
@@ -133,7 +133,7 @@ def allcombinations(orgset, k):
     (2, 4)
     (3, 4)
     """
-    return itertools.chain(*[combination(orgset, i) for i in range(1, k+1)])
+    return itertools.chain(*[combination(orgset, i) for i in range(1, k + 1)])
 
 
 def makeDict(headers, array, default=None):

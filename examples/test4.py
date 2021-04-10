@@ -12,23 +12,23 @@ from pulp import *
 from random import *
 
 C = 50
-B = 500 # Resources available for the two years
-s = 20 # Number of scenarios
-n = 10 # Number of projects
+B = 500  # Resources available for the two years
+s = 20  # Number of scenarios
+n = 10  # Number of projects
 
 N = list(range(n))
 S = list(range(s))
 
 # First year costs
-c = [randint(0,C) for i in N]
+c = [randint(0, C) for i in N]
 # First year resources
-d = [randint(0,C) for i in N]
+d = [randint(0, C) for i in N]
 # a=debut, b=taille
-interval = [[(randint(0,C), randint(0,C)) for i in N] for j in S]
+interval = [[(randint(0, C), randint(0, C)) for i in N] for j in S]
 # Final earnings
-q = [[randint(ai, ai+bi) for ai,bi in ab] for ab in interval]
+q = [[randint(ai, ai + bi) for ai, bi in ab] for ab in interval]
 # Second year resources
-delta = [[randint(ai, ai+bi) for ai,bi in ab] for ab in interval]
+delta = [[randint(ai, ai + bi) for ai, bi in ab] for ab in interval]
 
 # Variables
 # x : Whether or not to start a project
@@ -40,20 +40,20 @@ y = LpVariable.matrix("y", (S, N), 0, 1, LpInteger)
 lp = LpProblem("Planification", LpMinimize)
 
 # Objective: expected earnings
-lp += lpDot(x, c) - lpDot(q, y)/float(s)
+lp += lpDot(x, c) - lpDot(q, y) / float(s)
 
 # Resources constraints for each scenario
 for j in S:
-	lp += lpDot(d, x) + lpDot(delta[j], y[j]) <= B
+    lp += lpDot(d, x) + lpDot(delta[j], y[j]) <= B
 
 # We can only finish a project that was started
 for i in N:
-	for j in S:
-		lp += y[j][i] <= x[i]
+    for j in S:
+        lp += y[j][i] <= x[i]
 
 # Resolution
 lp.solve()
 
 # Solution printing
 for i in N:
-	print(x[i], "=", x[i].value())
+    print(x[i], "=", x[i].value())

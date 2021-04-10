@@ -33,9 +33,19 @@ import sys
 
 class SCIP_CMD(LpSolver_CMD):
     """The SCIP optimization solver"""
-    name ='SCIP_CMD'
 
-    def __init__(self, path=None, keepFiles=False, mip=True, msg=True, options=None, timeLimit=None, maxNodes=None):
+    name = "SCIP_CMD"
+
+    def __init__(
+        self,
+        path=None,
+        keepFiles=False,
+        mip=True,
+        msg=True,
+        options=None,
+        timeLimit=None,
+        maxNodes=None,
+    ):
         """
         :param bool mip: if False, assume LP even if integer variables
         :param bool msg: if False, no log is shown
@@ -45,25 +55,33 @@ class SCIP_CMD(LpSolver_CMD):
         :param float timeLimit: maximum time for solver (in seconds)
         :param int maxNodes: max number of nodes during branching. Stops the solving when reached.
         """
-        LpSolver_CMD.__init__(self, mip=mip, msg=msg, options=options, path=path,
-                              keepFiles=keepFiles, timeLimit=timeLimit, maxNodes=maxNodes)
+        LpSolver_CMD.__init__(
+            self,
+            mip=mip,
+            msg=msg,
+            options=options,
+            path=path,
+            keepFiles=keepFiles,
+            timeLimit=timeLimit,
+            maxNodes=maxNodes,
+        )
 
     SCIP_STATUSES = {
-        'unknown': constants.LpStatusUndefined,
-        'user interrupt': constants.LpStatusNotSolved,
-        'node limit reached': constants.LpStatusNotSolved,
-        'total node limit reached': constants.LpStatusNotSolved,
-        'stall node limit reached': constants.LpStatusNotSolved,
-        'time limit reached': constants.LpStatusNotSolved,
-        'memory limit reached': constants.LpStatusNotSolved,
-        'gap limit reached': constants.LpStatusNotSolved,
-        'solution limit reached': constants.LpStatusNotSolved,
-        'solution improvement limit reached': constants.LpStatusNotSolved,
-        'restart limit reached': constants.LpStatusNotSolved,
-        'optimal solution found': constants.LpStatusOptimal,
-        'infeasible':   constants.LpStatusInfeasible,
-        'unbounded': constants.LpStatusUnbounded,
-        'infeasible or unbounded': constants.LpStatusNotSolved,
+        "unknown": constants.LpStatusUndefined,
+        "user interrupt": constants.LpStatusNotSolved,
+        "node limit reached": constants.LpStatusNotSolved,
+        "total node limit reached": constants.LpStatusNotSolved,
+        "stall node limit reached": constants.LpStatusNotSolved,
+        "time limit reached": constants.LpStatusNotSolved,
+        "memory limit reached": constants.LpStatusNotSolved,
+        "gap limit reached": constants.LpStatusNotSolved,
+        "solution limit reached": constants.LpStatusNotSolved,
+        "solution improvement limit reached": constants.LpStatusNotSolved,
+        "restart limit reached": constants.LpStatusNotSolved,
+        "optimal solution found": constants.LpStatusOptimal,
+        "infeasible": constants.LpStatusInfeasible,
+        "unbounded": constants.LpStatusUnbounded,
+        "infeasible or unbounded": constants.LpStatusNotSolved,
     }
     NO_SOLUTION_STATUSES = {
         constants.LpStatusInfeasible,
@@ -81,29 +99,31 @@ class SCIP_CMD(LpSolver_CMD):
     def actualSolve(self, lp):
         """Solve a well formulated lp problem"""
         if not self.executable(self.path):
-            raise PulpSolverError("PuLP: cannot execute "+self.path)
+            raise PulpSolverError("PuLP: cannot execute " + self.path)
 
-        tmpLp, tmpSol = self.create_tmp_files(lp.name, 'lp', 'sol')
+        tmpLp, tmpSol = self.create_tmp_files(lp.name, "lp", "sol")
         lp.writeLP(tmpLp)
 
-        proc = ['%s' % self.path, '-c', 'read "%s"' % tmpLp]
+        proc = ["%s" % self.path, "-c", 'read "%s"' % tmpLp]
         if self.timeLimit is not None:
-            proc.extend(['-c', 'set limits time {}'.format(self.timeLimit)])
+            proc.extend(["-c", "set limits time {}".format(self.timeLimit)])
 
-        maxNodes = self.optionsDict.get('maxNodes')
+        maxNodes = self.optionsDict.get("maxNodes")
         if maxNodes is not None:
-            proc.extend(['-c', 'set limits nodes {}'.format(maxNodes)])
+            proc.extend(["-c", "set limits nodes {}".format(maxNodes)])
         proc.extend(self.options)
         if not self.msg:
-            proc.append('-q')
-        proc.extend(['-c', 'optimize', '-c', 'write solution "%s"' % tmpSol, '-c', 'quit'])
+            proc.append("-q")
+        proc.extend(
+            ["-c", "optimize", "-c", 'write solution "%s"' % tmpSol, "-c", "quit"]
+        )
 
         self.solution_time = clock()
         subprocess.check_call(proc, stdout=sys.stdout, stderr=sys.stderr)
         self.solution_time += clock()
 
         if not os.path.exists(tmpSol):
-            raise PulpSolverError("PuLP: Error while executing "+self.path)
+            raise PulpSolverError("PuLP: Error while executing " + self.path)
 
         status, values = self.readsol(tmpSol)
 
@@ -125,13 +145,15 @@ class SCIP_CMD(LpSolver_CMD):
             # First line must contain 'solution status: <something>'
             try:
                 line = f.readline()
-                comps = line.split(': ')
-                assert comps[0] == 'solution status'
+                comps = line.split(": ")
+                assert comps[0] == "solution status"
                 assert len(comps) == 2
             except Exception:
                 raise PulpSolverError("Can't get SCIP solver status: %r" % line)
 
-            status = SCIP_CMD.SCIP_STATUSES.get(comps[1].strip(), constants.LpStatusUndefined)
+            status = SCIP_CMD.SCIP_STATUSES.get(
+                comps[1].strip(), constants.LpStatusUndefined
+            )
             values = {}
 
             if status in SCIP_CMD.NO_SOLUTION_STATUSES:
@@ -140,8 +162,8 @@ class SCIP_CMD(LpSolver_CMD):
             # Look for an objective value. If we can't find one, stop.
             try:
                 line = f.readline()
-                comps = line.split(': ')
-                assert comps[0] == 'objective value'
+                comps = line.split(": ")
+                assert comps[0] == "objective value"
                 assert len(comps) == 2
                 float(comps[1].strip())
             except Exception:
