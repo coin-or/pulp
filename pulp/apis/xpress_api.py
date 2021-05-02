@@ -31,13 +31,25 @@ import warnings
 
 class XPRESS(LpSolver_CMD):
     """The XPRESS LP solver"""
-    name = 'XPRESS'
 
-    def __init__(self, mip=True, msg=True, timeLimit=None,
-                 gapRel=None, options=None,
-                 keepFiles=False, path=None,
-                 maxSeconds=None, targetGap=None, heurFreq=None,
-                 heurStra=None, coverCuts=None, preSolve=None):
+    name = "XPRESS"
+
+    def __init__(
+        self,
+        mip=True,
+        msg=True,
+        timeLimit=None,
+        gapRel=None,
+        options=None,
+        keepFiles=False,
+        path=None,
+        maxSeconds=None,
+        targetGap=None,
+        heurFreq=None,
+        heurStra=None,
+        coverCuts=None,
+        preSolve=None,
+    ):
         """
         Initializes the Xpress solver.
 
@@ -58,7 +70,9 @@ class XPRESS(LpSolver_CMD):
         if maxSeconds:
             warnings.warn("Parameter maxSeconds is being depreciated for timeLimit")
             if timeLimit is not None:
-                warnings.warn("Parameter timeLimit and maxSeconds passed, using timeLimit")
+                warnings.warn(
+                    "Parameter timeLimit and maxSeconds passed, using timeLimit"
+                )
             else:
                 timeLimit = maxSeconds
         if targetGap is not None:
@@ -67,9 +81,20 @@ class XPRESS(LpSolver_CMD):
                 warnings.warn("Parameter gapRel and epgap passed, using gapRel")
             else:
                 gapRel = targetGap
-        LpSolver_CMD.__init__(self, gapRel=gapRel, mip=mip, msg=msg, timeLimit=timeLimit,
-                              options=options, path=path, keepFiles=keepFiles, heurFreq=heurFreq,
-                              heurStra=heurStra, coverCuts=coverCuts, preSolve=preSolve)
+        LpSolver_CMD.__init__(
+            self,
+            gapRel=gapRel,
+            mip=mip,
+            msg=msg,
+            timeLimit=timeLimit,
+            options=options,
+            path=path,
+            keepFiles=keepFiles,
+            heurFreq=heurFreq,
+            heurStra=heurStra,
+            coverCuts=coverCuts,
+            preSolve=preSolve,
+        )
 
     def defaultPath(self):
         return self.executableExtension("optimizer")
@@ -81,42 +106,47 @@ class XPRESS(LpSolver_CMD):
     def actualSolve(self, lp):
         """Solve a well formulated lp problem"""
         if not self.executable(self.path):
-            raise PulpSolverError("PuLP: cannot execute "+self.path)
-        tmpLp, tmpSol = self.create_tmp_files(lp.name, 'lp', 'prt')
+            raise PulpSolverError("PuLP: cannot execute " + self.path)
+        tmpLp, tmpSol = self.create_tmp_files(lp.name, "lp", "prt")
         lp.writeLP(tmpLp, writeSOS=1, mip=self.mip)
-        xpress = subprocess.Popen([self.path, lp.name], shell=True, stdin=subprocess.PIPE, universal_newlines=True)
+        xpress = subprocess.Popen(
+            [self.path, lp.name],
+            shell=True,
+            stdin=subprocess.PIPE,
+            universal_newlines=True,
+        )
         if not self.msg:
             xpress.stdin.write("OUTPUTLOG=0\n")
-        xpress.stdin.write("READPROB "+tmpLp+"\n")
+        xpress.stdin.write("READPROB " + tmpLp + "\n")
         if self.timeLimit:
             xpress.stdin.write("MAXTIME=%d\n" % self.timeLimit)
-        targetGap = self.optionsDict.get('gapRel')
+        targetGap = self.optionsDict.get("gapRel")
         if targetGap:
             xpress.stdin.write("MIPRELSTOP=%f\n" % targetGap)
-        heurFreq = self.optionsDict.get('heurFreq')
+        heurFreq = self.optionsDict.get("heurFreq")
         if heurFreq:
             xpress.stdin.write("HEURFREQ=%d\n" % heurFreq)
-        heurStra = self.optionsDict.get('heurStra')
+        heurStra = self.optionsDict.get("heurStra")
         if heurStra:
             xpress.stdin.write("HEURSTRATEGY=%d\n" % heurStra)
-        coverCuts = self.optionsDict.get('coverCuts')
+        coverCuts = self.optionsDict.get("coverCuts")
         if coverCuts:
             xpress.stdin.write("COVERCUTS=%d\n" % coverCuts)
-        preSolve = self.optionsDict.get('preSolve')
+        preSolve = self.optionsDict.get("preSolve")
         if preSolve:
             xpress.stdin.write("PRESOLVE=%d\n" % preSolve)
         for option in self.options:
-            xpress.stdin.write(option+"\n")
+            xpress.stdin.write(option + "\n")
         if lp.sense == constants.LpMaximize:
             xpress.stdin.write("MAXIM\n")
         else:
             xpress.stdin.write("MINIM\n")
         if lp.isMIP() and self.mip:
             xpress.stdin.write("GLOBAL\n")
-        xpress.stdin.write("WRITEPRTSOL "+tmpSol+"\n")
+        xpress.stdin.write("WRITEPRTSOL " + tmpSol + "\n")
         xpress.stdin.write("QUIT\n")
         if xpress.wait() != 0:
-            raise PulpSolverError("PuLP: Error while executing "+self.path)
+            raise PulpSolverError("PuLP: Error while executing " + self.path)
         status, values = self.readsol(tmpSol)
         self.delete_tmp_files(tmpLp, tmpSol)
         lp.assignVarsVals(values)
@@ -141,9 +171,11 @@ class XPRESS(LpSolver_CMD):
             # TODO: check status for Integer Feasible
             xpressStatus = {
                 "Optimal": constants.LpStatusOptimal,
-                }
+            }
             if statusString not in xpressStatus:
-                raise PulpSolverError("Unknown status returned by XPRESS: "+statusString)
+                raise PulpSolverError(
+                    "Unknown status returned by XPRESS: " + statusString
+                )
             status = xpressStatus[statusString]
             values = {}
             while 1:
@@ -151,7 +183,7 @@ class XPRESS(LpSolver_CMD):
                 if _line == "":
                     break
                 line = _line.split()
-                if len(line) and line[0] == 'C':
+                if len(line) and line[0] == "C":
                     name = line[2]
                     value = float(line[4])
                     values[name] = value

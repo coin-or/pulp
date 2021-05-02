@@ -32,6 +32,7 @@ the current version
 
 import os
 import sys
+
 try:
     from time import process_time as clock
 except ImportError:
@@ -44,7 +45,7 @@ except ImportError:
 try:
     Parser = configparser.ConfigParser
 except AttributeError:
-    Parser = configparser.SafeConfigParser    
+    Parser = configparser.SafeConfigParser
 from .. import sparse
 from .. import constants as const
 
@@ -62,14 +63,16 @@ if os.name == "posix" and sys.version_info[0] < 3:
     try:
         import subprocess32 as subprocess
     except ImportError:
-        log.debug("Thread-safe subprocess32 module not found! "
-                  "Using unsafe built-in subprocess module instead.")
+        log.debug(
+            "Thread-safe subprocess32 module not found! "
+            "Using unsafe built-in subprocess module instead."
+        )
         import subprocess
 else:
     import subprocess
 
 if sys.version_info[0] < 3:
-    devnull = open(os.devnull, 'wb')
+    devnull = open(os.devnull, "wb")
     to_string = lambda _obj: str(_obj)
 else:
     devnull = subprocess.DEVNULL
@@ -82,83 +85,100 @@ class PulpSolverError(const.PulpError):
     """
     Pulp Solver-related exceptions
     """
+
     pass
 
-#import configuration information
-def initialize(filename, operating_system='linux', arch='64'):
+
+# import configuration information
+def initialize(filename, operating_system="linux", arch="64"):
     """ reads the configuration file to initialise the module"""
     here = os.path.dirname(filename)
-    config = Parser({'here':here,
-        'os':operating_system, 'arch':arch})
+    config = Parser({"here": here, "os": operating_system, "arch": arch})
     config.read(filename)
 
     try:
         cplex_dll_path = config.get("locations", "CplexPath")
     except configparser.Error:
-        cplex_dll_path = 'libcplex110.so'
+        cplex_dll_path = "libcplex110.so"
     try:
         try:
-            ilm_cplex_license = config.get("licenses",
-                "ilm_cplex_license").decode("string-escape").replace('"','')
+            ilm_cplex_license = (
+                config.get("licenses", "ilm_cplex_license")
+                .decode("string-escape")
+                .replace('"', "")
+            )
         except AttributeError:
-            ilm_cplex_license = config.get("licenses",
-                "ilm_cplex_license").replace('"','')
+            ilm_cplex_license = config.get("licenses", "ilm_cplex_license").replace(
+                '"', ""
+            )
     except configparser.Error:
-        ilm_cplex_license = ''
+        ilm_cplex_license = ""
     try:
-        ilm_cplex_license_signature = config.getint("licenses",
-                "ilm_cplex_license_signature")
+        ilm_cplex_license_signature = config.getint(
+            "licenses", "ilm_cplex_license_signature"
+        )
     except configparser.Error:
         ilm_cplex_license_signature = 0
     try:
-        coinMP_path = config.get("locations", "CoinMPPath").split(', ')
+        coinMP_path = config.get("locations", "CoinMPPath").split(", ")
     except configparser.Error:
-        coinMP_path = ['libCoinMP.so']
+        coinMP_path = ["libCoinMP.so"]
     try:
         gurobi_path = config.get("locations", "GurobiPath")
     except configparser.Error:
-        gurobi_path = '/opt/gurobi201/linux32/lib/python2.5'
+        gurobi_path = "/opt/gurobi201/linux32/lib/python2.5"
     try:
         cbc_path = config.get("locations", "CbcPath")
     except configparser.Error:
-        cbc_path = 'cbc'
+        cbc_path = "cbc"
     try:
         glpk_path = config.get("locations", "GlpkPath")
     except configparser.Error:
-        glpk_path = 'glpsol'
+        glpk_path = "glpsol"
     try:
         pulp_cbc_path = config.get("locations", "PulpCbcPath")
     except configparser.Error:
-        pulp_cbc_path = 'cbc'
+        pulp_cbc_path = "cbc"
     try:
         scip_path = config.get("locations", "ScipPath")
     except configparser.Error:
-        scip_path = 'scip'
+        scip_path = "scip"
     try:
         pulp_choco_path = config.get("locations", "PulpChocoPath")
     except configparser.Error:
-        pulp_choco_path = 'choco'
-    for i,path in enumerate(coinMP_path):
+        pulp_choco_path = "choco"
+    for i, path in enumerate(coinMP_path):
         if not os.path.dirname(path):
-            #if no pathname is supplied assume the file is in the same directory
-            coinMP_path[i] = os.path.join(os.path.dirname(config_filename),path)
-    return cplex_dll_path, ilm_cplex_license, ilm_cplex_license_signature,\
-        coinMP_path, gurobi_path, cbc_path, glpk_path, pulp_cbc_path, scip_path, pulp_choco_path
+            # if no pathname is supplied assume the file is in the same directory
+            coinMP_path[i] = os.path.join(os.path.dirname(config_filename), path)
+    return (
+        cplex_dll_path,
+        ilm_cplex_license,
+        ilm_cplex_license_signature,
+        coinMP_path,
+        gurobi_path,
+        cbc_path,
+        glpk_path,
+        pulp_cbc_path,
+        scip_path,
+        pulp_choco_path,
+    )
 
-#pick up the correct config file depending on operating system
+
+# pick up the correct config file depending on operating system
 PULPCFGFILE = "pulp.cfg"
-is_64bits = sys.maxsize > 2**32
+is_64bits = sys.maxsize > 2 ** 32
 if is_64bits:
-    arch = '64'
+    arch = "64"
 else:
-    arch = '32'
+    arch = "32"
 operating_system = None
-if sys.platform in ['win32', 'cli']:
-    operating_system = 'win'
+if sys.platform in ["win32", "cli"]:
+    operating_system = "win"
     PULPCFGFILE += ".win"
-elif sys.platform in ['darwin']:
+elif sys.platform in ["darwin"]:
     operating_system = "osx"
-    arch = '64'
+    arch = "64"
     PULPCFGFILE += ".osx"
 else:
     operating_system = "linux"
@@ -166,17 +186,28 @@ else:
 
 DIRNAME = os.path.dirname(__file__)
 config_filename = os.path.join(DIRNAME, "..", PULPCFGFILE)
-cplex_dll_path, ilm_cplex_license, ilm_cplex_license_signature, coinMP_path,\
-        gurobi_path, cbc_path, glpk_path, pulp_cbc_path, scip_path, pulp_choco_path = \
-        initialize(config_filename, operating_system, arch)
+(
+    cplex_dll_path,
+    ilm_cplex_license,
+    ilm_cplex_license_signature,
+    coinMP_path,
+    gurobi_path,
+    cbc_path,
+    glpk_path,
+    pulp_cbc_path,
+    scip_path,
+    pulp_choco_path,
+) = initialize(config_filename, operating_system, arch)
 
 
 class LpSolver:
     """A generic LP Solver"""
-    name = 'LpSolver'
 
-    def __init__(self, mip=True, msg=True, options=None, timeLimit=None,
-                 *args, **kwargs):
+    name = "LpSolver"
+
+    def __init__(
+        self, mip=True, msg=True, options=None, timeLimit=None, *args, **kwargs
+    ):
         """
         :param bool mip: if False, assume LP even if integer variables
         :param bool msg: if False, no log is shown
@@ -227,36 +258,43 @@ class LpSolver:
         # Always go through the solve method of LpProblem
         return lp.solve(self)
 
-    #TODO: Not sure if this code should be here or in a child class
-    def getCplexStyleArrays(self,lp, senseDict=None, LpVarCategories=None, LpObjSenses=None, infBound=1e20):
+    # TODO: Not sure if this code should be here or in a child class
+    def getCplexStyleArrays(
+        self, lp, senseDict=None, LpVarCategories=None, LpObjSenses=None, infBound=1e20
+    ):
         """returns the arrays suitable to pass to a cdll Cplex
         or other solvers that are similar
 
         Copyright (c) Stuart Mitchell 2007
         """
         if senseDict is None:
-            senseDict = {const.LpConstraintEQ: "E", const.LpConstraintLE: "L", const.LpConstraintGE: "G"}
+            senseDict = {
+                const.LpConstraintEQ: "E",
+                const.LpConstraintLE: "L",
+                const.LpConstraintGE: "G",
+            }
         if LpVarCategories is None:
             LpVarCategories = {const.LpContinuous: "C", const.LpInteger: "I"}
         if LpObjSenses is None:
             LpObjSenses = {const.LpMaximize: -1, const.LpMinimize: 1}
 
         import ctypes
+
         rangeCount = 0
-        variables=list(lp.variables())
+        variables = list(lp.variables())
         numVars = len(variables)
-        #associate each variable with a ordinal
-        self.v2n=dict(((variables[i],i) for i in range(numVars)))
-        self.vname2n=dict(((variables[i].name,i) for i in range(numVars)))
-        self.n2v=dict((i,variables[i]) for i in range(numVars))
-        #objective values
+        # associate each variable with a ordinal
+        self.v2n = dict(((variables[i], i) for i in range(numVars)))
+        self.vname2n = dict(((variables[i].name, i) for i in range(numVars)))
+        self.n2v = dict((i, variables[i]) for i in range(numVars))
+        # objective values
         objSense = LpObjSenses[lp.sense]
         NumVarDoubleArray = ctypes.c_double * numVars
-        objectCoeffs=NumVarDoubleArray()
-        #print "Get objective Values"
-        for v,val in lp.objective.items():
-            objectCoeffs[self.v2n[v]]=val
-        #values for variables
+        objectCoeffs = NumVarDoubleArray()
+        # print "Get objective Values"
+        for v, val in lp.objective.items():
+            objectCoeffs[self.v2n[v]] = val
+        # values for variables
         objectConst = ctypes.c_double(0.0)
         NumVarStrArray = ctypes.c_char_p * numVars
         colNames = NumVarStrArray()
@@ -274,8 +312,8 @@ class LpSolver:
                 upperBounds[self.v2n[v]] = v.upBound
             else:
                 upperBounds[self.v2n[v]] = infBound
-        #values for constraints
-        numRows =len(lp.constraints)
+        # values for constraints
+        numRows = len(lp.constraints)
         NumRowDoubleArray = ctypes.c_double * numRows
         NumRowStrArray = ctypes.c_char_p * numRows
         NumRowCharArray = ctypes.c_char * numRows
@@ -288,25 +326,30 @@ class LpSolver:
         i = 0
         for c in lp.constraints:
             rhsValues[i] = -lp.constraints[c].constant
-            #for ranged constraints a<= constraint >=b
+            # for ranged constraints a<= constraint >=b
             rangeValues[i] = 0.0
             rowNames[i] = to_string(c)
             rowType[i] = to_string(senseDict[lp.constraints[c].sense])
             self.c2n[c] = i
             self.n2c[i] = c
-            i = i+1
-        #return the coefficient matrix as a series of vectors
+            i = i + 1
+        # return the coefficient matrix as a series of vectors
         coeffs = lp.coefficients()
         sparseMatrix = sparse.Matrix(list(range(numRows)), list(range(numVars)))
-        for var,row,coeff in coeffs:
+        for var, row, coeff in coeffs:
             sparseMatrix.add(self.c2n[row], self.vname2n[var], coeff)
-        (numels, mystartsBase, mylenBase, myindBase,
-         myelemBase) = sparseMatrix.col_based_arrays()
+        (
+            numels,
+            mystartsBase,
+            mylenBase,
+            myindBase,
+            myelemBase,
+        ) = sparseMatrix.col_based_arrays()
         elemBase = ctypesArrayFill(myelemBase, ctypes.c_double)
         indBase = ctypesArrayFill(myindBase, ctypes.c_int)
         startsBase = ctypesArrayFill(mystartsBase, ctypes.c_int)
         lenBase = ctypesArrayFill(mylenBase, ctypes.c_int)
-        #MIP Variables
+        # MIP Variables
         NumVarCharArray = ctypes.c_char * numVars
         columnType = NumVarCharArray()
         if lp.isMIP():
@@ -314,20 +357,39 @@ class LpSolver:
                 columnType[self.v2n[v]] = to_string(LpVarCategories[v.cat])
         self.addedVars = numVars
         self.addedRows = numRows
-        return  (numVars, numRows, numels, rangeCount,
-            objSense, objectCoeffs, objectConst,
-            rhsValues, rangeValues, rowType, startsBase, lenBase, indBase,
-            elemBase, lowerBounds, upperBounds, initValues, colNames,
-            rowNames, columnType, self.n2v, self.n2c)
+        return (
+            numVars,
+            numRows,
+            numels,
+            rangeCount,
+            objSense,
+            objectCoeffs,
+            objectConst,
+            rhsValues,
+            rangeValues,
+            rowType,
+            startsBase,
+            lenBase,
+            indBase,
+            elemBase,
+            lowerBounds,
+            upperBounds,
+            initValues,
+            colNames,
+            rowNames,
+            columnType,
+            self.n2v,
+            self.n2c,
+        )
 
     def toDict(self):
         data = dict(solver=self.name)
-        for k in ['mip', 'msg', 'keepFiles']:
+        for k in ["mip", "msg", "keepFiles"]:
             try:
                 data[k] = getattr(self, k)
             except AttributeError:
                 pass
-        for k in ['timeLimit', 'options']:
+        for k in ["timeLimit", "options"]:
             # with these ones, we only export if it has some content:
             try:
                 value = getattr(self, k)
@@ -337,17 +399,20 @@ class LpSolver:
                 pass
         data.update(self.optionsDict)
         return data
+
     to_dict = toDict
 
     def toJson(self, filename, *args, **kwargs):
-        with open(filename, 'w') as f:
+        with open(filename, "w") as f:
             json.dump(self.toDict(), f, *args, **kwargs)
+
     to_json = toJson
+
 
 class LpSolver_CMD(LpSolver):
     """A generic command line LP Solver"""
 
-    name = 'LpSolver_CMD'
+    name = "LpSolver_CMD"
 
     def __init__(self, path=None, keepFiles=False, *args, **kwargs):
         """
@@ -381,7 +446,7 @@ class LpSolver_CMD(LpSolver):
     def setTmpDir(self):
         """Set the tmpDir attribute to a reasonnable location for a temporary
         directory"""
-        if os.name != 'nt':
+        if os.name != "nt":
             # On unix use /tmp by default
             self.tmpDir = os.environ.get("TMPDIR", "/tmp")
             self.tmpDir = os.environ.get("TMP", self.tmpDir)
@@ -415,10 +480,11 @@ class LpSolver_CMD(LpSolver):
         raise NotImplementedError
 
     def executableExtension(name):
-        if os.name != 'nt':
+        if os.name != "nt":
             return name
         else:
-            return name+".exe"
+            return name + ".exe"
+
     executableExtension = staticmethod(executableExtension)
 
     def executable(command):
@@ -433,20 +499,26 @@ class LpSolver_CMD(LpSolver):
             if os.path.exists(new_path) and os.access(new_path, os.X_OK):
                 return os.path.join(path, command)
         return False
+
     executable = staticmethod(executable)
+
 
 try:
     import ctypes
+
     def ctypesArrayFill(myList, type=ctypes.c_double):
         """
         Creates a c array with ctypes from a python list
         type is the type of the c array
         """
-        ctype= type * len(myList)
+        ctype = type * len(myList)
         cList = ctype()
-        for i,elem in enumerate(myList):
+        for i, elem in enumerate(myList):
             cList[i] = elem
         return cList
-except(ImportError):
-    def ctypesArrayFill(myList, type = None):
+
+
+except (ImportError):
+
+    def ctypesArrayFill(myList, type=None):
         return None

@@ -14,14 +14,15 @@ VALS = ROWS = COLS = range(1, 10)
 # The boxes list is created, with the row and column index of each square in each box
 Boxes = [
     [(3 * i + k + 1, 3 * j + l + 1) for k in range(3) for l in range(3)]
-    for i in range(3) for j in range(3)
+    for i in range(3)
+    for j in range(3)
 ]
 
 # The prob variable is created to contain the problem data
 prob = LpProblem("Sudoku Problem")
 
 # The decision variables are created
-choices = LpVariable.dicts("Choice", (VALS, ROWS, COLS), cat='Binary')
+choices = LpVariable.dicts("Choice", (VALS, ROWS, COLS), cat="Binary")
 
 # We do not define an objective function since none is needed
 
@@ -71,9 +72,9 @@ input_data = [
     (3, 4, 9),
     # Since the previous Sudoku contains only one unique solution, we remove some numers from the board to obtain a
     # Sudoku with multiple solutions
-#    (1, 5, 9),
-#    (6, 6, 9),
-#    (5, 8, 9)
+    #    (1, 5, 9),
+    #    (6, 6, 9),
+    #    (5, 8, 9)
 ]
 
 for (v, r, c) in input_data:
@@ -83,7 +84,7 @@ for (v, r, c) in input_data:
 prob.writeLP("Sudoku.lp")
 
 # A file called sudokuout.txt is created/overwritten for writing to
-sudokuout = open('sudokuout.txt','w')
+sudokuout = open("sudokuout.txt", "w")
 
 while True:
     prob.solve()
@@ -105,8 +106,18 @@ while True:
                             sudokuout.write("|\n")
         sudokuout.write("+-------+-------+-------+\n\n")
         # The constraint is added that the same solution cannot be returned again
-        prob += lpSum([choices[v][r][c] for v in VALS for r in ROWS for c in COLS
-                       if value(choices[v][r][c]) == 1]) <= 80
+        prob += (
+            lpSum(
+                [
+                    choices[v][r][c]
+                    for v in VALS
+                    for r in ROWS
+                    for c in COLS
+                    if value(choices[v][r][c]) == 1
+                ]
+            )
+            <= 80
+        )
     # If a new optimal solution cannot be found, we end the program
     else:
         break

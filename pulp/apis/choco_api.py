@@ -30,11 +30,21 @@ import os
 from .. import constants
 import warnings
 
+
 class CHOCO_CMD(LpSolver_CMD):
     """The CHOCO_CMD solver"""
-    name = 'CHOCO_CMD'
 
-    def __init__(self, path=None, keepFiles=False, mip=True, msg=True, options=None, timeLimit=None):
+    name = "CHOCO_CMD"
+
+    def __init__(
+        self,
+        path=None,
+        keepFiles=False,
+        mip=True,
+        msg=True,
+        options=None,
+        timeLimit=None,
+    ):
         """
         :param bool mip: if False, assume LP even if integer variables
         :param bool msg: if False, no log is shown
@@ -43,25 +53,34 @@ class CHOCO_CMD(LpSolver_CMD):
         :param bool keepFiles: if True, files are saved in the current directory and not deleted after solving
         :param str path: path to the solver binary
         """
-        LpSolver_CMD.__init__(self, mip=mip, msg=msg, timeLimit=timeLimit,
-                              options=options, path=path, keepFiles=keepFiles)
+        LpSolver_CMD.__init__(
+            self,
+            mip=mip,
+            msg=msg,
+            timeLimit=timeLimit,
+            options=options,
+            path=path,
+            keepFiles=keepFiles,
+        )
 
     def defaultPath(self):
         return self.executableExtension("choco-parsers-with-dependencies.jar")
 
     def available(self):
         """True if the solver is available"""
-        java_path = self.executableExtension('java')
+        java_path = self.executableExtension("java")
         return self.executable(self.path) and self.executable(java_path)
 
     def actualSolve(self, lp):
         """Solve a well formulated lp problem"""
-        java_path = self.executableExtension('java')
+        java_path = self.executableExtension("java")
         if not self.executable(java_path):
-            raise PulpSolverError("PuLP: java needs to be installed and accesible in order to use CHOCO_CMD")
+            raise PulpSolverError(
+                "PuLP: java needs to be installed and accesible in order to use CHOCO_CMD"
+            )
         if not os.path.exists(self.path):
-            raise PulpSolverError("PuLP: cannot execute "+self.path)
-        tmpMps, tmpLp, tmpSol = self.create_tmp_files(lp.name, 'mps', 'lp', 'sol')
+            raise PulpSolverError("PuLP: cannot execute " + self.path)
+        tmpMps, tmpLp, tmpSol = self.create_tmp_files(lp.name, "mps", "lp", "sol")
         # just to report duplicated variables:
         lp.checkDuplicateVars()
 
@@ -70,26 +89,25 @@ class CHOCO_CMD(LpSolver_CMD):
             os.remove(tmpSol)
         except:
             pass
-        cmd = java_path + ' -cp ' + self.path + ' org.chocosolver.parser.mps.ChocoMPS'
+        cmd = java_path + " -cp " + self.path + " org.chocosolver.parser.mps.ChocoMPS"
         if self.timeLimit is not None:
-            cmd += ' -tl %s' % self.timeLimit * 1000
-        cmd += ' ' + ' '.join(['%s %s' % (key, value)
-                               for key, value in self.options])
-        cmd += ' %s' % tmpMps
+            cmd += " -tl %s" % self.timeLimit * 1000
+        cmd += " " + " ".join(["%s %s" % (key, value) for key, value in self.options])
+        cmd += " %s" % tmpMps
         if lp.sense == constants.LpMaximize:
-            cmd += ' -max'
+            cmd += " -max"
         if lp.isMIP():
             if not self.mip:
                 warnings.warn("CHOCO_CMD cannot solve the relaxation of a problem")
         # we always get the output to a file.
         # if not, we cannot read it afterwards
         # (we thus ignore the self.msg parameter)
-        pipe = open(tmpSol, 'w')
+        pipe = open(tmpSol, "w")
 
         return_code = subprocess.call(cmd.split(), stdout=pipe, stderr=pipe)
 
         if return_code != 0:
-            raise PulpSolverError("PuLP: Error while trying to execute "+self.path)
+            raise PulpSolverError("PuLP: Error while trying to execute " + self.path)
         if not os.path.exists(tmpSol):
             status = constants.LpStatusNotSolved
             status_sol = constants.LpSolutionNoSolutionFound
@@ -108,25 +126,29 @@ class CHOCO_CMD(LpSolver_CMD):
     def readsol(filename):
         """Read a Choco solution file"""
         # TODO: figure out the unbounded status in choco solver
-        chocoStatus = {'OPTIMUM FOUND': constants.LpStatusOptimal,
-                       'SATISFIABLE': constants.LpStatusOptimal,
-                       'UNSATISFIABLE': constants.LpStatusInfeasible,
-                       'UNKNOWN': constants.LpStatusNotSolved}
+        chocoStatus = {
+            "OPTIMUM FOUND": constants.LpStatusOptimal,
+            "SATISFIABLE": constants.LpStatusOptimal,
+            "UNSATISFIABLE": constants.LpStatusInfeasible,
+            "UNKNOWN": constants.LpStatusNotSolved,
+        }
 
-        chocoSolStatus = {'OPTIMUM FOUND': constants.LpSolutionOptimal,
-                          'SATISFIABLE': constants.LpSolutionIntegerFeasible,
-                          'UNSATISFIABLE': constants.LpSolutionInfeasible,
-                          'UNKNOWN': constants.LpSolutionNoSolutionFound}
+        chocoSolStatus = {
+            "OPTIMUM FOUND": constants.LpSolutionOptimal,
+            "SATISFIABLE": constants.LpSolutionIntegerFeasible,
+            "UNSATISFIABLE": constants.LpSolutionInfeasible,
+            "UNKNOWN": constants.LpSolutionNoSolutionFound,
+        }
 
         status = constants.LpStatusNotSolved
         sol_status = constants.LpSolutionNoSolutionFound
         values = {}
         with open(filename) as f:
             content = f.readlines()
-        content = [l.strip() for l in content if l[:2] not in ['o ', 'c ']]
+        content = [l.strip() for l in content if l[:2] not in ["o ", "c "]]
         if not len(content):
             return status, values, sol_status
-        if content[0][:2] == 's ':
+        if content[0][:2] == "s ":
             status_str = content[0][2:]
             status = chocoStatus[status_str]
             sol_status = chocoSolStatus[status_str]
@@ -141,12 +163,14 @@ class PULP_CHOCO_CMD(CHOCO_CMD):
     """
     This solver uses a packaged version of choco provided with the package
     """
+
     pulp_choco_path = pulp_choco_path
-    name = 'PULP_CHOCO_CMD'
+    name = "PULP_CHOCO_CMD"
     try:
-        if os.name != 'nt':
+        if os.name != "nt":
             if not os.access(pulp_choco_path, os.X_OK):
                 import stat
+
                 os.chmod(pulp_choco_path, stat.S_IXUSR + stat.S_IXOTH)
     except:  # probably due to incorrect permissions
 
@@ -156,11 +180,31 @@ class PULP_CHOCO_CMD(CHOCO_CMD):
 
         def actualSolve(self, lp, callback=None):
             """Solve a well formulated lp problem"""
-            raise PulpSolverError("PULP_CHOCO_CMD: Not Available (check permissions on %s)" % self.pulp_choco_path)
+            raise PulpSolverError(
+                "PULP_CHOCO_CMD: Not Available (check permissions on %s)"
+                % self.pulp_choco_path
+            )
+
     else:
-        def __init__(self, path=None, keepFiles=0, mip=True, msg=True, options=None, timeLimit=None):
+
+        def __init__(
+            self,
+            path=None,
+            keepFiles=0,
+            mip=True,
+            msg=True,
+            options=None,
+            timeLimit=None,
+        ):
             if path is not None:
-                raise PulpSolverError('Use CHOCO_CMD if you want to set a path')
+                raise PulpSolverError("Use CHOCO_CMD if you want to set a path")
             # check that the file is executable
-            CHOCO_CMD.__init__(self, path=self.pulp_choco_path, keepFiles=keepFiles,
-                               mip=mip, msg=msg, options=options, timeLimit=timeLimit)
+            CHOCO_CMD.__init__(
+                self,
+                path=self.pulp_choco_path,
+                keepFiles=keepFiles,
+                mip=mip,
+                msg=msg,
+                options=options,
+                timeLimit=timeLimit,
+            )
