@@ -217,7 +217,6 @@ class COIN_CMD(LpSolver_CMD):
 
     def getOptions(self):
         params_eq = dict(
-            timeLimit="sec {}",
             gapRel="ratio {}",
             gapAbs="allow {}",
             threads="threads {}",

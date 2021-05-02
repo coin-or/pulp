@@ -1103,9 +1103,14 @@ class PuLPTest(unittest.TestCase):
         prob += 1 * x
         prob += x >= 2  # Constraint x to be more than 2
         prob += x <= 1  # Constraint x to be less than 1
-        pulpTestCheck(
-            prob, self.solver, [const.LpStatusInfeasible, const.LpStatusUndefined]
-        )
+        if self.solver.name in ['GUROBI_CMD']:
+            pulpTestCheck(
+                prob, self.solver, [const.LpStatusNotSolved, const.LpStatusInfeasible, const.LpStatusUndefined]
+            )
+        else:
+            pulpTestCheck(
+                prob, self.solver, [const.LpStatusInfeasible, const.LpStatusUndefined]
+            )
         self.assertFalse(prob.valid())
 
 
@@ -1187,7 +1192,6 @@ def pulpTestCheck(
 def suite():
     solvers = [
         PULP_CBC_CMD,
-        CPLEX_DLL,
         CPLEX_CMD,
         CPLEX_PY,
         COIN_CMD,
