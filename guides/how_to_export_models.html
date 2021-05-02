@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>How to import and export models in PuLP &mdash; PuLP 2.4 documentation</title>
+  <title>How to import and export models in PuLP &mdash; PuLP 2.4.1 documentation</title>
   
 
   
@@ -101,6 +101,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#example-1-mps">Example 1: mps</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#example-2-json">Example 2: json</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#grouping-variables">Grouping variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#caveats-with-json-and-pandas-numpy-data-types">Caveats with json and pandas / numpy data types</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="how_to_debug.html">How to debug most errors during solving</a></li>
@@ -399,6 +400,27 @@ PuLP offers two ways to export a model: to an mps file or to a dictionary /json 
 <div class="section" id="grouping-variables">
 <h2>Grouping variables<a class="headerlink" href="#grouping-variables" title="Permalink to this headline">¶</a></h2>
 <p>As the “Considerations” section mentions, the grouping of variables is not restored automatically. Nevertheless, by using some strict naming convention on variable names and clever parsing, one can reconstruct the original structure of the variables.</p>
+</div>
+<div class="section" id="caveats-with-json-and-pandas-numpy-data-types">
+<h2>Caveats with json and pandas / numpy data types<a class="headerlink" href="#caveats-with-json-and-pandas-numpy-data-types" title="Permalink to this headline">¶</a></h2>
+<p>The <cite>json</cite> module in python has some issues transforming numpy data types (e.g., <cite>np.integer</cite>). The easier way to solve this problem is to provide a custom encoding class as shown <a class="reference external" href="https://stackoverflow.com/a/57915246/6508131">here</a>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="c1">#(...)</span>
+<span class="k">class</span> <span class="nc">NpEncoder</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">JSONEncoder</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">default</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">integer</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">floating</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">NpEncoder</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+
+<span class="n">wedding_model</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="s2">&quot;seating_model.json&quot;</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="n">NpEncoder</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Note that this custom encoding class may not work with the <cite>ujson</cite> package. An alternative is to cast all values using <cite>int()</cite> or <cite>float()</cite> before using them in <cite>pulp</cite>.</p>
 </div>
 </div>
 
