@@ -273,7 +273,7 @@ class GUROBI_CMD(LpSolver_CMD):
         if mip_start:
             warnings.warn("Parameter mip_start is being depreciated for warmStart")
             if warmStart:
-                warnings.warn("Parameter mipStart and mip_start passed, using warmStart")
+                warnings.warn("Parameter warmStart and mip_start passed, using warmStart")
             else:
                 warmStart = mip_start
         LpSolver_CMD.__init__(self, gapRel=gapRel, mip=mip, msg=msg, timeLimit=timeLimit,
