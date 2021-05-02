@@ -29,9 +29,9 @@ prob += c
 # 0 <= x <= 4
 x = LpVariable("x", 0, 4, LpContinuous, obj + a + b)
 # -1 <= y <= 1
-y = LpVariable("y", -1, 1, LpContinuous, 4*obj + a - c)
+y = LpVariable("y", -1, 1, LpContinuous, 4 * obj + a - c)
 # 0 <= z
-z = LpVariable("z", 0, None, LpContinuous, 9*obj + b + c)
+z = LpVariable("z", 0, None, LpContinuous, 9 * obj + b + c)
 # Use None for +/- Infinity, i.e. z <= 0 -> LpVariable("z", None, 0)
 
 

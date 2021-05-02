@@ -32,9 +32,18 @@ import warnings
 
 class MIPCL_CMD(LpSolver_CMD):
     """The MIPCL_CMD solver"""
-    name = 'MIPCL_CMD'
 
-    def __init__(self, path=None, keepFiles=False, mip=True, msg=True, options=None, timeLimit=None):
+    name = "MIPCL_CMD"
+
+    def __init__(
+        self,
+        path=None,
+        keepFiles=False,
+        mip=True,
+        msg=True,
+        options=None,
+        timeLimit=None,
+    ):
         """
         :param bool mip: if False, assume LP even if integer variables
         :param bool msg: if False, no log is shown
@@ -43,8 +52,15 @@ class MIPCL_CMD(LpSolver_CMD):
         :param bool keepFiles: if True, files are saved in the current directory and not deleted after solving
         :param str path: path to the solver binary
         """
-        LpSolver_CMD.__init__(self, mip=mip, msg=msg, timeLimit=timeLimit,
-                              options=options, path=path, keepFiles=keepFiles)
+        LpSolver_CMD.__init__(
+            self,
+            mip=mip,
+            msg=msg,
+            timeLimit=timeLimit,
+            options=options,
+            path=path,
+            keepFiles=keepFiles,
+        )
 
     def defaultPath(self):
         return self.executableExtension("mps_mipcl")
@@ -57,12 +73,14 @@ class MIPCL_CMD(LpSolver_CMD):
         """Solve a well formulated lp problem"""
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute " + self.path)
-        tmpMps, tmpSol = self.create_tmp_files(lp.name, 'mps', 'sol')
+        tmpMps, tmpSol = self.create_tmp_files(lp.name, "mps", "sol")
         if lp.sense == constants.LpMaximize:
             # we swap the objectives
             # because it does not handle maximization.
-            warnings.warn('MIPCL_CMD does not allow maximization, '
-                          'we will minimize the inverse of the objective function.')
+            warnings.warn(
+                "MIPCL_CMD does not allow maximization, "
+                "we will minimize the inverse of the objective function."
+            )
             lp += -lp.objective
         lp.checkDuplicateVars()
         lp.checkLengthVars(52)
@@ -74,26 +92,26 @@ class MIPCL_CMD(LpSolver_CMD):
         except:
             pass
         cmd = self.path
-        cmd += ' %s' % tmpMps
-        cmd += ' -solfile %s' % tmpSol
+        cmd += " %s" % tmpMps
+        cmd += " -solfile %s" % tmpSol
         if self.timeLimit is not None:
-            cmd += ' -time %s' % self.timeLimit
+            cmd += " -time %s" % self.timeLimit
         for option in self.options:
-            cmd += ' ' + option
+            cmd += " " + option
         if lp.isMIP():
             if not self.mip:
                 warnings.warn("MIPCL_CMD cannot solve the relaxation of a problem")
         if self.msg:
             pipe = None
         else:
-            pipe = open(os.devnull, 'w')
+            pipe = open(os.devnull, "w")
 
         return_code = subprocess.call(cmd.split(), stdout=pipe, stderr=pipe)
         # We need to undo the objective swap before finishing
         if lp.sense == constants.LpMaximize:
             lp += -lp.objective
         if return_code != 0:
-            raise PulpSolverError("PuLP: Error while trying to execute "+self.path)
+            raise PulpSolverError("PuLP: Error while trying to execute " + self.path)
         if not os.path.exists(tmpSol):
             status = constants.LpStatusNotSolved
             status_sol = constants.LpSolutionNoSolutionFound
@@ -115,14 +133,18 @@ class MIPCL_CMD(LpSolver_CMD):
         content = [l.strip() for l in content]
         values = {}
         if not len(content):
-            return constants.LpStatusNotSolved, values, constants.LpSolutionNoSolutionFound
+            return (
+                constants.LpStatusNotSolved,
+                values,
+                constants.LpSolutionNoSolutionFound,
+            )
         first_line = content[0]
-        if first_line == '=infeas=':
+        if first_line == "=infeas=":
             return constants.LpStatusInfeasible, values, constants.LpSolutionInfeasible
         objective, value = first_line.split()
         # this is a workaround.
         # Not sure if it always returns this limit when unbounded.
-        if abs(float(value)) >= 9.999999995e+10:
+        if abs(float(value)) >= 9.999999995e10:
             return constants.LpStatusUnbounded, values, constants.LpSolutionUnbounded
         for line in content[1:]:
             name, value = line.split()

@@ -17,13 +17,13 @@ z = LpVariable("z", 0)
 # Use None for +/- Infinity, i.e. z <= 0 -> LpVariable("z", None, 0)
 
 # Objective
-prob += x + 4*y + 9*z, "obj"
+prob += x + 4 * y + 9 * z, "obj"
 # (the name at the end is facultative)
 
 # Constraints
-prob += x+y <= 5, "c1"
-prob += x+z >= 10, "c2"
-prob += -y+z == 7, "c3"
+prob += x + y <= 5, "c1"
+prob += x + z >= 10, "c2"
+prob += -y + z == 7, "c3"
 # (the names at the end are facultative)
 
 # Write the problem as an LP file
@@ -46,7 +46,7 @@ print("Status:", LpStatus[prob.status])
 
 # Print the value of the variables at the optimum
 for v in prob.variables():
-	print(v.name, "=", v.varValue)
+    print(v.name, "=", v.varValue)
 
 # Print the value of the objective
 print("objective=", value(prob.objective))

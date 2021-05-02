@@ -7,10 +7,12 @@ Authors: Antony Phillips,  Dr Stuart Mitchell  2008
 # Import PuLP modeler functions
 from pulp import *
 
+
 class Pattern:
     """
     Information on a specific pattern in the SpongeRoll Problem
     """
+
     cost = 1
     trimValue = 0.04
     totalRollLength = 20
@@ -24,7 +26,9 @@ class Pattern:
         return self.name
 
     def trim(self):
-        return Pattern.totalRollLength - sum([int(i)*int(self.lengthsdict[i]) for i in self.lengthsdict])
+        return Pattern.totalRollLength - sum(
+            [int(i) * int(self.lengthsdict[i]) for i in self.lengthsdict]
+        )
 
 
 def masterSolve(Patterns, rollData, relax=True):
@@ -47,14 +51,19 @@ def masterSolve(Patterns, rollData, relax=True):
 
     # The objective function is entered: (the total number of large rolls used * the cost of each) -
     # (the value of the surplus stock) - (the value of the trim)
-    prob += \
-        lpSum([pattVars[i] * Pattern.cost for i in Patterns]) \
-        - lpSum([surplusVars[i] * surplusPrice[i] for i in Pattern.lenOpts]) \
+    prob += (
+        lpSum([pattVars[i] * Pattern.cost for i in Patterns])
+        - lpSum([surplusVars[i] * surplusPrice[i] for i in Pattern.lenOpts])
         - lpSum([pattVars[i] * i.trim() * Pattern.trimValue for i in Patterns])
+    )
 
     # The demand minimum constraint is entered
     for j in Pattern.lenOpts:
-        prob += lpSum([pattVars[i]*i.lengthsdict[j] for i in Patterns]) - surplusVars[j] >= rollDemand[j], "Min%s" % j
+        prob += (
+            lpSum([pattVars[i] * i.lengthsdict[j] for i in Patterns]) - surplusVars[j]
+            >= rollDemand[j],
+            "Min%s" % j,
+        )
 
     # The problem is solved
     prob.solve()
@@ -65,7 +74,7 @@ def masterSolve(Patterns, rollData, relax=True):
     if relax:
         # Creates a dual variables list
         duals = {}
-        for name, i in zip(['Min5', 'Min7', 'Min9'], Pattern.lenOpts):
+        for name, i in zip(["Min5", "Min7", "Min9"], Pattern.lenOpts):
             duals[i] = prob.constraints[name].pi
 
         return duals
@@ -94,10 +103,16 @@ def subSolve(Patterns, duals):
     trim = LpVariable("Trim", 0, None, LpInteger)
 
     # The objective function is entered: the reduced cost of a new pattern
-    prob += (Pattern.cost - Pattern.trimValue*trim) - lpSum([_vars[i] * duals[i] for i in Pattern.lenOpts]), "Objective"
+    prob += (Pattern.cost - Pattern.trimValue * trim) - lpSum(
+        [_vars[i] * duals[i] for i in Pattern.lenOpts]
+    ), "Objective"
 
     # The conservation of length constraint is entered
-    prob += lpSum([_vars[i]*int(i) for i in Pattern.lenOpts]) + trim == Pattern.totalRollLength, "lengthEquate"
+    prob += (
+        lpSum([_vars[i] * int(i) for i in Pattern.lenOpts]) + trim
+        == Pattern.totalRollLength,
+        "lengthEquate",
+    )
 
     # The problem is solved
     prob.solve()
@@ -110,13 +125,17 @@ def subSolve(Patterns, duals):
     newPattern = {}
     for v in prob.variables():
         varsdict[v.name] = v.varValue
-    for i, j in zip(Pattern.lenOpts, ["Roll_Length_5", "Roll_Length_7", "Roll_Length_9"]):
+    for i, j in zip(
+        Pattern.lenOpts, ["Roll_Length_5", "Roll_Length_7", "Roll_Length_9"]
+    ):
         newPattern[i] = int(varsdict[j])
 
     # Check if there are more patterns which would reduce the master LP objective function further
-    if value(prob.objective) < -10**-5:
+    if value(prob.objective) < -(10 ** -5):
         morePatterns = True  # continue adding patterns
-        Patterns += [Pattern("P" + str(len(Patterns)), [newPattern[i] for i in ["5", "7", "9"]])]
+        Patterns += [
+            Pattern("P" + str(len(Patterns)), [newPattern[i] for i in ["5", "7", "9"]])
+        ]
     else:
         morePatterns = False  # all patterns have been added
 

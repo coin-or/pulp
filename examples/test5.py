@@ -22,7 +22,7 @@ m = 3
 D = 100
 
 # Number of variables
-n = 10*(m-1)
+n = 10 * (m - 1)
 
 # A vector of n binary variables
 x = LpVariable.matrix("x", list(range(n)), 0, 1, LpInteger)
@@ -35,9 +35,9 @@ w = LpVariable.matrix("w", list(range(m)), 0)
 prob += lpSum(s) + lpSum(w)
 
 # Constraints
-d = [[randint(0,D) for i in range(n)] for j in range(m)]
+d = [[randint(0, D) for i in range(n)] for j in range(m)]
 for j in range(m):
-	prob += lpDot(d[j], x) + s[j] - w[j] == lpSum(d[j])/2
+    prob += lpDot(d[j], x) + s[j] - w[j] == lpSum(d[j]) / 2
 
 # Resolution
 prob.solve()
@@ -47,7 +47,7 @@ print("Status:", LpStatus[prob.status])
 
 # Print the value of the variables at the optimum
 for v in prob.variables():
-	print(v.name, "=", v.varValue)
+    print(v.name, "=", v.varValue)
 
 # Print the value of the objective
 print("objective=", value(prob.objective))

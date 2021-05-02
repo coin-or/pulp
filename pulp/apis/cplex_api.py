@@ -1,6 +1,11 @@
-
 from .core import LpSolver_CMD, LpSolver, subprocess, PulpSolverError, clock, log
-from .core import cplex_dll_path, ctypesArrayFill, ilm_cplex_license, ilm_cplex_license_signature, to_string
+from .core import (
+    cplex_dll_path,
+    ctypesArrayFill,
+    ilm_cplex_license,
+    ilm_cplex_license_signature,
+    to_string,
+)
 from .. import constants, sparse
 import os
 import warnings
@@ -9,12 +14,27 @@ import re
 
 class CPLEX_CMD(LpSolver_CMD):
     """The CPLEX LP solver"""
-    name = 'CPLEX_CMD'
 
-    def __init__(self, timelimit=None, mip=True, msg=True, timeLimit=None,
-                 gapRel=None, gapAbs=None, options=None,
-                 warmStart=False, keepFiles=False, path=None, threads=None, logPath=None,
-                 maxMemory=None, maxNodes=None, mip_start=False):
+    name = "CPLEX_CMD"
+
+    def __init__(
+        self,
+        timelimit=None,
+        mip=True,
+        msg=True,
+        timeLimit=None,
+        gapRel=None,
+        gapAbs=None,
+        options=None,
+        warmStart=False,
+        keepFiles=False,
+        path=None,
+        threads=None,
+        logPath=None,
+        maxMemory=None,
+        maxNodes=None,
+        mip_start=False,
+    ):
         """
         :param bool mip: if False, assume LP even if integer variables
         :param bool msg: if False, no log is shown
@@ -35,19 +55,35 @@ class CPLEX_CMD(LpSolver_CMD):
         if timelimit is not None:
             warnings.warn("Parameter timelimit is being depreciated for timeLimit")
             if timeLimit is not None:
-                warnings.warn("Parameter timeLimit and timelimit passed, using timeLimit ")
+                warnings.warn(
+                    "Parameter timeLimit and timelimit passed, using timeLimit "
+                )
             else:
                 timeLimit = timelimit
         if mip_start:
             warnings.warn("Parameter mip_start is being depreciated for warmStart")
             if warmStart:
-                warnings.warn("Parameter mipStart and mip_start passed, using warmStart")
+                warnings.warn(
+                    "Parameter mipStart and mip_start passed, using warmStart"
+                )
             else:
                 warmStart = mip_start
-        LpSolver_CMD.__init__(self, gapRel=gapRel, mip=mip, msg=msg, timeLimit=timeLimit,
-                              options=options, maxMemory=maxMemory, maxNodes=maxNodes,
-                              warmStart=warmStart, path=path, keepFiles=keepFiles,
-                              threads=threads, gapAbs=gapAbs, logPath=logPath)
+        LpSolver_CMD.__init__(
+            self,
+            gapRel=gapRel,
+            mip=mip,
+            msg=msg,
+            timeLimit=timeLimit,
+            options=options,
+            maxMemory=maxMemory,
+            maxNodes=maxNodes,
+            warmStart=warmStart,
+            path=path,
+            keepFiles=keepFiles,
+            threads=threads,
+            gapAbs=gapAbs,
+            logPath=logPath,
+        )
 
     def defaultPath(self):
         return self.executableExtension("cplex")
@@ -59,29 +95,33 @@ class CPLEX_CMD(LpSolver_CMD):
     def actualSolve(self, lp):
         """Solve a well formulated lp problem"""
         if not self.executable(self.path):
-            raise PulpSolverError("PuLP: cannot execute "+self.path)
-        tmpLp, tmpSol, tmpMst = self.create_tmp_files(lp.name, 'lp', 'sol', 'mst')
-        vs = lp.writeLP(tmpLp, writeSOS = 1)
+            raise PulpSolverError("PuLP: cannot execute " + self.path)
+        tmpLp, tmpSol, tmpMst = self.create_tmp_files(lp.name, "lp", "sol", "mst")
+        vs = lp.writeLP(tmpLp, writeSOS=1)
         try:
             os.remove(tmpSol)
         except:
             pass
         if not self.msg:
-            cplex = subprocess.Popen(self.path, stdin = subprocess.PIPE,
-                stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+            cplex = subprocess.Popen(
+                self.path,
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
         else:
-            cplex = subprocess.Popen(self.path, stdin = subprocess.PIPE)
+            cplex = subprocess.Popen(self.path, stdin=subprocess.PIPE)
         cplex_cmds = "read " + tmpLp + "\n"
-        if self.optionsDict.get('warmStart', False):
+        if self.optionsDict.get("warmStart", False):
             self.writesol(filename=tmpMst, vs=vs)
             cplex_cmds += "read " + tmpMst + "\n"
-            cplex_cmds += 'set advance 1\n'
+            cplex_cmds += "set advance 1\n"
 
         if self.timeLimit is not None:
             cplex_cmds += "set timelimit " + str(self.timeLimit) + "\n"
         options = self.options + self.getOptions()
         for option in options:
-            cplex_cmds += option+"\n"
+            cplex_cmds += option + "\n"
         if lp.isMIP():
             if self.mip:
                 cplex_cmds += "mipopt\n"
@@ -89,17 +129,24 @@ class CPLEX_CMD(LpSolver_CMD):
             else:
                 cplex_cmds += "change problem lp\n"
         cplex_cmds += "optimize\n"
-        cplex_cmds += "write "+tmpSol+"\n"
+        cplex_cmds += "write " + tmpSol + "\n"
         cplex_cmds += "quit\n"
-        cplex_cmds = cplex_cmds.encode('UTF-8')
+        cplex_cmds = cplex_cmds.encode("UTF-8")
         cplex.communicate(cplex_cmds)
         if cplex.returncode != 0:
-            raise PulpSolverError("PuLP: Error while trying to execute "+self.path)
+            raise PulpSolverError("PuLP: Error while trying to execute " + self.path)
         if not os.path.exists(tmpSol):
             status = constants.LpStatusInfeasible
             values = reducedCosts = shadowPrices = slacks = solStatus = None
         else:
-            status, values, reducedCosts, shadowPrices, slacks, solStatus = self.readsol(tmpSol)
+            (
+                status,
+                values,
+                reducedCosts,
+                shadowPrices,
+                slacks,
+                solStatus,
+            ) = self.readsol(tmpSol)
         self.delete_tmp_files(tmpLp, tmpMst, tmpSol)
         if self.optionsDict.get('logPath') != "cplex.log":
             self.delete_tmp_files("cplex.log")
@@ -114,16 +161,19 @@ class CPLEX_CMD(LpSolver_CMD):
     def getOptions(self):
         # CPLEX parameters: https://www.ibm.com/support/knowledgecenter/en/SSSA5P_12.6.0/ilog.odms.cplex.help/CPLEX/GettingStarted/topics/tutorials/InteractiveOptimizer/settingParams.html
         # CPLEX status: https://www.ibm.com/support/knowledgecenter/en/SSSA5P_12.10.0/ilog.odms.cplex.help/refcallablelibrary/macros/Solution_status_codes.html
-        params_eq  = \
-            dict(logPath='set logFile {}',
-                 gapRel = 'set mip tolerances mipgap {}',
-                 gapAbs = 'set mip tolerances absmipgap {}',
-                 maxMemory = 'set mip limits treememory {}',
-                 threads = 'set threads {}',
-                 maxNodes = 'set mip limits nodes {}',
-                 )
-        return [v.format(self.optionsDict[k]) for k, v in params_eq.items()
-                if k in self.optionsDict and self.optionsDict[k] is not None]
+        params_eq = dict(
+            logPath="set logFile {}",
+            gapRel="set mip tolerances mipgap {}",
+            gapAbs="set mip tolerances absmipgap {}",
+            maxMemory="set mip limits treememory {}",
+            threads="set threads {}",
+            maxNodes="set mip limits nodes {}",
+        )
+        return [
+            v.format(self.optionsDict[k])
+            for k, v in params_eq.items()
+            if k in self.optionsDict and self.optionsDict[k] is not None
+        ]
 
     def readsol(self, filename):
         """Read a CPLEX solution file"""
@@ -137,7 +187,7 @@ class CPLEX_CMD(LpSolver_CMD):
         statusString = solutionheader.get("solutionStatusString")
         statusValue = solutionheader.get("solutionStatusValue")
         cplexStatus = {
-            "1": constants.LpStatusOptimal,    #  optimal
+            "1": constants.LpStatusOptimal,  #  optimal
             "101": constants.LpStatusOptimal,  #  mip optimal
             "102": constants.LpStatusOptimal,  #  mip optimal tolerance
             "104": constants.LpStatusOptimal,  #  max solution limit
@@ -145,10 +195,13 @@ class CPLEX_CMD(LpSolver_CMD):
             "107": constants.LpStatusOptimal,  # time lim feasible
             "109": constants.LpStatusOptimal,  #  fail but feasible
             "113": constants.LpStatusOptimal,  # abort feasible
-            }
+        }
         if statusValue not in cplexStatus:
-            raise PulpSolverError("Unknown status returned by CPLEX: \ncode: '{}', string: '{}'".
-                                  format(statusValue, statusString))
+            raise PulpSolverError(
+                "Unknown status returned by CPLEX: \ncode: '{}', string: '{}'".format(
+                    statusValue, statusString
+                )
+            )
         status = cplexStatus[statusValue]
         # we check for integer feasible status to differentiate from optimal in solution status
         cplexSolStatus = {
@@ -158,26 +211,26 @@ class CPLEX_CMD(LpSolver_CMD):
             "109": constants.LpSolutionIntegerFeasible,  # fail but feasible
             "111": constants.LpSolutionIntegerFeasible,  # memory limit feasible
             "113": constants.LpSolutionIntegerFeasible,  # abort feasible
-            }
+        }
         solStatus = cplexSolStatus.get(statusValue)
         shadowPrices = {}
         slacks = {}
         constraints = solutionXML.find("linearConstraints")
         for constraint in constraints:
-                name = constraint.get("name")
-                shadowPrice = constraint.get("dual")
-                slack = constraint.get("slack")
-                shadowPrices[name] = float(shadowPrice)
-                slacks[name] = float(slack)
+            name = constraint.get("name")
+            shadowPrice = constraint.get("dual")
+            slack = constraint.get("slack")
+            shadowPrices[name] = float(shadowPrice)
+            slacks[name] = float(slack)
 
         values = {}
         reducedCosts = {}
         for variable in solutionXML.find("variables"):
-                name = variable.get("name")
-                value = variable.get("value")
-                reducedCost = variable.get("reducedCost")
-                values[name] = float(value)
-                reducedCosts[name] = float(reducedCost)
+            name = variable.get("name")
+            value = variable.get("value")
+            reducedCost = variable.get("reducedCost")
+            values[name] = float(value)
+            reducedCosts[name] = float(reducedCost)
 
         return status, values, reducedCosts, shadowPrices, slacks, solStatus
 
@@ -187,47 +240,55 @@ class CPLEX_CMD(LpSolver_CMD):
             import xml.etree.ElementTree as et
         except ImportError:
             import elementtree.ElementTree as et
-        root = et.Element('CPLEXSolution', version="1.2")
+        root = et.Element("CPLEXSolution", version="1.2")
         attrib_head = dict()
         attrib_quality = dict()
-        et.SubElement(root, 'header', attrib=attrib_head)
-        et.SubElement(root, 'header', attrib=attrib_quality)
-        variables = et.SubElement(root, 'variables')
+        et.SubElement(root, "header", attrib=attrib_head)
+        et.SubElement(root, "header", attrib=attrib_quality)
+        variables = et.SubElement(root, "variables")
 
         values = [(v.name, v.value()) for v in vs if v.value() is not None]
         for index, (name, value) in enumerate(values):
-            attrib_vars = dict(name=name, value = str(value), index=str(index))
-            et.SubElement(variables, 'variable', attrib=attrib_vars)
+            attrib_vars = dict(name=name, value=str(value), index=str(index))
+            et.SubElement(variables, "variable", attrib=attrib_vars)
         mst = et.ElementTree(root)
-        mst.write(filename, encoding='utf-8', xml_declaration=True)
+        mst.write(filename, encoding="utf-8", xml_declaration=True)
 
         return True
 
 
 ctypes = None
 _ctypes = None
+
+
 def findCPLEX_DLL():
     # for compatibility
     global ctypes, _ctypes
     import ctypes
     import _ctypes
+
     try:
         return CPLEX_DLL_load_dll(cplex_dll_path)
     except OSError:
         pass
     # now we look for the correct file in LD_LIBRARY_PATH:
-    libs = os.environ.get('LD_LIBRARY_PATH')
+    libs = os.environ.get("LD_LIBRARY_PATH")
     if not libs:
-        raise OSError('We did not find the cplex library, be sure to add it to LD_LIBRARY_PATH')
-    possible_paths = libs.split(':')
-    regex_str = r'libcplex\d+\.\w+'
+        raise OSError(
+            "We did not find the cplex library, be sure to add it to LD_LIBRARY_PATH"
+        )
+    possible_paths = libs.split(":")
+    regex_str = r"libcplex\d+\.\w+"
     for path in possible_paths:
         files = os.listdir(path)
         for f in files:
             if re.match(regex_str, f):
                 full_path = os.path.join(path, f)
                 return CPLEX_DLL_load_dll(full_path)
-    raise OSError('We did not find the cplex library, be sure to add it to LD_LIBRARY_PATH')
+    raise OSError(
+        "We did not find the cplex library, be sure to add it to LD_LIBRARY_PATH"
+    )
+
 
 def CPLEX_DLL_load_dll(path):
     """
@@ -239,9 +300,10 @@ def CPLEX_DLL_load_dll(path):
 
 def CPLEX_DLL_unload_dll(lib):
     import _ctypes
+
     libHandle = lib._handle
     del lib
-    if os.name in ['nt','dos']:
+    if os.name in ["nt", "dos"]:
         func = _ctypes.FreeLibrary
     else:
         func = _ctypes.dlclose
@@ -261,24 +323,21 @@ class CPLEX_DLL(LpSolver):
     try:
         lib = findCPLEX_DLL()
 
-        #parameters manually found in solver manual
+        # parameters manually found in solver manual
         CPX_PARAM_EPGAP = 2009
-        CPX_PARAM_MEMORYEMPHASIS = 1082 # from Cplex 11.0 manual
+        CPX_PARAM_MEMORYEMPHASIS = 1082  # from Cplex 11.0 manual
         CPX_PARAM_TILIM = 1039
         CPX_PARAM_LPMETHOD = 1062
-        #argtypes for CPLEX functions
-        lib.CPXsetintparam.argtypes = [ctypes.c_void_p,
-                         ctypes.c_int, ctypes.c_int]
-        lib.CPXsetdblparam.argtypes = [ctypes.c_void_p, ctypes.c_int,
-                                                ctypes.c_double]
-        lib.CPXfopen.argtypes = [ctypes.c_char_p,
-                                      ctypes.c_char_p]
+        # argtypes for CPLEX functions
+        lib.CPXsetintparam.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
+        lib.CPXsetdblparam.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_double]
+        lib.CPXfopen.argtypes = [ctypes.c_char_p, ctypes.c_char_p]
         lib.CPXfopen.restype = ctypes.c_void_p
-        lib.CPXsetlogfile.argtypes = [ctypes.c_void_p,
-                                      ctypes.c_void_p]
-        
+        lib.CPXsetlogfile.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
+
     except (ImportError, OSError, AttributeError) as e:
         err = e
+
         def available(self):
             """True if the solver is available"""
             return False
@@ -286,18 +345,21 @@ class CPLEX_DLL(LpSolver):
         def actualSolve(self, lp):
             """Solve a well formulated lp problem"""
             raise PulpSolverError("CPLEX_DLL: Not Available:\n{}".format(self.err))
+
     else:
 
-        name = 'CPLEX_DLL'
+        name = "CPLEX_DLL"
 
-        def __init__(self,
-                    mip = True,
-                    msg = True,
-                    timeLimit = None,
-                    epgap = None,
-                    logfilename = None,
-                    emphasizeMemory = False,
-                    **kwargs):
+        def __init__(
+            self,
+            mip=True,
+            msg=True,
+            timeLimit=None,
+            epgap=None,
+            logfilename=None,
+            emphasizeMemory=False,
+            **kwargs
+        ):
             """
             Initializes the CPLEX_DLL solver.
 
@@ -328,12 +390,11 @@ class CPLEX_DLL(LpSolver):
             self.logfilep = CPLEX_DLL.lib.CPXfopen(filename, "w")
             CPLEX_DLL.lib.CPXsetlogfile(self.env, self.logfilep)
 
-        def changeEpgap(self, epgap = 10**-4):
+        def changeEpgap(self, epgap=10 ** -4):
             """
             Change cplex solver integer bound gap tolerence
             """
-            CPLEX_DLL.lib.CPXsetdblparam(self.env,CPLEX_DLL.CPX_PARAM_EPGAP,
-                                            epgap)
+            CPLEX_DLL.lib.CPXsetdblparam(self.env, CPLEX_DLL.CPX_PARAM_EPGAP, epgap)
 
         def setLpAlgorithm(self, algo):
             """
@@ -344,23 +405,24 @@ class CPLEX_DLL(LpSolver):
             barrier, 5 sifting and 6 concurrent.  Currently the default setting
             0 always choooses dual simplex.
             """
-            CPLEX_DLL.lib.CPXsetintparam(self.env,CPLEX_DLL.CPX_PARAM_LPMETHOD,
-                                         algo)
+            CPLEX_DLL.lib.CPXsetintparam(self.env, CPLEX_DLL.CPX_PARAM_LPMETHOD, algo)
 
-        def setTimeLimit(self, timeLimit = 0.0):
+        def setTimeLimit(self, timeLimit=0.0):
             """
             Make cplex limit the time it takes --added CBM 8/28/09
             """
-            CPLEX_DLL.lib.CPXsetdblparam(self.env,CPLEX_DLL.CPX_PARAM_TILIM,
-                                                float(timeLimit))
+            CPLEX_DLL.lib.CPXsetdblparam(
+                self.env, CPLEX_DLL.CPX_PARAM_TILIM, float(timeLimit)
+            )
 
-        def setMemoryEmphasis(self, yesOrNo = False):
+        def setMemoryEmphasis(self, yesOrNo=False):
             """
             Make cplex try to conserve memory at the expense of
             performance.
             """
-            CPLEX_DLL.lib.CPXsetintparam(self.env,
-                            CPLEX_DLL.CPX_PARAM_MEMORYEMPHASIS,yesOrNo)
+            CPLEX_DLL.lib.CPXsetintparam(
+                self.env, CPLEX_DLL.CPX_PARAM_MEMORYEMPHASIS, yesOrNo
+            )
 
         def findSolutionValues(self, lp, numcols, numrows):
             byref = ctypes.byref
@@ -370,35 +432,44 @@ class CPLEX_DLL(LpSolver):
             pi = (ctypes.c_double * numrows)()
             slack = (ctypes.c_double * numrows)()
             dj = (ctypes.c_double * numcols)()
-            status= CPLEX_DLL.lib.CPXsolwrite(self.env, self.hprob,
-                                                "CplexTest.sol")
+            status = CPLEX_DLL.lib.CPXsolwrite(self.env, self.hprob, "CplexTest.sol")
             if lp.isMIP():
-                solutionStatus.value = CPLEX_DLL.lib.CPXgetstat(self.env,
-                                                                 self.hprob)
-                status = CPLEX_DLL.lib.CPXgetobjval(self.env, self.hprob,
-                                                    byref(objectiveValue))
-                if status != 0 and status != 1217: #no solution exists
-                    raise PulpSolverError("Error in CPXgetobjval status="
-                                          + str(status))
+                solutionStatus.value = CPLEX_DLL.lib.CPXgetstat(self.env, self.hprob)
+                status = CPLEX_DLL.lib.CPXgetobjval(
+                    self.env, self.hprob, byref(objectiveValue)
+                )
+                if status != 0 and status != 1217:  # no solution exists
+                    raise PulpSolverError("Error in CPXgetobjval status=" + str(status))
 
-                status = CPLEX_DLL.lib.CPXgetx(self.env, self.hprob,
-                                                byref(x), 0, numcols - 1)
+                status = CPLEX_DLL.lib.CPXgetx(
+                    self.env, self.hprob, byref(x), 0, numcols - 1
+                )
                 if status != 0 and status != 1217:
                     raise PulpSolverError("Error in CPXgetx status=" + str(status))
             else:
-                status = CPLEX_DLL.lib.CPXsolution(self.env, self.hprob,
-                                              byref(solutionStatus),
-                                              byref(objectiveValue),
-                                              byref(x), byref(pi),
-                                              byref(slack), byref(dj))
+                status = CPLEX_DLL.lib.CPXsolution(
+                    self.env,
+                    self.hprob,
+                    byref(solutionStatus),
+                    byref(objectiveValue),
+                    byref(x),
+                    byref(pi),
+                    byref(slack),
+                    byref(dj),
+                )
             # 102 is the cplex return status for
             # integer optimal within tolerance
             # and is useful for breaking symmetry.
-            CplexLpStatus = {1: constants.LpStatusOptimal, 3: constants.LpStatusInfeasible,
-                                  2: constants.LpStatusUnbounded, 0: constants.LpStatusNotSolved,
-                                  101: constants.LpStatusOptimal, 102: constants.LpStatusOptimal,
-                                  103: constants.LpStatusInfeasible}
-            #populate pulp solution values
+            CplexLpStatus = {
+                1: constants.LpStatusOptimal,
+                3: constants.LpStatusInfeasible,
+                2: constants.LpStatusUnbounded,
+                0: constants.LpStatusNotSolved,
+                101: constants.LpStatusOptimal,
+                102: constants.LpStatusOptimal,
+                103: constants.LpStatusInfeasible,
+            }
+            # populate pulp solution values
             variablevalues = {}
             variabledjvalues = {}
             constraintpivalues = {}
@@ -408,24 +479,26 @@ class CPLEX_DLL(LpSolver):
                 variabledjvalues[self.n2v[i].name] = dj[i]
             lp.assignVarsVals(variablevalues)
             lp.assignVarsDj(variabledjvalues)
-            #put pi and slack variables against the constraints
+            # put pi and slack variables against the constraints
             for i in range(numrows):
                 constraintpivalues[self.n2c[i]] = pi[i]
                 constraintslackvalues[self.n2c[i]] = slack[i]
             lp.assignConsPi(constraintpivalues)
             lp.assignConsSlack(constraintslackvalues)
-            #TODO: clear up the name of self.n2c
+            # TODO: clear up the name of self.n2c
             if self.msg:
                 print("Cplex status=", solutionStatus.value)
             lp.resolveOK = True
             for var in lp._variables:
                 var.isModified = False
-            status = CplexLpStatus.get(solutionStatus.value, constants.LpStatusUndefined)
+            status = CplexLpStatus.get(
+                solutionStatus.value, constants.LpStatusUndefined
+            )
             lp.assignStatus(status)
             return status
 
         def __del__(self):
-            #LpSolver.__del__(self)
+            # LpSolver.__del__(self)
             self.releaseLicence()
 
         def available(self):
@@ -442,8 +515,8 @@ class CPLEX_DLL(LpSolver):
             # grab a runtime license.
             if ilm_cplex_license and ilm_cplex_license_signature:
                 runtime_status = CPLEX_DLL.lib.CPXsetstaringsol(
-                        ilm_cplex_license,
-                        ilm_cplex_license_signature)
+                    ilm_cplex_license, ilm_cplex_license_signature
+                )
                 # if runtime_status is not zero, running with a runtime
                 # license will fail. However, no error is thrown (yet)
                 # because the second call might still succeed if the user
@@ -451,125 +524,170 @@ class CPLEX_DLL(LpSolver):
                 # configuration:
                 if not (runtime_status == 0) and self.msg:
                     print(
-                    "CPLEX library failed to load the runtime license" +
-                    "the call returned status=%s" % str(runtime_status) +
-                    "Please check the pulp config file.")
+                        "CPLEX library failed to load the runtime license"
+                        + "the call returned status=%s" % str(runtime_status)
+                        + "Please check the pulp config file."
+                    )
             self.env = CPLEX_DLL.lib.CPXopenCPLEX(ctypes.byref(status))
             self.hprob = None
-            if not(status.value == 0):
-                raise PulpSolverError("CPLEX library failed on " +
-                                    "CPXopenCPLEX status=" + str(status))
-
+            if not (status.value == 0):
+                raise PulpSolverError(
+                    "CPLEX library failed on " + "CPXopenCPLEX status=" + str(status)
+                )
 
         def releaseLicence(self):
             """Release a previously obtained CPLEX licence"""
-            if getattr(self,"env",False):
-                status=CPLEX_DLL.lib.CPXcloseCPLEX(self.env)
+            if getattr(self, "env", False):
+                status = CPLEX_DLL.lib.CPXcloseCPLEX(self.env)
                 self.env = self.hprob = None
             else:
                 raise PulpSolverError("No CPLEX enviroment to close")
 
         def callSolver(self, isMIP):
-            """Solves the problem with cplex
-            """
-            #solve the problem
+            """Solves the problem with cplex"""
+            # solve the problem
             self.cplexTime = -clock()
             if isMIP and self.mip:
-                status= CPLEX_DLL.lib.CPXmipopt(self.env, self.hprob)
+                status = CPLEX_DLL.lib.CPXmipopt(self.env, self.hprob)
                 if status != 0:
-                    raise PulpSolverError("Error in CPXmipopt status="
-                                        + str(status))
+                    raise PulpSolverError("Error in CPXmipopt status=" + str(status))
             else:
                 status = CPLEX_DLL.lib.CPXlpopt(self.env, self.hprob)
                 if status != 0:
-                    raise PulpSolverError("Error in CPXlpopt status="
-                                            + str(status))
+                    raise PulpSolverError("Error in CPXlpopt status=" + str(status))
             self.cplexTime += clock()
 
         def actualSolve(self, lp):
             """Solve a well formulated lp problem"""
-            #TODO alter so that msg parameter is handled correctly
+            # TODO alter so that msg parameter is handled correctly
             status = ctypes.c_int()
-            byref = ctypes.byref   #shortcut to function
+            byref = ctypes.byref  # shortcut to function
             if self.hprob is not None:
                 CPLEX_DLL.lib.CPXfreeprob(self.env, self.hprob)
-            self.hprob = CPLEX_DLL.lib.CPXcreateprob(self.env,
-                                                    byref(status), lp.name)
+            self.hprob = CPLEX_DLL.lib.CPXcreateprob(self.env, byref(status), lp.name)
             if status.value != 0:
-                raise PulpSolverError("Error in CPXcreateprob status="
-                                    + str(status))
-            (numcols, numrows, numels, rangeCount,
-                objSense, obj, objconst,
-                rhs, rangeValues, rowSense, matbeg, matcnt, matind,
-                matval, lb, ub, initValues, colname,
-                rowname, xctype, n2v, n2c )= self.getCplexStyleArrays(lp)
-            status.value = CPLEX_DLL.lib.CPXcopylpwnames (self.env, self.hprob,
-                                 numcols, numrows,
-                                 objSense, obj, rhs, rowSense, matbeg, matcnt,
-                                 matind, matval, lb, ub, None, colname, rowname)
+                raise PulpSolverError("Error in CPXcreateprob status=" + str(status))
+            (
+                numcols,
+                numrows,
+                numels,
+                rangeCount,
+                objSense,
+                obj,
+                objconst,
+                rhs,
+                rangeValues,
+                rowSense,
+                matbeg,
+                matcnt,
+                matind,
+                matval,
+                lb,
+                ub,
+                initValues,
+                colname,
+                rowname,
+                xctype,
+                n2v,
+                n2c,
+            ) = self.getCplexStyleArrays(lp)
+            status.value = CPLEX_DLL.lib.CPXcopylpwnames(
+                self.env,
+                self.hprob,
+                numcols,
+                numrows,
+                objSense,
+                obj,
+                rhs,
+                rowSense,
+                matbeg,
+                matcnt,
+                matind,
+                matval,
+                lb,
+                ub,
+                None,
+                colname,
+                rowname,
+            )
             if status.value != 0:
-                raise PulpSolverError("Error in CPXcopylpwnames status=" +
-                                        str(status))
+                raise PulpSolverError("Error in CPXcopylpwnames status=" + str(status))
             if lp.isMIP() and self.mip:
-                status.value = CPLEX_DLL.lib.CPXcopyctype(self.env,
-                                                          self.hprob,
-                                                          xctype)
+                status.value = CPLEX_DLL.lib.CPXcopyctype(self.env, self.hprob, xctype)
             if status.value != 0:
-                raise PulpSolverError("Error in CPXcopyctype status=" +
-                                        str(status))
-            #set the initial solution
+                raise PulpSolverError("Error in CPXcopyctype status=" + str(status))
+            # set the initial solution
             self.callSolver(lp.isMIP())
-            #get the solution information
+            # get the solution information
             solutionStatus = self.findSolutionValues(lp, numcols, numrows)
             for var in lp._variables:
                 var.modified = False
             return solutionStatus
 
         def actualResolve(self, lp, **kwargs):
-            """looks at which variables have been modified and changes them
-            """
-            #TODO: Add changing variables not just adding them
-            #TODO: look at constraints
+            """looks at which variables have been modified and changes them"""
+            # TODO: Add changing variables not just adding them
+            # TODO: look at constraints
             modifiedVars = [var for var in lp.variables() if var.modified]
-            #assumes that all variables flagged as modified
-            #need to be added to the problem
+            # assumes that all variables flagged as modified
+            # need to be added to the problem
             newVars = modifiedVars
-            #print newVars
-            self.v2n.update([(var, i+self.addedVars)
-                                for i,var in enumerate(newVars)])
-            self.n2v.update([(i+self.addedVars, var)
-                                for i,var in enumerate(newVars)])
-            self.vname2n.update([(var.name, i+self.addedVars)
-                                for i,var in enumerate(newVars)])
+            # print newVars
+            self.v2n.update(
+                [(var, i + self.addedVars) for i, var in enumerate(newVars)]
+            )
+            self.n2v.update(
+                [(i + self.addedVars, var) for i, var in enumerate(newVars)]
+            )
+            self.vname2n.update(
+                [(var.name, i + self.addedVars) for i, var in enumerate(newVars)]
+            )
             oldVars = self.addedVars
             self.addedVars += len(newVars)
-            (ccnt,nzcnt,obj,cmatbeg,
-            cmatlen, cmatind,cmatval,
-            lb,ub, initvals,
-            colname, coltype) = self.getSparseCols(newVars, lp, oldVars,
-                                defBound = 1e20)
-            CPXaddcolsStatus = CPLEX_DLL.lib.CPXaddcols(self.env, self.hprob,
-                                          ccnt, nzcnt,
-                                          obj,cmatbeg,
-                                          cmatind,cmatval,
-                                          lb,ub,colname)
-            #add the column types
+            (
+                ccnt,
+                nzcnt,
+                obj,
+                cmatbeg,
+                cmatlen,
+                cmatind,
+                cmatval,
+                lb,
+                ub,
+                initvals,
+                colname,
+                coltype,
+            ) = self.getSparseCols(newVars, lp, oldVars, defBound=1e20)
+            CPXaddcolsStatus = CPLEX_DLL.lib.CPXaddcols(
+                self.env,
+                self.hprob,
+                ccnt,
+                nzcnt,
+                obj,
+                cmatbeg,
+                cmatind,
+                cmatval,
+                lb,
+                ub,
+                colname,
+            )
+            # add the column types
             if lp.isMIP() and self.mip:
                 indices = (ctypes.c_int * len(newVars))()
-                for i,var in enumerate(newVars):
-                    indices[i] = oldVars +i
-                CPXchgctypeStatus = \
-                    CPLEX_DLL.lib.CPXchgctype(self.env, self.hprob, ccnt, indices, coltype)
-            #solve the problem
+                for i, var in enumerate(newVars):
+                    indices[i] = oldVars + i
+                CPXchgctypeStatus = CPLEX_DLL.lib.CPXchgctype(
+                    self.env, self.hprob, ccnt, indices, coltype
+                )
+            # solve the problem
             self.callSolver(lp.isMIP())
-            #get the solution information
-            solutionStatus = self.findSolutionValues(lp, self.addedVars,
-                                                     self.addedRows)
+            # get the solution information
+            solutionStatus = self.findSolutionValues(lp, self.addedVars, self.addedRows)
             for var in modifiedVars:
                 var.modified = False
             return solutionStatus
 
-        def getSparseCols(self, vars, lp, offset = 0, defBound = 1e20):
+        def getSparseCols(self, vars, lp, offset=0, defBound=1e20):
             """
             outputs the variables in var as a sparse matrix,
             suitable for cplex and Coin
@@ -582,12 +700,12 @@ class CPLEX_DLL(LpSolver):
             mycmatind = []
             mycmatval = []
             rangeCount = 0
-            #values for variables
-            colNames =  (ctypes.c_char_p * numVars)()
-            lowerBounds =  (ctypes.c_double * numVars)()
-            upperBounds =  (ctypes.c_double * numVars)()
-            initValues =  (ctypes.c_double * numVars)()
-            i=0
+            # values for variables
+            colNames = (ctypes.c_char_p * numVars)()
+            lowerBounds = (ctypes.c_double * numVars)()
+            upperBounds = (ctypes.c_double * numVars)()
+            initValues = (ctypes.c_double * numVars)()
+            i = 0
             for v in vars:
                 colNames[i] = to_string(v.name)
                 initValues[i] = v.varValue if v.varValue is not None else 0
@@ -599,43 +717,62 @@ class CPLEX_DLL(LpSolver):
                     upperBounds[i] = v.upBound
                 else:
                     upperBounds[i] = defBound
-                i+= 1
-                #create the new variables
-            #values for constraints
-            #return the coefficient matrix as a series of vectors
+                i += 1
+                # create the new variables
+            # values for constraints
+            # return the coefficient matrix as a series of vectors
             myobjectCoeffs = {}
             numRows = len(lp.constraints)
             sparseMatrix = sparse.Matrix(list(range(numRows)), list(range(numVars)))
             for var in vars:
-                for row,coeff in var.expression.items():
-                   if row.name == lp.objective.name:
+                for row, coeff in var.expression.items():
+                    if row.name == lp.objective.name:
                         myobjectCoeffs[var] = coeff
-                   else:
-                        sparseMatrix.add(self.c2n[row.name], self.v2n[var] - offset, coeff)
-            #objective values
+                    else:
+                        sparseMatrix.add(
+                            self.c2n[row.name], self.v2n[var] - offset, coeff
+                        )
+            # objective values
             objectCoeffs = (ctypes.c_double * numVars)()
             for var in vars:
-                objectCoeffs[self.v2n[var]-offset] = myobjectCoeffs[var]
-            (numels, mystartsBase, mylenBase, myindBase,
-             myelemBase) = sparseMatrix.col_based_arrays()
+                objectCoeffs[self.v2n[var] - offset] = myobjectCoeffs[var]
+            (
+                numels,
+                mystartsBase,
+                mylenBase,
+                myindBase,
+                myelemBase,
+            ) = sparseMatrix.col_based_arrays()
             elemBase = ctypesArrayFill(myelemBase, ctypes.c_double)
             indBase = ctypesArrayFill(myindBase, ctypes.c_int)
             startsBase = ctypesArrayFill(mystartsBase, ctypes.c_int)
             lenBase = ctypesArrayFill(mylenBase, ctypes.c_int)
-            #MIP Variables
+            # MIP Variables
             NumVarCharArray = ctypes.c_char * numVars
             columnType = NumVarCharArray()
             if lp.isMIP():
-                CplexLpCategories = {constants.LpContinuous: "C",
-                                    constants.LpInteger: "I"}
+                CplexLpCategories = {
+                    constants.LpContinuous: "C",
+                    constants.LpInteger: "I",
+                }
                 for v in vars:
                     columnType[self.v2n[v] - offset] = CplexLpCategories[v.cat]
-            return  numVars, numels,  objectCoeffs, \
-                startsBase, lenBase, indBase, \
-                elemBase, lowerBounds, upperBounds, initValues, colNames, \
-                columnType
+            return (
+                numVars,
+                numels,
+                objectCoeffs,
+                startsBase,
+                lenBase,
+                indBase,
+                elemBase,
+                lowerBounds,
+                upperBounds,
+                initValues,
+                colNames,
+                columnType,
+            )
 
-        def objSa(self, vars = None):
+        def objSa(self, vars=None):
             """Objective coefficient sensitivity analysis.
 
             Called after a problem has been solved, this function
@@ -656,16 +793,17 @@ class CPLEX_DLL(LpSolver):
             lo = row_t()
             hi = row_t()
             status = ctypes.c_int()
-            status.value = CPLEX_DLL.lib.CPXobjsa(self.env, self.hprob,
-                                                  ifirst, ilast, lo, hi)
+            status.value = CPLEX_DLL.lib.CPXobjsa(
+                self.env, self.hprob, ifirst, ilast, lo, hi
+            )
             if status.value != 0:
-                raise PulpSolverError("Error in CPXobjsa, status="
-                                        + str(status))
-            return dict((v, (lo[i - ifirst], hi[i - ifirst]))
-                        for v, i in v2n.items())
+                raise PulpSolverError("Error in CPXobjsa, status=" + str(status))
+            return dict((v, (lo[i - ifirst], hi[i - ifirst])) for v, i in v2n.items())
 
 
 cplex = None
+
+
 class CPLEX_PY(LpSolver):
     """
     The CPLEX LP/MIP solver (via a Python Binding)
@@ -675,24 +813,36 @@ class CPLEX_PY(LpSolver):
     For api functions that have not been wrapped in this solver please use
     the base cplex classes
     """
-    name = 'CPLEX_PY'
+
+    name = "CPLEX_PY"
     try:
         global cplex
         import cplex
     except (Exception) as e:
         err = e
         """The CPLEX LP/MIP solver from python PHANTOM Something went wrong!!!!"""
+
         def available(self):
             """True if the solver is available"""
             return False
+
         def actualSolve(self, lp):
             """Solve a well formulated lp problem"""
             raise PulpSolverError("CPLEX_PY: Not Available:\n{}".format(self.err))
+
     else:
-        def __init__(self, mip=True, msg=True, timeLimit=None,
-                     gapRel=None, warmStart=False, logPath=None,
-                     epgap=None, logfilename=None,
-                     ):
+
+        def __init__(
+            self,
+            mip=True,
+            msg=True,
+            timeLimit=None,
+            gapRel=None,
+            warmStart=False,
+            logPath=None,
+            epgap=None,
+            logfilename=None,
+        ):
             """
             :param bool mip: if False, assume LP even if integer variables
             :param bool msg: if False, no log is shown
@@ -712,18 +862,27 @@ class CPLEX_PY(LpSolver):
             if logfilename is not None:
                 warnings.warn("Parameter logfilename is being depreciated for logPath")
                 if logPath is not None:
-                    warnings.warn("Parameter logPath and logfilename passed, using logPath")
+                    warnings.warn(
+                        "Parameter logPath and logfilename passed, using logPath"
+                    )
                 else:
                     logPath = logfilename
 
-            LpSolver.__init__(self, gapRel=gapRel, mip=mip, msg=msg, timeLimit=timeLimit,
-                                  warmStart=warmStart, logPath=logPath)
+            LpSolver.__init__(
+                self,
+                gapRel=gapRel,
+                mip=mip,
+                msg=msg,
+                timeLimit=timeLimit,
+                warmStart=warmStart,
+                logPath=logPath,
+            )
 
         def available(self):
             """True if the solver is available"""
             return True
 
-        def actualSolve(self, lp, callback = None):
+        def actualSolve(self, lp, callback=None):
             """
             Solve a well formulated lp problem
 
@@ -731,10 +890,10 @@ class CPLEX_PY(LpSolver):
             them to the lp model which it then solves
             """
             self.buildSolverModel(lp)
-            #set the initial solution
+            # set the initial solution
             log.debug("Solve the Model using cplex")
             self.callSolver(lp)
-            #get the solution information
+            # get the solution information
             solutionStatus = self.findSolutionValues(lp)
             for var in lp._variables:
                 var.modified = False
@@ -750,7 +909,8 @@ class CPLEX_PY(LpSolver):
             self.n2v = dict((var.name, var) for var in model_variables)
             if len(self.n2v) != len(model_variables):
                 raise PulpSolverError(
-                        'Variables must have unique names for cplex solver')
+                    "Variables must have unique names for cplex solver"
+                )
             log.debug("create the cplex model")
             self.solverModel = lp.solverModel = cplex.Cplex()
             log.debug("set the name of the problem")
@@ -759,79 +919,94 @@ class CPLEX_PY(LpSolver):
             log.debug("set the sense of the problem")
             if lp.sense == constants.LpMaximize:
                 lp.solverModel.objective.set_sense(
-                                    lp.solverModel.objective.sense.maximize)
+                    lp.solverModel.objective.sense.maximize
+                )
             obj = [float(lp.objective.get(var, 0.0)) for var in model_variables]
+
             def cplex_var_lb(var):
                 if var.lowBound is not None:
                     return float(var.lowBound)
                 else:
                     return -cplex.infinity
+
             lb = [cplex_var_lb(var) for var in model_variables]
+
             def cplex_var_ub(var):
                 if var.upBound is not None:
                     return float(var.upBound)
                 else:
                     return cplex.infinity
+
             ub = [cplex_var_ub(var) for var in model_variables]
             colnames = [var.name for var in model_variables]
+
             def cplex_var_types(var):
                 if var.cat == constants.LpInteger:
-                    return 'I'
+                    return "I"
                 else:
-                    return 'C'
+                    return "C"
+
             ctype = [cplex_var_types(var) for var in model_variables]
             ctype = "".join(ctype)
-            lp.solverModel.variables.add(obj=obj, lb=lb, ub=ub, types=ctype,
-                       names=colnames)
+            lp.solverModel.variables.add(
+                obj=obj, lb=lb, ub=ub, types=ctype, names=colnames
+            )
             rows = []
             senses = []
             rhs = []
             rownames = []
             for name, constraint in lp.constraints.items():
-                #build the expression
+                # build the expression
                 expr = [(var.name, float(coeff)) for var, coeff in constraint.items()]
                 if not expr:
-                    #if the constraint is empty
-                    rows.append(([],[]))
+                    # if the constraint is empty
+                    rows.append(([], []))
                 else:
                     rows.append(list(zip(*expr)))
                 if constraint.sense == constants.LpConstraintLE:
-                    senses.append('L')
+                    senses.append("L")
                 elif constraint.sense == constants.LpConstraintGE:
-                    senses.append('G')
+                    senses.append("G")
                 elif constraint.sense == constants.LpConstraintEQ:
-                    senses.append('E')
+                    senses.append("E")
                 else:
-                    raise PulpSolverError('Detected an invalid constraint type')
+                    raise PulpSolverError("Detected an invalid constraint type")
                 rownames.append(name)
                 rhs.append(float(-constraint.constant))
-            lp.solverModel.linear_constraints.add(lin_expr=rows, senses=senses,
-                                                  rhs=rhs, names=rownames)
+            lp.solverModel.linear_constraints.add(
+                lin_expr=rows, senses=senses, rhs=rhs, names=rownames
+            )
             log.debug("set the type of the problem")
             if not self.mip:
                 self.solverModel.set_problem_type(cplex.Cplex.problem_type.LP)
             log.debug("set the logging")
             if not self.msg:
                 self.setlogfile(None)
-            logPath = self.optionsDict.get('logPath')
+            logPath = self.optionsDict.get("logPath")
             if logPath is not None:
                 if self.msg:
-                    warnings.warn('`logPath` argument replaces `msg=1`. The output will be redirected to the log file.')
-                self.setlogfile(open(logPath, 'w'))
-            gapRel = self.optionsDict.get('gapRel')
+                    warnings.warn(
+                        "`logPath` argument replaces `msg=1`. The output will be redirected to the log file."
+                    )
+                self.setlogfile(open(logPath, "w"))
+            gapRel = self.optionsDict.get("gapRel")
             if gapRel is not None:
                 self.changeEpgap(gapRel)
             if self.timeLimit is not None:
                 self.setTimeLimit(self.timeLimit)
-            if self.optionsDict.get('warmStart', False):
+            if self.optionsDict.get("warmStart", False):
                 # We assume "auto" for the effort_level
                 effort = self.solverModel.MIP_starts.effort_level.auto
-                start = [(k, v.value()) for k, v in self.n2v.items() if v.value() is not None]
+                start = [
+                    (k, v.value()) for k, v in self.n2v.items() if v.value() is not None
+                ]
                 if not start:
-                    warnings.warn('No variable with value found: mipStart aborted')
+                    warnings.warn("No variable with value found: mipStart aborted")
                     return
                 ind, val = zip(*start)
-                self.solverModel.MIP_starts.add(cplex.SparsePair(ind=ind, val=val), effort, '1')
+                self.solverModel.MIP_starts.add(
+                    cplex.SparsePair(ind=ind, val=val), effort, "1"
+                )
 
         def setlogfile(self, fileobj):
             """
@@ -842,52 +1017,53 @@ class CPLEX_PY(LpSolver):
             self.solverModel.set_warning_stream(fileobj)
             self.solverModel.set_results_stream(fileobj)
 
-        def changeEpgap(self, epgap = 10**-4):
+        def changeEpgap(self, epgap=10 ** -4):
             """
             Change cplex solver integer bound gap tolerence
             """
             self.solverModel.parameters.mip.tolerances.mipgap.set(epgap)
 
-        def setTimeLimit(self, timeLimit = 0.0):
+        def setTimeLimit(self, timeLimit=0.0):
             """
             Make cplex limit the time it takes --added CBM 8/28/09
             """
             self.solverModel.parameters.timelimit.set(timeLimit)
 
         def callSolver(self, isMIP):
-            """Solves the problem with cplex
-            """
-            #solve the problem
+            """Solves the problem with cplex"""
+            # solve the problem
             self.solveTime = -clock()
             self.solverModel.solve()
             self.solveTime += clock()
 
         def findSolutionValues(self, lp):
-            CplexLpStatus = {lp.solverModel.solution.status.MIP_optimal: constants.LpStatusOptimal,
-                             lp.solverModel.solution.status.optimal: constants.LpStatusOptimal,
-                             lp.solverModel.solution.status.optimal_tolerance: constants.LpStatusOptimal,
-                             lp.solverModel.solution.status.infeasible: constants.LpStatusInfeasible,
-                             lp.solverModel.solution.status.infeasible_or_unbounded:  constants.LpStatusInfeasible,
-                             lp.solverModel.solution.status.MIP_infeasible: constants.LpStatusInfeasible,
-                             lp.solverModel.solution.status.MIP_infeasible_or_unbounded:  constants.LpStatusInfeasible,
-                             lp.solverModel.solution.status.unbounded: constants.LpStatusUnbounded,
-                             lp.solverModel.solution.status.MIP_unbounded: constants.LpStatusUnbounded,
-                             lp.solverModel.solution.status.abort_dual_obj_limit: constants.LpStatusNotSolved,
-                             lp.solverModel.solution.status.abort_iteration_limit: constants.LpStatusNotSolved,
-                             lp.solverModel.solution.status.abort_obj_limit: constants.LpStatusNotSolved,
-                             lp.solverModel.solution.status.abort_relaxed: constants.LpStatusNotSolved,
-                             lp.solverModel.solution.status.abort_time_limit: constants.LpStatusNotSolved,
-                             lp.solverModel.solution.status.abort_user: constants.LpStatusNotSolved,
-                             lp.solverModel.solution.status.MIP_abort_feasible: constants.LpStatusOptimal,
-                             lp.solverModel.solution.status.MIP_time_limit_feasible: constants.LpStatusOptimal,
-                             lp.solverModel.solution.status.MIP_time_limit_infeasible: constants.LpStatusInfeasible,
-                             }
+            CplexLpStatus = {
+                lp.solverModel.solution.status.MIP_optimal: constants.LpStatusOptimal,
+                lp.solverModel.solution.status.optimal: constants.LpStatusOptimal,
+                lp.solverModel.solution.status.optimal_tolerance: constants.LpStatusOptimal,
+                lp.solverModel.solution.status.infeasible: constants.LpStatusInfeasible,
+                lp.solverModel.solution.status.infeasible_or_unbounded: constants.LpStatusInfeasible,
+                lp.solverModel.solution.status.MIP_infeasible: constants.LpStatusInfeasible,
+                lp.solverModel.solution.status.MIP_infeasible_or_unbounded: constants.LpStatusInfeasible,
+                lp.solverModel.solution.status.unbounded: constants.LpStatusUnbounded,
+                lp.solverModel.solution.status.MIP_unbounded: constants.LpStatusUnbounded,
+                lp.solverModel.solution.status.abort_dual_obj_limit: constants.LpStatusNotSolved,
+                lp.solverModel.solution.status.abort_iteration_limit: constants.LpStatusNotSolved,
+                lp.solverModel.solution.status.abort_obj_limit: constants.LpStatusNotSolved,
+                lp.solverModel.solution.status.abort_relaxed: constants.LpStatusNotSolved,
+                lp.solverModel.solution.status.abort_time_limit: constants.LpStatusNotSolved,
+                lp.solverModel.solution.status.abort_user: constants.LpStatusNotSolved,
+                lp.solverModel.solution.status.MIP_abort_feasible: constants.LpStatusOptimal,
+                lp.solverModel.solution.status.MIP_time_limit_feasible: constants.LpStatusOptimal,
+                lp.solverModel.solution.status.MIP_time_limit_infeasible: constants.LpStatusInfeasible,
+            }
             lp.cplex_status = lp.solverModel.solution.get_status()
             status = CplexLpStatus.get(lp.cplex_status, constants.LpStatusUndefined)
-            CplexSolStatus = {lp.solverModel.solution.status.MIP_time_limit_feasible: constants.LpSolutionIntegerFeasible,
-                              lp.solverModel.solution.status.MIP_abort_feasible: constants.LpSolutionIntegerFeasible,
-                              lp.solverModel.solution.status.MIP_feasible: constants.LpSolutionIntegerFeasible,
-                              }
+            CplexSolStatus = {
+                lp.solverModel.solution.status.MIP_time_limit_feasible: constants.LpSolutionIntegerFeasible,
+                lp.solverModel.solution.status.MIP_abort_feasible: constants.LpSolutionIntegerFeasible,
+                lp.solverModel.solution.status.MIP_feasible: constants.LpSolutionIntegerFeasible,
+            }
             # TODO: I did not find the following status: CPXMIP_NODE_LIM_FEAS, CPXMIP_MEM_LIM_FEAS
             sol_status = CplexSolStatus.get(lp.cplex_status)
             lp.assignStatus(status, sol_status)
@@ -895,20 +1071,34 @@ class CPLEX_PY(LpSolver):
             con_names = [con for con in lp.constraints]
             try:
                 objectiveValue = lp.solverModel.solution.get_objective_value()
-                variablevalues = dict(zip(var_names, lp.solverModel.solution.get_values(var_names)))
+                variablevalues = dict(
+                    zip(var_names, lp.solverModel.solution.get_values(var_names))
+                )
                 lp.assignVarsVals(variablevalues)
-                constraintslackvalues = dict(zip(con_names, lp.solverModel.solution.get_linear_slacks(con_names)))
+                constraintslackvalues = dict(
+                    zip(con_names, lp.solverModel.solution.get_linear_slacks(con_names))
+                )
                 lp.assignConsSlack(constraintslackvalues)
                 if lp.solverModel.get_problem_type() == cplex.Cplex.problem_type.LP:
-                    variabledjvalues = dict(zip(var_names, lp.solverModel.solution.get_reduced_costs(var_names)))
+                    variabledjvalues = dict(
+                        zip(
+                            var_names,
+                            lp.solverModel.solution.get_reduced_costs(var_names),
+                        )
+                    )
                     lp.assignVarsDj(variabledjvalues)
-                    constraintpivalues = dict(zip(con_names, lp.solverModel.solution.get_dual_values(con_names)))
+                    constraintpivalues = dict(
+                        zip(
+                            con_names,
+                            lp.solverModel.solution.get_dual_values(con_names),
+                        )
+                    )
                     lp.assignConsPi(constraintpivalues)
             except cplex.exceptions.CplexSolverError:
-                #raises this error when there is no solution
+                # raises this error when there is no solution
                 pass
-            #put pi and slack variables against the constraints
-            #TODO: clear up the name of self.n2c
+            # put pi and slack variables against the constraints
+            # TODO: clear up the name of self.n2c
             if self.msg:
                 print("Cplex status=", lp.cplex_status)
             lp.resolveOK = True

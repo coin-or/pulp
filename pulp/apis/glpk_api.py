@@ -32,9 +32,18 @@ from .. import constants
 
 class GLPK_CMD(LpSolver_CMD):
     """The GLPK LP solver"""
-    name = 'GLPK_CMD'
 
-    def __init__(self, path=None, keepFiles=False, mip=True, msg=True, options=None, timeLimit=None):
+    name = "GLPK_CMD"
+
+    def __init__(
+        self,
+        path=None,
+        keepFiles=False,
+        mip=True,
+        msg=True,
+        options=None,
+        timeLimit=None,
+    ):
         """
         :param bool mip: if False, assume LP even if integer variables
         :param bool msg: if False, no log is shown
@@ -43,8 +52,15 @@ class GLPK_CMD(LpSolver_CMD):
         :param bool keepFiles: if True, files are saved in the current directory and not deleted after solving
         :param str path: path to the solver binary
         """
-        LpSolver_CMD.__init__(self, mip=mip, msg=msg, timeLimit=timeLimit,
-                              options=options, path=path, keepFiles=keepFiles)
+        LpSolver_CMD.__init__(
+            self,
+            mip=mip,
+            msg=msg,
+            timeLimit=timeLimit,
+            options=options,
+            path=path,
+            keepFiles=keepFiles,
+        )
 
     def defaultPath(self):
         return self.executableExtension(glpk_path)
@@ -56,41 +72,47 @@ class GLPK_CMD(LpSolver_CMD):
     def actualSolve(self, lp):
         """Solve a well formulated lp problem"""
         if not self.executable(self.path):
-            raise PulpSolverError("PuLP: cannot execute "+self.path)
-        tmpLp, tmpSol = self.create_tmp_files(lp.name, 'lp', 'sol')
-        lp.writeLP(tmpLp, writeSOS = 0)
+            raise PulpSolverError("PuLP: cannot execute " + self.path)
+        tmpLp, tmpSol = self.create_tmp_files(lp.name, "lp", "sol")
+        lp.writeLP(tmpLp, writeSOS=0)
         proc = ["glpsol", "--cpxlp", tmpLp, "-o", tmpSol]
         if self.timeLimit:
-            proc.extend(['--tmlim', str(self.timeLimit)])
-        if not self.mip: proc.append('--nomip')
+            proc.extend(["--tmlim", str(self.timeLimit)])
+        if not self.mip:
+            proc.append("--nomip")
         proc.extend(self.options)
 
         self.solution_time = clock()
         if not self.msg:
             proc[0] = self.path
-            pipe = open(os.devnull, 'w')
-            if operating_system == 'win':
+            pipe = open(os.devnull, "w")
+            if operating_system == "win":
                 # Prevent flashing windows if used from a GUI application
                 startupinfo = subprocess.STARTUPINFO()
                 startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-                rc = subprocess.call(proc, stdout = pipe, stderr = pipe,
-                                     startupinfo = startupinfo)
+                rc = subprocess.call(
+                    proc, stdout=pipe, stderr=pipe, startupinfo=startupinfo
+                )
             else:
-                rc = subprocess.call(proc, stdout = pipe, stderr = pipe)
+                rc = subprocess.call(proc, stdout=pipe, stderr=pipe)
             if rc:
-                raise PulpSolverError("PuLP: Error while trying to execute "+self.path)
+                raise PulpSolverError(
+                    "PuLP: Error while trying to execute " + self.path
+                )
             pipe.close()
         else:
-            if os.name != 'nt':
+            if os.name != "nt":
                 rc = os.spawnvp(os.P_WAIT, self.path, proc)
             else:
                 rc = os.spawnv(os.P_WAIT, self.executable(self.path), proc)
             if rc == 127:
-                raise PulpSolverError("PuLP: Error while trying to execute "+self.path)
+                raise PulpSolverError(
+                    "PuLP: Error while trying to execute " + self.path
+                )
         self.solution_time += clock()
 
         if not os.path.exists(tmpSol):
-            raise PulpSolverError("PuLP: Error while executing "+self.path)
+            raise PulpSolverError("PuLP: Error while executing " + self.path)
         status, values = self.readsol(tmpSol)
         lp.assignVarsVals(values)
         lp.assignStatus(status)
@@ -113,17 +135,17 @@ class GLPK_CMD(LpSolver_CMD):
                 "INTEGER UNDEFINED": constants.LpStatusUndefined,
                 "UNBOUNDED": constants.LpStatusUnbounded,
                 "UNDEFINED": constants.LpStatusUndefined,
-                "INTEGER EMPTY": constants.LpStatusInfeasible
-                }
+                "INTEGER EMPTY": constants.LpStatusInfeasible,
+            }
             if statusString not in glpkStatus:
                 raise PulpSolverError("Unknown status returned by GLPK")
             status = glpkStatus[statusString]
             isInteger = statusString in [
-                        "INTEGER NON-OPTIMAL",
-                         "INTEGER OPTIMAL",
-                         "INTEGER UNDEFINED",
-                         "INTEGER EMPTY"
-                         ]
+                "INTEGER NON-OPTIMAL",
+                "INTEGER OPTIMAL",
+                "INTEGER UNDEFINED",
+                "INTEGER EMPTY",
+            ]
             values = {}
             for i in range(4):
                 f.readline()
@@ -137,7 +159,7 @@ class GLPK_CMD(LpSolver_CMD):
                 line = f.readline().split()
                 name = line[1]
                 if len(line) == 2:
-                    line = [0,0] + f.readline().split()
+                    line = [0, 0] + f.readline().split()
                 if isInteger:
                     if line[2] == "*":
                         value = int(float(line[3]))
@@ -147,10 +169,14 @@ class GLPK_CMD(LpSolver_CMD):
                     value = float(line[3])
                 values[name] = value
         return status, values
+
+
 GLPK = GLPK_CMD
 
-#get the glpk name in global scope
+# get the glpk name in global scope
 glpk = None
+
+
 class PYGLPK(LpSolver):
     """
     The glpk LP/MIP solver (via its python interface)
@@ -161,26 +187,28 @@ class PYGLPK(LpSolver):
     The glpk constraints are available in constraint.solverConstraint
     The Model is in prob.solverModel
     """
-    name = 'PYGLPK'
+
+    name = "PYGLPK"
 
     try:
-        #import the model into the global scope
+        # import the model into the global scope
         global glpk
         import glpk.glpkpi as glpk
     except:
+
         def available(self):
             """True if the solver is available"""
             return False
-        def actualSolve(self, lp, callback = None):
+
+        def actualSolve(self, lp, callback=None):
             """Solve a well formulated lp problem"""
             raise PulpSolverError("GLPK: Not Available")
+
     else:
-        def __init__(self,
-                    mip = True,
-                    msg = True,
-                    timeLimit = None,
-                    epgap = None,
-                    **solverParams):
+
+        def __init__(
+            self, mip=True, msg=True, timeLimit=None, epgap=None, **solverParams
+        ):
             """
             Initializes the glpk solver.
 
@@ -200,21 +228,22 @@ class PYGLPK(LpSolver):
                 solutionStatus = glpk.glp_mip_status(prob)
             else:
                 solutionStatus = glpk.glp_get_status(prob)
-            glpkLpStatus = {glpk.GLP_OPT: constants.LpStatusOptimal,
-                                   glpk.GLP_UNDEF: constants.LpStatusUndefined,
-                                   glpk.GLP_FEAS: constants.LpStatusOptimal,
-                                   glpk.GLP_INFEAS: constants.LpStatusInfeasible,
-                                   glpk.GLP_NOFEAS: constants.LpStatusInfeasible,
-                                   glpk.GLP_UNBND: constants.LpStatusUnbounded
-                                   }
-            #populate pulp solution values
+            glpkLpStatus = {
+                glpk.GLP_OPT: constants.LpStatusOptimal,
+                glpk.GLP_UNDEF: constants.LpStatusUndefined,
+                glpk.GLP_FEAS: constants.LpStatusOptimal,
+                glpk.GLP_INFEAS: constants.LpStatusInfeasible,
+                glpk.GLP_NOFEAS: constants.LpStatusInfeasible,
+                glpk.GLP_UNBND: constants.LpStatusUnbounded,
+            }
+            # populate pulp solution values
             for var in lp.variables():
                 if self.mip and self.hasMIPConstraints(lp.solverModel):
                     var.varValue = glpk.glp_mip_col_val(prob, var.glpk_index)
                 else:
                     var.varValue = glpk.glp_get_col_prim(prob, var.glpk_index)
                 var.dj = glpk.glp_get_col_dual(prob, var.glpk_index)
-            #put pi and slack variables against the constraints
+            # put pi and slack variables against the constraints
             for constr in lp.constraints.values():
                 if self.mip and self.hasMIPConstraints(lp.solverModel):
                     row_val = glpk.glp_mip_row_val(prob, constr.glpk_index)
@@ -234,12 +263,13 @@ class PYGLPK(LpSolver):
             return True
 
         def hasMIPConstraints(self, solverModel):
-            return (glpk.glp_get_num_int(solverModel) > 0 or
-                    glpk.glp_get_num_bin(solverModel) > 0)
+            return (
+                glpk.glp_get_num_int(solverModel) > 0
+                or glpk.glp_get_num_bin(solverModel) > 0
+            )
 
-        def callSolver(self, lp, callback = None):
-            """Solves the problem with glpk
-            """
+        def callSolver(self, lp, callback=None):
+            """Solves the problem with glpk"""
             self.solveTime = -clock()
             glpk.glp_adv_basis(lp.solverModel, 0)
             glpk.glp_simplex(lp.solverModel, None)
@@ -265,16 +295,19 @@ class PYGLPK(LpSolver):
                 name, constraint = v
                 glpk.glp_set_row_name(prob, i, name)
                 if constraint.sense == constants.LpConstraintLE:
-                    glpk.glp_set_row_bnds(prob, i, glpk.GLP_UP,
-                            0.0, -constraint.constant)
+                    glpk.glp_set_row_bnds(
+                        prob, i, glpk.GLP_UP, 0.0, -constraint.constant
+                    )
                 elif constraint.sense == constants.LpConstraintGE:
-                    glpk.glp_set_row_bnds(prob, i, glpk.GLP_LO,
-                            -constraint.constant, 0.0)
+                    glpk.glp_set_row_bnds(
+                        prob, i, glpk.GLP_LO, -constraint.constant, 0.0
+                    )
                 elif constraint.sense == constants.LpConstraintEQ:
-                    glpk.glp_set_row_bnds(prob, i, glpk.GLP_FX,
-                            -constraint.constant, -constraint.constant)
+                    glpk.glp_set_row_bnds(
+                        prob, i, glpk.GLP_FX, -constraint.constant, -constraint.constant
+                    )
                 else:
-                    raise PulpSolverError('Detected an invalid constraint type')
+                    raise PulpSolverError("Detected an invalid constraint type")
                 constraint.glpk_index = i
             log.debug("add the variables to the problem")
             glpk.glp_add_cols(prob, len(lp.variables()))
@@ -313,12 +346,11 @@ class PYGLPK(LpSolver):
                     var, value = v
                     ind[j] = var.glpk_index
                     val[j] = value
-                glpk.glp_set_mat_row(prob, constraint.glpk_index, l, ind,
-                        val)
+                glpk.glp_set_mat_row(prob, constraint.glpk_index, l, ind, val)
             lp.solverModel = prob
-            #glpk.glp_write_lp(prob, None, "glpk.lp")
+            # glpk.glp_write_lp(prob, None, "glpk.lp")
 
-        def actualSolve(self, lp, callback = None):
+        def actualSolve(self, lp, callback=None):
             """
             Solve a well formulated lp problem
 
@@ -326,10 +358,10 @@ class PYGLPK(LpSolver):
             them to the lp model which it then solves
             """
             self.buildSolverModel(lp)
-            #set the initial solution
+            # set the initial solution
             log.debug("Solve the Model using glpk")
-            self.callSolver(lp, callback = callback)
-            #get the solution information
+            self.callSolver(lp, callback=callback)
+            # get the solution information
             solutionStatus = self.findSolutionValues(lp)
             for var in lp.variables():
                 var.modified = False
@@ -337,7 +369,7 @@ class PYGLPK(LpSolver):
                 constraint.modified = False
             return solutionStatus
 
-        def actualResolve(self, lp, callback = None):
+        def actualResolve(self, lp, callback=None):
             """
             Solve a well formulated lp problem
 
@@ -350,18 +382,25 @@ class PYGLPK(LpSolver):
                 i = constraint.glpk_index
                 if constraint.modified:
                     if constraint.sense == constants.LpConstraintLE:
-                        glpk.glp_set_row_bnds(prob, i, glpk.GLP_UP,
-                                0.0, -constraint.constant)
+                        glpk.glp_set_row_bnds(
+                            prob, i, glpk.GLP_UP, 0.0, -constraint.constant
+                        )
                     elif constraint.sense == constants.LpConstraintGE:
-                        glpk.glp_set_row_bnds(prob, i, glpk.GLP_LO,
-                                -constraint.constant, 0.0)
+                        glpk.glp_set_row_bnds(
+                            prob, i, glpk.GLP_LO, -constraint.constant, 0.0
+                        )
                     elif constraint.sense == constants.LpConstraintEQ:
-                        glpk.glp_set_row_bnds(prob, i, glpk.GLP_FX,
-                                -constraint.constant, -constraint.constant)
+                        glpk.glp_set_row_bnds(
+                            prob,
+                            i,
+                            glpk.GLP_FX,
+                            -constraint.constant,
+                            -constraint.constant,
+                        )
                     else:
-                        raise PulpSolverError('Detected an invalid constraint type')
-            self.callSolver(lp, callback = callback)
-            #get the solution information
+                        raise PulpSolverError("Detected an invalid constraint type")
+            self.callSolver(lp, callback=callback)
+            # get the solution information
             solutionStatus = self.findSolutionValues(lp)
             for var in lp.variables():
                 var.modified = False
