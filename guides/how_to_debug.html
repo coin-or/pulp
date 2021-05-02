@@ -100,6 +100,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#giving-feedback-and-asking-for-help">Giving feedback and asking for help</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#error-while-trying-to-execute-cbc-exe">Error while trying to execute cbc.exe</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#infeasible-problems">Infeasible problems</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#jupyter-notebooks-anaconda-conda-issues">Jupyter notebooks / anaconda / conda issues</a></li>
 </ul>
 </li>
 </ul>
@@ -217,6 +218,7 @@ General pointers (that are nonetheless, very important):</p>
 <li><p><strong>Memory issues</strong>. Sometimes your pc runs out of memory. Check if this is the case.</p></li>
 <li><p><strong>python32 vs python64</strong>. Sometimes you’re using the 32-bit version of python, even if your pc is 64-bit. Try to always use the 64-bit if possible, since it handles more memory.</p></li>
 <li><p><strong>Generate an mps file with PuLP</strong> and pass it to the cbc.exe executable directly like so.</p></li>
+<li><p><strong>Anaconda/ conda/ jupyter notebooks</strong> see below.</p></li>
 </ol>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cbc</span><span class="o">.</span><span class="n">exe</span> <span class="n">mpsfile</span><span class="o">.</span><span class="n">mps</span>
 </pre></div>
@@ -234,6 +236,23 @@ General pointers (that are nonetheless, very important):</p>
 <li><p>Generate lp file <a class="reference internal" href="../technical/pulp.html#pulp.LpProblem.writeLP" title="pulp.LpProblem.writeLP"><code class="xref py py-meth docutils literal notranslate"><span class="pre">writeLP()</span></code></a> for the problem and open it with a text editor to see if the constraints are correctly built.</p></li>
 <li><p>Check the solver logs to additional message from the solver regarding the constraint or variable involved. The log can be seen by giving <cite>msg=</cite> as argument or exported with the <cite>logPath</cite> argument in some cases.</p></li>
 </ol>
+</div>
+<div class="section" id="jupyter-notebooks-anaconda-conda-issues">
+<h2>Jupyter notebooks / anaconda / conda issues<a class="headerlink" href="#jupyter-notebooks-anaconda-conda-issues" title="Permalink to this headline">¶</a></h2>
+<p>There have been several issues of the default solver (CBC) not working with an error like:</p>
+<p><cite>pulp.solvers.PulpSolverError: Pulp: Error while trying to execute PATH_TO_CBC/cbc.exe</cite></p>
+<p>or</p>
+<p><cite>Pulp: Error while trying to execute, use msg=True for more details</cite>.</p>
+<p>This could be caused by a combination of the following:</p>
+<ul class="simple">
+<li><p>the conda / anaconda installation of PuLP is not supported and thus may bring its own problems. Try installing pulp as documented in the documentation.</p></li>
+<li><p>Apparently Jupyter notebooks sometimes run in user sessions that do not have access to the PuLP installation folder. This makes it impossible to access the default solver binary. To fix this, try installing pulp in the user’s directory or giving sufficient permissions to the jupyter notebook when launching it.</p></li>
+</ul>
+<p>Examples of these situations, some fixed are:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/coin-or/pulp/issues/410">https://github.com/coin-or/pulp/issues/410</a></p></li>
+<li><p><a class="reference external" href="https://github.com/coin-or/pulp/discussions/384">https://github.com/coin-or/pulp/discussions/384</a></p></li>
+</ul>
 </div>
 </div>
 
