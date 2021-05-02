@@ -46,6 +46,7 @@ The default solver is CBC and is run via the command line.
 4. **Memory issues**. Sometimes your pc runs out of memory. Check if this is the case.
 5. **python32 vs python64**. Sometimes you're using the 32-bit version of python, even if your pc is 64-bit. Try to always use the 64-bit if possible, since it handles more memory.
 6. **Generate an mps file with PuLP** and pass it to the cbc.exe executable directly like so.
+7. **Anaconda/ conda/ jupyter notebooks** see below.
 
 ::
 
@@ -64,3 +65,23 @@ Infeasible problems
 4. Check the solver logs to additional message from the solver regarding the constraint or variable involved. The log can be seen by giving `msg=` as argument or exported with the `logPath` argument in some cases.
 
 
+Jupyter notebooks / anaconda / conda issues
+----------------------------------------------------
+
+There have been several issues of the default solver (CBC) not working with an error like:
+
+`pulp.solvers.PulpSolverError: Pulp: Error while trying to execute PATH_TO_CBC/cbc.exe`
+
+or
+
+`Pulp: Error while trying to execute, use msg=True for more details`.
+
+This could be caused by a combination of the following:
+
+* the conda / anaconda installation of PuLP is not supported and thus may bring its own problems. Try installing pulp as documented in the documentation.
+* Apparently Jupyter notebooks sometimes run in user sessions that do not have access to the PuLP installation folder. This makes it impossible to access the default solver binary. To fix this, try installing pulp in the user's directory or giving sufficient permissions to the jupyter notebook when launching it.
+
+Examples of these situations, some fixed are:
+
+* https://github.com/coin-or/pulp/issues/410
+* https://github.com/coin-or/pulp/discussions/384
