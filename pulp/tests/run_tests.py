@@ -2,6 +2,7 @@ import unittest
 import pulp
 from pulp.tests import test_pulp, test_examples
 
+
 def pulpTestAll(test_docs=False):
     runner = unittest.TextTestRunner()
     suite_all = get_test_suit(test_docs)
@@ -10,8 +11,9 @@ def pulpTestAll(test_docs=False):
     if not ret.wasSuccessful():
         raise pulp.PulpError("Tests Failed")
 
+
 def get_test_suit(test_docs=False):
-     # Tests
+    # Tests
     loader = unittest.TestLoader()
     # we get suite with all PuLP tests
     suite_all = test_pulp.suite()
@@ -21,5 +23,6 @@ def get_test_suit(test_docs=False):
         suite_all.addTests(docs_examples)
     return suite_all
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     pulpTestAll(test_docs=False)
