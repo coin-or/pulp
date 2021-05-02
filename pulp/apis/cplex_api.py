@@ -147,7 +147,9 @@ class CPLEX_CMD(LpSolver_CMD):
                 slacks,
                 solStatus,
             ) = self.readsol(tmpSol)
-        self.delete_tmp_files(tmpLp, tmpMst, tmpSol, "cplex.log")
+        self.delete_tmp_files(tmpLp, tmpMst, tmpSol)
+        if self.optionsDict.get('logPath') != "cplex.log":
+            self.delete_tmp_files("cplex.log")
         if status != constants.LpStatusInfeasible:
             lp.assignVarsVals(values)
             lp.assignVarsDj(reducedCosts)
@@ -161,7 +163,6 @@ class CPLEX_CMD(LpSolver_CMD):
         # CPLEX status: https://www.ibm.com/support/knowledgecenter/en/SSSA5P_12.10.0/ilog.odms.cplex.help/refcallablelibrary/macros/Solution_status_codes.html
         params_eq = dict(
             logPath="set logFile {}",
-            timeLimit="set timelimit {}",
             gapRel="set mip tolerances mipgap {}",
             gapAbs="set mip tolerances absmipgap {}",
             maxMemory="set mip limits treememory {}",

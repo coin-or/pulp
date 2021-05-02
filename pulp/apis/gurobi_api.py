@@ -318,7 +318,7 @@ class GUROBI_CMD(LpSolver_CMD):
             warnings.warn("Parameter mip_start is being depreciated for warmStart")
             if warmStart:
                 warnings.warn(
-                    "Parameter mipStart and mip_start passed, using warmStart"
+                    "Parameter warmStart and mip_start passed, using warmStart"
                 )
             else:
                 warmStart = mip_start
@@ -370,6 +370,8 @@ class GUROBI_CMD(LpSolver_CMD):
             pass
         cmd = self.path
         options = self.options + self.getOptions()
+        if self.timeLimit is not None:
+            options.append(("TimeLimit", self.timeLimit))
         cmd += " " + " ".join(["%s=%s" % (key, value) for key, value in options])
         cmd += " ResultFile=%s" % tmpSol
         if self.optionsDict.get("warmStart", False):
@@ -449,7 +451,6 @@ class GUROBI_CMD(LpSolver_CMD):
         # GUROBI parameters: http://www.gurobi.com/documentation/7.5/refman/parameters.html#sec:Parameters
         params_eq = dict(
             logPath="LogFile",
-            timeLimit="TimeLimit",
             gapRel="MIPGap",
             gapAbs="MIPGapAbs",
             threads="Threads",

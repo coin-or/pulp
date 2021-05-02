@@ -231,3 +231,24 @@ Grouping variables
 
 As the "Considerations" section mentions, the grouping of variables is not restored automatically. Nevertheless, by using some strict naming convention on variable names and clever parsing, one can reconstruct the original structure of the variables.
 
+Caveats with json and pandas / numpy data types
+--------------------------------------------------
+
+The `json` module in python has some issues transforming numpy data types (e.g., `np.integer`). The easier way to solve this problem is to provide a custom encoding class as shown `here <https://stackoverflow.com/a/57915246/6508131>`_::
+
+    import numpy as np
+    #(...)
+    class NpEncoder(json.JSONEncoder):
+        def default(self, obj):
+            if isinstance(obj, np.integer):
+                return int(obj)
+            elif isinstance(obj, np.floating):
+                return float(obj)
+            elif isinstance(obj, np.ndarray):
+                return obj.tolist()
+            else:
+                return super(NpEncoder, self).default(obj)
+
+    wedding_model.to_json("seating_model.json", cls=NpEncoder)
+
+Note that this custom encoding class may not work with the `ujson` package. An alternative is to cast all values using `int()` or `float()` before using them in `pulp`.
