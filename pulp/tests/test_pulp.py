@@ -5,6 +5,7 @@ from pulp.constants import PulpError
 from pulp.apis import *
 from pulp import LpVariable, LpProblem, lpSum, LpConstraintVar, LpFractionConstraint
 from pulp import constants as const
+from pulp.tests.bin_packing_problem import create_bin_packing_problem
 from pulp.utilities import makeDict
 import unittest
 
@@ -1103,15 +1104,41 @@ class PuLPTest(unittest.TestCase):
         prob += 1 * x
         prob += x >= 2  # Constraint x to be more than 2
         prob += x <= 1  # Constraint x to be less than 1
-        if self.solver.name in ['GUROBI_CMD']:
+        if self.solver.name in ["GUROBI_CMD"]:
             pulpTestCheck(
-                prob, self.solver, [const.LpStatusNotSolved, const.LpStatusInfeasible, const.LpStatusUndefined]
+                prob,
+                self.solver,
+                [
+                    const.LpStatusNotSolved,
+                    const.LpStatusInfeasible,
+                    const.LpStatusUndefined,
+                ],
             )
         else:
             pulpTestCheck(
                 prob, self.solver, [const.LpStatusInfeasible, const.LpStatusUndefined]
             )
         self.assertFalse(prob.valid())
+
+    def test_measuring_solving_time(self):
+        print("\t Testing measuring optimization time")
+
+        time_limit = 10.23
+        solver_settings = dict(PULP_CBC_CMD=30, COIN_CMD=30, SCIP_CMD=30)
+
+        bins = solver_settings.get(self.solver.name)
+        if bins is not None:
+            prob = create_bin_packing_problem(bins=bins)
+            self.solver.timeLimit = time_limit
+            prob.solve(self.solver)
+
+            self.assertAlmostEqual(
+                prob.solutionTime,
+                time_limit,
+                delta=2,
+                msg="optimization time for solver {}".format(self.solver.name),
+            )
+        self.assertTrue(True)
 
 
 def pulpTestCheck(
