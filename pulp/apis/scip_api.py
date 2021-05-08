@@ -151,7 +151,6 @@ class SCIP_CMD(LpSolver_CMD):
 
     def getOptions(self):
         params_eq = dict(
-            timeLimit="set limits time {}",
             gapRel="set limits gap {}",
             gapAbs="set limits absgap {}",
             maxNodes="set limits nodes {}",
