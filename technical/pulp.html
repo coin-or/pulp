@@ -13,6 +13,8 @@
   
   <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
 
   
   
@@ -29,10 +31,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -210,8 +213,8 @@
 <div class="section" id="the-lpproblem-class">
 <h2>The LpProblem Class<a class="headerlink" href="#the-lpproblem-class" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
-<dt id="pulp.LpProblem">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">pulp.</span></code><code class="sig-name descname"><span class="pre">LpProblem</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'NoName'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sense</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpProblem" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pulp.LpProblem">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pulp.</span></span><span class="sig-name descname"><span class="pre">LpProblem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'NoName'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sense</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpProblem" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>An LP Problem</p>
 <p>Creates an LP Problem</p>
@@ -229,29 +232,29 @@
 </dl>
 <p>Three important attributes of the problem are:</p>
 <dl class="py attribute">
-<dt id="pulp.LpProblem.objective">
-<code class="sig-name descname"><span class="pre">objective</span></code><a class="headerlink" href="#pulp.LpProblem.objective" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pulp.LpProblem.objective">
+<span class="sig-name descname"><span class="pre">objective</span></span><a class="headerlink" href="#pulp.LpProblem.objective" title="Permalink to this definition">¶</a></dt>
 <dd><p>The objective of the problem, an <a class="reference internal" href="#pulp.LpAffineExpression" title="pulp.LpAffineExpression"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LpAffineExpression</span></code></a></p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="pulp.LpProblem.constraints">
-<code class="sig-name descname"><span class="pre">constraints</span></code><a class="headerlink" href="#pulp.LpProblem.constraints" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pulp.LpProblem.constraints">
+<span class="sig-name descname"><span class="pre">constraints</span></span><a class="headerlink" href="#pulp.LpProblem.constraints" title="Permalink to this definition">¶</a></dt>
 <dd><p>An <code class="xref py py-class docutils literal notranslate"><span class="pre">ordered</span> <span class="pre">dictionary</span></code> of
 <a class="reference internal" href="#pulp.LpConstraint" title="pulp.LpConstraint"><code class="xref py py-class docutils literal notranslate"><span class="pre">constraints</span></code></a> of the problem - indexed by their names.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="pulp.LpProblem.status">
-<code class="sig-name descname"><span class="pre">status</span></code><a class="headerlink" href="#pulp.LpProblem.status" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pulp.LpProblem.status">
+<span class="sig-name descname"><span class="pre">status</span></span><a class="headerlink" href="#pulp.LpProblem.status" title="Permalink to this definition">¶</a></dt>
 <dd><p>The return <a class="reference internal" href="constants.html#pulp.constants.LpStatus" title="pulp.constants.LpStatus"><code class="xref py py-data docutils literal notranslate"><span class="pre">status</span></code></a>
 of the problem from the solver.</p>
 </dd></dl>
 
 <p>Some of the more important methods:</p>
 <dl class="py method">
-<dt id="pulp.LpProblem.solve">
-<code class="sig-name descname"><span class="pre">solve</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">solver</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpProblem.solve" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pulp.LpProblem.solve">
+<span class="sig-name descname"><span class="pre">solve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">solver</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpProblem.solve" title="Permalink to this definition">¶</a></dt>
 <dd><p>Solve the given Lp problem.</p>
 <p>This function changes the problem to make it suitable for solving
 then calls the solver.actualSolve() method to find the solution</p>
@@ -271,8 +274,8 @@ default solver.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="pulp.LpProblem.roundSolution">
-<code class="sig-name descname"><span class="pre">roundSolution</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">epsInt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-07</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpProblem.roundSolution" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pulp.LpProblem.roundSolution">
+<span class="sig-name descname"><span class="pre">roundSolution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">epsInt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-07</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpProblem.roundSolution" title="Permalink to this definition">¶</a></dt>
 <dd><p>Rounds the lp variables</p>
 <dl class="simple">
 <dt>Inputs:</dt><dd><ul class="simple">
@@ -287,8 +290,8 @@ default solver.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="pulp.LpProblem.setObjective">
-<code class="sig-name descname"><span class="pre">setObjective</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpProblem.setObjective" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pulp.LpProblem.setObjective">
+<span class="sig-name descname"><span class="pre">setObjective</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpProblem.setObjective" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sets the input variable as the objective function. Used in Columnwise Modelling</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -304,8 +307,8 @@ default solver.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="pulp.LpProblem.writeLP">
-<code class="sig-name descname"><span class="pre">writeLP</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">writeSOS</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpProblem.writeLP" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pulp.LpProblem.writeLP">
+<span class="sig-name descname"><span class="pre">writeLP</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">writeSOS</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpProblem.writeLP" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write the given Lp problem to a .lp file.</p>
 <p>This function writes the specifications (objective function,
 constraints, variables) of the defined Lp problem to a file.</p>
@@ -326,8 +329,8 @@ constraints, variables) of the defined Lp problem to a file.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="pulp.LpProblem.writeMPS">
-<code class="sig-name descname"><span class="pre">writeMPS</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mpsSense</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpProblem.writeMPS" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pulp.LpProblem.writeMPS">
+<span class="sig-name descname"><span class="pre">writeMPS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mpsSense</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpProblem.writeMPS" title="Permalink to this definition">¶</a></dt>
 <dd><p>Writes an mps files from the problem information</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -351,8 +354,8 @@ constraints, variables) of the defined Lp problem to a file.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="pulp.LpProblem.toJson">
-<code class="sig-name descname"><span class="pre">toJson</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpProblem.toJson" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pulp.LpProblem.toJson">
+<span class="sig-name descname"><span class="pre">toJson</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpProblem.toJson" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a json file from the LpProblem information</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -369,8 +372,8 @@ constraints, variables) of the defined Lp problem to a file.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="pulp.LpProblem.fromJson">
-<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">fromJson</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpProblem.fromJson" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pulp.LpProblem.fromJson">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">fromJson</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpProblem.fromJson" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a new Lp Problem from a json file with information</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -391,15 +394,15 @@ constraints, variables) of the defined Lp problem to a file.</p>
 <div class="section" id="variables-and-expressions">
 <h2>Variables and Expressions<a class="headerlink" href="#variables-and-expressions" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
-<dt id="pulp.LpElement">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">pulp.</span></code><code class="sig-name descname"><span class="pre">LpElement</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpElement" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pulp.LpElement">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pulp.</span></span><span class="sig-name descname"><span class="pre">LpElement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpElement" title="Permalink to this definition">¶</a></dt>
 <dd><p>Base class for LpVariable and LpConstraintVar</p>
 </dd></dl>
 
 <hr class="docutils" />
 <dl class="py class">
-<dt id="pulp.LpVariable">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">pulp.</span></code><code class="sig-name descname"><span class="pre">LpVariable</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lowBound</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upBound</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Continuous'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">e</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pulp.LpVariable">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pulp.</span></span><span class="sig-name descname"><span class="pre">LpVariable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lowBound</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upBound</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Continuous'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">e</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable" title="Permalink to this definition">¶</a></dt>
 <dd><p>This class models an LP Variable with the specified associated parameters</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -417,15 +420,15 @@ existence in the objective function and constraints</p></li>
 </dd>
 </dl>
 <dl class="py method">
-<dt id="pulp.LpVariable.addVariableToConstraints">
-<code class="sig-name descname"><span class="pre">addVariableToConstraints</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">e</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable.addVariableToConstraints" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pulp.LpVariable.addVariableToConstraints">
+<span class="sig-name descname"><span class="pre">addVariableToConstraints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">e</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable.addVariableToConstraints" title="Permalink to this definition">¶</a></dt>
 <dd><p>adds a variable to the constraints indicated by
 the LpConstraintVars in e</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="pulp.LpVariable.dicts">
-<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">dicts</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indexs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lowBound</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upBound</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Continuous'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indexStart</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable.dicts" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pulp.LpVariable.dicts">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">dicts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indexs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lowBound</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upBound</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Continuous'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indexStart</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable.dicts" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function creates a dictionary of <a class="reference internal" href="#pulp.LpVariable" title="pulp.LpVariable"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpVariable</span></code></a> with the specified associated parameters.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -448,15 +451,15 @@ Continuous(default)</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="pulp.LpVariable.fixValue">
-<code class="sig-name descname"><span class="pre">fixValue</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable.fixValue" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pulp.LpVariable.fixValue">
+<span class="sig-name descname"><span class="pre">fixValue</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable.fixValue" title="Permalink to this definition">¶</a></dt>
 <dd><p>changes lower bound and upper bound to the initial value if exists.
 :return: None</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="pulp.LpVariable.fromDict">
-<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">fromDict</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dj</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">varValue</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable.fromDict" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pulp.LpVariable.fromDict">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">fromDict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dj</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">varValue</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable.fromDict" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initializes a variable object from information that comes from a dictionary (kwargs)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -476,8 +479,8 @@ Continuous(default)</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="pulp.LpVariable.from_dict">
-<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_dict</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dj</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">varValue</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable.from_dict" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pulp.LpVariable.from_dict">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">from_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dj</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">varValue</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable.from_dict" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initializes a variable object from information that comes from a dictionary (kwargs)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -497,8 +500,8 @@ Continuous(default)</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="pulp.LpVariable.isFixed">
-<code class="sig-name descname"><span class="pre">isFixed</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable.isFixed" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pulp.LpVariable.isFixed">
+<span class="sig-name descname"><span class="pre">isFixed</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable.isFixed" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>True if upBound and lowBound are the same</p>
@@ -510,8 +513,8 @@ Continuous(default)</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="pulp.LpVariable.setInitialValue">
-<code class="sig-name descname"><span class="pre">setInitialValue</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">val</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable.setInitialValue" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pulp.LpVariable.setInitialValue">
+<span class="sig-name descname"><span class="pre">setInitialValue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">val</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable.setInitialValue" title="Permalink to this definition">¶</a></dt>
 <dd><p>sets the initial value of the variable to <cite>val</cite>
 May be used for warmStart a solver, if supported by the solver</p>
 <dl class="field-list simple">
@@ -531,8 +534,8 @@ May be used for warmStart a solver, if supported by the solver</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="pulp.LpVariable.toDict">
-<code class="sig-name descname"><span class="pre">toDict</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable.toDict" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pulp.LpVariable.toDict">
+<span class="sig-name descname"><span class="pre">toDict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable.toDict" title="Permalink to this definition">¶</a></dt>
 <dd><p>Exports a variable into a dictionary with its relevant information</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -545,8 +548,8 @@ May be used for warmStart a solver, if supported by the solver</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="pulp.LpVariable.to_dict">
-<code class="sig-name descname"><span class="pre">to_dict</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable.to_dict" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pulp.LpVariable.to_dict">
+<span class="sig-name descname"><span class="pre">to_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable.to_dict" title="Permalink to this definition">¶</a></dt>
 <dd><p>Exports a variable into a dictionary with its relevant information</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -569,8 +572,8 @@ May be used for warmStart a solver, if supported by the solver</p>
 integer.</p>
 <hr class="docutils" />
 <dl class="py class">
-<dt id="pulp.LpAffineExpression">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">pulp.</span></code><code class="sig-name descname"><span class="pre">LpAffineExpression</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">e</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constant</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpAffineExpression" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pulp.LpAffineExpression">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pulp.</span></span><span class="sig-name descname"><span class="pre">LpAffineExpression</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">e</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constant</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpAffineExpression" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/collections.html#collections.OrderedDict" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">collections.OrderedDict</span></code></a></p>
 <p>A linear combination of <a class="reference internal" href="#pulp.LpVariable" title="pulp.LpVariable"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpVariables</span></code></a>.
 Can be initialised with the following:</p>
@@ -601,32 +604,32 @@ I])} = \sum_{i \in I} a_i x_i\)</span> where  (note the order):</p>
 </ul>
 </div></blockquote>
 <dl class="py method">
-<dt id="pulp.LpAffineExpression.asCplexLpAffineExpression">
-<code class="sig-name descname"><span class="pre">asCplexLpAffineExpression</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constant</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpAffineExpression.asCplexLpAffineExpression" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pulp.LpAffineExpression.asCplexLpAffineExpression">
+<span class="sig-name descname"><span class="pre">asCplexLpAffineExpression</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constant</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpAffineExpression.asCplexLpAffineExpression" title="Permalink to this definition">¶</a></dt>
 <dd><p>returns a string that represents the Affine Expression in lp format</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="pulp.LpAffineExpression.asCplexVariablesOnly">
-<code class="sig-name descname"><span class="pre">asCplexVariablesOnly</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpAffineExpression.asCplexVariablesOnly" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pulp.LpAffineExpression.asCplexVariablesOnly">
+<span class="sig-name descname"><span class="pre">asCplexVariablesOnly</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpAffineExpression.asCplexVariablesOnly" title="Permalink to this definition">¶</a></dt>
 <dd><p>helper for asCplexLpAffineExpression</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="pulp.LpAffineExpression.copy">
-<code class="sig-name descname"><span class="pre">copy</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpAffineExpression.copy" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pulp.LpAffineExpression.copy">
+<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpAffineExpression.copy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Make a copy of self except the name which is reset</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="pulp.LpAffineExpression.sorted_keys">
-<code class="sig-name descname"><span class="pre">sorted_keys</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpAffineExpression.sorted_keys" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pulp.LpAffineExpression.sorted_keys">
+<span class="sig-name descname"><span class="pre">sorted_keys</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpAffineExpression.sorted_keys" title="Permalink to this definition">¶</a></dt>
 <dd><p>returns the list of keys sorted by name</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="pulp.LpAffineExpression.toDict">
-<code class="sig-name descname"><span class="pre">toDict</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpAffineExpression.toDict" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pulp.LpAffineExpression.toDict">
+<span class="sig-name descname"><span class="pre">toDict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpAffineExpression.toDict" title="Permalink to this definition">¶</a></dt>
 <dd><p>exports the <a class="reference internal" href="#pulp.LpAffineExpression" title="pulp.LpAffineExpression"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpAffineExpression</span></code></a> into a list of dictionaries with the coefficients
 it does not export the constant</p>
 <dl class="field-list simple">
@@ -640,8 +643,8 @@ it does not export the constant</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="pulp.LpAffineExpression.to_dict">
-<code class="sig-name descname"><span class="pre">to_dict</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpAffineExpression.to_dict" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pulp.LpAffineExpression.to_dict">
+<span class="sig-name descname"><span class="pre">to_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpAffineExpression.to_dict" title="Permalink to this definition">¶</a></dt>
 <dd><p>exports the <a class="reference internal" href="#pulp.LpAffineExpression" title="pulp.LpAffineExpression"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpAffineExpression</span></code></a> into a list of dictionaries with the coefficients
 it does not export the constant</p>
 <dl class="field-list simple">
@@ -658,8 +661,8 @@ it does not export the constant</p>
 
 <hr class="docutils" />
 <dl class="py function">
-<dt id="pulp.lpSum">
-<code class="sig-prename descclassname"><span class="pre">pulp.</span></code><code class="sig-name descname"><span class="pre">lpSum</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vector</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.lpSum" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pulp.lpSum">
+<span class="sig-prename descclassname"><span class="pre">pulp.</span></span><span class="sig-name descname"><span class="pre">lpSum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vector</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.lpSum" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the sum of a list of linear expressions</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -672,9 +675,9 @@ it does not export the constant</p>
 <div class="section" id="constraints">
 <h2>Constraints<a class="headerlink" href="#constraints" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
-<dt id="pulp.LpConstraint">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">pulp.</span></code><code class="sig-name descname"><span class="pre">LpConstraint</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">e</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sense</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rhs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpConstraint" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.pulp.LpAffineExpression</span></code></p>
+<dt class="sig sig-object py" id="pulp.LpConstraint">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pulp.</span></span><span class="sig-name descname"><span class="pre">LpConstraint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">e</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sense</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rhs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpConstraint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pulp.LpAffineExpression" title="pulp.pulp.LpAffineExpression"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.pulp.LpAffineExpression</span></code></a></p>
 <p>An LP constraint</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -687,26 +690,26 @@ it does not export the constant</p>
 </dd>
 </dl>
 <dl class="py method">
-<dt id="pulp.LpConstraint.asCplexLpConstraint">
-<code class="sig-name descname"><span class="pre">asCplexLpConstraint</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpConstraint.asCplexLpConstraint" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pulp.LpConstraint.asCplexLpConstraint">
+<span class="sig-name descname"><span class="pre">asCplexLpConstraint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpConstraint.asCplexLpConstraint" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a constraint as a string</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="pulp.LpConstraint.changeRHS">
-<code class="sig-name descname"><span class="pre">changeRHS</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">RHS</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpConstraint.changeRHS" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pulp.LpConstraint.changeRHS">
+<span class="sig-name descname"><span class="pre">changeRHS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">RHS</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpConstraint.changeRHS" title="Permalink to this definition">¶</a></dt>
 <dd><p>alters the RHS of a constraint so that it can be modified in a resolve</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="pulp.LpConstraint.copy">
-<code class="sig-name descname"><span class="pre">copy</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpConstraint.copy" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pulp.LpConstraint.copy">
+<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpConstraint.copy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Make a copy of self</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="pulp.LpConstraint.fromDict">
-<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">fromDict</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpConstraint.fromDict" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pulp.LpConstraint.fromDict">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">fromDict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpConstraint.fromDict" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initializes a constraint object from a dictionary with necessary information</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -719,8 +722,8 @@ it does not export the constant</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="pulp.LpConstraint.from_dict">
-<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_dict</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpConstraint.from_dict" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pulp.LpConstraint.from_dict">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">from_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpConstraint.from_dict" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initializes a constraint object from a dictionary with necessary information</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -733,15 +736,15 @@ it does not export the constant</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="pulp.LpConstraint.makeElasticSubProblem">
-<code class="sig-name descname"><span class="pre">makeElasticSubProblem</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpConstraint.makeElasticSubProblem" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pulp.LpConstraint.makeElasticSubProblem">
+<span class="sig-name descname"><span class="pre">makeElasticSubProblem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpConstraint.makeElasticSubProblem" title="Permalink to this definition">¶</a></dt>
 <dd><p>Builds an elastic subproblem by adding variables to a hard constraint</p>
 <p>uses FixedElasticSubProblem</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="pulp.LpConstraint.toDict">
-<code class="sig-name descname"><span class="pre">toDict</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpConstraint.toDict" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pulp.LpConstraint.toDict">
+<span class="sig-name descname"><span class="pre">toDict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpConstraint.toDict" title="Permalink to this definition">¶</a></dt>
 <dd><p>exports constraint information into a dictionary</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -753,9 +756,9 @@ it does not export the constant</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="pulp.FixedElasticSubProblem">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">pulp.</span></code><code class="sig-name descname"><span class="pre">FixedElasticSubProblem</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">constraint</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">penalty</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proportionFreeBound</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proportionFreeBoundList</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.FixedElasticSubProblem" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.pulp.LpProblem</span></code></p>
+<dt class="sig sig-object py" id="pulp.FixedElasticSubProblem">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pulp.</span></span><span class="sig-name descname"><span class="pre">FixedElasticSubProblem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">constraint</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">penalty</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proportionFreeBound</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proportionFreeBoundList</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.FixedElasticSubProblem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pulp.LpProblem" title="pulp.pulp.LpProblem"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.pulp.LpProblem</span></code></a></p>
 <p>Contains the subproblem generated by converting a fixed constraint
 <span class="math notranslate nohighlight">\(\sum_{i}a_i x_i = b\)</span> into an elastic constraint.</p>
 <dl class="field-list simple">
@@ -783,40 +786,40 @@ constraint violation that is free from penalty</p></li>
 </dd>
 </dl>
 <dl class="py method">
-<dt id="pulp.FixedElasticSubProblem.alterName">
-<code class="sig-name descname"><span class="pre">alterName</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.FixedElasticSubProblem.alterName" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pulp.FixedElasticSubProblem.alterName">
+<span class="sig-name descname"><span class="pre">alterName</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.FixedElasticSubProblem.alterName" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alters the name of anonymous parts of the problem</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="pulp.FixedElasticSubProblem.deElasticize">
-<code class="sig-name descname"><span class="pre">deElasticize</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.FixedElasticSubProblem.deElasticize" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pulp.FixedElasticSubProblem.deElasticize">
+<span class="sig-name descname"><span class="pre">deElasticize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.FixedElasticSubProblem.deElasticize" title="Permalink to this definition">¶</a></dt>
 <dd><p>de-elasticize constraint</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="pulp.FixedElasticSubProblem.findDifferenceFromRHS">
-<code class="sig-name descname"><span class="pre">findDifferenceFromRHS</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.FixedElasticSubProblem.findDifferenceFromRHS" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pulp.FixedElasticSubProblem.findDifferenceFromRHS">
+<span class="sig-name descname"><span class="pre">findDifferenceFromRHS</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.FixedElasticSubProblem.findDifferenceFromRHS" title="Permalink to this definition">¶</a></dt>
 <dd><p>The amount the actual value varies from the RHS (sense: LHS - RHS)</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="pulp.FixedElasticSubProblem.findLHSValue">
-<code class="sig-name descname"><span class="pre">findLHSValue</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.FixedElasticSubProblem.findLHSValue" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pulp.FixedElasticSubProblem.findLHSValue">
+<span class="sig-name descname"><span class="pre">findLHSValue</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.FixedElasticSubProblem.findLHSValue" title="Permalink to this definition">¶</a></dt>
 <dd><p>for elastic constraints finds the LHS value of the constraint without
 the free variable and or penalty variable assumes the constant is on the
 rhs</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="pulp.FixedElasticSubProblem.isViolated">
-<code class="sig-name descname"><span class="pre">isViolated</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.FixedElasticSubProblem.isViolated" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pulp.FixedElasticSubProblem.isViolated">
+<span class="sig-name descname"><span class="pre">isViolated</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.FixedElasticSubProblem.isViolated" title="Permalink to this definition">¶</a></dt>
 <dd><p>returns true if the penalty variables are non-zero</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="pulp.FixedElasticSubProblem.reElasticize">
-<code class="sig-name descname"><span class="pre">reElasticize</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.FixedElasticSubProblem.reElasticize" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pulp.FixedElasticSubProblem.reElasticize">
+<span class="sig-name descname"><span class="pre">reElasticize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.FixedElasticSubProblem.reElasticize" title="Permalink to this definition">¶</a></dt>
 <dd><p>Make the Subproblem elastic again after deElasticize</p>
 </dd></dl>
 
@@ -826,15 +829,15 @@ rhs</p>
 <div class="section" id="combinations-and-permutations">
 <h2>Combinations  and Permutations<a class="headerlink" href="#combinations-and-permutations" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
-<dt id="pulp.combination">
-<code class="sig-prename descclassname"><span class="pre">pulp.</span></code><code class="sig-name descname"><span class="pre">combination</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iterable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.combination" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pulp.combination">
+<span class="sig-prename descclassname"><span class="pre">pulp.</span></span><span class="sig-name descname"><span class="pre">combination</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iterable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.combination" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return successive r-length combinations of elements in the iterable.</p>
 <p>combinations(range(4), 3) –&gt; (0,1,2), (0,1,3), (0,2,3), (1,2,3)</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="pulp.allcombinations">
-<code class="sig-prename descclassname"><span class="pre">pulp.</span></code><code class="sig-name descname"><span class="pre">allcombinations</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">orgset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.allcombinations" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pulp.allcombinations">
+<span class="sig-prename descclassname"><span class="pre">pulp.</span></span><span class="sig-name descname"><span class="pre">allcombinations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">orgset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.allcombinations" title="Permalink to this definition">¶</a></dt>
 <dd><p>returns all combinations of orgset with up to k items</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -866,15 +869,15 @@ rhs</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="pulp.permutation">
-<code class="sig-prename descclassname"><span class="pre">pulp.</span></code><code class="sig-name descname"><span class="pre">permutation</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iterable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.permutation" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pulp.permutation">
+<span class="sig-prename descclassname"><span class="pre">pulp.</span></span><span class="sig-name descname"><span class="pre">permutation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iterable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.permutation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return successive r-length permutations of elements in the iterable.</p>
 <p>permutations(range(3), 2) –&gt; (0,1), (0,2), (1,0), (1,2), (2,0), (2,1)</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="pulp.allpermutations">
-<code class="sig-prename descclassname"><span class="pre">pulp.</span></code><code class="sig-name descname"><span class="pre">allpermutations</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">orgset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.allpermutations" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pulp.allpermutations">
+<span class="sig-prename descclassname"><span class="pre">pulp.</span></span><span class="sig-name descname"><span class="pre">allpermutations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">orgset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.allpermutations" title="Permalink to this definition">¶</a></dt>
 <dd><p>returns all permutations of orgset with up to k items</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -912,8 +915,8 @@ rhs</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="pulp.value">
-<code class="sig-prename descclassname"><span class="pre">pulp.</span></code><code class="sig-name descname"><span class="pre">value</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.value" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pulp.value">
+<span class="sig-prename descclassname"><span class="pre">pulp.</span></span><span class="sig-name descname"><span class="pre">value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.value" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the value of the variable/expression x, or x if it is a number</p>
 </dd></dl>
 
