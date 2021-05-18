@@ -34,6 +34,8 @@ matrix:
 before_install:
 - sudo apt-get update -qq
 - sudo apt-get install -qq glpk-utils
+- echo "Using black to check Python code"
+- black --check *.py
 
 install:
 - pip install .
