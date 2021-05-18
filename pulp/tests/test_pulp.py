@@ -1103,9 +1103,15 @@ class PuLPTest(unittest.TestCase):
         prob += 1 * x
         prob += x >= 2  # Constraint x to be more than 2
         prob += x <= 1  # Constraint x to be less than 1
-        if self.solver.name in ['GUROBI_CMD']:
+        if self.solver.name in ["GUROBI_CMD"]:
             pulpTestCheck(
-                prob, self.solver, [const.LpStatusNotSolved, const.LpStatusInfeasible, const.LpStatusUndefined]
+                prob,
+                self.solver,
+                [
+                    const.LpStatusNotSolved,
+                    const.LpStatusInfeasible,
+                    const.LpStatusUndefined,
+                ],
             )
         else:
             pulpTestCheck(

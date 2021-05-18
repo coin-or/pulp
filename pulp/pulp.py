@@ -2079,7 +2079,7 @@ class FixedElasticSubProblem(LpProblem):
         return self.constraint.value() - self.constant - upVar - lowVar - freeVar
 
     def deElasticize(self):
-        """ de-elasticize constraint """
+        """de-elasticize constraint"""
         self.upVar.upBound = 0
         self.lowVar.lowBound = 0
 
