@@ -36,8 +36,8 @@ class MOSEK(LpSolver):
     try:
         global mosek
         import mosek
+        env = mosek.Env()
     except ImportError:
-
         def available(self):
             """True if Mosek is available."""
             return False
@@ -45,7 +45,6 @@ class MOSEK(LpSolver):
         def actualSolve(self, lp, callback=None):
             """Solves a well-formulated lp problem."""
             raise PulpSolverError("MOSEK : Not Available")
-
     else:
 
         def __init__(
@@ -110,9 +109,7 @@ class MOSEK(LpSolver):
             self.var_dict = {}
             # Checking for repeated names
             lp.checkDuplicateVars()
-            # Creating a MOSEK environment
-            self.env = mosek.Env()
-            self.task = self.env.Task()
+            self.task = MOSEK.env.Task()
             self.task.appendcons(self.numcons)
             self.task.appendvars(self.numvars)
             if self.msg:
