@@ -36,7 +36,7 @@ before_install:
 - sudo apt-get install -qq glpk-utils
 - if [[ $TRAVIS_PYTHON_VERSION ne pypy3 ]]; then
 - echo "Using black to check Python code"
-- if [[ $TRAVIS_PYTHON_VERSION ne pypy3 ]]; then pip install black; black --check *.py; fi
+- if [[ $TRAVIS_PYTHON_VERSION != pypy3 ]] ; then pip install black ; black --check *.py ; fi
 
 install:
 - pip install .
