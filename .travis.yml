@@ -34,9 +34,8 @@ matrix:
 before_install:
 - sudo apt-get update -qq
 - sudo apt-get install -qq glpk-utils
-- if [[ $TRAVIS_PYTHON_VERSION ne pypy3 ]]; then
 - echo Using black to check Python code
-- echo $TRAVIS_PYTHON_VERSION
+- echo Using python version $TRAVIS_PYTHON_VERSION
 - if [[ $TRAVIS_PYTHON_VERSION != "pypy3" ]] ; then pip install black ; black --check *.py ; fi
 
 install:
