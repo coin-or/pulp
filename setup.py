@@ -19,7 +19,9 @@ with open(readme_name, "r") as fh:
 setup(
     name="PuLP",
     version=VERSION,
-    description="PuLP is an LP modeler written in python. PuLP can generate MPS or LP files and call GLPK, COIN CLP/CBC, CPLEX, and GUROBI to solve linear problems.",
+    description="PuLP is an LP modeler written in python. PuLP can generate MPS"
+    " or LP files and call GLPK, COIN CLP/CBC, CPLEX, and GUROBI to"
+    " solve linear problems.",
     long_description=long_description,
     long_description_content_type="text/x-rst",
     keywords=["Optimization", "Linear Programming", "Operations Research"],
