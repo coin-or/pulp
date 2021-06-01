@@ -27,7 +27,7 @@
 
 """
 PuLP is an LP modeler written in python. PuLP can generate MPS or LP files
-and call GLPK[1], COIN CLP/CBC[2], CPLEX[3], and GUROBI[4] to solve linear
+and call GLPK[1], COIN CLP/CBC[2], CPLEX[3], GUROBI[4] and MOSEK[5] to solve linear
 problems.
 
 See the examples directory for examples.
@@ -89,6 +89,7 @@ References:
 [2] http://www.coin-or.org/
 [3] http://www.cplex.com/
 [4] http://www.gurobi.com/
+[5] http://www.mosek.com/
 """
 
 import sys
