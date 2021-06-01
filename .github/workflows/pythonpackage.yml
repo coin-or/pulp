@@ -32,5 +32,7 @@ jobs:
     - name: Code Quality
       if: ${{ matrix.python-version }} >= 3.6
       run: |
+        echo Python version ${{ matrix.python-version }}
+        echo Version is greater than 3.6 ${{ matrix.python-version }} >= 3.6
         pip install black
         black . --check
