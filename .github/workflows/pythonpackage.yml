@@ -30,7 +30,7 @@ jobs:
     - name: Test with pulptest
       run: pulptest
     - name: Code Quality
-      if: ${{ matrix.python-version }} >= 3.6
+      if: ${{ matrix.python-version }} != 2.7
       run: |
         echo Python version ${{ matrix.python-version }}
         echo Version is greater than 3.6 ${{ matrix.python-version }} >= 3.6
