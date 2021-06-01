@@ -33,6 +33,6 @@ jobs:
       if: ${{ matrix.python-version }} != 2.7
       run: |
         echo Python version ${{ matrix.python-version }}
-        echo Version is greater than 3.6 ${{ matrix.python-version }} >= 3.6
+        echo Version is not 2.7 ${{ matrix.python-version }} != 2.7
         pip install black
         black . --check
