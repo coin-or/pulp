@@ -148,7 +148,7 @@ class CPLEX_CMD(LpSolver_CMD):
                 solStatus,
             ) = self.readsol(tmpSol)
         self.delete_tmp_files(tmpLp, tmpMst, tmpSol)
-        if self.optionsDict.get('logPath') != "cplex.log":
+        if self.optionsDict.get("logPath") != "cplex.log":
             self.delete_tmp_files("cplex.log")
         if status != constants.LpStatusInfeasible:
             lp.assignVarsVals(values)

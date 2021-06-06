@@ -91,7 +91,7 @@ class PulpSolverError(const.PulpError):
 
 # import configuration information
 def initialize(filename, operating_system="linux", arch="64"):
-    """ reads the configuration file to initialise the module"""
+    """reads the configuration file to initialise the module"""
     here = os.path.dirname(filename)
     config = Parser({"here": here, "os": operating_system, "arch": arch})
     config.read(filename)
