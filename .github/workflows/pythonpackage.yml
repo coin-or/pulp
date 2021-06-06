@@ -30,9 +30,9 @@ jobs:
     - name: Test with pulptest
       run: pulptest
     - name: Code Quality
-      if: ${{ matrix.python-version }} != 2.7
+      if: ${{ matrix.python-version >= 3.6 }}
       run: |
         echo Python version ${{ matrix.python-version }}
-        echo Version is not 2.7 ${{ matrix.python-version }} != 2.7
+        echo Version is not 2.7 ${{ matrix.python-version >= 3.6 }}
         pip install black
         black . --check
