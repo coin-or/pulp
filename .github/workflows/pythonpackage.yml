@@ -33,4 +33,4 @@ jobs:
       if: ${{ matrix.python-version >= 3.6 }}
       run: |
         pip install black
-        black . --check
+        black pulp/ --check
