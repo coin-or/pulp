@@ -1103,15 +1103,29 @@ class PuLPTest(unittest.TestCase):
         prob += 1 * x
         prob += x >= 2  # Constraint x to be more than 2
         prob += x <= 1  # Constraint x to be less than 1
-        if self.solver.name in ['GUROBI_CMD']:
+        if self.solver.name in ["GUROBI_CMD"]:
             pulpTestCheck(
-                prob, self.solver, [const.LpStatusNotSolved, const.LpStatusInfeasible, const.LpStatusUndefined]
+                prob,
+                self.solver,
+                [
+                    const.LpStatusNotSolved,
+                    const.LpStatusInfeasible,
+                    const.LpStatusUndefined,
+                ],
             )
         else:
             pulpTestCheck(
                 prob, self.solver, [const.LpStatusInfeasible, const.LpStatusUndefined]
             )
         self.assertFalse(prob.valid())
+
+    def test_false_constraint(self):
+        prob = LpProblem(self._testMethodName, const.LpMinimize)
+
+        def add_const(prob):
+            prob += 0 - 3 == 0
+
+        self.assertRaises(TypeError, add_const, prob=prob)
 
 
 def pulpTestCheck(
