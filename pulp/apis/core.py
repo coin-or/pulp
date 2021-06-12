@@ -33,10 +33,14 @@ the current version
 import os
 import sys
 
-try:
-    from time import process_time as clock
-except ImportError:
-    from time import clock
+
+if os.name == "posix":
+    from ..utilities import resource_clock as clock
+else:
+    try:
+        from time import monotonic as clock
+    except ImportError:
+        from time import clock
 
 try:
     import configparser
@@ -49,7 +53,6 @@ except AttributeError:
 from .. import sparse
 from .. import constants as const
 
-import warnings
 import logging
 
 try:
@@ -91,7 +94,7 @@ class PulpSolverError(const.PulpError):
 
 # import configuration information
 def initialize(filename, operating_system="linux", arch="64"):
-    """ reads the configuration file to initialise the module"""
+    """reads the configuration file to initialise the module"""
     here = os.path.dirname(filename)
     config = Parser({"here": here, "os": operating_system, "arch": arch})
     config.read(filename)
@@ -239,7 +242,7 @@ class LpSolver:
     def actualResolve(self, lp, **kwargs):
         """
         uses existing problem information and solves the problem
-        If it is not implelemented in the solver
+        If it is not implemented in the solver
         just solve again
         """
         self.actualSolve(lp, **kwargs)

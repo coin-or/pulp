@@ -3,6 +3,12 @@ import itertools
 import collections
 
 
+def resource_clock():
+    import resource
+
+    return resource.getrusage(resource.RUSAGE_CHILDREN).ru_utime
+
+
 def isNumber(x):
     """Returns true if x is an int or a float"""
     return isinstance(x, (int, float))
