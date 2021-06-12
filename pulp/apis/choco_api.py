@@ -27,7 +27,6 @@
 from .core import LpSolver_CMD, subprocess, PulpSolverError
 from .core import pulp_choco_path
 import os
-import shlex
 from .. import constants
 import warnings
 
@@ -105,7 +104,7 @@ class CHOCO_CMD(LpSolver_CMD):
         # (we thus ignore the self.msg parameter)
         pipe = open(tmpSol, "w")
 
-        return_code = subprocess.call(shlex.split(cmd), stdout=pipe, stderr=pipe)
+        return_code = subprocess.call(cmd, stdout=pipe, stderr=pipe, shell=True)
 
         if return_code != 0:
             raise PulpSolverError("PuLP: Error while trying to execute " + self.path)
