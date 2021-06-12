@@ -1657,7 +1657,9 @@ class LpProblem(object):
             name = None
         if other is True:
             return self
-        if isinstance(other, LpConstraintVar):
+        elif other is False:
+            raise TypeError("A False object cannot be passed as a constraint")
+        elif isinstance(other, LpConstraintVar):
             self.addConstraint(other.constraint)
         elif isinstance(other, LpConstraint):
             self.addConstraint(other, name)
@@ -2080,7 +2082,7 @@ class FixedElasticSubProblem(LpProblem):
         return self.constraint.value() - self.constant - upVar - lowVar - freeVar
 
     def deElasticize(self):
-        """ de-elasticize constraint """
+        """de-elasticize constraint"""
         self.upVar.upBound = 0
         self.lowVar.lowBound = 0
 
