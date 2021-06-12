@@ -88,19 +88,19 @@ You can get the value of the variables using value(). ex::
 
 Exported Classes:
 
-* `LpProblem` -- Container class for a Linear programming problem
-* `LpVariable` -- Variables that are added to constraints in the LP
-* `LpConstraint` -- A constraint of the general form
+* ``LpProblem`` -- Container class for a Linear programming problem
+* ``LpVariable`` -- Variables that are added to constraints in the LP
+* ``LpConstraint`` -- A constraint of the general form
 
       a1x1+a2x2 ...anxn (<=, =, >=) b
 
-*  `LpConstraintVar` -- Used to construct a column of the model in column-wise modelling
+*  ``LpConstraintVar`` -- Used to construct a column of the model in column-wise modelling
 
 Exported Functions:
 
-* `value()` -- Finds the value of a variable or expression
-* `lpSum()` -- given a list of the form [a1*x1, a2x2, ..., anxn] will construct a linear expression to be used as a constraint or variable
-* `lpDot()` --given two lists of the form [a1, a2, ..., an] and [ x1, x2, ..., xn] will construct a linear epression to be used as a constraint or variable
+* ``value()`` -- Finds the value of a variable or expression
+* ``lpSum()`` -- given a list of the form [a1*x1, a2x2, ..., anxn] will construct a linear expression to be used as a constraint or variable
+* ``lpDot()`` --given two lists of the form [a1, a2, ..., an] and [ x1, x2, ..., xn] will construct a linear epression to be used as a constraint or variable
 
 
 Building the documentation
@@ -113,11 +113,13 @@ To build, run the following in a terminal window, in the PuLP root directory
 
 ::
 
-     python -m pip install -r requirements-dev.txt
-     doc/make html
+    cd pulp
+    python -m pip install -r requirements-dev.txt
+    cd doc
+    make html
 	 
-A folder named *pulp-or-docs* will be created in the same folder as the PuLP root directory.
-The home page for the documentation is pulp-or-docs/html/index.html which can be opened in a browser.
+A folder named html will be created inside the ``build/`` directory.
+The home page for the documentation is ``doc/build/html/index.html`` which can be opened in a browser.
 
 	 
 
