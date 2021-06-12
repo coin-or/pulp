@@ -24,6 +24,7 @@ relevant information you will need.
    main/index
    CaseStudies/index
    guides/index
+   develop/index
    technical/index
    plugins/index
    

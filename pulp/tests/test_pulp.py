@@ -1140,6 +1140,14 @@ class PuLPTest(unittest.TestCase):
             )
         self.assertTrue(True)
 
+    def test_false_constraint(self):
+        prob = LpProblem(self._testMethodName, const.LpMinimize)
+
+        def add_const(prob):
+            prob += 0 - 3 == 0
+
+        self.assertRaises(TypeError, add_const, prob=prob)
+
 
 def pulpTestCheck(
     prob,
