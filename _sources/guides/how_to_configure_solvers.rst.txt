@@ -156,7 +156,7 @@ By default, PuLP does not keep the intermediary files (the \*.mps, \*.lp, \*.mst
     solver = pl.PULP_CBC_CMD()
     result = model.solve(solver)
 
-Another option, is passing the argument `KeepFiles=True` to the solver. With this, the solver creates the files in the current directory and they are not deleted (although they will be overwritten if you re-execute).
+Another option, is passing the argument `keepFiles=True` to the solver. With this, the solver creates the files in the current directory and they are not deleted (although they will be overwritten if you re-execute).
 
 .. code-block:: python
 

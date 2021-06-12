@@ -121,6 +121,7 @@
 <li class="toctree-l2"><a class="reference internal" href="how_to_debug.html">How to debug most errors during solving</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="../develop/index.html">Developer Guides</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../technical/index.html">PuLP Internal Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../plugins/index.html">Plugins</a></li>
 </ul>
@@ -322,7 +323,7 @@
 <span class="n">result</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Another option, is passing the argument <cite>KeepFiles=True</cite> to the solver. With this, the solver creates the files in the current directory and they are not deleted (although they will be overwritten if you re-execute).</p>
+<p>Another option, is passing the argument <cite>keepFiles=True</cite> to the solver. With this, the solver creates the files in the current directory and they are not deleted (although they will be overwritten if you re-execute).</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pulp</span> <span class="k">as</span> <span class="nn">pl</span>
 <span class="n">model</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;Example&quot;</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
 <span class="n">_var</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpVariable</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)</span>

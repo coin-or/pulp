@@ -1,0 +1,359 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>How to add a new solver to PuLP &mdash; PuLP 2.4.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="PuLP Internal Documentation" href="../technical/index.html" />
+    <link rel="prev" title="How to contribute to PuLP" href="contribute.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> PuLP
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                2.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../main/index.html">Main Topics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CaseStudies/index.html">Case Studies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/index.html">User Guides</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Developer Guides</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="contribute.html">How to contribute to PuLP</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">How to add a new solver to PuLP</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#example">Example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#inheriting-basic-classes">Inheriting basic classes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#available-method"><code class="docutils literal notranslate"><span class="pre">available</span></code> method</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#actualsolve-method"><code class="docutils literal notranslate"><span class="pre">actualSolve</span></code> method</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#defaultpath-method"><code class="docutils literal notranslate"><span class="pre">defaultPath</span></code> method</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../technical/index.html">PuLP Internal Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../plugins/index.html">Plugins</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PuLP</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="index.html">Developer Guides</a> &raquo;</li>
+        
+      <li>How to add a new solver to PuLP</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/develop/add_solver.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="how-to-add-a-new-solver-to-pulp">
+<h1>How to add a new solver to PuLP<a class="headerlink" href="#how-to-add-a-new-solver-to-pulp" title="Permalink to this headline">¶</a></h1>
+<p>Solver API are located in the directory <code class="docutils literal notranslate"><span class="pre">pulp/apis/</span></code> and are organized as one file per solver. Each file can contain more than one API (usually between 1 and 2).</p>
+<p>General information on configuring solvers and how pulp finds solvers installed in a system are in the <a class="reference internal" href="../guides/how_to_configure_solvers.html"><span class="doc">How to configure a solver in PuLP</span></a> section.</p>
+<div class="section" id="example">
+<h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
+<p>The smallest api for a solver can be found in the file <a class="reference internal" href="../technical/solvers.html#pulp.apis.MIPCL_CMD" title="pulp.apis.mipcl_api.MIPCL_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.mipcl_api.MIPCL_CMD</span></code></a> located in <code class="docutils literal notranslate"><span class="pre">pulp/apis/mipcl_api.py</span></code>. We will use it as an example.</p>
+</div>
+<div class="section" id="inheriting-basic-classes">
+<h2>Inheriting basic classes<a class="headerlink" href="#inheriting-basic-classes" title="Permalink to this headline">¶</a></h2>
+<p>The solver needs to inherit one of two classes:  <a class="reference internal" href="../technical/solvers.html#pulp.apis.LpSolver" title="pulp.apis.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.LpSolver</span></code></a> or  <a class="reference internal" href="../technical/solvers.html#pulp.apis.LpSolver_CMD" title="pulp.apis.LpSolver_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.LpSolver_CMD</span></code></a> located in <code class="docutils literal notranslate"><span class="pre">pulp.apis.core.py</span></code>. The first one is a generic class. The second one is used for command-line based APIs to solvers. This is the one used for the example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">.core</span> <span class="kn">import</span> <span class="n">LpSolver_CMD</span><span class="p">,</span> <span class="n">subprocess</span><span class="p">,</span> <span class="n">PulpSolverError</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+
+<span class="k">class</span> <span class="nc">MIPCL_CMD</span><span class="p">(</span><span class="n">LpSolver_CMD</span><span class="p">):</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;MIPCL_CMD&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">keepFiles</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">mip</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">msg</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">options</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">timeLimit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="n">LpSolver_CMD</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">mip</span><span class="o">=</span><span class="n">mip</span><span class="p">,</span>
+            <span class="n">msg</span><span class="o">=</span><span class="n">msg</span><span class="p">,</span>
+            <span class="n">timeLimit</span><span class="o">=</span><span class="n">timeLimit</span><span class="p">,</span>
+            <span class="n">options</span><span class="o">=</span><span class="n">options</span><span class="p">,</span>
+            <span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">,</span>
+            <span class="n">keepFiles</span><span class="o">=</span><span class="n">keepFiles</span><span class="p">,</span>
+        <span class="p">)</span>
+</pre></div>
+</div>
+<p>As can be seen in the example, the main things when declaring a solver are:</p>
+<ol class="arabic simple">
+<li><p>declaring a class-level attribute with its name.</p></li>
+<li><p>defining some arguments for the solver (ideally, following the convention of other solvers).</p></li>
+<li><p>initializing the parent class with available data.</p></li>
+<li><p>(optional) doing some other particular logic.</p></li>
+</ol>
+<p>In addition to these some minimal methods are expected to be implemented by the solver. We will cover each one.</p>
+</div>
+<div class="section" id="available-method">
+<h2><code class="docutils literal notranslate"><span class="pre">available</span></code> method<a class="headerlink" href="#available-method" title="Permalink to this headline">¶</a></h2>
+<p>Required by <a class="reference internal" href="../technical/solvers.html#pulp.apis.LpSolver" title="pulp.apis.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.LpSolver</span></code></a> and <a class="reference internal" href="../technical/solvers.html#pulp.apis.LpSolver_CMD" title="pulp.apis.LpSolver_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.LpSolver_CMD</span></code></a>.</p>
+<p>Returns <code class="docutils literal notranslate"><span class="pre">True</span></code> if the solver is available and operational. <code class="docutils literal notranslate"><span class="pre">False</span></code> otherwise:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">available</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">executable</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="actualsolve-method">
+<h2><code class="docutils literal notranslate"><span class="pre">actualSolve</span></code> method<a class="headerlink" href="#actualsolve-method" title="Permalink to this headline">¶</a></h2>
+<p>Required by <a class="reference internal" href="../technical/solvers.html#pulp.apis.LpSolver" title="pulp.apis.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.LpSolver</span></code></a> and <a class="reference internal" href="../technical/solvers.html#pulp.apis.LpSolver_CMD" title="pulp.apis.LpSolver_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.LpSolver_CMD</span></code></a>.</p>
+<p>Takes an <a class="reference internal" href="../technical/pulp.html#pulp.LpProblem" title="pulp.pulp.LpProblem"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.pulp.LpProblem</span></code></a> as argument, solves it, stores the solution, and returns a status code:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">actualSolve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lp</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Solve a well formulated lp problem&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">executable</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">PulpSolverError</span><span class="p">(</span><span class="s2">&quot;PuLP: cannot execute &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+    <span class="n">tmpMps</span><span class="p">,</span> <span class="n">tmpSol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_tmp_files</span><span class="p">(</span><span class="n">lp</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;mps&quot;</span><span class="p">,</span> <span class="s2">&quot;sol&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">lp</span><span class="o">.</span><span class="n">sense</span> <span class="o">==</span> <span class="n">constants</span><span class="o">.</span><span class="n">LpMaximize</span><span class="p">:</span>
+        <span class="c1"># we swap the objectives</span>
+        <span class="c1"># because it does not handle maximization.</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;MIPCL_CMD does not allow maximization, &quot;</span>
+            <span class="s2">&quot;we will minimize the inverse of the objective function.&quot;</span>
+        <span class="p">)</span>
+        <span class="n">lp</span> <span class="o">+=</span> <span class="o">-</span><span class="n">lp</span><span class="o">.</span><span class="n">objective</span>
+    <span class="n">lp</span><span class="o">.</span><span class="n">checkDuplicateVars</span><span class="p">()</span>
+    <span class="n">lp</span><span class="o">.</span><span class="n">checkLengthVars</span><span class="p">(</span><span class="mi">52</span><span class="p">)</span>
+    <span class="n">lp</span><span class="o">.</span><span class="n">writeMPS</span><span class="p">(</span><span class="n">tmpMps</span><span class="p">,</span> <span class="n">mpsSense</span><span class="o">=</span><span class="n">lp</span><span class="o">.</span><span class="n">sense</span><span class="p">)</span>
+
+    <span class="c1"># just to report duplicated variables:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">tmpSol</span><span class="p">)</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="n">cmd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span>
+    <span class="n">cmd</span> <span class="o">+=</span> <span class="s2">&quot; </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">tmpMps</span>
+    <span class="n">cmd</span> <span class="o">+=</span> <span class="s2">&quot; -solfile </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">tmpSol</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">timeLimit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">cmd</span> <span class="o">+=</span> <span class="s2">&quot; -time </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">timeLimit</span>
+    <span class="k">for</span> <span class="n">option</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">:</span>
+        <span class="n">cmd</span> <span class="o">+=</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="n">option</span>
+    <span class="k">if</span> <span class="n">lp</span><span class="o">.</span><span class="n">isMIP</span><span class="p">():</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">mip</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;MIPCL_CMD cannot solve the relaxation of a problem&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="p">:</span>
+        <span class="n">pipe</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">pipe</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">devnull</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
+
+    <span class="n">return_code</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">cmd</span><span class="o">.</span><span class="n">split</span><span class="p">(),</span> <span class="n">stdout</span><span class="o">=</span><span class="n">pipe</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">pipe</span><span class="p">)</span>
+    <span class="c1"># We need to undo the objective swap before finishing</span>
+    <span class="k">if</span> <span class="n">lp</span><span class="o">.</span><span class="n">sense</span> <span class="o">==</span> <span class="n">constants</span><span class="o">.</span><span class="n">LpMaximize</span><span class="p">:</span>
+        <span class="n">lp</span> <span class="o">+=</span> <span class="o">-</span><span class="n">lp</span><span class="o">.</span><span class="n">objective</span>
+    <span class="k">if</span> <span class="n">return_code</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">PulpSolverError</span><span class="p">(</span><span class="s2">&quot;PuLP: Error while trying to execute &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">tmpSol</span><span class="p">):</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">LpStatusNotSolved</span>
+        <span class="n">status_sol</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">LpSolutionNoSolutionFound</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">status</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">status_sol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">readsol</span><span class="p">(</span><span class="n">tmpSol</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">delete_tmp_files</span><span class="p">(</span><span class="n">tmpMps</span><span class="p">,</span> <span class="n">tmpSol</span><span class="p">)</span>
+    <span class="n">lp</span><span class="o">.</span><span class="n">assignStatus</span><span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="n">status_sol</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">status</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">constants</span><span class="o">.</span><span class="n">LpStatusInfeasible</span><span class="p">,</span> <span class="n">constants</span><span class="o">.</span><span class="n">LpStatusNotSolved</span><span class="p">]:</span>
+        <span class="n">lp</span><span class="o">.</span><span class="n">assignVarsVals</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">status</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="defaultpath-method">
+<h2><code class="docutils literal notranslate"><span class="pre">defaultPath</span></code> method<a class="headerlink" href="#defaultpath-method" title="Permalink to this headline">¶</a></h2>
+<p>Only required by <a class="reference internal" href="../technical/solvers.html#pulp.apis.LpSolver_CMD" title="pulp.apis.LpSolver_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.LpSolver_CMD</span></code></a>. It returns the default path of the command-line solver:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">defaultPath</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">executableExtension</span><span class="p">(</span><span class="s2">&quot;mps_mipcl&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="../technical/index.html" class="btn btn-neutral float-right" title="PuLP Internal Documentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="contribute.html" class="btn btn-neutral float-left" title="How to contribute to PuLP" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2009-, pulp documentation team..
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

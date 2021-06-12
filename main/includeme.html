@@ -111,6 +111,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../CaseStudies/index.html">Case Studies</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/index.html">User Guides</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../develop/index.html">Developer Guides</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../technical/index.html">PuLP Internal Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../plugins/index.html">Plugins</a></li>
 </ul>
@@ -257,32 +258,34 @@ become the objective:</p>
 </div>
 <p>Exported Classes:</p>
 <ul>
-<li><p><cite>LpProblem</cite> – Container class for a Linear programming problem</p></li>
-<li><p><cite>LpVariable</cite> – Variables that are added to constraints in the LP</p></li>
-<li><p><cite>LpConstraint</cite> – A constraint of the general form</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">LpProblem</span></code> – Container class for a Linear programming problem</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LpVariable</span></code> – Variables that are added to constraints in the LP</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LpConstraint</span></code> – A constraint of the general form</p>
 <blockquote>
 <div><p>a1x1+a2x2 …anxn (&lt;=, =, &gt;=) b</p>
 </div></blockquote>
 </li>
-<li><p><cite>LpConstraintVar</cite> – Used to construct a column of the model in column-wise modelling</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LpConstraintVar</span></code> – Used to construct a column of the model in column-wise modelling</p></li>
 </ul>
 <p>Exported Functions:</p>
 <ul class="simple">
-<li><p><cite>value()</cite> – Finds the value of a variable or expression</p></li>
-<li><p><cite>lpSum()</cite> – given a list of the form [a1*x1, a2x2, …, anxn] will construct a linear expression to be used as a constraint or variable</p></li>
-<li><p><cite>lpDot()</cite> –given two lists of the form [a1, a2, …, an] and [ x1, x2, …, xn] will construct a linear epression to be used as a constraint or variable</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">value()</span></code> – Finds the value of a variable or expression</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lpSum()</span></code> – given a list of the form [a1*x1, a2x2, …, anxn] will construct a linear expression to be used as a constraint or variable</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lpDot()</span></code> –given two lists of the form [a1, a2, …, an] and [ x1, x2, …, xn] will construct a linear epression to be used as a constraint or variable</p></li>
 </ul>
 <div class="section" id="building-the-documentation">
 <h3>Building the documentation<a class="headerlink" href="#building-the-documentation" title="Permalink to this headline">¶</a></h3>
 <p>The PuLP documentation is built with <a class="reference external" href="https://www.sphinx-doc.org">Sphinx</a>.  We recommended using a
 <a class="reference external" href="https://docs.python.org/3/library/venv.html">virtual environment</a> to build the documentation locally.</p>
 <p>To build, run the following in a terminal window, in the PuLP root directory</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">r</span> <span class="n">requirements</span><span class="o">-</span><span class="n">dev</span><span class="o">.</span><span class="n">txt</span>
-<span class="n">doc</span><span class="o">/</span><span class="n">make</span> <span class="n">html</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">pulp</span>
+<span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">r</span> <span class="n">requirements</span><span class="o">-</span><span class="n">dev</span><span class="o">.</span><span class="n">txt</span>
+<span class="n">cd</span> <span class="n">doc</span>
+<span class="n">make</span> <span class="n">html</span>
 </pre></div>
 </div>
-<p>A folder named <em>pulp-or-docs</em> will be created in the same folder as the PuLP root directory.
-The home page for the documentation is pulp-or-docs/html/index.html which can be opened in a browser.</p>
+<p>A folder named html will be created inside the <code class="docutils literal notranslate"><span class="pre">build/</span></code> directory.
+The home page for the documentation is <code class="docutils literal notranslate"><span class="pre">doc/build/html/index.html</span></code> which can be opened in a browser.</p>
 <p><strong>Comments, bug reports, patches and suggestions are welcome.</strong></p>
 <ul>
 <li><p>Comments and suggestions: <a class="reference external" href="https://github.com/coin-or/pulp/discussions">https://github.com/coin-or/pulp/discussions</a></p></li>
