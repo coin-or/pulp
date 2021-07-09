@@ -100,7 +100,7 @@ Exported Functions:
 
 * ``value()`` -- Finds the value of a variable or expression
 * ``lpSum()`` -- given a list of the form [a1*x1, a2x2, ..., anxn] will construct a linear expression to be used as a constraint or variable
-* ``lpDot()`` --given two lists of the form [a1, a2, ..., an] and [ x1, x2, ..., xn] will construct a linear epression to be used as a constraint or variable
+* ``lpDot()`` --given two lists of the form [a1, a2, ..., an] and [ x1, x2, ..., xn] will construct a linear expression to be used as a constraint or variable
 
 
 Building the documentation
