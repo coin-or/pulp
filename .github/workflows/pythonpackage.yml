@@ -29,3 +29,8 @@ jobs:
         pip install .
     - name: Test with pulptest
       run: pulptest
+    - name: Code Quality
+      if: ${{ matrix.python-version >= 3.6 }}
+      run: |
+        pip install black
+        black pulp/ --check
