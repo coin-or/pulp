@@ -1159,12 +1159,16 @@ class BaseSolverTest:
             print("\t Testing measuring optimization time")
 
             time_limit = 10.23
-            solver_settings = dict(PULP_CBC_CMD=30, COIN_CMD=30, SCIP_CMD=30)
+            solver_settings = dict(
+                PULP_CBC_CMD=30, COIN_CMD=30, SCIP_CMD=30, GUROBI_CMD=50, CPLEX_CMD=50
+            )
 
             bins = solver_settings.get(self.solver.name)
             if bins is not None:
                 prob = create_bin_packing_problem(bins=bins)
                 self.solver.timeLimit = time_limit
+                if self.solver.name in ["CPLEX_CMD", "GUROBI_CMD"]:
+                    self.solver.optionsDict["threads"] = 1
                 prob.solve(self.solver)
 
                 self.assertAlmostEqual(
