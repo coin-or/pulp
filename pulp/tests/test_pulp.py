@@ -1148,6 +1148,22 @@ class PuLPTest(unittest.TestCase):
 
         self.assertRaises(TypeError, add_const, prob=prob)
 
+    def test_invalid_var_names(self):
+        prob = LpProblem(self._testMethodName, const.LpMinimize)
+        x = LpVariable("a")
+        w = LpVariable("b")
+        y = LpVariable("g", -1, 1)
+        z = LpVariable("End")
+        prob += x + 4 * y + 9 * z, "obj"
+        prob += x + y <= 5, "c1"
+        prob += x + z >= 10, "c2"
+        prob += -y + z == 7, "c3"
+        prob += w >= 0, "c4"
+        print("\t Testing invalid var names")
+        pulpTestCheck(
+            prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0}
+        )
+
 
 def pulpTestCheck(
     prob,
