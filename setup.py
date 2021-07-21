@@ -62,5 +62,5 @@ setup(
       pulptest = pulp.tests.run_tests:pulpTestAll
       """
     ),
-    test_suite="pulp.tests.run_tests.get_test_suit",
+    test_suite="pulp.tests.run_tests.get_test_suite",
 )
