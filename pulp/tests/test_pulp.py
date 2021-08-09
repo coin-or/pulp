@@ -1132,13 +1132,16 @@ class PuLPTest(unittest.TestCase):
             self.solver.timeLimit = time_limit
             prob.solve(self.solver)
 
+            if self.solver.name in (PULP_CBC_CMD, COIN_CMD):
+                reported_time = prob.solutionCpuTime
+            else:
+                reported_time = prob.solutionTime
             self.assertAlmostEqual(
-                prob.solutionTime,
+                reported_time,
                 time_limit,
                 delta=2,
                 msg="optimization time for solver {}".format(self.solver.name),
             )
-        self.assertTrue(True)
 
     def test_false_constraint(self):
         prob = LpProblem(self._testMethodName, const.LpMinimize)
