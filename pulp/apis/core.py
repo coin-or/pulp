@@ -227,6 +227,9 @@ class LpSolver:
         self.options = options
         self.timeLimit = timeLimit
 
+        # this keeps the solver time in cpu time
+        self.solution_time = 0
+
         # here we will store all other relevant information including:
         # gapRel, gapAbs, maxMemory, maxNodes, threads, logPath
         self.optionsDict = {k: v for k, v in kwargs.items() if v is not None}

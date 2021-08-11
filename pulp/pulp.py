@@ -1331,6 +1331,8 @@ class LpProblem(object):
         self._variables = []
         self._variable_ids = {}  # old school using dict.keys() for a set
         self.dummyVar = None
+        self.solutionTime = 0
+        self.solutionCpuTime = 0
 
         # locals
         self.lastUnused = 0
@@ -1874,14 +1876,22 @@ class LpProblem(object):
             solver = LpSolverDefault
         wasNone, dummyVar = self.fixObjective()
         # time it
-        self.solutionCpuTime = -clock()
-        self.solutionTime = -time()
+        self.startClock()
         status = solver.actualSolve(self, **kwargs)
-        self.solutionTime += time()
-        self.solutionCpuTime += clock()
+        self.stopClock()
         self.restoreObjective(wasNone, dummyVar)
         self.solver = solver
         return status
+
+    def startClock(self):
+        "initializes properties with the current time"
+        self.solutionCpuTime = -clock()
+        self.solutionTime = -time()
+
+    def stopClock(self):
+        "updates time wall time and cpu time"
+        self.solutionTime += time()
+        self.solutionCpuTime += clock()
 
     def sequentialSolve(
         self, objectives, absoluteTols=None, relativeTols=None, solver=None, debug=False
@@ -1911,7 +1921,7 @@ class LpProblem(object):
         if not (relativeTols):
             relativeTols = [1] * len(objectives)
         # time it
-        self.solutionTime = -clock()
+        self.startClock()
         statuses = []
         for i, (obj, absol, rel) in enumerate(
             zip(objectives, absoluteTols, relativeTols)
@@ -1925,7 +1935,7 @@ class LpProblem(object):
                 self += obj <= value(obj) * rel + absol, "%s_Sequence_Objective" % i
             elif self.sense == const.LpMaximize:
                 self += obj >= value(obj) * rel + absol, "%s_Sequence_Objective" % i
-        self.solutionTime += clock()
+        self.stopClock()
         self.solver = solver
         return statuses
 

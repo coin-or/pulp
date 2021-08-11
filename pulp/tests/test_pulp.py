@@ -1152,28 +1152,27 @@ class BaseSolverTest:
             solver_settings = dict(
                 PULP_CBC_CMD=30, COIN_CMD=30, SCIP_CMD=30, GUROBI_CMD=50, CPLEX_CMD=50
             )
-
             bins = solver_settings.get(self.solver.name)
-            if bins is not None:
-                prob = create_bin_packing_problem(bins=bins)
-                self.solver.timeLimit = time_limit
-                delta = 2
-                if self.solver.name in ["CPLEX_CMD", "GUROBI_CMD"]:
-                    self.solver.optionsDict["threads"] = 1
-                prob.solve(self.solver)
-                if self.solver.name in ["PULP_CBC_CMD", "COIN_CMD"]:
-                    reported_time = prob.solutionCpuTime
-                    delta = 4
-                else:
-                    reported_time = prob.solutionTime
+            if bins is None:
+                # not all solvers have timeLimit support
+                return
+            prob = create_bin_packing_problem(bins=bins)
+            self.solver.timeLimit = time_limit
+            prob.solve(self.solver)
+            delta = 2
+            reported_time = prob.solutionTime
+            if self.solver.name in ["PULP_CBC_CMD", "COIN_CMD"]:
+                # CBC uses cpu-time for timeLimit
+                # also: CBC is less exact with the timeLimit
+                reported_time = prob.solutionCpuTime
+                delta = 4
 
-                self.assertAlmostEqual(
-                    reported_time,
-                    time_limit,
-                    delta=delta,
-                    msg="optimization time for solver {}".format(self.solver.name),
-                )
-            self.assertTrue(True)
+            self.assertAlmostEqual(
+                reported_time,
+                time_limit,
+                delta=delta,
+                msg="optimization time for solver {}".format(self.solver.name),
+            )
 
 
 class PULP_CBC_CMDTest(BaseSolverTest.PuLPTest):
@@ -1336,3 +1335,7 @@ def getSortedDict(prob, keyCons="name", keyVars="name"):
     _dict["constraints"].sort(key=lambda v: v[keyCons])
     _dict["variables"].sort(key=lambda v: v[keyVars])
     return _dict
+
+
+if __name__ == "__main__":
+    unittest.main()
