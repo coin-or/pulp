@@ -164,6 +164,9 @@ class COIN_CMD(LpSolver_CMD):
             self.writesol(tmpMst, lp, vs, variablesNames, constraintsNames)
             cmds += "mips {} ".format(tmpMst)
         if self.timeLimit is not None:
+            num_threads = self.optionsDict.get("threads", 1)
+            if num_threads is not None and int(num_threads) > 1:
+                warnings.warn("Beware: CBC uses timeLimit as cpu_time, not wall_time")
             cmds += "sec %s " % self.timeLimit
         options = self.options + self.getOptions()
         for option in options:
