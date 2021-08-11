@@ -2,9 +2,9 @@
 #       Copyright S.A.Mitchell (s.mitchell@auckland.ac.nz), 2007-
 #       Copyright F.Peschiera (pchtsp@gmail.com), 2019-
 # See the LICENSE file for copyright information.
-2.5
+2.5.0 2021-08-11
     measuring wall time and cpu time
-    unittests
+    unittests of timeLimit
     black formatting
     refactored tests per solver
     dropped support for CPLEX_DLL
