@@ -158,7 +158,6 @@ class COIN_CMD(LpSolver_CMD):
             # In the Lp we do not create new variable or constraint names:
             variablesNames = dict((v.name, v.name) for v in vs)
             constraintsNames = dict((c, c) for c in lp.constraints)
-            objectiveName = None
             cmds = " " + tmpLp + " "
         if self.optionsDict.get("warmStart", False):
             self.writesol(tmpMst, lp, vs, variablesNames, constraintsNames)
@@ -470,8 +469,8 @@ class COINMP_DLL(LpSolver):
             self.fracGap = None
             if epgap is not None:
                 self.fracGap = float(epgap)
-            if self.timelimit is not None:
-                self.timelimit = float(self.timelimit)
+            if self.timeLimit is not None:
+                self.timeLimit = float(self.timeLimit)
             # Todo: these options are not yet implemented
             self.cuts = cuts
             self.presolve = presolve
@@ -523,16 +522,16 @@ class COINMP_DLL(LpSolver):
                 hProb, self.COIN_INT_LOGLEVEL, ctypes.c_int(self.msg)
             )
 
-            if self.timelimit:
+            if self.timeLimit:
                 if self.mip:
                     self.lib.CoinSetRealOption(
-                        hProb, self.COIN_REAL_MIPMAXSEC, ctypes.c_double(self.timelimit)
+                        hProb, self.COIN_REAL_MIPMAXSEC, ctypes.c_double(self.timeLimit)
                     )
                 else:
                     self.lib.CoinSetRealOption(
                         hProb,
                         self.COIN_REAL_MAXSECONDS,
-                        ctypes.c_double(self.timelimit),
+                        ctypes.c_double(self.timeLimit),
                     )
             if self.fracGap:
                 # Hopefully this is the bound gap tolerance
