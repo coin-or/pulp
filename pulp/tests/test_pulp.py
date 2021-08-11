@@ -1157,18 +1157,20 @@ class BaseSolverTest:
             if bins is not None:
                 prob = create_bin_packing_problem(bins=bins)
                 self.solver.timeLimit = time_limit
+                delta = 2
                 if self.solver.name in ["CPLEX_CMD", "GUROBI_CMD"]:
                     self.solver.optionsDict["threads"] = 1
                 prob.solve(self.solver)
                 if self.solver.name in ["PULP_CBC_CMD", "COIN_CMD"]:
                     reported_time = prob.solutionCpuTime
+                    delta = 4
                 else:
                     reported_time = prob.solutionTime
 
                 self.assertAlmostEqual(
                     reported_time,
                     time_limit,
-                    delta=2,
+                    delta=delta,
                     msg="optimization time for solver {}".format(self.solver.name),
                 )
             self.assertTrue(True)
