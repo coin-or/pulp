@@ -14,7 +14,6 @@ _all_solvers = [
     PYGLPK,
     CPLEX_CMD,
     CPLEX_PY,
-    CPLEX_DLL,
     GUROBI,
     GUROBI_CMD,
     MOSEK,

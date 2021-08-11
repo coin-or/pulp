@@ -149,8 +149,7 @@ class BaseSolverTest:
             elif self.solver.__class__ is GLPK_CMD:
                 # GLPK_CMD Does not report unbounded problems, correctly
                 pulpTestCheck(prob, self.solver, [const.LpStatusUndefined])
-            elif self.solver.__class__ in [CPLEX_DLL, GUROBI_CMD, SCIP_CMD]:
-                # CPLEX_DLL Does not report unbounded problems, correctly
+            elif self.solver.__class__ in [GUROBI_CMD, SCIP_CMD]:
                 # GUROBI_CMD has a very simple interface
                 pulpTestCheck(prob, self.solver, [const.LpStatusNotSolved])
             elif self.solver.__class__ in [PULP_CHOCO_CMD, CHOCO_CMD]:
@@ -215,7 +214,6 @@ class BaseSolverTest:
                 COINMP_DLL,
                 PULP_CBC_CMD,
                 CPLEX_CMD,
-                CPLEX_DLL,
                 CPLEX_PY,
                 GLPK_CMD,
                 GUROBI_CMD,
@@ -456,8 +454,8 @@ class BaseSolverTest:
             if self.solver.__class__ is GLPK_CMD:
                 # GLPK_CMD return codes are not informative enough
                 pulpTestCheck(prob, self.solver, [const.LpStatusUndefined])
-            elif self.solver.__class__ in [CPLEX_DLL, GUROBI_CMD]:
-                # CPLEX_DLL Does not solve the problem
+            elif self.solver.__class__ in [GUROBI_CMD]:
+                # GUROBI_CMD Does not solve the problem
                 pulpTestCheck(prob, self.solver, [const.LpStatusNotSolved])
             else:
                 pulpTestCheck(prob, self.solver, [const.LpStatusInfeasible])
@@ -479,7 +477,7 @@ class BaseSolverTest:
                     self.solver,
                     [const.LpStatusInfeasible, const.LpStatusUndefined],
                 )
-            elif self.solver.__class__ in [COINMP_DLL, CPLEX_DLL]:
+            elif self.solver.__class__ in [COINMP_DLL]:
                 # Currently there is an error in COINMP for problems where
                 # presolve eliminates too many variables
                 print("\t\t Error in CoinMP to be fixed, reports Optimal")
@@ -503,7 +501,7 @@ class BaseSolverTest:
             print("\t Testing another integer infeasible problem")
             if self.solver.__class__ in [GUROBI_CMD, SCIP_CMD]:
                 pulpTestCheck(prob, self.solver, [const.LpStatusNotSolved])
-            elif self.solver.__class__ in [GLPK_CMD, CPLEX_DLL]:
+            elif self.solver.__class__ in [GLPK_CMD]:
                 # GLPK_CMD returns InfeasibleOrUnbounded
                 pulpTestCheck(
                     prob,
@@ -553,7 +551,6 @@ class BaseSolverTest:
             y = LpVariable("y", -1, 1, const.LpContinuous, 4 * obj - c)
             z = LpVariable("z", 0, None, const.LpContinuous, 9 * obj + b + c)
             if self.solver.__class__ in [
-                CPLEX_DLL,
                 CPLEX_CMD,
                 COINMP_DLL,
                 YAPOSIB,
@@ -582,7 +579,6 @@ class BaseSolverTest:
             prob += c3, "c3"
 
             if self.solver.__class__ in [
-                CPLEX_DLL,
                 CPLEX_CMD,
                 COINMP_DLL,
                 PULP_CBC_CMD,
@@ -619,7 +615,7 @@ class BaseSolverTest:
             y = LpVariable("y", -1, 1, const.LpContinuous, 4 * obj + a - c)
             prob.resolve()
             z = LpVariable("z", 0, None, const.LpContinuous, 9 * obj + b + c)
-            if self.solver.__class__ in [CPLEX_DLL, COINMP_DLL]:
+            if self.solver.__class__ in [COINMP_DLL]:
                 print("\t Testing resolve of problem")
                 prob.resolve()
                 # difficult to check this is doing what we want as the resolve is
@@ -640,7 +636,7 @@ class BaseSolverTest:
             obj2 = 0 * x - 1 * y + 0 * z
             prob += x <= 1, "c1"
 
-            if self.solver.__class__ in [CPLEX_DLL, COINMP_DLL, GUROBI]:
+            if self.solver.__class__ in [COINMP_DLL, GUROBI]:
                 print("\t Testing Sequential Solves")
                 status = prob.sequentialSolve([obj1, obj2], solver=self.solver)
                 pulpTestCheck(
@@ -756,7 +752,7 @@ class BaseSolverTest:
             elif self.solver.__class__ is GLPK_CMD:
                 # GLPK_CMD Does not report unbounded problems, correctly
                 pulpTestCheck(prob, self.solver, [const.LpStatusUndefined])
-            elif self.solver.__class__ in [CPLEX_DLL, GUROBI_CMD, SCIP_CMD]:
+            elif self.solver.__class__ in [GUROBI_CMD, SCIP_CMD]:
                 # GLPK_CMD Does not report unbounded problems, correctly
                 pulpTestCheck(prob, self.solver, [const.LpStatusNotSolved])
             elif self.solver.__class__ in [PULP_CHOCO_CMD, CHOCO_CMD]:
@@ -876,9 +872,6 @@ class BaseSolverTest:
             )
 
         def test_export_solver_dict_LP(self):
-            if self.solver.name == "CPLEX_DLL":
-                warnings.warn("CPLEX_DLL does not like being exported")
-                return
             prob = LpProblem("test_export_dict_LP", const.LpMinimize)
             x = LpVariable("x", 0, 4)
             y = LpVariable("y", -1, 1)
@@ -897,9 +890,6 @@ class BaseSolverTest:
             )
 
         def test_export_solver_json(self):
-            if self.solver.name == "CPLEX_DLL":
-                warnings.warn("CPLEX_DLL does not like being exported")
-                return
             name = self._testMethodName
             prob = LpProblem(name, const.LpMinimize)
             x = LpVariable("x", 0, 4)
@@ -1158,7 +1148,7 @@ class BaseSolverTest:
         def test_measuring_solving_time(self):
             print("\t Testing measuring optimization time")
 
-            time_limit = 10.23
+            time_limit = 5
             solver_settings = dict(
                 PULP_CBC_CMD=30, COIN_CMD=30, SCIP_CMD=30, GUROBI_CMD=50, CPLEX_CMD=50
             )
@@ -1167,18 +1157,20 @@ class BaseSolverTest:
             if bins is not None:
                 prob = create_bin_packing_problem(bins=bins)
                 self.solver.timeLimit = time_limit
-                if self.solver.name in (PULP_CBC_CMD, COIN_CMD):
-                    reported_time = prob.solutionCpuTime
-                else:
-                    reported_time = prob.solutionTime
+                delta = 2
                 if self.solver.name in ["CPLEX_CMD", "GUROBI_CMD"]:
                     self.solver.optionsDict["threads"] = 1
                 prob.solve(self.solver)
+                if self.solver.name in ["PULP_CBC_CMD", "COIN_CMD"]:
+                    reported_time = prob.solutionCpuTime
+                    delta = 4
+                else:
+                    reported_time = prob.solutionTime
 
                 self.assertAlmostEqual(
-                    prob.solutionTime,
+                    reported_time,
                     time_limit,
-                    delta=2,
+                    delta=delta,
                     msg="optimization time for solver {}".format(self.solver.name),
                 )
             self.assertTrue(True)

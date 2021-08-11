@@ -164,8 +164,7 @@ class COIN_CMD(LpSolver_CMD):
             self.writesol(tmpMst, lp, vs, variablesNames, constraintsNames)
             cmds += "mips {} ".format(tmpMst)
         if self.timeLimit is not None:
-            num_threads = self.optionsDict.get("threads", 1)
-            if num_threads is not None and int(num_threads) > 1:
+            if self.optionsDict.get("threads", 1) > 1:
                 warnings.warn("Beware: CBC uses timeLimit as cpu_time, not wall_time")
             cmds += "sec %s " % self.timeLimit
         options = self.options + self.getOptions()
@@ -470,8 +469,8 @@ class COINMP_DLL(LpSolver):
             self.fracGap = None
             if epgap is not None:
                 self.fracGap = float(epgap)
-            if self.timelimit is not None:
-                self.timelimit = float(self.timelimit)
+            if self.timeLimit is not None:
+                self.timeLimit = float(self.timeLimit)
             # Todo: these options are not yet implemented
             self.cuts = cuts
             self.presolve = presolve

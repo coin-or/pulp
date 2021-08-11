@@ -63,3 +63,10 @@ py-ve*
 
 #pycharm
 .idea/
+venv/
+
+# OR files
+*.lp
+*.mps
+*.mst
+*.sol
