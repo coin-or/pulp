@@ -1152,23 +1152,25 @@ class BaseSolverTest:
             solver_settings = dict(
                 PULP_CBC_CMD=30, COIN_CMD=30, SCIP_CMD=30, GUROBI_CMD=50, CPLEX_CMD=50
             )
-            delta = 2
-
             bins = solver_settings.get(self.solver.name)
             if bins is None:
+                # not all solvers have timeLimit support
                 return
             prob = create_bin_packing_problem(bins=bins)
             self.solver.timeLimit = time_limit
             prob.solve(self.solver)
+            delta = 2
             reported_time = prob.solutionTime
             if self.solver.name in ["PULP_CBC_CMD", "COIN_CMD"]:
+                # CBC uses cpu-time for timeLimit
+                # also: CBC is less exact with the timeLimit
                 reported_time = prob.solutionCpuTime
                 delta = 4
 
             self.assertAlmostEqual(
                 reported_time,
                 time_limit,
-                delta=4,
+                delta=delta,
                 msg="optimization time for solver {}".format(self.solver.name),
             )
 
