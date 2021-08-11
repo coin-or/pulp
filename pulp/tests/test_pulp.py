@@ -1157,6 +1157,10 @@ class BaseSolverTest:
             if bins is not None:
                 prob = create_bin_packing_problem(bins=bins)
                 self.solver.timeLimit = time_limit
+                if self.solver.name in (PULP_CBC_CMD, COIN_CMD):
+                    reported_time = prob.solutionCpuTime
+                else:
+                    reported_time = prob.solutionTime
                 if self.solver.name in ["CPLEX_CMD", "GUROBI_CMD"]:
                     self.solver.optionsDict["threads"] = 1
                 prob.solve(self.solver)

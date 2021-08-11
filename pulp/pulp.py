@@ -94,6 +94,7 @@ References:
 
 import sys
 import warnings
+from time import time
 
 from .apis import LpSolverDefault, PULP_CBC_CMD
 from .apis.core import clock
@@ -1873,9 +1874,11 @@ class LpProblem(object):
             solver = LpSolverDefault
         wasNone, dummyVar = self.fixObjective()
         # time it
-        self.solutionTime = -clock()
+        self.solutionCpuTime = -clock()
+        self.solutionTime = -time()
         status = solver.actualSolve(self, **kwargs)
-        self.solutionTime += clock()
+        self.solutionTime += time()
+        self.solutionCpuTime += clock()
         self.restoreObjective(wasNone, dummyVar)
         self.solver = solver
         return status
