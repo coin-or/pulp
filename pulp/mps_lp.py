@@ -358,7 +358,7 @@ def writeLP(LpProblem, filename, writeSOS=1, mip=1, max_length=100):
     if vg:
         f.write("Bounds\n")
         for v in vg:
-            f.write("%s\n" % v.asCplexLpVariable())
+            f.write(" %s\n" % v.asCplexLpVariable())
     # Integer non-binary variables
     if mip:
         vg = [v for v in vs if v.cat == const.LpInteger and not v.isBinary()]
