@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>pulp.apis Interface to Solvers &mdash; PuLP 2.4.1 documentation</title>
+  <title>pulp.apis Interface to Solvers &mdash; PuLP 2.5.0 documentation</title>
   
 
   
@@ -66,7 +66,7 @@
             
             
               <div class="version">
-                2.4
+                2.5
               </div>
             
           
@@ -439,58 +439,6 @@ returns True on success</p>
 </dd></dl>
 
 </dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="pulp.apis.CPLEX_DLL">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">CPLEX_DLL</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeLimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPLEX_DLL" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pulp.apis.LpSolver" title="pulp.apis.core.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.core.LpSolver</span></code></a></p>
-<p>The CPLEX LP/MIP solver (via a Dynamic library DLL - windows or SO - Linux)</p>
-<p>This solver wraps the c library api of cplex.
-It has been tested against cplex 11.
-For api functions that have not been wrapped in this solver please use
-the ctypes library interface to the cplex api in CPLEX_DLL.lib</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
-<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if False, no log is shown</p></li>
-<li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a>) – </p></li>
-<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
-<li><p><strong>args</strong> – </p></li>
-<li><p><strong>kwargs</strong> – optional named options to pass to each solver,
-e.g. gapRel=0.1, gapAbs=10, logPath=””,</p></li>
-</ul>
-</dd>
-</dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="pulp.apis.CPLEX_DLL.actualSolve">
-<span class="sig-name descname"><span class="pre">actualSolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPLEX_DLL.actualSolve" title="Permalink to this definition">¶</a></dt>
-<dd><p>Solve a well formulated lp problem</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="pulp.apis.CPLEX_DLL.available">
-<span class="sig-name descname"><span class="pre">available</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPLEX_DLL.available" title="Permalink to this definition">¶</a></dt>
-<dd><p>True if the solver is available</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pulp.apis.CPLEX_DLL.err">
-<span class="sig-name descname"><span class="pre">err</span></span><em class="property"> <span class="pre">=</span> <span class="pre">OSError('We</span> <span class="pre">did</span> <span class="pre">not</span> <span class="pre">find</span> <span class="pre">the</span> <span class="pre">cplex</span> <span class="pre">library,</span> <span class="pre">be</span> <span class="pre">sure</span> <span class="pre">to</span> <span class="pre">add</span> <span class="pre">it</span> <span class="pre">to</span> <span class="pre">LD_LIBRARY_PATH')</span></em><a class="headerlink" href="#pulp.apis.CPLEX_DLL.err" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="pulp.apis.CPLEX_DLL_load_dll">
-<span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">CPLEX_DLL_load_dll</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPLEX_DLL_load_dll" title="Permalink to this definition">¶</a></dt>
-<dd><p>function that loads the DLL useful for debugging installation problems</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="pulp.apis.CPLEX_DLL_unload_dll">
-<span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">CPLEX_DLL_unload_dll</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lib</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPLEX_DLL_unload_dll" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pulp.apis.CPLEX_PY">
@@ -1244,11 +1192,6 @@ command line after installation</p>
 <dd><p>Creates a c array with ctypes from a python list
 type is the type of the c array</p>
 </dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="pulp.apis.findCPLEX_DLL">
-<span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">findCPLEX_DLL</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.findCPLEX_DLL" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pulp.apis.getSolver">
