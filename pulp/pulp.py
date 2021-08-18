@@ -59,7 +59,7 @@ Choose a solver and solve the problem. ex:
 
 Display the status of the solution
 >>> const.LpStatus[status]
-'Optimal'
+'Optimal Solution Found'
 
 You can get the value of the variables using value(). ex:
 >>> value(x)
