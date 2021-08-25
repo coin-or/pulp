@@ -45,7 +45,7 @@ class HiGHS_CMD(LpSolver_CMD):
         :param float timeLimit: maximum time for solver (in seconds)
         :param list options: list of additional options to pass to solver
         :param bool keepFiles: if True, files are saved in the current directory and not deleted after solving
-        :param str path: path to the solver binary
+        :param str path: path to the solver binary (you can get binaries for your platform from https://github.com/JuliaBinaryWrappers/HiGHS_jll.jl/releases, or else compile from source - https://highs.dev)
         """
         LpSolver_CMD.__init__(self, mip=mip, msg=msg, timeLimit=timeLimit,
                               options=options, path=path, keepFiles=keepFiles)
@@ -76,7 +76,7 @@ class HiGHS_CMD(LpSolver_CMD):
             lp += -lp.objective
         lp.checkDuplicateVars()
         lp.checkLengthVars(52)
-        lp.writeMPS(tmpMps, mpsSense=lp.sense)
+        lp.writeMPS(tmpMps, mpsSense=constants.LpMinimize)
 
         # just to report duplicated variables:
         try:
