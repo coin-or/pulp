@@ -5,32 +5,15 @@
 
 """
 
-import re
 from . import constants as const
-
-CORE_FILE_ROW_MODE = "ROWS"
-CORE_FILE_COL_MODE = "COLUMNS"
-CORE_FILE_RHS_MODE = "RHS"
-CORE_FILE_BOUNDS_MODE = "BOUNDS"
-
-CORE_FILE_BOUNDS_MODE_NAME_GIVEN = "BOUNDS_NAME"
-CORE_FILE_BOUNDS_MODE_NO_NAME = "BOUNDS_NO_NAME"
-CORE_FILE_RHS_MODE_NAME_GIVEN = "RHS_NAME"
-CORE_FILE_RHS_MODE_NO_NAME = "RHS_NO_NAME"
-
-ROW_MODE_OBJ = "N"
-
-BOUNDS_EQUIV = dict(LO="lowBound", UP="upBound")
+import pysmps.mps_loader as mps
+import math
 
 ROW_EQUIV = {v: k for k, v in const.LpConstraintTypeToMps.items()}
-COL_EQUIV = {1: "Integer", 0: "Continuous"}
-ROW_DEFAULT = dict(pi=None, constant=0)
-COL_DEFAULT = dict(lowBound=0, upBound=None, varValue=None, dj=None)
 
 
 def readMPS(path, sense, dropConsNames=False):
     """
-    adapted from Julian Märte (https://github.com/pchtsp/pysmps)
     returns a dictionary with the contents of the model.
     This dictionary can be used to generate an LpProblem
 
@@ -39,151 +22,8 @@ def readMPS(path, sense, dropConsNames=False):
     :param dropConsNames: if True, do not store the names of constraints
     :return: a dictionary with all the problem data
     """
-
-    mode = ""
-    parameters = dict(name="", sense=sense, status=0, sol_status=0)
-    variable_info = {}
-    constraints = {}
-    objective = dict(name="", coefficients=[])
-    sos1 = []
-    sos2 = []
-    # TODO: maybe take out rhs_names and bnd_names? not sure if they're useful
-    rhs_names = []
-    bnd_names = []
-    integral_marker = False
-
-    with open(path, "r") as reader:
-        for line in reader:
-            line = re.split(" |\t", line)
-            line = [x.strip() for x in line]
-            line = list(filter(None, line))
-
-            if line[0] == "ENDATA":
-                break
-            if line[0] == "*":
-                continue
-            if line[0] == "NAME":
-                parameters["name"] = line[1]
-                continue
-
-            # here we get the mode
-            if line[0] in [CORE_FILE_ROW_MODE, CORE_FILE_COL_MODE]:
-                mode = line[0]
-            elif line[0] == CORE_FILE_RHS_MODE and len(line) <= 2:
-                if len(line) > 1:
-                    rhs_names.append(line[1])
-                    mode = CORE_FILE_RHS_MODE_NAME_GIVEN
-                else:
-                    mode = CORE_FILE_RHS_MODE_NO_NAME
-            elif line[0] == CORE_FILE_BOUNDS_MODE and len(line) <= 2:
-                if len(line) > 1:
-                    bnd_names.append(line[1])
-                    mode = CORE_FILE_BOUNDS_MODE_NAME_GIVEN
-                else:
-                    mode = CORE_FILE_BOUNDS_MODE_NO_NAME
-
-            # here we query the mode variable
-            elif mode == CORE_FILE_ROW_MODE:
-                row_type = line[0]
-                row_name = line[1]
-                if row_type == ROW_MODE_OBJ:
-                    objective["name"] = row_name
-                else:
-                    constraints[row_name] = dict(
-                        sense=ROW_EQUIV[row_type],
-                        name=row_name,
-                        coefficients=[],
-                        **ROW_DEFAULT
-                    )
-            elif mode == CORE_FILE_COL_MODE:
-                var_name = line[0]
-                if len(line) > 1 and line[1] == "'MARKER'":
-                    if line[2] == "'INTORG'":
-                        integral_marker = True
-                    elif line[2] == "'INTEND'":
-                        integral_marker = False
-                    continue
-                if var_name not in variable_info:
-                    variable_info[var_name] = dict(
-                        cat=COL_EQUIV[integral_marker], name=var_name, **COL_DEFAULT
-                    )
-                j = 1
-                while j < len(line) - 1:
-                    if line[j] == objective["name"]:
-                        # we store the variable objective coefficient
-                        objective["coefficients"].append(
-                            dict(name=var_name, value=float(line[j + 1]))
-                        )
-                    else:
-                        # we store the variable coefficient
-                        constraints[line[j]]["coefficients"].append(
-                            dict(name=var_name, value=float(line[j + 1]))
-                        )
-                    j = j + 2
-            elif mode == CORE_FILE_RHS_MODE_NAME_GIVEN:
-                if line[0] != rhs_names[-1]:
-                    raise Exception(
-                        "Other RHS name was given even though name was set after RHS tag."
-                    )
-                readMPSSetRhs(line, constraints)
-            elif mode == CORE_FILE_RHS_MODE_NO_NAME:
-                readMPSSetRhs(line, constraints)
-                if line[0] not in rhs_names:
-                    rhs_names.append(line[0])
-            elif mode == CORE_FILE_BOUNDS_MODE_NAME_GIVEN:
-                if line[1] != bnd_names[-1]:
-                    raise Exception(
-                        "Other BOUNDS name was given even though name was set after BOUNDS tag."
-                    )
-                readMPSSetBounds(line, variable_info)
-            elif mode == CORE_FILE_BOUNDS_MODE_NO_NAME:
-                readMPSSetBounds(line, variable_info)
-                if line[1] not in bnd_names:
-                    bnd_names.append(line[1])
-    constraints = list(constraints.values())
-    if dropConsNames:
-        for c in constraints:
-            c["name"] = None
-        objective["name"] = None
-    variable_info = list(variable_info.values())
-    return dict(
-        parameters=parameters,
-        objective=objective,
-        variables=variable_info,
-        constraints=constraints,
-        sos1=sos1,
-        sos2=sos2,
-    )
-
-
-def readMPSSetBounds(line, variable_dict):
-    bound = line[0]
-    var_name = line[2]
-
-    def set_one_bound(bound_type, value):
-        variable_dict[var_name][BOUNDS_EQUIV[bound_type]] = value
-
-    def set_both_bounds(value_low, value_up):
-        set_one_bound("LO", value_low)
-        set_one_bound("UP", value_up)
-
-    if bound == "FR":
-        set_both_bounds(None, None)
-        return
-    elif bound == "BV":
-        set_both_bounds(0, 1)
-        return
-    value = float(line[3])
-    if bound in ["LO", "UP"]:
-        set_one_bound(bound, value)
-    elif bound == "FX":
-        set_both_bounds(value, value)
-    return
-
-
-def readMPSSetRhs(line, constraintsDict):
-    constraintsDict[line[1]]["constant"] = -float(line[2])
-    return
+    pysmps_data = mps.load_mps(path)
+    return pysmpsToPuLP(pysmps_data, sense, dropConsNames=dropConsNames)
 
 
 def writeMPS(LpProblem, filename, mpsSense=0, rename=0, mip=1):
@@ -389,3 +229,48 @@ def writeLP(LpProblem, filename, writeSOS=1, mip=1, max_length=100):
     f.close()
     LpProblem.restoreObjective(wasNone, objectiveDummyVar)
     return vs
+
+
+def pysmpsToPuLP(pysmps_data, sense, dropConsNames=False):
+    variables = [
+        dict(
+            cat=value["type"],
+            name=value["name"],
+            upBound=value["bnd_upper"] if value["bnd_upper"] != math.inf else None,
+            lowBound=value["bnd_lower"] if value["bnd_lower"] != -math.inf else None,
+            dj=None,
+            varValue=None,
+        )
+        for name, value in pysmps_data["variable"].items()
+    ]
+
+    constraints = [
+        dict(
+            name=value["name"],
+            coefficients=list(value["coefficients"]),
+            sense=ROW_EQUIV[value["type"]],
+            constant=-value["bounds"],
+            pi=None,
+        )
+        for name, value in pysmps_data["constraints"].items()
+    ]
+    # we make a copy of all contents
+    objective = dict(
+        name=pysmps_data["objective"]["name"],
+        coefficients=[dict(el) for el in pysmps_data["objective"]["coefficients"]],
+    )
+
+    # TODO: can we have the name?
+    parameters = dict(name="", sense=sense, status=0, sol_status=0)
+    if dropConsNames:
+        for c in constraints:
+            c["name"] = None
+        objective["name"] = None
+    return dict(
+        constraints=constraints,
+        variables=variables,
+        objective=objective,
+        parameters=parameters,
+        sos1=[],
+        sos2=[],
+    )

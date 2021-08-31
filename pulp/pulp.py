@@ -55,7 +55,7 @@ become the objective.
 >>> prob += -4 * x + y
 
 Choose a solver and solve the problem. ex:
->>> status = prob.solve(PULP_CBC_CMD(msg=0))
+>>> status = prob.solve(PULP_CBC_CMD(msg=False))
 
 Display the status of the solution
 >>> const.LpStatus[status]

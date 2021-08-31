@@ -1036,10 +1036,12 @@ class BaseSolverTest:
             filename = name + ".mps"
             prob.writeMPS(filename)
             _vars, prob2 = LpProblem.fromMPS(filename, sense=prob.sense)
+            prob2.name = prob.name
             _dict1 = getSortedDict(prob)
             _dict2 = getSortedDict(prob2)
             print("\t Testing reading MPS files - maximize")
-            self.assertDictEqual(_dict1, _dict2)
+            self.assertEqual(_dict1["variables"], _dict2["variables"])
+            self.assertEqual(_dict1, _dict2)
 
         def test_importMPS_integer(self):
             name = self._testMethodName
@@ -1054,9 +1056,11 @@ class BaseSolverTest:
             filename = name + ".mps"
             prob.writeMPS(filename)
             _vars, prob2 = LpProblem.fromMPS(filename, sense=prob.sense)
+            prob2.name = prob.name
             _dict1 = getSortedDict(prob)
             _dict2 = getSortedDict(prob2)
             print("\t Testing reading MPS files - integer variable")
+            self.assertEqual(_dict1["variables"], _dict2["variables"])
             self.assertDictEqual(_dict1, _dict2)
 
         def test_importMPS_binary(self):
@@ -1073,19 +1077,12 @@ class BaseSolverTest:
             _vars, prob2 = LpProblem.fromMPS(
                 filename, sense=prob.sense, dropConsNames=True
             )
+            prob2.name = prob.name
             _dict1 = getSortedDict(prob, keyCons="constant")
             _dict2 = getSortedDict(prob2, keyCons="constant")
             print("\t Testing reading MPS files - binary variable, no constraint names")
+            self.assertEqual(_dict1["variables"], _dict2["variables"])
             self.assertDictEqual(_dict1, _dict2)
-
-        # def test_importMPS_2(self):
-        #     name = self._testMethodName
-        #     # filename = name + ".mps"
-        #     filename = "/home/pchtsp/Downloads/test.mps"
-        #     _vars, _prob = LpProblem.fromMPS(filename)
-        #     _prob.solve()
-        #     for k, v in _vars.items():
-        #         print(k, v.value())
 
         def test_unset_objective_value__is_valid(self):
             """Given a valid problem that does not converge,
