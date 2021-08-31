@@ -1,6 +1,7 @@
 """
 Tests for pulp
 """
+import pulp
 from pulp.constants import PulpError
 from pulp.apis import *
 from pulp import LpVariable, LpProblem, lpSum, LpConstraintVar, LpFractionConstraint
@@ -1172,6 +1173,26 @@ class BaseSolverTest:
                 time_limit,
                 delta=delta,
                 msg="optimization time for solver {}".format(self.solver.name),
+            )
+
+        def test_integer_feasible(self):
+            print("\t Testing integer feasible exit of solver")
+
+            time_limit = 5
+            solver_settings = dict(
+                PULP_CBC_CMD=30, COIN_CMD=30, SCIP_CMD=30, GUROBI_CMD=50, CPLEX_CMD=50
+            )
+            bins = solver_settings.get(self.solver.name)
+            if bins is None:
+                # not all solvers have timeLimit support
+                return
+            prob = create_bin_packing_problem(bins=bins)
+            self.solver.timeLimit = time_limit
+            self.solver.msg = 1.0
+            prob.solve(self.solver)
+            print(pulp.LpSolution[prob.sol_status])
+            self.assertTrue(
+                prob.sol_status == 2.0
             )
 
 
