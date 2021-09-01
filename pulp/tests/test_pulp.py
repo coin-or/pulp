@@ -1,7 +1,6 @@
 """
 Tests for pulp
 """
-import pulp
 from pulp.constants import PulpError
 from pulp.apis import *
 from pulp import LpVariable, LpProblem, lpSum, LpConstraintVar, LpFractionConstraint
