@@ -1187,10 +1187,14 @@ class BaseSolverTest:
                 # not all solvers have timeLimit support
                 return
             prob = create_bin_packing_problem(bins=bins)
+            if self.solver.name == "SCIP_CMD":
+                print("adapting solver path")
+                self.solver.path = 'C:\\Program Files\\SCIPOptSuite 7.0.3\\bin\\scip.exe'
             self.solver.timeLimit = time_limit
             self.solver.msg = 1.0
             prob.solve(self.solver)
             print(pulp.LpSolution[prob.sol_status])
+            print(pulp.LpStatus[prob.status])
             self.assertTrue(
                 prob.sol_status == 2.0
             )
