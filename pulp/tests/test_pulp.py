@@ -1178,25 +1178,26 @@ class BaseSolverTest:
         def test_integer_feasible(self):
             print("\t Testing integer feasible exit of solver")
 
-            time_limit = 5
+            time_limit = 10
             solver_settings = dict(
-                PULP_CBC_CMD=30, COIN_CMD=30, SCIP_CMD=30, GUROBI_CMD=50, CPLEX_CMD=50
+                PULP_CBC_CMD=30, COIN_CMD=30, SCIP_CMD=25, GUROBI_CMD=50, CPLEX_CMD=50
             )
             bins = solver_settings.get(self.solver.name)
             if bins is None:
                 # not all solvers have timeLimit support
                 return
             prob = create_bin_packing_problem(bins=bins)
-            if self.solver.name == "SCIP_CMD":
-                print("adapting solver path")
-                self.solver.path = 'C:\\Program Files\\SCIPOptSuite 7.0.3\\bin\\scip.exe'
             self.solver.timeLimit = time_limit
             self.solver.msg = 1.0
             prob.solve(self.solver)
-            print(pulp.LpSolution[prob.sol_status])
-            print(pulp.LpStatus[prob.status])
+            print(const.LpSolution[prob.sol_status])
+            print(const.LpStatus[prob.status])
+            print(prob.status)
             self.assertTrue(
                 prob.sol_status == 2.0
+            )
+            self.assertTrue(
+                prob.status == 0.0
             )
 
 
