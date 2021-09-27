@@ -61,6 +61,7 @@ class COIN_CMD(LpSolver_CMD):
         path=None,
         threads=None,
         logPath=None,
+        timeMode="elapsed",
         mip_start=False,
     ):
         """
@@ -80,6 +81,7 @@ class COIN_CMD(LpSolver_CMD):
         :param bool strong: if True, adds strong
         :param float fracGap: deprecated for gapRel
         :param float maxSeconds: deprecated for timeLimit
+        :param str timeMode: "elapsed": count wall-time to timeLimit; "cpu": count cpu-time
         :param bool mip_start: deprecated for warmStart
         """
 
@@ -121,6 +123,7 @@ class COIN_CMD(LpSolver_CMD):
             threads=threads,
             gapAbs=gapAbs,
             logPath=logPath,
+            timeMode=timeMode,
         )
 
     def copy(self):
@@ -163,8 +166,6 @@ class COIN_CMD(LpSolver_CMD):
             self.writesol(tmpMst, lp, vs, variablesNames, constraintsNames)
             cmds += "mips {} ".format(tmpMst)
         if self.timeLimit is not None:
-            if self.optionsDict.get("threads", 1) > 1:
-                warnings.warn("Beware: CBC uses timeLimit as cpu_time, not wall_time")
             cmds += "sec %s " % self.timeLimit
         options = self.options + self.getOptions()
         for option in options:
@@ -226,6 +227,7 @@ class COIN_CMD(LpSolver_CMD):
             presolve="presolve on",
             strong="strong {}",
             cuts="gomory on knapsack on probing on",
+            timeMode="timeMode {}",
         )
 
         return [
@@ -377,6 +379,7 @@ class PULP_CBC_CMD(COIN_CMD):
             threads=None,
             logPath=None,
             mip_start=False,
+            timeMode="elapsed",
         ):
             if path is not None:
                 raise PulpSolverError("Use COIN_CMD if you want to set a path")
@@ -400,6 +403,7 @@ class PULP_CBC_CMD(COIN_CMD):
                 threads=threads,
                 logPath=logPath,
                 mip_start=mip_start,
+                timeMode=timeMode,
             )
 
 
