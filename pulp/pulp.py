@@ -311,8 +311,9 @@ class LpVariable(LpElement):
         self.expression = e
         self.addVariableToConstraints(e)
 
+    @classmethod
     def matrix(
-        self,
+        cls,
         name,
         indexs,
         lowBound=None,
@@ -340,10 +341,9 @@ class LpVariable(LpElement):
                 for i in index
             ]
 
-    matrix = classmethod(matrix)
-
+    @classmethod
     def dicts(
-        self,
+        cls,
         name,
         indexs,
         lowBound=None,
@@ -386,9 +386,8 @@ class LpVariable(LpElement):
                 )
         return d
 
-    dicts = classmethod(dicts)
-
-    def dict(self, name, indexs, lowBound=None, upBound=None, cat=const.LpContinuous):
+    @classmethod
+    def dict(cls, name, indexs, lowBound=None, upBound=None, cat=const.LpContinuous):
         if not isinstance(indexs, tuple):
             indexs = (indexs,)
         if "%" not in name:
@@ -420,10 +419,8 @@ class LpVariable(LpElement):
 
         d = {}
         for i in index:
-            d[i] = self(name % i, lowBound, upBound, cat)
+            d[i] = cls(name % i, lowBound, upBound, cat)
         return d
-
-    dict = classmethod(dict)
 
     def getLb(self):
         return self.lowBound
