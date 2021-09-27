@@ -1,77 +1,37 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
   <title>The Optimisation Process &mdash; PuLP 2.5.0 documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-
-  
-  
-
-  
-  
-
-  
-
-  
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-
-    
+    <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Optimisation Concepts" href="optimisation_concepts.html" />
     <link rel="prev" title="Main Topics" href="index.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="../index.html" class="icon icon-home"> PuLP
-          
-
-          
           </a>
-
-          
-            
-            
               <div class="version">
                 2.5
               </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -79,18 +39,7 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Main Topics</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">The Optimisation Process</a><ul>
@@ -118,75 +67,33 @@
 <li class="toctree-l1"><a class="reference internal" href="../plugins/index.html">Plugins</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">PuLP</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-        
           <li><a href="index.html">Main Topics</a> &raquo;</li>
-        
       <li>The Optimisation Process</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-          
             <a href="../_sources/main/the_optimisation_process.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="the-optimisation-process">
-<h1>The Optimisation Process<a class="headerlink" href="#the-optimisation-process" title="Permalink to this headline">¶</a></h1>
+             
+  <section id="the-optimisation-process">
+<h1>The Optimisation Process<a class="headerlink" href="#the-optimisation-process" title="Permalink to this headline"></a></h1>
 <p>Solving an optimisation problem is not a linear process, but the process can be
 broken down into five general steps:</p>
 <ul class="simple">
@@ -217,13 +124,13 @@ software. However, you usually don’t put any “hard” numbers into your
 formulation, instead you “populate” your model using data files, so there is
 some work involved in creating the appropriate data file. The advantage of using
 data files is that the same model may used many times with different data sets.</p>
-<div class="section" id="the-modeling-process">
-<h2>The Modeling Process<a class="headerlink" href="#the-modeling-process" title="Permalink to this headline">¶</a></h2>
+<section id="the-modeling-process">
+<h2>The Modeling Process<a class="headerlink" href="#the-modeling-process" title="Permalink to this headline"></a></h2>
 <p>The modeling process is a “neat and tidy” simplification of the optimisation
 process. Let’s consider the five steps of the optimisation process in more
 detail:</p>
-<div class="section" id="getting-the-problem-description">
-<h3>Getting the Problem Description<a class="headerlink" href="#getting-the-problem-description" title="Permalink to this headline">¶</a></h3>
+<section id="getting-the-problem-description">
+<h3>Getting the Problem Description<a class="headerlink" href="#getting-the-problem-description" title="Permalink to this headline"></a></h3>
 <p>The aim of this step is to come up with a formal, rigourous model description.
 Usually you start an optimisation project with an abstract description of a
 problem and some data. Often you need to spend some time talking with the
@@ -233,9 +140,9 @@ rigourous model description you are used to. Sometimes not all the data will be
 relevant or you will need to ask the client if they can provide some other
 data. Sometimes the limitations of the available data may change your model
 description and subsequent formulation significantly.</p>
-</div>
-<div class="section" id="formulating-the-mathematical-program">
-<h3>Formulating the mathematical program<a class="headerlink" href="#formulating-the-mathematical-program" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="formulating-the-mathematical-program">
+<h3>Formulating the mathematical program<a class="headerlink" href="#formulating-the-mathematical-program" title="Permalink to this headline"></a></h3>
 <p>In this step we identify the key quantifiable decisions, restrictions and goals
 from the problem description, and capture their interdependencies in a
 mathematical model. We can break the formulation process into 4 key steps:</p>
@@ -245,18 +152,18 @@ mathematical model. We can break the formulation process into 4 key steps:</p>
 <li><p>Formulate the Constraints, either logical (for example, we cannot work for a negative number of hours), or explicit to the problem description. Again, the constraints are expressed in terms of the decision variables.</p></li>
 <li><p>Identify the Data needed for the objective function and constraints. To solve your mathematical program you will need to have some “hard numbers” as variable bounds and/or variable coefficients in your objective function and/or constraints.</p></li>
 </ul>
-</div>
-<div class="section" id="solving-the-mathematical-program">
-<h3>Solving the mathematical program<a class="headerlink" href="#solving-the-mathematical-program" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="solving-the-mathematical-program">
+<h3>Solving the mathematical program<a class="headerlink" href="#solving-the-mathematical-program" title="Permalink to this headline"></a></h3>
 <p>For relatively simple or well understood problems the mathematical model can
 often be solved to optimality (i.e., the best possible solution is identified).
 This is done using algorithms such as the Revised Simplex Method
 or Interior Point Methods. However, many
 industrial problems would take too long to solve to optimality using these
 techniques, and so are solved using heuristic methods which do not guarantee optimality.</p>
-</div>
-<div class="section" id="performing-some-post-optimal-analysis">
-<h3>Performing some post-optimal analysis<a class="headerlink" href="#performing-some-post-optimal-analysis" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="performing-some-post-optimal-analysis">
+<h3>Performing some post-optimal analysis<a class="headerlink" href="#performing-some-post-optimal-analysis" title="Permalink to this headline"></a></h3>
 <p>Often there is uncertainty in the problem description (either with the accuracy
 of the data provided, or with the value(s) of data in the future). In this
 situation the robustness of our solution can be examined by performing
@@ -270,9 +177,9 @@ the mathematical program’s solution. You should carefully consider what the
 solution’s variable values mean in terms of the original problem description.
 Make sure they make sense to you and, more importantly, your client (which is
 why the next step, presenting the solution and analysis is important).</p>
-</div>
-<div class="section" id="presenting-the-solution-and-analysis">
-<h3>Presenting the solution and analysis<a class="headerlink" href="#presenting-the-solution-and-analysis" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="presenting-the-solution-and-analysis">
+<h3>Presenting the solution and analysis<a class="headerlink" href="#presenting-the-solution-and-analysis" title="Permalink to this headline"></a></h3>
 <p>A crucial step in the optimisation process is the presentation of the solution
 and any post-optimal analysis. The translation from a mathematical program’s
 solution back into a concise and comprehensible summary is as important as the
@@ -289,56 +196,39 @@ clearly and intelligently your optimal decision will never be used.</p>
 <li><p>Further analysis of your solution, looking for other benefits for your client;</p></li>
 <li><p>Identification of future optimisation opportunities.</p></li>
 </ul>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="optimisation_concepts.html" class="btn btn-neutral float-right" title="Optimisation Concepts" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="index.html" class="btn btn-neutral float-left" title="Main Topics" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="optimisation_concepts.html" class="btn btn-neutral float-right" title="Optimisation Concepts" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright 2009-, pulp documentation team..
-
-    </p>
+    <p>&#169; Copyright 2009-, pulp documentation team..</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

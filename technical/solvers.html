@@ -1,77 +1,37 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
   <title>pulp.apis Interface to Solvers &mdash; PuLP 2.5.0 documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-
-  
-  
-
-  
-  
-
-  
-
-  
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-
-    
+    <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Plugins" href="../plugins/index.html" />
     <link rel="prev" title="pulp: Pulp classes" href="pulp.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="../index.html" class="icon icon-home"> PuLP
-          
-
-          
           </a>
-
-          
-            
-            
               <div class="version">
                 2.5
               </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -79,18 +39,7 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../main/index.html">Main Topics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../CaseStudies/index.html">Case Studies</a></li>
@@ -105,78 +54,36 @@
 <li class="toctree-l1"><a class="reference internal" href="../plugins/index.html">Plugins</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">PuLP</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-        
           <li><a href="index.html">PuLP Internal Documentation</a> &raquo;</li>
-        
       <li><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp.apis</span></code> Interface to Solvers</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-          
             <a href="../_sources/technical/solvers.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="module-pulp.apis">
-<span id="pulp-apis-interface-to-solvers"></span><h1><a class="reference internal" href="#module-pulp.apis" title="pulp.apis"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp.apis</span></code></a> Interface to Solvers<a class="headerlink" href="#module-pulp.apis" title="Permalink to this headline">¶</a></h1>
+             
+  <section id="module-pulp.apis">
+<span id="pulp-apis-interface-to-solvers"></span><h1><a class="reference internal" href="#module-pulp.apis" title="pulp.apis"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp.apis</span></code></a> Interface to Solvers<a class="headerlink" href="#module-pulp.apis" title="Permalink to this headline"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="pulp.apis.CHOCO_CMD">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">CHOCO_CMD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepFiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeLimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CHOCO_CMD" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">CHOCO_CMD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepFiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeLimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CHOCO_CMD" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pulp.apis.LpSolver_CMD" title="pulp.apis.core.LpSolver_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.core.LpSolver_CMD</span></code></a></p>
 <p>The CHOCO_CMD solver</p>
 <dl class="field-list simple">
@@ -193,29 +100,29 @@
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.CHOCO_CMD.actualSolve">
-<span class="sig-name descname"><span class="pre">actualSolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CHOCO_CMD.actualSolve" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">actualSolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CHOCO_CMD.actualSolve" title="Permalink to this definition"></a></dt>
 <dd><p>Solve a well formulated lp problem</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.CHOCO_CMD.available">
-<span class="sig-name descname"><span class="pre">available</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CHOCO_CMD.available" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">available</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CHOCO_CMD.available" title="Permalink to this definition"></a></dt>
 <dd><p>True if the solver is available</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.CHOCO_CMD.defaultPath">
-<span class="sig-name descname"><span class="pre">defaultPath</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CHOCO_CMD.defaultPath" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">defaultPath</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CHOCO_CMD.defaultPath" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pulp.apis.CHOCO_CMD.name">
-<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'CHOCO_CMD'</span></em><a class="headerlink" href="#pulp.apis.CHOCO_CMD.name" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'CHOCO_CMD'</span></em><a class="headerlink" href="#pulp.apis.CHOCO_CMD.name" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.CHOCO_CMD.readsol">
-<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">readsol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CHOCO_CMD.readsol" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">readsol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CHOCO_CMD.readsol" title="Permalink to this definition"></a></dt>
 <dd><p>Read a Choco solution file</p>
 </dd></dl>
 
@@ -223,13 +130,13 @@
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pulp.apis.COIN">
-<span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">COIN</span></span><a class="headerlink" href="#pulp.apis.COIN" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">COIN</span></span><a class="headerlink" href="#pulp.apis.COIN" title="Permalink to this definition"></a></dt>
 <dd><p>alias of <a class="reference internal" href="#pulp.apis.COIN_CMD" title="pulp.apis.coin_api.COIN_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.coin_api.COIN_CMD</span></code></a></p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pulp.apis.COINMP_DLL">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">COINMP_DLL</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeLimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.COINMP_DLL" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">COINMP_DLL</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeLimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.COINMP_DLL" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pulp.apis.LpSolver" title="pulp.apis.core.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.core.LpSolver</span></code></a></p>
 <p>The COIN_MP LP MIP solver (via a DLL or linux so)</p>
 <dl class="field-list simple">
@@ -249,32 +156,32 @@ e.g. gapRel=0.1, gapAbs=10, logPath=””,</p></li>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.COINMP_DLL.actualSolve">
-<span class="sig-name descname"><span class="pre">actualSolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.COINMP_DLL.actualSolve" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">actualSolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.COINMP_DLL.actualSolve" title="Permalink to this definition"></a></dt>
 <dd><p>Solve a well formulated lp problem</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.COINMP_DLL.available">
-<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">available</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.COINMP_DLL.available" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">available</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.COINMP_DLL.available" title="Permalink to this definition"></a></dt>
 <dd><p>True if the solver is available</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pulp.apis.COINMP_DLL.name">
-<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'COINMP_DLL'</span></em><a class="headerlink" href="#pulp.apis.COINMP_DLL.name" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'COINMP_DLL'</span></em><a class="headerlink" href="#pulp.apis.COINMP_DLL.name" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pulp.apis.COINMP_DLL_load_dll">
-<span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">COINMP_DLL_load_dll</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.COINMP_DLL_load_dll" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">COINMP_DLL_load_dll</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.COINMP_DLL_load_dll" title="Permalink to this definition"></a></dt>
 <dd><p>function that loads the DLL useful for debugging installation problems</p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pulp.apis.COIN_CMD">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">COIN_CMD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeLimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fracGap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxSeconds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gapRel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gapAbs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">presolve</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cuts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strong</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warmStart</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepFiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logPath</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mip_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.COIN_CMD" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">COIN_CMD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeLimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fracGap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxSeconds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gapRel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gapAbs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">presolve</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cuts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strong</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warmStart</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepFiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logPath</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mip_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.COIN_CMD" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pulp.apis.LpSolver_CMD" title="pulp.apis.core.LpSolver_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.core.LpSolver_CMD</span></code></a></p>
 <p>The COIN CLP/CBC LP solver
 now only uses cbc</p>
@@ -303,64 +210,64 @@ now only uses cbc</p>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.COIN_CMD.actualSolve">
-<span class="sig-name descname"><span class="pre">actualSolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.COIN_CMD.actualSolve" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">actualSolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.COIN_CMD.actualSolve" title="Permalink to this definition"></a></dt>
 <dd><p>Solve a well formulated lp problem</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.COIN_CMD.available">
-<span class="sig-name descname"><span class="pre">available</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.COIN_CMD.available" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">available</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.COIN_CMD.available" title="Permalink to this definition"></a></dt>
 <dd><p>True if the solver is available</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.COIN_CMD.copy">
-<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.COIN_CMD.copy" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.COIN_CMD.copy" title="Permalink to this definition"></a></dt>
 <dd><p>Make a copy of self</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.COIN_CMD.defaultPath">
-<span class="sig-name descname"><span class="pre">defaultPath</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.COIN_CMD.defaultPath" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">defaultPath</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.COIN_CMD.defaultPath" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.COIN_CMD.getOptions">
-<span class="sig-name descname"><span class="pre">getOptions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.COIN_CMD.getOptions" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">getOptions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.COIN_CMD.getOptions" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.COIN_CMD.get_status">
-<span class="sig-name descname"><span class="pre">get_status</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.COIN_CMD.get_status" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_status</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.COIN_CMD.get_status" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pulp.apis.COIN_CMD.name">
-<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'COIN_CMD'</span></em><a class="headerlink" href="#pulp.apis.COIN_CMD.name" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'COIN_CMD'</span></em><a class="headerlink" href="#pulp.apis.COIN_CMD.name" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.COIN_CMD.readsol_LP">
-<span class="sig-name descname"><span class="pre">readsol_LP</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.COIN_CMD.readsol_LP" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">readsol_LP</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.COIN_CMD.readsol_LP" title="Permalink to this definition"></a></dt>
 <dd><p>Read a CBC solution file generated from an lp (good names)
 returns status, values, reducedCosts, shadowPrices, slacks, sol_status</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.COIN_CMD.readsol_MPS">
-<span class="sig-name descname"><span class="pre">readsol_MPS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variablesNames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constraintsNames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">objectiveName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.COIN_CMD.readsol_MPS" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">readsol_MPS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variablesNames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constraintsNames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">objectiveName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.COIN_CMD.readsol_MPS" title="Permalink to this definition"></a></dt>
 <dd><p>Read a CBC solution file generated from an mps or lp file (possible different names)</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.COIN_CMD.solve_CBC">
-<span class="sig-name descname"><span class="pre">solve_CBC</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_mps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.COIN_CMD.solve_CBC" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">solve_CBC</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_mps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.COIN_CMD.solve_CBC" title="Permalink to this definition"></a></dt>
 <dd><p>Solve a MIP problem using CBC</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.COIN_CMD.writesol">
-<span class="sig-name descname"><span class="pre">writesol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variablesNames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constraintsNames</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.COIN_CMD.writesol" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">writesol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variablesNames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constraintsNames</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.COIN_CMD.writesol" title="Permalink to this definition"></a></dt>
 <dd><p>Writes a CBC solution file generated from an mps / lp file (possible different names)
 returns True on success</p>
 </dd></dl>
@@ -369,13 +276,13 @@ returns True on success</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pulp.apis.CPLEX">
-<span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">CPLEX</span></span><a class="headerlink" href="#pulp.apis.CPLEX" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">CPLEX</span></span><a class="headerlink" href="#pulp.apis.CPLEX" title="Permalink to this definition"></a></dt>
 <dd><p>alias of <a class="reference internal" href="#pulp.apis.CPLEX_CMD" title="pulp.apis.cplex_api.CPLEX_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.cplex_api.CPLEX_CMD</span></code></a></p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pulp.apis.CPLEX_CMD">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">CPLEX_CMD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timelimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeLimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gapRel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gapAbs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warmStart</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepFiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logPath</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxMemory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxNodes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mip_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPLEX_CMD" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">CPLEX_CMD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timelimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeLimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gapRel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gapAbs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warmStart</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepFiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logPath</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxMemory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxNodes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mip_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPLEX_CMD" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pulp.apis.LpSolver_CMD" title="pulp.apis.core.LpSolver_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.core.LpSolver_CMD</span></code></a></p>
 <p>The CPLEX LP solver</p>
 <dl class="field-list simple">
@@ -401,40 +308,40 @@ returns True on success</p>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.CPLEX_CMD.actualSolve">
-<span class="sig-name descname"><span class="pre">actualSolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPLEX_CMD.actualSolve" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">actualSolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPLEX_CMD.actualSolve" title="Permalink to this definition"></a></dt>
 <dd><p>Solve a well formulated lp problem</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.CPLEX_CMD.available">
-<span class="sig-name descname"><span class="pre">available</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPLEX_CMD.available" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">available</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPLEX_CMD.available" title="Permalink to this definition"></a></dt>
 <dd><p>True if the solver is available</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.CPLEX_CMD.defaultPath">
-<span class="sig-name descname"><span class="pre">defaultPath</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPLEX_CMD.defaultPath" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">defaultPath</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPLEX_CMD.defaultPath" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.CPLEX_CMD.getOptions">
-<span class="sig-name descname"><span class="pre">getOptions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPLEX_CMD.getOptions" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">getOptions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPLEX_CMD.getOptions" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pulp.apis.CPLEX_CMD.name">
-<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'CPLEX_CMD'</span></em><a class="headerlink" href="#pulp.apis.CPLEX_CMD.name" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'CPLEX_CMD'</span></em><a class="headerlink" href="#pulp.apis.CPLEX_CMD.name" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.CPLEX_CMD.readsol">
-<span class="sig-name descname"><span class="pre">readsol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPLEX_CMD.readsol" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">readsol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPLEX_CMD.readsol" title="Permalink to this definition"></a></dt>
 <dd><p>Read a CPLEX solution file</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.CPLEX_CMD.writesol">
-<span class="sig-name descname"><span class="pre">writesol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPLEX_CMD.writesol" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">writesol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPLEX_CMD.writesol" title="Permalink to this definition"></a></dt>
 <dd><p>Writes a CPLEX solution file</p>
 </dd></dl>
 
@@ -442,7 +349,7 @@ returns True on success</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pulp.apis.CPLEX_PY">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">CPLEX_PY</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeLimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPLEX_PY" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">CPLEX_PY</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeLimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPLEX_PY" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pulp.apis.LpSolver" title="pulp.apis.core.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.core.LpSolver</span></code></a></p>
 <p>The CPLEX LP/MIP solver (via a Python Binding)</p>
 <p>This solver wraps the python api of cplex.
@@ -464,37 +371,37 @@ e.g. gapRel=0.1, gapAbs=10, logPath=””,</p></li>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.CPLEX_PY.actualSolve">
-<span class="sig-name descname"><span class="pre">actualSolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPLEX_PY.actualSolve" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">actualSolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPLEX_PY.actualSolve" title="Permalink to this definition"></a></dt>
 <dd><p>Solve a well formulated lp problem</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.CPLEX_PY.available">
-<span class="sig-name descname"><span class="pre">available</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPLEX_PY.available" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">available</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPLEX_PY.available" title="Permalink to this definition"></a></dt>
 <dd><p>True if the solver is available</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pulp.apis.CPLEX_PY.err">
-<span class="sig-name descname"><span class="pre">err</span></span><em class="property"> <span class="pre">=</span> <span class="pre">ModuleNotFoundError(&quot;No</span> <span class="pre">module</span> <span class="pre">named</span> <span class="pre">'cplex'&quot;)</span></em><a class="headerlink" href="#pulp.apis.CPLEX_PY.err" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">err</span></span><em class="property"> <span class="pre">=</span> <span class="pre">ModuleNotFoundError(&quot;No</span> <span class="pre">module</span> <span class="pre">named</span> <span class="pre">'cplex'&quot;)</span></em><a class="headerlink" href="#pulp.apis.CPLEX_PY.err" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pulp.apis.CPLEX_PY.name">
-<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'CPLEX_PY'</span></em><a class="headerlink" href="#pulp.apis.CPLEX_PY.name" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'CPLEX_PY'</span></em><a class="headerlink" href="#pulp.apis.CPLEX_PY.name" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pulp.apis.GLPK">
-<span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">GLPK</span></span><a class="headerlink" href="#pulp.apis.GLPK" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">GLPK</span></span><a class="headerlink" href="#pulp.apis.GLPK" title="Permalink to this definition"></a></dt>
 <dd><p>alias of <a class="reference internal" href="#pulp.apis.GLPK_CMD" title="pulp.apis.glpk_api.GLPK_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.glpk_api.GLPK_CMD</span></code></a></p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pulp.apis.GLPK_CMD">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">GLPK_CMD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepFiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeLimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.GLPK_CMD" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">GLPK_CMD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepFiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeLimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.GLPK_CMD" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pulp.apis.LpSolver_CMD" title="pulp.apis.core.LpSolver_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.core.LpSolver_CMD</span></code></a></p>
 <p>The GLPK LP solver</p>
 <dl class="field-list simple">
@@ -511,29 +418,29 @@ e.g. gapRel=0.1, gapAbs=10, logPath=””,</p></li>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.GLPK_CMD.actualSolve">
-<span class="sig-name descname"><span class="pre">actualSolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.GLPK_CMD.actualSolve" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">actualSolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.GLPK_CMD.actualSolve" title="Permalink to this definition"></a></dt>
 <dd><p>Solve a well formulated lp problem</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.GLPK_CMD.available">
-<span class="sig-name descname"><span class="pre">available</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.GLPK_CMD.available" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">available</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.GLPK_CMD.available" title="Permalink to this definition"></a></dt>
 <dd><p>True if the solver is available</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.GLPK_CMD.defaultPath">
-<span class="sig-name descname"><span class="pre">defaultPath</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.GLPK_CMD.defaultPath" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">defaultPath</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.GLPK_CMD.defaultPath" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pulp.apis.GLPK_CMD.name">
-<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'GLPK_CMD'</span></em><a class="headerlink" href="#pulp.apis.GLPK_CMD.name" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'GLPK_CMD'</span></em><a class="headerlink" href="#pulp.apis.GLPK_CMD.name" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.GLPK_CMD.readsol">
-<span class="sig-name descname"><span class="pre">readsol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.GLPK_CMD.readsol" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">readsol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.GLPK_CMD.readsol" title="Permalink to this definition"></a></dt>
 <dd><p>Read a GLPK solution file</p>
 </dd></dl>
 
@@ -541,7 +448,7 @@ e.g. gapRel=0.1, gapAbs=10, logPath=””,</p></li>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pulp.apis.GUROBI">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">GUROBI</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeLimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.GUROBI" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">GUROBI</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeLimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.GUROBI" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pulp.apis.LpSolver" title="pulp.apis.core.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.core.LpSolver</span></code></a></p>
 <p>The Gurobi LP/MIP solver (via its python interface)</p>
 <p>The Gurobi variables are available (after a solve) in var.solverVar
@@ -562,26 +469,26 @@ e.g. gapRel=0.1, gapAbs=10, logPath=””,</p></li>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.GUROBI.actualSolve">
-<span class="sig-name descname"><span class="pre">actualSolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">callback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.GUROBI.actualSolve" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">actualSolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">callback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.GUROBI.actualSolve" title="Permalink to this definition"></a></dt>
 <dd><p>Solve a well formulated lp problem</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.GUROBI.available">
-<span class="sig-name descname"><span class="pre">available</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.GUROBI.available" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">available</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.GUROBI.available" title="Permalink to this definition"></a></dt>
 <dd><p>True if the solver is available</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pulp.apis.GUROBI.name">
-<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'GUROBI'</span></em><a class="headerlink" href="#pulp.apis.GUROBI.name" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'GUROBI'</span></em><a class="headerlink" href="#pulp.apis.GUROBI.name" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pulp.apis.GUROBI_CMD">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">GUROBI_CMD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeLimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gapRel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gapAbs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warmStart</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepFiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logPath</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mip_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.GUROBI_CMD" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">GUROBI_CMD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeLimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gapRel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gapAbs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warmStart</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepFiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logPath</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mip_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.GUROBI_CMD" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pulp.apis.LpSolver_CMD" title="pulp.apis.core.LpSolver_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.core.LpSolver_CMD</span></code></a></p>
 <p>The GUROBI_CMD solver</p>
 <dl class="field-list simple">
@@ -604,40 +511,40 @@ e.g. gapRel=0.1, gapAbs=10, logPath=””,</p></li>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.GUROBI_CMD.actualSolve">
-<span class="sig-name descname"><span class="pre">actualSolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.GUROBI_CMD.actualSolve" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">actualSolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.GUROBI_CMD.actualSolve" title="Permalink to this definition"></a></dt>
 <dd><p>Solve a well formulated lp problem</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.GUROBI_CMD.available">
-<span class="sig-name descname"><span class="pre">available</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.GUROBI_CMD.available" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">available</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.GUROBI_CMD.available" title="Permalink to this definition"></a></dt>
 <dd><p>True if the solver is available</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.GUROBI_CMD.defaultPath">
-<span class="sig-name descname"><span class="pre">defaultPath</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.GUROBI_CMD.defaultPath" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">defaultPath</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.GUROBI_CMD.defaultPath" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.GUROBI_CMD.getOptions">
-<span class="sig-name descname"><span class="pre">getOptions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.GUROBI_CMD.getOptions" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">getOptions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.GUROBI_CMD.getOptions" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pulp.apis.GUROBI_CMD.name">
-<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'GUROBI_CMD'</span></em><a class="headerlink" href="#pulp.apis.GUROBI_CMD.name" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'GUROBI_CMD'</span></em><a class="headerlink" href="#pulp.apis.GUROBI_CMD.name" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.GUROBI_CMD.readsol">
-<span class="sig-name descname"><span class="pre">readsol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.GUROBI_CMD.readsol" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">readsol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.GUROBI_CMD.readsol" title="Permalink to this definition"></a></dt>
 <dd><p>Read a Gurobi solution file</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.GUROBI_CMD.writesol">
-<span class="sig-name descname"><span class="pre">writesol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.GUROBI_CMD.writesol" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">writesol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.GUROBI_CMD.writesol" title="Permalink to this definition"></a></dt>
 <dd><p>Writes a GUROBI solution file</p>
 </dd></dl>
 
@@ -645,7 +552,7 @@ e.g. gapRel=0.1, gapAbs=10, logPath=””,</p></li>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pulp.apis.LpSolver">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">LpSolver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeLimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.LpSolver" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">LpSolver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeLimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.LpSolver" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>A generic LP Solver</p>
 <dl class="field-list simple">
@@ -663,7 +570,7 @@ e.g. gapRel=0.1, gapAbs=10, logPath=””,</p></li>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.LpSolver.actualResolve">
-<span class="sig-name descname"><span class="pre">actualResolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.LpSolver.actualResolve" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">actualResolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.LpSolver.actualResolve" title="Permalink to this definition"></a></dt>
 <dd><p>uses existing problem information and solves the problem
 If it is not implemented in the solver
 just solve again</p>
@@ -671,25 +578,25 @@ just solve again</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.LpSolver.actualSolve">
-<span class="sig-name descname"><span class="pre">actualSolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.LpSolver.actualSolve" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">actualSolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.LpSolver.actualSolve" title="Permalink to this definition"></a></dt>
 <dd><p>Solve a well formulated lp problem</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.LpSolver.available">
-<span class="sig-name descname"><span class="pre">available</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.LpSolver.available" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">available</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.LpSolver.available" title="Permalink to this definition"></a></dt>
 <dd><p>True if the solver is available</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.LpSolver.copy">
-<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.LpSolver.copy" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.LpSolver.copy" title="Permalink to this definition"></a></dt>
 <dd><p>Make a copy of self</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.LpSolver.getCplexStyleArrays">
-<span class="sig-name descname"><span class="pre">getCplexStyleArrays</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">senseDict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">LpVarCategories</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">LpObjSenses</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">infBound</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e+20</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.LpSolver.getCplexStyleArrays" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">getCplexStyleArrays</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">senseDict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">LpVarCategories</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">LpObjSenses</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">infBound</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e+20</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.LpSolver.getCplexStyleArrays" title="Permalink to this definition"></a></dt>
 <dd><p>returns the arrays suitable to pass to a cdll Cplex
 or other solvers that are similar</p>
 <p>Copyright (c) Stuart Mitchell 2007</p>
@@ -697,40 +604,40 @@ or other solvers that are similar</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pulp.apis.LpSolver.name">
-<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'LpSolver'</span></em><a class="headerlink" href="#pulp.apis.LpSolver.name" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'LpSolver'</span></em><a class="headerlink" href="#pulp.apis.LpSolver.name" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.LpSolver.solve">
-<span class="sig-name descname"><span class="pre">solve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.LpSolver.solve" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">solve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.LpSolver.solve" title="Permalink to this definition"></a></dt>
 <dd><p>Solve the problem lp</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.LpSolver.toDict">
-<span class="sig-name descname"><span class="pre">toDict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.LpSolver.toDict" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">toDict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.LpSolver.toDict" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.LpSolver.toJson">
-<span class="sig-name descname"><span class="pre">toJson</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.LpSolver.toJson" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">toJson</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.LpSolver.toJson" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.LpSolver.to_dict">
-<span class="sig-name descname"><span class="pre">to_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.LpSolver.to_dict" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">to_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.LpSolver.to_dict" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.LpSolver.to_json">
-<span class="sig-name descname"><span class="pre">to_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.LpSolver.to_json" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">to_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.LpSolver.to_json" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pulp.apis.LpSolver_CMD">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">LpSolver_CMD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepFiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.LpSolver_CMD" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">LpSolver_CMD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepFiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.LpSolver_CMD" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pulp.apis.LpSolver" title="pulp.apis.core.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.core.LpSolver</span></code></a></p>
 <p>A generic command line LP Solver</p>
 <dl class="field-list simple">
@@ -749,45 +656,45 @@ or other solvers that are similar</p>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.LpSolver_CMD.copy">
-<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.LpSolver_CMD.copy" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.LpSolver_CMD.copy" title="Permalink to this definition"></a></dt>
 <dd><p>Make a copy of self</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.LpSolver_CMD.create_tmp_files">
-<span class="sig-name descname"><span class="pre">create_tmp_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.LpSolver_CMD.create_tmp_files" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">create_tmp_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.LpSolver_CMD.create_tmp_files" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.LpSolver_CMD.defaultPath">
-<span class="sig-name descname"><span class="pre">defaultPath</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.LpSolver_CMD.defaultPath" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">defaultPath</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.LpSolver_CMD.defaultPath" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.LpSolver_CMD.delete_tmp_files">
-<span class="sig-name descname"><span class="pre">delete_tmp_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.LpSolver_CMD.delete_tmp_files" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">delete_tmp_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.LpSolver_CMD.delete_tmp_files" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.LpSolver_CMD.executable">
-<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">executable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.LpSolver_CMD.executable" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">executable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.LpSolver_CMD.executable" title="Permalink to this definition"></a></dt>
 <dd><p>Checks that the solver command is executable,
 And returns the actual path to it.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.LpSolver_CMD.executableExtension">
-<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">executableExtension</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.LpSolver_CMD.executableExtension" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">executableExtension</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.LpSolver_CMD.executableExtension" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pulp.apis.LpSolver_CMD.name">
-<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'LpSolver_CMD'</span></em><a class="headerlink" href="#pulp.apis.LpSolver_CMD.name" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'LpSolver_CMD'</span></em><a class="headerlink" href="#pulp.apis.LpSolver_CMD.name" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.LpSolver_CMD.setTmpDir">
-<span class="sig-name descname"><span class="pre">setTmpDir</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.LpSolver_CMD.setTmpDir" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">setTmpDir</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.LpSolver_CMD.setTmpDir" title="Permalink to this definition"></a></dt>
 <dd><p>Set the tmpDir attribute to a reasonnable location for a temporary
 directory</p>
 </dd></dl>
@@ -796,7 +703,7 @@ directory</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pulp.apis.MIPCL_CMD">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">MIPCL_CMD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepFiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeLimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.MIPCL_CMD" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">MIPCL_CMD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepFiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeLimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.MIPCL_CMD" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pulp.apis.LpSolver_CMD" title="pulp.apis.core.LpSolver_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.core.LpSolver_CMD</span></code></a></p>
 <p>The MIPCL_CMD solver</p>
 <dl class="field-list simple">
@@ -813,29 +720,29 @@ directory</p>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.MIPCL_CMD.actualSolve">
-<span class="sig-name descname"><span class="pre">actualSolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.MIPCL_CMD.actualSolve" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">actualSolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.MIPCL_CMD.actualSolve" title="Permalink to this definition"></a></dt>
 <dd><p>Solve a well formulated lp problem</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.MIPCL_CMD.available">
-<span class="sig-name descname"><span class="pre">available</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.MIPCL_CMD.available" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">available</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.MIPCL_CMD.available" title="Permalink to this definition"></a></dt>
 <dd><p>True if the solver is available</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.MIPCL_CMD.defaultPath">
-<span class="sig-name descname"><span class="pre">defaultPath</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.MIPCL_CMD.defaultPath" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">defaultPath</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.MIPCL_CMD.defaultPath" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pulp.apis.MIPCL_CMD.name">
-<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'MIPCL_CMD'</span></em><a class="headerlink" href="#pulp.apis.MIPCL_CMD.name" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'MIPCL_CMD'</span></em><a class="headerlink" href="#pulp.apis.MIPCL_CMD.name" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.MIPCL_CMD.readsol">
-<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">readsol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.MIPCL_CMD.readsol" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">readsol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.MIPCL_CMD.readsol" title="Permalink to this definition"></a></dt>
 <dd><p>Read a MIPCL solution file</p>
 </dd></dl>
 
@@ -843,7 +750,7 @@ directory</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pulp.apis.MOSEK">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">MOSEK</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeLimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.MOSEK" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">MOSEK</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeLimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.MOSEK" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pulp.apis.LpSolver" title="pulp.apis.core.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.core.LpSolver</span></code></a></p>
 <p>Mosek lp and mip solver (via Mosek Optimizer API).</p>
 <dl class="field-list simple">
@@ -861,26 +768,26 @@ e.g. gapRel=0.1, gapAbs=10, logPath=””,</p></li>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.MOSEK.actualSolve">
-<span class="sig-name descname"><span class="pre">actualSolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">callback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.MOSEK.actualSolve" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">actualSolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">callback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.MOSEK.actualSolve" title="Permalink to this definition"></a></dt>
 <dd><p>Solves a well-formulated lp problem.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.MOSEK.available">
-<span class="sig-name descname"><span class="pre">available</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.MOSEK.available" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">available</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.MOSEK.available" title="Permalink to this definition"></a></dt>
 <dd><p>True if Mosek is available.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pulp.apis.MOSEK.name">
-<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'MOSEK'</span></em><a class="headerlink" href="#pulp.apis.MOSEK.name" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'MOSEK'</span></em><a class="headerlink" href="#pulp.apis.MOSEK.name" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pulp.apis.PULP_CBC_CMD">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">PULP_CBC_CMD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeLimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fracGap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxSeconds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gapRel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gapAbs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">presolve</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cuts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strong</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warmStart</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepFiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logPath</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mip_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.PULP_CBC_CMD" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">PULP_CBC_CMD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeLimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fracGap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxSeconds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gapRel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gapAbs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">presolve</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cuts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strong</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warmStart</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepFiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logPath</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mip_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.PULP_CBC_CMD" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pulp.apis.COIN_CMD" title="pulp.apis.coin_api.COIN_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.coin_api.COIN_CMD</span></code></a></p>
 <p>This solver uses a precompiled version of cbc provided with the package</p>
 <dl class="field-list simple">
@@ -908,19 +815,19 @@ e.g. gapRel=0.1, gapAbs=10, logPath=””,</p></li>
 </dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pulp.apis.PULP_CBC_CMD.name">
-<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'PULP_CBC_CMD'</span></em><a class="headerlink" href="#pulp.apis.PULP_CBC_CMD.name" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'PULP_CBC_CMD'</span></em><a class="headerlink" href="#pulp.apis.PULP_CBC_CMD.name" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pulp.apis.PULP_CBC_CMD.pulp_cbc_path">
-<span class="sig-name descname"><span class="pre">pulp_cbc_path</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'/home/runner/work/pulp/pulp/pulp/apis/../solverdir/cbc/linux/64/cbc'</span></em><a class="headerlink" href="#pulp.apis.PULP_CBC_CMD.pulp_cbc_path" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">pulp_cbc_path</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'/home/runner/work/pulp/pulp/pulp/apis/../solverdir/cbc/linux/64/cbc'</span></em><a class="headerlink" href="#pulp.apis.PULP_CBC_CMD.pulp_cbc_path" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pulp.apis.PULP_CHOCO_CMD">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">PULP_CHOCO_CMD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepFiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeLimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.PULP_CHOCO_CMD" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">PULP_CHOCO_CMD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepFiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeLimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.PULP_CHOCO_CMD" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pulp.apis.CHOCO_CMD" title="pulp.apis.choco_api.CHOCO_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.choco_api.CHOCO_CMD</span></code></a></p>
 <p>This solver uses a packaged version of choco provided with the package</p>
 <dl class="field-list simple">
@@ -937,19 +844,19 @@ e.g. gapRel=0.1, gapAbs=10, logPath=””,</p></li>
 </dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pulp.apis.PULP_CHOCO_CMD.name">
-<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'PULP_CHOCO_CMD'</span></em><a class="headerlink" href="#pulp.apis.PULP_CHOCO_CMD.name" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'PULP_CHOCO_CMD'</span></em><a class="headerlink" href="#pulp.apis.PULP_CHOCO_CMD.name" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pulp.apis.PULP_CHOCO_CMD.pulp_choco_path">
-<span class="sig-name descname"><span class="pre">pulp_choco_path</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'/home/runner/work/pulp/pulp/pulp/apis/../solverdir/choco/choco-parsers-with-dependencies.jar'</span></em><a class="headerlink" href="#pulp.apis.PULP_CHOCO_CMD.pulp_choco_path" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">pulp_choco_path</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'/home/runner/work/pulp/pulp/pulp/apis/../solverdir/choco/choco-parsers-with-dependencies.jar'</span></em><a class="headerlink" href="#pulp.apis.PULP_CHOCO_CMD.pulp_choco_path" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pulp.apis.PYGLPK">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">PYGLPK</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeLimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.PYGLPK" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">PYGLPK</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeLimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.PYGLPK" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pulp.apis.LpSolver" title="pulp.apis.core.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.core.LpSolver</span></code></a></p>
 <p>The glpk LP/MIP solver (via its python interface)</p>
 <p>Copyright Christophe-Marie Duquesne 2012</p>
@@ -971,45 +878,45 @@ e.g. gapRel=0.1, gapAbs=10, logPath=””,</p></li>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.PYGLPK.actualSolve">
-<span class="sig-name descname"><span class="pre">actualSolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">callback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.PYGLPK.actualSolve" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">actualSolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">callback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.PYGLPK.actualSolve" title="Permalink to this definition"></a></dt>
 <dd><p>Solve a well formulated lp problem</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.PYGLPK.available">
-<span class="sig-name descname"><span class="pre">available</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.PYGLPK.available" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">available</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.PYGLPK.available" title="Permalink to this definition"></a></dt>
 <dd><p>True if the solver is available</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pulp.apis.PYGLPK.name">
-<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'PYGLPK'</span></em><a class="headerlink" href="#pulp.apis.PYGLPK.name" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'PYGLPK'</span></em><a class="headerlink" href="#pulp.apis.PYGLPK.name" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pulp.apis.Parser">
-<span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">Parser</span></span><a class="headerlink" href="#pulp.apis.Parser" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">Parser</span></span><a class="headerlink" href="#pulp.apis.Parser" title="Permalink to this definition"></a></dt>
 <dd><p>alias of <a class="reference external" href="https://docs.python.org/3/library/configparser.html#configparser.ConfigParser" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">configparser.ConfigParser</span></code></a></p>
 </dd></dl>
 
 <dl class="py exception">
 <dt class="sig sig-object py" id="pulp.apis.PulpSolverError">
-<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">PulpSolverError</span></span><a class="headerlink" href="#pulp.apis.PulpSolverError" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">PulpSolverError</span></span><a class="headerlink" href="#pulp.apis.PulpSolverError" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="constants.html#pulp.constants.PulpError" title="pulp.constants.PulpError"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.constants.PulpError</span></code></a></p>
 <p>Pulp Solver-related exceptions</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pulp.apis.SCIP">
-<span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">SCIP</span></span><a class="headerlink" href="#pulp.apis.SCIP" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">SCIP</span></span><a class="headerlink" href="#pulp.apis.SCIP" title="Permalink to this definition"></a></dt>
 <dd><p>alias of <a class="reference internal" href="#pulp.apis.SCIP_CMD" title="pulp.apis.scip_api.SCIP_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.scip_api.SCIP_CMD</span></code></a></p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pulp.apis.SCIP_CMD">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">SCIP_CMD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepFiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeLimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gapRel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gapAbs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxNodes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.SCIP_CMD" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">SCIP_CMD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepFiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeLimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gapRel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gapAbs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxNodes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.SCIP_CMD" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pulp.apis.LpSolver_CMD" title="pulp.apis.core.LpSolver_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.core.LpSolver_CMD</span></code></a></p>
 <p>The SCIP optimization solver</p>
 <dl class="field-list simple">
@@ -1029,49 +936,49 @@ e.g. gapRel=0.1, gapAbs=10, logPath=””,</p></li>
 </dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pulp.apis.SCIP_CMD.NO_SOLUTION_STATUSES">
-<span class="sig-name descname"><span class="pre">NO_SOLUTION_STATUSES</span></span><em class="property"> <span class="pre">=</span> <span class="pre">{-2,</span> <span class="pre">-1,</span> <span class="pre">0}</span></em><a class="headerlink" href="#pulp.apis.SCIP_CMD.NO_SOLUTION_STATUSES" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">NO_SOLUTION_STATUSES</span></span><em class="property"> <span class="pre">=</span> <span class="pre">{-2,</span> <span class="pre">-1,</span> <span class="pre">0}</span></em><a class="headerlink" href="#pulp.apis.SCIP_CMD.NO_SOLUTION_STATUSES" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pulp.apis.SCIP_CMD.SCIP_STATUSES">
-<span class="sig-name descname"><span class="pre">SCIP_STATUSES</span></span><em class="property"> <span class="pre">=</span> <span class="pre">{'gap</span> <span class="pre">limit</span> <span class="pre">reached':</span> <span class="pre">1,</span> <span class="pre">'infeasible':</span> <span class="pre">-1,</span> <span class="pre">'infeasible</span> <span class="pre">or</span> <span class="pre">unbounded':</span> <span class="pre">0,</span> <span class="pre">'memory</span> <span class="pre">limit</span> <span class="pre">reached':</span> <span class="pre">0,</span> <span class="pre">'node</span> <span class="pre">limit</span> <span class="pre">reached':</span> <span class="pre">0,</span> <span class="pre">'optimal</span> <span class="pre">solution</span> <span class="pre">found':</span> <span class="pre">1,</span> <span class="pre">'restart</span> <span class="pre">limit</span> <span class="pre">reached':</span> <span class="pre">0,</span> <span class="pre">'solution</span> <span class="pre">improvement</span> <span class="pre">limit</span> <span class="pre">reached':</span> <span class="pre">0,</span> <span class="pre">'solution</span> <span class="pre">limit</span> <span class="pre">reached':</span> <span class="pre">0,</span> <span class="pre">'stall</span> <span class="pre">node</span> <span class="pre">limit</span> <span class="pre">reached':</span> <span class="pre">0,</span> <span class="pre">'time</span> <span class="pre">limit</span> <span class="pre">reached':</span> <span class="pre">0,</span> <span class="pre">'total</span> <span class="pre">node</span> <span class="pre">limit</span> <span class="pre">reached':</span> <span class="pre">0,</span> <span class="pre">'unbounded':</span> <span class="pre">-2,</span> <span class="pre">'unknown':</span> <span class="pre">-3,</span> <span class="pre">'user</span> <span class="pre">interrupt':</span> <span class="pre">0}</span></em><a class="headerlink" href="#pulp.apis.SCIP_CMD.SCIP_STATUSES" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">SCIP_STATUSES</span></span><em class="property"> <span class="pre">=</span> <span class="pre">{'gap</span> <span class="pre">limit</span> <span class="pre">reached':</span> <span class="pre">1,</span> <span class="pre">'infeasible':</span> <span class="pre">-1,</span> <span class="pre">'infeasible</span> <span class="pre">or</span> <span class="pre">unbounded':</span> <span class="pre">0,</span> <span class="pre">'memory</span> <span class="pre">limit</span> <span class="pre">reached':</span> <span class="pre">0,</span> <span class="pre">'node</span> <span class="pre">limit</span> <span class="pre">reached':</span> <span class="pre">0,</span> <span class="pre">'optimal</span> <span class="pre">solution</span> <span class="pre">found':</span> <span class="pre">1,</span> <span class="pre">'restart</span> <span class="pre">limit</span> <span class="pre">reached':</span> <span class="pre">0,</span> <span class="pre">'solution</span> <span class="pre">improvement</span> <span class="pre">limit</span> <span class="pre">reached':</span> <span class="pre">0,</span> <span class="pre">'solution</span> <span class="pre">limit</span> <span class="pre">reached':</span> <span class="pre">0,</span> <span class="pre">'stall</span> <span class="pre">node</span> <span class="pre">limit</span> <span class="pre">reached':</span> <span class="pre">0,</span> <span class="pre">'time</span> <span class="pre">limit</span> <span class="pre">reached':</span> <span class="pre">0,</span> <span class="pre">'total</span> <span class="pre">node</span> <span class="pre">limit</span> <span class="pre">reached':</span> <span class="pre">0,</span> <span class="pre">'unbounded':</span> <span class="pre">-2,</span> <span class="pre">'unknown':</span> <span class="pre">-3,</span> <span class="pre">'user</span> <span class="pre">interrupt':</span> <span class="pre">0}</span></em><a class="headerlink" href="#pulp.apis.SCIP_CMD.SCIP_STATUSES" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.SCIP_CMD.actualSolve">
-<span class="sig-name descname"><span class="pre">actualSolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.SCIP_CMD.actualSolve" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">actualSolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.SCIP_CMD.actualSolve" title="Permalink to this definition"></a></dt>
 <dd><p>Solve a well formulated lp problem</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.SCIP_CMD.available">
-<span class="sig-name descname"><span class="pre">available</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.SCIP_CMD.available" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">available</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.SCIP_CMD.available" title="Permalink to this definition"></a></dt>
 <dd><p>True if the solver is available</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.SCIP_CMD.defaultPath">
-<span class="sig-name descname"><span class="pre">defaultPath</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.SCIP_CMD.defaultPath" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">defaultPath</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.SCIP_CMD.defaultPath" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.SCIP_CMD.firstWithFilenoSupport">
-<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">firstWithFilenoSupport</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">streams</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.SCIP_CMD.firstWithFilenoSupport" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">firstWithFilenoSupport</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">streams</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.SCIP_CMD.firstWithFilenoSupport" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.SCIP_CMD.getOptions">
-<span class="sig-name descname"><span class="pre">getOptions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.SCIP_CMD.getOptions" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">getOptions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.SCIP_CMD.getOptions" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pulp.apis.SCIP_CMD.name">
-<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'SCIP_CMD'</span></em><a class="headerlink" href="#pulp.apis.SCIP_CMD.name" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'SCIP_CMD'</span></em><a class="headerlink" href="#pulp.apis.SCIP_CMD.name" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.SCIP_CMD.readsol">
-<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">readsol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.SCIP_CMD.readsol" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">readsol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.SCIP_CMD.readsol" title="Permalink to this definition"></a></dt>
 <dd><p>Read a SCIP solution file</p>
 </dd></dl>
 
@@ -1079,7 +986,7 @@ e.g. gapRel=0.1, gapAbs=10, logPath=””,</p></li>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pulp.apis.XPRESS">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">XPRESS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeLimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gapRel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepFiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxSeconds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targetGap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">heurFreq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">heurStra</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coverCuts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preSolve</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.XPRESS" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">XPRESS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeLimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gapRel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepFiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxSeconds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targetGap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">heurFreq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">heurStra</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coverCuts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preSolve</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.XPRESS" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pulp.apis.LpSolver_CMD" title="pulp.apis.core.LpSolver_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.core.LpSolver_CMD</span></code></a></p>
 <p>The XPRESS LP solver</p>
 <p>Initializes the Xpress solver.</p>
@@ -1104,29 +1011,29 @@ More about Xpress options and control parameters please see
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.XPRESS.actualSolve">
-<span class="sig-name descname"><span class="pre">actualSolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.XPRESS.actualSolve" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">actualSolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.XPRESS.actualSolve" title="Permalink to this definition"></a></dt>
 <dd><p>Solve a well formulated lp problem</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.XPRESS.available">
-<span class="sig-name descname"><span class="pre">available</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.XPRESS.available" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">available</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.XPRESS.available" title="Permalink to this definition"></a></dt>
 <dd><p>True if the solver is available</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.XPRESS.defaultPath">
-<span class="sig-name descname"><span class="pre">defaultPath</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.XPRESS.defaultPath" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">defaultPath</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.XPRESS.defaultPath" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pulp.apis.XPRESS.name">
-<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'XPRESS'</span></em><a class="headerlink" href="#pulp.apis.XPRESS.name" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'XPRESS'</span></em><a class="headerlink" href="#pulp.apis.XPRESS.name" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.XPRESS.readsol">
-<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">readsol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.XPRESS.readsol" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">readsol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.XPRESS.readsol" title="Permalink to this definition"></a></dt>
 <dd><p>Read an XPRESS solution file</p>
 </dd></dl>
 
@@ -1134,7 +1041,7 @@ More about Xpress options and control parameters please see
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pulp.apis.YAPOSIB">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">YAPOSIB</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeLimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.YAPOSIB" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">YAPOSIB</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeLimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.YAPOSIB" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pulp.apis.LpSolver" title="pulp.apis.core.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.core.LpSolver</span></code></a></p>
 <p>COIN OSI (via its python interface)</p>
 <p>Copyright Christophe-Marie Duquesne 2012</p>
@@ -1156,31 +1063,31 @@ e.g. gapRel=0.1, gapAbs=10, logPath=””,</p></li>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.YAPOSIB.actualSolve">
-<span class="sig-name descname"><span class="pre">actualSolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">callback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.YAPOSIB.actualSolve" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">actualSolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">callback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.YAPOSIB.actualSolve" title="Permalink to this definition"></a></dt>
 <dd><p>Solve a well formulated lp problem</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.YAPOSIB.available">
-<span class="sig-name descname"><span class="pre">available</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.YAPOSIB.available" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">available</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.YAPOSIB.available" title="Permalink to this definition"></a></dt>
 <dd><p>True if the solver is available</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pulp.apis.YAPOSIB.name">
-<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'YAPOSIB'</span></em><a class="headerlink" href="#pulp.apis.YAPOSIB.name" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'YAPOSIB'</span></em><a class="headerlink" href="#pulp.apis.YAPOSIB.name" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pulp.apis.clock">
-<span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">clock</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.clock" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">clock</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.clock" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pulp.apis.configSolvers">
-<span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">configSolvers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.configSolvers" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">configSolvers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.configSolvers" title="Permalink to this definition"></a></dt>
 <dd><p>Configure the path the the solvers on the command line</p>
 <p>Designed to configure the file locations of the solvers from the
 command line after installation</p>
@@ -1188,14 +1095,14 @@ command line after installation</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pulp.apis.ctypesArrayFill">
-<span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">ctypesArrayFill</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">myList</span></em>, <em class="sig-param"><span class="pre">type=&lt;class</span> <span class="pre">'ctypes.c_double'&gt;</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.ctypesArrayFill" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">ctypesArrayFill</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">myList</span></em>, <em class="sig-param"><span class="pre">type=&lt;class</span> <span class="pre">'ctypes.c_double'&gt;</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.ctypesArrayFill" title="Permalink to this definition"></a></dt>
 <dd><p>Creates a c array with ctypes from a python list
 type is the type of the c array</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pulp.apis.getSolver">
-<span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">getSolver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">solver</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.getSolver" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">getSolver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">solver</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.getSolver" title="Permalink to this definition"></a></dt>
 <dd><p>Instantiates a solver from its name</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1213,7 +1120,7 @@ type is the type of the c array</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pulp.apis.getSolverFromDict">
-<span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">getSolverFromDict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.getSolverFromDict" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">getSolverFromDict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.getSolverFromDict" title="Permalink to this definition"></a></dt>
 <dd><p>Instantiates a solver from a dictionary with its data</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1234,7 +1141,7 @@ of the solver to create</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pulp.apis.getSolverFromJson">
-<span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">getSolverFromJson</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.getSolverFromJson" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">getSolverFromJson</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.getSolverFromJson" title="Permalink to this definition"></a></dt>
 <dd><p>Instantiates a solver from a json file with its data</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1251,7 +1158,7 @@ of the solver to create</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pulp.apis.get_solver">
-<span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">get_solver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">solver</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.get_solver" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">get_solver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">solver</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.get_solver" title="Permalink to this definition"></a></dt>
 <dd><p>Instantiates a solver from its name</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1269,7 +1176,7 @@ of the solver to create</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pulp.apis.get_solver_from_dict">
-<span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">get_solver_from_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.get_solver_from_dict" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">get_solver_from_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.get_solver_from_dict" title="Permalink to this definition"></a></dt>
 <dd><p>Instantiates a solver from a dictionary with its data</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1290,7 +1197,7 @@ of the solver to create</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pulp.apis.get_solver_from_json">
-<span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">get_solver_from_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.get_solver_from_json" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">get_solver_from_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.get_solver_from_json" title="Permalink to this definition"></a></dt>
 <dd><p>Instantiates a solver from a json file with its data</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1307,13 +1214,13 @@ of the solver to create</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pulp.apis.initialize">
-<span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">initialize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operating_system</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linux'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'64'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.initialize" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">initialize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operating_system</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linux'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'64'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.initialize" title="Permalink to this definition"></a></dt>
 <dd><p>reads the configuration file to initialise the module</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pulp.apis.listSolvers">
-<span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">listSolvers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">onlyAvailable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.listSolvers" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">listSolvers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">onlyAvailable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.listSolvers" title="Permalink to this definition"></a></dt>
 <dd><p>List the names of all the existing solvers in PuLP</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1330,7 +1237,7 @@ of the solver to create</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pulp.apis.list_solvers">
-<span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">list_solvers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">onlyAvailable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.list_solvers" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">list_solvers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">onlyAvailable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.list_solvers" title="Permalink to this definition"></a></dt>
 <dd><p>List the names of all the existing solvers in PuLP</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1347,7 +1254,7 @@ of the solver to create</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pulp.apis.mktemp">
-<span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">mktemp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">suffix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'tmp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.mktemp" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">mktemp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">suffix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'tmp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.mktemp" title="Permalink to this definition"></a></dt>
 <dd><p>User-callable function to return a unique temporary file name.  The
 file is not created.</p>
 <p>Arguments are similar to mkstemp, except that the ‘text’ argument is
@@ -1361,7 +1268,7 @@ the punch.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pulp.apis.setConfigInformation">
-<span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">setConfigInformation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">keywords</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.setConfigInformation" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">setConfigInformation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">keywords</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.setConfigInformation" title="Permalink to this definition"></a></dt>
 <dd><p>set the data in the configuration file
 at the moment will only edit things in [locations]
 the keyword value pairs come from the keywords dictionary</p>
@@ -1369,63 +1276,46 @@ the keyword value pairs come from the keywords dictionary</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pulp.apis.to_string">
-<span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">to_string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_obj</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.to_string" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">to_string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_obj</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.to_string" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pulp.apis.uuid4">
-<span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">uuid4</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.uuid4" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">uuid4</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.uuid4" title="Permalink to this definition"></a></dt>
 <dd><p>Generate a random UUID.</p>
 </dd></dl>
 
-</div>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="../plugins/index.html" class="btn btn-neutral float-right" title="Plugins" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="pulp.html" class="btn btn-neutral float-left" title="pulp: Pulp classes" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../plugins/index.html" class="btn btn-neutral float-right" title="Plugins" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright 2009-, pulp documentation team..
-
-    </p>
+    <p>&#169; Copyright 2009-, pulp documentation team..</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

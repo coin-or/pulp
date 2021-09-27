@@ -1,77 +1,37 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
   <title>How to add a new solver to PuLP &mdash; PuLP 2.5.0 documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-
-  
-  
-
-  
-  
-
-  
-
-  
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-
-    
+    <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="PuLP Internal Documentation" href="../technical/index.html" />
     <link rel="prev" title="How to contribute to PuLP" href="contribute.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="../index.html" class="icon icon-home"> PuLP
-          
-
-          
           </a>
-
-          
-            
-            
               <div class="version">
                 2.5
               </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -79,18 +39,7 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../main/index.html">Main Topics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../CaseStudies/index.html">Case Studies</a></li>
@@ -113,83 +62,41 @@
 <li class="toctree-l1"><a class="reference internal" href="../plugins/index.html">Plugins</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">PuLP</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-        
           <li><a href="index.html">Developer Guides</a> &raquo;</li>
-        
       <li>How to add a new solver to PuLP</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-          
             <a href="../_sources/develop/add_solver.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="how-to-add-a-new-solver-to-pulp">
-<h1>How to add a new solver to PuLP<a class="headerlink" href="#how-to-add-a-new-solver-to-pulp" title="Permalink to this headline">¶</a></h1>
+             
+  <section id="how-to-add-a-new-solver-to-pulp">
+<h1>How to add a new solver to PuLP<a class="headerlink" href="#how-to-add-a-new-solver-to-pulp" title="Permalink to this headline"></a></h1>
 <p>Solver API are located in the directory <code class="docutils literal notranslate"><span class="pre">pulp/apis/</span></code> and are organized as one file per solver. Each file can contain more than one API (usually between 1 and 2).</p>
 <p>General information on configuring solvers and how pulp finds solvers installed in a system are in the <a class="reference internal" href="../guides/how_to_configure_solvers.html"><span class="doc">How to configure a solver in PuLP</span></a> section.</p>
-<div class="section" id="example">
-<h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
+<section id="example">
+<h2>Example<a class="headerlink" href="#example" title="Permalink to this headline"></a></h2>
 <p>The smallest api for a solver can be found in the file <a class="reference internal" href="../technical/solvers.html#pulp.apis.MIPCL_CMD" title="pulp.apis.mipcl_api.MIPCL_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.mipcl_api.MIPCL_CMD</span></code></a> located in <code class="docutils literal notranslate"><span class="pre">pulp/apis/mipcl_api.py</span></code>. We will use it as an example to list all the changes that need to be done.</p>
-</div>
-<div class="section" id="inheriting-base-classes">
-<h2>Inheriting base classes<a class="headerlink" href="#inheriting-base-classes" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="inheriting-base-classes">
+<h2>Inheriting base classes<a class="headerlink" href="#inheriting-base-classes" title="Permalink to this headline"></a></h2>
 <p>The solver needs to inherit one of two classes:  <a class="reference internal" href="../technical/solvers.html#pulp.apis.LpSolver" title="pulp.apis.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.LpSolver</span></code></a> or  <a class="reference internal" href="../technical/solvers.html#pulp.apis.LpSolver_CMD" title="pulp.apis.LpSolver_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.LpSolver_CMD</span></code></a> located in <code class="docutils literal notranslate"><span class="pre">pulp.apis.core.py</span></code>. The first one is a generic class. The second one is used for command-line based APIs to solvers. This is the one used for the example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">.core</span> <span class="kn">import</span> <span class="n">LpSolver_CMD</span><span class="p">,</span> <span class="n">subprocess</span><span class="p">,</span> <span class="n">PulpSolverError</span>
 <span class="kn">import</span> <span class="nn">os</span>
@@ -228,18 +135,18 @@
 <li><p>(optional) doing some other particular logic.</p></li>
 </ol>
 <p>In addition to these some minimal methods are expected to be implemented by the solver. We will cover each one.</p>
-</div>
-<div class="section" id="available-method">
-<h2><code class="docutils literal notranslate"><span class="pre">available</span></code> method<a class="headerlink" href="#available-method" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="available-method">
+<h2><code class="docutils literal notranslate"><span class="pre">available</span></code> method<a class="headerlink" href="#available-method" title="Permalink to this headline"></a></h2>
 <p>Required by <a class="reference internal" href="../technical/solvers.html#pulp.apis.LpSolver" title="pulp.apis.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.LpSolver</span></code></a> and <a class="reference internal" href="../technical/solvers.html#pulp.apis.LpSolver_CMD" title="pulp.apis.LpSolver_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.LpSolver_CMD</span></code></a>.</p>
 <p>Returns <code class="docutils literal notranslate"><span class="pre">True</span></code> if the solver is available and operational. <code class="docutils literal notranslate"><span class="pre">False</span></code> otherwise:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">available</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">executable</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="actualsolve-method">
-<h2><code class="docutils literal notranslate"><span class="pre">actualSolve</span></code> method<a class="headerlink" href="#actualsolve-method" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="actualsolve-method">
+<h2><code class="docutils literal notranslate"><span class="pre">actualSolve</span></code> method<a class="headerlink" href="#actualsolve-method" title="Permalink to this headline"></a></h2>
 <p>Required by <a class="reference internal" href="../technical/solvers.html#pulp.apis.LpSolver" title="pulp.apis.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.LpSolver</span></code></a> and <a class="reference internal" href="../technical/solvers.html#pulp.apis.LpSolver_CMD" title="pulp.apis.LpSolver_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.LpSolver_CMD</span></code></a>.</p>
 <p>Takes an <a class="reference internal" href="../technical/pulp.html#pulp.LpProblem" title="pulp.pulp.LpProblem"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.pulp.LpProblem</span></code></a> as argument, solves it, stores the solution, and returns a status code:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">actualSolve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lp</span><span class="p">):</span>
@@ -299,17 +206,17 @@
     <span class="k">return</span> <span class="n">status</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="defaultpath-method">
-<h2><code class="docutils literal notranslate"><span class="pre">defaultPath</span></code> method<a class="headerlink" href="#defaultpath-method" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="defaultpath-method">
+<h2><code class="docutils literal notranslate"><span class="pre">defaultPath</span></code> method<a class="headerlink" href="#defaultpath-method" title="Permalink to this headline"></a></h2>
 <p>Only required by <a class="reference internal" href="../technical/solvers.html#pulp.apis.LpSolver_CMD" title="pulp.apis.LpSolver_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.LpSolver_CMD</span></code></a>. It returns the default path of the command-line solver:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">defaultPath</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">executableExtension</span><span class="p">(</span><span class="s2">&quot;mps_mipcl&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="making-the-solver-available-to-pulp">
-<h2>Making the solver available to PuLP<a class="headerlink" href="#making-the-solver-available-to-pulp" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="making-the-solver-available-to-pulp">
+<h2>Making the solver available to PuLP<a class="headerlink" href="#making-the-solver-available-to-pulp" title="Permalink to this headline"></a></h2>
 <p>Modify the <code class="docutils literal notranslate"><span class="pre">pulp/apis/__init__.py</span></code> file to import your solver and add it to the <code class="docutils literal notranslate"><span class="pre">_all_solvers</span></code> list:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">.mipcl_api</span> <span class="kn">import</span> <span class="n">MIPCL_CMD</span>
 <span class="n">_all_solvers</span> <span class="o">=</span> <span class="p">[</span>
@@ -318,64 +225,47 @@
 <span class="p">]</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="including-the-solver-in-tests-suite">
-<h2>Including the solver in tests suite<a class="headerlink" href="#including-the-solver-in-tests-suite" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="including-the-solver-in-tests-suite">
+<h2>Including the solver in tests suite<a class="headerlink" href="#including-the-solver-in-tests-suite" title="Permalink to this headline"></a></h2>
 <p>Include the solver in PuLP’s test suite by adding a couple of lines corresponding to your solver to the <code class="docutils literal notranslate"><span class="pre">pulp/tests/test_pulp.py</span></code> file:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># (...)</span>
 <span class="k">class</span> <span class="nc">MIPCL_CMDTest</span><span class="p">(</span><span class="n">BaseSolverTest</span><span class="o">.</span><span class="n">PuLPTest</span><span class="p">):</span>
     <span class="n">solveInst</span> <span class="o">=</span> <span class="n">MIPCL_CMD</span>
 </pre></div>
 </div>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="../technical/index.html" class="btn btn-neutral float-right" title="PuLP Internal Documentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="contribute.html" class="btn btn-neutral float-left" title="How to contribute to PuLP" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../technical/index.html" class="btn btn-neutral float-right" title="PuLP Internal Documentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright 2009-, pulp documentation team..
-
-    </p>
+    <p>&#169; Copyright 2009-, pulp documentation team..</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

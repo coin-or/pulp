@@ -1,77 +1,37 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
   <title>Basic Python Coding &mdash; PuLP 2.5.0 documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-
-  
-  
-
-  
-  
-
-  
-
-  
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-
-    
+    <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Installing PuLP at Home" href="installing_pulp_at_home.html" />
     <link rel="prev" title="Optimisation Concepts" href="optimisation_concepts.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="../index.html" class="icon icon-home"> PuLP
-          
-
-          
           </a>
-
-          
-            
-            
               <div class="version">
                 2.5
               </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -79,18 +39,7 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Main Topics</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="the_optimisation_process.html">The Optimisation Process</a></li>
@@ -131,75 +80,33 @@
 <li class="toctree-l1"><a class="reference internal" href="../plugins/index.html">Plugins</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">PuLP</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-        
           <li><a href="index.html">Main Topics</a> &raquo;</li>
-        
       <li>Basic Python Coding</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-          
             <a href="../_sources/main/basic_python_coding.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="basic-python-coding">
-<h1>Basic Python Coding<a class="headerlink" href="#basic-python-coding" title="Permalink to this headline">¶</a></h1>
+             
+  <section id="basic-python-coding">
+<h1>Basic Python Coding<a class="headerlink" href="#basic-python-coding" title="Permalink to this headline"></a></h1>
 <p>In this course you will learn basic programming in Python, but there is also
 excellent Python Language reference material available on the internet freely.
 You can download the book <a class="reference external" href="http://www.diveintopython.org/">Dive Into Python</a>
@@ -213,10 +120,10 @@ to Python on the Python Website. Follow the links to either:</p>
 below assume a knowledge of fundamental programming principles and mainly
 focus on Syntax specific to programming in Python.</p>
 <p>Note: &gt;&gt;&gt; represents a Python command line prompt.</p>
-<div class="section" id="loops-in-python">
-<h2>Loops in Python<a class="headerlink" href="#loops-in-python" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="for-loop">
-<h3>for Loop<a class="headerlink" href="#for-loop" title="Permalink to this headline">¶</a></h3>
+<section id="loops-in-python">
+<h2>Loops in Python<a class="headerlink" href="#loops-in-python" title="Permalink to this headline"></a></h2>
+<section id="for-loop">
+<h3>for Loop<a class="headerlink" href="#for-loop" title="Permalink to this headline"></a></h3>
 <p>The general format is:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">variable</span> <span class="ow">in</span> <span class="n">sequence</span><span class="p">:</span>
     <span class="c1">#some commands</span>
@@ -243,9 +150,9 @@ the output</p>
 <span class="n">No</span> <span class="n">longer</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">loop</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="while-loop">
-<h3>while Loop<a class="headerlink" href="#while-loop" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="while-loop">
+<h3>while Loop<a class="headerlink" href="#while-loop" title="Permalink to this headline"></a></h3>
 <p>These are similar to for loops except they continue to loop until the specified
 condition is no longer true. A while loop is not told to work through any
 specific sequence.</p>
@@ -260,9 +167,9 @@ specific sequence.</p>
 <p>For this specific simple while loop, it would have been better to do as a for
 loop but it demonstrates the syntax. while loops are useful if the number of
 iterations before the loop needs to end, is unknown.</p>
-</div>
-<div class="section" id="the-if-statement">
-<h3>The if statement<a class="headerlink" href="#the-if-statement" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="the-if-statement">
+<h3>The if statement<a class="headerlink" href="#the-if-statement" title="Permalink to this headline"></a></h3>
 <p>This is performed in much the same way as the loops above. The key identifier is
 the colon : to start the statements and the end of indentation to end it.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">testlist</span><span class="p">:</span>
@@ -275,12 +182,12 @@ the colon : to start the statements and the end of indentation to end it.</p>
 </div>
 <p>Here it is shown that “elif” (else if) and “else” can also be used after an if
 statement. “else” can in fact be used after both the loops in the same way.</p>
-</div>
-</div>
-<div class="section" id="array-types-in-python">
-<h2>Array types in python<a class="headerlink" href="#array-types-in-python" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="lists">
-<h3>Lists<a class="headerlink" href="#lists" title="Permalink to this headline">¶</a></h3>
+</section>
+</section>
+<section id="array-types-in-python">
+<h2>Array types in python<a class="headerlink" href="#array-types-in-python" title="Permalink to this headline"></a></h2>
+<section id="lists">
+<h3>Lists<a class="headerlink" href="#lists" title="Permalink to this headline"></a></h3>
 <p>A list is simply a sequence of variables grouped together. The range function is
 often used to create lists of integers, with the general format of
 range(start,stop,step). The default for start is 0 and the default for step is
@@ -300,9 +207,9 @@ print statement will display a string/variable/list/… to the user</p>
 <span class="go">5</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="tuples">
-<h3>Tuples<a class="headerlink" href="#tuples" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="tuples">
+<h3>Tuples<a class="headerlink" href="#tuples" title="Permalink to this headline"></a></h3>
 <p>Tuples are basically the same as lists, but with the important difference that
 they cannot be modified once they have been created. They are assigned by:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span><span class="s2">&quot;string&quot;</span><span class="p">,[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],(</span><span class="s2">&quot;j&quot;</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="s2">&quot;o&quot;</span><span class="p">),</span><span class="mi">14</span><span class="p">)</span>
@@ -317,9 +224,9 @@ as element “zero”. Accessing this data is done by:</p>
 <span class="go">&quot;string&quot;</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="dictionaries">
-<h3>Dictionaries<a class="headerlink" href="#dictionaries" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="dictionaries">
+<h3>Dictionaries<a class="headerlink" href="#dictionaries" title="Permalink to this headline"></a></h3>
 <p>A Dictionary is a list of reference keys each with associated data, whereby the
 order does not affect the operation of the dictionary at all. With dictionaries,
 the keys are not consecutive integers (unlike lists), and instead could be
@@ -376,9 +283,9 @@ with</p>
 <p>). Then the dictionary is called with this key, and
 it returns the data stored under that key name. These types of for loops using
 dictionaries will be highly relevant in using PuLP to model LPs in this course.</p>
-</div>
-<div class="section" id="list-tuple-dictionary-syntax-note">
-<h3>List/Tuple/Dictionary Syntax Note<a class="headerlink" href="#list-tuple-dictionary-syntax-note" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="list-tuple-dictionary-syntax-note">
+<h3>List/Tuple/Dictionary Syntax Note<a class="headerlink" href="#list-tuple-dictionary-syntax-note" title="Permalink to this headline"></a></h3>
 <p>Note that the creation of a:</p>
 <ul class="simple">
 <li><p>list is done with square brackets [];</p></li>
@@ -389,9 +296,9 @@ dictionaries will be highly relevant in using PuLP to model LPs in this course.<
 the operation is always performed with square brackets (i.e a[3]?). If a was a
 list or tuple, this would return the fourth element. If a was a dictionary it
 would return the data stored with a reference key of 3.</p>
-</div>
-<div class="section" id="list-comprehensions">
-<h3>List Comprehensions<a class="headerlink" href="#list-comprehensions" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="list-comprehensions">
+<h3>List Comprehensions<a class="headerlink" href="#list-comprehensions" title="Permalink to this headline"></a></h3>
 <p>Python supports List Comprehensions which are a fast and concise way to create
 lists without using multiple lines. They are easily understandable when simple,
 and you will be using them in your code for this course.</p>
@@ -431,18 +338,18 @@ lists can also be used in the creation of new lists below:</p>
 </ol>
 <p><a class="reference external" href="http://www.secnetix.de/olli/Python/list_comprehensions.hawk">More List Comprehensions Examples</a></p>
 <p><a class="reference external" href="http://en.wikipedia.org/wiki/Perfect_numbers">Wikipedia: Perfect Numbers</a>.</p>
-</div>
-</div>
-<div class="section" id="other-important-language-features">
-<h2>Other important language features<a class="headerlink" href="#other-important-language-features" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="commenting-in-python">
-<h3>Commenting in Python<a class="headerlink" href="#commenting-in-python" title="Permalink to this headline">¶</a></h3>
+</section>
+</section>
+<section id="other-important-language-features">
+<h2>Other important language features<a class="headerlink" href="#other-important-language-features" title="Permalink to this headline"></a></h2>
+<section id="commenting-in-python">
+<h3>Commenting in Python<a class="headerlink" href="#commenting-in-python" title="Permalink to this headline"></a></h3>
 <p>Commenting at the top of a file is done using “”” to start and to end the
 comment section. Commenting done throughout the code is done using the hash
 # symbol at the start of the line.</p>
-</div>
-<div class="section" id="import-statement">
-<h3>Import Statement<a class="headerlink" href="#import-statement" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="import-statement">
+<h3>Import Statement<a class="headerlink" href="#import-statement" title="Permalink to this headline"></a></h3>
 <p>At the top of all your Python coding that you intend to use PuLP to model, you
 will need the import statement. This statement makes the contents of another
 module (file of program code) available in the module you are currently writing
@@ -454,9 +361,9 @@ become usable. In this course you will use:</p>
 <p>The asterisk represents that you are importing all names from the module of
 pulp. Calling a function defined in pulp.py now can be done as if they were
 defined in your own module.</p>
-</div>
-<div class="section" id="functions">
-<h3>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Permalink to this headline"></a></h3>
 <p>Functions in Python are defined by: (def is short for define)</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="n">inputparameter1</span><span class="p">,</span> <span class="n">inputparameter2</span><span class="p">,</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span><span class="p">):</span>
     <span class="c1">#function body</span>
@@ -482,9 +389,9 @@ value for head is ‘begin’, but instead the input of ‘newbegin’ was used.
 default value for tail of ‘end’ was used. And the input value of endmessage was
 used. Note that end_message must be specified as a key word argument as no
 value is given for tail</p>
-</div>
-<div class="section" id="classes">
-<h3>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="classes">
+<h3>Classes<a class="headerlink" href="#classes" title="Permalink to this headline"></a></h3>
 <p>To demonstrate how classes work in Python, look at the following class structure.</p>
 <p>The class name is Pattern, and it contains several class variables which are
 relevant to any instance of the Pattern class (i.e a Pattern). The functions are</p>
@@ -530,56 +437,39 @@ self must be in the input brackets.</p>
 </pre></div>
 </div>
 <p>The self in the function definition is an implied input</p>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="installing_pulp_at_home.html" class="btn btn-neutral float-right" title="Installing PuLP at Home" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="optimisation_concepts.html" class="btn btn-neutral float-left" title="Optimisation Concepts" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="installing_pulp_at_home.html" class="btn btn-neutral float-right" title="Installing PuLP at Home" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright 2009-, pulp documentation team..
-
-    </p>
+    <p>&#169; Copyright 2009-, pulp documentation team..</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

@@ -1,77 +1,37 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
   <title>How to debug most errors during solving &mdash; PuLP 2.5.0 documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-
-  
-  
-
-  
-  
-
-  
-
-  
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-
-    
+    <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Developer Guides" href="../develop/index.html" />
     <link rel="prev" title="How to import and export models in PuLP" href="how_to_export_models.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="../index.html" class="icon icon-home"> PuLP
-          
-
-          
           </a>
-
-          
-            
-            
               <div class="version">
                 2.5
               </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -79,18 +39,7 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../main/index.html">Main Topics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../CaseStudies/index.html">Case Studies</a></li>
@@ -113,78 +62,36 @@
 <li class="toctree-l1"><a class="reference internal" href="../plugins/index.html">Plugins</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">PuLP</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-        
           <li><a href="index.html">User Guides</a> &raquo;</li>
-        
       <li>How to debug most errors during solving</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-          
             <a href="../_sources/guides/how_to_debug.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="how-to-debug-most-errors-during-solving">
-<h1>How to debug most errors during solving<a class="headerlink" href="#how-to-debug-most-errors-during-solving" title="Permalink to this headline">¶</a></h1>
+             
+  <section id="how-to-debug-most-errors-during-solving">
+<h1>How to debug most errors during solving<a class="headerlink" href="#how-to-debug-most-errors-during-solving" title="Permalink to this headline"></a></h1>
 <p>Here I will put all the main questions and advice from years of solving and helping other solve problems with PuLP. Additional answers can be added via a PR.</p>
-<div class="section" id="giving-feedback-and-asking-for-help">
-<h2>Giving feedback and asking for help<a class="headerlink" href="#giving-feedback-and-asking-for-help" title="Permalink to this headline">¶</a></h2>
+<section id="giving-feedback-and-asking-for-help">
+<h2>Giving feedback and asking for help<a class="headerlink" href="#giving-feedback-and-asking-for-help" title="Permalink to this headline"></a></h2>
 <p>The two ways one can ask for help or report a problem are:</p>
 <ol class="arabic simple">
 <li><p>The PuLP Github Discussions page: <a class="reference external" href="https://github.com/coin-or/pulp/discussions">https://github.com/coin-or/pulp/discussions</a></p></li>
@@ -210,9 +117,9 @@ General pointers (that are nonetheless, very important):</p>
 <li><p>What operating system was used.</p></li>
 <li><p>The version of the solver being used (e.g., CPLEX 12.8).</p></li>
 </ol>
-</div>
-<div class="section" id="error-while-trying-to-execute-cbc-exe">
-<h2>Error while trying to execute cbc.exe<a class="headerlink" href="#error-while-trying-to-execute-cbc-exe" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="error-while-trying-to-execute-cbc-exe">
+<h2>Error while trying to execute cbc.exe<a class="headerlink" href="#error-while-trying-to-execute-cbc-exe" title="Permalink to this headline"></a></h2>
 <p>The complete message is usually something like <cite>pulp.solvers.PulpSolverError: Pulp: Error while trying to execute PATH_TO_CBC/cbc.exe</cite>.</p>
 <p>The default solver is CBC and is run via the command line.</p>
 <ol class="arabic simple">
@@ -231,18 +138,18 @@ General pointers (that are nonetheless, very important):</p>
 <ol class="arabic simple" start="7">
 <li><p>Finally, sometimes you may want to try PuLP with a more recent version of CBC. To do this, download the CBC binary and pass the path to it to PuLP.</p></li>
 </ol>
-</div>
-<div class="section" id="infeasible-problems">
-<h2>Infeasible problems<a class="headerlink" href="#infeasible-problems" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="infeasible-problems">
+<h2>Infeasible problems<a class="headerlink" href="#infeasible-problems" title="Permalink to this headline"></a></h2>
 <ol class="arabic simple">
 <li><p>Add slack variables. As described <a class="reference external" href="https://stackoverflow.com/a/62771338/6508131">in this SO post</a>.</p></li>
 <li><p>Take out constraints and see if the problem becomes feasible.</p></li>
 <li><p>Generate lp file <a class="reference internal" href="../technical/pulp.html#pulp.LpProblem.writeLP" title="pulp.LpProblem.writeLP"><code class="xref py py-meth docutils literal notranslate"><span class="pre">writeLP()</span></code></a> for the problem and open it with a text editor to see if the constraints are correctly built.</p></li>
 <li><p>Check the solver logs to additional message from the solver regarding the constraint or variable involved. The log can be seen by giving <cite>msg=</cite> as argument or exported with the <cite>logPath</cite> argument in some cases.</p></li>
 </ol>
-</div>
-<div class="section" id="jupyter-notebooks-anaconda-conda-issues">
-<h2>Jupyter notebooks / anaconda / conda issues<a class="headerlink" href="#jupyter-notebooks-anaconda-conda-issues" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="jupyter-notebooks-anaconda-conda-issues">
+<h2>Jupyter notebooks / anaconda / conda issues<a class="headerlink" href="#jupyter-notebooks-anaconda-conda-issues" title="Permalink to this headline"></a></h2>
 <p>There have been several issues of the default solver (CBC) not working with an error like:</p>
 <p><cite>pulp.solvers.PulpSolverError: Pulp: Error while trying to execute PATH_TO_CBC/cbc.exe</cite></p>
 <p>or</p>
@@ -257,55 +164,38 @@ General pointers (that are nonetheless, very important):</p>
 <li><p><a class="reference external" href="https://github.com/coin-or/pulp/issues/410">https://github.com/coin-or/pulp/issues/410</a></p></li>
 <li><p><a class="reference external" href="https://github.com/coin-or/pulp/discussions/384">https://github.com/coin-or/pulp/discussions/384</a></p></li>
 </ul>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="../develop/index.html" class="btn btn-neutral float-right" title="Developer Guides" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="how_to_export_models.html" class="btn btn-neutral float-left" title="How to import and export models in PuLP" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../develop/index.html" class="btn btn-neutral float-right" title="Developer Guides" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright 2009-, pulp documentation team..
-
-    </p>
+    <p>&#169; Copyright 2009-, pulp documentation team..</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>
