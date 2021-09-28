@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>How to contribute to PuLP &mdash; PuLP 2.5.0 documentation</title>
+  <title>How to contribute to PuLP &mdash; PuLP 2.5.1 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -49,9 +49,10 @@
 <li class="toctree-l3"><a class="reference internal" href="#forking-pulp">Forking PuLP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#cloning-the-project">Cloning the project</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#installing-from-source">Installing from source</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#building-the-documentation">Building the documentation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#running-tests">Running tests</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#creating-a-test">Creating a test</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#applying-the-black-linter-formatter">Applying the black linter / formatter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#building-the-documentation">Building the documentation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#making-a-pull-request">Making a Pull Request</a></li>
 </ul>
 </li>
@@ -89,8 +90,20 @@
              
   <section id="how-to-contribute-to-pulp">
 <h1>How to contribute to PuLP<a class="headerlink" href="#how-to-contribute-to-pulp" title="Permalink to this headline"></a></h1>
-<p>This is a minimalistic guid to setup pulp and help you modify the code and send a PR.
-On top of having python installed, we will be using git and the command line. Also, we assume you have a github account and know how to fork a project.
+<p>This is a minimalistic guide to setup pulp and help you modify the code and send a PR.</p>
+<p>The quick summary is:</p>
+<ol class="arabic simple">
+<li><p>Fork the repo.</p></li>
+<li><p>Clone your forked repo.</p></li>
+<li><p>Install dependencies.</p></li>
+<li><p>Make your changes.</p></li>
+<li><p>Create a test for your changes if needed.</p></li>
+<li><p>Make sure all the tests pass.</p></li>
+<li><p>Lint your code with black.</p></li>
+<li><p>Ensure the docs are accurate.</p></li>
+<li><p>Submit a Pull Request.</p></li>
+</ol>
+<p>On top of having python installed, we will be using git and the command line. Also, we assume you have a github account and know how to fork a project.
 We will use plain git through the command line but feel free to use the git client of your choice.</p>
 <section id="forking-pulp">
 <h2>Forking PuLP<a class="headerlink" href="#forking-pulp" title="Permalink to this headline"></a></h2>
@@ -117,17 +130,6 @@ We will use plain git through the command line but feel free to use the git clie
 </div>
 <p>This will link the pulp version on your virtual environment with the source files in the pulp directory. You can now use pulp from that virtual environment and you will be using the files in the pulp directory. We assume you have run this successfully for all further steps.</p>
 </section>
-<section id="building-the-documentation">
-<h2>Building the documentation<a class="headerlink" href="#building-the-documentation" title="Permalink to this headline"></a></h2>
-<p>The documentation is based in <a class="reference external" href="https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html">Sphinx and reStructuredText</a>.</p>
-<p>To build the documentation:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">pulp</span><span class="o">/</span><span class="n">doc</span>
-<span class="n">make</span> <span class="n">html</span>
-</pre></div>
-</div>
-<p>A folder named html will be created inside the <code class="docutils literal notranslate"><span class="pre">build/</span></code> directory. The home page for the documentation is <code class="docutils literal notranslate"><span class="pre">doc/build/html/index.html</span></code> which can be opened in a browser.
-You only need to execute <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">html</span></code> to rebuild the docs each time.</p>
-</section>
 <section id="running-tests">
 <h2>Running tests<a class="headerlink" href="#running-tests" title="Permalink to this headline"></a></h2>
 <p>To run tests of pulp you need to run:</p>
@@ -140,6 +142,27 @@ You only need to execute <code class="docutils literal notranslate"><span class=
 <section id="creating-a-test">
 <h2>Creating a test<a class="headerlink" href="#creating-a-test" title="Permalink to this headline"></a></h2>
 <p>When you fix an issue in pulp or add a functionality, you should add a test to the repository. For this you should go to the file <cite>tests/test_pulp.py</cite> and add a new method that tests your change.</p>
+</section>
+<section id="applying-the-black-linter-formatter">
+<h2>Applying the black linter / formatter<a class="headerlink" href="#applying-the-black-linter-formatter" title="Permalink to this headline"></a></h2>
+<p>We use <a class="reference external" href="https://black.readthedocs.io/en/stable/">the black formatter</a>. Before sending your changes, be sure to execute the black package to style the resulting files.
+The quickest way to do this is to run:</p>
+<blockquote>
+<div><p>python -m black pulp</p>
+</div></blockquote>
+<p>And it will do the changes directly on the files.</p>
+<p>The easiest way is to integrate it inside your IDE so it runs every time you save a file. Learn how to do that <a class="reference external" href="https://black.readthedocs.io/en/stable/integrations/editors.html">in the black integration docs</a>.</p>
+</section>
+<section id="building-the-documentation">
+<h2>Building the documentation<a class="headerlink" href="#building-the-documentation" title="Permalink to this headline"></a></h2>
+<p>The documentation is based in <a class="reference external" href="https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html">Sphinx and reStructuredText</a>.</p>
+<p>To build the documentation:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">pulp</span><span class="o">/</span><span class="n">doc</span>
+<span class="n">make</span> <span class="n">html</span>
+</pre></div>
+</div>
+<p>A folder named html will be created inside the <code class="docutils literal notranslate"><span class="pre">build/</span></code> directory. The home page for the documentation is <code class="docutils literal notranslate"><span class="pre">doc/build/html/index.html</span></code> which can be opened in a browser.
+You only need to execute <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">html</span></code> to rebuild the docs each time.</p>
 </section>
 <section id="making-a-pull-request">
 <h2>Making a Pull Request<a class="headerlink" href="#making-a-pull-request" title="Permalink to this headline"></a></h2>
