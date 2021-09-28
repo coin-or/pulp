@@ -1148,7 +1148,7 @@ class BaseSolverTest:
         def test_measuring_solving_time(self):
             print("\t Testing measuring optimization time")
 
-            time_limit = 5
+            time_limit = 10
             solver_settings = dict(
                 PULP_CBC_CMD=30, COIN_CMD=30, SCIP_CMD=30, GUROBI_CMD=50, CPLEX_CMD=50
             )
@@ -1156,22 +1156,37 @@ class BaseSolverTest:
             if bins is None:
                 # not all solvers have timeLimit support
                 return
-            prob = create_bin_packing_problem(bins=bins)
+            prob = create_bin_packing_problem(bins=bins, seed=99)
             self.solver.timeLimit = time_limit
             prob.solve(self.solver)
-            delta = 2
+            delta = 4
             reported_time = prob.solutionTime
             if self.solver.name in ["PULP_CBC_CMD", "COIN_CMD"]:
-                # CBC uses cpu-time for timeLimit
-                # also: CBC is less exact with the timeLimit
+                # CBC is less exact with the timeLimit
                 reported_time = prob.solutionCpuTime
-                delta = 4
+                delta = 5
 
             self.assertAlmostEqual(
                 reported_time,
                 time_limit,
                 delta=delta,
                 msg="optimization time for solver {}".format(self.solver.name),
+            )
+
+        def test_invalid_var_names(self):
+            prob = LpProblem(self._testMethodName, const.LpMinimize)
+            x = LpVariable("a")
+            w = LpVariable("b")
+            y = LpVariable("g", -1, 1)
+            z = LpVariable("End")
+            prob += x + 4 * y + 9 * z, "obj"
+            prob += x + y <= 5, "c1"
+            prob += x + z >= 10, "c2"
+            prob += -y + z == 7, "c3"
+            prob += w >= 0, "c4"
+            print("\t Testing invalid var names")
+            pulpTestCheck(
+                prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0}
             )
 
 
@@ -1237,22 +1252,6 @@ class MOSEKTest(BaseSolverTest.PuLPTest):
 
 class SCIP_CMDTest(BaseSolverTest.PuLPTest):
     solveInst = SCIP_CMD
-
-    def test_invalid_var_names(self):
-        prob = LpProblem(self._testMethodName, const.LpMinimize)
-        x = LpVariable("a")
-        w = LpVariable("b")
-        y = LpVariable("g", -1, 1)
-        z = LpVariable("End")
-        prob += x + 4 * y + 9 * z, "obj"
-        prob += x + y <= 5, "c1"
-        prob += x + z >= 10, "c2"
-        prob += -y + z == 7, "c3"
-        prob += w >= 0, "c4"
-        print("\t Testing invalid var names")
-        pulpTestCheck(
-            prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0}
-        )
 
 
 def pulpTestCheck(
