@@ -1148,7 +1148,7 @@ class BaseSolverTest:
         def test_measuring_solving_time(self):
             print("\t Testing measuring optimization time")
 
-            time_limit = 7
+            time_limit = 10
             solver_settings = dict(
                 PULP_CBC_CMD=30, COIN_CMD=30, SCIP_CMD=30, GUROBI_CMD=50, CPLEX_CMD=50
             )
@@ -1156,15 +1156,15 @@ class BaseSolverTest:
             if bins is None:
                 # not all solvers have timeLimit support
                 return
-            prob = create_bin_packing_problem(bins=bins)
+            prob = create_bin_packing_problem(bins=bins, seed=99)
             self.solver.timeLimit = time_limit
             prob.solve(self.solver)
-            delta = 3
+            delta = 4
             reported_time = prob.solutionTime
             if self.solver.name in ["PULP_CBC_CMD", "COIN_CMD"]:
                 # CBC is less exact with the timeLimit
                 reported_time = prob.solutionCpuTime
-                delta = 4
+                delta = 5
 
             self.assertAlmostEqual(
                 reported_time,
