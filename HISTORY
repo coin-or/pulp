@@ -7,6 +7,10 @@
     fixed bugs
     added HiGHS solver
     added pysmps dependency for mps parsing
+2.5.1 2021-09-28
+    updated docs
+    fixed minor issues
+    cbc now uses wall-time for timeLimit
 2.5.0 2021-08-11
     measuring wall time and cpu time
     unittests of timeLimit
