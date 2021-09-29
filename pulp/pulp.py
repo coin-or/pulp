@@ -315,20 +315,39 @@ class LpVariable(LpElement):
     def matrix(
         cls,
         name,
-        indexs,
+        indices=None,  # required param. enforced within function for backwards compatibility
         lowBound=None,
         upBound=None,
         cat=const.LpContinuous,
         indexStart=[],
+        indexs=None,
     ):
-        if not isinstance(indexs, tuple):
-            indexs = (indexs,)
-        if "%" not in name:
-            name += "_%s" * len(indexs)
 
-        index = indexs[0]
-        indexs = indexs[1:]
-        if len(indexs) == 0:
+        # Backwards Compatiblity with Deprecation Warning for indexs
+        if indices is not None and indexs is not None:
+            raise TypeError(
+                "Both 'indices' and 'indexs' provided to LpVariable.matrix.  Use one only, preferably 'indices'."
+            )
+        elif indices is not None:
+            pass
+        elif indexs is not None:
+            warnings.warn(
+                "'indexs' is deprecated; use 'indices'.", DeprecationWarning, 2
+            )
+            indices = indexs
+        else:
+            raise TypeError(
+                "LpVariable.matrix missing both 'indices' and deprecated 'indexs' arguments."
+            )
+
+        if not isinstance(indices, tuple):
+            indices = (indices,)
+        if "%" not in name:
+            name += "_%s" * len(indices)
+
+        index = indices[0]
+        indices = indices[1:]
+        if len(indices) == 0:
             return [
                 LpVariable(name % tuple(indexStart + [i]), lowBound, upBound, cat)
                 for i in index
@@ -336,7 +355,7 @@ class LpVariable(LpElement):
         else:
             return [
                 LpVariable.matrix(
-                    name, indexs, lowBound, upBound, cat, indexStart + [i]
+                    name, indices, lowBound, upBound, cat, indexStart + [i]
                 )
                 for i in index
             ]
@@ -345,17 +364,18 @@ class LpVariable(LpElement):
     def dicts(
         cls,
         name,
-        indexs,
+        indices=None,  # required param. enforced within function for backwards compatibility
         lowBound=None,
         upBound=None,
         cat=const.LpContinuous,
         indexStart=[],
+        indexs=None,
     ):
         """
         This function creates a dictionary of :py:class:`LpVariable` with the specified associated parameters.
 
         :param name: The prefix to the name of each LP variable created
-        :param indexs: A list of strings of the keys to the dictionary of LP
+        :param indices: A list of strings of the keys to the dictionary of LP
             variables, and the main part of the variable name itself
         :param lowBound: The lower bound on these variables' range. Default is
             negative infinity
@@ -363,18 +383,37 @@ class LpVariable(LpElement):
             positive infinity
         :param cat: The category these variables are in, Integer or
             Continuous(default)
+        :param indexs: (deprecated) Replaced with `indices` parameter
 
         :return: A dictionary of :py:class:`LpVariable`
         """
-        if not isinstance(indexs, tuple):
-            indexs = (indexs,)
-        if "%" not in name:
-            name += "_%s" * len(indexs)
 
-        index = indexs[0]
-        indexs = indexs[1:]
+        # Backwards Compatiblity with Deprecation Warning for indexs
+        if indices is not None and indexs is not None:
+            raise TypeError(
+                "Both 'indices' and 'indexs' provided to LpVariable.dicts.  Use one only, preferably 'indices'."
+            )
+        elif indices is not None:
+            pass
+        elif indexs is not None:
+            warnings.warn(
+                "'indexs' is deprecated; use 'indices'.", DeprecationWarning, 2
+            )
+            indices = indexs
+        else:
+            raise TypeError(
+                "LpVariable.dicts missing both 'indices' and deprecated 'indexs' arguments."
+            )
+
+        if not isinstance(indices, tuple):
+            indices = (indices,)
+        if "%" not in name:
+            name += "_%s" * len(indices)
+
+        index = indices[0]
+        indices = indices[1:]
         d = {}
-        if len(indexs) == 0:
+        if len(indices) == 0:
             for i in index:
                 d[i] = LpVariable(
                     name % tuple(indexStart + [str(i)]), lowBound, upBound, cat
@@ -382,20 +421,20 @@ class LpVariable(LpElement):
         else:
             for i in index:
                 d[i] = LpVariable.dicts(
-                    name, indexs, lowBound, upBound, cat, indexStart + [i]
+                    name, indices, lowBound, upBound, cat, indexStart + [i]
                 )
         return d
 
     @classmethod
-    def dict(cls, name, indexs, lowBound=None, upBound=None, cat=const.LpContinuous):
-        if not isinstance(indexs, tuple):
-            indexs = (indexs,)
+    def dict(cls, name, indices, lowBound=None, upBound=None, cat=const.LpContinuous):
+        if not isinstance(indices, tuple):
+            indices = (indices,)
         if "%" not in name:
-            name += "_%s" * len(indexs)
+            name += "_%s" * len(indices)
 
-        lists = indexs
+        lists = indices
 
-        if len(indexs) > 1:
+        if len(indices) > 1:
             # Cartesian product
             res = []
             while len(lists):
@@ -412,8 +451,8 @@ class LpVariable(LpElement):
                     res = [[f] for f in first]
                 lists = lists[:-1]
             index = [tuple(r) for r in res]
-        elif len(indexs) == 1:
-            index = indexs[0]
+        elif len(indices) == 1:
+            index = indices[0]
         else:
             return {}
 
