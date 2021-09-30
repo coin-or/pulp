@@ -1275,11 +1275,12 @@ class BaseSolverTest:
                     name="test",
                 )
 
-            with self.assertWarns(DeprecationWarning):
-                assign_vars_matrix = LpVariable.dicts(
-                    name="test",
-                    indexs=(customers, agents),
-                )
+            # Not supported in 2.7.  Introduced to unittest in 3.2
+            # with self.assertWarns(DeprecationWarning):
+            #    assign_vars_matrix = LpVariable.dicts(
+            #        name="test",
+            #        indexs=(customers, agents),
+            #    )
 
 
 class PULP_CBC_CMDTest(BaseSolverTest.PuLPTest):
