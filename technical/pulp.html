@@ -336,13 +336,13 @@ the LpConstraintVars in e</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.LpVariable.dicts">
-<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">dicts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indexs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lowBound</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upBound</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Continuous'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indexStart</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable.dicts" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">dicts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lowBound</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upBound</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Continuous'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indexStart</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indexs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable.dicts" title="Permalink to this definition"></a></dt>
 <dd><p>This function creates a dictionary of <a class="reference internal" href="#pulp.LpVariable" title="pulp.LpVariable"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpVariable</span></code></a> with the specified associated parameters.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> – The prefix to the name of each LP variable created</p></li>
-<li><p><strong>indexs</strong> – A list of strings of the keys to the dictionary of LP
+<li><p><strong>indices</strong> – A list of strings of the keys to the dictionary of LP
 variables, and the main part of the variable name itself</p></li>
 <li><p><strong>lowBound</strong> – The lower bound on these variables’ range. Default is
 negative infinity</p></li>
@@ -350,6 +350,7 @@ negative infinity</p></li>
 positive infinity</p></li>
 <li><p><strong>cat</strong> – The category these variables are in, Integer or
 Continuous(default)</p></li>
+<li><p><strong>indexs</strong> – (deprecated) Replaced with <cite>indices</cite> parameter</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
