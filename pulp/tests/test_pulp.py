@@ -1189,6 +1189,99 @@ class BaseSolverTest:
                 prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0}
             )
 
+        def test_LpVariable_indexs_param(self):
+            """
+            Test that 'indexs' param continues to work
+            """
+
+            prob = LpProblem(self._testMethodName, const.LpMinimize)
+            customers = [1, 2, 3]
+            agents = ["A", "B", "C"]
+
+            print("\t Testing 'indexs' param continues to work for LpVariable.dicts")
+            # explicit param creates a dict of type LpVariable
+            assign_vars = LpVariable.dicts(name="test", indexs=(customers, agents))
+            for k, v in assign_vars.items():
+                for a, b in v.items():
+                    self.assertIsInstance(b, LpVariable)
+
+            # param by position creates a dict of type LpVariable
+            assign_vars = LpVariable.dicts("test", (customers, agents))
+            for k, v in assign_vars.items():
+                for a, b in v.items():
+                    self.assertIsInstance(b, LpVariable)
+
+            print("\t Testing 'indexs' param continues to work for LpVariable.matrix")
+            # explicit param creates list of list of LpVariable
+            assign_vars_matrix = LpVariable.matrix(
+                name="test", indexs=(customers, agents)
+            )
+            for a in assign_vars_matrix:
+                for b in a:
+                    self.assertIsInstance(b, LpVariable)
+
+            # param by position creates list of list of LpVariable
+            assign_vars_matrix = LpVariable.matrix("test", (customers, agents))
+            for a in assign_vars_matrix:
+                for b in a:
+                    self.assertIsInstance(b, LpVariable)
+
+        def test_LpVariable_indices_param(self):
+            """
+            Test that 'indices' argument works
+            """
+            prob = LpProblem(self._testMethodName, const.LpMinimize)
+            customers = [1, 2, 3]
+            agents = ["A", "B", "C"]
+
+            print("\t Testing 'indices' argument works in LpVariable.dicts")
+            # explicit param creates a dict of type LpVariable
+            assign_vars = LpVariable.dicts(name="test", indices=(customers, agents))
+            for k, v in assign_vars.items():
+                for a, b in v.items():
+                    self.assertIsInstance(b, LpVariable)
+
+            print("\t Testing 'indices' param continues to work for LpVariable.matrix")
+            # explicit param creates list of list of LpVariable
+            assign_vars_matrix = LpVariable.matrix(
+                name="test", indices=(customers, agents)
+            )
+            for a in assign_vars_matrix:
+                for b in a:
+                    self.assertIsInstance(b, LpVariable)
+
+        def test_LpVariable_indexs_deprecation_logic(self):
+            """
+            Test that logic put in place for deprecation handling of indexs works
+            """
+            print(
+                "\t Test that logic put in place for deprecation handling of indexs works"
+            )
+            prob = LpProblem(self._testMethodName, const.LpMinimize)
+            customers = [1, 2, 3]
+            agents = ["A", "B", "C"]
+
+            with self.assertRaises(TypeError):
+                # both variables
+                assign_vars_matrix = LpVariable.dicts(
+                    name="test",
+                    indices=(customers, agents),
+                    indexs=(customers, agents),
+                )
+
+            with self.assertRaises(TypeError):
+                # no variables
+                assign_vars_matrix = LpVariable.dicts(
+                    name="test",
+                )
+
+            # Not supported in 2.7.  Introduced to unittest in 3.2
+            # with self.assertWarns(DeprecationWarning):
+            #    assign_vars_matrix = LpVariable.dicts(
+            #        name="test",
+            #        indexs=(customers, agents),
+            #    )
+
 
 class PULP_CBC_CMDTest(BaseSolverTest.PuLPTest):
     solveInst = PULP_CBC_CMD
