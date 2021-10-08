@@ -1149,7 +1149,7 @@ class BaseSolverTest:
         def test_measuring_solving_time(self):
             print("\t Testing measuring optimization time")
 
-            time_limit = 5
+            time_limit = 10
             solver_settings = dict(
                 PULP_CBC_CMD=30, COIN_CMD=30, SCIP_CMD=30, GUROBI_CMD=50, CPLEX_CMD=50
             )
@@ -1157,16 +1157,15 @@ class BaseSolverTest:
             if bins is None:
                 # not all solvers have timeLimit support
                 return
-            prob = create_bin_packing_problem(bins=bins)
+            prob = create_bin_packing_problem(bins=bins, seed=99)
             self.solver.timeLimit = time_limit
             prob.solve(self.solver)
-            delta = 2
+            delta = 4
             reported_time = prob.solutionTime
             if self.solver.name in ["PULP_CBC_CMD", "COIN_CMD"]:
-                # CBC uses cpu-time for timeLimit
-                # also: CBC is less exact with the timeLimit
+                # CBC is less exact with the timeLimit
                 reported_time = prob.solutionCpuTime
-                delta = 4
+                delta = 5
 
             self.assertAlmostEqual(
                 reported_time,
@@ -1194,6 +1193,115 @@ class BaseSolverTest:
             self.assertTrue(
                 prob.sol_status == 2.0
             )
+            
+        def test_invalid_var_names(self):
+            prob = LpProblem(self._testMethodName, const.LpMinimize)
+            x = LpVariable("a")
+            w = LpVariable("b")
+            y = LpVariable("g", -1, 1)
+            z = LpVariable("End")
+            prob += x + 4 * y + 9 * z, "obj"
+            prob += x + y <= 5, "c1"
+            prob += x + z >= 10, "c2"
+            prob += -y + z == 7, "c3"
+            prob += w >= 0, "c4"
+            print("\t Testing invalid var names")
+            pulpTestCheck(
+                prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0}
+            )
+
+        def test_LpVariable_indexs_param(self):
+            """
+            Test that 'indexs' param continues to work
+            """
+
+            prob = LpProblem(self._testMethodName, const.LpMinimize)
+            customers = [1, 2, 3]
+            agents = ["A", "B", "C"]
+
+            print("\t Testing 'indexs' param continues to work for LpVariable.dicts")
+            # explicit param creates a dict of type LpVariable
+            assign_vars = LpVariable.dicts(name="test", indexs=(customers, agents))
+            for k, v in assign_vars.items():
+                for a, b in v.items():
+                    self.assertIsInstance(b, LpVariable)
+
+            # param by position creates a dict of type LpVariable
+            assign_vars = LpVariable.dicts("test", (customers, agents))
+            for k, v in assign_vars.items():
+                for a, b in v.items():
+                    self.assertIsInstance(b, LpVariable)
+
+            print("\t Testing 'indexs' param continues to work for LpVariable.matrix")
+            # explicit param creates list of list of LpVariable
+            assign_vars_matrix = LpVariable.matrix(
+                name="test", indexs=(customers, agents)
+            )
+            for a in assign_vars_matrix:
+                for b in a:
+                    self.assertIsInstance(b, LpVariable)
+
+            # param by position creates list of list of LpVariable
+            assign_vars_matrix = LpVariable.matrix("test", (customers, agents))
+            for a in assign_vars_matrix:
+                for b in a:
+                    self.assertIsInstance(b, LpVariable)
+
+        def test_LpVariable_indices_param(self):
+            """
+            Test that 'indices' argument works
+            """
+            prob = LpProblem(self._testMethodName, const.LpMinimize)
+            customers = [1, 2, 3]
+            agents = ["A", "B", "C"]
+
+            print("\t Testing 'indices' argument works in LpVariable.dicts")
+            # explicit param creates a dict of type LpVariable
+            assign_vars = LpVariable.dicts(name="test", indices=(customers, agents))
+            for k, v in assign_vars.items():
+                for a, b in v.items():
+                    self.assertIsInstance(b, LpVariable)
+
+            print("\t Testing 'indices' param continues to work for LpVariable.matrix")
+            # explicit param creates list of list of LpVariable
+            assign_vars_matrix = LpVariable.matrix(
+                name="test", indices=(customers, agents)
+            )
+            for a in assign_vars_matrix:
+                for b in a:
+                    self.assertIsInstance(b, LpVariable)
+
+        def test_LpVariable_indexs_deprecation_logic(self):
+            """
+            Test that logic put in place for deprecation handling of indexs works
+            """
+            print(
+                "\t Test that logic put in place for deprecation handling of indexs works"
+            )
+            prob = LpProblem(self._testMethodName, const.LpMinimize)
+            customers = [1, 2, 3]
+            agents = ["A", "B", "C"]
+
+            with self.assertRaises(TypeError):
+                # both variables
+                assign_vars_matrix = LpVariable.dicts(
+                    name="test",
+                    indices=(customers, agents),
+                    indexs=(customers, agents),
+                )
+
+            with self.assertRaises(TypeError):
+                # no variables
+                assign_vars_matrix = LpVariable.dicts(
+                    name="test",
+                )
+
+            # Not supported in 2.7.  Introduced to unittest in 3.2
+            # with self.assertWarns(DeprecationWarning):
+            #    assign_vars_matrix = LpVariable.dicts(
+            #        name="test",
+            #        indexs=(customers, agents),
+            #    )
 
 
 class PULP_CBC_CMDTest(BaseSolverTest.PuLPTest):
@@ -1258,22 +1366,6 @@ class MOSEKTest(BaseSolverTest.PuLPTest):
 
 class SCIP_CMDTest(BaseSolverTest.PuLPTest):
     solveInst = SCIP_CMD
-
-    def test_invalid_var_names(self):
-        prob = LpProblem(self._testMethodName, const.LpMinimize)
-        x = LpVariable("a")
-        w = LpVariable("b")
-        y = LpVariable("g", -1, 1)
-        z = LpVariable("End")
-        prob += x + 4 * y + 9 * z, "obj"
-        prob += x + y <= 5, "c1"
-        prob += x + z >= 10, "c2"
-        prob += -y + z == 7, "c3"
-        prob += w >= 0, "c4"
-        print("\t Testing invalid var names")
-        pulpTestCheck(
-            prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0}
-        )
 
 
 def pulpTestCheck(

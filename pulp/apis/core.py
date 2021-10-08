@@ -231,7 +231,7 @@ class LpSolver:
         self.solution_time = 0
 
         # here we will store all other relevant information including:
-        # gapRel, gapAbs, maxMemory, maxNodes, threads, logPath
+        # gapRel, gapAbs, maxMemory, maxNodes, threads, logPath, timeMode
         self.optionsDict = {k: v for k, v in kwargs.items() if v is not None}
 
     def available(self):
