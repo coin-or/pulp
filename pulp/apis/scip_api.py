@@ -92,11 +92,11 @@ class SCIP_CMD(LpSolver_CMD):
         "infeasible or unbounded": constants.LpStatusNotSolved,
     }
     SCIP_SOL_STATUSES = {
-            "optimal solution found": constants.LpSolutionOptimal,
-            "infeasible": constants.LpSolutionInfeasible,
-            "unbounded": constants.LpSolutionUnbounded,
-            "unknown": constants.LpSolutionNoSolutionFound,
-        }
+        "optimal solution found": constants.LpSolutionOptimal,
+        "infeasible": constants.LpSolutionInfeasible,
+        "unbounded": constants.LpSolutionUnbounded,
+        "unknown": constants.LpSolutionNoSolutionFound,
+    }
     NO_SOLUTION_STATUSES = {
         constants.LpStatusInfeasible,
         constants.LpStatusUnbounded,
@@ -203,10 +203,8 @@ class SCIP_CMD(LpSolver_CMD):
             except Exception:
                 if status == constants.LpStatusOptimal:
                     raise PulpSolverError("Can't get SCIP solver objective: %r" % line)
-            
 
             # Look for an objective value. If we can't find one, stop.
-            
 
             # Parse the variable values.
             for line in f:
@@ -214,8 +212,13 @@ class SCIP_CMD(LpSolver_CMD):
                     comps = line.split()
                     values[comps[0]] = float(comps[1])
                 except:
-                    if sol_status in [constants.LpSolutionOptimal, constants.LpSolutionIntegerFeasible]:
-                        raise PulpSolverError("Can't read SCIP solver output: %r" % line)        
+                    if sol_status in [
+                        constants.LpSolutionOptimal,
+                        constants.LpSolutionIntegerFeasible,
+                    ]:
+                        raise PulpSolverError(
+                            "Can't read SCIP solver output: %r" % line
+                        )
 
             return status, sol_status, values
 

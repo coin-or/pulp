@@ -1179,7 +1179,7 @@ class BaseSolverTest:
 
             time_limit = 10
             solver_settings = dict(
-                PULP_CBC_CMD=30, COIN_CMD=30, SCIP_CMD=25, GUROBI_CMD=50, CPLEX_CMD=50
+                PULP_CBC_CMD=30, COIN_CMD=30, SCIP_CMD=25, GUROBI_CMD=50
             )
             bins = solver_settings.get(self.solver.name)
             if bins is None:
@@ -1187,20 +1187,11 @@ class BaseSolverTest:
                 return
             prob = create_bin_packing_problem(bins=bins)
             self.solver.timeLimit = time_limit
-            self.solver.msg = 0.0
+            self.solver.msg = False
             prob.solve(self.solver)
-            # print(const.LpSolution[prob.sol_status])
-            # print(const.LpStatus[prob.status])
-            # print(prob.status)
-            self.assertTrue(
-                prob.sol_status == const.LpSolutionIntegerFeasible
-            )
-            self.assertTrue(
-                prob.status == const.LpStatusOptimal
-            )
+            self.assertTrue(prob.sol_status == const.LpSolutionIntegerFeasible)
+            self.assertTrue(prob.status == const.LpStatusOptimal)
 
-
-            
         def test_invalid_var_names(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
             x = LpVariable("a")
