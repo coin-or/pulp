@@ -1187,16 +1187,16 @@ class BaseSolverTest:
                 return
             prob = create_bin_packing_problem(bins=bins)
             self.solver.timeLimit = time_limit
-            self.solver.msg = 1.0
+            self.solver.msg = 0.0
             prob.solve(self.solver)
-            print(const.LpSolution[prob.sol_status])
-            print(const.LpStatus[prob.status])
-            print(prob.status)
+            # print(const.LpSolution[prob.sol_status])
+            # print(const.LpStatus[prob.status])
+            # print(prob.status)
             self.assertTrue(
-                prob.sol_status == 2.0
+                prob.sol_status == const.LpSolutionIntegerFeasible
             )
             self.assertTrue(
-                prob.status == 0.0
+                prob.status == const.LpStatusOptimal
             )
 
 

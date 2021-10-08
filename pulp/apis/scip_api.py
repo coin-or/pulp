@@ -197,6 +197,8 @@ class SCIP_CMD(LpSolver_CMD):
                 assert len(comps) == 2
                 float(comps[1].strip())
                 if status == constants.LpStatusNotSolved:
+                    # If there is an objective value, it means we have found an integer feasible solution
+                    status = constants.LpStatusOptimal
                     sol_status = constants.LpSolutionIntegerFeasible
             except Exception:
                 if status == constants.LpStatusOptimal:
