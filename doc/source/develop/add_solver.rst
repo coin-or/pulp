@@ -9,10 +9,9 @@ General information on configuring solvers and how pulp finds solvers installed 
 Example
 ----------
 
-The smallest api for a solver can be found in the file :py:class:`pulp.apis.mipcl_api.MIPCL_CMD` located in ``pulp/apis/mipcl_api.py``. We will use it as an example.
+The smallest api for a solver can be found in the file :py:class:`pulp.apis.mipcl_api.MIPCL_CMD` located in ``pulp/apis/mipcl_api.py``. We will use it as an example to list all the changes that need to be done.
 
-
-Inheriting basic classes
+Inheriting base classes
 ------------------------------
 
 The solver needs to inherit one of two classes:  :py:class:`pulp.apis.LpSolver` or  :py:class:`pulp.apis.LpSolver_CMD` located in ``pulp.apis.core.py``. The first one is a generic class. The second one is used for command-line based APIs to solvers. This is the one used for the example::
@@ -136,3 +135,22 @@ Only required by :py:class:`pulp.apis.LpSolver_CMD`. It returns the default path
         return self.executableExtension("mps_mipcl")
 
 
+Making the solver available to PuLP
+---------------------------------------------------
+
+Modify the ``pulp/apis/__init__.py`` file to import your solver and add it to the ``_all_solvers`` list::
+
+    from .mipcl_api import MIPCL_CMD
+    _all_solvers = [
+    # (...)
+    MIPCL_CMD,
+    ]
+
+Including the solver in tests suite
+--------------------------------------------------
+
+Include the solver in PuLP's test suite by adding a couple of lines corresponding to your solver to the ``pulp/tests/test_pulp.py`` file::
+
+    # (...)
+    class MIPCL_CMDTest(BaseSolverTest.PuLPTest):
+        solveInst = MIPCL_CMD
