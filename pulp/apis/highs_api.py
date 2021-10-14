@@ -124,7 +124,7 @@ class HiGHS_CMD(LpSolver_CMD):
             status_sol = constants.LpSolutionNoSolutionFound
             values = None
         else:
-            values = self.readsol(lp.variablesDict(), tmpSol)
+            values = self.readsol(lp.variablesDict().keys(), tmpSol)
         
         self.delete_tmp_files(tmpMps, tmpSol, tmpOptions, tmpLog)
         lp.assignStatus(status, status_sol)
@@ -146,8 +146,13 @@ class HiGHS_CMD(LpSolver_CMD):
         # extract everything between the line Columns and Rows
         col_id = content.index("Columns")
         row_id = content.index("Rows")
-        content = content[col_id+1:row_id]
-        for name,value in zip(var_names,content):
-            print(name, value)
-            values[name] = float(value)
+        solution = content[col_id+1:row_id]
+        # check whether it is an LP or an ILP
+        if "T Basis" in content: # LP
+            for name,line in zip(var_names,solution):
+                value = line.split()[0]
+                values[name] = float(value)
+        else: # ILP
+            for name,value in zip(var_names,solution):
+                values[name] = float(value)
         return values
