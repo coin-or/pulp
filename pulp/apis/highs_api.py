@@ -108,31 +108,24 @@ class HiGHS_CMD(LpSolver_CMD):
             lp += -lp.objective
         
         # The return code for HiGHS follows: 0:optimal, 1: Iteration/time limit, 2: Infeasible, 3: Unbounded, 4: Solver error. See the return status here: https://docs.scipy.org/doc/scipy/reference/optimize.linprog-highs.html
-        if proc.wait() == 0:
-            status = constants.LpStatusOptimal
-            status_sol = constants.LpSolutionOptimal
-        elif proc.wait() == 1:
-            status = constants.LpStatusOptimal # this is following the PuLP convention; in case, there is no feasible solution, the empty solution file will update the status of problem and solution later
-            status_sol = constants.LpSolutionIntegerFeasible
-        elif proc.wait() == 2:
-            status = constants.LpStatusInfeasible
-            status_sol = constants.LpSolutionNoSolutionFound
-        elif proc.wait() == 3:
-            status = constants.LpStatusUnbounded
-            status_sol = constants.LpSolutionNoSolutionFound
-        elif proc.wait() == 4:
-            status = constants.LpStatusNotSolved
-            status_sol = constants.LpSolutionNoSolutionFound
-        else:
-            status = constants.LpStatusUndefined
-            status_sol = constants.LpSolutionNoSolutionFound
+        return_code = proc.wait()
+        
+        status_eq_dict = {0: constants.LpStatusOptimal, 1: constants.LpStatusOptimal, 2: constants.LpStatusInfeasible, 3: constants.LpStatusUnbounded, 4: constants.LpStatusNotSolved}
+        # this is following the PuLP convention; in case, there is no feasible solution {1}, the empty solution file will update the status of problem and solution later
+        status_sol_dict = {0: constants.LpSolutionOptimal, 1: constants.LpSolutionIntegerFeasible, 2: constants.LpSolutionNoSolutionFound, 3: constants.LpSolutionNoSolutionFound, 4: constants.LpSolutionNoSolutionFound}
+        
+        status = status_eq_dict.get(return_code, constants.LpStatusUndefined)
+        status_sol = status_sol_dict.get(return_code, constants.LpSolutionNoSolutionFound)
+        if status == constants.LpStatusUndefined:
             raise PulpSolverError("Pulp: Error while executing", self.path)
             
         if not os.path.exists(tmpSol):
             status = constants.LpStatusNotSolved
             status_sol = constants.LpSolutionNoSolutionFound
+            values = None
+        else:
+            values = self.readsol(tmpSol)
         
-        values, status, status_sol = self.readsol(tmpSol, status, status_sol)
         self.delete_tmp_files(tmpMps, tmpSol, tmpOptions, tmpLog)
         lp.assignStatus(status, status_sol)
         
@@ -144,20 +137,16 @@ class HiGHS_CMD(LpSolver_CMD):
     @staticmethod
     def readsol(filename, status, status_sol):
         """Read a HiGHS solution file"""
-        if status != constants.LpStatusOptimal:
-            values = None
-            return values, status, status_sol
-        else:
-            with open(filename) as f:
-                content = f.readlines()
-            content = [l.strip() for l in content]
-            values = {}
-            if not len(content): # if file is empty, update the status_sol
-                return values, constants.LpStatusNotSolved, constants.LpSolutionNoSolutionFound
-            # extract everything up to the line with Rows
-            row_id = content.index("Rows")
-            content = content[2:row_id]
-            for line in content:
-                value, name = line.split()[-2:]
-                values[name] = float(value)
-            return values, status, status_sol
+        with open(filename) as f:
+            content = f.readlines()
+        content = [l.strip() for l in content]
+        values = {}
+        if not len(content): # if file is empty, update the status_sol
+            return values, constants.LpStatusNotSolved, constants.LpSolutionNoSolutionFound
+        # extract everything up to the line with Rows
+        row_id = content.index("Rows")
+        content = content[2:row_id]
+        for line in content:
+            value, name = line.split()[-2:]
+            values[name] = float(value)
+        return values
