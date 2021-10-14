@@ -123,7 +123,7 @@
 <dl class="py class">
 <dt class="sig sig-object py" id="pulp.LpProblem">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pulp.</span></span><span class="sig-name descname"><span class="pre">LpProblem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'NoName'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sense</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpProblem" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>An LP Problem</p>
 <p>Creates an LP Problem</p>
 <p>This function creates a new LP Problem  with the specified associated parameters</p>
@@ -222,7 +222,7 @@ default solver.</p>
 constraints, variables) of the defined Lp problem to a file.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – the name of the file to be created.</p>
+<dd class="field-odd"><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – the name of the file to be created.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>variables</p>
@@ -243,9 +243,9 @@ constraints, variables) of the defined Lp problem to a file.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – name of the file to write</p></li>
-<li><p><strong>mpsSense</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – </p></li>
-<li><p><strong>rename</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if True, normalized names are used for variables and constraints</p></li>
+<li><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – name of the file to write</p></li>
+<li><p><strong>mpsSense</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – </p></li>
+<li><p><strong>rename</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – if True, normalized names are used for variables and constraints</p></li>
 <li><p><strong>mip</strong> – variables and variable renames</p></li>
 </ul>
 </dd>
@@ -268,7 +268,7 @@ constraints, variables) of the defined Lp problem to a file.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – filename to write json</p></li>
+<li><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – filename to write json</p></li>
 <li><p><strong>args</strong> – additional arguments for json function</p></li>
 <li><p><strong>kwargs</strong> – additional keyword arguments for json function</p></li>
 </ul>
@@ -285,13 +285,27 @@ constraints, variables) of the defined Lp problem to a file.</p>
 <dd><p>Creates a new Lp Problem from a json file with information</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – json file name</p>
+<dd class="field-odd"><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – json file name</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>a tuple with a dictionary of variables and an LpProblem</p>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>(dict, <a class="reference internal" href="#pulp.LpProblem" title="pulp.LpProblem"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpProblem</span></code></a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulp.LpProblem.variables">
+<span class="sig-name descname"><span class="pre">variables</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpProblem.variables" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the problem variables</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A list containing the problem variables</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>(list, <a class="reference internal" href="#pulp.LpVariable" title="pulp.LpVariable"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpVariable</span></code></a>)</p>
 </dd>
 </dl>
 </dd></dl>
@@ -374,7 +388,7 @@ Continuous(default)</p></li>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>dj</strong> – shadow price of the variable</p></li>
-<li><p><strong>varValue</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – the value to set the variable</p></li>
+<li><p><strong>varValue</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – the value to set the variable</p></li>
 <li><p><strong>kwargs</strong> – arguments to initialize the variable</p></li>
 </ul>
 </dd>
@@ -395,7 +409,7 @@ Continuous(default)</p></li>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>dj</strong> – shadow price of the variable</p></li>
-<li><p><strong>varValue</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – the value to set the variable</p></li>
+<li><p><strong>varValue</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – the value to set the variable</p></li>
 <li><p><strong>kwargs</strong> – arguments to initialize the variable</p></li>
 </ul>
 </dd>
@@ -416,7 +430,7 @@ Continuous(default)</p></li>
 <dd class="field-odd"><p>True if upBound and lowBound are the same</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)">bool</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -429,15 +443,15 @@ May be used for warmStart a solver, if supported by the solver</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>val</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – value to set to variable</p></li>
-<li><p><strong>check</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if True, we check if the value fits inside the variable bounds</p></li>
+<li><p><strong>val</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – value to set to variable</p></li>
+<li><p><strong>check</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – if True, we check if the value fits inside the variable bounds</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>True if the value was set</p>
 </dd>
 <dt class="field-odd">Raises</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.9)"><strong>ValueError</strong></a> – if check=True and the value does not fit inside the bounds</p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.10)"><strong>ValueError</strong></a> – if check=True and the value does not fit inside the bounds</p>
 </dd>
 </dl>
 </dd></dl>
@@ -451,7 +465,7 @@ May be used for warmStart a solver, if supported by the solver</p>
 <dd class="field-odd"><p>a dictionary with the variable information</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)">dict</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -465,7 +479,7 @@ May be used for warmStart a solver, if supported by the solver</p>
 <dd class="field-odd"><p>a dictionary with the variable information</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)">dict</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -483,7 +497,7 @@ integer.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="pulp.LpAffineExpression">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pulp.</span></span><span class="sig-name descname"><span class="pre">LpAffineExpression</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">e</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constant</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpAffineExpression" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/collections.html#collections.OrderedDict" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">collections.OrderedDict</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/collections.html#collections.OrderedDict" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">collections.OrderedDict</span></code></a></p>
 <p>A linear combination of <a class="reference internal" href="#pulp.LpVariable" title="pulp.LpVariable"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpVariables</span></code></a>.
 Can be initialised with the following:</p>
 <ol class="arabic simple">
@@ -546,7 +560,7 @@ it does not export the constant</p>
 <dd class="field-odd"><p>list of dictionaries with the coefficients</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)">list</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -561,7 +575,7 @@ it does not export the constant</p>
 <dd class="field-odd"><p>list of dictionaries with the coefficients</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)">list</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -622,7 +636,7 @@ it does not export the constant</p>
 <dd><p>Initializes a constraint object from a dictionary with necessary information</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>_dict</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – dictionary with data</p>
+<dd class="field-odd"><p><strong>_dict</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)"><em>dict</em></a>) – dictionary with data</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>a new <a class="reference internal" href="#pulp.LpConstraint" title="pulp.LpConstraint"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpConstraint</span></code></a></p>
@@ -636,7 +650,7 @@ it does not export the constant</p>
 <dd><p>Initializes a constraint object from a dictionary with necessary information</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>_dict</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – dictionary with data</p>
+<dd class="field-odd"><p><strong>_dict</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)"><em>dict</em></a>) – dictionary with data</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>a new <a class="reference internal" href="#pulp.LpConstraint" title="pulp.LpConstraint"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpConstraint</span></code></a></p>
