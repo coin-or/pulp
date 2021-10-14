@@ -1615,13 +1615,10 @@ class LpProblem(object):
 
     def variables(self):
         """
-        Returns a list of the problem variables
+        Returns the problem variables
 
-        Inputs:
-            - none
-
-        Returns:
-            - A list of the problem variables
+        :return: A list containing the problem variables
+        :rtype: (list, :py:class:`LpVariable`)
         """
         if self.objective:
             self.addVariables(list(self.objective.keys()))
