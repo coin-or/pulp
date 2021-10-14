@@ -124,7 +124,7 @@ class HiGHS_CMD(LpSolver_CMD):
             status_sol = constants.LpSolutionNoSolutionFound
             values = None
         else:
-            values = self.readsol(tmpSol)
+            values = self.readsol(lp.variablesDict(), tmpSol)
         
         self.delete_tmp_files(tmpMps, tmpSol, tmpOptions, tmpLog)
         lp.assignStatus(status, status_sol)
@@ -135,18 +135,19 @@ class HiGHS_CMD(LpSolver_CMD):
         return status
 
     @staticmethod
-    def readsol(filename, status, status_sol):
+    def readsol(var_names, filename):
         """Read a HiGHS solution file"""
         with open(filename) as f:
             content = f.readlines()
         content = [l.strip() for l in content]
         values = {}
         if not len(content): # if file is empty, update the status_sol
-            return values, constants.LpStatusNotSolved, constants.LpSolutionNoSolutionFound
-        # extract everything up to the line with Rows
+            return None
+        # extract everything between the line Columns and Rows
+        col_id = content.index("Columns")
         row_id = content.index("Rows")
-        content = content[2:row_id]
-        for line in content:
-            value, name = line.split()[-2:]
+        content = content[col_id+1:row_id]
+        for name,value in zip(var_names,content):
+            print(name, value)
             values[name] = float(value)
         return values
