@@ -51,7 +51,7 @@ class HiGHS_CMD(LpSolver_CMD):
                               options=options, path=path, keepFiles=keepFiles)
 
     def defaultPath(self):
-        return self.executableExtension("")
+        return self.executableExtension("highs")
 
     def available(self):
         """True if the solver is available"""
