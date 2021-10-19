@@ -127,7 +127,7 @@ class HiGHS_CMD(LpSolver_CMD):
         if status == constants.LpStatusUndefined:
             raise PulpSolverError("Pulp: Error while executing", self.path)
             
-        if not os.path.exists(tmpSol):
+        if not os.path.exists(tmpSol) or os.stat(tmpSol).st_size == 0:
             status = constants.LpStatusNotSolved
             status_sol = constants.LpSolutionNoSolutionFound
             values = None
