@@ -110,9 +110,17 @@ class HiGHS_CMD(LpSolver_CMD):
         # The return code for HiGHS follows: 0:optimal, 1: Iteration/time limit, 2: Infeasible, 3: Unbounded, 4: Solver error. See the return status here: https://docs.scipy.org/doc/scipy/reference/optimize.linprog-highs.html
         return_code = proc.wait()
         
-        status_eq_dict = {0: constants.LpStatusOptimal, 1: constants.LpStatusOptimal, 2: constants.LpStatusInfeasible, 3: constants.LpStatusUnbounded, 4: constants.LpStatusNotSolved}
-        # this is following the PuLP convention; in case, there is no feasible solution {1}, the empty solution file will update the status of problem and solution later
-        status_sol_dict = {0: constants.LpSolutionOptimal, 1: constants.LpSolutionIntegerFeasible, 2: constants.LpSolutionNoSolutionFound, 3: constants.LpSolutionNoSolutionFound, 4: constants.LpSolutionNoSolutionFound}
+        status_eq_dict = {0: constants.LpStatusOptimal, 
+                          1: constants.LpStatusOptimal, # this is following the PuLP convention; in case, there is no feasible solution {1}, the empty solution file will update the status of problem and solution later
+                          2: constants.LpStatusInfeasible, 
+                          3: constants.LpStatusUnbounded, 
+                          4: constants.LpStatusNotSolved}
+        
+        status_sol_dict = {0: constants.LpSolutionOptimal, 
+                           1: constants.LpSolutionIntegerFeasible, # this is following the PuLP convention; in case, there is no feasible solution {1}, the empty solution file will update the status of problem and solution later
+                           2: constants.LpSolutionNoSolutionFound, 
+                           3: constants.LpSolutionNoSolutionFound, 
+                           4: constants.LpSolutionNoSolutionFound}
         
         status = status_eq_dict.get(return_code, constants.LpStatusUndefined)
         status_sol = status_sol_dict.get(return_code, constants.LpSolutionNoSolutionFound)
