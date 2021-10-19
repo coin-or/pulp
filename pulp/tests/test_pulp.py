@@ -223,6 +223,7 @@ class BaseSolverTest:
                 MIPCL_CMD,
                 MOSEK,
                 SCIP_CMD,
+                HiGHS_CMD,
             ]:
                 try:
                     pulpTestCheck(
