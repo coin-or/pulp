@@ -421,6 +421,7 @@ class BaseSolverTest:
                 CHOCO_CMD,
                 MIPCL_CMD,
                 SCIP_CMD,
+                HiGHS_CMD,
             ]:
                 # gurobi command, choco and mipcl do not let the problem be relaxed
                 pulpTestCheck(
