@@ -177,6 +177,7 @@ class BaseSolverTest:
                 GUROBI_CMD,
                 MIPCL_CMD,
                 SCIP_CMD,
+                HiGHS_CMD,
             ]:
                 try:
                     pulpTestCheck(
