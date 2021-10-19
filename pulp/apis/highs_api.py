@@ -107,8 +107,37 @@ class HiGHS_CMD(LpSolver_CMD):
         if lp.sense == constants.LpMaximize:
             lp += -lp.objective
         
-        # The return code for HiGHS follows: 0:optimal, 1: Iteration/time limit, 2: Infeasible, 3: Unbounded, 4: Solver error. See the return status here: https://docs.scipy.org/doc/scipy/reference/optimize.linprog-highs.html
+        # The return code for HiGHS on command line follows: 0:program ran successfully, 1: warning, all other cases: error
         return_code = proc.wait()
+        if return_code in [0,1]:
+            with open(tmpLog, "r") as log_file:
+                content = log_file.readlines()
+            content = [l.strip().split() for l in content]
+            # LP
+            model_line = [l for l in content if l[:2] == ["Model", "status"]]
+            if len(model_line) > 0:
+                model_status = " ".join(model_line[0][3:]) # Model status: ...
+            else:
+            # ILP
+                model_line = [l for l in content if "Status" in l][0]
+                model_status = " ".join(model_line[1:])
+            sol_line = [l for l in content if l[:2] == ["Solution", "status"]]
+            sol_line = sol_line[0] if len(sol_line) > 0 else ["Not solved"]
+            sol_status = sol_line[-1]
+            if model_status.lower() == "optimal":# optimal
+                status, status_sol = constants.LpStatusOptimal, constants.LpSolutionOptimal
+            elif sol_status.lower() == "feasible": # feasible
+            # Following the PuLP convention
+                status, status_sol = constants.LpStatusOptimal, constants.LpSolutionIntegerFeasible
+            elif model_status.lower() == "infeasible": # infeasible
+                status, status_sol = constants.LpStatusInfeasible, constants.LpSolutionNoSolutionFound
+            elif model_status.lower() == "unbounded": # unbounded
+                status, status_sol = constants.LpStatusUnbounded, constants.LpSolutionNoSolutionFound
+        else:
+            status = constants.LpStatusUndefined
+            status_sol = constants.LpSolutionNoSolutionFound
+            raise PulpSolverError("Pulp: Error while executing", self.path)
+        
         
         status_eq_dict = {0: constants.LpStatusOptimal, 
                           1: constants.LpStatusOptimal, # this is following the PuLP convention; in case, there is no feasible solution {1}, the empty solution file will update the status of problem and solution later
@@ -122,8 +151,8 @@ class HiGHS_CMD(LpSolver_CMD):
                            3: constants.LpSolutionNoSolutionFound, 
                            4: constants.LpSolutionNoSolutionFound}
         
-        status = status_eq_dict.get(return_code, constants.LpStatusUndefined)
-        status_sol = status_sol_dict.get(return_code, constants.LpSolutionNoSolutionFound)
+        #status = status_eq_dict.get(return_code, constants.LpStatusUndefined)
+        #status_sol = status_sol_dict.get(return_code, constants.LpSolutionNoSolutionFound)
         if status == constants.LpStatusUndefined:
             raise PulpSolverError("Pulp: Error while executing", self.path)
             
