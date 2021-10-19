@@ -124,7 +124,7 @@ class HiGHS_CMD(LpSolver_CMD):
             status_sol = constants.LpSolutionNoSolutionFound
             values = None
         else:
-            values = self.readsol(lp.variablesDict().keys(), tmpSol)
+            values = self.readsol(lp.variables(), tmpSol)
         
         self.delete_tmp_files(tmpMps, tmpSol, tmpOptions, tmpLog)
         lp.assignStatus(status, status_sol)
@@ -135,7 +135,7 @@ class HiGHS_CMD(LpSolver_CMD):
         return status
 
     @staticmethod
-    def readsol(var_names, filename):
+    def readsol(variables, filename):
         """Read a HiGHS solution file"""
         with open(filename) as f:
             content = f.readlines()
@@ -149,10 +149,10 @@ class HiGHS_CMD(LpSolver_CMD):
         solution = content[col_id+1:row_id]
         # check whether it is an LP or an ILP
         if "T Basis" in content: # LP
-            for name,line in zip(var_names,solution):
+            for var,line in zip(variables,solution):
                 value = line.split()[0]
-                values[name] = float(value)
+                values[var.name] = float(value)
         else: # ILP
-            for name,value in zip(var_names,solution):
-                values[name] = float(value)
+            for var,value in zip(variables,solution):
+                values[var.name] = float(value)
         return values
