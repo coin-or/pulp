@@ -1257,8 +1257,10 @@ class SCIP_CMDTest(BaseSolverTest.PuLPTest):
             prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0}
         )
 
+
 class HiGHS_CMDTest(BaseSolverTest.PuLPTest):
     solveInst = HiGHS_CMD
+
 
 def pulpTestCheck(
     prob,
