@@ -138,21 +138,6 @@ class HiGHS_CMD(LpSolver_CMD):
             status_sol = constants.LpSolutionNoSolutionFound
             raise PulpSolverError("Pulp: Error while executing", self.path)
         
-        
-        status_eq_dict = {0: constants.LpStatusOptimal, 
-                          1: constants.LpStatusOptimal, # this is following the PuLP convention; in case, there is no feasible solution {1}, the empty solution file will update the status of problem and solution later
-                          2: constants.LpStatusInfeasible, 
-                          3: constants.LpStatusUnbounded, 
-                          4: constants.LpStatusNotSolved}
-        
-        status_sol_dict = {0: constants.LpSolutionOptimal, 
-                           1: constants.LpSolutionIntegerFeasible, # this is following the PuLP convention; in case, there is no feasible solution {1}, the empty solution file will update the status of problem and solution later
-                           2: constants.LpSolutionNoSolutionFound, 
-                           3: constants.LpSolutionNoSolutionFound, 
-                           4: constants.LpSolutionNoSolutionFound}
-        
-        #status = status_eq_dict.get(return_code, constants.LpStatusUndefined)
-        #status_sol = status_sol_dict.get(return_code, constants.LpSolutionNoSolutionFound)
         if status == constants.LpStatusUndefined:
             raise PulpSolverError("Pulp: Error while executing", self.path)
             
