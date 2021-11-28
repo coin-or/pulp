@@ -25,12 +25,12 @@ First we use :func:`~pulp.allcombinations` to generate a list of all
 possible table seatings.
 
 .. literalinclude:: ../../../examples/wedding.py
-    :lines: 20-22
+    :lines: 22-23
 
 Then we create a binary variable that will be 1 if the table will be in the solution, or zero otherwise.
 
 .. literalinclude:: ../../../examples/wedding.py
-    :lines: 24-28
+    :lines: 25-28
 
 We create the :class:`~pulp.LpProblem` and then make the objective function. Note that
 happiness function used in this script would be difficult to model in any other way.
@@ -41,13 +41,13 @@ happiness function used in this script would be difficult to model in any other 
 We specify the total number of tables allowed in the solution.
 
 .. literalinclude:: ../../../examples/wedding.py
-    :lines: 34-35
+    :lines: 34-38
 
 This set of constraints defines the set partitioning problem by guaranteeing that a guest is allocated to
 exactly one table.
 
 .. literalinclude:: ../../../examples/wedding.py
-    :lines: 38-41
+    :lines: 40-45
     
 The full file can be found here `wedding.py <https://projects.coin-or.org/PuLP/browser/trunk/examples/wedding.py?format=txt>`_
 
