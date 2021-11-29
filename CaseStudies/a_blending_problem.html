@@ -466,20 +466,30 @@ the data.</p>
     <span class="s2">&quot;WHEAT&quot;</span><span class="p">:</span> <span class="mf">0.150</span><span class="p">,</span>
     <span class="s2">&quot;GEL&quot;</span><span class="p">:</span> <span class="mf">0.000</span><span class="p">,</span>
 <span class="p">}</span>
+
+<span class="c1"># A dictionary of the salt percent in each of the Ingredients is created</span>
+<span class="n">saltPercent</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;CHICKEN&quot;</span><span class="p">:</span> <span class="mf">0.002</span><span class="p">,</span>
+    <span class="s2">&quot;BEEF&quot;</span><span class="p">:</span> <span class="mf">0.005</span><span class="p">,</span>
+    <span class="s2">&quot;MUTTON&quot;</span><span class="p">:</span> <span class="mf">0.007</span><span class="p">,</span>
+    <span class="s2">&quot;RICE&quot;</span><span class="p">:</span> <span class="mf">0.002</span><span class="p">,</span>
+    <span class="s2">&quot;WHEAT&quot;</span><span class="p">:</span> <span class="mf">0.008</span><span class="p">,</span>
+    <span class="s2">&quot;GEL&quot;</span><span class="p">:</span> <span class="mf">0.000</span><span class="p">,</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">prob</span></code> variable is created to contain the formulation, and the
 usual parameters are passed into <a class="reference internal" href="../technical/pulp.html#pulp.LpProblem" title="pulp.LpProblem"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LpProblem</span></code></a>.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># A dictionary of the salt percent in each of the Ingredients is created</span>
-<span class="n">saltPercent</span> <span class="o">=</span> <span class="p">{</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create the &#39;prob&#39; variable to contain the problem data</span>
+<span class="n">prob</span> <span class="o">=</span> <span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;The Whiskas Problem&quot;</span><span class="p">,</span> <span class="n">LpMinimize</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>A dictionary called <code class="docutils literal notranslate"><span class="pre">ingredient_vars</span></code> is created which contains
 the LP variables, with their defined lower bound of zero. The reference
 keys to the dictionary are the Ingredient names, and the data is
 <code class="docutils literal notranslate"><span class="pre">Ingr_IngredientName</span></code>. (e.g. MUTTON: Ingr_MUTTON)</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    <span class="s2">&quot;BEEF&quot;</span><span class="p">:</span> <span class="mf">0.005</span><span class="p">,</span>
-    <span class="s2">&quot;MUTTON&quot;</span><span class="p">:</span> <span class="mf">0.007</span><span class="p">,</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># A dictionary called &#39;ingredient_vars&#39; is created to contain the referenced Variables</span>
+<span class="n">ingredient_vars</span> <span class="o">=</span> <span class="n">LpVariable</span><span class="o">.</span><span class="n">dicts</span><span class="p">(</span><span class="s2">&quot;Ingr&quot;</span><span class="p">,</span> <span class="n">Ingredients</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Since <code class="docutils literal notranslate"><span class="pre">costs</span></code> and <code class="docutils literal notranslate"><span class="pre">ingredient_vars</span></code> are now dictionaries with the
@@ -487,17 +497,32 @@ reference keys as the Ingredient names, the data can be simply extracted
 with a list comprehension as shown. The <a class="reference internal" href="../technical/pulp.html#pulp.lpSum" title="pulp.lpSum"><code class="xref py py-func docutils literal notranslate"><span class="pre">lpSum()</span></code></a> function will add the
 elements of the resulting list. Thus the objective function is simply
 entered and assigned a name:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    <span class="s2">&quot;WHEAT&quot;</span><span class="p">:</span> <span class="mf">0.008</span><span class="p">,</span>
-    <span class="s2">&quot;GEL&quot;</span><span class="p">:</span> <span class="mf">0.000</span><span class="p">,</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># The objective function is added to &#39;prob&#39; first</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="p">(</span>
+    <span class="n">lpSum</span><span class="p">([</span><span class="n">costs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">ingredient_vars</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">Ingredients</span><span class="p">]),</span>
+    <span class="s2">&quot;Total Cost of Ingredients per can&quot;</span><span class="p">,</span>
+<span class="p">)</span>
 </pre></div>
 </div>
 <p>Further list comprehensions are used to define the other 5 constraints, which are also each given names describing them.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
-<span class="c1"># Create the &#39;prob&#39; variable to contain the problem data</span>
-<span class="n">prob</span> <span class="o">=</span> <span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;The Whiskas Problem&quot;</span><span class="p">,</span> <span class="n">LpMinimize</span><span class="p">)</span>
-
-<span class="c1"># A dictionary called &#39;ingredient_vars&#39; is created to contain the referenced Variables</span>
-<span class="n">ingredient_vars</span> <span class="o">=</span> <span class="n">LpVariable</span><span class="o">.</span><span class="n">dicts</span><span class="p">(</span><span class="s2">&quot;Ingr&quot;</span><span class="p">,</span> <span class="n">Ingredients</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># The five constraints are added to &#39;prob&#39;</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">lpSum</span><span class="p">([</span><span class="n">ingredient_vars</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">Ingredients</span><span class="p">])</span> <span class="o">==</span> <span class="mi">100</span><span class="p">,</span> <span class="s2">&quot;PercentagesSum&quot;</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="p">(</span>
+    <span class="n">lpSum</span><span class="p">([</span><span class="n">proteinPercent</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">ingredient_vars</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">Ingredients</span><span class="p">])</span> <span class="o">&gt;=</span> <span class="mf">8.0</span><span class="p">,</span>
+    <span class="s2">&quot;ProteinRequirement&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="p">(</span>
+    <span class="n">lpSum</span><span class="p">([</span><span class="n">fatPercent</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">ingredient_vars</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">Ingredients</span><span class="p">])</span> <span class="o">&gt;=</span> <span class="mf">6.0</span><span class="p">,</span>
+    <span class="s2">&quot;FatRequirement&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="p">(</span>
+    <span class="n">lpSum</span><span class="p">([</span><span class="n">fibrePercent</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">ingredient_vars</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">Ingredients</span><span class="p">])</span> <span class="o">&lt;=</span> <span class="mf">2.0</span><span class="p">,</span>
+    <span class="s2">&quot;FibreRequirement&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="p">(</span>
+    <span class="n">lpSum</span><span class="p">([</span><span class="n">saltPercent</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">ingredient_vars</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">Ingredients</span><span class="p">])</span> <span class="o">&lt;=</span> <span class="mf">0.4</span><span class="p">,</span>
+    <span class="s2">&quot;SaltRequirement&quot;</span><span class="p">,</span>
+<span class="p">)</span>
 </pre></div>
 </div>
 <p>Following this, the <span class="xref std std-ref">writeLP</span> line etc follow exactly the same as

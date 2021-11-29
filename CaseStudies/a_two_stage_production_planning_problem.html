@@ -102,9 +102,7 @@ the revenue per unit of wrenches and pliers, GTC will determine</p>
 </ul>
 <p>The uncertainty is expressed as one of four possible scenarios, each with equal probability.</p>
 <p>We begin by importing the <cite>PuLP</cite> package.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
-<span class="kn">import</span> <span class="nn">pulp</span>
-
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pulp</span>
 </pre></div>
 </div>
 <p>Next, we will read in the data.  Here, we read in the data as vectors.
@@ -153,19 +151,26 @@ which creates dictionaries with associated indexing values.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">production_vars</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpVariable</span><span class="o">.</span><span class="n">dicts</span><span class="p">(</span>
     <span class="s2">&quot;production&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">scenarios</span><span class="p">,</span> <span class="n">products</span><span class="p">),</span> <span class="n">lowBound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">cat</span><span class="o">=</span><span class="s2">&quot;Continuous&quot;</span>
 <span class="p">)</span>
+<span class="n">steelpurchase</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpVariable</span><span class="p">(</span><span class="s2">&quot;steelpurchase&quot;</span><span class="p">,</span> <span class="n">lowBound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">cat</span><span class="o">=</span><span class="s2">&quot;Continuous&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>We create the <a class="reference internal" href="../technical/pulp.html#pulp.LpProblem" title="pulp.LpProblem"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpProblem</span></code></a> and then make the objective function.
 Note that this is a maximization problem, as the goal is to maximize net revenue.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create the &#39;gemstoneprob&#39; variable to specify</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">gemstoneprob</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;The Gemstone Tool Problem&quot;</span><span class="p">,</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpMaximize</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The objective function is specified using the <cite>pulp.lpSum()</cite> function. Note
 that it is added to the problem using <cite>+=</cite>.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># The objective function is added to &#39;gemstoneprob&#39; first</span>
-<span class="n">gemstoneprob</span> <span class="o">+=</span> <span class="p">(</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">gemstoneprob</span> <span class="o">+=</span> <span class="p">(</span>
     <span class="n">pulp</span><span class="o">.</span><span class="n">lpSum</span><span class="p">(</span>
         <span class="p">[</span>
+            <span class="n">pscenario</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">price_dict</span><span class="p">[(</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">)]</span> <span class="o">*</span> <span class="n">production_vars</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">i</span><span class="p">])</span>
+            <span class="k">for</span> <span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="ow">in</span> <span class="n">production</span>
+        <span class="p">]</span>
+        <span class="o">-</span> <span class="n">steelpurchase</span> <span class="o">*</span> <span class="n">steelprice</span>
+    <span class="p">),</span>
+    <span class="s2">&quot;Total cost&quot;</span><span class="p">,</span>
+<span class="p">)</span>
 </pre></div>
 </div>
 <p>We then add in constraints.  Constraints here in sets based on scenarios
@@ -175,19 +180,20 @@ Note that constraints are differentiated from the objective function as each
 constraint ends in a logical comparison (usually &lt;= or &gt;=, but can be ==) while
 Finally, here, the file gives each constraint a name which includes the specific
 scenario or product the constraint applies to.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>            <span class="n">pscenario</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">price_dict</span><span class="p">[(</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">)]</span> <span class="o">*</span> <span class="n">production_vars</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">i</span><span class="p">])</span>
-            <span class="k">for</span> <span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="ow">in</span> <span class="n">production</span>
-        <span class="p">]</span>
-        <span class="o">-</span> <span class="n">steelpurchase</span> <span class="o">*</span> <span class="n">steelprice</span>
-    <span class="p">),</span>
-    <span class="s2">&quot;Total cost&quot;</span><span class="p">,</span>
-<span class="p">)</span>
-
-<span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">scenarios</span><span class="p">:</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">scenarios</span><span class="p">:</span>
     <span class="n">gemstoneprob</span> <span class="o">+=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">lpSum</span><span class="p">(</span>
         <span class="p">[</span><span class="n">steel_dict</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">production_vars</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">products</span><span class="p">]</span>
     <span class="p">)</span> <span class="o">-</span> <span class="n">steelpurchase</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;Steel capacity&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">j</span><span class="p">))</span>
     <span class="n">gemstoneprob</span> <span class="o">+=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">lpSum</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">molding_dict</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">production_vars</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">products</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">&lt;=</span> <span class="n">capmolding</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;molding capacity&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">j</span><span class="p">))</span>
+    <span class="n">gemstoneprob</span> <span class="o">+=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">lpSum</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">assembly_dict</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">production_vars</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">products</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">&lt;=</span> <span class="n">capassembly</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="p">(</span><span class="s2">&quot;assembly capacity&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">j</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">products</span><span class="p">:</span>
+        <span class="n">gemstoneprob</span> <span class="o">+=</span> <span class="n">production_vars</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">capacity_dict</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="p">(</span>
+            <span class="s2">&quot;capacity &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+        <span class="p">)</span>
 </pre></div>
 </div>
 <p>The full file can be found here <a class="reference download internal" download="" href="../_downloads/cdd89052a8f7cfb069373b218d0b58ad/Two_stage_Stochastic_GemstoneTools.py"><code class="xref download docutils literal notranslate"><span class="pre">Two_stage_Stochastic_GemstoneTools.py</span></code></a></p>

@@ -276,6 +276,7 @@ problem is found in the examples directory BeerDistributionProblem.py</p>
     <span class="s2">&quot;3&quot;</span><span class="p">:</span> <span class="mi">1800</span><span class="p">,</span>
     <span class="s2">&quot;4&quot;</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span>
     <span class="s2">&quot;5&quot;</span><span class="p">:</span> <span class="mi">700</span><span class="p">,</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p>The cost data is then inputted into a list, with two sub lists: the first
@@ -289,8 +290,7 @@ default value for an arc cost. Once the cost dictionary is created, if
 <cite>costs[“A”][“1”]</cite> is called, it will return the cost of transporting from
 warehouse A to bar 1, 2. If <cite>costs[“C”][“2”]</cite> is called, it will return 0, since
 this is the defined default.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
-<span class="c1"># Creates a list of costs of each transportation path</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Creates a list of costs of each transportation path</span>
 <span class="n">costs</span> <span class="o">=</span> <span class="p">[</span>  <span class="c1"># Bars</span>
     <span class="c1"># 1 2 3 4 5</span>
     <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>  <span class="c1"># A   Warehouses</span>
@@ -298,35 +298,39 @@ this is the defined default.</p>
 <span class="p">]</span>
 
 <span class="c1"># The cost data is made into a dictionary</span>
+<span class="n">costs</span> <span class="o">=</span> <span class="n">makeDict</span><span class="p">([</span><span class="n">Warehouses</span><span class="p">,</span> <span class="n">Bars</span><span class="p">],</span> <span class="n">costs</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The <cite>prob</cite> variable is created using the <cite>LpProblem</cite> function, with the usual
 input parameters.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
-<span class="c1"># Creates the &#39;prob&#39; variable to contain the problem data</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Creates the &#39;prob&#39; variable to contain the problem data</span>
+<span class="n">prob</span> <span class="o">=</span> <span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;Beer Distribution Problem&quot;</span><span class="p">,</span> <span class="n">LpMinimize</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>A list of tuples is created containing all the arcs.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
-<span class="c1"># Creates a list of tuples containing all the possible routes for transport</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Creates a list of tuples containing all the possible routes for transport</span>
+<span class="n">Routes</span> <span class="o">=</span> <span class="p">[(</span><span class="n">w</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">Warehouses</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">Bars</span><span class="p">]</span>
 </pre></div>
 </div>
-<p>A dictionary called <cite>route_var</cite> is created which contains the LP variables. The
+<p>A dictionary called <cite>vars</cite> is created which contains the LP variables. The
 reference keys to the dictionary are the warehouse name, then the bar
 name(<cite>[“A”][“2”]</cite>) , and the data is <cite>Route_Tuple</cite>. (e.g. <cite>[“A”][“2”]</cite>:
 Route_A_2). The lower limit of zero is set, the upper limit of <cite>None</cite> is set,
 and the variables are defined to be Integers.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
-<span class="c1"># A dictionary called &#39;Vars&#39; is created to contain the referenced variables(the routes)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># A dictionary called &#39;Vars&#39; is created to contain the referenced variables(the routes)</span>
+<span class="nb">vars</span> <span class="o">=</span> <span class="n">LpVariable</span><span class="o">.</span><span class="n">dicts</span><span class="p">(</span><span class="s2">&quot;Route&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">Warehouses</span><span class="p">,</span> <span class="n">Bars</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">LpInteger</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The objective function is added to the variable <cite>prob</cite> using a list
-comprehension. Since <cite>route_vars</cite> and <cite>costs</cite> are now dictionaries (with further
+comprehension. Since <cite>vars</cite> and <cite>costs</cite> are now dictionaries (with further
 internal dictionaries), they can be used as if they were tables, as <cite>for (w,b)
 in Routes</cite> will cycle through all the combinations/arcs. Note that <cite>i</cite> and <cite>j</cite>
 could have been used, but <cite>w</cite> and <cite>b</cite> are more meaningful.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
-<span class="c1"># The objective function is added to &#39;prob&#39; first</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># The objective function is added to &#39;prob&#39; first</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="p">(</span>
+    <span class="n">lpSum</span><span class="p">([</span><span class="nb">vars</span><span class="p">[</span><span class="n">w</span><span class="p">][</span><span class="n">b</span><span class="p">]</span> <span class="o">*</span> <span class="n">costs</span><span class="p">[</span><span class="n">w</span><span class="p">][</span><span class="n">b</span><span class="p">]</span> <span class="k">for</span> <span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="ow">in</span> <span class="n">Routes</span><span class="p">]),</span>
+    <span class="s2">&quot;Sum_of_Transporting_Costs&quot;</span><span class="p">,</span>
+<span class="p">)</span>
 </pre></div>
 </div>
 <p>The supply and demand constraints are added using a normal <cite>for</cite> loop and a list
@@ -336,13 +340,19 @@ and then constrained to being less than or equal to the supply max for that
 warehouse. Demand Constraints: For each bar in turn, the values of the decision
 variables (number on arc) from each of the warehouses is summed, and then
 constrained to being greater than or equal to the demand minimum.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    <span class="n">lpSum</span><span class="p">([</span><span class="nb">vars</span><span class="p">[</span><span class="n">w</span><span class="p">][</span><span class="n">b</span><span class="p">]</span> <span class="o">*</span> <span class="n">costs</span><span class="p">[</span><span class="n">w</span><span class="p">][</span><span class="n">b</span><span class="p">]</span> <span class="k">for</span> <span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="ow">in</span> <span class="n">Routes</span><span class="p">]),</span>
-    <span class="s2">&quot;Sum_of_Transporting_Costs&quot;</span><span class="p">,</span>
-<span class="p">)</span>
-
-<span class="c1"># The supply maximum constraints are added to prob for each supply node (warehouse)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># The supply maximum constraints are added to prob for each supply node (warehouse)</span>
 <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">Warehouses</span><span class="p">:</span>
     <span class="n">prob</span> <span class="o">+=</span> <span class="p">(</span>
+        <span class="n">lpSum</span><span class="p">([</span><span class="nb">vars</span><span class="p">[</span><span class="n">w</span><span class="p">][</span><span class="n">b</span><span class="p">]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">Bars</span><span class="p">])</span> <span class="o">&lt;=</span> <span class="n">supply</span><span class="p">[</span><span class="n">w</span><span class="p">],</span>
+        <span class="s2">&quot;Sum_of_Products_out_of_Warehouse_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">w</span><span class="p">,</span>
+    <span class="p">)</span>
+
+<span class="c1"># The demand minimum constraints are added to prob for each demand node (bar)</span>
+<span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">Bars</span><span class="p">:</span>
+    <span class="n">prob</span> <span class="o">+=</span> <span class="p">(</span>
+        <span class="n">lpSum</span><span class="p">([</span><span class="nb">vars</span><span class="p">[</span><span class="n">w</span><span class="p">][</span><span class="n">b</span><span class="p">]</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">Warehouses</span><span class="p">])</span> <span class="o">&gt;=</span> <span class="n">demand</span><span class="p">[</span><span class="n">b</span><span class="p">],</span>
+        <span class="s2">&quot;Sum_of_Products_into_Bar</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">b</span><span class="p">,</span>
+    <span class="p">)</span>
 </pre></div>
 </div>
 <p>Following this is the <cite>prob.writeLP</cite> line, and the rest as explained in previous
@@ -390,12 +400,6 @@ lists/dictionaries, the only changes that must be made to include another demand
     <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>  <span class="c1"># A   Warehouses</span>
     <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>  <span class="c1"># B</span>
 <span class="p">]</span>
-
-<span class="c1"># The cost data is made into a dictionary</span>
-<span class="n">costs</span> <span class="o">=</span> <span class="n">makeDict</span><span class="p">([</span><span class="n">Warehouses</span><span class="p">,</span> <span class="n">Bars</span><span class="p">],</span> <span class="n">costs</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-
-<span class="c1"># Creates the &#39;prob&#39; variable to contain the problem data</span>
-<span class="n">prob</span> <span class="o">=</span> <span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;Beer Distribution Problem&quot;</span><span class="p">,</span> <span class="n">LpMinimize</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The <cite>Bars</cite> list is expanded and the <cite>Demand</cite> dictionary is expanded to make the

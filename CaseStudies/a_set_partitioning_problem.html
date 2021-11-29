@@ -101,14 +101,12 @@ expressions (like happiness) and still allow this problem to be solved
 using Linear Programming.</p>
 <p>First we use <a class="reference internal" href="../technical/pulp.html#pulp.allcombinations" title="pulp.allcombinations"><code class="xref py py-func docutils literal notranslate"><span class="pre">allcombinations()</span></code></a> to generate a list of all
 possible table seatings.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
-
-<span class="c1"># create list of all possible tables</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># create list of all possible tables</span>
+<span class="n">possible_tables</span> <span class="o">=</span> <span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">pulp</span><span class="o">.</span><span class="n">allcombinations</span><span class="p">(</span><span class="n">guests</span><span class="p">,</span> <span class="n">max_table_size</span><span class="p">)]</span>
 </pre></div>
 </div>
 <p>Then we create a binary variable that will be 1 if the table will be in the solution, or zero otherwise.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
-<span class="c1"># create a binary variable to state that a table setting is used</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># create a binary variable to state that a table setting is used</span>
 <span class="n">x</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpVariable</span><span class="o">.</span><span class="n">dicts</span><span class="p">(</span>
     <span class="s2">&quot;table&quot;</span><span class="p">,</span> <span class="n">possible_tables</span><span class="p">,</span> <span class="n">lowBound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upBound</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">cat</span><span class="o">=</span><span class="n">pulp</span><span class="o">.</span><span class="n">LpInteger</span>
 <span class="p">)</span>
@@ -124,14 +122,19 @@ happiness function used in this script would be difficult to model in any other 
 <p>We specify the total number of tables allowed in the solution.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># specify the maximum number of tables</span>
 <span class="n">seating_model</span> <span class="o">+=</span> <span class="p">(</span>
+    <span class="n">pulp</span><span class="o">.</span><span class="n">lpSum</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span><span class="p">])</span> <span class="o">&lt;=</span> <span class="n">max_tables</span><span class="p">,</span>
+    <span class="s2">&quot;Maximum_number_of_tables&quot;</span><span class="p">,</span>
+<span class="p">)</span>
 </pre></div>
 </div>
 <p>This set of constraints defines the set partitioning problem by guaranteeing that a guest is allocated to
 exactly one table.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">)</span>
-
-<span class="c1"># A guest must seated at one and only one table</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># A guest must seated at one and only one table</span>
 <span class="k">for</span> <span class="n">guest</span> <span class="ow">in</span> <span class="n">guests</span><span class="p">:</span>
+    <span class="n">seating_model</span> <span class="o">+=</span> <span class="p">(</span>
+        <span class="n">pulp</span><span class="o">.</span><span class="n">lpSum</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span> <span class="k">if</span> <span class="n">guest</span> <span class="ow">in</span> <span class="n">table</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="s2">&quot;Must_seat_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">guest</span><span class="p">,</span>
+    <span class="p">)</span>
 </pre></div>
 </div>
 <p>The full file can be found here <a class="reference external" href="https://projects.coin-or.org/PuLP/browser/trunk/examples/wedding.py?format=txt">wedding.py</a></p>
