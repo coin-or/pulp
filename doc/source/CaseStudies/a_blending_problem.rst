@@ -300,13 +300,13 @@ programming. The ingredients are the reference keys, with the numbers as
 the data.
 
 .. literalinclude:: ../../../examples/WhiskasModel2.py
-    :lines: 10-51
+    :lines: 10-61
 
 The ``prob`` variable is created to contain the formulation, and the
 usual parameters are passed into :obj:`~pulp.LpProblem`.
 
 .. literalinclude:: ../../../examples/WhiskasModel2.py
-    :lines: 53-54
+    :lines: 63-64
 
 A dictionary called ``ingredient_vars`` is created which contains
 the LP variables, with their defined lower bound of zero. The reference
@@ -314,7 +314,7 @@ keys to the dictionary are the Ingredient names, and the data is
 ``Ingr_IngredientName``. (e.g. MUTTON: Ingr_MUTTON)
 
 .. literalinclude:: ../../../examples/WhiskasModel2.py
-    :lines: 56-57
+    :lines: 66-67
    
 Since ``costs`` and ``ingredient_vars`` are now dictionaries with the
 reference keys as the Ingredient names, the data can be simply extracted
@@ -323,12 +323,12 @@ elements of the resulting list. Thus the objective function is simply
 entered and assigned a name:
 
 .. literalinclude:: ../../../examples/WhiskasModel2.py
-    :lines: 59-60
+    :lines: 69-73
     
 Further list comprehensions are used to define the other 5 constraints, which are also each given names describing them.
 
 .. literalinclude:: ../../../examples/WhiskasModel2.py
-    :lines: 62-67
+    :lines: 75-92
  
 Following this, the :ref:`writeLP<writeLP>` line etc follow exactly the same as
 in the simplified example.
