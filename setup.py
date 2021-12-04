@@ -44,7 +44,6 @@ setup(
         "pulp.solverdir.cbc.win.32",
         "pulp.solverdir.cbc.win.64",
         "pulp.solverdir.cbc.osx.64",
-        "pulp.solverdir.choco",
     ],
     package_data={
         "pulp.solverdir.cbc.linux.32": ["*", "*.*"],
@@ -52,7 +51,6 @@ setup(
         "pulp.solverdir.cbc.win.32": ["*", "*.*"],
         "pulp.solverdir.cbc.win.64": ["*", "*.*"],
         "pulp.solverdir.cbc.osx.64": ["*", "*.*"],
-        "pulp.solverdir.choco": ["*", "*.*"],
     },
     include_package_data=True,
     install_requires=[],

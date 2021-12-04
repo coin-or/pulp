@@ -73,7 +73,7 @@ class BaseSolverTest:
                     {x: 4, y: -1, z: 6, w: 0},
                     use_mps=False,
                 )
-            elif self.solver.__class__ in [PULP_CHOCO_CMD, CHOCO_CMD, MIPCL_CMD]:
+            elif self.solver.__class__ in [CHOCO_CMD, MIPCL_CMD]:
                 # this error is not detected with mps and choco, MIPCL_CMD can only use mps files
                 pass
             else:
@@ -152,7 +152,7 @@ class BaseSolverTest:
             elif self.solver.__class__ in [GUROBI_CMD, SCIP_CMD]:
                 # GUROBI_CMD has a very simple interface
                 pulpTestCheck(prob, self.solver, [const.LpStatusNotSolved])
-            elif self.solver.__class__ in [PULP_CHOCO_CMD, CHOCO_CMD]:
+            elif self.solver.__class__ in [CHOCO_CMD]:
                 # choco bounds all variables. Would not return unbounded status
                 pass
             else:
@@ -217,7 +217,6 @@ class BaseSolverTest:
                 CPLEX_PY,
                 GLPK_CMD,
                 GUROBI_CMD,
-                PULP_CHOCO_CMD,
                 CHOCO_CMD,
                 MIPCL_CMD,
                 MOSEK,
@@ -415,7 +414,6 @@ class BaseSolverTest:
             print("\t Testing MIP relaxation")
             if self.solver.__class__ in [
                 GUROBI_CMD,
-                PULP_CHOCO_CMD,
                 CHOCO_CMD,
                 MIPCL_CMD,
                 SCIP_CMD,
@@ -755,7 +753,7 @@ class BaseSolverTest:
             elif self.solver.__class__ in [GUROBI_CMD, SCIP_CMD]:
                 # GLPK_CMD Does not report unbounded problems, correctly
                 pulpTestCheck(prob, self.solver, [const.LpStatusNotSolved])
-            elif self.solver.__class__ in [PULP_CHOCO_CMD, CHOCO_CMD]:
+            elif self.solver.__class__ in [CHOCO_CMD]:
                 # choco bounds all variables. Would not return unbounded status
                 pass
             else:
@@ -944,7 +942,7 @@ class BaseSolverTest:
             self.solver.timeLimit = 20
             # CHOCO has issues when given a time limit
             print("\t Testing timeLimit argument")
-            if self.solver.name != "PULP_CHOCO_CMD":
+            if self.solver.name != "CHOCO_CMD":
                 pulpTestCheck(
                     prob,
                     self.solver,
@@ -1325,10 +1323,6 @@ class PYGLPKTest(BaseSolverTest.PuLPTest):
 
 class YAPOSIBTest(BaseSolverTest.PuLPTest):
     solveInst = YAPOSIB
-
-
-class PULP_CHOCO_CMDTest(BaseSolverTest.PuLPTest):
-    solveInst = PULP_CHOCO_CMD
 
 
 class CHOCO_CMDTest(BaseSolverTest.PuLPTest):

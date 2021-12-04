@@ -146,10 +146,6 @@ def initialize(filename, operating_system="linux", arch="64"):
         scip_path = config.get("locations", "ScipPath")
     except configparser.Error:
         scip_path = "scip"
-    try:
-        pulp_choco_path = config.get("locations", "PulpChocoPath")
-    except configparser.Error:
-        pulp_choco_path = "choco"
     for i, path in enumerate(coinMP_path):
         if not os.path.dirname(path):
             # if no pathname is supplied assume the file is in the same directory
@@ -164,7 +160,6 @@ def initialize(filename, operating_system="linux", arch="64"):
         glpk_path,
         pulp_cbc_path,
         scip_path,
-        pulp_choco_path,
     )
 
 
@@ -199,7 +194,6 @@ config_filename = os.path.join(DIRNAME, "..", PULPCFGFILE)
     glpk_path,
     pulp_cbc_path,
     scip_path,
-    pulp_choco_path,
 ) = initialize(config_filename, operating_system, arch)
 
 

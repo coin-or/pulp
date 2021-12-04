@@ -2,11 +2,12 @@
 #       Copyright S.A.Mitchell (s.mitchell@auckland.ac.nz), 2007-
 #       Copyright F.Peschiera (pchtsp@gmail.com), 2019-
 # See the LICENSE file for copyright information.
-2.6.0 2021-
-    dropped packaged choco
-    fixed bugs
+2.7.0
     added HiGHS solver
     added pysmps dependency for mps parsing
+2.6.0 2021-12-04
+    dropped packaged choco
+    fixed bugs
     deprecated 'indexs' parameter LpVariable dicts and matrix
 2.5.1 2021-09-28
     updated docs
