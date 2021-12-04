@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>pulp.apis Interface to Solvers &mdash; PuLP 2.5.1 documentation</title>
+  <title>pulp.apis Interface to Solvers &mdash; PuLP 2.6.0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -30,7 +30,7 @@
             <a href="../index.html" class="icon icon-home"> PuLP
           </a>
               <div class="version">
-                2.5
+                2.6
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -823,35 +823,6 @@ e.g. gapRel=0.1, gapAbs=10, logPath=””,</p></li>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pulp.apis.PULP_CBC_CMD.pulp_cbc_path">
 <span class="sig-name descname"><span class="pre">pulp_cbc_path</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'/home/runner/work/pulp/pulp/pulp/apis/../solverdir/cbc/linux/64/cbc'</span></em><a class="headerlink" href="#pulp.apis.PULP_CBC_CMD.pulp_cbc_path" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="pulp.apis.PULP_CHOCO_CMD">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">PULP_CHOCO_CMD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepFiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeLimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.PULP_CHOCO_CMD" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pulp.apis.CHOCO_CMD" title="pulp.apis.choco_api.CHOCO_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.choco_api.CHOCO_CMD</span></code></a></p>
-<p>This solver uses a packaged version of choco provided with the package</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
-<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – if False, no log is shown</p></li>
-<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
-<li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)"><em>list</em></a>) – list of additional options to pass to solver</p></li>
-<li><p><strong>keepFiles</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – if True, files are saved in the current directory and not deleted after solving</p></li>
-<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – path to the solver binary</p></li>
-</ul>
-</dd>
-</dl>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pulp.apis.PULP_CHOCO_CMD.name">
-<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'PULP_CHOCO_CMD'</span></em><a class="headerlink" href="#pulp.apis.PULP_CHOCO_CMD.name" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pulp.apis.PULP_CHOCO_CMD.pulp_choco_path">
-<span class="sig-name descname"><span class="pre">pulp_choco_path</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'/home/runner/work/pulp/pulp/pulp/apis/../solverdir/choco/choco-parsers-with-dependencies.jar'</span></em><a class="headerlink" href="#pulp.apis.PULP_CHOCO_CMD.pulp_choco_path" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
