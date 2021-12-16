@@ -183,7 +183,7 @@ else:
     PULPCFGFILE += ".linux"
 
 DIRNAME = os.path.dirname(__file__)
-config_filename = os.path.join(DIRNAME, "..", PULPCFGFILE)
+config_filename = os.path.normpath(os.path.join(DIRNAME, "..", PULPCFGFILE))
 (
     cplex_dll_path,
     ilm_cplex_license,
