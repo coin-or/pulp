@@ -25,7 +25,7 @@
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."""
 
 from .core import LpSolver_CMD, LpSolver, subprocess, PulpSolverError, clock, log
-from .core import cbc_path, pulp_cbc_path, coinMP_path, devnull
+from .core import cbc_path, pulp_cbc_path, coinMP_path, devnull, operating_system
 import os
 from .. import constants
 from tempfile import mktemp
@@ -191,7 +191,15 @@ class COIN_CMD(LpSolver_CMD):
         args = []
         args.append(self.path)
         args.extend(cmds[1:].split())
-        cbc = subprocess.Popen(args, stdout=pipe, stderr=pipe, stdin=devnull)
+        if not self.msg and operating_system == "win":
+            # Prevent flashing windows if used from a GUI application
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            cbc = subprocess.Popen(
+                args, stdout=pipe, stderr=pipe, stdin=devnull, startupinfo=startupinfo
+            )
+        else:
+            cbc = subprocess.Popen(args, stdout=pipe, stderr=pipe, stdin=devnull)
         if cbc.wait() != 0:
             if pipe:
                 pipe.close()
