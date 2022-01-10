@@ -11,7 +11,7 @@ jobs:
         python-version: [2.7, 3.5, 3.6, 3.7, 3.8]
         os: [ubuntu-latest, macOS-latest, windows-latest]
         exclude:
-          - os: macos-latest
+          - os: macOS-latest
             python-version: [2.7, 3.5]
 
     steps:
