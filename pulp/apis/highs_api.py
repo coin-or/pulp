@@ -81,7 +81,7 @@ class HiGHS_CMD(LpSolver_CMD):
             lp.name, "mps", "sol", "HiGHS", "HiGHS_log"
         )
         write_lines = [
-            f"solution_file = {tmpSol}\n",
+            "solution_file = %s\n" % tmpSol,
             "write_solution_to_file = true\n",
             "write_solution_pretty = true\n",
         ]
