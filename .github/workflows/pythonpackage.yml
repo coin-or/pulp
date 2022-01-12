@@ -12,7 +12,11 @@ jobs:
         os: [ubuntu-latest, macOS-latest, windows-latest]
         exclude:
           - os: macOS-latest
-            python-version: [2.7, 3.5]
+            python-version: 2.7
+          - os: macOS-latest
+            python-version: 3.5
+          - os: macOS-latest
+            python-version: 3.6
 
     steps:
       - uses: actions/checkout@v1
