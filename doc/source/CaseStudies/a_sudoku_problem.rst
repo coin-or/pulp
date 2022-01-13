@@ -76,12 +76,12 @@ Solution
 The introductory commenting and import statement are entered
 
 .. literalinclude:: ../../../examples/Sudoku1.py
-    :lines: 1-10
+    :lines: 1-9
 
 In the unique case of the sudoku problem, the row names, column names and variable option values are all the exact same list of numbers from 1 to 9.
 
 .. literalinclude:: ../../../examples/Sudoku1.py
-    :lines: 11-13
+    :lines: 11-12
 
 
 A list called `Boxes` is created with 9 elements, each being another list. These 9 lists correspond to each of the 9 boxes, and each of the lists contains tuples as the elements with the row and column indices for each square in that box. Explicitly entering the values in a similar way to the following would have had the same effect (but would have been a waste of time): 
@@ -94,49 +94,49 @@ Therefore, Boxes[0] will return a list of tuples containing the locations of eac
 The prob variable is created to contain the problem data.
 
 .. literalinclude:: ../../../examples/Sudoku1.py
-    :lines: 20-22
+    :lines: 21-22
 
 
 The 729 problem variables are created since the `(Vals,Rows,Cols)` creates a variable for each combination of value, row and column. An example variable would be: Choice_4_2_9, and it is defined to be a binary variable (able to take only the integers 1 or 0. If Choice_4_2_9 was 1, it would mean the number 4 was present in the square situated in row 2, column 9. (If it was 0, it would mean there was not a 4 there)
 
 .. literalinclude:: ../../../examples/Sudoku1.py
-    :lines: 23-25
+    :lines: 24-25
 
 As explained above, we don't define an objective function since we are only concerned with any variable combination that can satisfy the constraints.
 
 .. literalinclude:: ../../../examples/Sudoku1.py
-    :lines: 26-27
+    :lines: 27-27
 
 Since there are 9 variables for each square, it is important to specify that only exactly one of them can take the value of 1 (and the rest are 0). Therefore, the below code reads: for each of the 81 squares, the sum of all the 9 variables (each representing a value that could be there) relating to that particular square must equal 1. 
 
 .. literalinclude:: ../../../examples/Sudoku1.py
-    :lines: 28-32
+    :lines: 29-32
 
 These constraints ensure that each number (value) can only occur once in each row, column and box.
 
 .. literalinclude:: ../../../examples/Sudoku1.py
-    :lines: 33-43
+    :lines: 34-43
 
 The starting numbers are entered as constraints i.e a 5 in row 1 column 1 is true.
 
 .. literalinclude:: ../../../examples/Sudoku1.py
-    :lines: 44-79
+    :lines: 45-79
 
 The problem is written to an LP file, solved using PuLP's choice of solver and the solution status is printed to the screen 
 
 .. literalinclude:: ../../../examples/Sudoku1.py
-    :lines: 80-88
+    :lines: 81-88
 
 
 Instead of printing out all 729 of the binary problem variables and their respective values, it is more meaningful to draw the solution in a text file. The code also puts lines inbetween every third row and column to make the solution easier to read. The sudokuout.txt file is created in the same folder as the .py file.
 
 .. literalinclude:: ../../../examples/Sudoku1.py
-    :lines: 89-106
+    :lines: 90-106
 
 A note of the location of the solution is printed to the solution
 
 .. literalinclude:: ../../../examples/Sudoku1.py
-    :lines: 107-108
+    :lines: 108-109
 
 
 The full file above is given provided `Sudoku1.py <https://projects.coin-or.org/PuLP/browser/trunk/examples/Sudoku1.py?format=txt>`_
@@ -153,6 +153,6 @@ In the above formulation we did not consider the fact that there may be multiple
 We can make our code return all the solutions by editing our code as shown after the `prob.writeLP` line. Essentially we are just looping over the solve statement, and each time after a successful solve, adding a constraint that the same solution cannot be used again. When there are no more solutions, our program ends.
 
 .. literalinclude:: ../../../examples/Sudoku2.py
-    :lines: 88-114
+    :lines: 89-124
 
 The full file using this is available `Sudoku2.py <https://github.com/stumitchell/pulp-or/raw/master/examples/Sudoku2.py>`_. When using this code for sudoku problems with a large number of solutions, it could take a very long time to solve them all. To create sudoku problems with multiple solutions from unique solution sudoku problem, you can simply delete a starting number constraint. You may find that deleting several constraints will still lead to a single optimal solution but the removal of one particular constraint leads to a sudden dramatic increase in the number of solutions. 

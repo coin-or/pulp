@@ -145,7 +145,7 @@ First, start your Python file with a heading and the import PuLP statement:
 The start of the formulation is a simple definition of the nodes and their limits/capacities. The node names are put into lists, and their associated capacities are put into dictionaries with the node names as the reference keys:
 
 .. literalinclude:: ../../../examples/BeerDistributionProblem.py
-    :lines: 10-25
+    :lines: 10-26
 
 The cost data is then inputted into a list, with two sub lists: the first 
 containing the costs of shipping from Warehouse A, and the second containing the 
@@ -160,36 +160,36 @@ warehouse A to bar 1, 2. If `costs["C"]["2"]` is called, it will return 0, since
 this is the defined default.
 
 .. literalinclude:: ../../../examples/BeerDistributionProblem.py
-    :lines: 27-35
+    :lines: 28-36
 
 The `prob` variable is created using the `LpProblem` function, with the usual 
 input parameters.
 
 .. literalinclude:: ../../../examples/BeerDistributionProblem.py
-    :lines: 37-38
+    :lines: 38-39
 
 A list of tuples is created containing all the arcs.
 
 .. literalinclude:: ../../../examples/BeerDistributionProblem.py
-    :lines: 40-41
+    :lines: 41-42
 
-A dictionary called `route_var` is created which contains the LP variables. The 
+A dictionary called `vars` is created which contains the LP variables. The
 reference keys to the dictionary are the warehouse name, then the bar 
 name(`["A"]["2"]`) , and the data is `Route_Tuple`. (e.g. `["A"]["2"]`: 
 Route_A_2). The lower limit of zero is set, the upper limit of `None` is set, 
 and the variables are defined to be Integers.
 
 .. literalinclude:: ../../../examples/BeerDistributionProblem.py
-    :lines: 43-44
+    :lines: 44-45
 
 The objective function is added to the variable `prob` using a list 
-comprehension. Since `route_vars` and `costs` are now dictionaries (with further 
+comprehension. Since `vars` and `costs` are now dictionaries (with further
 internal dictionaries), they can be used as if they were tables, as `for (w,b) 
 in Routes` will cycle through all the combinations/arcs. Note that `i` and `j` 
 could have been used, but `w` and `b` are more meaningful.
 
 .. literalinclude:: ../../../examples/BeerDistributionProblem.py
-    :lines: 46-47
+    :lines: 47-51
 
 The supply and demand constraints are added using a normal `for` loop and a list 
 comprehension. Supply Constraints: For each warehouse in turn, the values of the 
@@ -200,7 +200,7 @@ variables (number on arc) from each of the warehouses is summed, and then
 constrained to being greater than or equal to the demand minimum.
 
 .. literalinclude:: ../../../examples/BeerDistributionProblem.py
-    :lines: 49-55
+    :lines: 53-65
 
 Following this is the `prob.writeLP` line, and the rest as explained in previous 
 examples.
@@ -242,7 +242,7 @@ constraints all operated on the original supply, demand and cost
 lists/dictionaries, the only changes that must be made to include another demand node are:
 
 .. literalinclude:: ../../../examples/BeerDistributionProblemWarehouseExtension.py
-    :lines: 11-31
+    :lines: 11-25
 
 
 The `Bars` list is expanded and the `Demand` dictionary is expanded to make the 

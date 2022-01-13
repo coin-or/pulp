@@ -25,7 +25,7 @@ The uncertainty is expressed as one of four possible scenarios, each with equal 
 We begin by importing the `PuLP` package.
 
 .. literalinclude:: ../../../examples/Two_stage_Stochastic_GemstoneTools.py
-    :lines: 29-31
+    :lines: 30
 
 Next, we will read in the data.  Here, we read in the data as vectors.
 In actual use, this may be read from databases.  First, the data
@@ -57,20 +57,20 @@ To define our decision variables, we use the function `pulp.LpVariable.dicts()`,
 which creates dictionaries with associated indexing values.
 
 .. literalinclude:: ../../../examples/Two_stage_Stochastic_GemstoneTools.py
-    :lines: 61-63
+    :lines: 61-64
 
 
 We create the :class:`~pulp.LpProblem` and then make the objective function.
 Note that this is a maximization problem, as the goal is to maximize net revenue.
 
 .. literalinclude:: ../../../examples/Two_stage_Stochastic_GemstoneTools.py
-    :lines: 66
+    :lines: 67
 
 The objective function is specified using the `pulp.lpSum()` function. Note
 that it is added to the problem using `+=`.
 
 .. literalinclude:: ../../../examples/Two_stage_Stochastic_GemstoneTools.py
-    :lines: 69-72
+    :lines: 70-79
 
 We then add in constraints.  Constraints here in sets based on scenarios
 and products and are specified using the `for i in list:` notation.
@@ -81,7 +81,7 @@ Finally, here, the file gives each constraint a name which includes the specific
 scenario or product the constraint applies to.
 
 .. literalinclude:: ../../../examples/Two_stage_Stochastic_GemstoneTools.py
-    :lines: 73-85
+    :lines: 81-94
 
 
 The full file can be found here :download:`Two_stage_Stochastic_GemstoneTools.py <../../../examples/Two_stage_Stochastic_GemstoneTools.py>`

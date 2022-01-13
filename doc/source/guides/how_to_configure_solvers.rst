@@ -12,13 +12,13 @@ PuLP has some helper functions that permit a user to query which solvers are ava
 
     import pulp as pl
     solver_list = pl.listSolvers()
-    # ['GLPK_CMD', 'PYGLPK', 'CPLEX_CMD', 'CPLEX_PY', 'CPLEX_DLL', 'GUROBI', 'GUROBI_CMD', 'MOSEK', 'XPRESS', 'PULP_CBC_CMD', 'COIN_CMD', 'COINMP_DLL', 'CHOCO_CMD', 'PULP_CHOCO_CMD', 'MIPCL_CMD', 'SCIP_CMD']
+    # ['GLPK_CMD', 'PYGLPK', 'CPLEX_CMD', 'CPLEX_PY', 'CPLEX_DLL', 'GUROBI', 'GUROBI_CMD', 'MOSEK', 'XPRESS', 'PULP_CBC_CMD', 'COIN_CMD', 'COINMP_DLL', 'CHOCO_CMD', 'MIPCL_CMD', 'SCIP_CMD']
 
 If passed the `only_available=True` argument, PuLP lists the solvers that are currently available::
 
     import pulp as pl
     solver_list = pl.listSolvers(onlyAvailable=True)
-    # ['GLPK_CMD', 'CPLEX_CMD', 'CPLEX_PY', 'GUROBI', 'GUROBI_CMD', 'PULP_CBC_CMD', 'COIN_CMD', 'PULP_CHOCO_CMD']
+    # ['GLPK_CMD', 'CPLEX_CMD', 'CPLEX_PY', 'GUROBI', 'GUROBI_CMD', 'PULP_CBC_CMD', 'COIN_CMD']
 
 Also, it's possible to get a solver object by using the name of the solver. Any arguments passed to this function are passed to the constructor:
 

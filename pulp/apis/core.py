@@ -146,10 +146,6 @@ def initialize(filename, operating_system="linux", arch="64"):
         scip_path = config.get("locations", "ScipPath")
     except configparser.Error:
         scip_path = "scip"
-    try:
-        pulp_choco_path = config.get("locations", "PulpChocoPath")
-    except configparser.Error:
-        pulp_choco_path = "choco"
     for i, path in enumerate(coinMP_path):
         if not os.path.dirname(path):
             # if no pathname is supplied assume the file is in the same directory
@@ -164,7 +160,6 @@ def initialize(filename, operating_system="linux", arch="64"):
         glpk_path,
         pulp_cbc_path,
         scip_path,
-        pulp_choco_path,
     )
 
 
@@ -188,7 +183,7 @@ else:
     PULPCFGFILE += ".linux"
 
 DIRNAME = os.path.dirname(__file__)
-config_filename = os.path.join(DIRNAME, "..", PULPCFGFILE)
+config_filename = os.path.normpath(os.path.join(DIRNAME, "..", PULPCFGFILE))
 (
     cplex_dll_path,
     ilm_cplex_license,
@@ -199,7 +194,6 @@ config_filename = os.path.join(DIRNAME, "..", PULPCFGFILE)
     glpk_path,
     pulp_cbc_path,
     scip_path,
-    pulp_choco_path,
 ) = initialize(config_filename, operating_system, arch)
 
 
@@ -231,7 +225,7 @@ class LpSolver:
         self.solution_time = 0
 
         # here we will store all other relevant information including:
-        # gapRel, gapAbs, maxMemory, maxNodes, threads, logPath
+        # gapRel, gapAbs, maxMemory, maxNodes, threads, logPath, timeMode
         self.optionsDict = {k: v for k, v in kwargs.items() if v is not None}
 
     def available(self):
@@ -522,7 +516,6 @@ try:
         for i, elem in enumerate(myList):
             cList[i] = elem
         return cList
-
 
 except (ImportError):
 

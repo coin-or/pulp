@@ -47,6 +47,7 @@ The LpProblem Class
    .. automethod:: writeMPS
    .. automethod:: toJson
    .. automethod:: fromJson
+   .. automethod:: variables
 
 Variables and Expressions
 -------------------------

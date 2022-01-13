@@ -23,16 +23,12 @@ _all_solvers = [
     COIN_CMD,
     COINMP_DLL,
     CHOCO_CMD,
-    PULP_CHOCO_CMD,
     MIPCL_CMD,
     SCIP_CMD,
     HiGHS_CMD,
 ]
 
-try:
-    import ujson as json
-except ImportError:
-    import json
+import json
 
 # Default solver selection
 if PULP_CBC_CMD().available():

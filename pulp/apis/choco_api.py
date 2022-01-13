@@ -25,7 +25,6 @@
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."""
 
 from .core import LpSolver_CMD, subprocess, PulpSolverError
-from .core import pulp_choco_path
 import os
 from .. import constants
 import warnings
@@ -157,54 +156,3 @@ class CHOCO_CMD(LpSolver_CMD):
             values[name] = float(value)
 
         return status, values, sol_status
-
-
-class PULP_CHOCO_CMD(CHOCO_CMD):
-    """
-    This solver uses a packaged version of choco provided with the package
-    """
-
-    pulp_choco_path = pulp_choco_path
-    name = "PULP_CHOCO_CMD"
-    try:
-        if os.name != "nt":
-            if not os.access(pulp_choco_path, os.X_OK):
-                import stat
-
-                os.chmod(pulp_choco_path, stat.S_IXUSR + stat.S_IXOTH)
-    except:  # probably due to incorrect permissions
-
-        def available(self):
-            """True if the solver is available"""
-            return False
-
-        def actualSolve(self, lp, callback=None):
-            """Solve a well formulated lp problem"""
-            raise PulpSolverError(
-                "PULP_CHOCO_CMD: Not Available (check permissions on %s)"
-                % self.pulp_choco_path
-            )
-
-    else:
-
-        def __init__(
-            self,
-            path=None,
-            keepFiles=0,
-            mip=True,
-            msg=True,
-            options=None,
-            timeLimit=None,
-        ):
-            if path is not None:
-                raise PulpSolverError("Use CHOCO_CMD if you want to set a path")
-            # check that the file is executable
-            CHOCO_CMD.__init__(
-                self,
-                path=self.pulp_choco_path,
-                keepFiles=keepFiles,
-                mip=mip,
-                msg=msg,
-                options=options,
-                timeLimit=timeLimit,
-            )
