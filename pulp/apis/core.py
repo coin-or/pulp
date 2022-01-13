@@ -517,6 +517,7 @@ try:
             cList[i] = elem
         return cList
 
+
 except (ImportError):
 
     def ctypesArrayFill(myList, type=None):
