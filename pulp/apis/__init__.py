@@ -7,6 +7,7 @@ from .mipcl_api import *
 from .mosek_api import *
 from .scip_api import *
 from .xpress_api import *
+from .highs_api import *
 from .core import *
 
 _all_solvers = [
@@ -24,6 +25,7 @@ _all_solvers = [
     CHOCO_CMD,
     MIPCL_CMD,
     SCIP_CMD,
+    HiGHS_CMD,
 ]
 
 import json

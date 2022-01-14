@@ -177,6 +177,7 @@ class BaseSolverTest:
                 GUROBI_CMD,
                 MIPCL_CMD,
                 SCIP_CMD,
+                HiGHS_CMD,
             ]:
                 try:
                     pulpTestCheck(
@@ -221,6 +222,7 @@ class BaseSolverTest:
                 MIPCL_CMD,
                 MOSEK,
                 SCIP_CMD,
+                HiGHS_CMD,
             ]:
                 try:
                     pulpTestCheck(
@@ -417,8 +419,9 @@ class BaseSolverTest:
                 CHOCO_CMD,
                 MIPCL_CMD,
                 SCIP_CMD,
+                HiGHS_CMD,
             ]:
-                # gurobi command, choco and mipcl do not let the problem be relaxed
+                # gurobi command, choco, mipcl and HiGHS do not let the problem be relaxed
                 pulpTestCheck(
                     prob, self.solver, [const.LpStatusOptimal], {x: 3.0, y: -0.5, z: 7}
                 )
@@ -1339,6 +1342,10 @@ class MOSEKTest(BaseSolverTest.PuLPTest):
 
 class SCIP_CMDTest(BaseSolverTest.PuLPTest):
     solveInst = SCIP_CMD
+
+
+class HiGHS_CMDTest(BaseSolverTest.PuLPTest):
+    solveInst = HiGHS_CMD
 
 
 def pulpTestCheck(
