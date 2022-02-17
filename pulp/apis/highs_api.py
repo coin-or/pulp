@@ -83,7 +83,7 @@ class HiGHS_CMD(LpSolver_CMD):
         write_lines = [
             "solution_file = %s\n" % tmpSol,
             "write_solution_to_file = true\n",
-            "write_solution_style = 1\n",
+            "write_solution_style = 2\n",
         ]
         with open(tmpOptions, "w") as fp:
             fp.writelines(write_lines)
