@@ -24,6 +24,9 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."""
 
+import asyncio
+from io import TextIOWrapper
+import sys
 from .core import LpSolver_CMD, LpSolver, subprocess, PulpSolverError, clock, log
 from .core import cbc_path, pulp_cbc_path, coinMP_path, devnull
 import os
@@ -176,33 +179,77 @@ class COIN_CMD(LpSolver_CMD):
             cmds += "initialSolve "
         cmds += "printingOptions all "
         cmds += "solution " + tmpSol + " "
-        if self.msg:
-            pipe = None
-        else:
-            pipe = open(os.devnull, "w")
+
+        # self.msg = 1
+        # self.optionsDict["logPath"] = "this.log"
+
         logPath = self.optionsDict.get("logPath")
-        if logPath:
-            if self.msg:
-                warnings.warn(
-                    "`logPath` argument replaces `msg=1`. The output will be redirected to the log file."
-                )
-            pipe = open(self.optionsDict["logPath"], "w")
+
         log.debug(self.path + cmds)
         args = []
         args.append(self.path)
         args.extend(cmds[1:].split())
-        cbc = subprocess.Popen(args, stdout=pipe, stderr=pipe, stdin=devnull)
-        if cbc.wait() != 0:
-            if pipe:
-                pipe.close()
+        # https://lyceum-allotments.github.io/2017/03/python-and-pipes-part-6-multiple-subprocesses-and-pipes/
+
+        class SubProcessRunner:
+            def __init__(self, print_to_stdout, logPath=None):
+                self.loop = self.get_event_loop()
+                self.output = []
+                self.full_output = None
+                self.print_to_stdout = print_to_stdout
+                self.logPath = logPath or os.devnull
+
+            @staticmethod
+            def get_event_loop():
+                if sys.platform == "win32":
+                    loop = asyncio.ProactorEventLoop()
+                    asyncio.set_event_loop(loop)
+                else:
+                    loop = asyncio.get_running_loop()
+                return loop
+
+            async def watch(self, stream):
+                with open(self.logPath, "w") as f:
+                    async for line in stream:
+                        line = line.decode().strip()
+                        self.output.append(line)
+
+                        if self.print_to_stdout:
+                            print(line)
+                        f.write(line + "\n")
+
+            async def run_sub(self, cmd):
+                p = await asyncio.create_subprocess_exec(
+                    *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+                )
+                await asyncio.gather(self.watch(p.stdout))
+                await p.wait()
+                return p.returncode
+
+            def run(self, args):
+                return_code = self.loop.run_until_complete(self.run_sub(args))
+                self.full_output = "\n".join(self.output)
+                self.loop.close()
+                return return_code
+
+        sub_process_runner = SubProcessRunner(print_to_stdout=self.msg, logPath=logPath)
+        return_code = sub_process_runner.run(args)
+
+        if return_code != 0:
+            print(return_code)
             raise PulpSolverError(
                 "Pulp: Error while trying to execute, use msg=True for more details"
                 + self.path
+                + "return_code={}\noutput={}".format(
+                    return_code, sub_process_runner.full_output
+                )
             )
-        if pipe:
-            pipe.close()
+
         if not os.path.exists(tmpSol):
             raise PulpSolverError("Pulp: Error while executing " + self.path)
+        # Problem: output is read from file
+        # readsol_MPS requires multiple dispatch or conditional reading with
+        # different functions
         (
             status,
             values,
