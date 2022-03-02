@@ -180,19 +180,15 @@ class COIN_CMD(LpSolver_CMD):
         cmds += "printingOptions all "
         cmds += "solution " + tmpSol + " "
 
-        # self.msg = 1
-        # self.optionsDict["logPath"] = "this.log"
-
         logPath = self.optionsDict.get("logPath")
 
         log.debug(self.path + cmds)
         args = []
         args.append(self.path)
         args.extend(cmds[1:].split())
-        # https://lyceum-allotments.github.io/2017/03/python-and-pipes-part-6-multiple-subprocesses-and-pipes/
 
         class SubProcessRunner:
-            def __init__(self, print_to_stdout, logPath=None):
+            def __init__(self, print_to_stdout: bool, logPath: str = None):
                 self.loop = self.get_event_loop()
                 self.output = []
                 self.full_output = None
@@ -245,11 +241,10 @@ class COIN_CMD(LpSolver_CMD):
                 )
             )
 
+        self.solver_output = sub_process_runner.full_output
+
         if not os.path.exists(tmpSol):
             raise PulpSolverError("Pulp: Error while executing " + self.path)
-        # Problem: output is read from file
-        # readsol_MPS requires multiple dispatch or conditional reading with
-        # different functions
         (
             status,
             values,
