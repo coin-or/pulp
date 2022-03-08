@@ -1356,7 +1356,7 @@ def pulpTestCheck(
     reducedcosts=None,
     duals=None,
     slacks=None,
-    eps=10 ** -3,
+    eps=10**-3,
     status=None,
     objective=None,
     **kwargs

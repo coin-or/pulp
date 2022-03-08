@@ -31,7 +31,7 @@ def create_bin_packing_problem(bins, seed=0):
 
     using_bin = LpVariable.dicts("y", bin_indices, cat=LpBinary)
     items_packed = LpVariable.dicts(
-        "x", indexs=product(item_indices, bin_indices), cat=LpBinary
+        "x", indices=product(item_indices, bin_indices), cat=LpBinary
     )
 
     prob += lpSum(using_bin), "objective"
