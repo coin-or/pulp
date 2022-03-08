@@ -25,9 +25,8 @@
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."""
 
 import asyncio
-from io import TextIOWrapper
 import sys
-from .core import LpSolver_CMD, LpSolver, subprocess, PulpSolverError, clock, log
+from .core import LpSolver_CMD, LpSolver, PulpSolverError, clock, log
 from .core import cbc_path, pulp_cbc_path, coinMP_path, devnull
 import os
 from .. import constants
