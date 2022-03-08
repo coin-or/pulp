@@ -470,7 +470,7 @@ class CPLEX_PY(LpSolver):
             self.solverModel.set_warning_stream(fileobj)
             self.solverModel.set_results_stream(fileobj)
 
-        def changeEpgap(self, epgap=10 ** -4):
+        def changeEpgap(self, epgap=10**-4):
             """
             Change cplex solver integer bound gap tolerence
             """
