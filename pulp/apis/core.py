@@ -494,7 +494,7 @@ class LpSolver_CMD(LpSolver):
         if os.path.isabs(command):
             if os.path.exists(command) and os.access(command, os.X_OK):
                 return command
-        for path in os.environ.get("PATH", []).split(os.pathsep):
+        for path in os.environ.get("PATH", "").split(os.pathsep):
             new_path = os.path.join(path, command)
             if os.path.exists(new_path) and os.access(new_path, os.X_OK):
                 return os.path.join(path, command)
