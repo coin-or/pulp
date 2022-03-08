@@ -164,7 +164,7 @@ def subSolve(duals):
 
     newPatterns = []
     # Check if there are more patterns which would reduce the master LP objective function further
-    if value(prob.objective) < -(10 ** -5):
+    if value(prob.objective) < -(10**-5):
         varsdict = {}
         for v in prob.variables():
             varsdict[v.name] = v.varValue

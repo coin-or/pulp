@@ -131,7 +131,7 @@ def subSolve(Patterns, duals):
         newPattern[i] = int(varsdict[j])
 
     # Check if there are more patterns which would reduce the master LP objective function further
-    if value(prob.objective) < -(10 ** -5):
+    if value(prob.objective) < -(10**-5):
         morePatterns = True  # continue adding patterns
         Patterns += [
             Pattern("P" + str(len(Patterns)), [newPattern[i] for i in ["5", "7", "9"]])
