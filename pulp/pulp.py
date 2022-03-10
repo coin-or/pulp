@@ -1369,6 +1369,7 @@ class LpProblem(object):
         self.dummyVar = None
         self.solutionTime = 0
         self.solutionCpuTime = 0
+        self.bestBound=None # Variable to store the problem best bound when the solver exposes it
 
         # locals
         self.lastUnused = 0
@@ -1849,6 +1850,10 @@ class LpProblem(object):
             except KeyError:
                 pass
 
+    def assignBestBound(self, bestBound):
+        if bestBound:
+            self.bestBound=bestBound
+
     def assignConsSlack(self, values, activity=False):
         for name in values:
             try:
@@ -1861,6 +1866,8 @@ class LpProblem(object):
                     self.constraints[name].slack = float(values[name])
             except KeyError:
                 pass
+
+    
 
     def get_dummyVar(self):
         if self.dummyVar is None:

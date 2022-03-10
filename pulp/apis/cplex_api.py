@@ -542,6 +542,7 @@ class CPLEX_PY(LpSolver):
             con_names = [con for con in lp.constraints]
             try:
                 objectiveValue = lp.solverModel.solution.get_objective_value()
+                lp.assignBestBound(lp.solverModel.solution.MIP.get_best_objective())
                 variablevalues = dict(
                     zip(var_names, lp.solverModel.solution.get_values(var_names))
                 )
