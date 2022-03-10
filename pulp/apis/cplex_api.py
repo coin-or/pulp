@@ -293,8 +293,9 @@ class CPLEX_PY(LpSolver):
             gapRel=None,
             warmStart=False,
             logPath=None,
+            nthreads=0,
             epgap=None,
-            logfilename=None,
+            logfilename=None
         ):
             """
             :param bool mip: if False, assume LP even if integer variables
@@ -303,6 +304,7 @@ class CPLEX_PY(LpSolver):
             :param float gapRel: relative gap tolerance for the solver to stop (in fraction)
             :param bool warmStart: if True, the solver will use the current value of variables as a start
             :param str logPath: path to the log file
+            :param int nthreads: number of threads to be used by CPLEX to solve a problem (default 0 uses all available)
             :param float epgap: deprecated for gapRel
             :param str logfilename: deprecated for logPath
             """
@@ -447,6 +449,7 @@ class CPLEX_PY(LpSolver):
                 self.changeEpgap(gapRel)
             if self.timeLimit is not None:
                 self.setTimeLimit(self.timeLimit)
+            self.setThreads(self.nthreads)
             if self.optionsDict.get("warmStart", False):
                 # We assume "auto" for the effort_level
                 effort = self.solverModel.MIP_starts.effort_level.auto
@@ -469,6 +472,12 @@ class CPLEX_PY(LpSolver):
             self.solverModel.set_log_stream(fileobj)
             self.solverModel.set_warning_stream(fileobj)
             self.solverModel.set_results_stream(fileobj)
+
+        def setThreads(self, nthreads=0):
+            """
+            Change cplex thread count used (0 is default which uses all available resources)
+            """
+            self.solverModel.parameters.threads.set(nthreads)
 
         def changeEpgap(self, epgap=10**-4):
             """
