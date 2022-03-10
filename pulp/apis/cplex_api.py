@@ -292,6 +292,7 @@ class CPLEX_PY(LpSolver):
             timeLimit=None,
             gapRel=None,
             warmStart=False,
+            solutionFile=None,
             logPath=None,
             nthreads=0,
             epgap=None,
@@ -303,6 +304,7 @@ class CPLEX_PY(LpSolver):
             :param float timeLimit: maximum time for solver (in seconds)
             :param float gapRel: relative gap tolerance for the solver to stop (in fraction)
             :param bool warmStart: if True, the solver will use the current value of variables as a start
+            :param str solutionFile: if warmStart is True, you can specify a mst file that will be feed to the Cplex over the current values, at the end of the execution it will also save the final .mst file
             :param str logPath: path to the log file
             :param int nthreads: number of threads to be used by CPLEX to solve a problem (default 0 uses all available)
             :param float epgap: deprecated for gapRel
@@ -453,16 +455,23 @@ class CPLEX_PY(LpSolver):
             if self.optionsDict.get("warmStart", False):
                 # We assume "auto" for the effort_level
                 effort = self.solverModel.MIP_starts.effort_level.auto
-                start = [
-                    (k, v.value()) for k, v in self.n2v.items() if v.value() is not None
-                ]
-                if not start:
-                    warnings.warn("No variable with value found: mipStart aborted")
-                    return
-                ind, val = zip(*start)
-                self.solverModel.MIP_starts.add(
-                    cplex.SparsePair(ind=ind, val=val), effort, "1"
-                )
+                if self.solutionFile:
+                    if os.path.exists(self.solutionFile):
+                        self.solverModel.MIP_starts.read(self.solutionFile)
+                        log.debug(f'Read {self.solutionFile} for mip start')
+                    else:
+                        warnings.warn('No solution file found: mipStart aborted')
+                else:
+                    start = [
+                        (k, v.value()) for k, v in self.n2v.items() if v.value() is not None
+                    ]
+                    if not start:
+                        warnings.warn("No variable with value found: mipStart aborted")
+                        return
+                    ind, val = zip(*start)
+                    self.solverModel.MIP_starts.add(
+                        cplex.SparsePair(ind=ind, val=val), effort, "1"
+                    )
 
         def setlogfile(self, fileobj):
             """
@@ -556,6 +565,9 @@ class CPLEX_PY(LpSolver):
                         )
                     )
                     lp.assignConsPi(constraintpivalues)
+                if self.solutionFile:
+                    lp.solverModel.MIP_starts.write(self.solutionFile)
+                    log.debug(f'Solution file {self.solutionFile} wrote with all current solutions of the model')
             except cplex.exceptions.CplexSolverError:
                 # raises this error when there is no solution
                 pass
