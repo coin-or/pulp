@@ -198,9 +198,9 @@ class COIN_CMD(LpSolver_CMD):
             def get_event_loop():
                 if sys.platform == "win32":
                     loop = asyncio.ProactorEventLoop()
-                    asyncio.set_event_loop(loop)
                 else:
-                    loop = asyncio.get_running_loop()
+                    loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
                 return loop
 
             async def watch(self, stream):
