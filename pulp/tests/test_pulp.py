@@ -1,6 +1,9 @@
 """
 Tests for pulp
 """
+import os
+import tempfile
+
 from pulp.constants import PulpError
 from pulp.apis import *
 from pulp import LpVariable, LpProblem, lpSum, LpConstraintVar, LpFractionConstraint
@@ -9,6 +12,29 @@ from pulp.tests.bin_packing_problem import create_bin_packing_problem
 from pulp.utilities import makeDict
 import unittest
 
+# from: http://lpsolve.sourceforge.net/5.5/mps-format.htm
+EXAMPLE_MPS_RHS56 = """NAME          TESTPROB
+ROWS
+ N  COST
+ L  LIM1
+ G  LIM2
+ E  MYEQN
+COLUMNS
+    XONE      COST                 1   LIM1                 1
+    XONE      LIM2                 1
+    YTWO      COST                 4   LIM1                 1
+    YTWO      MYEQN               -1
+    ZTHREE    COST                 9   LIM2                 1
+    ZTHREE    MYEQN                1
+RHS
+    RHS1      LIM1                 5   LIM2                10
+    RHS1      MYEQN                7
+BOUNDS
+ UP BND1      XONE                 4
+ LO BND1      YTWO                -1
+ UP BND1      YTWO                 1
+ENDATA
+"""
 
 def dumpTestProblem(prob):
     try:
@@ -1078,6 +1104,14 @@ class BaseSolverTest:
             _dict2 = getSortedDict(prob2, keyCons="constant")
             print("\t Testing reading MPS files - binary variable, no constraint names")
             self.assertDictEqual(_dict1, _dict2)
+
+        def test_importMPS_RHS_fields56(self):
+            """Import MPS file with RHS definitions in fields 5 & 6."""
+            with tempfile.NamedTemporaryFile(delete=False) as h:
+                h.write(str.encode(EXAMPLE_MPS_RHS56))
+            _, problem = LpProblem.fromMPS(h.name)
+            os.unlink(h.name)
+            self.assertEqual(problem.constraints['LIM2'].constant, -10)
 
         # def test_importMPS_2(self):
         #     name = self._testMethodName
