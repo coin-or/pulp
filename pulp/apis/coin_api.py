@@ -187,7 +187,7 @@ class COIN_CMD(LpSolver_CMD):
         args.extend(cmds[1:].split())
 
         class SubProcessRunner:
-            def __init__(self, print_to_stdout: bool, logPath: str = None):
+            def __init__(self, print_to_stdout, logPath=None):
                 self.loop = self.get_event_loop()
                 self.output = []
                 self.full_output = None
