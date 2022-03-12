@@ -183,6 +183,8 @@ def readMPSSetBounds(line, variable_dict):
 
 def readMPSSetRhs(line, constraintsDict):
     constraintsDict[line[1]]["constant"] = -float(line[2])
+    if len(line) == 5:  # read fields 5, 6
+        constraintsDict[line[3]]["constant"] = -float(line[4])
     return
 
 
