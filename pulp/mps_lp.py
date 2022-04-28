@@ -63,7 +63,10 @@ def readMPS(path, sense, dropConsNames=False):
             if line[0] == "*":
                 continue
             if line[0] == "NAME":
-                parameters["name"] = line[1]
+                if len(line) > 1:
+                    parameters["name"] = line[1]
+                else:
+                    parameters["name"] = ""
                 continue
 
             # here we get the mode
