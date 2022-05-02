@@ -36,6 +36,7 @@ BOUNDS
 ENDATA
 """
 
+
 def dumpTestProblem(prob):
     try:
         prob.writeLP("debug.lp")
@@ -1131,7 +1132,7 @@ class BaseSolverTest:
                 h.write(str.encode(EXAMPLE_MPS_RHS56))
             _, problem = LpProblem.fromMPS(h.name)
             os.unlink(h.name)
-            self.assertEqual(problem.constraints['LIM2'].constant, -10)
+            self.assertEqual(problem.constraints["LIM2"].constant, -10)
 
         # def test_importMPS_2(self):
         #     name = self._testMethodName
