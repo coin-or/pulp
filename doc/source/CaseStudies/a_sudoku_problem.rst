@@ -139,8 +139,7 @@ A note of the location of the solution is printed to the solution
     :lines: 108-109
 
 
-The full file above is given provided `Sudoku1.py <https://projects.coin-or.org/PuLP/browser/trunk/examples/Sudoku1.py?format=txt>`_
-
+The full file above is given provided :download:`Sudoku1.py <../../../examples/Sudoku1.py>`
 The final solution should be the following: 
 
 .. image:: images/wikisudokusolution.jpg
@@ -155,4 +154,4 @@ We can make our code return all the solutions by editing our code as shown after
 .. literalinclude:: ../../../examples/Sudoku2.py
     :lines: 89-124
 
-The full file using this is available `Sudoku2.py <https://github.com/stumitchell/pulp-or/raw/master/examples/Sudoku2.py>`_. When using this code for sudoku problems with a large number of solutions, it could take a very long time to solve them all. To create sudoku problems with multiple solutions from unique solution sudoku problem, you can simply delete a starting number constraint. You may find that deleting several constraints will still lead to a single optimal solution but the removal of one particular constraint leads to a sudden dramatic increase in the number of solutions. 
+The full file using this is available :download:`Sudoku2.py <../../../examples/Sudoku2.py>`. When using this code for sudoku problems with a large number of solutions, it could take a very long time to solve them all. To create sudoku problems with multiple solutions from unique solution sudoku problem, you can simply delete a starting number constraint. You may find that deleting several constraints will still lead to a single optimal solution but the removal of one particular constraint leads to a sudden dramatic increase in the number of solutions.
