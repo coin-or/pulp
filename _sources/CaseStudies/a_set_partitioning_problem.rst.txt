@@ -49,7 +49,7 @@ exactly one table.
 .. literalinclude:: ../../../examples/wedding.py
     :lines: 40-45
     
-The full file can be found here `wedding.py <https://projects.coin-or.org/PuLP/browser/trunk/examples/wedding.py?format=txt>`_
+The full file can be found here :download:`wedding.py <../../../examples/wedding.py>`
 
 .. literalinclude:: ../../../examples/wedding.py
 
