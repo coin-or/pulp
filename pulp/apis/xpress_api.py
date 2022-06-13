@@ -145,6 +145,7 @@ class XPRESS(LpSolver_CMD):
             xpress.stdin.write("GLOBAL\n")
         xpress.stdin.write("WRITEPRTSOL " + tmpSol + "\n")
         xpress.stdin.write("QUIT\n")
+        xpress.stdin.flush()
         if xpress.wait() != 0:
             raise PulpSolverError("PuLP: Error while executing " + self.path)
         status, values = self.readsol(tmpSol)
