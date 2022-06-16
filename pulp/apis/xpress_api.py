@@ -117,7 +117,8 @@ class XPRESS(LpSolver_CMD):
         )
         if not self.msg:
             xpress.stdin.write("OUTPUTLOG=0\n")
-        xpress.stdin.write("READPROB " + tmpLp + "\n")
+        # The readprob command must be in lower case for correct filename handling
+        xpress.stdin.write("readprob {" + tmpLp + "}\n")
         if self.timeLimit:
             xpress.stdin.write("MAXTIME=%d\n" % self.timeLimit)
         targetGap = self.optionsDict.get("gapRel")
@@ -143,8 +144,10 @@ class XPRESS(LpSolver_CMD):
             xpress.stdin.write("MINIM\n")
         if lp.isMIP() and self.mip:
             xpress.stdin.write("GLOBAL\n")
-        xpress.stdin.write("WRITEPRTSOL " + tmpSol + "\n")
+        # The writeprtsol command must be in lower case for correct filename handling
+        xpress.stdin.write("writeprtsol {" + tmpSol + "}\n")
         xpress.stdin.write("QUIT\n")
+        xpress.stdin.flush()
         if xpress.wait() != 0:
             raise PulpSolverError("PuLP: Error while executing " + self.path)
         status, values = self.readsol(tmpSol)
