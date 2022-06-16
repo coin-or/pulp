@@ -14,6 +14,7 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -106,7 +107,7 @@
            <div itemprop="articleBody">
              
   <section id="basic-python-coding">
-<h1>Basic Python Coding<a class="headerlink" href="#basic-python-coding" title="Permalink to this headline"></a></h1>
+<h1>Basic Python Coding<a class="headerlink" href="#basic-python-coding" title="Permalink to this heading"></a></h1>
 <p>In this course you will learn basic programming in Python, but there is also
 excellent Python Language reference material available on the internet freely.
 You can download the book <a class="reference external" href="http://www.diveintopython.org/">Dive Into Python</a>
@@ -121,9 +122,9 @@ below assume a knowledge of fundamental programming principles and mainly
 focus on Syntax specific to programming in Python.</p>
 <p>Note: &gt;&gt;&gt; represents a Python command line prompt.</p>
 <section id="loops-in-python">
-<h2>Loops in Python<a class="headerlink" href="#loops-in-python" title="Permalink to this headline"></a></h2>
+<h2>Loops in Python<a class="headerlink" href="#loops-in-python" title="Permalink to this heading"></a></h2>
 <section id="for-loop">
-<h3>for Loop<a class="headerlink" href="#for-loop" title="Permalink to this headline"></a></h3>
+<h3>for Loop<a class="headerlink" href="#for-loop" title="Permalink to this heading"></a></h3>
 <p>The general format is:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">variable</span> <span class="ow">in</span> <span class="n">sequence</span><span class="p">:</span>
     <span class="c1">#some commands</span>
@@ -152,7 +153,7 @@ the output</p>
 </div>
 </section>
 <section id="while-loop">
-<h3>while Loop<a class="headerlink" href="#while-loop" title="Permalink to this headline"></a></h3>
+<h3>while Loop<a class="headerlink" href="#while-loop" title="Permalink to this heading"></a></h3>
 <p>These are similar to for loops except they continue to loop until the specified
 condition is no longer true. A while loop is not told to work through any
 specific sequence.</p>
@@ -169,7 +170,7 @@ loop but it demonstrates the syntax. while loops are useful if the number of
 iterations before the loop needs to end, is unknown.</p>
 </section>
 <section id="the-if-statement">
-<h3>The if statement<a class="headerlink" href="#the-if-statement" title="Permalink to this headline"></a></h3>
+<h3>The if statement<a class="headerlink" href="#the-if-statement" title="Permalink to this heading"></a></h3>
 <p>This is performed in much the same way as the loops above. The key identifier is
 the colon : to start the statements and the end of indentation to end it.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">testlist</span><span class="p">:</span>
@@ -185,9 +186,9 @@ statement. “else” can in fact be used after both the loops in the same way.<
 </section>
 </section>
 <section id="array-types-in-python">
-<h2>Array types in python<a class="headerlink" href="#array-types-in-python" title="Permalink to this headline"></a></h2>
+<h2>Array types in python<a class="headerlink" href="#array-types-in-python" title="Permalink to this heading"></a></h2>
 <section id="lists">
-<h3>Lists<a class="headerlink" href="#lists" title="Permalink to this headline"></a></h3>
+<h3>Lists<a class="headerlink" href="#lists" title="Permalink to this heading"></a></h3>
 <p>A list is simply a sequence of variables grouped together. The range function is
 often used to create lists of integers, with the general format of
 range(start,stop,step). The default for start is 0 and the default for step is
@@ -209,7 +210,7 @@ print statement will display a string/variable/list/… to the user</p>
 </div>
 </section>
 <section id="tuples">
-<h3>Tuples<a class="headerlink" href="#tuples" title="Permalink to this headline"></a></h3>
+<h3>Tuples<a class="headerlink" href="#tuples" title="Permalink to this heading"></a></h3>
 <p>Tuples are basically the same as lists, but with the important difference that
 they cannot be modified once they have been created. They are assigned by:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span><span class="s2">&quot;string&quot;</span><span class="p">,[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],(</span><span class="s2">&quot;j&quot;</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="s2">&quot;o&quot;</span><span class="p">),</span><span class="mi">14</span><span class="p">)</span>
@@ -226,7 +227,7 @@ as element “zero”. Accessing this data is done by:</p>
 </div>
 </section>
 <section id="dictionaries">
-<h3>Dictionaries<a class="headerlink" href="#dictionaries" title="Permalink to this headline"></a></h3>
+<h3>Dictionaries<a class="headerlink" href="#dictionaries" title="Permalink to this heading"></a></h3>
 <p>A Dictionary is a list of reference keys each with associated data, whereby the
 order does not affect the operation of the dictionary at all. With dictionaries,
 the keys are not consecutive integers (unlike lists), and instead could be
@@ -285,7 +286,7 @@ it returns the data stored under that key name. These types of for loops using
 dictionaries will be highly relevant in using PuLP to model LPs in this course.</p>
 </section>
 <section id="list-tuple-dictionary-syntax-note">
-<h3>List/Tuple/Dictionary Syntax Note<a class="headerlink" href="#list-tuple-dictionary-syntax-note" title="Permalink to this headline"></a></h3>
+<h3>List/Tuple/Dictionary Syntax Note<a class="headerlink" href="#list-tuple-dictionary-syntax-note" title="Permalink to this heading"></a></h3>
 <p>Note that the creation of a:</p>
 <ul class="simple">
 <li><p>list is done with square brackets [];</p></li>
@@ -298,7 +299,7 @@ list or tuple, this would return the fourth element. If a was a dictionary it
 would return the data stored with a reference key of 3.</p>
 </section>
 <section id="list-comprehensions">
-<h3>List Comprehensions<a class="headerlink" href="#list-comprehensions" title="Permalink to this headline"></a></h3>
+<h3>List Comprehensions<a class="headerlink" href="#list-comprehensions" title="Permalink to this heading"></a></h3>
 <p>Python supports List Comprehensions which are a fast and concise way to create
 lists without using multiple lines. They are easily understandable when simple,
 and you will be using them in your code for this course.</p>
@@ -341,15 +342,15 @@ lists can also be used in the creation of new lists below:</p>
 </section>
 </section>
 <section id="other-important-language-features">
-<h2>Other important language features<a class="headerlink" href="#other-important-language-features" title="Permalink to this headline"></a></h2>
+<h2>Other important language features<a class="headerlink" href="#other-important-language-features" title="Permalink to this heading"></a></h2>
 <section id="commenting-in-python">
-<h3>Commenting in Python<a class="headerlink" href="#commenting-in-python" title="Permalink to this headline"></a></h3>
+<h3>Commenting in Python<a class="headerlink" href="#commenting-in-python" title="Permalink to this heading"></a></h3>
 <p>Commenting at the top of a file is done using “”” to start and to end the
 comment section. Commenting done throughout the code is done using the hash
 # symbol at the start of the line.</p>
 </section>
 <section id="import-statement">
-<h3>Import Statement<a class="headerlink" href="#import-statement" title="Permalink to this headline"></a></h3>
+<h3>Import Statement<a class="headerlink" href="#import-statement" title="Permalink to this heading"></a></h3>
 <p>At the top of all your Python coding that you intend to use PuLP to model, you
 will need the import statement. This statement makes the contents of another
 module (file of program code) available in the module you are currently writing
@@ -363,7 +364,7 @@ pulp. Calling a function defined in pulp.py now can be done as if they were
 defined in your own module.</p>
 </section>
 <section id="functions">
-<h3>Functions<a class="headerlink" href="#functions" title="Permalink to this headline"></a></h3>
+<h3>Functions<a class="headerlink" href="#functions" title="Permalink to this heading"></a></h3>
 <p>Functions in Python are defined by: (def is short for define)</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="n">inputparameter1</span><span class="p">,</span> <span class="n">inputparameter2</span><span class="p">,</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span><span class="p">):</span>
     <span class="c1">#function body</span>
@@ -391,7 +392,7 @@ used. Note that end_message must be specified as a key word argument as no
 value is given for tail</p>
 </section>
 <section id="classes">
-<h3>Classes<a class="headerlink" href="#classes" title="Permalink to this headline"></a></h3>
+<h3>Classes<a class="headerlink" href="#classes" title="Permalink to this heading"></a></h3>
 <p>To demonstrate how classes work in Python, look at the following class structure.</p>
 <p>The class name is Pattern, and it contains several class variables which are
 relevant to any instance of the Pattern class (i.e a Pattern). The functions are</p>

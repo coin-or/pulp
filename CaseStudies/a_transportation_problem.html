@@ -14,6 +14,7 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/js/theme.js"></script>
@@ -100,9 +101,9 @@
            <div itemprop="articleBody">
              
   <section id="a-transportation-problem">
-<h1>A Transportation Problem<a class="headerlink" href="#a-transportation-problem" title="Permalink to this headline"></a></h1>
+<h1>A Transportation Problem<a class="headerlink" href="#a-transportation-problem" title="Permalink to this heading"></a></h1>
 <section id="problem-description">
-<h2>Problem Description<a class="headerlink" href="#problem-description" title="Permalink to this headline"></a></h2>
+<h2>Problem Description<a class="headerlink" href="#problem-description" title="Permalink to this heading"></a></h2>
 <p>A boutique brewery has two warehouses from which it distributes beer to five
 carefully chosen bars. At the start of every week, each bar sends an order to
 the brewery’s head office for so many crates of beer, which is then dispatched
@@ -115,13 +116,13 @@ require 500, 900, 1800, 200, and 700 cases respectively. Which warehouse should
 supply which bar?</p>
 </section>
 <section id="formulation">
-<h2>Formulation<a class="headerlink" href="#formulation" title="Permalink to this headline"></a></h2>
+<h2>Formulation<a class="headerlink" href="#formulation" title="Permalink to this heading"></a></h2>
 <p>For transportation problems, using a graphical representation of the problem
 is often helpful during formulation. Here is a graphical representation of The
 Beer Distribution Problem.</p>
 <img alt="../_images/brewery_nodes.jpg" src="../_images/brewery_nodes.jpg" />
 <section id="identify-the-decision-variables">
-<h3>Identify the Decision Variables<a class="headerlink" href="#identify-the-decision-variables" title="Permalink to this headline"></a></h3>
+<h3>Identify the Decision Variables<a class="headerlink" href="#identify-the-decision-variables" title="Permalink to this heading"></a></h3>
 <p>In transportation problems we are deciding how to transport goods from their
 supply nodes to their demand nodes. The decision variables are the Arcs
 connecting these nodes, as shown in the diagram below. We are deciding how many
@@ -144,7 +145,7 @@ x_{(w,b)} &amp; \in \mathbb{Z}^+ \ldots \forall w \in W, b \in B \\\end{split}\]
 upper bound.</p>
 </section>
 <section id="formulate-the-objective-function">
-<h3>Formulate the Objective Function<a class="headerlink" href="#formulate-the-objective-function" title="Permalink to this headline"></a></h3>
+<h3>Formulate the Objective Function<a class="headerlink" href="#formulate-the-objective-function" title="Permalink to this heading"></a></h3>
 <p>The objective function has been loosely defined as cost. The problem can only be
 formulated as a linear program if the cost of transportation from warehouse to
 pub is a linear function of the amounts of crates transported. Note that this is
@@ -207,7 +208,7 @@ per crate):</p>
 \[\min \sum_{w \in W, b \in B} c_{(w,b)} x_{(w,b)}\]</div>
 </section>
 <section id="formulate-the-constraints">
-<h3>Formulate the Constraints<a class="headerlink" href="#formulate-the-constraints" title="Permalink to this headline"></a></h3>
+<h3>Formulate the Constraints<a class="headerlink" href="#formulate-the-constraints" title="Permalink to this heading"></a></h3>
 <p>The constraints come from considerations of supply and demand. The supply of
 beer at warehouse A is 1000 cases. The total amount of beer shipped from
 warehouse A cannot exceed this amount. Similarly, the amount of beer shipped
@@ -243,7 +244,7 @@ non-negative.</p>
 </section>
 </section>
 <section id="pulp-model">
-<h2>PuLP Model<a class="headerlink" href="#pulp-model" title="Permalink to this headline"></a></h2>
+<h2>PuLP Model<a class="headerlink" href="#pulp-model" title="Permalink to this heading"></a></h2>
 <p>Whilst the LP as defined above could be formulated into Python code in the same
 way as the <cite>A Blending Problem</cite> (Whiskas), for Transportation Problems, there is
 a more efficient way which we will use in this course. The example file for this
@@ -363,15 +364,15 @@ As long as Supply and Demand are integers, the linear programming solution will
 always be an integer. Read about naturally integer solutions for more details.</p>
 </section>
 <section id="extensions">
-<h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this headline"></a></h2>
+<h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this heading"></a></h2>
 <section id="validation">
-<h3>Validation<a class="headerlink" href="#validation" title="Permalink to this headline"></a></h3>
+<h3>Validation<a class="headerlink" href="#validation" title="Permalink to this heading"></a></h3>
 <p>Since we have guaranteed the Supply and Demand are integer, we know that the
 solution to the linear programme will be integer, so we don’t need to check the
 integrality of the solution.</p>
 </section>
 <section id="storage-and-buying-in">
-<h3>Storage and “Buying In”<a class="headerlink" href="#storage-and-buying-in" title="Permalink to this headline"></a></h3>
+<h3>Storage and “Buying In”<a class="headerlink" href="#storage-and-buying-in" title="Permalink to this heading"></a></h3>
 <p>Transportation models are usually _balanced_, i.e., the total supply = the total
 demand. This is because extra supply usually must be stored somewhere (with an
 associated storage cost) and extra demand is usually satisfied by purchasing
@@ -449,7 +450,7 @@ balance the problem, and cost of transport is zero to all demand nodes.</p>
 </section>
 </section>
 <section id="presentation-of-solution-and-analysis">
-<h2>Presentation of Solution and Analysis<a class="headerlink" href="#presentation-of-solution-and-analysis" title="Permalink to this headline"></a></h2>
+<h2>Presentation of Solution and Analysis<a class="headerlink" href="#presentation-of-solution-and-analysis" title="Permalink to this heading"></a></h2>
 <p>There are many ways to present the solution to The Beer Distribution Problem:
 as a list of shipments, in a table, etc.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">TRANSPORTATION</span> <span class="n">SOLUTION</span> <span class="o">--</span> <span class="n">Non</span><span class="o">-</span><span class="n">zero</span> <span class="n">shipments</span>
@@ -500,7 +501,7 @@ The total transportation cost of this shipping schedule is $_____.
 </div>
 </section>
 <section id="ongoing-monitoring">
-<h2>Ongoing Monitoring<a class="headerlink" href="#ongoing-monitoring" title="Permalink to this headline"></a></h2>
+<h2>Ongoing Monitoring<a class="headerlink" href="#ongoing-monitoring" title="Permalink to this heading"></a></h2>
 <p>Ongoing Monitoring may take the form of:</p>
 <ul class="simple">
 <li><p>Updating your data files and resolving as the data changes (changing costs, supplies, demands);</p></li>

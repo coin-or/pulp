@@ -14,6 +14,7 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/js/theme.js"></script>
@@ -87,7 +88,7 @@
            <div itemprop="articleBody">
              
   <section id="module-pulp">
-<span id="pulp-pulp-classes"></span><h1><a class="reference internal" href="#module-pulp" title="pulp"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp</span></code></a>:  Pulp classes<a class="headerlink" href="#module-pulp" title="Permalink to this headline"></a></h1>
+<span id="pulp-pulp-classes"></span><h1><a class="reference internal" href="#module-pulp" title="pulp"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp</span></code></a>:  Pulp classes<a class="headerlink" href="#module-pulp" title="Permalink to this heading"></a></h1>
 <table class="autosummary longtable docutils align-default">
 <colgroup>
 <col style="width: 10%" />
@@ -119,7 +120,7 @@
 <p>LpFractionConstraint, FractionElasticSubProblem</p>
 </div>
 <section id="the-lpproblem-class">
-<h2>The LpProblem Class<a class="headerlink" href="#the-lpproblem-class" title="Permalink to this headline"></a></h2>
+<h2>The LpProblem Class<a class="headerlink" href="#the-lpproblem-class" title="Permalink to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="pulp.LpProblem">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pulp.</span></span><span class="sig-name descname"><span class="pre">LpProblem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'NoName'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sense</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpProblem" title="Permalink to this definition"></a></dt>
@@ -314,7 +315,7 @@ constraints, variables) of the defined Lp problem to a file.</p>
 
 </section>
 <section id="variables-and-expressions">
-<h2>Variables and Expressions<a class="headerlink" href="#variables-and-expressions" title="Permalink to this headline"></a></h2>
+<h2>Variables and Expressions<a class="headerlink" href="#variables-and-expressions" title="Permalink to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="pulp.LpElement">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pulp.</span></span><span class="sig-name descname"><span class="pre">LpElement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpElement" title="Permalink to this definition"></a></dt>
@@ -497,7 +498,7 @@ integer.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="pulp.LpAffineExpression">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pulp.</span></span><span class="sig-name descname"><span class="pre">LpAffineExpression</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">e</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constant</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpAffineExpression" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/collections.html#collections.OrderedDict" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">collections.OrderedDict</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/collections.html#collections.OrderedDict" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">OrderedDict</span></code></a></p>
 <p>A linear combination of <a class="reference internal" href="#pulp.LpVariable" title="pulp.LpVariable"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpVariables</span></code></a>.
 Can be initialised with the following:</p>
 <ol class="arabic simple">
@@ -596,11 +597,11 @@ it does not export the constant</p>
 
 </section>
 <section id="constraints">
-<h2>Constraints<a class="headerlink" href="#constraints" title="Permalink to this headline"></a></h2>
+<h2>Constraints<a class="headerlink" href="#constraints" title="Permalink to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="pulp.LpConstraint">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pulp.</span></span><span class="sig-name descname"><span class="pre">LpConstraint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">e</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sense</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rhs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpConstraint" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pulp.LpAffineExpression" title="pulp.pulp.LpAffineExpression"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.pulp.LpAffineExpression</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#pulp.LpAffineExpression" title="pulp.pulp.LpAffineExpression"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpAffineExpression</span></code></a></p>
 <p>An LP constraint</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -681,7 +682,7 @@ it does not export the constant</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="pulp.FixedElasticSubProblem">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pulp.</span></span><span class="sig-name descname"><span class="pre">FixedElasticSubProblem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">constraint</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">penalty</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proportionFreeBound</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proportionFreeBoundList</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.FixedElasticSubProblem" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pulp.LpProblem" title="pulp.pulp.LpProblem"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.pulp.LpProblem</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#pulp.LpProblem" title="pulp.pulp.LpProblem"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpProblem</span></code></a></p>
 <p>Contains the subproblem generated by converting a fixed constraint
 <span class="math notranslate nohighlight">\(\sum_{i}a_i x_i = b\)</span> into an elastic constraint.</p>
 <dl class="field-list simple">
@@ -750,7 +751,7 @@ rhs</p>
 
 </section>
 <section id="combinations-and-permutations">
-<h2>Combinations  and Permutations<a class="headerlink" href="#combinations-and-permutations" title="Permalink to this headline"></a></h2>
+<h2>Combinations  and Permutations<a class="headerlink" href="#combinations-and-permutations" title="Permalink to this heading"></a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="pulp.combination">
 <span class="sig-prename descclassname"><span class="pre">pulp.</span></span><span class="sig-name descname"><span class="pre">combination</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iterable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.combination" title="Permalink to this definition"></a></dt>

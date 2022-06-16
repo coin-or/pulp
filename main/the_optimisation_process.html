@@ -14,6 +14,7 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -93,7 +94,7 @@
            <div itemprop="articleBody">
              
   <section id="the-optimisation-process">
-<h1>The Optimisation Process<a class="headerlink" href="#the-optimisation-process" title="Permalink to this headline"></a></h1>
+<h1>The Optimisation Process<a class="headerlink" href="#the-optimisation-process" title="Permalink to this heading"></a></h1>
 <p>Solving an optimisation problem is not a linear process, but the process can be
 broken down into five general steps:</p>
 <ul class="simple">
@@ -125,12 +126,12 @@ formulation, instead you “populate” your model using data files, so there is
 some work involved in creating the appropriate data file. The advantage of using
 data files is that the same model may used many times with different data sets.</p>
 <section id="the-modeling-process">
-<h2>The Modeling Process<a class="headerlink" href="#the-modeling-process" title="Permalink to this headline"></a></h2>
+<h2>The Modeling Process<a class="headerlink" href="#the-modeling-process" title="Permalink to this heading"></a></h2>
 <p>The modeling process is a “neat and tidy” simplification of the optimisation
 process. Let’s consider the five steps of the optimisation process in more
 detail:</p>
 <section id="getting-the-problem-description">
-<h3>Getting the Problem Description<a class="headerlink" href="#getting-the-problem-description" title="Permalink to this headline"></a></h3>
+<h3>Getting the Problem Description<a class="headerlink" href="#getting-the-problem-description" title="Permalink to this heading"></a></h3>
 <p>The aim of this step is to come up with a formal, rigourous model description.
 Usually you start an optimisation project with an abstract description of a
 problem and some data. Often you need to spend some time talking with the
@@ -142,7 +143,7 @@ data. Sometimes the limitations of the available data may change your model
 description and subsequent formulation significantly.</p>
 </section>
 <section id="formulating-the-mathematical-program">
-<h3>Formulating the mathematical program<a class="headerlink" href="#formulating-the-mathematical-program" title="Permalink to this headline"></a></h3>
+<h3>Formulating the mathematical program<a class="headerlink" href="#formulating-the-mathematical-program" title="Permalink to this heading"></a></h3>
 <p>In this step we identify the key quantifiable decisions, restrictions and goals
 from the problem description, and capture their interdependencies in a
 mathematical model. We can break the formulation process into 4 key steps:</p>
@@ -154,7 +155,7 @@ mathematical model. We can break the formulation process into 4 key steps:</p>
 </ul>
 </section>
 <section id="solving-the-mathematical-program">
-<h3>Solving the mathematical program<a class="headerlink" href="#solving-the-mathematical-program" title="Permalink to this headline"></a></h3>
+<h3>Solving the mathematical program<a class="headerlink" href="#solving-the-mathematical-program" title="Permalink to this heading"></a></h3>
 <p>For relatively simple or well understood problems the mathematical model can
 often be solved to optimality (i.e., the best possible solution is identified).
 This is done using algorithms such as the Revised Simplex Method
@@ -163,7 +164,7 @@ industrial problems would take too long to solve to optimality using these
 techniques, and so are solved using heuristic methods which do not guarantee optimality.</p>
 </section>
 <section id="performing-some-post-optimal-analysis">
-<h3>Performing some post-optimal analysis<a class="headerlink" href="#performing-some-post-optimal-analysis" title="Permalink to this headline"></a></h3>
+<h3>Performing some post-optimal analysis<a class="headerlink" href="#performing-some-post-optimal-analysis" title="Permalink to this heading"></a></h3>
 <p>Often there is uncertainty in the problem description (either with the accuracy
 of the data provided, or with the value(s) of data in the future). In this
 situation the robustness of our solution can be examined by performing
@@ -179,7 +180,7 @@ Make sure they make sense to you and, more importantly, your client (which is
 why the next step, presenting the solution and analysis is important).</p>
 </section>
 <section id="presenting-the-solution-and-analysis">
-<h3>Presenting the solution and analysis<a class="headerlink" href="#presenting-the-solution-and-analysis" title="Permalink to this headline"></a></h3>
+<h3>Presenting the solution and analysis<a class="headerlink" href="#presenting-the-solution-and-analysis" title="Permalink to this heading"></a></h3>
 <p>A crucial step in the optimisation process is the presentation of the solution
 and any post-optimal analysis. The translation from a mathematical program’s
 solution back into a concise and comprehensible summary is as important as the

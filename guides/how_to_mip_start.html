@@ -14,6 +14,7 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -90,18 +91,18 @@
            <div itemprop="articleBody">
              
   <section id="how-to-warm-start-a-solver">
-<h1>How to warm-start a solver<a class="headerlink" href="#how-to-warm-start-a-solver" title="Permalink to this headline"></a></h1>
+<h1>How to warm-start a solver<a class="headerlink" href="#how-to-warm-start-a-solver" title="Permalink to this heading"></a></h1>
 <p>Many solvers permit the possibility of giving a valid (or parcially valid in some cases) solution so the solver can start from that solution. This can lead to performance gains.</p>
 <section id="supported-solver-apis">
-<h2>Supported solver APIs<a class="headerlink" href="#supported-solver-apis" title="Permalink to this headline"></a></h2>
+<h2>Supported solver APIs<a class="headerlink" href="#supported-solver-apis" title="Permalink to this heading"></a></h2>
 <p>The present solver APIs that work with PuLP warm-start are the following: <code class="docutils literal notranslate"><span class="pre">CPLEX_CMD</span></code>, <code class="docutils literal notranslate"><span class="pre">GUROBI_CMD</span></code>, <code class="docutils literal notranslate"><span class="pre">PULP_CBC_CMD</span></code>, <code class="docutils literal notranslate"><span class="pre">CBC_CMD</span></code>, <code class="docutils literal notranslate"><span class="pre">CPLEX_PY</span></code>, <code class="docutils literal notranslate"><span class="pre">GUROBI</span></code>.</p>
 </section>
 <section id="example-problem">
-<h2>Example problem<a class="headerlink" href="#example-problem" title="Permalink to this headline"></a></h2>
+<h2>Example problem<a class="headerlink" href="#example-problem" title="Permalink to this heading"></a></h2>
 <p>We will use as example the model in <a class="reference internal" href="../CaseStudies/a_set_partitioning_problem.html#set-partitioning-problem"><span class="std std-ref">A Set Partitioning Problem</span></a>. At the end is the complete modified code.</p>
 </section>
 <section id="filling-a-variable-with-a-value">
-<h2>Filling a variable with a value<a class="headerlink" href="#filling-a-variable-with-a-value" title="Permalink to this headline"></a></h2>
+<h2>Filling a variable with a value<a class="headerlink" href="#filling-a-variable-with-a-value" title="Permalink to this heading"></a></h2>
 <p>If a model has been previously solved, each variable has already a value. To check the value of a variable we can do it via the <code class="docutils literal notranslate"><span class="pre">value</span></code> method of the variable.</p>
 <p>In our example, if we solve the problem, we could just do the following afterwards:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">x</span><span class="p">[(</span><span class="s1">&#39;O&#39;</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="s1">&#39;Q&#39;</span><span class="p">,</span> <span class="s1">&#39;R&#39;</span><span class="p">)]</span><span class="o">.</span><span class="n">value</span><span class="p">()</span> <span class="c1"># 1.0</span>
@@ -116,7 +117,7 @@
 </div>
 </section>
 <section id="activating-mip-start">
-<h2>Activating MIP start<a class="headerlink" href="#activating-mip-start" title="Permalink to this headline"></a></h2>
+<h2>Activating MIP start<a class="headerlink" href="#activating-mip-start" title="Permalink to this heading"></a></h2>
 <p>Once we have assigned values to all variables and we want to run a model while reusing those values, we just need to pass the <code class="docutils literal notranslate"><span class="pre">warmStart=True</span></code> argument to the solver when initiating it.</p>
 <p>For example, using the default PuLP solver we would do:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">seating_model</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">pulp</span><span class="o">.</span><span class="n">PULP_CBC_CMD</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">warmStart</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
@@ -125,7 +126,7 @@
 <p>I usually turn <code class="docutils literal notranslate"><span class="pre">msg=True</span></code> so I can see the messages from the solver confirming it loaded the solution correctly.</p>
 </section>
 <section id="fixing-a-variable">
-<h2>Fixing a variable<a class="headerlink" href="#fixing-a-variable" title="Permalink to this headline"></a></h2>
+<h2>Fixing a variable<a class="headerlink" href="#fixing-a-variable" title="Permalink to this heading"></a></h2>
 <p>Assigning values to variables also permits fixing those variables to that value. In order to do that, we use the <code class="docutils literal notranslate"><span class="pre">fixValue</span></code> method of the variable.</p>
 <p>For our example, if we know some variable needs to be 1, we can do:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">_variable</span> <span class="o">=</span> <span class="n">x</span><span class="p">[(</span><span class="s1">&#39;O&#39;</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="s1">&#39;Q&#39;</span><span class="p">,</span> <span class="s1">&#39;R&#39;</span><span class="p">)]</span>
@@ -136,7 +137,7 @@
 <p>This implies setting the lower bound and the upperbound to the value of the variable.</p>
 </section>
 <section id="whole-example">
-<h2>Whole Example<a class="headerlink" href="#whole-example" title="Permalink to this headline"></a></h2>
+<h2>Whole Example<a class="headerlink" href="#whole-example" title="Permalink to this heading"></a></h2>
 <p>If you want to see the complete code of the warm start version of the example, <a class="reference download internal" download="" href="../_downloads/4de01d450895a988bf8d1ae0c3407a00/wedding_initial.py"><code class="xref download docutils literal notranslate"><span class="pre">click</span> <span class="pre">here</span></code></a> or see below.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">A set partitioning model of a wedding seating problem</span>

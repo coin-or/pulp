@@ -14,6 +14,7 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -101,10 +102,10 @@
            <div itemprop="articleBody">
              
   <section id="how-to-configure-a-solver-in-pulp">
-<h1>How to configure a solver in PuLP<a class="headerlink" href="#how-to-configure-a-solver-in-pulp" title="Permalink to this headline"></a></h1>
+<h1>How to configure a solver in PuLP<a class="headerlink" href="#how-to-configure-a-solver-in-pulp" title="Permalink to this heading"></a></h1>
 <p>A typical problem PuLP users have is trying to connect to a solver that is installed in their pc. Here, we show the main concepts and ways to be sure PuLP can talk to the solver in question.</p>
 <section id="checking-which-solvers-pulp-has-access-to">
-<h2>Checking which solvers PuLP has access to<a class="headerlink" href="#checking-which-solvers-pulp-has-access-to" title="Permalink to this headline"></a></h2>
+<h2>Checking which solvers PuLP has access to<a class="headerlink" href="#checking-which-solvers-pulp-has-access-to" title="Permalink to this heading"></a></h2>
 <p>PuLP has some helper functions that permit a user to query which solvers are available and initialize a solver from its name.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pulp</span> <span class="k">as</span> <span class="nn">pl</span>
 <span class="n">solver_list</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">listSolvers</span><span class="p">()</span>
@@ -126,7 +127,7 @@
 <p>In the next sections, we will explain how to configure a solver to be accessible by PuLP.</p>
 </section>
 <section id="what-is-an-environment-variable">
-<h2>What is an environment variable<a class="headerlink" href="#what-is-an-environment-variable" title="Permalink to this headline"></a></h2>
+<h2>What is an environment variable<a class="headerlink" href="#what-is-an-environment-variable" title="Permalink to this heading"></a></h2>
 <p>An environment variable is probably better explained <a class="reference external" href="https://en.wikipedia.org/wiki/Environment_variable">somewhere else</a>. For the sake of this document, it is a text value stored during your session that allows you to configure some applications that make use of them. For example, when you write:</p>
 <blockquote>
 <div><p>python</p>
@@ -135,7 +136,7 @@
 <p>It has many advantages such as not leaving any trace in the pc and being fairly cross-platform, among many others.</p>
 </section>
 <section id="types-of-pulp-integrations-api-to-solvers">
-<h2>Types of PuLP integrations (API) to solvers<a class="headerlink" href="#types-of-pulp-integrations-api-to-solvers" title="Permalink to this headline"></a></h2>
+<h2>Types of PuLP integrations (API) to solvers<a class="headerlink" href="#types-of-pulp-integrations-api-to-solvers" title="Permalink to this heading"></a></h2>
 <p>API means “Application Programming Interface”. PuLP has usually several ways to connect to solvers. Depending on the way it connects to the solver, configuring the connection may vary. We can summarize the integrations in two big groups:</p>
 <ul class="simple">
 <li><p>Using the command line interface of the solver.</p></li>
@@ -144,7 +145,7 @@
 <p>Not all solvers have a python library, but most have a command line interface. If you want to know which one are you using it’s easy. If the name of the solver API ends with <code class="docutils literal notranslate"><span class="pre">CMD</span></code> (such as <code class="docutils literal notranslate"><span class="pre">PULP_CBC_CMD</span></code>, <code class="docutils literal notranslate"><span class="pre">CPLEX_CMD</span></code>, <code class="docutils literal notranslate"><span class="pre">GUROBI_CMD</span></code>, etc.) it’s the former. Otherwise, it is the latter.</p>
 </section>
 <section id="configuring-the-path-to-the-solver">
-<h2>Configuring the path to the solver<a class="headerlink" href="#configuring-the-path-to-the-solver" title="Permalink to this headline"></a></h2>
+<h2>Configuring the path to the solver<a class="headerlink" href="#configuring-the-path-to-the-solver" title="Permalink to this heading"></a></h2>
 <p>In order for PuLP to be able to use a solver via the CMD API, the solver needs to be executed by PuLP via the command line. For this to happen one of two things is needed:</p>
 <ol class="arabic simple">
 <li><p>The user passes the path to the solver to the solver initialization.</p></li>
@@ -179,11 +180,11 @@
 <p>The only difference is that we do not need to tell PuLP where the solver is. The system will find it using the <code class="docutils literal notranslate"><span class="pre">PATH</span></code> environment variable just as the <code class="docutils literal notranslate"><span class="pre">python</span></code> example above. Magic!</p>
 </section>
 <section id="additional-environment-variables-per-solver">
-<h2>Additional environment variables per solver<a class="headerlink" href="#additional-environment-variables-per-solver" title="Permalink to this headline"></a></h2>
+<h2>Additional environment variables per solver<a class="headerlink" href="#additional-environment-variables-per-solver" title="Permalink to this heading"></a></h2>
 <p>Sometimes, giving the path to the solver is not enough. This can be because the solver needs to know where other files are found (dynamic libraries it will use when running) or the PuLP API needs to import some specific python packages that are deployed with the solver (in case of the solvers that do not have a <code class="docutils literal notranslate"><span class="pre">_CMD</span></code> at the end).</p>
 <p>Whatever the reason, it’s better to be safe than sorry and this means knowing what variables are usually used by which solver. Here are the necessary environment variables that are needed for each solver. The procedure is very similar to what we did with the <code class="docutils literal notranslate"><span class="pre">PATH</span></code> variable: sometimes you need to edit an existing environment variable and sometimes you need to create a new environment variable. So it looks explicit, I will be using my own paths to variables, but you will have to adapt them to your actual paths (e.g., if the version of the solver is not the same). I will be using my <strong>Linux paths, since it just implies copying the last lines of my ~.bashrc file</strong>. I’ve adapted them to the Windows command line but, preferably, you would like to edit them via the GUI in windows.</p>
 <section id="cplex">
-<h3>CPLEX<a class="headerlink" href="#cplex" title="Permalink to this headline"></a></h3>
+<h3>CPLEX<a class="headerlink" href="#cplex" title="Permalink to this heading"></a></h3>
 <p><strong>Linux / Mac: add the following lines to the ~.bashrc (or ~.profile or /etc/profile or /etc/bash.bashrc) file</strong>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">export</span> <span class="n">CPLEX_HOME</span><span class="o">=</span><span class="s2">&quot;/opt/ibm/ILOG/CPLEX_Studio128/cplex&quot;</span>
 <span class="n">export</span> <span class="n">CPO_HOME</span><span class="o">=</span><span class="s2">&quot;/opt/ibm/ILOG/CPLEX_Studio128/cpoptimizer&quot;</span>
@@ -202,7 +203,7 @@
 </div>
 </section>
 <section id="gurobi">
-<h3>GUROBI<a class="headerlink" href="#gurobi" title="Permalink to this headline"></a></h3>
+<h3>GUROBI<a class="headerlink" href="#gurobi" title="Permalink to this heading"></a></h3>
 <p><strong>Linux / Mac: add the following lines to the ~.bashrc (or ~.profile or /etc/profile or /etc/bash.bashrc) file</strong>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">export</span> <span class="n">GUROBI_HOME</span><span class="o">=</span><span class="s2">&quot;/opt/gurobi801/linux64&quot;</span>
 <span class="n">export</span> <span class="n">PATH</span><span class="o">=</span><span class="s2">&quot;$</span><span class="si">{PATH}</span><span class="s2">:$</span><span class="si">{GUROBI_HOME}</span><span class="s2">/bin&quot;</span>
@@ -218,7 +219,7 @@
 </section>
 </section>
 <section id="configuring-where-the-cmd-solvers-write-their-temporary-files">
-<h2>Configuring where the CMD solvers write their temporary files<a class="headerlink" href="#configuring-where-the-cmd-solvers-write-their-temporary-files" title="Permalink to this headline"></a></h2>
+<h2>Configuring where the CMD solvers write their temporary files<a class="headerlink" href="#configuring-where-the-cmd-solvers-write-their-temporary-files" title="Permalink to this heading"></a></h2>
 <p>In the case of solver APIs that use the command line (again, those that end in <code class="docutils literal notranslate"><span class="pre">CMD</span></code>, sometimes a user wants to control where the files are written. There are plenty of options.</p>
 <p>By default, PuLP does not keep the intermediary files (the *.mps, *.lp, *.mst, *.sol) and they are written in a temporary directory of the operating system. PuLP looks for the TEMP, TMP and TMPDIR environment variables to write the file (in that order). After using them, PuLP deletes them. If you change any of these environment variables before solving, you should be able to choose where you want PuLP to write the results.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pulp</span> <span class="k">as</span> <span class="nn">pl</span>
@@ -253,7 +254,7 @@
 </div>
 </section>
 <section id="using-the-official-solver-api">
-<h2>Using the official solver API<a class="headerlink" href="#using-the-official-solver-api" title="Permalink to this headline"></a></h2>
+<h2>Using the official solver API<a class="headerlink" href="#using-the-official-solver-api" title="Permalink to this heading"></a></h2>
 <p>PuLP has the integrations with the official python API solvers for the following solvers:</p>
 <ul class="simple">
 <li><p>Mosek (MOSEK)</p></li>
@@ -266,7 +267,7 @@
 <li><p>They offer a lot more functionality and information (extreme rays, dual prices, reduced costs).</p></li>
 </ul>
 <section id="installing-cplex-py">
-<h3>Installing CPLEX_PY<a class="headerlink" href="#installing-cplex-py" title="Permalink to this headline"></a></h3>
+<h3>Installing CPLEX_PY<a class="headerlink" href="#installing-cplex-py" title="Permalink to this heading"></a></h3>
 <p>For this solver to work there are two options:</p>
 <ol class="arabic simple">
 <li><p>Installing the python package that comes with the CPLEX installation (it is not installed automatically).</p></li>
@@ -275,7 +276,7 @@
 <p>The second step is already shown in the example above. The first one requires admin rights, the second one does not.</p>
 </section>
 <section id="installing-gurobi">
-<h3>Installing GUROBI<a class="headerlink" href="#installing-gurobi" title="Permalink to this headline"></a></h3>
+<h3>Installing GUROBI<a class="headerlink" href="#installing-gurobi" title="Permalink to this heading"></a></h3>
 <p>For this solver to work, the only option is to install the python package that comes with the gurobi installation.</p>
 <p>Following my installation paths it would be (Linux):</p>
 <blockquote>
@@ -285,7 +286,7 @@ sudo python3 setup.py install</p>
 <p>As you can see, it is necessary to have admin rights to install it.</p>
 </section>
 <section id="using-solver-specific-functionality">
-<h3>Using solver-specific functionality<a class="headerlink" href="#using-solver-specific-functionality" title="Permalink to this headline"></a></h3>
+<h3>Using solver-specific functionality<a class="headerlink" href="#using-solver-specific-functionality" title="Permalink to this heading"></a></h3>
 <p>In order to access this functionality, the user needs to use the solver object included inside the PuLP problem. PuLP uses the <code class="docutils literal notranslate"><span class="pre">solverModel</span></code> attribute on the problem object. This attribute is created and filled when the method <code class="docutils literal notranslate"><span class="pre">buildSolverModel()</span></code> is executed.</p>
 <p>For example, using the <code class="docutils literal notranslate"><span class="pre">CPLEX_PY</span></code> API we can access the api object after the solving is done:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pulp</span>
@@ -321,7 +322,7 @@ sudo python3 setup.py install</p>
 </section>
 </section>
 <section id="importing-and-exporting-a-solver">
-<h2>Importing and exporting a solver<a class="headerlink" href="#importing-and-exporting-a-solver" title="Permalink to this headline"></a></h2>
+<h2>Importing and exporting a solver<a class="headerlink" href="#importing-and-exporting-a-solver" title="Permalink to this heading"></a></h2>
 <p>Exporting a solver can be useful to backup the configuration that was used to solve a model.</p>
 <p>In order to export it one needs can export it to a dictionary or a json file:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pulp</span>

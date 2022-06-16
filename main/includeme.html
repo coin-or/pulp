@@ -14,6 +14,7 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -91,13 +92,13 @@
            <div itemprop="articleBody">
              
   <section id="pulp">
-<h1>pulp<a class="headerlink" href="#pulp" title="Permalink to this headline"></a></h1>
+<h1>pulp<a class="headerlink" href="#pulp" title="Permalink to this heading"></a></h1>
 <a class="reference external image-reference" href="https://travis-ci.org/coin-or/pulp"><img alt="https://travis-ci.org/coin-or/pulp.svg?branch=master" src="https://travis-ci.org/coin-or/pulp.svg?branch=master" /></a>
 <p>PuLP is an LP modeler written in Python. PuLP can generate MPS or LP files
 and call <a class="reference external" href="http://www.gnu.org/software/glpk/glpk.html">GLPK</a>, COIN-OR CLP/<a class="reference external" href="https://github.com/coin-or/Cbc">CBC</a>, <a class="reference external" href="http://www.cplex.com/">CPLEX</a>, <a class="reference external" href="http://www.gurobi.com/">GUROBI</a>, <a class="reference external" href="https://www.mosek.com/">MOSEK</a>, <a class="reference external" href="https://www.fico.com/es/products/fico-xpress-solver">XPRESS</a>, <a class="reference external" href="https://choco-solver.org/">CHOCO</a>, <a class="reference external" href="http://mipcl-cpp.appspot.com/">MIPCL</a>, <a class="reference external" href="https://www.scipopt.org/">SCIP</a> to solve linear
 problems.</p>
 <section id="installation">
-<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline"></a></h2>
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this heading"></a></h2>
 <p>The easiest way to install pulp is via <a class="reference external" href="https://pypi.python.org/pypi/PuLP">PyPi</a></p>
 <p>If pip is available on your system:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">pulp</span>
@@ -115,13 +116,13 @@ solver executable.</p>
 </div>
 </section>
 <section id="examples">
-<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline"></a></h2>
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this heading"></a></h2>
 <p>See the examples directory for examples.</p>
 <p>PuLP requires Python 2.7 or Python &gt;= 3.4.</p>
 <p>The examples use the default solver (CBC). To use other solvers they must be available (installed and accessible). For more information on how to do that, see the <a class="reference external" href="https://coin-or.github.io/pulp/guides/how_to_configure_solvers.html">guide on configuring solvers</a>.</p>
 </section>
 <section id="documentation">
-<h2>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline"></a></h2>
+<h2>Documentation<a class="headerlink" href="#documentation" title="Permalink to this heading"></a></h2>
 <p>Documentation is found on <a class="reference external" href="https://coin-or.github.io/pulp/">https://coin-or.github.io/pulp/</a>.</p>
 <p>Use LpVariable() to create new variables. To create a variable 0 &lt;= x &lt;= 3:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">LpVariable</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
@@ -181,7 +182,7 @@ become the objective:</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">lpDot()</span></code> –given two lists of the form [a1, a2, …, an] and [ x1, x2, …, xn] will construct a linear expression to be used as a constraint or variable</p></li>
 </ul>
 <section id="building-the-documentation">
-<h3>Building the documentation<a class="headerlink" href="#building-the-documentation" title="Permalink to this headline"></a></h3>
+<h3>Building the documentation<a class="headerlink" href="#building-the-documentation" title="Permalink to this heading"></a></h3>
 <p>The PuLP documentation is built with <a class="reference external" href="https://www.sphinx-doc.org">Sphinx</a>.  We recommended using a
 <a class="reference external" href="https://docs.python.org/3/library/venv.html">virtual environment</a> to build the documentation locally.</p>
 <p>To build, run the following in a terminal window, in the PuLP root directory</p>
