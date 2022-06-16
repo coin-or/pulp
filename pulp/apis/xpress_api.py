@@ -27,6 +27,7 @@
 from .core import LpSolver_CMD, subprocess, PulpSolverError
 from .. import constants
 import warnings
+import re
 
 
 class XPRESS(LpSolver_CMD):
@@ -118,7 +119,7 @@ class XPRESS(LpSolver_CMD):
         if not self.msg:
             xpress.stdin.write("OUTPUTLOG=0\n")
         # The readprob command must be in lower case for correct filename handling
-        xpress.stdin.write("readprob {" + tmpLp + "}\n")
+        xpress.stdin.write("readprob " + self.quote_path(tmpLp) + "\n")
         if self.timeLimit:
             xpress.stdin.write("MAXTIME=%d\n" % self.timeLimit)
         targetGap = self.optionsDict.get("gapRel")
@@ -145,7 +146,7 @@ class XPRESS(LpSolver_CMD):
         if lp.isMIP() and self.mip:
             xpress.stdin.write("GLOBAL\n")
         # The writeprtsol command must be in lower case for correct filename handling
-        xpress.stdin.write("writeprtsol {" + tmpSol + "}\n")
+        xpress.stdin.write("writeprtsol " + self.quote_path(tmpSol) + "\n")
         xpress.stdin.write("QUIT\n")
         xpress.stdin.flush()
         if xpress.wait() != 0:
@@ -191,3 +192,12 @@ class XPRESS(LpSolver_CMD):
                     value = float(line[4])
                     values[name] = value
         return status, values
+
+    @staticmethod
+    def quote_path(path):
+        """
+        Quotes a path for the Xpress optimizer console, by wrapping it in
+        double quotes and escaping the following characters, which would
+        otherwise be interpreted by the Tcl shell: \ $ " { [
+        """
+        return '"' + re.sub(r'([\\$"{[])', r'\\\1', path) + '"'
