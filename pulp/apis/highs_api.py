@@ -73,7 +73,7 @@ class HiGHS_CMD(LpSolver_CMD):
         """True if the solver is available"""
         return self.executable(self.path)
 
-    def actualSolve(self, lp):
+    def actualSolve(self, lp, **kwargs):
         """Solve a well formulated lp problem"""
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute " + self.path)
@@ -97,7 +97,9 @@ class HiGHS_CMD(LpSolver_CMD):
             )
             lp += -lp.objective
         lp.checkDuplicateVars()
-        lp.checkLengthVars(52)
+        max_var_length = kwargs.get("max_var_length",-1) 
+        if max_var_length > 0:
+            lp.checkLengthVars(max_var_length)
         lp.writeMPS(tmpMps)  # , mpsSense=constants.LpMinimize)
 
         # just to report duplicated variables:
