@@ -83,7 +83,7 @@ class HiGHS_CMD(LpSolver_CMD):
         write_lines = [
             "solution_file = %s\n" % tmpSol,
             "write_solution_to_file = true\n",
-            "write_solution_pretty = true\n",
+            "write_solution_style = -1\n",
         ]
         with open(tmpOptions, "w") as fp:
             fp.writelines(write_lines)
@@ -114,7 +114,8 @@ class HiGHS_CMD(LpSolver_CMD):
             cmd += " " + option
         if lp.isMIP():
             if not self.mip:
-                warnings.warn("HiGHS_CMD cannot solve the relaxation of a problem")
+                cmd += " --solver simplex"
+#                warnings.warn("HiGHS_CMD cannot solve the relaxation of a problem")
         if self.msg:
             pipe = None
         else:
