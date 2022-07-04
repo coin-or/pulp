@@ -97,7 +97,6 @@ class HiGHS_CMD(LpSolver_CMD):
             )
             lp += -lp.objective
         lp.checkDuplicateVars()
-        lp.checkLengthVars(52)
         lp.writeMPS(tmpMps)  # , mpsSense=constants.LpMinimize)
 
         # just to report duplicated variables:
