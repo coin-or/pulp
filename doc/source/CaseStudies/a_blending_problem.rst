@@ -83,7 +83,7 @@ To obtain the solution to this Linear Program, we can write a short
 program in Python to call PuLP's modelling functions, which will then
 call a solver. This will explain step-by-step how to write this Python
 program. It is suggested that you repeat the exercise yourself. The code
-for this example is found in `WhiskasModel1.py <https://projects.coin-or.org/PuLP/browser/trunk/examples/WhiskasModel1.py?format=txt>`_
+for this example is found in :download:`WhiskasModel1.py <../../../examples/WhiskasModel1.py>`
 
 The start of the your file should then be headed with a short commenting section outlining the purpose of the program. For example:
 
@@ -283,7 +283,7 @@ short program in Python to call PuLP's modelling functions, which will
 then call a solver. This will explain step-by-step how to write this
 Python program with it's improvement to the above model. It is suggested
 that you repeat the exercise yourself. The code for this example is
-found in the `WhiskasModel2.py <https://projects.coin-or.org/PuLP/browser/trunk/examples/WhiskasModel2.py?format=txt>`_
+found in the :download:`WhiskasModel2.py <../../../examples/WhiskasModel2.py>`
 
 As with last time, it is advisable to head your file with commenting on its 
 purpose, and the author name and date. Importing of the PuLP functions is also done in the same way:

@@ -63,7 +63,10 @@ def readMPS(path, sense, dropConsNames=False):
             if line[0] == "*":
                 continue
             if line[0] == "NAME":
-                parameters["name"] = line[1]
+                if len(line) > 1:
+                    parameters["name"] = line[1]
+                else:
+                    parameters["name"] = ""
                 continue
 
             # here we get the mode
@@ -183,6 +186,8 @@ def readMPSSetBounds(line, variable_dict):
 
 def readMPSSetRhs(line, constraintsDict):
     constraintsDict[line[1]]["constant"] = -float(line[2])
+    if len(line) == 5:  # read fields 5, 6
+        constraintsDict[line[3]]["constant"] = -float(line[4])
     return
 
 

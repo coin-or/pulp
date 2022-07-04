@@ -205,7 +205,8 @@ constrained to being greater than or equal to the demand minimum.
 Following this is the `prob.writeLP` line, and the rest as explained in previous 
 examples.
 
-The code for this example is found in  `BeerDistributionProblem.py <https://projects.coin-or.org/PuLP/browser/trunk/examples/BeerDistributionProblem.py?format=txt>`_
+The code for this example is found in :download:`BeerDistributionProblem.py <../../../examples/BeerDistributionProblem.py>`
+
 
 You will notice that the linear programme solution was also an integer solution. 
 As long as Supply and Demand are integers, the linear programming solution will 
@@ -259,9 +260,7 @@ problem using a dummy supply node. Note that with excess demand, the problem is
 Assume there has been a production problem and only 4000 cases of beer could be 
 produced. Since the total demand is 4100, we need to get extra cases of beer from the dummy supply node.
 
-The code for this example is found in  `BeerDistributionProblemWarehouseExtension.py <https://projects.coin-or.org/PuLP/browser/trunk/examples/BeerDistributionProblemWarehouseExtension.py?format=txt>`_
-
-    
+The code for this example is found in :download:`BeerDistributionProblemWarehouseExtension.py <../../../examples/BeerDistributionProblemWarehouseExtension.py>`
 
 .. image:: images/extra_demand.jpg 
     
@@ -273,7 +272,7 @@ balance the problem, and cost of transport is zero to all demand nodes.
 .. literalinclude:: ../../../examples/BeerDistributionProblemCompetitorExtension.py
     :lines: 8-32
 
-The code for this example is found in  `BeerDistributionProblemCompetitorExtension.py <https://projects.coin-or.org/PuLP/browser/trunk/examples/BeerDistributionProblemCompetitorExtension.py?format=txt>`_
+The code for this example is found in :download:`BeerDistributionProblemCompetitorExtension.py <../../../examples/BeerDistributionProblemCompetitorExtension.py>`
 
 Presentation of Solution and Analysis
 -------------------------------------
