@@ -27,6 +27,7 @@
 from .core import LpSolver_CMD, subprocess, PulpSolverError
 from .. import constants
 import warnings
+import sys
 
 
 class XPRESS(LpSolver_CMD):
@@ -181,13 +182,33 @@ class XPRESS(LpSolver_CMD):
             for attr in attrNames:
                 cmd.write('exec echo "%s=$%s" >> %s\n' % (attr, attr, tmpAttr))
             cmd.write("QUIT\n")
-        with open(tmpCmd, 'r') as cmd:        
+        with open(tmpCmd, 'r') as cmd:
+            consume = False
+            subout = None
+            suberr = None
+            if not self.msg:
+                # Xpress writes a banner before we can disable output. So
+                # we have to explicitly consume the banner.
+                if sys.hexversion >= 0x03030000:
+                    subout = subprocess.DEVNULL
+                    suberr = subprocess.DEVNULL
+                else:
+                    subout = subprocess.PIPE
+                    suberr = subprocess.STDOUT
+                    consume = True
             xpress = subprocess.Popen(
                 [self.path, lp.name],
                 shell=True,
                 stdin=cmd,
+                stdout=subout,
+                stderr=suberr,
                 universal_newlines=True,
             )
+            if consume:
+                # Special case in which messages are disabled and we have
+                # to consume any output
+                for _ in xpress.stdout:
+                    pass
 
             if xpress.wait() != 0:
                 raise PulpSolverError("PuLP: Error while executing " + self.path)
@@ -254,10 +275,13 @@ class XPRESS(LpSolver_CMD):
                     attrs[fields[0].strip()] = value
         return values, redcost, slacks, duals, attrs
 
-    @staticmethod
-    def writeslxsol(name, *values):
+    def writeslxsol(self, name, *values):
         """
         Write a solution file in SLX format.
+        The function can write multiple solutions to the same file, each
+        solution must be passed as a list of (name,value) pairs. Solutions
+        are written in the order specified and are given names "solutionN"
+        where N is the index of the solution in the list.
 
         :param string name: file name
         :param list values: list of lists of (name,value) pairs
