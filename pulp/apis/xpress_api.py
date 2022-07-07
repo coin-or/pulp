@@ -182,8 +182,13 @@ class XPRESS(LpSolver_CMD):
                 cmd.write("GLOBAL\n")
             # The writeprtsol command must be in lower case for correct filename handling
             cmd.write("writeprtsol {" + tmpSol + "}\n")
+            cmd.write(
+                'set fh [open "%s" w]; list\n' % tmpAttr
+            )  # `list` to suppress output
+
             for attr in attrNames:
-                cmd.write('exec echo "%s=$%s" >> %s\n' % (attr, attr, tmpAttr))
+                cmd.write('puts $fh "%s=$%s"\n' % (attr, attr))
+            cmd.write("close $fh\n")
             cmd.write("QUIT\n")
         with open(tmpCmd, "r") as cmd:
             consume = False
