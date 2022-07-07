@@ -20,6 +20,7 @@ _all_solvers = [
     MOSEK,
     XPRESS,
     XPRESS_CMD,
+    XPRESS_PY,
     PULP_CBC_CMD,
     COIN_CMD,
     COINMP_DLL,
