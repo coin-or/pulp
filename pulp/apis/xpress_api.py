@@ -191,11 +191,14 @@ class XPRESS(LpSolver_CMD):
 
             if xpress.wait() != 0:
                 raise PulpSolverError("PuLP: Error while executing " + self.path)
-        values, attrs = self.readsol(tmpSol, tmpAttr)
+        values, redcost, slacks, duals, attrs = self.readsol(tmpSol, tmpAttr)
         self.delete_tmp_files(tmpLp, tmpSol, tmpCmd, tmpAttr)
         status = statusmap.get(attrs.get(statuskey, -1),
                                constants.LpStatusUndefined)
         lp.assignVarsVals(values)
+        lp.assignVarsDj(redcost)
+        lp.assignConsSlack(slacks)
+        lp.assignConsPi(duals)
         lp.assignStatus(status)
         return status
 
@@ -213,15 +216,27 @@ class XPRESS(LpSolver_CMD):
                 f.readline()
             statusString = f.readline().split()[0]
             values = {}
+            redcost = {}
+            slacks = {}
+            duals = {}
             while 1:
                 _line = f.readline()
                 if _line == "":
                     break
                 line = _line.split()
-                if len(line) and line[0] == "C":
-                    name = line[2]
-                    value = float(line[4])
-                    values[name] = value
+                if len(line):
+                    if line[0] == "C":
+                        # A column
+                        # (C, Number, Name, At, Value, Input Cost, Reduced Cost)
+                        name = line[2]
+                        values[name] = float(line[4])
+                        redcost[name] = float(line[6])
+                    elif len(line[0]) == 1 and line[0] in "LGRE":
+                        # A row
+                        # ([LGRE], Number, Name, At, Value, Slack, Dual, RHS)
+                        name = line[2]
+                        slacks[name] = float(line[5])
+                        duals[name] = float(line[6])
         # Read the attributes that we wrote explicitly
         attrs = dict()
         with open(attrfile) as f:
@@ -237,7 +252,7 @@ class XPRESS(LpSolver_CMD):
                         except ValueError:
                             pass
                     attrs[fields[0].strip()] = value
-        return values, attrs
+        return values, redcost, slacks, duals, attrs
 
     @staticmethod
     def writeslxsol(name, *values):
