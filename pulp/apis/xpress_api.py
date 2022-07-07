@@ -107,9 +107,38 @@ class XPRESS(LpSolver_CMD):
         """Solve a well formulated lp problem"""
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute " + self.path)
-        tmpLp, tmpSol, tmpCmd = self.create_tmp_files(lp.name, "lp", "prt",
-                                                        "cmd")
+        tmpLp, tmpSol, tmpCmd, tmpAttr = self.create_tmp_files(lp.name, "lp",
+                                                               "prt", "cmd",
+                                                               "attr")
         lp.writeLP(tmpLp, writeSOS=1, mip=self.mip)
+        # Explicitly capture some attributes so that we can easily get
+        # information about the solution.
+        attrNames = []
+        if lp.isMIP() and self.mip:
+            attrNames.extend(['mipobjval', 'bestbound', 'mipstatus'])
+            statusmap = { 0: constants.LpStatusUndefined,  # XPRS_MIP_NOT_LOADED
+                          1: constants.LpStatusUndefined,  # XPRS_MIP_LP_NOT_OPTIMAL
+                          2: constants.LpStatusUndefined,  # XPRS_MIP_LP_OPTIMAL
+                          3: constants.LpStatusUndefined,  # XPRS_MIP_NO_SOL_FOUND
+                          4: constants.LpStatusUndefined,  # XPRS_MIP_SOLUTION
+                          5: constants.LpStatusInfeasible, # XPRS_MIP_INFEAS
+                          6: constants.LpStatusOptimal,    # XPRS_MIP_OPTIMAL
+                          7: constants.LpStatusUndefined   # XPRS_MIP_UNBOUNDED
+            }
+            statuskey = 'mipstatus'
+        else:
+            attrNames.extend(['lpobjval', 'lpstatus'])
+            statusmap = { 0: constants.LpStatusNotSolved,  # XPRS_LP_UNSTARTED
+                          1: constants.LpStatusOptimal,    # XPRS_LP_OPTIMAL
+                          2: constants.LpStatusInfeasible, # XPRS_LP_INFEAS
+                          3: constants.LpStatusUndefined,  # XPRS_LP_CUTOFF
+                          4: constants.LpStatusUndefined,  # XPRS_LP_UNFINISHED
+                          5: constants.LpStatusUnbounded,  # XPRS_LP_UNBOUNDED
+                          6: constants.LpStatusUndefined,  # XPRS_LP_CUTOFF_IN_DUAL
+                          7: constants.LpStatusNotSolved,  # XPRS_LP_UNSOLVED
+                          8: constants.LpStatusUndefined   # XPRS_LP_NONCONVEX
+            }
+            statuskey = 'lpstatus'
         with open(tmpCmd, 'w') as cmd:
             if not self.msg:
                 cmd.write("OUTPUTLOG=0\n")
@@ -142,6 +171,8 @@ class XPRESS(LpSolver_CMD):
                 cmd.write("GLOBAL\n")
             # The writeprtsol command must be in lower case for correct filename handling
             cmd.write("writeprtsol {" + tmpSol + "}\n")
+            for attr in attrNames:
+                cmd.write('exec echo "%s=$%s" >> %s\n' % (attr, attr, tmpAttr))
             cmd.write("QUIT\n")
         with open(tmpCmd, 'r') as cmd:        
             xpress = subprocess.Popen(
@@ -153,16 +184,16 @@ class XPRESS(LpSolver_CMD):
 
             if xpress.wait() != 0:
                 raise PulpSolverError("PuLP: Error while executing " + self.path)
-        status, values = self.readsol(tmpSol)
-        self.delete_tmp_files(tmpLp, tmpSol, tmpCmd)
+        values, attrs = self.readsol(tmpSol, tmpAttr)
+        self.delete_tmp_files(tmpLp, tmpSol, tmpCmd, tmpAttr)
+        status = statusmap.get(attrs.get(statuskey, -1),
+                               constants.LpStatusUndefined)
         lp.assignVarsVals(values)
-        if abs(lp.infeasibilityGap(self.mip)) > 1e-5:  # Arbitrary
-            status = constants.LpStatusInfeasible
         lp.assignStatus(status)
         return status
 
     @staticmethod
-    def readsol(filename):
+    def readsol(filename, attrfile):
         """Read an XPRESS solution file"""
         with open(filename) as f:
             for i in range(6):
@@ -174,15 +205,6 @@ class XPRESS(LpSolver_CMD):
             for i in range(3):
                 f.readline()
             statusString = f.readline().split()[0]
-            # TODO: check status for Integer Feasible
-            xpressStatus = {
-                "Optimal": constants.LpStatusOptimal,
-            }
-            if statusString not in xpressStatus:
-                raise PulpSolverError(
-                    "Unknown status returned by XPRESS: " + statusString
-                )
-            status = xpressStatus[statusString]
             values = {}
             while 1:
                 _line = f.readline()
@@ -193,4 +215,19 @@ class XPRESS(LpSolver_CMD):
                     name = line[2]
                     value = float(line[4])
                     values[name] = value
-        return status, values
+        # Read the attributes that we wrote explicitly
+        attrs = dict()
+        with open(attrfile) as f:
+            for line in f:
+                fields = line.strip().split('=')
+                if len(fields) == 2 and fields[0].lower() == fields[0]:
+                    value = fields[1].strip()
+                    try:
+                        value = int(fields[1].strip())
+                    except ValueError:
+                        try:
+                            value = float(fields[1].strip())
+                        except ValueError:
+                            pass
+                    attrs[fields[0].strip()] = value
+        return values, attrs
