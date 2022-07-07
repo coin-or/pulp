@@ -1353,8 +1353,11 @@ class CPLEX_PYTest(BaseSolverTest.PuLPTest):
     solveInst = CPLEX_CMD
 
 
-class XPRESSTest(BaseSolverTest.PuLPTest):
-    solveInst = XPRESS
+class XPRESS_CMDTest(BaseSolverTest.PuLPTest):
+    solveInst = XPRESS_CMD
+
+class XPRESS_PyTest(BaseSolverTest.PuLPTest):
+    solveInst = XPRESS_PY
 
 
 class COIN_CMDTest(BaseSolverTest.PuLPTest):
