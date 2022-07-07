@@ -230,38 +230,45 @@ class XPRESS(LpSolver_CMD):
     @staticmethod
     def readsol(filename, attrfile):
         """Read an XPRESS solution file"""
+        values = {}
+        redcost = {}
+        slacks = {}
+        duals = {}
         with open(filename) as f:
-            for i in range(6):
-                f.readline()
-            _line = f.readline().split()
-
-            rows = int(_line[2])
-            cols = int(_line[5])
-            for i in range(3):
-                f.readline()
-            statusString = f.readline().split()[0]
-            values = {}
-            redcost = {}
-            slacks = {}
-            duals = {}
-            while 1:
-                _line = f.readline()
-                if _line == "":
-                    break
-                line = _line.split()
-                if len(line):
-                    if line[0] == "C":
-                        # A column
-                        # (C, Number, Name, At, Value, Input Cost, Reduced Cost)
-                        name = line[2]
-                        values[name] = float(line[4])
-                        redcost[name] = float(line[6])
-                    elif len(line[0]) == 1 and line[0] in "LGRE":
-                        # A row
-                        # ([LGRE], Number, Name, At, Value, Slack, Dual, RHS)
-                        name = line[2]
-                        slacks[name] = float(line[5])
-                        duals[name] = float(line[6])
+            for lineno, _line in enumerate(f):
+                # The first 6 lines are status information
+                if lineno < 6:
+                    continue
+                elif lineno == 6:
+                    # Line with status information
+                    _line = _line.split()
+                    rows = int(_line[2])
+                    cols = int(_line[5])
+                elif lineno < 10:
+                    # Empty line, "Solution Statistics", objective direction
+                    pass
+                elif lineno == 10:
+                    # Solution status
+                    pass
+                else:
+                    # There is some more stuff and then follows the "Rows" and
+                    # "Columns" section. That other stuff does not match the
+                    # format of the rows/columns lines, so we can keep the
+                    # parser simple
+                    line = _line.split()
+                    if len(line) > 1:
+                        if line[0] == "C":
+                            # A column
+                            # (C, Number, Name, At, Value, Input Cost, Reduced Cost)
+                            name = line[2]
+                            values[name] = float(line[4])
+                            redcost[name] = float(line[6])
+                        elif len(line[0]) == 1 and line[0] in "LGRE":
+                            # A row
+                            # ([LGRE], Number, Name, At, Value, Slack, Dual, RHS)
+                            name = line[2]
+                            slacks[name] = float(line[5])
+                            duals[name] = float(line[6])
         # Read the attributes that we wrote explicitly
         attrs = dict()
         with open(attrfile) as f:
