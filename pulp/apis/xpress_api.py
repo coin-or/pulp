@@ -66,7 +66,7 @@ class XPRESS(LpSolver_CMD):
         :param preSolve: whether presolving should be performed before the main algorithm
         :param options: Adding more options, e.g. options = ["NODESELECTION=1", "HEURDEPTH=5"]
                         More about Xpress options and control parameters please see
-                        http://tomopt.com/docs/xpress/tomlab_xpress008.php
+                        https://www.fico.com/fico-xpress-optimization/docs/latest/solver/optimizer/HTML/chapter7.html
         :param bool warmStart: if True, then use current variable values as start
         """
         if maxSeconds:
