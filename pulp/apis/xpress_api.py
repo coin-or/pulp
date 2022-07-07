@@ -49,6 +49,7 @@ class XPRESS(LpSolver_CMD):
         heurStra=None,
         coverCuts=None,
         preSolve=None,
+        warmStart=False
     ):
         """
         Initializes the Xpress solver.
@@ -66,6 +67,7 @@ class XPRESS(LpSolver_CMD):
         :param options: Adding more options, e.g. options = ["NODESELECTION=1", "HEURDEPTH=5"]
                         More about Xpress options and control parameters please see
                         http://tomopt.com/docs/xpress/tomlab_xpress008.php
+        :param bool warmStart: if True, then use current variable values as start
         """
         if maxSeconds:
             warnings.warn("Parameter maxSeconds is being depreciated for timeLimit")
@@ -94,6 +96,7 @@ class XPRESS(LpSolver_CMD):
             heurStra=heurStra,
             coverCuts=coverCuts,
             preSolve=preSolve,
+            warmStart=warmStart,
         )
 
     def defaultPath(self):
@@ -107,10 +110,12 @@ class XPRESS(LpSolver_CMD):
         """Solve a well formulated lp problem"""
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute " + self.path)
-        tmpLp, tmpSol, tmpCmd, tmpAttr = self.create_tmp_files(lp.name, "lp",
-                                                               "prt", "cmd",
-                                                               "attr")
-        lp.writeLP(tmpLp, writeSOS=1, mip=self.mip)
+        tmpLp, tmpSol, tmpCmd, tmpAttr, tmpStart = \
+            self.create_tmp_files(lp.name, "lp", "prt", "cmd", "attr", "slx")
+        variables = lp.writeLP(tmpLp, writeSOS=1, mip=self.mip)
+        if self.optionsDict.get("warmStart", False):
+            start = [(v.name, v.value()) for v in variables if v.value() is not None]
+            self.writeslxsol(tmpStart, start)
         # Explicitly capture some attributes so that we can easily get
         # information about the solution.
         attrNames = []
@@ -161,6 +166,8 @@ class XPRESS(LpSolver_CMD):
             preSolve = self.optionsDict.get("preSolve")
             if preSolve:
                 cmd.write("PRESOLVE=%d\n" % preSolve)
+            if self.optionsDict.get("warmStart", False):
+                cmd.write("readslxsol {" + tmpStart + "}\n")
             for option in self.options:
                 cmd.write(option + "\n")
             if lp.sense == constants.LpMaximize:
@@ -231,3 +238,18 @@ class XPRESS(LpSolver_CMD):
                             pass
                     attrs[fields[0].strip()] = value
         return values, attrs
+
+    @staticmethod
+    def writeslxsol(name, *values):
+        """
+        Write a solution file in SLX format.
+
+        :param string name: file name
+        :param list values: list of lists of (name,value) pairs
+        """
+        with open(name, 'w') as slx:
+            for i, sol in enumerate(values):
+                slx.write("NAME solution%d\n" % i)
+                for name, value in sol:
+                    slx.write(' C      %s %.16f\n' % (name, value))
+            slx.write('ENDATA\n')
