@@ -32,7 +32,8 @@ import re
 
 
 class XPRESS(LpSolver_CMD):
-    """The XPRESS LP solver"""
+    """The XPRESS LP solver that uses the XPRESS command line tool
+    in a subprocess"""
 
     name = "XPRESS"
 
@@ -318,3 +319,16 @@ class XPRESS(LpSolver_CMD):
         otherwise be interpreted by the Tcl shell: \ $ " [
         """
         return '"' + re.sub(r'([\\$"[])', r"\\\1", path) + '"'
+
+
+class XPRESS_CMD(XPRESS):
+    """The XPRESS LP solver that uses the XPRESS command line tool
+    in a subprocess.
+
+    This is an alias for the XPRESS instance to match the naming scheme
+    of other solvers."""
+
+    name = "XPRESS_CMD"
+
+    def __init__(self, *args, **kwargs):
+        XPRESS.__init__(self, *args, **kwargs)
