@@ -205,6 +205,7 @@ class BaseSolverTest:
                 MIPCL_CMD,
                 SCIP_CMD,
                 HiGHS_CMD,
+                XPRESS,
             ]:
                 try:
                     pulpTestCheck(
