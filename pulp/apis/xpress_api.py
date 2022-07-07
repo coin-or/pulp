@@ -107,51 +107,54 @@ class XPRESS(LpSolver_CMD):
         """Solve a well formulated lp problem"""
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute " + self.path)
-        tmpLp, tmpSol = self.create_tmp_files(lp.name, "lp", "prt")
+        tmpLp, tmpSol, tmpCmd = self.create_tmp_files(lp.name, "lp", "prt",
+                                                        "cmd")
         lp.writeLP(tmpLp, writeSOS=1, mip=self.mip)
-        xpress = subprocess.Popen(
-            [self.path, lp.name],
-            shell=True,
-            stdin=subprocess.PIPE,
-            universal_newlines=True,
-        )
-        if not self.msg:
-            xpress.stdin.write("OUTPUTLOG=0\n")
-        # The readprob command must be in lower case for correct filename handling
-        xpress.stdin.write("readprob {" + tmpLp + "}\n")
-        if self.timeLimit:
-            xpress.stdin.write("MAXTIME=%d\n" % self.timeLimit)
-        targetGap = self.optionsDict.get("gapRel")
-        if targetGap:
-            xpress.stdin.write("MIPRELSTOP=%f\n" % targetGap)
-        heurFreq = self.optionsDict.get("heurFreq")
-        if heurFreq:
-            xpress.stdin.write("HEURFREQ=%d\n" % heurFreq)
-        heurStra = self.optionsDict.get("heurStra")
-        if heurStra:
-            xpress.stdin.write("HEURSTRATEGY=%d\n" % heurStra)
-        coverCuts = self.optionsDict.get("coverCuts")
-        if coverCuts:
-            xpress.stdin.write("COVERCUTS=%d\n" % coverCuts)
-        preSolve = self.optionsDict.get("preSolve")
-        if preSolve:
-            xpress.stdin.write("PRESOLVE=%d\n" % preSolve)
-        for option in self.options:
-            xpress.stdin.write(option + "\n")
-        if lp.sense == constants.LpMaximize:
-            xpress.stdin.write("MAXIM\n")
-        else:
-            xpress.stdin.write("MINIM\n")
-        if lp.isMIP() and self.mip:
-            xpress.stdin.write("GLOBAL\n")
-        # The writeprtsol command must be in lower case for correct filename handling
-        xpress.stdin.write("writeprtsol {" + tmpSol + "}\n")
-        xpress.stdin.write("QUIT\n")
-        xpress.stdin.flush()
-        if xpress.wait() != 0:
-            raise PulpSolverError("PuLP: Error while executing " + self.path)
+        with open(tmpCmd, 'w') as cmd:
+            if not self.msg:
+                cmd.write("OUTPUTLOG=0\n")
+            # The readprob command must be in lower case for correct filename handling
+            cmd.write("readprob {" + tmpLp + "}\n")
+            if self.timeLimit:
+                cmd.write("MAXTIME=%d\n" % self.timeLimit)
+            targetGap = self.optionsDict.get("gapRel")
+            if targetGap:
+                cmd.write("MIPRELSTOP=%f\n" % targetGap)
+            heurFreq = self.optionsDict.get("heurFreq")
+            if heurFreq:
+                cmd.write("HEURFREQ=%d\n" % heurFreq)
+            heurStra = self.optionsDict.get("heurStra")
+            if heurStra:
+                cmd.write("HEURSTRATEGY=%d\n" % heurStra)
+            coverCuts = self.optionsDict.get("coverCuts")
+            if coverCuts:
+                cmd.write("COVERCUTS=%d\n" % coverCuts)
+            preSolve = self.optionsDict.get("preSolve")
+            if preSolve:
+                cmd.write("PRESOLVE=%d\n" % preSolve)
+            for option in self.options:
+                cmd.write(option + "\n")
+            if lp.sense == constants.LpMaximize:
+                cmd.write("MAXIM\n")
+            else:
+                cmd.write("MINIM\n")
+            if lp.isMIP() and self.mip:
+                cmd.write("GLOBAL\n")
+            # The writeprtsol command must be in lower case for correct filename handling
+            cmd.write("writeprtsol {" + tmpSol + "}\n")
+            cmd.write("QUIT\n")
+        with open(tmpCmd, 'r') as cmd:        
+            xpress = subprocess.Popen(
+                [self.path, lp.name],
+                shell=True,
+                stdin=cmd,
+                universal_newlines=True,
+            )
+
+            if xpress.wait() != 0:
+                raise PulpSolverError("PuLP: Error while executing " + self.path)
         status, values = self.readsol(tmpSol)
-        self.delete_tmp_files(tmpLp, tmpSol)
+        self.delete_tmp_files(tmpLp, tmpSol, tmpCmd)
         lp.assignVarsVals(values)
         if abs(lp.infeasibilityGap(self.mip)) > 1e-5:  # Arbitrary
             status = constants.LpStatusInfeasible
