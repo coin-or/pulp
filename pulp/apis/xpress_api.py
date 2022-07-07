@@ -50,7 +50,7 @@ class XPRESS(LpSolver_CMD):
         heurStra=None,
         coverCuts=None,
         preSolve=None,
-        warmStart=False
+        warmStart=False,
     ):
         """
         Initializes the Xpress solver.
@@ -111,8 +111,9 @@ class XPRESS(LpSolver_CMD):
         """Solve a well formulated lp problem"""
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute " + self.path)
-        tmpLp, tmpSol, tmpCmd, tmpAttr, tmpStart = \
-            self.create_tmp_files(lp.name, "lp", "prt", "cmd", "attr", "slx")
+        tmpLp, tmpSol, tmpCmd, tmpAttr, tmpStart = self.create_tmp_files(
+            lp.name, "lp", "prt", "cmd", "attr", "slx"
+        )
         variables = lp.writeLP(tmpLp, writeSOS=1, mip=self.mip)
         if self.optionsDict.get("warmStart", False):
             start = [(v.name, v.value()) for v in variables if v.value() is not None]
@@ -121,31 +122,33 @@ class XPRESS(LpSolver_CMD):
         # information about the solution.
         attrNames = []
         if lp.isMIP() and self.mip:
-            attrNames.extend(['mipobjval', 'bestbound', 'mipstatus'])
-            statusmap = { 0: constants.LpStatusUndefined,  # XPRS_MIP_NOT_LOADED
-                          1: constants.LpStatusUndefined,  # XPRS_MIP_LP_NOT_OPTIMAL
-                          2: constants.LpStatusUndefined,  # XPRS_MIP_LP_OPTIMAL
-                          3: constants.LpStatusUndefined,  # XPRS_MIP_NO_SOL_FOUND
-                          4: constants.LpStatusUndefined,  # XPRS_MIP_SOLUTION
-                          5: constants.LpStatusInfeasible, # XPRS_MIP_INFEAS
-                          6: constants.LpStatusOptimal,    # XPRS_MIP_OPTIMAL
-                          7: constants.LpStatusUndefined   # XPRS_MIP_UNBOUNDED
+            attrNames.extend(["mipobjval", "bestbound", "mipstatus"])
+            statusmap = {
+                0: constants.LpStatusUndefined,  # XPRS_MIP_NOT_LOADED
+                1: constants.LpStatusUndefined,  # XPRS_MIP_LP_NOT_OPTIMAL
+                2: constants.LpStatusUndefined,  # XPRS_MIP_LP_OPTIMAL
+                3: constants.LpStatusUndefined,  # XPRS_MIP_NO_SOL_FOUND
+                4: constants.LpStatusUndefined,  # XPRS_MIP_SOLUTION
+                5: constants.LpStatusInfeasible,  # XPRS_MIP_INFEAS
+                6: constants.LpStatusOptimal,  # XPRS_MIP_OPTIMAL
+                7: constants.LpStatusUndefined,  # XPRS_MIP_UNBOUNDED
             }
-            statuskey = 'mipstatus'
+            statuskey = "mipstatus"
         else:
-            attrNames.extend(['lpobjval', 'lpstatus'])
-            statusmap = { 0: constants.LpStatusNotSolved,  # XPRS_LP_UNSTARTED
-                          1: constants.LpStatusOptimal,    # XPRS_LP_OPTIMAL
-                          2: constants.LpStatusInfeasible, # XPRS_LP_INFEAS
-                          3: constants.LpStatusUndefined,  # XPRS_LP_CUTOFF
-                          4: constants.LpStatusUndefined,  # XPRS_LP_UNFINISHED
-                          5: constants.LpStatusUnbounded,  # XPRS_LP_UNBOUNDED
-                          6: constants.LpStatusUndefined,  # XPRS_LP_CUTOFF_IN_DUAL
-                          7: constants.LpStatusNotSolved,  # XPRS_LP_UNSOLVED
-                          8: constants.LpStatusUndefined   # XPRS_LP_NONCONVEX
+            attrNames.extend(["lpobjval", "lpstatus"])
+            statusmap = {
+                0: constants.LpStatusNotSolved,  # XPRS_LP_UNSTARTED
+                1: constants.LpStatusOptimal,  # XPRS_LP_OPTIMAL
+                2: constants.LpStatusInfeasible,  # XPRS_LP_INFEAS
+                3: constants.LpStatusUndefined,  # XPRS_LP_CUTOFF
+                4: constants.LpStatusUndefined,  # XPRS_LP_UNFINISHED
+                5: constants.LpStatusUnbounded,  # XPRS_LP_UNBOUNDED
+                6: constants.LpStatusUndefined,  # XPRS_LP_CUTOFF_IN_DUAL
+                7: constants.LpStatusNotSolved,  # XPRS_LP_UNSOLVED
+                8: constants.LpStatusUndefined,  # XPRS_LP_NONCONVEX
             }
-            statuskey = 'lpstatus'
-        with open(tmpCmd, 'w') as cmd:
+            statuskey = "lpstatus"
+        with open(tmpCmd, "w") as cmd:
             if not self.msg:
                 cmd.write("OUTPUTLOG=0\n")
             # The readprob command must be in lower case for correct filename handling
@@ -182,7 +185,7 @@ class XPRESS(LpSolver_CMD):
             for attr in attrNames:
                 cmd.write('exec echo "%s=$%s" >> %s\n' % (attr, attr, tmpAttr))
             cmd.write("QUIT\n")
-        with open(tmpCmd, 'r') as cmd:
+        with open(tmpCmd, "r") as cmd:
             consume = False
             subout = None
             suberr = None
@@ -214,8 +217,7 @@ class XPRESS(LpSolver_CMD):
                 raise PulpSolverError("PuLP: Error while executing " + self.path)
         values, redcost, slacks, duals, attrs = self.readsol(tmpSol, tmpAttr)
         self.delete_tmp_files(tmpLp, tmpSol, tmpCmd, tmpAttr)
-        status = statusmap.get(attrs.get(statuskey, -1),
-                               constants.LpStatusUndefined)
+        status = statusmap.get(attrs.get(statuskey, -1), constants.LpStatusUndefined)
         lp.assignVarsVals(values)
         lp.assignVarsDj(redcost)
         lp.assignConsSlack(slacks)
@@ -262,7 +264,7 @@ class XPRESS(LpSolver_CMD):
         attrs = dict()
         with open(attrfile) as f:
             for line in f:
-                fields = line.strip().split('=')
+                fields = line.strip().split("=")
                 if len(fields) == 2 and fields[0].lower() == fields[0]:
                     value = fields[1].strip()
                     try:
@@ -286,9 +288,9 @@ class XPRESS(LpSolver_CMD):
         :param string name: file name
         :param list values: list of lists of (name,value) pairs
         """
-        with open(name, 'w') as slx:
+        with open(name, "w") as slx:
             for i, sol in enumerate(values):
                 slx.write("NAME solution%d\n" % i)
                 for name, value in sol:
-                    slx.write(' C      %s %.16f\n' % (name, value))
-            slx.write('ENDATA\n')
+                    slx.write(" C      %s %.16f\n" % (name, value))
+            slx.write("ENDATA\n")
