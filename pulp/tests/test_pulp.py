@@ -251,6 +251,7 @@ class BaseSolverTest:
                 MOSEK,
                 SCIP_CMD,
                 HiGHS_CMD,
+                XPRESS,
             ]:
                 try:
                     pulpTestCheck(
