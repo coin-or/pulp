@@ -196,6 +196,8 @@ class XPRESS(LpSolver_CMD):
                     subout = subprocess.DEVNULL
                     suberr = subprocess.DEVNULL
                 else:
+                    # We could also use open(os.devnull, 'w') but then we
+                    # would be responsible for closing the file.
                     subout = subprocess.PIPE
                     suberr = subprocess.STDOUT
                     consume = True
