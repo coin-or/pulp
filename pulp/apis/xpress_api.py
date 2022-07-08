@@ -153,22 +153,22 @@ class XPRESS(LpSolver_CMD):
                 cmd.write("OUTPUTLOG=0\n")
             # The readprob command must be in lower case for correct filename handling
             cmd.write("readprob {" + tmpLp + "}\n")
-            if self.timeLimit:
+            if self.timeLimit is not None:
                 cmd.write("MAXTIME=%d\n" % self.timeLimit)
             targetGap = self.optionsDict.get("gapRel")
-            if targetGap:
+            if targetGap is not None:
                 cmd.write("MIPRELSTOP=%f\n" % targetGap)
             heurFreq = self.optionsDict.get("heurFreq")
-            if heurFreq:
+            if heurFreq is not None:
                 cmd.write("HEURFREQ=%d\n" % heurFreq)
             heurStra = self.optionsDict.get("heurStra")
-            if heurStra:
+            if heurStra is not None:
                 cmd.write("HEURSTRATEGY=%d\n" % heurStra)
             coverCuts = self.optionsDict.get("coverCuts")
-            if coverCuts:
+            if coverCuts is not None:
                 cmd.write("COVERCUTS=%d\n" % coverCuts)
             preSolve = self.optionsDict.get("preSolve")
-            if preSolve:
+            if preSolve is not None:
                 cmd.write("PRESOLVE=%d\n" % preSolve)
             if self.optionsDict.get("warmStart", False):
                 cmd.write("readslxsol {" + tmpStart + "}\n")
