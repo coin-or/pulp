@@ -547,13 +547,16 @@ class XPRESS_PY(LpSolver):
                 if v.value is not None:
                     solval.append(v.value())
                     colind.append(v._xprs[0])
-            # If we have a value for every variable then use loadmipsol(),
-            # which requires a dense solution. Otherwise use addmipsol()
-            # which allows sparse vectors.
-            if len(solval) == model.attributes.cols:
-                model.loadmipsol(solval)
+            if lp.isMIP() and self.mip:
+                # If we have a value for every variable then use loadmipsol(),
+                # which requires a dense solution. Otherwise use addmipsol()
+                # which allows sparse vectors.
+                if len(solval) == model.attributes.cols:
+                    model.loadmipsol(solval)
+                else:
+                    model.addmipsol(solval, colind, "warmstart")
             else:
-                model.addmipsol(solval, colind, "warmstart")
+                model.loadlpsol(solval, None, None, None)
         # Setup message callback if output is requested
         if self.msg:
 
