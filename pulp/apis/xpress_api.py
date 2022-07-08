@@ -709,6 +709,27 @@ class XPRESS_PY(LpSolver):
                 model.addConstraint([c for _, c, _ in cons])
                 for i, c, con in cons:
                     con._xprs = (i, c)
+
+            # SOS constraints
+            def addsos(m, sosdict, t):
+                """Extract sos constraints from PuLP."""
+                soslist = []
+                # Sort by name to get deterministic ordering. Note that
+                # names may be plain integers, that is why we use str(name)
+                # to pass them to the SOS constructor.
+                for name in sorted(sosdict):
+                    indices = []
+                    weights = []
+                    for v, val in sosdict[name].items():
+                        indices.append(v._xprs[0])
+                        weights.append(val)
+                    soslist.append(xpress.sos(indices, weight, t, str(name)))
+                if len(soslist):
+                    m.addSOS(soslist)
+
+            addsos(model, lp.sos1, 1)
+            addsos(model, lp.sos2, 2)
+
             lp._xprs = model
         except (xpress.ModelError, xpress.InterfaceError, xpress.SolverError) as err:
             # Undo everything
