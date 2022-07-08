@@ -7,7 +7,7 @@ Many solvers permit the possibility of giving a valid (or parcially valid in som
 Supported solver APIs
 -----------------------
 
-The present solver APIs that work with PuLP warm-start are the following: ``CPLEX_CMD``, ``GUROBI_CMD``, ``PULP_CBC_CMD``, ``CBC_CMD``, ``CPLEX_PY``, ``GUROBI``.
+The present solver APIs that work with PuLP warm-start are the following: ``CPLEX_CMD``, ``GUROBI_CMD``, ``PULP_CBC_CMD``, ``CBC_CMD``, ``CPLEX_PY``, ``GUROBI``, ``XPRESS``.
 
 Example problem
 ----------------
