@@ -538,7 +538,7 @@ class XPRESS_PY(LpSolver):
                 continue
             except ValueError:
                 pass
-            model.setControl(name, float(value))
+            model.setControl(name, value)
         # Setup warmstart information
         if self.optionsDict.get("warmStart", False):
             solval = list()
