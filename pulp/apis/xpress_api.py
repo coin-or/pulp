@@ -488,7 +488,9 @@ class XPRESS_PY(LpSolver):
                     {c.name: slacks[c._xprs[0]] for c in lp.constraints.values()}
                 )
 
-            status = statusmap.get(model.getAttrib(statuskey), constants.LpStatusUndefined)
+            status = statusmap.get(
+                model.getAttrib(statuskey), constants.LpStatusUndefined
+            )
             lp.assignStatus(status)
 
             # Mark all variables and constraints as unmodified so that
@@ -519,12 +521,12 @@ class XPRESS_PY(LpSolver):
             model = lp._xprs
             # Apply controls that were passed to the constructor
             for key, name in [
-                    ("gapRel", "MIPRELSTOP"),
-                    ("timeLimit", "MAXTIME"),
-                    ("heurFreq", "HEURFREQ"),
-                    ("heurStra", "HEURSTRATEGY"),
-                    ("coverCuts", "COVERCUTS"),
-                    ("preSolve", "PRESOLVE"),
+                ("gapRel", "MIPRELSTOP"),
+                ("timeLimit", "MAXTIME"),
+                ("heurFreq", "HEURFREQ"),
+                ("heurStra", "HEURSTRATEGY"),
+                ("coverCuts", "COVERCUTS"),
+                ("preSolve", "PRESOLVE"),
             ]:
                 value = self.optionsDict.get(key, None)
                 if value is not None:
