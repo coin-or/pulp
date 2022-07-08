@@ -439,7 +439,10 @@ class XPRESS_PY(LpSolver):
         if lp.isMIP() and self.mip:
             # Solved as MIP
             x, slacks, duals, djs = [], [], None, None
-            model.getmipsol(x, slacks)
+            try:
+                model.getmipsol(x, slacks)
+            except:
+                x, slacks = None, None
             statusmap = {
                 0: constants.LpStatusUndefined,  # XPRS_MIP_NOT_LOADED
                 1: constants.LpStatusUndefined,  # XPRS_MIP_LP_NOT_OPTIMAL
@@ -454,7 +457,11 @@ class XPRESS_PY(LpSolver):
         else:
             # Solved as continuous
             x, slacks, duals, djs = [], [], [], []
-            model.getlpsol(x, slacks, duals, djs)
+            try:
+                model.getlpsol(x, slacks, duals, djs)
+            except:
+                # No solution available
+                x, slacks, duals, djs = None, None, None, None
             statusmap = {
                 0: constants.LpStatusNotSolved,  # XPRS_LP_UNSTARTED
                 1: constants.LpStatusOptimal,  # XPRS_LP_OPTIMAL
@@ -467,16 +474,18 @@ class XPRESS_PY(LpSolver):
                 8: constants.LpStatusUndefined,  # XPRS_LP_NONCONVEX
             }
             statuskey = "lpstatus"
-        lp.assignVarsVals({v.name: x[v._xprs[0]] for v in lp.variables()})
+        if x is not None:
+            lp.assignVarsVals({v.name: x[v._xprs[0]] for v in lp.variables()})
         if djs is not None:
             lp.assignVarsDj({v.name: djs[v._xprs[0]] for v in lp.variables()})
         if duals is not None:
             lp.assignConsPi(
                 {c.name: duals[c._xprs[0]] for c in lp.constraints.values()}
             )
-        lp.assignConsSlack(
-            {c.name: slacks[c._xprs[0]] for c in lp.constraints.values()}
-        )
+        if slacks is not None:
+            lp.assignConsSlack(
+                {c.name: slacks[c._xprs[0]] for c in lp.constraints.values()}
+            )
 
         status = statusmap.get(model.getAttrib(statuskey), constants.LpStatusUndefined)
         lp.assignStatus(status)
