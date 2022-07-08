@@ -31,6 +31,14 @@ import sys
 import re
 
 
+def _ismip(lp):
+    """Check whether lp is a MIP.
+
+    From an XPRESS point of view, a problem is also a MIP if it contains
+    SOS constraints."""
+    return lp.isMIP() or len(lp.sos1) or len(lp.sos2)
+
+
 class XPRESS(LpSolver_CMD):
     """The XPRESS LP solver that uses the XPRESS command line tool
     in a subprocess"""
@@ -430,14 +438,14 @@ class XPRESS_PY(LpSolver):
                     model.write(self._export)
             if prepare is not None:
                 prepare(lp)
-            if lp.isMIP() and not self.mip:
+            if _ismip(lp) and not self.mip:
                 # Solve only the LP relaxation
                 model.lpoptimize()
             else:
                 # In all other cases, solve() does the correct thing
                 model.solve()
             # Collect results
-            if lp.isMIP() and self.mip:
+            if _ismip(lp) and self.mip:
                 # Solved as MIP
                 x, slacks, duals, djs = [], [], None, None
                 try:
@@ -563,7 +571,7 @@ class XPRESS_PY(LpSolver):
                     if v.value is not None:
                         solval.append(v.value())
                         colind.append(v._xprs[0])
-                if lp.isMIP() and self.mip:
+                if _ismip(lp) and self.mip:
                     # If we have a value for every variable then use
                     # loadmipsol(), which requires a dense solution. Otherwise
                     # use addmipsol() which allows sparse vectors.
@@ -723,7 +731,7 @@ class XPRESS_PY(LpSolver):
                     for v, val in sosdict[name].items():
                         indices.append(v._xprs[0])
                         weights.append(val)
-                    soslist.append(xpress.sos(indices, weight, t, str(name)))
+                    soslist.append(xpress.sos(indices, weights, t, str(name)))
                 if len(soslist):
                     m.addSOS(soslist)
 
