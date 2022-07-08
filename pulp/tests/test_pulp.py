@@ -252,6 +252,7 @@ class BaseSolverTest:
                 SCIP_CMD,
                 HiGHS_CMD,
                 XPRESS,
+                XPRESS_PY,
             ]:
                 try:
                     pulpTestCheck(
@@ -1355,6 +1356,7 @@ class CPLEX_PYTest(BaseSolverTest.PuLPTest):
 
 class XPRESS_CMDTest(BaseSolverTest.PuLPTest):
     solveInst = XPRESS_CMD
+
 
 class XPRESS_PyTest(BaseSolverTest.PuLPTest):
     solveInst = XPRESS_PY
