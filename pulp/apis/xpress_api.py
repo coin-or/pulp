@@ -421,83 +421,87 @@ class XPRESS_PY(LpSolver):
                          and allows final tweaks to `lp._xprs` before
                          the low level solve is started.
         """
-        model = lp._xprs
-        if self._export is not None:
-            if self._export.lower().endswith(".lp"):
-                model.write(self._export, "l")
+        try:
+            model = lp._xprs
+            if self._export is not None:
+                if self._export.lower().endswith(".lp"):
+                    model.write(self._export, "l")
+                else:
+                    model.write(self._export)
+            if prepare is not None:
+                prepare(lp)
+            if lp.isMIP() and not self.mip:
+                # Solve only the LP relaxation
+                model.lpoptimize()
             else:
-                model.write(self._export)
-        if prepare is not None:
-            prepare(lp)
-        if lp.isMIP() and not self.mip:
-            # Solve only the LP relaxation
-            model.lpoptimize()
-        else:
-            # In all other cases, solve() does the correct thing
-            model.solve()
-        # Collect results
-        if lp.isMIP() and self.mip:
-            # Solved as MIP
-            x, slacks, duals, djs = [], [], None, None
-            try:
-                model.getmipsol(x, slacks)
-            except:
-                x, slacks = None, None
-            statusmap = {
-                0: constants.LpStatusUndefined,  # XPRS_MIP_NOT_LOADED
-                1: constants.LpStatusUndefined,  # XPRS_MIP_LP_NOT_OPTIMAL
-                2: constants.LpStatusUndefined,  # XPRS_MIP_LP_OPTIMAL
-                3: constants.LpStatusUndefined,  # XPRS_MIP_NO_SOL_FOUND
-                4: constants.LpStatusUndefined,  # XPRS_MIP_SOLUTION
-                5: constants.LpStatusInfeasible,  # XPRS_MIP_INFEAS
-                6: constants.LpStatusOptimal,  # XPRS_MIP_OPTIMAL
-                7: constants.LpStatusUndefined,  # XPRS_MIP_UNBOUNDED
-            }
-            statuskey = "mipstatus"
-        else:
-            # Solved as continuous
-            x, slacks, duals, djs = [], [], [], []
-            try:
-                model.getlpsol(x, slacks, duals, djs)
-            except:
-                # No solution available
-                x, slacks, duals, djs = None, None, None, None
-            statusmap = {
-                0: constants.LpStatusNotSolved,  # XPRS_LP_UNSTARTED
-                1: constants.LpStatusOptimal,  # XPRS_LP_OPTIMAL
-                2: constants.LpStatusInfeasible,  # XPRS_LP_INFEAS
-                3: constants.LpStatusUndefined,  # XPRS_LP_CUTOFF
-                4: constants.LpStatusUndefined,  # XPRS_LP_UNFINISHED
-                5: constants.LpStatusUnbounded,  # XPRS_LP_UNBOUNDED
-                6: constants.LpStatusUndefined,  # XPRS_LP_CUTOFF_IN_DUAL
-                7: constants.LpStatusNotSolved,  # XPRS_LP_UNSOLVED
-                8: constants.LpStatusUndefined,  # XPRS_LP_NONCONVEX
-            }
-            statuskey = "lpstatus"
-        if x is not None:
-            lp.assignVarsVals({v.name: x[v._xprs[0]] for v in lp.variables()})
-        if djs is not None:
-            lp.assignVarsDj({v.name: djs[v._xprs[0]] for v in lp.variables()})
-        if duals is not None:
-            lp.assignConsPi(
-                {c.name: duals[c._xprs[0]] for c in lp.constraints.values()}
-            )
-        if slacks is not None:
-            lp.assignConsSlack(
-                {c.name: slacks[c._xprs[0]] for c in lp.constraints.values()}
-            )
+                # In all other cases, solve() does the correct thing
+                model.solve()
+            # Collect results
+            if lp.isMIP() and self.mip:
+                # Solved as MIP
+                x, slacks, duals, djs = [], [], None, None
+                try:
+                    model.getmipsol(x, slacks)
+                except:
+                    x, slacks = None, None
+                statusmap = {
+                    0: constants.LpStatusUndefined,  # XPRS_MIP_NOT_LOADED
+                    1: constants.LpStatusUndefined,  # XPRS_MIP_LP_NOT_OPTIMAL
+                    2: constants.LpStatusUndefined,  # XPRS_MIP_LP_OPTIMAL
+                    3: constants.LpStatusUndefined,  # XPRS_MIP_NO_SOL_FOUND
+                    4: constants.LpStatusUndefined,  # XPRS_MIP_SOLUTION
+                    5: constants.LpStatusInfeasible,  # XPRS_MIP_INFEAS
+                    6: constants.LpStatusOptimal,  # XPRS_MIP_OPTIMAL
+                    7: constants.LpStatusUndefined,  # XPRS_MIP_UNBOUNDED
+                }
+                statuskey = "mipstatus"
+            else:
+                # Solved as continuous
+                x, slacks, duals, djs = [], [], [], []
+                try:
+                    model.getlpsol(x, slacks, duals, djs)
+                except:
+                    # No solution available
+                    x, slacks, duals, djs = None, None, None, None
+                statusmap = {
+                    0: constants.LpStatusNotSolved,  # XPRS_LP_UNSTARTED
+                    1: constants.LpStatusOptimal,  # XPRS_LP_OPTIMAL
+                    2: constants.LpStatusInfeasible,  # XPRS_LP_INFEAS
+                    3: constants.LpStatusUndefined,  # XPRS_LP_CUTOFF
+                    4: constants.LpStatusUndefined,  # XPRS_LP_UNFINISHED
+                    5: constants.LpStatusUnbounded,  # XPRS_LP_UNBOUNDED
+                    6: constants.LpStatusUndefined,  # XPRS_LP_CUTOFF_IN_DUAL
+                    7: constants.LpStatusNotSolved,  # XPRS_LP_UNSOLVED
+                    8: constants.LpStatusUndefined,  # XPRS_LP_NONCONVEX
+                }
+                statuskey = "lpstatus"
+            if x is not None:
+                lp.assignVarsVals({v.name: x[v._xprs[0]] for v in lp.variables()})
+            if djs is not None:
+                lp.assignVarsDj({v.name: djs[v._xprs[0]] for v in lp.variables()})
+            if duals is not None:
+                lp.assignConsPi(
+                    {c.name: duals[c._xprs[0]] for c in lp.constraints.values()}
+                )
+            if slacks is not None:
+                lp.assignConsSlack(
+                    {c.name: slacks[c._xprs[0]] for c in lp.constraints.values()}
+                )
 
-        status = statusmap.get(model.getAttrib(statuskey), constants.LpStatusUndefined)
-        lp.assignStatus(status)
+            status = statusmap.get(model.getAttrib(statuskey), constants.LpStatusUndefined)
+            lp.assignStatus(status)
 
-        # Mark all variables and constraints as unmodified so that actualResolve
-        # will do the same thing.
-        for v in lp.variables():
-            v.modified = False
-        for c in lp.constraints.values():
-            c.modified = False
+            # Mark all variables and constraints as unmodified so that
+            # actualResolve will do the correct thing.
+            for v in lp.variables():
+                v.modified = False
+            for c in lp.constraints.values():
+                c.modified = False
 
-        return status
+            return status
+
+        except (xpress.ModelError, xpress.InterfaceError, xpress.SolverError) as err:
+            raise PulpSolverError(str(err))
 
     def actualSolve(self, lp, prepare=None):
         """Solve a well formulated lp problem"""
@@ -511,109 +515,115 @@ class XPRESS_PY(LpSolver):
             raise PulpSolverError(message)
 
         self._extract(lp)
-        model = lp._xprs
-        # Apply controls that were passed to the constructor
-        for key, name in [
-            ("gapRel", "MIPRELSTOP"),
-            ("timeLimit", "MAXTIME"),
-            ("heurFreq", "HEURFREQ"),
-            ("heurStra", "HEURSTRATEGY"),
-            ("coverCuts", "COVERCUTS"),
-            ("preSolve", "PRESOLVE"),
-        ]:
-            value = self.optionsDict.get(key, None)
-            if value is not None:
-                model.setControl(name, value)
+        try:
+            model = lp._xprs
+            # Apply controls that were passed to the constructor
+            for key, name in [
+                    ("gapRel", "MIPRELSTOP"),
+                    ("timeLimit", "MAXTIME"),
+                    ("heurFreq", "HEURFREQ"),
+                    ("heurStra", "HEURSTRATEGY"),
+                    ("coverCuts", "COVERCUTS"),
+                    ("preSolve", "PRESOLVE"),
+            ]:
+                value = self.optionsDict.get(key, None)
+                if value is not None:
+                    model.setControl(name, value)
 
-        # Apply any other controls. These overwrite controls that were
-        # passed explicitly into the constructor.
-        for option in self.options:
-            if isinstance(option, tuple):
-                name = optione[0]
-                value = option[1]
-            else:
-                fields = option.split("=", 1)
-                if len(fields) != 2:
-                    raise PulpSolverError("Invalid option " + str(option))
-                name = fields[0].strip()
-                value = fields[1].strip()
-            try:
-                model.setControl(name, int(value))
-                continue
-            except ValueError:
-                pass
-            try:
-                model.setControl(name, float(value))
-                continue
-            except ValueError:
-                pass
-            model.setControl(name, value)
-        # Setup warmstart information
-        if self.optionsDict.get("warmStart", False):
-            solval = list()
-            colind = list()
-            for v in sorted(lp.variables(), key=lambda x: x._xprs[0]):
-                if v.value is not None:
-                    solval.append(v.value())
-                    colind.append(v._xprs[0])
-            if lp.isMIP() and self.mip:
-                # If we have a value for every variable then use loadmipsol(),
-                # which requires a dense solution. Otherwise use addmipsol()
-                # which allows sparse vectors.
-                if len(solval) == model.attributes.cols:
-                    model.loadmipsol(solval)
+            # Apply any other controls. These overwrite controls that were
+            # passed explicitly into the constructor.
+            for option in self.options:
+                if isinstance(option, tuple):
+                    name = optione[0]
+                    value = option[1]
                 else:
-                    model.addmipsol(solval, colind, "warmstart")
-            else:
-                model.loadlpsol(solval, None, None, None)
-        # Setup message callback if output is requested
-        if self.msg:
+                    fields = option.split("=", 1)
+                    if len(fields) != 2:
+                        raise PulpSolverError("Invalid option " + str(option))
+                    name = fields[0].strip()
+                    value = fields[1].strip()
+                try:
+                    model.setControl(name, int(value))
+                    continue
+                except ValueError:
+                    pass
+                try:
+                    model.setControl(name, float(value))
+                    continue
+                except ValueError:
+                    pass
+                model.setControl(name, value)
+            # Setup warmstart information
+            if self.optionsDict.get("warmStart", False):
+                solval = list()
+                colind = list()
+                for v in sorted(lp.variables(), key=lambda x: x._xprs[0]):
+                    if v.value is not None:
+                        solval.append(v.value())
+                        colind.append(v._xprs[0])
+                if lp.isMIP() and self.mip:
+                    # If we have a value for every variable then use
+                    # loadmipsol(), which requires a dense solution. Otherwise
+                    # use addmipsol() which allows sparse vectors.
+                    if len(solval) == model.attributes.cols:
+                        model.loadmipsol(solval)
+                    else:
+                        model.addmipsol(solval, colind, "warmstart")
+                else:
+                    model.loadlpsol(solval, None, None, None)
+            # Setup message callback if output is requested
+            if self.msg:
 
-            def message(prob, data, msg, msgtype):
-                if msgtype > 0:
-                    print(msg)
+                def message(prob, data, msg, msgtype):
+                    if msgtype > 0:
+                        print(msg)
 
-            model.addcbmessage(message)
-        # We are ready to solve
-        return self._solve(lp, prepare)
+                model.addcbmessage(message)
+            # We are ready to solve
+            return self._solve(lp, prepare)
+        except (xpress.ModelError, xpress.InterfaceError, xpress.SolverError) as err:
+            raise PulpSolverError(str(err))
 
     def actualResolve(self, lp, prepare=None):
         """Resolve a problem that was previously solved by actualSolve()."""
-        rhsind = list()
-        rhsval = list()
-        for name in sorted(lp.constraints):
-            con = lp.constraints[name]
-            if not con.modified:
-                continue
-            if not hasattr(con, "_xprs"):
-                # Adding constraints is not implemented at the moment
-                raise PulpSolverError("Cannot add new constraints")
-            # At the moment only RHS can change in pulp.py
-            rhsind.append(con._xprs[0])
-            rhsval.append(-con.constant)
-        if len(rhsind) > 0:
-            lp._xprs.chgrhs(rhsind, rhsval)
+        try:
+            rhsind = list()
+            rhsval = list()
+            for name in sorted(lp.constraints):
+                con = lp.constraints[name]
+                if not con.modified:
+                    continue
+                if not hasattr(con, "_xprs"):
+                    # Adding constraints is not implemented at the moment
+                    raise PulpSolverError("Cannot add new constraints")
+                # At the moment only RHS can change in pulp.py
+                rhsind.append(con._xprs[0])
+                rhsval.append(-con.constant)
+            if len(rhsind) > 0:
+                lp._xprs.chgrhs(rhsind, rhsval)
 
-        bndind = list()
-        bndtype = list()
-        bndval = list()
-        for v in lp.variables():
-            if not v.modified:
-                continue
-            if not hasattr(v, "_xprs"):
-                # Adding variables is not implemented at the moment
-                raise PulpSolverError("Cannot add new variables")
-            # At the moment only bounds can change in pulp.py
-            bndind.append(v._xprs[0])
-            bndtype.append("L")
-            bndval.append(-xpress.infinity if v.lowBound is None else v.lowBound)
-            bndind.append(v._xprs[0])
-            bndtype.append("G")
-            bndval.append(xpress.infinity if v.upBound is None else v.upBound)
-        if len(bndtype) > 0:
-            lp._xprs.chgbounds(bndind, bndtype, bndval)
+            bndind = list()
+            bndtype = list()
+            bndval = list()
+            for v in lp.variables():
+                if not v.modified:
+                    continue
+                if not hasattr(v, "_xprs"):
+                    # Adding variables is not implemented at the moment
+                    raise PulpSolverError("Cannot add new variables")
+                # At the moment only bounds can change in pulp.py
+                bndind.append(v._xprs[0])
+                bndtype.append("L")
+                bndval.append(-xpress.infinity if v.lowBound is None else v.lowBound)
+                bndind.append(v._xprs[0])
+                bndtype.append("G")
+                bndval.append(xpress.infinity if v.upBound is None else v.upBound)
+            if len(bndtype) > 0:
+                lp._xprs.chgbounds(bndind, bndtype, bndval)
 
-        return self._solve(lp, prepare)
+            return self._solve(lp, prepare)
+        except (xpress.ModelError, xpress.InterfaceError, xpress.SolverError) as err:
+            raise PulpSolverError(str(err))
 
     @staticmethod
     def _reset(lp):
@@ -698,10 +708,10 @@ class XPRESS_PY(LpSolver):
                 for i, c, con in cons:
                     con._xprs = (i, c)
             lp._xprs = model
-        except:
+        except (xpress.ModelError, xpress.InterfaceError, xpress.SolverError) as err:
             # Undo everything
             self._reset(lp)
-            raise
+            raise PulpSolverError(str(err))
 
     def getAttribute(self, lp, which):
         """Get an arbitrary attribute for the model that was previously
