@@ -558,7 +558,7 @@ class XPRESS_PY(LpSolver):
         if self.msg:
 
             def message(prob, data, msg, msgtype):
-                if msgtype >= 0:
+                if msgtype > 0:
                     print(msg)
 
             model.addcbmessage(message)
