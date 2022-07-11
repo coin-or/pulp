@@ -28,6 +28,7 @@ from .core import LpSolver_CMD, subprocess, PulpSolverError
 from .. import constants
 import warnings
 import sys
+import re
 
 
 class XPRESS(LpSolver_CMD):
@@ -152,7 +153,7 @@ class XPRESS(LpSolver_CMD):
             if not self.msg:
                 cmd.write("OUTPUTLOG=0\n")
             # The readprob command must be in lower case for correct filename handling
-            cmd.write("readprob {" + tmpLp + "}\n")
+            cmd.write("readprob " + self.quote_path(tmpLp) + "\n")
             if self.timeLimit is not None:
                 cmd.write("MAXTIME=%d\n" % self.timeLimit)
             targetGap = self.optionsDict.get("gapRel")
@@ -171,7 +172,7 @@ class XPRESS(LpSolver_CMD):
             if preSolve is not None:
                 cmd.write("PRESOLVE=%d\n" % preSolve)
             if self.optionsDict.get("warmStart", False):
-                cmd.write("readslxsol {" + tmpStart + "}\n")
+                cmd.write("readslxsol " + self.quote_path(tmpStart) + "\n")
             for option in self.options:
                 cmd.write(option + "\n")
             if lp.sense == constants.LpMaximize:
@@ -181,7 +182,7 @@ class XPRESS(LpSolver_CMD):
             if lp.isMIP() and self.mip:
                 cmd.write("GLOBAL\n")
             # The writeprtsol command must be in lower case for correct filename handling
-            cmd.write("writeprtsol {" + tmpSol + "}\n")
+            cmd.write("writeprtsol " + self.quote_path(tmpSol) + "\n")
             cmd.write(
                 'set fh [open "%s" w]; list\n' % tmpAttr
             )  # `list` to suppress output
@@ -308,3 +309,12 @@ class XPRESS(LpSolver_CMD):
                 for name, value in sol:
                     slx.write(" C      %s %.16f\n" % (name, value))
             slx.write("ENDATA\n")
+
+    @staticmethod
+    def quote_path(path):
+        """
+        Quotes a path for the Xpress optimizer console, by wrapping it in
+        double quotes and escaping the following characters, which would
+        otherwise be interpreted by the Tcl shell: \ $ " [
+        """
+        return '"' + re.sub(r'([\\$"[])', r"\\\1", path) + '"'
