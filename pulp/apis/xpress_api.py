@@ -200,4 +200,4 @@ class XPRESS(LpSolver_CMD):
         double quotes and escaping the following characters, which would
         otherwise be interpreted by the Tcl shell: \ $ " { [
         """
-        return '"' + re.sub(r'([\\$"{[])', r'\\\1', path) + '"'
+        return '"' + re.sub(r'([\\$"{[])', r"\\\1", path) + '"'
