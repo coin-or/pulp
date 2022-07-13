@@ -309,13 +309,14 @@ sudo python3 setup.py install</p>
 <span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span>
 
 <span class="n">solver</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">CPLEX_PY</span><span class="p">()</span>
-<span class="n">solver</span><span class="o">.</span><span class="n">self</span><span class="o">.</span><span class="n">buildSolverModel</span><span class="p">(</span><span class="n">lp</span><span class="p">)</span>
+<span class="n">solver</span><span class="o">.</span><span class="n">buildSolverModel</span><span class="p">(</span><span class="n">prob</span><span class="p">)</span>
 <span class="c1"># you can now edit the object or do something with it before solving</span>
-<span class="n">solver</span><span class="o">.</span><span class="n">solverModel</span>
+<span class="c1"># for example, load a MIP_START file for CPLEX_PY:</span>
+<span class="n">solver</span><span class="o">.</span><span class="n">solverModel</span><span class="o">.</span><span class="n">MIP_starts</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">SOME_MST_FILE</span><span class="p">)</span>
 <span class="c1"># the, you can call the solver to solve the problem</span>
-<span class="n">solver</span><span class="o">.</span><span class="n">callSolver</span><span class="p">(</span><span class="n">lp</span><span class="p">)</span>
+<span class="n">solver</span><span class="o">.</span><span class="n">callSolver</span><span class="p">(</span><span class="n">prob</span><span class="p">)</span>
 <span class="c1"># finally, you fill the PuLP variables with the solution</span>
-<span class="n">status</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">findSolutionValues</span><span class="p">(</span><span class="n">lp</span><span class="p">)</span>
+<span class="n">status</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">findSolutionValues</span><span class="p">(</span><span class="n">prob</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>For more information on how to use the <cite>solverModel</cite>, one needs to check the official documentation depending on the solver.</p>
