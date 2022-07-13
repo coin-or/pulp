@@ -206,6 +206,7 @@ class BaseSolverTest:
                 SCIP_CMD,
                 HiGHS_CMD,
                 XPRESS,
+                XPRESS_CMD,
             ]:
                 try:
                     pulpTestCheck(
@@ -252,6 +253,7 @@ class BaseSolverTest:
                 SCIP_CMD,
                 HiGHS_CMD,
                 XPRESS,
+                XPRESS_CMD,
                 XPRESS_PY,
             ]:
                 try:
