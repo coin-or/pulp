@@ -185,9 +185,9 @@ class XPRESS(LpSolver_CMD):
             for option in self.options:
                 cmd.write(option + "\n")
             if _ismip(lp) and self.mip:
-                cmd.write('mipoptimize\n')
+                cmd.write("mipoptimize\n")
             else:
-                cmd.write('lpoptimize\n')
+                cmd.write("lpoptimize\n")
             # The writeprtsol command must be in lower case for correct filename handling
             cmd.write("writeprtsol " + self.quote_path(tmpSol) + "\n")
             cmd.write(
