@@ -131,7 +131,7 @@ class XPRESS(LpSolver_CMD):
         # Explicitly capture some attributes so that we can easily get
         # information about the solution.
         attrNames = []
-        if lp.isMIP() and self.mip:
+        if _ismip(lp) and self.mip:
             attrNames.extend(["mipobjval", "bestbound", "mipstatus"])
             statusmap = {
                 0: constants.LpStatusUndefined,  # XPRS_MIP_NOT_LOADED
@@ -184,12 +184,10 @@ class XPRESS(LpSolver_CMD):
                 cmd.write("readslxsol " + self.quote_path(tmpStart) + "\n")
             for option in self.options:
                 cmd.write(option + "\n")
-            if lp.sense == constants.LpMaximize:
-                cmd.write("MAXIM\n")
+            if _ismip(lp) and self.mip:
+                cmd.write('mipoptimize\n')
             else:
-                cmd.write("MINIM\n")
-            if lp.isMIP() and self.mip:
-                cmd.write("GLOBAL\n")
+                cmd.write('lpoptimize\n')
             # The writeprtsol command must be in lower case for correct filename handling
             cmd.write("writeprtsol " + self.quote_path(tmpSol) + "\n")
             cmd.write(
