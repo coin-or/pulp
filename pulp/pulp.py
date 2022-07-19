@@ -1965,9 +1965,9 @@ class LpProblem(object):
             if debug:
                 self.writeLP("%sSequence.lp" % i)
             if self.sense == const.LpMinimize:
-                self += obj <= value(obj) * rel + absol, "%s_Sequence_Objective" % i
+                self += obj <= value(obj) * rel + absol, "Sequence_Objective_%s" % i
             elif self.sense == const.LpMaximize:
-                self += obj >= value(obj) * rel + absol, "%s_Sequence_Objective" % i
+                self += obj >= value(obj) * rel + absol, "Sequence_Objective_%s" % i
         self.stopClock()
         self.solver = solver
         return statuses
