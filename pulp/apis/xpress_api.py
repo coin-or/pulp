@@ -184,7 +184,7 @@ class XPRESS(LpSolver_CMD):
             # The writeprtsol command must be in lower case for correct filename handling
             cmd.write("writeprtsol " + self.quote_path(tmpSol) + "\n")
             cmd.write(
-                'set fh [open "%s" w]; list\n' % self.quote_path(tmpAttr)
+                "set fh [open %s w]; list\n" % self.quote_path(tmpAttr)
             )  # `list` to suppress output
 
             for attr in attrNames:
