@@ -76,7 +76,7 @@ class GUROBI(LpSolver):
             logPath=None,
             env=None,
             envOptions=None,
-            manageEnv=True,
+            manageEnv=False,
             **solverParams,
         ):
             """
@@ -94,9 +94,11 @@ class GUROBI(LpSolver):
             """
             self.env = env
             self.env_options = envOptions if envOptions else {}
-            self.manage_env = manageEnv
+            self.manage_env = False if self.env is not None else manageEnv
+            self.solver_params = solverParams
+
             self.model = None
-            self.init = True
+            self.init_gurobi = False  # whether env and model have been initialised
 
             if epgap is not None:
                 warnings.warn("Parameter epgap is being depreciated for gapRel")
@@ -117,30 +119,20 @@ class GUROBI(LpSolver):
 
             # set the output of gurobi
             if not self.msg:
-                self.env_options["OutputFlag"] = 0
-
-            # Append all parameters to env_options
-            for key, value in solverParams.items():
-                self.env_options[key] = value
-
-        def __enter__(self):
-            try:
-                self.env = gp.Env(params=self.env_options)
-                self.model = gp.Model(env=self.env)
-                # No need to manage_env outside of context manager
-                self.manage_env = False
-            except gp.GurobiError as e:
-                raise e
-            return self
-
-        def __exit__(self, type, value, tb):
-            self.model.dispose()
-            self.env.dispose()
+                if self.manage_env:
+                    self.env_options["OutputFlag"] = 0
+                else:
+                    self.solver_params["OutputFlag"] = 0
 
         def __del__(self):
+            self.close()
+
+        def close(self):
+            if not self.init_gurobi:
+                return
             if self.manage_env:
-                self.model.dispose()
                 self.env.dispose()
+            self.model.dispose()
 
         def findSolutionValues(self, lp):
             model = lp.solverModel
@@ -166,35 +158,34 @@ class GUROBI(LpSolver):
                 var.isModified = False
             status = gurobiLpStatus.get(solutionStatus, constants.LpStatusUndefined)
             lp.assignStatus(status)
-            if status != constants.LpStatusOptimal:
-                return status
-
-            # populate pulp solution values
-            for var, value in zip(
-                lp._variables, model.getAttr(GRB.Attr.X, model.getVars())
-            ):
-                var.varValue = value
-
-            # populate pulp constraints slack
-            for constr, value in zip(
-                lp.constraints.values(),
-                model.getAttr(GRB.Attr.Slack, model.getConstrs()),
-            ):
-                constr.slack = value
-
-            if not model.getAttr(GRB.Attr.IsMIP):
+            try:
+                # populate pulp solution values
                 for var, value in zip(
-                    lp._variables, model.getAttr(GRB.Attr.RC, model.getVars())
+                    lp._variables, model.getAttr(GRB.Attr.X, model.getVars())
                 ):
-                    var.dj = value
+                    var.varValue = value
 
-                # put pi and slack variables against the constraints
+                # populate pulp constraints slack
                 for constr, value in zip(
                     lp.constraints.values(),
-                    model.getAttr(GRB.Attr.Pi, model.getConstrs()),
+                    model.getAttr(GRB.Attr.Slack, model.getConstrs()),
                 ):
-                    constr.pi = value
+                    constr.slack = value
 
+                if not model.getAttr(GRB.Attr.IsMIP):
+                    for var, value in zip(
+                        lp._variables, model.getAttr(GRB.Attr.RC, model.getVars())
+                    ):
+                        var.dj = value
+
+                    # put pi and slack variables against the constraints
+                    for constr, value in zip(
+                        lp.constraints.values(),
+                        model.getAttr(GRB.Attr.Pi, model.getConstrs()),
+                    ):
+                        constr.pi = value
+            except gp.GurobiError as e:
+                raise e
             return status
 
         def available(self):
@@ -208,21 +199,26 @@ class GUROBI(LpSolver):
             return True
 
         def initGurobi(self):
-            # Environment handled here
-            if self.manage_env and self.init and not self.env and not self.model:
-                try:
+            if self.init_gurobi:
+                return
+            else:
+                self.init_gurobi = True
+            try:
+                if self.manage_env:
                     self.env = gp.Env(params=self.env_options)
                     self.model = gp.Model(env=self.env)
-                    self.init = False
-                except gp.GurobiError as e:
-                    raise e
-            # Environment handled by user
-            elif not self.manage_env and self.init and self.env and not self.model:
-                try:
-                    self.model = gp.Model(env=self.env)
-                    self.init = False
-                except gp.GurobiError as e:
-                    raise e
+                # Environment handled by user or default Env
+                else:
+                    if self.env is not None:
+                        self.model = gp.Model(env=self.env)
+                    else:
+                        self.model = gp.Model()
+                # Set solver parameters
+                for param, value in self.solver_params.items():
+                    self.model.setParam(param, value)
+            # for param, value in self.env_options:
+            except gp.GurobiError as e:
+                raise e
 
         def callSolver(self, lp, callback=None):
             """Solves the problem with gurobi"""

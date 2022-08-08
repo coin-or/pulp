@@ -1,36 +1,108 @@
 import unittest
 
-from pulp import GUROBI, LpProblem, LpVariable, const
+import gurobipy as gp
+
+
+from pulp import GUROBI, GUROBI_CMD, LpProblem, LpVariable, const
+
+
+def check_dummy_env():
+    with gp.Env():
+        pass
+
+
+def generate_lp() -> LpProblem:
+    prob = LpProblem("test", const.LpMaximize)
+    x = LpVariable("x", 0, 1)
+    y = LpVariable("y", 0, 1)
+    z = LpVariable("z", 0, 1)
+    prob += x + y + z, "obj"
+    prob += x + y + z <= 1, "c1"
+    return prob
 
 
 class GurobiEnvTests(unittest.TestCase):
     def setUp(self):
-        self.options = {"OutputFlag": 1, "MemLimit": 1}
-        self.prob = LpProblem("test011", const.LpMaximize)
-        x = LpVariable("x", 0, 1)
-        y = LpVariable("y", 0, 1)
-        z = LpVariable("z", 0, 1)
-        self.prob += x + y + z, "obj"
-        self.prob += x + y + z <= 1, "c1"
-
-    def testContextManager(self):
-        # Using solver within a context manager
-        with GUROBI(msg=True, **self.options) as solver:
-            status = self.prob.solve(solver)
+        self.options = {"OutputFlag": 1}
+        self.env_options = {"MemLimit": 1}
 
     def testGpEnv(self):
         # Using gp.Env within a context manager
-        import gurobipy as gp
+        with gp.Env(params=self.env_options) as env:
+            prob = generate_lp()
+            solver = GUROBI(msg=True, env=env, **self.options)
+            prob.solve(solver)
+            solver.close()
+        check_dummy_env()
 
+    def testMultipleGpEnv(self):
+        # Using the same env multiple times
         with gp.Env() as env:
-            solver = GUROBI(msg=True, manageEnv=False, env=env, **self.options)
-            self.prob.solve(solver)
+            solver = GUROBI(msg=True, env=env)
+            prob = generate_lp()
+            prob.solve(solver)
+            solver.close()
 
-    def testDefault(self):
+            solver2 = GUROBI(msg=True, env=env)
+            prob2 = generate_lp()
+            prob2.solve(solver2)
+            solver2.close()
+
+        check_dummy_env()
+
+    @unittest.SkipTest
+    def testBackwardCompatibility(self):
+        """
+        Backward compatibility check as previously the environment was not being
+        freed. On a single-use license this passes (fails to initialise a dummy
+        env).
+        """
         solver = GUROBI(msg=True, **self.options)
-        self.prob.solve(solver)
+        prob = generate_lp()
+        prob.solve(solver)
 
-    def testNoEnv(self):
-        # Failing test for no environment handling
-        solver = GUROBI(msg=True, manageEnv=False, envOptions=self.options)
-        self.assertRaises(AttributeError, self.prob.solve, solver)
+        self.assertRaises(gp.GurobiError, check_dummy_env)
+        gp.disposeDefaultEnv()
+        solver.close()
+
+    def testManageEnvTrue(self):
+        solver = GUROBI(msg=True, manageEnv=True, **self.options)
+        prob = generate_lp()
+        prob.solve(solver)
+
+        solver.close()
+        check_dummy_env()
+
+    def testMultipleSolves(self):
+        solver = GUROBI(msg=True, manageEnv=True, **self.options)
+        prob = generate_lp()
+        prob.solve(solver)
+
+        solver.close()
+        check_dummy_env()
+
+        solver2 = GUROBI(msg=True, manageEnv=True, **self.options)
+        prob.solve(solver2)
+
+        solver2.close()
+        check_dummy_env()
+
+    @unittest.SkipTest
+    def testLeak(self):
+        """
+        Check that we cannot initialise environments after a memory leak. On a
+        single-use license this passes (fails to initialise a dummy env with a
+        memory leak).
+        """
+        solver = GUROBI(msg=True, **self.options)
+        prob = generate_lp()
+        prob.solve(solver)
+
+        tmp = solver.model
+        solver.close()
+
+        solver2 = GUROBI(msg=True, **self.options)
+
+        prob2 = generate_lp()
+        prob2.solve(solver2)
+        self.assertRaises(gp.GurobiError, check_dummy_env)
