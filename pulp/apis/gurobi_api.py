@@ -33,7 +33,7 @@ from .. import constants
 import warnings
 
 # to import the gurobipy name into the module scope
-gurobipy = None
+gp = None
 
 
 class GUROBI(LpSolver):
@@ -46,12 +46,13 @@ class GUROBI(LpSolver):
     """
 
     name = "GUROBI"
+    env = None
 
     try:
         sys.path.append(gurobi_path)
         # to import the name into the module scope
-        global gurobipy
-        import gurobipy
+        global gp
+        import gurobipy as gp
     except:  # FIXME: Bug because gurobi returns
         #  a gurobi exception on failed imports
         def available(self):
@@ -73,7 +74,10 @@ class GUROBI(LpSolver):
             gapRel=None,
             warmStart=False,
             logPath=None,
-            **solverParams
+            env=None,
+            envOptions=None,
+            manageEnv=True,
+            **solverParams,
         ):
             """
             :param bool mip: if False, assume LP even if integer variables
@@ -83,13 +87,24 @@ class GUROBI(LpSolver):
             :param bool warmStart: if True, the solver will use the current value of variables as a start
             :param str logPath: path to the log file
             :param float epgap: deprecated for gapRel
+            :param gp.Env env: gurobipyEnv. Default None.
+            :param dict envOptions: environment options
+            :param bool manageEnv: if False, assume gp.Env's is handled
+            internally and outside of context manager
             """
+            self.env = env
+            self.env_options = envOptions if envOptions else {}
+            self.manage_env = manageEnv
+            self.model = None
+            self.init = True
+
             if epgap is not None:
                 warnings.warn("Parameter epgap is being depreciated for gapRel")
                 if gapRel is not None:
                     warnings.warn("Parameter gapRel and epgap passed, using gapRel")
                 else:
                     gapRel = epgap
+
             LpSolver.__init__(
                 self,
                 mip=mip,
@@ -99,18 +114,38 @@ class GUROBI(LpSolver):
                 logPath=logPath,
                 warmStart=warmStart,
             )
+
             # set the output of gurobi
             if not self.msg:
-                gurobipy.setParam("OutputFlag", 0)
+                self.env_options["OutputFlag"] = 0
 
-            # set the gurobi parameter values
+            # Append all parameters to env_options
             for key, value in solverParams.items():
-                gurobipy.setParam(key, value)
+                self.env_options[key] = value
+
+        def __enter__(self):
+            try:
+                self.env = gp.Env(params=self.env_options)
+                self.model = gp.Model(env=self.env)
+                # No need to manage_env outside of context manager
+                self.manage_env = False
+            except gp.GurobiError as e:
+                raise e
+            return self
+
+        def __exit__(self, type, value, tb):
+            self.model.dispose()
+            self.env.dispose()
+
+        def __del__(self):
+            if self.manage_env:
+                self.model.dispose()
+                self.env.dispose()
 
         def findSolutionValues(self, lp):
             model = lp.solverModel
             solutionStatus = model.Status
-            GRB = gurobipy.GRB
+            GRB = gp.GRB
             # TODO: check status for Integer Feasible
             gurobiLpStatus = {
                 GRB.OPTIMAL: constants.LpStatusOptimal,
@@ -164,12 +199,40 @@ class GUROBI(LpSolver):
 
         def available(self):
             """True if the solver is available"""
+            self.initGurobi()
+            m = self.model.copy()
+            m.setParam("OutputFlag", 0)
             try:
-                gurobipy.setParam("_test", 0)
-            except gurobipy.GurobiError as e:
+                m.addVars(range(2001))
+                m.setParam("OutputFlag", 0)
+                m.optimize()
+            except gp.GurobiError as e:
                 warnings.warn("GUROBI error: {}.".format(e))
                 return False
+            finally:
+                m.dispose()
+            # If user is handling environment, make sure we still set parameters
+            if not self.manage_env and self.env_options:
+                for param, value in self.env_options:
+                    self.model.setParam(param, value)
             return True
+
+        def initGurobi(self):
+            # Environment handled here
+            if self.manage_env and self.init and not self.env and not self.model:
+                try:
+                    self.env = gp.Env(params=self.env_options)
+                    self.model = gp.Model(env=self.env)
+                    self.init = False
+                except gp.GurobiError as e:
+                    raise e
+            # Environment handled by user
+            elif not self.manage_env and self.init and self.env and not self.model:
+                try:
+                    self.model = gp.Model(env=self.env)
+                    self.init = False
+                except gp.GurobiError as e:
+                    raise e
 
         def callSolver(self, lp, callback=None):
             """Solves the problem with gurobi"""
@@ -183,7 +246,9 @@ class GUROBI(LpSolver):
             Takes the pulp lp model and translates it into a gurobi model
             """
             log.debug("create the gurobi model")
-            lp.solverModel = gurobipy.Model(lp.name)
+            self.initGurobi()
+            self.model.ModelName = lp.name
+            lp.solverModel = self.model
             log.debug("set the sense of the problem")
             if lp.sense == constants.LpMaximize:
                 lp.solverModel.setAttr("ModelSense", -1)
@@ -200,14 +265,14 @@ class GUROBI(LpSolver):
             for var in lp.variables():
                 lowBound = var.lowBound
                 if lowBound is None:
-                    lowBound = -gurobipy.GRB.INFINITY
+                    lowBound = -gp.GRB.INFINITY
                 upBound = var.upBound
                 if upBound is None:
-                    upBound = gurobipy.GRB.INFINITY
+                    upBound = gp.GRB.INFINITY
                 obj = lp.objective.get(var, 0.0)
-                varType = gurobipy.GRB.CONTINUOUS
+                varType = gp.GRB.CONTINUOUS
                 if var.cat == constants.LpInteger and self.mip:
-                    varType = gurobipy.GRB.INTEGER
+                    varType = gp.GRB.INTEGER
                 var.solverVar = lp.solverModel.addVar(
                     lowBound, upBound, vtype=varType, obj=obj, name=var.name
                 )
@@ -222,15 +287,15 @@ class GUROBI(LpSolver):
             log.debug("add the Constraints to the problem")
             for name, constraint in lp.constraints.items():
                 # build the expression
-                expr = gurobipy.LinExpr(
+                expr = gp.LinExpr(
                     list(constraint.values()), [v.solverVar for v in constraint.keys()]
                 )
                 if constraint.sense == constants.LpConstraintLE:
-                    relation = gurobipy.GRB.LESS_EQUAL
+                    relation = gp.GRB.LESS_EQUAL
                 elif constraint.sense == constants.LpConstraintGE:
-                    relation = gurobipy.GRB.GREATER_EQUAL
+                    relation = gp.GRB.GREATER_EQUAL
                 elif constraint.sense == constants.LpConstraintEQ:
-                    relation = gurobipy.GRB.EQUAL
+                    relation = gp.GRB.EQUAL
                 else:
                     raise PulpSolverError("Detected an invalid constraint type")
                 constraint.solverConstraint = lp.solverModel.addConstr(
@@ -267,7 +332,7 @@ class GUROBI(LpSolver):
             for constraint in lp.constraints.values():
                 if constraint.modified:
                     constraint.solverConstraint.setAttr(
-                        gurobipy.GRB.Attr.RHS, -constraint.constant
+                        gp.GRB.Attr.RHS, -constraint.constant
                     )
             lp.solverModel.update()
             self.callSolver(lp, callback=callback)
