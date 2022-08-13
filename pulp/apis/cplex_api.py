@@ -218,9 +218,13 @@ class CPLEX_CMD(LpSolver_CMD):
         constraints = solutionXML.find("linearConstraints")
         for constraint in constraints:
             name = constraint.get("name")
-            shadowPrice = constraint.get("dual")
             slack = constraint.get("slack")
-            shadowPrices[name] = float(shadowPrice)
+            shadowPrice = constraint.get("dual")
+            try:
+                # See issue #508
+                shadowPrices[name] = float(shadowPrice)
+            except TypeError:
+                shadowPrices[name] = None
             slacks[name] = float(slack)
 
         values = {}
@@ -228,9 +232,13 @@ class CPLEX_CMD(LpSolver_CMD):
         for variable in solutionXML.find("variables"):
             name = variable.get("name")
             value = variable.get("value")
-            reducedCost = variable.get("reducedCost")
             values[name] = float(value)
-            reducedCosts[name] = float(reducedCost)
+            reducedCost = variable.get("reducedCost")
+            try:
+                # See issue #508
+                reducedCosts[name] = float(reducedCost)
+            except TypeError:
+                reducedCosts[name] = None
 
         return status, values, reducedCosts, shadowPrices, slacks, solStatus
 
