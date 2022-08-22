@@ -523,7 +523,7 @@ class XPRESS_PY(LpSolver):
 
     def buildSolverModel(self, lp):
         """
-        Takes the pulp lp model and translates it into a gurobi model
+        Takes the pulp lp model and translates it into an xpress model
         """
         self._extract(lp)
         try:
@@ -579,7 +579,7 @@ class XPRESS_PY(LpSolver):
                 solval = list()
                 colind = list()
                 for v in sorted(lp.variables(), key=lambda x: x._xprs[0]):
-                    if v.value is not None:
+                    if v.value() is not None:
                         solval.append(v.value())
                         colind.append(v._xprs[0])
                 if _ismip(lp) and self.mip:
@@ -729,7 +729,7 @@ class XPRESS_PY(LpSolver):
                     con._xprs = (i, c)
 
             # SOS constraints
-            def addsos(m, sosdict, t):
+            def addsos(m, sosdict, sostype):
                 """Extract sos constraints from PuLP."""
                 soslist = []
                 # Sort by name to get deterministic ordering. Note that
@@ -741,7 +741,7 @@ class XPRESS_PY(LpSolver):
                     for v, val in sosdict[name].items():
                         indices.append(v._xprs[0])
                         weights.append(val)
-                    soslist.append(xpress.sos(indices, weights, t, str(name)))
+                    soslist.append(xpress.sos(indices, weights, sostype, str(name)))
                 if len(soslist):
                     m.addSOS(soslist)
 
