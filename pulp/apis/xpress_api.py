@@ -424,11 +424,11 @@ class XPRESS_PY(LpSolver):
         """Perform the actual solve from actualSolve() or actualResolve().
 
         :param prepare:  a function that is called with `lp` as argument
-                         and allows final tweaks to `lp._xprs` before
+                         and allows final tweaks to `lp.solverModel` before
                          the low level solve is started.
         """
         try:
-            model = lp._xprs
+            model = lp.solverModel
             if self._export is not None:
                 if self._export.lower().endswith(".lp"):
                     model.write(self._export, "l")
@@ -524,7 +524,7 @@ class XPRESS_PY(LpSolver):
 
         self._extract(lp)
         try:
-            model = lp._xprs
+            model = lp.solverModel
             # Apply controls that were passed to the constructor
             for key, name in [
                 ("gapRel", "MIPRELSTOP"),
@@ -608,7 +608,7 @@ class XPRESS_PY(LpSolver):
                 rhsind.append(con._xprs[0])
                 rhsval.append(-con.constant)
             if len(rhsind) > 0:
-                lp._xprs.chgrhs(rhsind, rhsval)
+                lp.solverModel.chgrhs(rhsind, rhsval)
 
             bndind = list()
             bndtype = list()
@@ -627,7 +627,7 @@ class XPRESS_PY(LpSolver):
                 bndtype.append("G")
                 bndval.append(xpress.infinity if v.upBound is None else v.upBound)
             if len(bndtype) > 0:
-                lp._xprs.chgbounds(bndind, bndtype, bndval)
+                lp.solverModel.chgbounds(bndind, bndtype, bndval)
 
             return self._solve(lp, prepare)
         except (xpress.ModelError, xpress.InterfaceError, xpress.SolverError) as err:
@@ -636,8 +636,8 @@ class XPRESS_PY(LpSolver):
     @staticmethod
     def _reset(lp):
         """Reset any XPRESS specific information in lp."""
-        if hasattr(lp, "_xprs"):
-            delattr(lp, "_xprs")
+        if hasattr(lp, "solverModel"):
+            delattr(lp, "solverModel")
         for v in lp.variables():
             if hasattr(v, "_xprs"):
                 delattr(v, "_xprs")
@@ -648,7 +648,7 @@ class XPRESS_PY(LpSolver):
     def _extract(self, lp):
         """Extract a given model to an XPRESS Python API instance.
 
-        The function stores XPRESS specific information in the `_xprs` property
+        The function stores XPRESS specific information in the `solverModel` property
         of `lp` and each variable and constraint. These information can be
         removed by calling `_reset`.
         """
@@ -736,7 +736,7 @@ class XPRESS_PY(LpSolver):
             addsos(model, lp.sos1, 1)
             addsos(model, lp.sos2, 2)
 
-            lp._xprs = model
+            lp.solverModel = model
         except (xpress.ModelError, xpress.InterfaceError, xpress.SolverError) as err:
             # Undo everything
             self._reset(lp)
@@ -745,4 +745,4 @@ class XPRESS_PY(LpSolver):
     def getAttribute(self, lp, which):
         """Get an arbitrary attribute for the model that was previously
         solved using actualSolve()."""
-        return lp._xprs.getAttrib(which)
+        return lp.solverModel.getAttrib(which)
