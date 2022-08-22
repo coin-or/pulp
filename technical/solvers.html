@@ -1009,7 +1009,8 @@ e.g. gapRel=0.1, gapAbs=10, logPath=””,</p></li>
 <dt class="sig sig-object py" id="pulp.apis.XPRESS">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">XPRESS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeLimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gapRel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepFiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxSeconds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targetGap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">heurFreq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">heurStra</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coverCuts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preSolve</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warmStart</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.XPRESS" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pulp.apis.LpSolver_CMD" title="pulp.apis.core.LpSolver_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpSolver_CMD</span></code></a></p>
-<p>The XPRESS LP solver</p>
+<p>The XPRESS LP solver that uses the XPRESS command line tool
+in a subprocess</p>
 <p>Initializes the Xpress solver.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1084,6 +1085,94 @@ where N is the index of the solution in the list.</p>
 </dd>
 </dl>
 </dd></dl>
+
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulp.apis.XPRESS_CMD">
+<span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">XPRESS_CMD</span></span><a class="headerlink" href="#pulp.apis.XPRESS_CMD" title="Permalink to this definition"></a></dt>
+<dd><p>alias of <a class="reference internal" href="#pulp.apis.XPRESS" title="pulp.apis.xpress_api.XPRESS"><code class="xref py py-class docutils literal notranslate"><span class="pre">XPRESS</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pulp.apis.XPRESS_PY">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">XPRESS_PY</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeLimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gapRel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">heurFreq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">heurStra</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coverCuts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preSolve</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warmStart</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">export</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.XPRESS_PY" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pulp.apis.LpSolver" title="pulp.apis.core.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpSolver</span></code></a></p>
+<p>The XPRESS LP solver that uses XPRESS Python API</p>
+<p>Initializes the Xpress solver.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
+<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – if False, no log is shown</p></li>
+<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
+<li><p><strong>gapRel</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – relative gap tolerance for the solver to stop (in fraction)</p></li>
+<li><p><strong>heurFreq</strong> – the frequency at which heuristics are used in the tree search</p></li>
+<li><p><strong>heurStra</strong> – heuristic strategy</p></li>
+<li><p><strong>coverCuts</strong> – the number of rounds of lifted cover inequalities at the top node</p></li>
+<li><p><strong>preSolve</strong> – whether presolving should be performed before the main algorithm</p></li>
+<li><p><strong>warmStart</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – if set then use current variable values as warm start</p></li>
+<li><p><strong>export</strong> (<em>string</em>) – if set then the model will be exported to this file before solving</p></li>
+<li><p><strong>options</strong> – Adding more options. This is a list the elements of which
+are either (name,value) pairs or strings “name=value”.
+More about Xpress options and control parameters please see
+<a class="reference external" href="https://www.fico.com/fico-xpress-optimization/docs/latest/solver/optimizer/HTML/chapter7.html">https://www.fico.com/fico-xpress-optimization/docs/latest/solver/optimizer/HTML/chapter7.html</a></p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pulp.apis.XPRESS_PY.actualResolve">
+<span class="sig-name descname"><span class="pre">actualResolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prepare</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.XPRESS_PY.actualResolve" title="Permalink to this definition"></a></dt>
+<dd><p>Resolve a problem that was previously solved by actualSolve().</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulp.apis.XPRESS_PY.actualSolve">
+<span class="sig-name descname"><span class="pre">actualSolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prepare</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.XPRESS_PY.actualSolve" title="Permalink to this definition"></a></dt>
+<dd><p>Solve a well formulated lp problem</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulp.apis.XPRESS_PY.available">
+<span class="sig-name descname"><span class="pre">available</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.XPRESS_PY.available" title="Permalink to this definition"></a></dt>
+<dd><p>True if the solver is available</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulp.apis.XPRESS_PY.buildSolverModel">
+<span class="sig-name descname"><span class="pre">buildSolverModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.XPRESS_PY.buildSolverModel" title="Permalink to this definition"></a></dt>
+<dd><p>Takes the pulp lp model and translates it into an xpress model</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulp.apis.XPRESS_PY.callSolver">
+<span class="sig-name descname"><span class="pre">callSolver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prepare</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.XPRESS_PY.callSolver" title="Permalink to this definition"></a></dt>
+<dd><p>Perform the actual solve from actualSolve() or actualResolve().</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>prepare</strong> – a function that is called with <cite>lp</cite> as argument
+and allows final tweaks to <cite>lp.solverModel</cite> before
+the low level solve is started.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulp.apis.XPRESS_PY.findSolutionValues">
+<span class="sig-name descname"><span class="pre">findSolutionValues</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.XPRESS_PY.findSolutionValues" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulp.apis.XPRESS_PY.getAttribute">
+<span class="sig-name descname"><span class="pre">getAttribute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">which</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.XPRESS_PY.getAttribute" title="Permalink to this definition"></a></dt>
+<dd><p>Get an arbitrary attribute for the model that was previously
+solved using actualSolve().</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulp.apis.XPRESS_PY.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'XPRESS_PY'</span></em><a class="headerlink" href="#pulp.apis.XPRESS_PY.name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
 
 </dd></dl>
 
