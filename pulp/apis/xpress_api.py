@@ -420,7 +420,7 @@ class XPRESS_PY(LpSolver):
                 self._available = False
         return self._available
 
-    def _solve(self, lp, prepare=None):
+    def callSolver(self, lp, prepare=None):
         """Perform the actual solve from actualSolve() or actualResolve().
 
         :param prepare:  a function that is called with `lp` as argument
@@ -442,6 +442,12 @@ class XPRESS_PY(LpSolver):
             else:
                 # In all other cases, solve() does the correct thing
                 model.solve()
+        except (xpress.ModelError, xpress.InterfaceError, xpress.SolverError) as err:
+            raise PulpSolverError(str(err))
+
+    def findSolutionValues(self, lp):
+        try:
+            model = lp.solverModel
             # Collect results
             if _ismip(lp) and self.mip:
                 # Solved as MIP
@@ -588,7 +594,8 @@ class XPRESS_PY(LpSolver):
 
                 model.addcbmessage(message)
             # We are ready to solve
-            return self._solve(lp, prepare)
+            self.callSolver(lp, prepare)
+            return self.findSolutionValues(lp)
         except (xpress.ModelError, xpress.InterfaceError, xpress.SolverError) as err:
             raise PulpSolverError(str(err))
 
@@ -629,7 +636,8 @@ class XPRESS_PY(LpSolver):
             if len(bndtype) > 0:
                 lp.solverModel.chgbounds(bndind, bndtype, bndval)
 
-            return self._solve(lp, prepare)
+            self.callSolver(lp, prepare)
+            return self.findSolutionValues(lp)
         except (xpress.ModelError, xpress.InterfaceError, xpress.SolverError) as err:
             raise PulpSolverError(str(err))
 
