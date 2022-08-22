@@ -2289,5 +2289,9 @@ def lpDot(v1, v2):
         return lpDot([v1] * len(v2), v2)
     elif not const.isiterable(v2):
         return lpDot(v1, [v2] * len(v1))
+    elif isinstance(v1, LpAffineExpression):
+        return lpSum([v1[e1] * lpDot(e1, e2) for e1, e2 in zip(v1, v2)])
+    elif isinstance(v2, LpAffineExpression):
+        return lpSum([v2[e2] * lpDot(e1, e2) for e1, e2 in zip(v1, v2)])
     else:
         return lpSum([lpDot(e1, e2) for e1, e2 in zip(v1, v2)])
