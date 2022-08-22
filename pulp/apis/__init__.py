@@ -19,6 +19,8 @@ _all_solvers = [
     GUROBI_CMD,
     MOSEK,
     XPRESS,
+    XPRESS_CMD,
+    XPRESS_PY,
     PULP_CBC_CMD,
     COIN_CMD,
     COINMP_DLL,
