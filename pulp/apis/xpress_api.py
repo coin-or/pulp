@@ -429,6 +429,13 @@ class XPRESS_PY(LpSolver):
         """
         try:
             model = lp.solverModel
+            # Mark all variables and constraints as unmodified so that
+            # actualResolve will do the correct thing.
+            for v in lp.variables():
+                v.modified = False
+            for c in lp.constraints.values():
+                c.modified = False
+
             if self._export is not None:
                 if self._export.lower().endswith(".lp"):
                     model.write(self._export, "l")
@@ -505,13 +512,6 @@ class XPRESS_PY(LpSolver):
             )
             lp.assignStatus(status)
 
-            # Mark all variables and constraints as unmodified so that
-            # actualResolve will do the correct thing.
-            for v in lp.variables():
-                v.modified = False
-            for c in lp.constraints.values():
-                c.modified = False
-
             return status
 
         except (xpress.ModelError, xpress.InterfaceError, xpress.SolverError) as err:
@@ -528,8 +528,26 @@ class XPRESS_PY(LpSolver):
                 message = str(err)
             raise PulpSolverError(message)
 
+        self.buildSolverModel(lp)
+        self.callSolver(lp, prepare)
+        return self.findSolutionValues(lp)
+
+    def buildSolverModel(self, lp):
+        """
+        Takes the pulp lp model and translates it into a gurobi model
+        """
         self._extract(lp)
         try:
+            # Apply controls, warmstart etc. We do this here rather than in
+            # callSolver() so that the caller has a chance to overwrite things
+            # either using the `prepare` argument to callSolver() or by
+            # explicitly calling
+            #   self.buildSolverModel()
+            #   self.callSolver()
+            #   self.findSolutionValues()
+            # This also avoids setting warmstart information passed to the
+            # constructor from actualResolve(), which would almost certainly
+            # be unintended.
             model = lp.solverModel
             # Apply controls that were passed to the constructor
             for key, name in [
@@ -593,9 +611,6 @@ class XPRESS_PY(LpSolver):
                         print(msg)
 
                 model.addcbmessage(message)
-            # We are ready to solve
-            self.callSolver(lp, prepare)
-            return self.findSolutionValues(lp)
         except (xpress.ModelError, xpress.InterfaceError, xpress.SolverError) as err:
             raise PulpSolverError(str(err))
 
