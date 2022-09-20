@@ -52,6 +52,7 @@ class COIN_CMD(LpSolver_CMD):
         maxSeconds=None,
         gapRel=None,
         gapAbs=None,
+        maxNodes=None,
         presolve=None,
         cuts=None,
         strong=None,
@@ -70,6 +71,7 @@ class COIN_CMD(LpSolver_CMD):
         :param float timeLimit: maximum time for solver (in seconds)
         :param float gapRel: relative gap tolerance for the solver to stop (in fraction)
         :param float gapAbs: absolute gap tolerance for the solver to stop
+        :param int maxNodes: limit of nodes computed before solver stops
         :param int threads: sets the maximum number of threads
         :param list options: list of additional options to pass to solver
         :param bool warmStart: if True, the solver will use the current value of variables as a start
@@ -113,6 +115,7 @@ class COIN_CMD(LpSolver_CMD):
             mip=mip,
             msg=msg,
             timeLimit=timeLimit,
+            maxNodes=maxNodes,
             presolve=presolve,
             cuts=cuts,
             strong=strong,
@@ -167,6 +170,8 @@ class COIN_CMD(LpSolver_CMD):
             cmds += "mips {} ".format(tmpMst)
         if self.timeLimit is not None:
             cmds += "sec %s " % self.timeLimit
+        if self.maxNodes is not None:
+            cmds += "maxNodes %s " % self.maxNodes
         options = self.options + self.getOptions()
         for option in options:
             cmds += option + " "
@@ -373,6 +378,7 @@ class PULP_CBC_CMD(COIN_CMD):
             mip=True,
             msg=True,
             timeLimit=None,
+            maxNodes=None,
             fracGap=None,
             maxSeconds=None,
             gapRel=None,
@@ -398,6 +404,7 @@ class PULP_CBC_CMD(COIN_CMD):
                 mip=mip,
                 msg=msg,
                 timeLimit=timeLimit,
+                maxNodes=maxNodes,
                 fracGap=fracGap,
                 maxSeconds=maxSeconds,
                 gapRel=gapRel,

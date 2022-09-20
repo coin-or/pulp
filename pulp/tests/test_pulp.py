@@ -985,6 +985,28 @@ class BaseSolverTest:
                     {x: 4, y: -1, z: 6, w: 0},
                 )
 
+        def test_maxNodes(self):
+            name = self._testMethodName
+            prob = LpProblem(name, const.LpMinimize)
+            x = LpVariable("x", 0, 10)
+            y = LpVariable("y", -10, 10)
+            z = LpVariable("z", 0)
+            w = LpVariable("w", 0)
+            prob += x * 2 + y * 3 + z, "obj"
+            prob += x + y <= 10, "c1"
+            prob += x + z >= 10, "c2"
+            prob += -y + z == 7, "c3"
+            prob += w >= 0, "c4"
+            self.solver.maxNodes = 20  # Should not reach this node limit, just check it is implemented
+            print("\t Testing maxNodes argument")
+            if self.solver.name in ["PULP_CBC_CMD"]:
+                pulpTestCheck(
+                    prob,
+                    self.solver,
+                    [const.LpStatusOptimal],
+                    {x: 10, y: -7, z: 0, w: 0},
+                )
+
         def test_assignInvalidStatus(self):
             print("\t Testing invalid status")
             t = LpProblem("test")

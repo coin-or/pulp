@@ -203,7 +203,7 @@ class LpSolver:
     name = "LpSolver"
 
     def __init__(
-        self, mip=True, msg=True, options=None, timeLimit=None, *args, **kwargs
+        self, mip=True, msg=True, options=None, timeLimit=None, maxNodes=None, *args, **kwargs
     ):
         """
         :param bool mip: if False, assume LP even if integer variables
@@ -220,6 +220,7 @@ class LpSolver:
         self.msg = msg
         self.options = options
         self.timeLimit = timeLimit
+        self.maxNodes = maxNodes
 
         # this keeps the solver time in cpu time
         self.solution_time = 0
