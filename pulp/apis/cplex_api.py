@@ -560,8 +560,6 @@ class CPLEX_PY(LpSolver):
                 pass
             # put pi and slack variables against the constraints
             # TODO: clear up the name of self.n2c
-            if self.msg:
-                print("Cplex status=", lp.cplex_status)
             lp.resolveOK = True
             for var in lp._variables:
                 var.isModified = False
