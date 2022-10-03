@@ -199,22 +199,12 @@ class GUROBI(LpSolver):
 
         def available(self):
             """True if the solver is available"""
-            self.initGurobi()
-            m = self.model.copy()
-            m.setParam("OutputFlag", 0)
             try:
-                m.addVars(range(2001))
-                m.setParam("OutputFlag", 0)
-                m.optimize()
-            except gp.GurobiError as e:
+                with gp.Env():
+                    pass
+            except gurobipy.GurobiError as e:
                 warnings.warn("GUROBI error: {}.".format(e))
                 return False
-            finally:
-                m.dispose()
-            # If user is handling environment, make sure we still set parameters
-            if not self.manage_env and self.env_options:
-                for param, value in self.env_options:
-                    self.model.setParam(param, value)
             return True
 
         def initGurobi(self):
