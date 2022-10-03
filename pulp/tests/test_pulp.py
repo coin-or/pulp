@@ -1211,7 +1211,12 @@ class BaseSolverTest:
 
             time_limit = 10
             solver_settings = dict(
-                PULP_CBC_CMD=30, COIN_CMD=30, SCIP_CMD=30, GUROBI_CMD=50, CPLEX_CMD=50
+                PULP_CBC_CMD=30,
+                COIN_CMD=30,
+                SCIP_CMD=30,
+                GUROBI_CMD=50,
+                CPLEX_CMD=50,
+                GUROBI=50,
             )
             bins = solver_settings.get(self.solver.name)
             if bins is None:
@@ -1233,6 +1238,9 @@ class BaseSolverTest:
                 delta=delta,
                 msg="optimization time for solver {}".format(self.solver.name),
             )
+            self.assertTrue(prob.objective.value() is not None)
+            for v in prob.variables():
+                self.assertTrue(v.varValue is not None)
 
         def test_invalid_var_names(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
