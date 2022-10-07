@@ -249,13 +249,14 @@ Also, you can access the python api object before solving by using the lower-lev
     prob += x
 
     solver = pulp.CPLEX_PY()
-    solver.self.buildSolverModel(lp)
+    solver.buildSolverModel(prob)
     # you can now edit the object or do something with it before solving
-    solver.solverModel
+    # for example, load a MIP_START file for CPLEX_PY:
+    solver.solverModel.MIP_starts.read(SOME_MST_FILE)
     # the, you can call the solver to solve the problem
-    solver.callSolver(lp)
+    solver.callSolver(prob)
     # finally, you fill the PuLP variables with the solution
-    status = solver.findSolutionValues(lp)
+    status = solver.findSolutionValues(prob)
 
 For more information on how to use the `solverModel`, one needs to check the official documentation depending on the solver.
 

@@ -165,7 +165,7 @@ def initialize(filename, operating_system="linux", arch="64"):
 
 # pick up the correct config file depending on operating system
 PULPCFGFILE = "pulp.cfg"
-is_64bits = sys.maxsize > 2 ** 32
+is_64bits = sys.maxsize > 2**32
 if is_64bits:
     arch = "64"
 else:

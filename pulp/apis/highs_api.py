@@ -204,8 +204,8 @@ class HiGHS_CMD(LpSolver_CMD):
         if not len(content):  # if file is empty, update the status_sol
             return None
         # extract everything between the line Columns and Rows
-        col_id = [i for i, line in enumerate(content) if "Columns" in line]
-        row_id = [i for i, line in enumerate(content) if "Rows" in line]
+        col_id = [i for i, line in enumerate(content) if "Columns" in line][0]
+        row_id = [i for i, line in enumerate(content) if "Rows" in line][0]
         solution = content[col_id + 1 : row_id]
 
         for line in solution:
