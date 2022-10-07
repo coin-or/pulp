@@ -83,7 +83,6 @@ class HiGHS_CMD(LpSolver_CMD):
         write_lines = [
             "solution_file = %s\n" % tmpSol,
             "write_solution_to_file = true\n",
-            "write_solution_style = -1\n",
         ]
         with open(tmpOptions, "w") as fp:
             fp.writelines(write_lines)
@@ -97,7 +96,6 @@ class HiGHS_CMD(LpSolver_CMD):
             )
             lp += -lp.objective
         lp.checkDuplicateVars()
-        lp.checkLengthVars(52)
         lp.writeMPS(tmpMps)  # , mpsSense=constants.LpMinimize)
 
         # just to report duplicated variables:
@@ -115,7 +113,7 @@ class HiGHS_CMD(LpSolver_CMD):
         if lp.isMIP():
             if not self.mip:
                 cmd += " --solver simplex"
-#                warnings.warn("HiGHS_CMD cannot solve the relaxation of a problem")
+        #                warnings.warn("HiGHS_CMD cannot solve the relaxation of a problem")
         if self.msg:
             pipe = None
         else:
@@ -206,15 +204,12 @@ class HiGHS_CMD(LpSolver_CMD):
         if not len(content):  # if file is empty, update the status_sol
             return None
         # extract everything between the line Columns and Rows
-        col_id = content.index("Columns")
-        row_id = content.index("Rows")
+        col_id = [i for i, line in enumerate(content) if "Columns" in line]
+        row_id = [i for i, line in enumerate(content) if "Rows" in line]
         solution = content[col_id + 1 : row_id]
-        # check whether it is an LP or an ILP
-        if "T Basis" in content:  # LP
-            for var, line in zip(variables, solution):
-                value = line.split()[0]
-                values[var.name] = float(value)
-        else:  # ILP
-            for var, value in zip(variables, solution):
-                values[var.name] = float(value)
+
+        for line in solution:
+            var, value = line.split()
+            values[var] = float(value)
+
         return values
