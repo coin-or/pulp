@@ -16,6 +16,7 @@
         <script src="../_static/underscore.js"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -49,7 +50,199 @@
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">PuLP Internal Documentation</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="constants.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp.constants</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="pulp.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp</span></code>:  Pulp classes</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp.apis</span></code> Interface to Solvers</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp.apis</span></code> Interface to Solvers</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.CHOCO_CMD"><code class="docutils literal notranslate"><span class="pre">CHOCO_CMD</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.CHOCO_CMD.actualSolve"><code class="docutils literal notranslate"><span class="pre">CHOCO_CMD.actualSolve()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.CHOCO_CMD.available"><code class="docutils literal notranslate"><span class="pre">CHOCO_CMD.available()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.CHOCO_CMD.defaultPath"><code class="docutils literal notranslate"><span class="pre">CHOCO_CMD.defaultPath()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.CHOCO_CMD.name"><code class="docutils literal notranslate"><span class="pre">CHOCO_CMD.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.CHOCO_CMD.readsol"><code class="docutils literal notranslate"><span class="pre">CHOCO_CMD.readsol()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.COIN"><code class="docutils literal notranslate"><span class="pre">COIN</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.COINMP_DLL"><code class="docutils literal notranslate"><span class="pre">COINMP_DLL</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.COINMP_DLL.actualSolve"><code class="docutils literal notranslate"><span class="pre">COINMP_DLL.actualSolve()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.COINMP_DLL.available"><code class="docutils literal notranslate"><span class="pre">COINMP_DLL.available()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.COINMP_DLL.name"><code class="docutils literal notranslate"><span class="pre">COINMP_DLL.name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.COINMP_DLL_load_dll"><code class="docutils literal notranslate"><span class="pre">COINMP_DLL_load_dll()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.COIN_CMD"><code class="docutils literal notranslate"><span class="pre">COIN_CMD</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.COIN_CMD.actualSolve"><code class="docutils literal notranslate"><span class="pre">COIN_CMD.actualSolve()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.COIN_CMD.available"><code class="docutils literal notranslate"><span class="pre">COIN_CMD.available()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.COIN_CMD.copy"><code class="docutils literal notranslate"><span class="pre">COIN_CMD.copy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.COIN_CMD.defaultPath"><code class="docutils literal notranslate"><span class="pre">COIN_CMD.defaultPath()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.COIN_CMD.getOptions"><code class="docutils literal notranslate"><span class="pre">COIN_CMD.getOptions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.COIN_CMD.get_status"><code class="docutils literal notranslate"><span class="pre">COIN_CMD.get_status()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.COIN_CMD.name"><code class="docutils literal notranslate"><span class="pre">COIN_CMD.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.COIN_CMD.readsol_LP"><code class="docutils literal notranslate"><span class="pre">COIN_CMD.readsol_LP()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.COIN_CMD.readsol_MPS"><code class="docutils literal notranslate"><span class="pre">COIN_CMD.readsol_MPS()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.COIN_CMD.solve_CBC"><code class="docutils literal notranslate"><span class="pre">COIN_CMD.solve_CBC()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.COIN_CMD.writesol"><code class="docutils literal notranslate"><span class="pre">COIN_CMD.writesol()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.CPLEX"><code class="docutils literal notranslate"><span class="pre">CPLEX</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.CPLEX_CMD"><code class="docutils literal notranslate"><span class="pre">CPLEX_CMD</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.CPLEX_CMD.actualSolve"><code class="docutils literal notranslate"><span class="pre">CPLEX_CMD.actualSolve()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.CPLEX_CMD.available"><code class="docutils literal notranslate"><span class="pre">CPLEX_CMD.available()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.CPLEX_CMD.defaultPath"><code class="docutils literal notranslate"><span class="pre">CPLEX_CMD.defaultPath()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.CPLEX_CMD.getOptions"><code class="docutils literal notranslate"><span class="pre">CPLEX_CMD.getOptions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.CPLEX_CMD.name"><code class="docutils literal notranslate"><span class="pre">CPLEX_CMD.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.CPLEX_CMD.readsol"><code class="docutils literal notranslate"><span class="pre">CPLEX_CMD.readsol()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.CPLEX_CMD.writesol"><code class="docutils literal notranslate"><span class="pre">CPLEX_CMD.writesol()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.CPLEX_PY"><code class="docutils literal notranslate"><span class="pre">CPLEX_PY</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.CPLEX_PY.actualSolve"><code class="docutils literal notranslate"><span class="pre">CPLEX_PY.actualSolve()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.CPLEX_PY.available"><code class="docutils literal notranslate"><span class="pre">CPLEX_PY.available()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.CPLEX_PY.err"><code class="docutils literal notranslate"><span class="pre">CPLEX_PY.err</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.CPLEX_PY.name"><code class="docutils literal notranslate"><span class="pre">CPLEX_PY.name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.GLPK"><code class="docutils literal notranslate"><span class="pre">GLPK</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.GLPK_CMD"><code class="docutils literal notranslate"><span class="pre">GLPK_CMD</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.GLPK_CMD.actualSolve"><code class="docutils literal notranslate"><span class="pre">GLPK_CMD.actualSolve()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.GLPK_CMD.available"><code class="docutils literal notranslate"><span class="pre">GLPK_CMD.available()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.GLPK_CMD.defaultPath"><code class="docutils literal notranslate"><span class="pre">GLPK_CMD.defaultPath()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.GLPK_CMD.name"><code class="docutils literal notranslate"><span class="pre">GLPK_CMD.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.GLPK_CMD.readsol"><code class="docutils literal notranslate"><span class="pre">GLPK_CMD.readsol()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.GUROBI"><code class="docutils literal notranslate"><span class="pre">GUROBI</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.GUROBI.actualSolve"><code class="docutils literal notranslate"><span class="pre">GUROBI.actualSolve()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.GUROBI.available"><code class="docutils literal notranslate"><span class="pre">GUROBI.available()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.GUROBI.name"><code class="docutils literal notranslate"><span class="pre">GUROBI.name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.GUROBI_CMD"><code class="docutils literal notranslate"><span class="pre">GUROBI_CMD</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.GUROBI_CMD.actualSolve"><code class="docutils literal notranslate"><span class="pre">GUROBI_CMD.actualSolve()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.GUROBI_CMD.available"><code class="docutils literal notranslate"><span class="pre">GUROBI_CMD.available()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.GUROBI_CMD.defaultPath"><code class="docutils literal notranslate"><span class="pre">GUROBI_CMD.defaultPath()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.GUROBI_CMD.getOptions"><code class="docutils literal notranslate"><span class="pre">GUROBI_CMD.getOptions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.GUROBI_CMD.name"><code class="docutils literal notranslate"><span class="pre">GUROBI_CMD.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.GUROBI_CMD.readsol"><code class="docutils literal notranslate"><span class="pre">GUROBI_CMD.readsol()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.GUROBI_CMD.writesol"><code class="docutils literal notranslate"><span class="pre">GUROBI_CMD.writesol()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.HiGHS_CMD"><code class="docutils literal notranslate"><span class="pre">HiGHS_CMD</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.HiGHS_CMD.actualSolve"><code class="docutils literal notranslate"><span class="pre">HiGHS_CMD.actualSolve()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.HiGHS_CMD.available"><code class="docutils literal notranslate"><span class="pre">HiGHS_CMD.available()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.HiGHS_CMD.defaultPath"><code class="docutils literal notranslate"><span class="pre">HiGHS_CMD.defaultPath()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.HiGHS_CMD.name"><code class="docutils literal notranslate"><span class="pre">HiGHS_CMD.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.HiGHS_CMD.readsol"><code class="docutils literal notranslate"><span class="pre">HiGHS_CMD.readsol()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.LpSolver"><code class="docutils literal notranslate"><span class="pre">LpSolver</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.LpSolver.actualResolve"><code class="docutils literal notranslate"><span class="pre">LpSolver.actualResolve()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.LpSolver.actualSolve"><code class="docutils literal notranslate"><span class="pre">LpSolver.actualSolve()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.LpSolver.available"><code class="docutils literal notranslate"><span class="pre">LpSolver.available()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.LpSolver.copy"><code class="docutils literal notranslate"><span class="pre">LpSolver.copy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.LpSolver.getCplexStyleArrays"><code class="docutils literal notranslate"><span class="pre">LpSolver.getCplexStyleArrays()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.LpSolver.name"><code class="docutils literal notranslate"><span class="pre">LpSolver.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.LpSolver.solve"><code class="docutils literal notranslate"><span class="pre">LpSolver.solve()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.LpSolver.toDict"><code class="docutils literal notranslate"><span class="pre">LpSolver.toDict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.LpSolver.toJson"><code class="docutils literal notranslate"><span class="pre">LpSolver.toJson()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.LpSolver.to_dict"><code class="docutils literal notranslate"><span class="pre">LpSolver.to_dict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.LpSolver.to_json"><code class="docutils literal notranslate"><span class="pre">LpSolver.to_json()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.LpSolver_CMD"><code class="docutils literal notranslate"><span class="pre">LpSolver_CMD</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.LpSolver_CMD.copy"><code class="docutils literal notranslate"><span class="pre">LpSolver_CMD.copy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.LpSolver_CMD.create_tmp_files"><code class="docutils literal notranslate"><span class="pre">LpSolver_CMD.create_tmp_files()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.LpSolver_CMD.defaultPath"><code class="docutils literal notranslate"><span class="pre">LpSolver_CMD.defaultPath()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.LpSolver_CMD.delete_tmp_files"><code class="docutils literal notranslate"><span class="pre">LpSolver_CMD.delete_tmp_files()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.LpSolver_CMD.executable"><code class="docutils literal notranslate"><span class="pre">LpSolver_CMD.executable()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.LpSolver_CMD.executableExtension"><code class="docutils literal notranslate"><span class="pre">LpSolver_CMD.executableExtension()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.LpSolver_CMD.name"><code class="docutils literal notranslate"><span class="pre">LpSolver_CMD.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.LpSolver_CMD.setTmpDir"><code class="docutils literal notranslate"><span class="pre">LpSolver_CMD.setTmpDir()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.MIPCL_CMD"><code class="docutils literal notranslate"><span class="pre">MIPCL_CMD</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.MIPCL_CMD.actualSolve"><code class="docutils literal notranslate"><span class="pre">MIPCL_CMD.actualSolve()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.MIPCL_CMD.available"><code class="docutils literal notranslate"><span class="pre">MIPCL_CMD.available()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.MIPCL_CMD.defaultPath"><code class="docutils literal notranslate"><span class="pre">MIPCL_CMD.defaultPath()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.MIPCL_CMD.name"><code class="docutils literal notranslate"><span class="pre">MIPCL_CMD.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.MIPCL_CMD.readsol"><code class="docutils literal notranslate"><span class="pre">MIPCL_CMD.readsol()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.MOSEK"><code class="docutils literal notranslate"><span class="pre">MOSEK</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.MOSEK.actualSolve"><code class="docutils literal notranslate"><span class="pre">MOSEK.actualSolve()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.MOSEK.available"><code class="docutils literal notranslate"><span class="pre">MOSEK.available()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.MOSEK.name"><code class="docutils literal notranslate"><span class="pre">MOSEK.name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.PULP_CBC_CMD"><code class="docutils literal notranslate"><span class="pre">PULP_CBC_CMD</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.PULP_CBC_CMD.name"><code class="docutils literal notranslate"><span class="pre">PULP_CBC_CMD.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.PULP_CBC_CMD.pulp_cbc_path"><code class="docutils literal notranslate"><span class="pre">PULP_CBC_CMD.pulp_cbc_path</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.PYGLPK"><code class="docutils literal notranslate"><span class="pre">PYGLPK</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.PYGLPK.actualSolve"><code class="docutils literal notranslate"><span class="pre">PYGLPK.actualSolve()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.PYGLPK.available"><code class="docutils literal notranslate"><span class="pre">PYGLPK.available()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.PYGLPK.name"><code class="docutils literal notranslate"><span class="pre">PYGLPK.name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.Parser"><code class="docutils literal notranslate"><span class="pre">Parser</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.PulpSolverError"><code class="docutils literal notranslate"><span class="pre">PulpSolverError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.SCIP"><code class="docutils literal notranslate"><span class="pre">SCIP</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.SCIP_CMD"><code class="docutils literal notranslate"><span class="pre">SCIP_CMD</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.SCIP_CMD.NO_SOLUTION_STATUSES"><code class="docutils literal notranslate"><span class="pre">SCIP_CMD.NO_SOLUTION_STATUSES</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.SCIP_CMD.SCIP_STATUSES"><code class="docutils literal notranslate"><span class="pre">SCIP_CMD.SCIP_STATUSES</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.SCIP_CMD.actualSolve"><code class="docutils literal notranslate"><span class="pre">SCIP_CMD.actualSolve()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.SCIP_CMD.available"><code class="docutils literal notranslate"><span class="pre">SCIP_CMD.available()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.SCIP_CMD.defaultPath"><code class="docutils literal notranslate"><span class="pre">SCIP_CMD.defaultPath()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.SCIP_CMD.firstWithFilenoSupport"><code class="docutils literal notranslate"><span class="pre">SCIP_CMD.firstWithFilenoSupport()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.SCIP_CMD.getOptions"><code class="docutils literal notranslate"><span class="pre">SCIP_CMD.getOptions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.SCIP_CMD.name"><code class="docutils literal notranslate"><span class="pre">SCIP_CMD.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.SCIP_CMD.readsol"><code class="docutils literal notranslate"><span class="pre">SCIP_CMD.readsol()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.XPRESS"><code class="docutils literal notranslate"><span class="pre">XPRESS</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.XPRESS.actualSolve"><code class="docutils literal notranslate"><span class="pre">XPRESS.actualSolve()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.XPRESS.available"><code class="docutils literal notranslate"><span class="pre">XPRESS.available()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.XPRESS.defaultPath"><code class="docutils literal notranslate"><span class="pre">XPRESS.defaultPath()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.XPRESS.name"><code class="docutils literal notranslate"><span class="pre">XPRESS.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.XPRESS.quote_path"><code class="docutils literal notranslate"><span class="pre">XPRESS.quote_path()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.XPRESS.readsol"><code class="docutils literal notranslate"><span class="pre">XPRESS.readsol()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.XPRESS.writeslxsol"><code class="docutils literal notranslate"><span class="pre">XPRESS.writeslxsol()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.XPRESS_CMD"><code class="docutils literal notranslate"><span class="pre">XPRESS_CMD</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.XPRESS_PY"><code class="docutils literal notranslate"><span class="pre">XPRESS_PY</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.XPRESS_PY.actualResolve"><code class="docutils literal notranslate"><span class="pre">XPRESS_PY.actualResolve()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.XPRESS_PY.actualSolve"><code class="docutils literal notranslate"><span class="pre">XPRESS_PY.actualSolve()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.XPRESS_PY.available"><code class="docutils literal notranslate"><span class="pre">XPRESS_PY.available()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.XPRESS_PY.buildSolverModel"><code class="docutils literal notranslate"><span class="pre">XPRESS_PY.buildSolverModel()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.XPRESS_PY.callSolver"><code class="docutils literal notranslate"><span class="pre">XPRESS_PY.callSolver()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.XPRESS_PY.findSolutionValues"><code class="docutils literal notranslate"><span class="pre">XPRESS_PY.findSolutionValues()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.XPRESS_PY.getAttribute"><code class="docutils literal notranslate"><span class="pre">XPRESS_PY.getAttribute()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.XPRESS_PY.name"><code class="docutils literal notranslate"><span class="pre">XPRESS_PY.name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.YAPOSIB"><code class="docutils literal notranslate"><span class="pre">YAPOSIB</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.YAPOSIB.actualSolve"><code class="docutils literal notranslate"><span class="pre">YAPOSIB.actualSolve()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.YAPOSIB.available"><code class="docutils literal notranslate"><span class="pre">YAPOSIB.available()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.YAPOSIB.name"><code class="docutils literal notranslate"><span class="pre">YAPOSIB.name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.clock"><code class="docutils literal notranslate"><span class="pre">clock()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.configSolvers"><code class="docutils literal notranslate"><span class="pre">configSolvers()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.ctypesArrayFill"><code class="docutils literal notranslate"><span class="pre">ctypesArrayFill()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.getSolver"><code class="docutils literal notranslate"><span class="pre">getSolver()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.getSolverFromDict"><code class="docutils literal notranslate"><span class="pre">getSolverFromDict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.getSolverFromJson"><code class="docutils literal notranslate"><span class="pre">getSolverFromJson()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.get_solver"><code class="docutils literal notranslate"><span class="pre">get_solver()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.get_solver_from_dict"><code class="docutils literal notranslate"><span class="pre">get_solver_from_dict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.get_solver_from_json"><code class="docutils literal notranslate"><span class="pre">get_solver_from_json()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.initialize"><code class="docutils literal notranslate"><span class="pre">initialize()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.listSolvers"><code class="docutils literal notranslate"><span class="pre">listSolvers()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.list_solvers"><code class="docutils literal notranslate"><span class="pre">list_solvers()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.mktemp"><code class="docutils literal notranslate"><span class="pre">mktemp()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.setConfigInformation"><code class="docutils literal notranslate"><span class="pre">setConfigInformation()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.to_string"><code class="docutils literal notranslate"><span class="pre">to_string()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.uuid4"><code class="docutils literal notranslate"><span class="pre">uuid4()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../plugins/index.html">Plugins</a></li>

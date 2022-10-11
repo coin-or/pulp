@@ -16,6 +16,7 @@
         <script src="../_static/underscore.js"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -50,10 +51,30 @@
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">PuLP Internal Documentation</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="constants.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp.constants</span></code></a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp</span></code>:  Pulp classes</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#the-lpproblem-class">The LpProblem Class</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#variables-and-expressions">Variables and Expressions</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#constraints">Constraints</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#combinations-and-permutations">Combinations  and Permutations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#the-lpproblem-class">The LpProblem Class</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.LpProblem"><code class="docutils literal notranslate"><span class="pre">LpProblem</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#variables-and-expressions">Variables and Expressions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.LpElement"><code class="docutils literal notranslate"><span class="pre">LpElement</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.LpVariable"><code class="docutils literal notranslate"><span class="pre">LpVariable</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.LpAffineExpression"><code class="docutils literal notranslate"><span class="pre">LpAffineExpression</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.lpSum"><code class="docutils literal notranslate"><span class="pre">lpSum()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#constraints">Constraints</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.LpConstraint"><code class="docutils literal notranslate"><span class="pre">LpConstraint</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.FixedElasticSubProblem"><code class="docutils literal notranslate"><span class="pre">FixedElasticSubProblem</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#combinations-and-permutations">Combinations  and Permutations</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.combination"><code class="docutils literal notranslate"><span class="pre">combination()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.allcombinations"><code class="docutils literal notranslate"><span class="pre">allcombinations()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.permutation"><code class="docutils literal notranslate"><span class="pre">permutation()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.allpermutations"><code class="docutils literal notranslate"><span class="pre">allpermutations()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.value"><code class="docutils literal notranslate"><span class="pre">value()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="solvers.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp.apis</span></code> Interface to Solvers</a></li>

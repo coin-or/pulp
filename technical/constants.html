@@ -16,6 +16,7 @@
         <script src="../_static/underscore.js"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -47,7 +48,30 @@
 <li class="toctree-l1"><a class="reference internal" href="../guides/index.html">User Guides</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../develop/index.html">Developer Guides</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">PuLP Internal Documentation</a><ul class="current">
-<li class="toctree-l2 current"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp.constants</span></code></a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp.constants</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.constants.PulpError"><code class="docutils literal notranslate"><span class="pre">PulpError</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.constants.PulpError.args"><code class="docutils literal notranslate"><span class="pre">PulpError.args</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.constants.PulpError.with_traceback"><code class="docutils literal notranslate"><span class="pre">PulpError.with_traceback()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.constants.isiterable"><code class="docutils literal notranslate"><span class="pre">isiterable()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.constants.LpContinuous"><code class="docutils literal notranslate"><span class="pre">LpContinuous</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.constants.LpStatus"><code class="docutils literal notranslate"><span class="pre">LpStatus</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.constants.LpStatusOptimal"><code class="docutils literal notranslate"><span class="pre">LpStatusOptimal</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.constants.LpStatusNotSolved"><code class="docutils literal notranslate"><span class="pre">LpStatusNotSolved</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.constants.LpStatusInfeasible"><code class="docutils literal notranslate"><span class="pre">LpStatusInfeasible</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.constants.LpStatusUnbounded"><code class="docutils literal notranslate"><span class="pre">LpStatusUnbounded</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.constants.LpStatusUndefined"><code class="docutils literal notranslate"><span class="pre">LpStatusUndefined</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.constants.LpSolution"><code class="docutils literal notranslate"><span class="pre">LpSolution</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.constants.LpSenses"><code class="docutils literal notranslate"><span class="pre">LpSenses</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.constants.LpMinimize"><code class="docutils literal notranslate"><span class="pre">LpMinimize</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.constants.LpMaximize"><code class="docutils literal notranslate"><span class="pre">LpMaximize</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.constants.LpConstraintEQ"><code class="docutils literal notranslate"><span class="pre">LpConstraintEQ</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.constants.LpConstraintLE"><code class="docutils literal notranslate"><span class="pre">LpConstraintLE</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.constants.LpConstraintGE"><code class="docutils literal notranslate"><span class="pre">LpConstraintGE</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.constants.LpConstraintSenses"><code class="docutils literal notranslate"><span class="pre">LpConstraintSenses</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="pulp.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp</span></code>:  Pulp classes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="solvers.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp.apis</span></code> Interface to Solvers</a></li>
 </ul>
