@@ -83,7 +83,6 @@ class HiGHS_CMD(LpSolver_CMD):
         write_lines = [
             "solution_file = %s\n" % tmpSol,
             "write_solution_to_file = true\n",
-            "write_solution_style = 2\n",
         ]
         with open(tmpOptions, "w") as fp:
             fp.writelines(write_lines)
@@ -113,7 +112,8 @@ class HiGHS_CMD(LpSolver_CMD):
             cmd += " " + option
         if lp.isMIP():
             if not self.mip:
-                warnings.warn("HiGHS_CMD cannot solve the relaxation of a problem")
+                cmd += " --solver simplex"
+        #                warnings.warn("HiGHS_CMD cannot solve the relaxation of a problem")
         if self.msg:
             pipe = None
         else:
@@ -183,6 +183,8 @@ class HiGHS_CMD(LpSolver_CMD):
         if not os.path.exists(tmpSol) or os.stat(tmpSol).st_size == 0:
             status_sol = constants.LpSolutionNoSolutionFound
             values = None
+        elif status_sol == constants.LpSolutionNoSolutionFound:
+            values = None
         else:
             values = self.readsol(lp.variables(), tmpSol)
 
@@ -204,15 +206,12 @@ class HiGHS_CMD(LpSolver_CMD):
         if not len(content):  # if file is empty, update the status_sol
             return None
         # extract everything between the line Columns and Rows
-        col_id = content.index("Columns")
-        row_id = content.index("Rows")
+        col_id = [i for i, line in enumerate(content) if "Columns" in line][0]
+        row_id = [i for i, line in enumerate(content) if "Rows" in line][0]
         solution = content[col_id + 1 : row_id]
-        # check whether it is an LP or an ILP
-        if "T Basis" in content:  # LP
-            for var, line in zip(variables, solution):
-                value = line.split()[0]
-                values[var.name] = float(value)
-        else:  # ILP
-            for var, value in zip(variables, solution):
-                values[var.name] = float(value)
+
+        for line in solution:
+            var, value = line.split()
+            values[var] = float(value)
+
         return values

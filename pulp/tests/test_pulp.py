@@ -451,9 +451,8 @@ class BaseSolverTest:
                 CHOCO_CMD,
                 MIPCL_CMD,
                 SCIP_CMD,
-                HiGHS_CMD,
             ]:
-                # gurobi command, choco, mipcl and HiGHS do not let the problem be relaxed
+                # gurobi command, choco and mipcl do not let the problem be relaxed
                 pulpTestCheck(
                     prob, self.solver, [const.LpStatusOptimal], {x: 3.0, y: -0.5, z: 7}
                 )
