@@ -92,6 +92,7 @@ References:
 [5] http://www.mosek.com/
 """
 
+from collections import Counter
 import sys
 import warnings
 from time import time
@@ -1767,7 +1768,7 @@ class LpProblem:
                 coefs.extend([(translation[v.name], ctr, cst[v]) for v in cst])
         return coefs
 
-    def writeMPS(self, filename, mpsSense=0, rename=0, mip=1):
+    def writeMPS(self, filename, mpsSense=0, rename=0, mip=1, with_objsense: bool = False):
         """
         Writes an mps files from the problem information
 
@@ -1779,7 +1780,7 @@ class LpProblem:
         Side Effects:
             - The file is created
         """
-        return mpslp.writeMPS(self, filename, mpsSense=mpsSense, rename=rename, mip=mip)
+        return mpslp.writeMPS(self, filename, mpsSense=mpsSense, rename=rename, mip=mip, with_objsense=with_objsense)
 
     def writeLP(self, filename, writeSOS=1, mip=1, max_length=100):
         """
@@ -1797,38 +1798,35 @@ class LpProblem:
             self, filename=filename, writeSOS=writeSOS, mip=mip, max_length=max_length
         )
 
-    def checkDuplicateVars(self):
+    def checkDuplicateVars(self) -> None:
         """
         Checks if there are at least two variables with the same name
         :return: 1
         :raises `const.PulpError`: if there ar duplicates
         """
-        vs = self.variables()
-
-        repeated_names = {}
-        for v in vs:
-            repeated_names[v.name] = repeated_names.get(v.name, 0) + 1
-        repeated_names = [
-            (key, value) for key, value in list(repeated_names.items()) if value >= 2
-        ]
+        name_counter = Counter(variable.name for variable in self.variables())
+        repeated_names = {
+            (name, count) for name, count in name_counter.items() if count >= 2
+        }
         if repeated_names:
-            raise const.PulpError("Repeated variable names:\n" + str(repeated_names))
-        return 1
+            raise const.PulpError(f"Repeated variable names: {repeated_names}")
 
-    def checkLengthVars(self, max_length):
+    def checkLengthVars(self, max_length: int) -> None:
         """
         Checks if variables have names smaller than `max_length`
         :param int max_length: max size for variable name
         :return:
         :raises const.PulpError: if there is at least one variable that has a long name
         """
-        vs = self.variables()
-        long_names = [v.name for v in vs if len(v.name) > max_length]
+        long_names = [
+            variable.name
+            for variable in self.variables()
+            if len(variable.name) > max_length
+        ]
         if long_names:
             raise const.PulpError(
-                "Variable names too long for Lp format\n" + str(long_names)
+                f"Variable names too long for Lp format: {long_names}"
             )
-        return 1
 
     def assignVarsVals(self, values):
         variables = self.variablesDict()
