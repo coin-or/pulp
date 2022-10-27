@@ -44,6 +44,7 @@ class SCIP_CMD(LpSolver_CMD):
     def __init__(
         self,
         path=None,
+        mip=True,
         keepFiles=False,
         msg=True,
         options=None,
@@ -55,6 +56,7 @@ class SCIP_CMD(LpSolver_CMD):
         threads=None,
     ):
         """
+        :param bool mip: if False, assume LP even if integer variables
         :param bool msg: if False, no log is shown
         :param list options: list of additional options to pass to solver
         :param bool keepFiles: if True, files are saved in the current directory and not deleted after solving
@@ -68,6 +70,7 @@ class SCIP_CMD(LpSolver_CMD):
         """
         LpSolver_CMD.__init__(
             self,
+            mip=mip,
             msg=msg,
             options=options,
             path=path,
@@ -129,6 +132,8 @@ class SCIP_CMD(LpSolver_CMD):
             file_options.append(f"limits/nodes={self.optionsDict['maxNodes']}")
         if "threads" in self.optionsDict and int(self.optionsDict["threads"]) > 1:
             warnings.warn("SCIP can only run with a single thread - use FSCIP_CMD for a parallel version of SCIP")
+        if not self.mip:
+            warnings.warn(f"{self.name} does not allow a problem to be relaxed")
 
         command: List[str] = []
         command.append(self.path)
@@ -227,6 +232,7 @@ class FSCIP_CMD(LpSolver_CMD):
     def __init__(
         self,
         path=None,
+        mip=True,
         keepFiles=False,
         msg=True,
         options=None,
@@ -239,6 +245,7 @@ class FSCIP_CMD(LpSolver_CMD):
     ):
         """
         :param bool msg: if False, no log is shown
+        :param bool mip: if False, assume LP even if integer variables
         :param list options: list of additional options to pass to solver
         :param bool keepFiles: if True, files are saved in the current directory and not deleted after solving
         :param str path: path to the solver binary
@@ -251,6 +258,7 @@ class FSCIP_CMD(LpSolver_CMD):
         """
         LpSolver_CMD.__init__(
             self,
+            mip=mip,
             msg=msg,
             options=options,
             path=path,
@@ -297,8 +305,12 @@ class FSCIP_CMD(LpSolver_CMD):
             file_options.append(f"limits/absgap={self.optionsDict['gapAbs']}")
         if "maxNodes" in self.optionsDict:
             file_options.append(f"limits/nodes={self.optionsDict['maxNodes']}")
+        if not self.mip:
+            warnings.warn(f"{self.name} does not allow a problem to be relaxed")
 
         file_parameters: List[str] = []
+        # disable presolving in the LoadCoordinator to make sure a solution file is always written
+        file_parameters.append("NoPreprocessingInLC = TRUE")
 
         command: List[str] = []
         command.append(self.path)
@@ -334,14 +346,17 @@ class FSCIP_CMD(LpSolver_CMD):
                 else:
                     file_parameters.append(option)
 
-        print(" ".join(command))
         # wipe the solution file since FSCIP does not overwrite it if no solution was found which causes parsing errors
         self.silent_remove(tmpSol)
         with open(tmpOptions, "w") as options_file:
             options_file.write("\n".join(file_options))
         with open(tmpParams, "w") as parameters_file:
             parameters_file.write("\n".join(file_parameters))
-        subprocess.check_call(command, stdout=sys.stdout, stderr=sys.stderr)
+        subprocess.check_call(
+            command,
+            stdout=sys.stdout if self.msg else subprocess.DEVNULL,
+            stderr=sys.stderr if self.msg else subprocess.DEVNULL,
+        )
 
         if not os.path.exists(tmpSol):
             raise PulpSolverError("PuLP: Error while executing " + self.path)
@@ -462,6 +477,7 @@ class SCIP_PY(LpSolver):
 
         def __init__(
             self,
+            mip=True,
             msg=True,
             options=None,
             timeLimit=None,
@@ -472,6 +488,7 @@ class SCIP_PY(LpSolver):
             threads=None,
         ):
             """
+            :param bool mip: if False, assume LP even if integer variables
             :param bool msg: if False, no log is shown
             :param list options: list of additional options to pass to solver
             :param float timeLimit: maximum time for solver (in seconds)
@@ -482,6 +499,7 @@ class SCIP_PY(LpSolver):
             :param int threads: sets the maximum number of threads
             """
             super().__init__(
+                mip=mip,
                 msg=msg,
                 options=options,
                 timeLimit=timeLimit,
@@ -500,7 +518,7 @@ class SCIP_PY(LpSolver):
                 "optimal": constants.LpStatusOptimal,
                 "unbounded": constants.LpStatusUnbounded,
                 "infeasible": constants.LpStatusInfeasible,
-                "inforunbd": constants.LpStatusInfeasible,
+                "inforunbd": constants.LpStatusNotSolved,
                 "timelimit": constants.LpStatusNotSolved,
                 "userinterrupt": constants.LpStatusNotSolved,
                 "nodelimit": constants.LpStatusNotSolved,
@@ -571,6 +589,8 @@ class SCIP_PY(LpSolver):
                 lp.solverModel.setLogfile(self.optionsDict["logPath"])
             if "threads" in self.optionsDict and int(self.optionsDict["threads"]) > 1:
                 warnings.warn(f"The solver {self.name} can only run with a single thread")
+            if not self.mip:
+                warnings.warn(f"{self.name} does not allow a problem to be relaxed")
 
             options = iter(self.options)
             for option in options:
