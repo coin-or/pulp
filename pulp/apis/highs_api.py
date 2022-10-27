@@ -103,6 +103,8 @@ class HiGHS_CMD(LpSolver_CMD):
         file_options.append(f"solution_file={tmpSol}")
         file_options.append("write_solution_to_file=true")
         file_options.append(f"write_solution_style={HiGHS_CMD.SOLUTION_STYLE}")
+        if not self.msg:
+            file_options.append("log_to_console=false")
         if "threads" in self.optionsDict:
             file_options.append(f"threads={self.optionsDict['threads']}")
         if "gapRel" in self.optionsDict:
@@ -191,6 +193,8 @@ class HiGHS_CMD(LpSolver_CMD):
         if not os.path.exists(tmpSol) or os.stat(tmpSol).st_size == 0:
             status_sol = constants.LpSolutionNoSolutionFound
             values = None
+        elif status_sol == constants.LpSolutionNoSolutionFound:
+            values = None
         else:
             values = self.readsol(lp.variables(), tmpSol)
 
@@ -210,9 +214,9 @@ class HiGHS_CMD(LpSolver_CMD):
 
         begin, end = None, None
         for index, line in enumerate(lines):
-            if line.startswith("# Columns"):
+            if begin is None and line.startswith("# Columns"):
                 begin = index + 1
-            if line.startswith("# Rows"):
+            if end is None and line.startswith("# Rows"):
                 end = index
         if begin is None or end is None:
             raise PulpSolverError("Cannot read HiGHS solver output")
