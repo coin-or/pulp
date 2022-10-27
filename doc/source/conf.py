@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # pulp sphinx documentation build configuration file, created by
 # sphinx-quickstart on Mon Nov  2 11:54:01 2009.

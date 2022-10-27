@@ -813,7 +813,7 @@ class BaseSolverTest:
             prob += w >= 0, "c4"
             data = prob.toDict()
             var1, prob1 = LpProblem.fromDict(data)
-            x, y, z, w = [var1[name] for name in ["x", "y", "z", "w"]]
+            x, y, z, w = (var1[name] for name in ["x", "y", "z", "w"])
             print("\t Testing continuous LP solution - export dict")
             pulpTestCheck(
                 prob1, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0}
@@ -831,7 +831,7 @@ class BaseSolverTest:
             prob += w >= 0, "c4"
             data = prob.toDict()
             var1, prob1 = LpProblem.fromDict(data)
-            x, y, z, w = [var1[name] for name in ["x", "y", "z", "w"]]
+            x, y, z, w = (var1[name] for name in ["x", "y", "z", "w"])
             print("\t Testing export dict for LP")
             pulpTestCheck(
                 prob1, self.solver, [const.LpStatusOptimal], {x: 4, y: 1, z: 6, w: 0}
@@ -856,7 +856,7 @@ class BaseSolverTest:
                 os.remove(filename)
             except:
                 pass
-            x, y, z, w = [var1[name] for name in ["x", "y", "z", "w"]]
+            x, y, z, w = (var1[name] for name in ["x", "y", "z", "w"])
             print("\t Testing continuous LP solution - export JSON")
             pulpTestCheck(
                 prob1, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0}
@@ -876,7 +876,7 @@ class BaseSolverTest:
             data = prob.toDict()
             data_backup = copy.deepcopy(data)
             var1, prob1 = LpProblem.fromDict(data)
-            x, y, z = [var1[name] for name in ["x", "y", "z"]]
+            x, y, z = (var1[name] for name in ["x", "y", "z"])
             print("\t Testing export dict MIP")
             pulpTestCheck(
                 prob1, self.solver, [const.LpStatusOptimal], {x: 3, y: -0.5, z: 7}
@@ -897,7 +897,7 @@ class BaseSolverTest:
             prob += w >= 0, "c4"
             data = prob.toDict()
             var1, prob1 = LpProblem.fromDict(data)
-            x, y, z, w = [var1[name] for name in ["x", "y", "z", "w"]]
+            x, y, z, w = (var1[name] for name in ["x", "y", "z", "w"])
             print("\t Testing maximize continuous LP solution")
             pulpTestCheck(
                 prob1, self.solver, [const.LpStatusOptimal], {x: 4, y: 1, z: 8, w: 0}

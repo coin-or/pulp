@@ -13,7 +13,7 @@ version_dict = {}
 exec(open("pulp/constants.py").read(), version_dict)
 VERSION = version_dict["VERSION"]
 
-with open(readme_name, "r") as fh:
+with open(readme_name) as fh:
     long_description = fh.read()
 
 setup(

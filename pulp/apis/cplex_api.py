@@ -367,7 +367,7 @@ class CPLEX_PY(LpSolver):
             Takes the pulp lp model and translates it into a cplex model
             """
             model_variables = lp.variables()
-            self.n2v = dict((var.name, var) for var in model_variables)
+            self.n2v = {var.name: var for var in model_variables}
             if len(self.n2v) != len(model_variables):
                 raise PulpSolverError(
                     "Variables must have unique names for cplex solver"

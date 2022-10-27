@@ -106,7 +106,7 @@ try:
     from collections.abc import Iterable
 except ImportError:
     # python 2.7 compatible
-    from collections import Iterable
+    from collections.abc import Iterable
 
 import logging
 
@@ -143,7 +143,7 @@ except ImportError:
 import re
 
 
-class LpElement(object):
+class LpElement:
     """Base class for LpVariable and LpConstraintVar"""
 
     # To remove illegal characters from the names
@@ -715,19 +715,19 @@ class LpAffineExpression(_DICT_TYPE):
         if isinstance(e, LpAffineExpression):
             # Will not copy the name
             self.constant = e.constant
-            super(LpAffineExpression, self).__init__(list(e.items()))
+            super().__init__(list(e.items()))
         elif isinstance(e, dict):
             self.constant = constant
-            super(LpAffineExpression, self).__init__(list(e.items()))
+            super().__init__(list(e.items()))
         elif isinstance(e, Iterable):
             self.constant = constant
-            super(LpAffineExpression, self).__init__(e)
+            super().__init__(e)
         elif isinstance(e, LpElement):
             self.constant = 0
-            super(LpAffineExpression, self).__init__([(e, 1)])
+            super().__init__([(e, 1)])
         else:
             self.constant = e
-            super(LpAffineExpression, self).__init__()
+            super().__init__()
 
     # Proxy functions for variables
 
@@ -842,10 +842,10 @@ class LpAffineExpression(_DICT_TYPE):
                 sign = ""
             notFirst = 1
             if val == 1:
-                term = "%s %s" % (sign, v.name)
+                term = "{} {}".format(sign, v.name)
             else:
                 # adding zero to val to remove instances of negative zero
-                term = "%s %.12g %s" % (sign, val + 0, v.name)
+                term = "{} {:.12g} {}".format(sign, val + 0, v.name)
 
             if self._count_characters(line) + len(term) > const.LpCplexLPLineSize:
                 result += ["".join(line)]
@@ -1086,7 +1086,7 @@ class LpConstraint(LpAffineExpression):
         c = -self.constant
         if c == 0:
             c = 0  # Supress sign
-        term = " %s %.12g" % (const.LpConstraintSenses[self.sense], c)
+        term = " {} {:.12g}".format(const.LpConstraintSenses[self.sense], c)
         if self._count_characters(line) + len(term) > const.LpCplexLPLineSize:
             result += ["".join(line)]
             line = [term]
@@ -1333,7 +1333,7 @@ class LpConstraintVar(LpElement):
         return self.constraint.value()
 
 
-class LpProblem(object):
+class LpProblem:
     """An LP Problem"""
 
     def __init__(self, name="NoName", sense=const.LpMinimize):
@@ -1530,7 +1530,7 @@ class LpProblem(object):
         :return: a tuple with a dictionary of variables and an LpProblem
         :rtype: (dict, :py:class:`LpProblem`)
         """
-        with open(filename, "r") as f:
+        with open(filename) as f:
             data = json.load(f)
         return cls.fromDict(data)
 
@@ -2106,7 +2106,9 @@ class FixedElasticSubProblem(LpProblem):
                 % (self.name, upVar, lowVar, freeVar, result)
             )
             log.debug(
-                "isViolated value lhs %s constant %s" % (self.findLHSValue(), self.RHS)
+                "isViolated value lhs {} constant {}".format(
+                    self.findLHSValue(), self.RHS
+                )
             )
         return result
 

@@ -8,7 +8,6 @@
 # The thermal units have a proportional cost and a startup cost.
 # The hydro unit has an initial storage.
 
-from __future__ import print_function
 from pulp import *
 from math import *
 

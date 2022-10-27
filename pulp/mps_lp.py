@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 
 @author: Franco Peschiera
@@ -52,7 +51,7 @@ def readMPS(path, sense, dropConsNames=False):
     bnd_names = []
     integral_marker = False
 
-    with open(path, "r") as reader:
+    with open(path) as reader:
         for line in reader:
             line = re.split(" |\t", line)
             line = [x.strip() for x in line]
@@ -206,8 +205,8 @@ def writeMPS(LpProblem, filename, mpsSense=0, rename=0, mip=1):
         vs = LpProblem._variables
     else:
         vs = LpProblem.variables()
-        varNames = dict((v.name, v.name) for v in vs)
-        constrNames = dict((c, c) for c in LpProblem.constraints)
+        varNames = {v.name: v.name for v in vs}
+        constrNames = {c: c for c in LpProblem.constraints}
     model_name = LpProblem.name
     if rename:
         model_name = "MODEL"
@@ -384,12 +383,12 @@ def writeLP(LpProblem, filename, writeSOS=1, mip=1, max_length=100):
             for sos in LpProblem.sos1.values():
                 f.write("S1:: \n")
                 for v, val in sos.items():
-                    f.write(" %s: %.12g\n" % (v.name, val))
+                    f.write(" {}: {:.12g}\n".format(v.name, val))
         if LpProblem.sos2:
             for sos in LpProblem.sos2.values():
                 f.write("S2:: \n")
                 for v, val in sos.items():
-                    f.write(" %s: %.12g\n" % (v.name, val))
+                    f.write(" {}: {:.12g}\n".format(v.name, val))
     f.write("End\n")
     f.close()
     LpProblem.restoreObjective(wasNone, objectiveDummyVar)

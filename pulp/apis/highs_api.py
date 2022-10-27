@@ -137,7 +137,7 @@ class HiGHS_CMD(LpSolver_CMD):
         # The return code for HiGHS on command line follows: 0:program ran successfully, 1: warning, -1: error - https://github.com/ERGO-Code/HiGHS/issues/527#issuecomment-946575028
         return_code = proc.wait()
         if return_code in [0, 1]:
-            with open(tmpLog, "r") as log_file:
+            with open(tmpLog) as log_file:
                 content = log_file.readlines()
             content = [l.strip().split() for l in content]
             # LP

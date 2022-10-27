@@ -372,7 +372,7 @@ class GUROBI_CMD(LpSolver_CMD):
         options = self.options + self.getOptions()
         if self.timeLimit is not None:
             options.append(("TimeLimit", self.timeLimit))
-        cmd += " " + " ".join(["%s=%s" % (key, value) for key, value in options])
+        cmd += " " + " ".join(["{}={}".format(key, value) for key, value in options])
         cmd += " ResultFile=%s" % tmpSol
         if self.optionsDict.get("warmStart", False):
             self.writesol(filename=tmpMst, vs=vs)

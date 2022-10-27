@@ -195,10 +195,10 @@ class XPRESS(LpSolver_CMD):
             )  # `list` to suppress output
 
             for attr in attrNames:
-                cmd.write('puts $fh "%s=$%s"\n' % (attr, attr))
+                cmd.write('puts $fh "{}=${}"\n'.format(attr, attr))
             cmd.write("close $fh\n")
             cmd.write("QUIT\n")
-        with open(tmpCmd, "r") as cmd:
+        with open(tmpCmd) as cmd:
             consume = False
             subout = None
             suberr = None
@@ -314,12 +314,12 @@ class XPRESS(LpSolver_CMD):
             for i, sol in enumerate(values):
                 slx.write("NAME solution%d\n" % i)
                 for name, value in sol:
-                    slx.write(" C      %s %.16f\n" % (name, value))
+                    slx.write(" C      {} {:.16f}\n".format(name, value))
             slx.write("ENDATA\n")
 
     @staticmethod
     def quote_path(path):
-        """
+        r"""
         Quotes a path for the Xpress optimizer console, by wrapping it in
         double quotes and escaping the following characters, which would
         otherwise be interpreted by the Tcl shell: \ $ " [
