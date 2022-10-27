@@ -81,7 +81,7 @@ class HiGHS_CMD(LpSolver_CMD):
             lp.name, "mps", "sol", "HiGHS", "HiGHS_log"
         )
         write_lines = [
-            "solution_file = %s\n" % tmpSol,
+            f"solution_file = {tmpSol}\n",
             "write_solution_to_file = true\n",
         ]
         with open(tmpOptions, "w") as fp:
@@ -104,10 +104,10 @@ class HiGHS_CMD(LpSolver_CMD):
         except:
             pass
         cmd = self.path
-        cmd += " %s" % tmpMps
-        cmd += " --options_file %s" % tmpOptions
+        cmd += f" {tmpMps}"
+        cmd += f" --options_file {tmpOptions}"
         if self.timeLimit is not None:
-            cmd += " --time_limit %s" % self.timeLimit
+            cmd += f" --time_limit {self.timeLimit}"
         for option in self.options:
             cmd += " " + option
         if lp.isMIP():

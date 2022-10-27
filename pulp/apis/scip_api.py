@@ -112,9 +112,9 @@ class SCIP_CMD(LpSolver_CMD):
         tmpLp, tmpSol = self.create_tmp_files(lp.name, "lp", "sol")
         lp.writeLP(tmpLp)
 
-        proc = ["%s" % self.path, "-c", 'read "%s"' % tmpLp]
+        proc = [f"{self.path}", "-c", f'read "{tmpLp}"']
         if self.timeLimit is not None:
-            proc.extend(["-c", "set limits time {}".format(self.timeLimit)])
+            proc.extend(["-c", f"set limits time {self.timeLimit}"])
 
         options = self.options + self.getOptions()
         options = list(itertools.chain(*[("-c", o) for o in options]))
@@ -124,7 +124,7 @@ class SCIP_CMD(LpSolver_CMD):
         if not self.msg:
             proc.append("-q")
         proc.extend(
-            ["-c", "optimize", "-c", 'write solution "%s"' % tmpSol, "-c", "quit"]
+            ["-c", "optimize", "-c", f'write solution "{tmpSol}"', "-c", "quit"]
         )
 
         stdout = self.firstWithFilenoSupport(sys.stdout, sys.__stdout__)
@@ -174,7 +174,7 @@ class SCIP_CMD(LpSolver_CMD):
                 assert comps[0] == "solution status"
                 assert len(comps) == 2
             except Exception:
-                raise PulpSolverError("Can't get SCIP solver status: %r" % line)
+                raise PulpSolverError(f"Can't get SCIP solver status: {line!r}")
 
             status = SCIP_CMD.SCIP_STATUSES.get(
                 comps[1].strip(), constants.LpStatusUndefined
@@ -192,7 +192,7 @@ class SCIP_CMD(LpSolver_CMD):
                 assert len(comps) == 2
                 float(comps[1].strip())
             except Exception:
-                raise PulpSolverError("Can't get SCIP solver objective: %r" % line)
+                raise PulpSolverError(f"Can't get SCIP solver objective: {line!r}")
 
             # Parse the variable values.
             for line in f:
@@ -200,7 +200,7 @@ class SCIP_CMD(LpSolver_CMD):
                     comps = line.split()
                     values[comps[0]] = float(comps[1])
                 except:
-                    raise PulpSolverError("Can't read SCIP solver output: %r" % line)
+                    raise PulpSolverError(f"Can't read SCIP solver output: {line!r}")
 
             return status, values
 

@@ -465,7 +465,7 @@ class LpSolver_CMD(LpSolver):
             prefix = name
         else:
             prefix = os.path.join(self.tmpDir, uuid4().hex)
-        return ("{}-pulp.{}".format(prefix, n) for n in args)
+        return (f"{prefix}-pulp.{n}" for n in args)
 
     def delete_tmp_files(self, *args):
         if self.keepFiles:

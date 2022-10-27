@@ -113,10 +113,10 @@ print()
 
 for t in time:
     # Demand, hydro storage, hydro production
-    print("%5.1f" % demand[t], "%5.1f" % value(s[t]), "%5.1f" % value(ph[t]), end=" ")
+    print(f"{demand[t]:5.1f}", f"{value(s[t]):5.1f}", f"{value(ph[t]):5.1f}", end=" ")
     for i in unit:
         # Thermal production
-        print("%4.1f" % value(p[t][i]), end=" ")
+        print(f"{value(p[t][i]):4.1f}", end=" ")
         # The state of the unit
         if value(d[t][i]):
             print("+", end=" ")

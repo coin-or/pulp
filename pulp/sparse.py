@@ -48,9 +48,9 @@ class Matrix(dict):
                 self.coldict[col][row] = item
             else:
                 print(self.cols)
-                raise RuntimeError("col %s is not in the matrix columns" % col)
+                raise RuntimeError(f"col {col} is not in the matrix columns")
         else:
-            raise RuntimeError("row %s is not in the matrix rows" % row)
+            raise RuntimeError(f"row {row} is not in the matrix rows")
 
     def addcol(self, col, rowitems):
         """adds a column"""

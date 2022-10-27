@@ -52,11 +52,11 @@ class BaseSolverTest:
         def setUp(self):
             self.solver = self.solveInst(msg=False)
             if not self.solver.available():
-                self.skipTest("solver {} not available".format(self.solveInst))
+                self.skipTest(f"solver {self.solveInst} not available")
 
         def tearDown(self):
             for ext in ["mst", "log", "lp", "mps", "sol"]:
-                filename = "{}.{}".format(self._testMethodName, ext)
+                filename = f"{self._testMethodName}.{ext}"
                 try:
                     os.remove(filename)
                 except:
@@ -1021,9 +1021,9 @@ class BaseSolverTest:
                     {x: 4, y: -1, z: 6, w: 0},
                 )
                 if not os.path.exists(logFilename):
-                    raise PulpError("Test failed for solver: {}".format(self.solver))
+                    raise PulpError(f"Test failed for solver: {self.solver}")
                 if not os.path.getsize(logFilename):
-                    raise PulpError("Test failed for solver: {}".format(self.solver))
+                    raise PulpError(f"Test failed for solver: {self.solver}")
 
         def test_makeDict_behavior(self):
             """
@@ -1230,7 +1230,7 @@ class BaseSolverTest:
                 reported_time,
                 time_limit,
                 delta=delta,
-                msg="optimization time for solver {}".format(self.solver.name),
+                msg=f"optimization time for solver {self.solver.name}",
             )
 
         def test_invalid_var_names(self):
@@ -1487,7 +1487,7 @@ def pulpTestCheck(
     eps=10**-3,
     status=None,
     objective=None,
-    **kwargs
+    **kwargs,
 ):
     if status is None:
         status = prob.solve(solver, **kwargs)
@@ -1545,9 +1545,7 @@ def pulpTestCheck(
         if abs(z - objective) > eps:
             dumpTestProblem(prob)
             raise PulpError(
-                "Tests failed for solver {}:\nobjective {} != {}".format(
-                    solver, z, objective
-                )
+                f"Tests failed for solver {solver}:\nobjective {z} != {objective}"
             )
 
 

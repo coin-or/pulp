@@ -144,7 +144,7 @@ class COIN_CMD(LpSolver_CMD):
         """Solve a MIP problem using CBC"""
         if not self.executable(self.path):
             raise PulpSolverError(
-                "Pulp: cannot execute {} cwd: {}".format(self.path, os.getcwd())
+                f"Pulp: cannot execute {self.path} cwd: {os.getcwd()}"
             )
         tmpLp, tmpMps, tmpSol, tmpMst = self.create_tmp_files(
             lp.name, "lp", "mps", "sol", "mst"
@@ -164,9 +164,9 @@ class COIN_CMD(LpSolver_CMD):
             cmds = " " + tmpLp + " "
         if self.optionsDict.get("warmStart", False):
             self.writesol(tmpMst, lp, vs, variablesNames, constraintsNames)
-            cmds += "mips {} ".format(tmpMst)
+            cmds += f"mips {tmpMst} "
         if self.timeLimit is not None:
-            cmds += "sec %s " % self.timeLimit
+            cmds += f"sec {self.timeLimit} "
         options = self.options + self.getOptions()
         for option in options:
             cmds += option + " "
@@ -476,7 +476,7 @@ class COINMP_DLL(LpSolver):
             strong=5,
             epgap=None,
             *args,
-            **kwargs
+            **kwargs,
         ):
             LpSolver.__init__(self, *args, **kwargs)
             self.fracGap = None
@@ -706,7 +706,7 @@ class YAPOSIB(LpSolver):
             timeLimit=None,
             epgap=None,
             solverName=None,
-            **solverParams
+            **solverParams,
         ):
             """
             Initializes the yaposib solver.

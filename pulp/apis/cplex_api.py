@@ -289,7 +289,7 @@ class CPLEX_PY(LpSolver):
 
         def actualSolve(self, lp):
             """Solve a well formulated lp problem"""
-            raise PulpSolverError("CPLEX_PY: Not Available:\n{}".format(self.err))
+            raise PulpSolverError(f"CPLEX_PY: Not Available:\n{self.err}")
 
     else:
 

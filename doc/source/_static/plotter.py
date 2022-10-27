@@ -17,15 +17,15 @@ def plot_interval(a, c, x_left, x_right, i, fbound):
     text(
         (x_left + lh) / 2.0,
         0.1,
-        "freebound interval [{}, {}] is penalty-free".format(lh, rh),
+        f"freebound interval [{lh}, {rh}] is penalty-free",
     )
-    text((x_left + lh) / 2.0, 0.2, "rhs={},    {}".format(c, fbound))
+    text((x_left + lh) / 2.0, 0.2, f"rhs={c},    {fbound}")
     cur_ax = gca()
     cur_ax.add_patch(arrow_l)
     cur_ax.add_patch(arrow_r)
     axis([x_left, x_right, -0.1, 0.3])
     yticks([])
-    title(r"Elasticized constraint\_{}   $C(x)= {} $".format(i, c))
+    title(rf"Elasticized constraint\_{i}   $C(x)= {c} $")
 
 
 figure()
@@ -38,7 +38,7 @@ a = [0.01, 0.01]
 c = 200
 x_left = 0.97 * c
 x_right = 1.03 * c
-fb_string = "{}{} = {}".format(fbound, "", a[0])
+fb_string = f"{fbound} = {a[0]}"
 plot_interval(a, c, x_left, x_right, i, fb_string)
 
 i += 1
@@ -47,7 +47,7 @@ a = [0.02, 0.05]
 c = 500
 x_left = 0.9 * c  # scale of window
 x_right = 1.2 * c  # scale of window
-fb_string = "{}{} = [{},{}]".format(fbound, "List", a[0], a[1])
+fb_string = f"{fbound}List = [{a[0]},{a[1]}]"
 plot_interval(a, c, x_left, x_right, i, fb_string)
 savefig("freebound.jpg")
 savefig("freebound.pdf")
