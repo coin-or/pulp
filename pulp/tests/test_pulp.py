@@ -176,7 +176,7 @@ class BaseSolverTest:
             elif self.solver.__class__ is GLPK_CMD:
                 # GLPK_CMD Does not report unbounded problems, correctly
                 pulpTestCheck(prob, self.solver, [const.LpStatusUndefined])
-            elif self.solver.__class__ in [GUROBI_CMD, SCIP_CMD]:
+            elif self.solver.__class__ in [GUROBI_CMD, SCIP_CMD, FSCIP_CMD, SCIP_PY]:
                 # GUROBI_CMD has a very simple interface
                 pulpTestCheck(prob, self.solver, [const.LpStatusNotSolved])
             elif self.solver.__class__ in [CHOCO_CMD]:
@@ -204,6 +204,8 @@ class BaseSolverTest:
                 GUROBI_CMD,
                 MIPCL_CMD,
                 SCIP_CMD,
+                FSCIP_CMD,
+                SCIP_PY,
                 HiGHS_CMD,
                 XPRESS,
                 XPRESS_CMD,
@@ -251,6 +253,8 @@ class BaseSolverTest:
                 MIPCL_CMD,
                 MOSEK,
                 SCIP_CMD,
+                FSCIP_CMD,
+                SCIP_PY,
                 HiGHS_CMD,
                 XPRESS,
                 XPRESS_CMD,
@@ -451,8 +455,10 @@ class BaseSolverTest:
                 CHOCO_CMD,
                 MIPCL_CMD,
                 SCIP_CMD,
+                FSCIP_CMD,
+                SCIP_PY,
             ]:
-                # gurobi command, choco and mipcl do not let the problem be relaxed
+                # these solvers do not let the problem be relaxed
                 pulpTestCheck(
                     prob, self.solver, [const.LpStatusOptimal], {x: 3.0, y: -0.5, z: 7}
                 )
@@ -486,7 +492,7 @@ class BaseSolverTest:
             if self.solver.__class__ is GLPK_CMD:
                 # GLPK_CMD return codes are not informative enough
                 pulpTestCheck(prob, self.solver, [const.LpStatusUndefined])
-            elif self.solver.__class__ in [GUROBI_CMD]:
+            elif self.solver.__class__ in [GUROBI_CMD, FSCIP_CMD]:
                 # GUROBI_CMD Does not solve the problem
                 pulpTestCheck(prob, self.solver, [const.LpStatusNotSolved])
             else:
@@ -514,7 +520,7 @@ class BaseSolverTest:
                 # presolve eliminates too many variables
                 print("\t\t Error in CoinMP to be fixed, reports Optimal")
                 pulpTestCheck(prob, self.solver, [const.LpStatusOptimal])
-            elif self.solver.__class__ in [GUROBI_CMD]:
+            elif self.solver.__class__ in [GUROBI_CMD, FSCIP_CMD]:
                 pulpTestCheck(prob, self.solver, [const.LpStatusNotSolved])
             else:
                 pulpTestCheck(prob, self.solver, [const.LpStatusInfeasible])
@@ -531,7 +537,7 @@ class BaseSolverTest:
             prob += c1 + c2 == 2
             prob += c1 <= 0
             print("\t Testing another integer infeasible problem")
-            if self.solver.__class__ in [GUROBI_CMD, SCIP_CMD]:
+            if self.solver.__class__ in [GUROBI_CMD, SCIP_CMD, FSCIP_CMD, SCIP_PY]:
                 pulpTestCheck(prob, self.solver, [const.LpStatusNotSolved])
             elif self.solver.__class__ in [GLPK_CMD]:
                 # GLPK_CMD returns InfeasibleOrUnbounded
@@ -784,8 +790,7 @@ class BaseSolverTest:
             elif self.solver.__class__ is GLPK_CMD:
                 # GLPK_CMD Does not report unbounded problems, correctly
                 pulpTestCheck(prob, self.solver, [const.LpStatusUndefined])
-            elif self.solver.__class__ in [GUROBI_CMD, SCIP_CMD]:
-                # GLPK_CMD Does not report unbounded problems, correctly
+            elif self.solver.__class__ in [GUROBI_CMD, SCIP_CMD, FSCIP_CMD, SCIP_PY]:
                 pulpTestCheck(prob, self.solver, [const.LpStatusNotSolved])
             elif self.solver.__class__ in [CHOCO_CMD]:
                 # choco bounds all variables. Would not return unbounded status
@@ -1179,7 +1184,7 @@ class BaseSolverTest:
             prob += 1 * x
             prob += x >= 2  # Constraint x to be more than 2
             prob += x <= 1  # Constraint x to be less than 1
-            if self.solver.name in ["GUROBI_CMD"]:
+            if self.solver.name in ["GUROBI_CMD", "FSCIP_CMD"]:
                 pulpTestCheck(
                     prob,
                     self.solver,
@@ -1470,6 +1475,14 @@ class MOSEKTest(BaseSolverTest.PuLPTest):
 
 class SCIP_CMDTest(BaseSolverTest.PuLPTest):
     solveInst = SCIP_CMD
+
+
+class FSCIP_CMDTest(BaseSolverTest.PuLPTest):
+    solveInst = FSCIP_CMD
+
+
+class SCIP_PYTest(BaseSolverTest.PuLPTest):
+    solveInst = SCIP_PY
 
 
 class HiGHS_CMDTest(BaseSolverTest.PuLPTest):

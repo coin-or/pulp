@@ -27,6 +27,8 @@ _all_solvers = [
     CHOCO_CMD,
     MIPCL_CMD,
     SCIP_CMD,
+    FSCIP_CMD,
+    SCIP_PY,
     HiGHS_CMD,
 ]
 
