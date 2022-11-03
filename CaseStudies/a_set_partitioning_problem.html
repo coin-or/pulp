@@ -135,7 +135,7 @@ exactly one table.</p>
 <span class="k">for</span> <span class="n">guest</span> <span class="ow">in</span> <span class="n">guests</span><span class="p">:</span>
     <span class="n">seating_model</span> <span class="o">+=</span> <span class="p">(</span>
         <span class="n">pulp</span><span class="o">.</span><span class="n">lpSum</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span> <span class="k">if</span> <span class="n">guest</span> <span class="ow">in</span> <span class="n">table</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span>
-        <span class="s2">&quot;Must_seat_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">guest</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">&quot;Must_seat_</span><span class="si">{</span><span class="n">guest</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
     <span class="p">)</span>
 </pre></div>
 </div>
@@ -183,12 +183,12 @@ exactly one table.</p>
 <span class="k">for</span> <span class="n">guest</span> <span class="ow">in</span> <span class="n">guests</span><span class="p">:</span>
     <span class="n">seating_model</span> <span class="o">+=</span> <span class="p">(</span>
         <span class="n">pulp</span><span class="o">.</span><span class="n">lpSum</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span> <span class="k">if</span> <span class="n">guest</span> <span class="ow">in</span> <span class="n">table</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span>
-        <span class="s2">&quot;Must_seat_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">guest</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">&quot;Must_seat_</span><span class="si">{</span><span class="n">guest</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
     <span class="p">)</span>
 
 <span class="n">seating_model</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;The choosen tables are out of a total of </span><span class="si">%s</span><span class="s2">:&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">possible_tables</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The choosen tables are out of a total of </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">possible_tables</span><span class="p">)</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">)</span>
 <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span><span class="p">:</span>
     <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">()</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>

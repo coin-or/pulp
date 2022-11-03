@@ -346,14 +346,14 @@ constrained to being greater than or equal to the demand minimum.</p>
 <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">Warehouses</span><span class="p">:</span>
     <span class="n">prob</span> <span class="o">+=</span> <span class="p">(</span>
         <span class="n">lpSum</span><span class="p">([</span><span class="nb">vars</span><span class="p">[</span><span class="n">w</span><span class="p">][</span><span class="n">b</span><span class="p">]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">Bars</span><span class="p">])</span> <span class="o">&lt;=</span> <span class="n">supply</span><span class="p">[</span><span class="n">w</span><span class="p">],</span>
-        <span class="s2">&quot;Sum_of_Products_out_of_Warehouse_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">w</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">&quot;Sum_of_Products_out_of_Warehouse_</span><span class="si">{</span><span class="n">w</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
     <span class="p">)</span>
 
 <span class="c1"># The demand minimum constraints are added to prob for each demand node (bar)</span>
 <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">Bars</span><span class="p">:</span>
     <span class="n">prob</span> <span class="o">+=</span> <span class="p">(</span>
         <span class="n">lpSum</span><span class="p">([</span><span class="nb">vars</span><span class="p">[</span><span class="n">w</span><span class="p">][</span><span class="n">b</span><span class="p">]</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">Warehouses</span><span class="p">])</span> <span class="o">&gt;=</span> <span class="n">demand</span><span class="p">[</span><span class="n">b</span><span class="p">],</span>
-        <span class="s2">&quot;Sum_of_Products_into_Bar</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">b</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">&quot;Sum_of_Products_into_Bar</span><span class="si">{</span><span class="n">b</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
     <span class="p">)</span>
 </pre></div>
 </div>
