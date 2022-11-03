@@ -51,14 +51,14 @@ prob += sum([x[w][b] * costs[w][b] for (w, b) in routes]), "Sum_of_Transporting_
 for w in warehouses:
     prob += (
         sum([x[w][b] for b in bars]) <= supply[w],
-        "Sum_of_Products_out_of_Warehouse_%s" % w,
+        f"Sum_of_Products_out_of_Warehouse_{w}",
     )
 
 # Demand minimum constraints are added to prob for each demand node (bar)
 for b in bars:
     prob += (
         sum([x[w][b] for w in warehouses]) >= demand[b],
-        "Sum_of_Products_into_Bar%s" % b,
+        f"Sum_of_Products_into_Bar{b}",
     )
 
 # The problem data is written to an .lp file

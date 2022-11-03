@@ -38,9 +38,7 @@ def create_bin_packing_problem(bins, seed=0):
 
     # pack every item
     for i in item_indices:
-        prob += lpSum(
-            items_packed[i, b] for b in bin_indices
-        ) == 1, "pack_item_{}".format(i)
+        prob += lpSum(items_packed[i, b] for b in bin_indices) == 1, f"pack_item_{i}"
 
     # no bin overfilled
     for b in bin_indices:
@@ -48,6 +46,6 @@ def create_bin_packing_problem(bins, seed=0):
             lpSum([items[i] * items_packed[i, b] for i in item_indices])
             <= bin_size * using_bin[b]
         )
-        prob += expr, "respect_bin_size_{}".format(b)
+        prob += expr, f"respect_bin_size_{b}"
 
     return prob

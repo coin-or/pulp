@@ -62,7 +62,7 @@ def masterSolve(Patterns, rollData, relax=True):
         prob += (
             lpSum([pattVars[i] * i.lengthsdict[j] for i in Patterns]) - surplusVars[j]
             >= rollDemand[j],
-            "Min%s" % j,
+            f"Min{j}",
         )
 
     # The problem is solved

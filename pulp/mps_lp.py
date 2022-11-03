@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 
 @author: Franco Peschiera
@@ -52,7 +51,7 @@ def readMPS(path, sense, dropConsNames=False):
     bnd_names = []
     integral_marker = False
 
-    with open(path, "r") as reader:
+    with open(path) as reader:
         for line in reader:
             line = re.split(" |\t", line)
             line = [x.strip() for x in line]
@@ -96,7 +95,7 @@ def readMPS(path, sense, dropConsNames=False):
                         sense=ROW_EQUIV[row_type],
                         name=row_name,
                         coefficients=[],
-                        **ROW_DEFAULT
+                        **ROW_DEFAULT,
                     )
             elif mode == CORE_FILE_COL_MODE:
                 var_name = line[0]
@@ -206,8 +205,8 @@ def writeMPS(LpProblem, filename, mpsSense=0, rename=0, mip=1):
         vs = LpProblem._variables
     else:
         vs = LpProblem.variables()
-        varNames = dict((v.name, v.name) for v in vs)
-        constrNames = dict((c, c) for c in LpProblem.constraints)
+        varNames = {v.name: v.name for v in vs}
+        constrNames = {c: c for c in LpProblem.constraints}
     model_name = LpProblem.name
     if rename:
         model_name = "MODEL"
@@ -251,7 +250,7 @@ def writeMPS(LpProblem, filename, mpsSense=0, rename=0, mip=1):
         f.write("*SENSE:" + const.LpSenses[mpsSense] + "\n")
         f.write("NAME          " + model_name + "\n")
         f.write("ROWS\n")
-        f.write(" N  %s\n" % objName)
+        f.write(f" N  {objName}\n")
         f.write("".join(row_lines))
         f.write("COLUMNS\n")
         f.write("".join(columns_lines))
@@ -363,20 +362,20 @@ def writeLP(LpProblem, filename, writeSOS=1, mip=1, max_length=100):
     if vg:
         f.write("Bounds\n")
         for v in vg:
-            f.write(" %s\n" % v.asCplexLpVariable())
+            f.write(f" {v.asCplexLpVariable()}\n")
     # Integer non-binary variables
     if mip:
         vg = [v for v in vs if v.cat == const.LpInteger and not v.isBinary()]
         if vg:
             f.write("Generals\n")
             for v in vg:
-                f.write("%s\n" % v.name)
+                f.write(f"{v.name}\n")
         # Binary variables
         vg = [v for v in vs if v.isBinary()]
         if vg:
             f.write("Binaries\n")
             for v in vg:
-                f.write("%s\n" % v.name)
+                f.write(f"{v.name}\n")
     # Special Ordered Sets
     if writeSOS and (LpProblem.sos1 or LpProblem.sos2):
         f.write("SOS\n")
@@ -384,12 +383,12 @@ def writeLP(LpProblem, filename, writeSOS=1, mip=1, max_length=100):
             for sos in LpProblem.sos1.values():
                 f.write("S1:: \n")
                 for v, val in sos.items():
-                    f.write(" %s: %.12g\n" % (v.name, val))
+                    f.write(f" {v.name}: {val:.12g}\n")
         if LpProblem.sos2:
             for sos in LpProblem.sos2.values():
                 f.write("S2:: \n")
                 for v, val in sos.items():
-                    f.write(" %s: %.12g\n" % (v.name, val))
+                    f.write(f" {v.name}: {val:.12g}\n")
     f.write("End\n")
     f.close()
     LpProblem.restoreObjective(wasNone, objectiveDummyVar)

@@ -129,7 +129,7 @@ def getSolverFromJson(filename):
     :return: a solver of type :py:class:`LpSolver`
     :rtype: LpSolver
     """
-    with open(filename, "r") as f:
+    with open(filename) as f:
         data = json.load(f)
     return getSolverFromDict(data)
 

@@ -167,7 +167,7 @@ class XPRESS(LpSolver_CMD):
                 cmd.write("MAXTIME=%d\n" % self.timeLimit)
             targetGap = self.optionsDict.get("gapRel")
             if targetGap is not None:
-                cmd.write("MIPRELSTOP=%f\n" % targetGap)
+                cmd.write(f"MIPRELSTOP={targetGap:f}\n")
             heurFreq = self.optionsDict.get("heurFreq")
             if heurFreq is not None:
                 cmd.write("HEURFREQ=%d\n" % heurFreq)
@@ -191,14 +191,14 @@ class XPRESS(LpSolver_CMD):
             # The writeprtsol command must be in lower case for correct filename handling
             cmd.write("writeprtsol " + self.quote_path(tmpSol) + "\n")
             cmd.write(
-                "set fh [open %s w]; list\n" % self.quote_path(tmpAttr)
+                f"set fh [open {self.quote_path(tmpAttr)} w]; list\n"
             )  # `list` to suppress output
 
             for attr in attrNames:
-                cmd.write('puts $fh "%s=$%s"\n' % (attr, attr))
+                cmd.write(f'puts $fh "{attr}=${attr}"\n')
             cmd.write("close $fh\n")
             cmd.write("QUIT\n")
-        with open(tmpCmd, "r") as cmd:
+        with open(tmpCmd) as cmd:
             consume = False
             subout = None
             suberr = None
@@ -314,12 +314,12 @@ class XPRESS(LpSolver_CMD):
             for i, sol in enumerate(values):
                 slx.write("NAME solution%d\n" % i)
                 for name, value in sol:
-                    slx.write(" C      %s %.16f\n" % (name, value))
+                    slx.write(f" C      {name} {value:.16f}\n")
             slx.write("ENDATA\n")
 
     @staticmethod
     def quote_path(path):
-        """
+        r"""
         Quotes a path for the Xpress optimizer console, by wrapping it in
         double quotes and escaping the following characters, which would
         otherwise be interpreted by the Tcl shell: \ $ " [

@@ -55,7 +55,7 @@ prob += (
 for w in Warehouses:
     prob += (
         lpSum([vars[w][b] for b in Bars]) <= supply[w],
-        "Sum_of_Products_out_of_Warehouse_%s" % w,
+        f"Sum_of_Products_out_of_Warehouse_{w}",
     )
 
 # The demand minimum constraints are added to prob for each demand node (bar)
@@ -63,7 +63,7 @@ for w in Warehouses:
 bar_demand_constraint = {}
 for b in Bars:
     constraint = lpSum([vars[w][b] for w in Warehouses]) >= demand[b]
-    prob += constraint, "Sum_of_Products_into_Bar_%s" % b
+    prob += constraint, f"Sum_of_Products_into_Bar_{b}"
     bar_demand_constraint[b] = constraint
 
 # The problem data is written to an .lp file

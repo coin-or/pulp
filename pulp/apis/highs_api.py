@@ -81,7 +81,7 @@ class HiGHS_CMD(LpSolver_CMD):
             lp.name, "mps", "sol", "HiGHS", "HiGHS_log"
         )
         write_lines = [
-            "solution_file = %s\n" % tmpSol,
+            f"solution_file = {tmpSol}\n",
             "write_solution_to_file = true\n",
         ]
         with open(tmpOptions, "w") as fp:
@@ -104,10 +104,10 @@ class HiGHS_CMD(LpSolver_CMD):
         except:
             pass
         cmd = self.path
-        cmd += " %s" % tmpMps
-        cmd += " --options_file %s" % tmpOptions
+        cmd += f" {tmpMps}"
+        cmd += f" --options_file {tmpOptions}"
         if self.timeLimit is not None:
-            cmd += " --time_limit %s" % self.timeLimit
+            cmd += f" --time_limit {self.timeLimit}"
         for option in self.options:
             cmd += " " + option
         if lp.isMIP():
@@ -137,7 +137,7 @@ class HiGHS_CMD(LpSolver_CMD):
         # The return code for HiGHS on command line follows: 0:program ran successfully, 1: warning, -1: error - https://github.com/ERGO-Code/HiGHS/issues/527#issuecomment-946575028
         return_code = proc.wait()
         if return_code in [0, 1]:
-            with open(tmpLog, "r") as log_file:
+            with open(tmpLog) as log_file:
                 content = log_file.readlines()
             content = [l.strip().split() for l in content]
             # LP

@@ -106,7 +106,7 @@ try:
     from collections.abc import Iterable
 except ImportError:
     # python 2.7 compatible
-    from collections import Iterable
+    from collections.abc import Iterable
 
 import logging
 
@@ -143,12 +143,12 @@ except ImportError:
 import re
 
 
-class LpElement(object):
+class LpElement:
     """Base class for LpVariable and LpConstraintVar"""
 
     # To remove illegal characters from the names
     illegal_chars = "-+[] ->/"
-    expression = re.compile("[{}]".format(re.escape(illegal_chars)))
+    expression = re.compile(f"[{re.escape(illegal_chars)}]")
     trans = maketrans(illegal_chars, "________")
 
     def setName(self, name):
@@ -583,7 +583,7 @@ class LpVariable(LpElement):
         if self.isFree():
             return self.name + " free"
         if self.isConstant():
-            return self.name + " = %.12g" % self.lowBound
+            return self.name + f" = {self.lowBound:.12g}"
         if self.lowBound == None:
             s = "-inf <= "
         # Note: XPRESS and CPLEX do not interpret integer variables without
@@ -591,10 +591,10 @@ class LpVariable(LpElement):
         elif self.lowBound == 0 and self.cat == const.LpContinuous:
             s = ""
         else:
-            s = "%.12g <= " % self.lowBound
+            s = f"{self.lowBound:.12g} <= "
         s += self.name
         if self.upBound is not None:
-            s += " <= %.12g" % self.upBound
+            s += f" <= {self.upBound:.12g}"
         return s
 
     def asCplexLpAffineExpression(self, name, constant=1):
@@ -715,19 +715,19 @@ class LpAffineExpression(_DICT_TYPE):
         if isinstance(e, LpAffineExpression):
             # Will not copy the name
             self.constant = e.constant
-            super(LpAffineExpression, self).__init__(list(e.items()))
+            super().__init__(list(e.items()))
         elif isinstance(e, dict):
             self.constant = constant
-            super(LpAffineExpression, self).__init__(list(e.items()))
+            super().__init__(list(e.items()))
         elif isinstance(e, Iterable):
             self.constant = constant
-            super(LpAffineExpression, self).__init__(e)
+            super().__init__(e)
         elif isinstance(e, LpElement):
             self.constant = 0
-            super(LpAffineExpression, self).__init__([(e, 1)])
+            super().__init__([(e, 1)])
         else:
             self.constant = e
-            super(LpAffineExpression, self).__init__()
+            super().__init__()
 
     # Proxy functions for variables
 
@@ -828,7 +828,7 @@ class LpAffineExpression(_DICT_TYPE):
         helper for asCplexLpAffineExpression
         """
         result = []
-        line = ["%s:" % name]
+        line = [f"{name}:"]
         notFirst = 0
         variables = self.sorted_keys()
         for v in variables:
@@ -842,10 +842,10 @@ class LpAffineExpression(_DICT_TYPE):
                 sign = ""
             notFirst = 1
             if val == 1:
-                term = "%s %s" % (sign, v.name)
+                term = f"{sign} {v.name}"
             else:
                 # adding zero to val to remove instances of negative zero
-                term = "%s %.12g %s" % (sign, val + 0, v.name)
+                term = f"{sign} {val + 0:.12g} {v.name}"
 
             if self._count_characters(line) + len(term) > const.LpCplexLPLineSize:
                 result += ["".join(line)]
@@ -861,14 +861,14 @@ class LpAffineExpression(_DICT_TYPE):
         # refactored to use a list for speed in iron python
         result, line = self.asCplexVariablesOnly(name)
         if not self:
-            term = " %s" % self.constant
+            term = f" {self.constant}"
         else:
             term = ""
             if constant:
                 if self.constant < 0:
                     term = " - %s" % (-self.constant)
                 elif self.constant > 0:
-                    term = " + %s" % self.constant
+                    term = f" + {self.constant}"
         if self._count_characters(line) + len(term) > const.LpCplexLPLineSize:
             result += ["".join(line)]
             line = [term]
@@ -1086,7 +1086,7 @@ class LpConstraint(LpAffineExpression):
         c = -self.constant
         if c == 0:
             c = 0  # Supress sign
-        term = " %s %.12g" % (const.LpConstraintSenses[self.sense], c)
+        term = f" {const.LpConstraintSenses[self.sense]} {c:.12g}"
         if self._count_characters(line) + len(term) > const.LpCplexLPLineSize:
             result += ["".join(line)]
             line = [term]
@@ -1333,7 +1333,7 @@ class LpConstraintVar(LpElement):
         return self.constraint.value()
 
 
-class LpProblem(object):
+class LpProblem:
     """An LP Problem"""
 
     def __init__(self, name="NoName", sense=const.LpMinimize):
@@ -1530,7 +1530,7 @@ class LpProblem(object):
         :return: a tuple with a dictionary of variables and an LpProblem
         :rtype: (dict, :py:class:`LpProblem`)
         """
-        with open(filename, "r") as f:
+        with open(filename) as f:
             data = json.load(f)
         return cls.fromDict(data)
 
@@ -1963,11 +1963,11 @@ class LpProblem(object):
             status = solver.actualSolve(self)
             statuses.append(status)
             if debug:
-                self.writeLP("%sSequence.lp" % i)
+                self.writeLP(f"{i}Sequence.lp")
             if self.sense == const.LpMinimize:
-                self += obj <= value(obj) * rel + absol, "Sequence_Objective_%s" % i
+                self += obj <= value(obj) * rel + absol, f"Sequence_Objective_{i}"
             elif self.sense == const.LpMaximize:
-                self += obj >= value(obj) * rel + absol, "Sequence_Objective_%s" % i
+                self += obj >= value(obj) * rel + absol, f"Sequence_Objective_{i}"
         self.stopClock()
         self.solver = solver
         return statuses
@@ -2050,7 +2050,7 @@ class FixedElasticSubProblem(LpProblem):
         proportionFreeBound=None,
         proportionFreeBoundList=None,
     ):
-        subProblemName = "%s_elastic_SubProblem" % constraint.name
+        subProblemName = f"{constraint.name}_elastic_SubProblem"
         LpProblem.__init__(self, subProblemName, const.LpMinimize)
         self.objective = LpAffineExpression()
         self.constraint = constraint
@@ -2105,9 +2105,7 @@ class FixedElasticSubProblem(LpProblem):
                 "isViolated %s, upVar %s, lowVar %s, freeVar %s result %s"
                 % (self.name, upVar, lowVar, freeVar, result)
             )
-            log.debug(
-                "isViolated value lhs %s constant %s" % (self.findLHSValue(), self.RHS)
-            )
+            log.debug(f"isViolated value lhs {self.findLHSValue()} constant {self.RHS}")
         return result
 
     def findDifferenceFromRHS(self):
@@ -2146,7 +2144,7 @@ class FixedElasticSubProblem(LpProblem):
         Alters the name of anonymous parts of the problem
 
         """
-        self.name = "%s_elastic_SubProblem" % name
+        self.name = f"{name}_elastic_SubProblem"
         if hasattr(self, "freeVar"):
             self.freeVar.name = self.name + "_free_bound"
         if hasattr(self, "upVar"):
@@ -2182,7 +2180,7 @@ class FractionElasticSubProblem(FixedElasticSubProblem):
         proportionFreeBound=None,
         proportionFreeBoundList=None,
     ):
-        subProblemName = "%s_elastic_SubProblem" % name
+        subProblemName = f"{name}_elastic_SubProblem"
         self.numerator = numerator
         if denominator is None and complement is not None:
             self.complement = complement

@@ -284,9 +284,9 @@ class LpSolver:
         variables = list(lp.variables())
         numVars = len(variables)
         # associate each variable with a ordinal
-        self.v2n = dict(((variables[i], i) for i in range(numVars)))
-        self.vname2n = dict(((variables[i].name, i) for i in range(numVars)))
-        self.n2v = dict((i, variables[i]) for i in range(numVars))
+        self.v2n = {variables[i]: i for i in range(numVars)}
+        self.vname2n = {variables[i].name: i for i in range(numVars)}
+        self.n2v = {i: variables[i] for i in range(numVars)}
         # objective values
         objSense = LpObjSenses[lp.sense]
         NumVarDoubleArray = ctypes.c_double * numVars
@@ -465,7 +465,7 @@ class LpSolver_CMD(LpSolver):
             prefix = name
         else:
             prefix = os.path.join(self.tmpDir, uuid4().hex)
-        return ("%s-pulp.%s" % (prefix, n) for n in args)
+        return (f"{prefix}-pulp.{n}" for n in args)
 
     def delete_tmp_files(self, *args):
         if self.keepFiles:
