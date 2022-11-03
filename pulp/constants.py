@@ -40,6 +40,7 @@ LpCategories = {LpContinuous: "Continuous", LpInteger: "Integer", LpBinary: "Bin
 LpMinimize = 1
 LpMaximize = -1
 LpSenses = {LpMaximize: "Maximize", LpMinimize: "Minimize"}
+LpSensesMPS = {LpMaximize: "MAX", LpMinimize: "MIN"}
 
 # problem status
 LpStatusNotSolved = 0

@@ -190,7 +190,7 @@ def readMPSSetRhs(line, constraintsDict):
     return
 
 
-def writeMPS(LpProblem, filename, mpsSense=0, rename=0, mip=1):
+def writeMPS(LpProblem, filename, mpsSense=0, rename=0, mip=1, with_objsense: bool = False):
     wasNone, dummyVar = LpProblem.fixObjective()
     if mpsSense == 0:
         mpsSense = LpProblem.sense
@@ -247,8 +247,12 @@ def writeMPS(LpProblem, filename, mpsSense=0, rename=0, mip=1):
         bound_lines.extend(writeMPSBoundLines(varNames[v.name], v, mip))
 
     with open(filename, "w") as f:
-        f.write("*SENSE:" + const.LpSenses[mpsSense] + "\n")
-        f.write("NAME          " + model_name + "\n")
+        if with_objsense:
+            f.write("OBJSENSE\n")
+            f.write(f" {const.LpSensesMPS[mpsSense]}\n")
+        else:
+            f.write(f"*SENSE:{const.LpSenses[mpsSense]}\n")
+        f.write(f"NAME          {model_name}\n")
         f.write("ROWS\n")
         f.write(f" N  {objName}\n")
         f.write("".join(row_lines))
