@@ -190,7 +190,9 @@ def readMPSSetRhs(line, constraintsDict):
     return
 
 
-def writeMPS(LpProblem, filename, mpsSense=0, rename=0, mip=1, with_objsense: bool = False):
+def writeMPS(
+    LpProblem, filename, mpsSense=0, rename=0, mip=1, with_objsense: bool = False
+):
     wasNone, dummyVar = LpProblem.fixObjective()
     if mpsSense == 0:
         mpsSense = LpProblem.sense

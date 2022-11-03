@@ -40,6 +40,7 @@ from time import monotonic as clock
 
 import configparser
 from typing import Union
+
 Parser = configparser.ConfigParser
 
 from .. import sparse
@@ -475,7 +476,6 @@ class LpSolver_CMD(LpSolver):
         """Checks that the solver command is executable,
         And returns the actual path to it."""
         return shutil.which(command)
-
 
 
 def ctypesArrayFill(myList, type=ctypes.c_double):
