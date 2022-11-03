@@ -131,7 +131,9 @@ class SCIP_CMD(LpSolver_CMD):
         if "maxNodes" in self.optionsDict:
             file_options.append(f"limits/nodes={self.optionsDict['maxNodes']}")
         if "threads" in self.optionsDict and int(self.optionsDict["threads"]) > 1:
-            warnings.warn("SCIP can only run with a single thread - use FSCIP_CMD for a parallel version of SCIP")
+            warnings.warn(
+                "SCIP can only run with a single thread - use FSCIP_CMD for a parallel version of SCIP"
+            )
         if not self.mip:
             warnings.warn(f"{self.name} does not allow a problem to be relaxed")
 
@@ -194,7 +196,9 @@ class SCIP_CMD(LpSolver_CMD):
             except Exception:
                 raise PulpSolverError(f"Can't get SCIP solver status: {line!r}")
 
-            status = SCIP_CMD.SCIP_STATUSES.get(comps[1].strip(), constants.LpStatusUndefined)
+            status = SCIP_CMD.SCIP_STATUSES.get(
+                comps[1].strip(), constants.LpStatusUndefined
+            )
             values = {}
 
             if status in SCIP_CMD.NO_SOLUTION_STATUSES:
@@ -293,7 +297,9 @@ class FSCIP_CMD(LpSolver_CMD):
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute " + self.path)
 
-        tmpLp, tmpSol, tmpOptions, tmpParams = self.create_tmp_files(lp.name, "lp", "sol", "set", "prm")
+        tmpLp, tmpSol, tmpOptions, tmpParams = self.create_tmp_files(
+            lp.name, "lp", "sol", "set", "prm"
+        )
         lp.writeLP(tmpLp)
 
         file_options: List[str] = []
@@ -428,14 +434,18 @@ class FSCIP_CMD(LpSolver_CMD):
             objective_line = file.readline()
             objective = FSCIP_CMD.parse_objective(objective_line)
             if objective is None:
-                raise PulpSolverError(f"Can't get FSCIP solver objective: {objective_line!r}")
+                raise PulpSolverError(
+                    f"Can't get FSCIP solver objective: {objective_line!r}"
+                )
 
             # Parse the variable values.
             variables: Dict[str, float] = {}
             for variable_line in file:
                 variable = FSCIP_CMD.parse_variable(variable_line)
                 if variable is None:
-                    raise PulpSolverError(f"Can't read FSCIP solver output: {variable_line!r}")
+                    raise PulpSolverError(
+                        f"Can't read FSCIP solver output: {variable_line!r}"
+                    )
 
                 name, value = variable
                 variables[name] = value
@@ -539,7 +549,9 @@ class SCIP_PY(LpSolver):
                 for variable in lp._variables:
                     variable.varValue = solution[variable.solverVar]
                 for constraint in lp.constraints.values():
-                    constraint.slack = lp.solverModel.getSlack(constraint.solverConstraint, solution)
+                    constraint.slack = lp.solverModel.getSlack(
+                        constraint.solverConstraint, solution
+                    )
 
                 # TODO: check if problem is an LP i.e. does not have integer variables
                 # if :
@@ -588,7 +600,9 @@ class SCIP_PY(LpSolver):
             if "logPath" in self.optionsDict:
                 lp.solverModel.setLogfile(self.optionsDict["logPath"])
             if "threads" in self.optionsDict and int(self.optionsDict["threads"]) > 1:
-                warnings.warn(f"The solver {self.name} can only run with a single thread")
+                warnings.warn(
+                    f"The solver {self.name} can only run with a single thread"
+                )
             if not self.mip:
                 warnings.warn(f"{self.name} does not allow a problem to be relaxed")
 
@@ -629,7 +643,10 @@ class SCIP_PY(LpSolver):
             for name, constraint in lp.constraints.items():
                 constraint.solverConstraint = lp.solverModel.addCons(
                     cons=sense_to_operator[constraint.sense](
-                        scip.quicksum(coefficient * variable.solverVar for variable, coefficient in constraint.items()),
+                        scip.quicksum(
+                            coefficient * variable.solverVar
+                            for variable, coefficient in constraint.items()
+                        ),
                         -constraint.constant,
                     ),
                     name=name,
@@ -660,4 +677,6 @@ class SCIP_PY(LpSolver):
             # TODO: add ability to resolve pysciptopt models
             # - http://listserv.zib.de/pipermail/scip/2020-May/003977.html
             # - https://scipopt.org/doc-8.0.0/html/REOPT.php
-            raise PulpSolverError(f"The {self.name} solver does not implement resolving")
+            raise PulpSolverError(
+                f"The {self.name} solver does not implement resolving"
+            )

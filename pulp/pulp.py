@@ -1768,7 +1768,9 @@ class LpProblem:
                 coefs.extend([(translation[v.name], ctr, cst[v]) for v in cst])
         return coefs
 
-    def writeMPS(self, filename, mpsSense=0, rename=0, mip=1, with_objsense: bool = False):
+    def writeMPS(
+        self, filename, mpsSense=0, rename=0, mip=1, with_objsense: bool = False
+    ):
         """
         Writes an mps files from the problem information
 
@@ -1780,7 +1782,14 @@ class LpProblem:
         Side Effects:
             - The file is created
         """
-        return mpslp.writeMPS(self, filename, mpsSense=mpsSense, rename=rename, mip=mip, with_objsense=with_objsense)
+        return mpslp.writeMPS(
+            self,
+            filename,
+            mpsSense=mpsSense,
+            rename=rename,
+            mip=mip,
+            with_objsense=with_objsense,
+        )
 
     def writeLP(self, filename, writeSOS=1, mip=1, max_length=100):
         """
