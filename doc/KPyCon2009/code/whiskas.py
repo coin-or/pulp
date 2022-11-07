@@ -33,4 +33,4 @@ whiskas_model.solve()
 
 # print the result
 for ingredient in ingredients:
-    print("The mass of %s is %s grams per can" % (ingredient, x[ingredient].value()))
+    print(f"The mass of {ingredient} is {x[ingredient].value()} grams per can")

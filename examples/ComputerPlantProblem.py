@@ -68,14 +68,14 @@ prob += (
 for p in Plants:
     prob += (
         lpSum([flow[p][s] for s in Stores]) <= supply[p] * build[p],
-        "Sum of Products out of Plant %s" % p,
+        f"Sum of Products out of Plant {p}",
     )
 
 # The Demand minimum constraints are added for each demand node (store)
 for s in Stores:
     prob += (
         lpSum([flow[p][s] for p in Plants]) >= demand[s],
-        "Sum of Products into Stores %s" % s,
+        f"Sum of Products into Stores {s}",
     )
 
 # The problem data is written to an .lp file

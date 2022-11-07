@@ -89,7 +89,7 @@ for n in Nodes:
     prob += (
         supply[n] + lpSum([vars[(i, j)] for (i, j) in Arcs if j == n])
         >= demand[n] + lpSum([vars[(i, j)] for (i, j) in Arcs if i == n])
-    ), "Steel Flow Conservation in Node %s" % n
+    ), f"Steel Flow Conservation in Node {n}"
 
 # The problem data is written to an .lp file
 prob.writeLP("AmericanSteelProblem.lp")

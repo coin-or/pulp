@@ -38,7 +38,7 @@ prob += lpSum([vars[i] * cost for i in PatternNames]), "Production Cost"
 for i in LenOpts:
     prob += (
         lpSum([vars[j] * patterns[i][j] for j in PatternNames]) >= rollDemand[i],
-        "Ensuring enough %s cm rolls" % i,
+        f"Ensuring enough {i} cm rolls",
     )
 
 # The problem data is written to an .lp file

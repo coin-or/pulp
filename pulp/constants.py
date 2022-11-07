@@ -27,7 +27,7 @@
 This file contains the constant definitions for PuLP
 Note that hopefully these will be changed into something more pythonic
 """
-VERSION = "2.6.0"
+VERSION = "2.7.0"
 EPS = 1e-7
 
 # variable categories
@@ -40,6 +40,7 @@ LpCategories = {LpContinuous: "Continuous", LpInteger: "Integer", LpBinary: "Bin
 LpMinimize = 1
 LpMaximize = -1
 LpSenses = {LpMaximize: "Maximize", LpMinimize: "Minimize"}
+LpSensesMPS = {LpMaximize: "MAX", LpMinimize: "MIN"}
 
 # problem status
 LpStatusNotSolved = 0

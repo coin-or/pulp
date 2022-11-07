@@ -27,6 +27,8 @@ _all_solvers = [
     CHOCO_CMD,
     MIPCL_CMD,
     SCIP_CMD,
+    FSCIP_CMD,
+    SCIP_PY,
     HiGHS_CMD,
 ]
 
@@ -129,7 +131,7 @@ def getSolverFromJson(filename):
     :return: a solver of type :py:class:`LpSolver`
     :rtype: LpSolver
     """
-    with open(filename, "r") as f:
+    with open(filename) as f:
         data = json.load(f)
     return getSolverFromDict(data)
 

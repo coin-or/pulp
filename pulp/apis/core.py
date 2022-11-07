@@ -31,25 +31,18 @@ the current version
 """
 
 import os
+import shutil
 import sys
+import ctypes
 
 
-if os.name == "posix":
-    from ..utilities import resource_clock as clock
-else:
-    try:
-        from time import monotonic as clock
-    except ImportError:
-        from time import clock
+from time import monotonic as clock
 
-try:
-    import configparser
-except ImportError:
-    import ConfigParser as configparser
-try:
-    Parser = configparser.ConfigParser
-except AttributeError:
-    Parser = configparser.SafeConfigParser
+import configparser
+from typing import Union
+
+Parser = configparser.ConfigParser
+
 from .. import sparse
 from .. import constants as const
 
@@ -62,24 +55,10 @@ except ImportError:
 
 log = logging.getLogger(__name__)
 
-if os.name == "posix" and sys.version_info[0] < 3:
-    try:
-        import subprocess32 as subprocess
-    except ImportError:
-        log.debug(
-            "Thread-safe subprocess32 module not found! "
-            "Using unsafe built-in subprocess module instead."
-        )
-        import subprocess
-else:
-    import subprocess
+import subprocess
 
-if sys.version_info[0] < 3:
-    devnull = open(os.devnull, "wb")
-    to_string = lambda _obj: str(_obj)
-else:
-    devnull = subprocess.DEVNULL
-    to_string = lambda _obj: str(_obj).encode()
+devnull = subprocess.DEVNULL
+to_string = lambda _obj: str(_obj).encode()
 
 from uuid import uuid4
 
@@ -146,6 +125,10 @@ def initialize(filename, operating_system="linux", arch="64"):
         scip_path = config.get("locations", "ScipPath")
     except configparser.Error:
         scip_path = "scip"
+    try:
+        fscip_path = config.get("locations", "FscipPath")
+    except configparser.Error:
+        fscip_path = "fscip"
     for i, path in enumerate(coinMP_path):
         if not os.path.dirname(path):
             # if no pathname is supplied assume the file is in the same directory
@@ -160,6 +143,7 @@ def initialize(filename, operating_system="linux", arch="64"):
         glpk_path,
         pulp_cbc_path,
         scip_path,
+        fscip_path,
     )
 
 
@@ -194,6 +178,7 @@ config_filename = os.path.normpath(os.path.join(DIRNAME, "..", PULPCFGFILE))
     glpk_path,
     pulp_cbc_path,
     scip_path,
+    fscip_path,
 ) = initialize(config_filename, operating_system, arch)
 
 
@@ -221,9 +206,6 @@ class LpSolver:
         self.options = options
         self.timeLimit = timeLimit
         self.maxNodes = maxNodes
-
-        # this keeps the solver time in cpu time
-        self.solution_time = 0
 
         # here we will store all other relevant information including:
         # gapRel, gapAbs, maxMemory, maxNodes, threads, logPath, timeMode
@@ -285,9 +267,9 @@ class LpSolver:
         variables = list(lp.variables())
         numVars = len(variables)
         # associate each variable with a ordinal
-        self.v2n = dict(((variables[i], i) for i in range(numVars)))
-        self.vname2n = dict(((variables[i].name, i) for i in range(numVars)))
-        self.n2v = dict((i, variables[i]) for i in range(numVars))
+        self.v2n = {variables[i]: i for i in range(numVars)}
+        self.vname2n = {variables[i].name: i for i in range(numVars)}
+        self.n2v = {i: variables[i] for i in range(numVars)}
         # objective values
         objSense = LpObjSenses[lp.sense]
         NumVarDoubleArray = ctypes.c_double * numVars
@@ -466,59 +448,44 @@ class LpSolver_CMD(LpSolver):
             prefix = name
         else:
             prefix = os.path.join(self.tmpDir, uuid4().hex)
-        return ("%s-pulp.%s" % (prefix, n) for n in args)
+        return (f"{prefix}-pulp.{n}" for n in args)
+
+    def silent_remove(self, file: Union[str, bytes, os.PathLike]) -> None:
+        try:
+            os.remove(file)
+        except FileNotFoundError:
+            pass
 
     def delete_tmp_files(self, *args):
         if self.keepFiles:
             return
         for file in args:
-            try:
-                os.remove(file)
-            except:
-                pass
+            self.silent_remove(file)
 
     def defaultPath(self):
         raise NotImplementedError
 
+    @staticmethod
     def executableExtension(name):
         if os.name != "nt":
             return name
         else:
             return name + ".exe"
 
-    executableExtension = staticmethod(executableExtension)
-
+    @staticmethod
     def executable(command):
         """Checks that the solver command is executable,
         And returns the actual path to it."""
-
-        if os.path.isabs(command):
-            if os.path.exists(command) and os.access(command, os.X_OK):
-                return command
-        for path in os.environ.get("PATH", []).split(os.pathsep):
-            new_path = os.path.join(path, command)
-            if os.path.exists(new_path) and os.access(new_path, os.X_OK):
-                return os.path.join(path, command)
-        return False
-
-    executable = staticmethod(executable)
+        return shutil.which(command)
 
 
-try:
-    import ctypes
-
-    def ctypesArrayFill(myList, type=ctypes.c_double):
-        """
-        Creates a c array with ctypes from a python list
-        type is the type of the c array
-        """
-        ctype = type * len(myList)
-        cList = ctype()
-        for i, elem in enumerate(myList):
-            cList[i] = elem
-        return cList
-
-except (ImportError):
-
-    def ctypesArrayFill(myList, type=None):
-        return None
+def ctypesArrayFill(myList, type=ctypes.c_double):
+    """
+    Creates a c array with ctypes from a python list
+    type is the type of the c array
+    """
+    ctype = type * len(myList)
+    cList = ctype()
+    for i, elem in enumerate(myList):
+        cList[i] = elem
+    return cList
