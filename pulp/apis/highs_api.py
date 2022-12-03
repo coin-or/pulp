@@ -305,9 +305,9 @@ class HiGHS(LpSolver):
                 ]
 
                 if len(non_zero_constraint_items) == 0:
-                    continue
-
-                indices, coefficients = zip(*non_zero_constraint_items)
+                    indices, coefficients = [], []
+                else:
+                    indices, coefficients = zip(*non_zero_constraint_items)
 
                 lb = constraint.getLb()
                 ub = constraint.getUb()
