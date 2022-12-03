@@ -22,13 +22,13 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -qq glpk-utils
-      - name: install highs
-        run: |
-          - pip install highspy
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install .
+      - name: Install highspy
+        run: |
+          pip install highspy
       - name: Test with pulptest
         run: pulptest
       - name: Code Quality
