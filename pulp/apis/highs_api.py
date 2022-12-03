@@ -292,7 +292,7 @@ class HiGHS(LpSolver):
                 var.index = i
                 i = i + 1
 
-                if var.cat == constants.LpInteger:
+                if var.cat == constants.LpInteger and self.mip:
                     lp.solverModel.changeColIntegrality(
                         var.index, highspy.HighsVarType.kInteger
                     )
