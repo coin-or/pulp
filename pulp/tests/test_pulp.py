@@ -206,6 +206,7 @@ class BaseSolverTest:
                 SCIP_CMD,
                 FSCIP_CMD,
                 SCIP_PY,
+                HiGHS,
                 HiGHS_CMD,
                 XPRESS,
                 XPRESS_CMD,
@@ -255,6 +256,7 @@ class BaseSolverTest:
                 SCIP_CMD,
                 FSCIP_CMD,
                 SCIP_PY,
+                HiGHS,
                 HiGHS_CMD,
                 XPRESS,
                 XPRESS_CMD,
@@ -1476,6 +1478,8 @@ class FSCIP_CMDTest(BaseSolverTest.PuLPTest):
 class SCIP_PYTest(BaseSolverTest.PuLPTest):
     solveInst = SCIP_PY
 
+class HiGHS_PYTest(BaseSolverTest.PuLPTest):
+    solveInst = HiGHS
 
 class HiGHS_CMDTest(BaseSolverTest.PuLPTest):
     solveInst = HiGHS_CMD
