@@ -27,6 +27,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install .
       - name: Install highspy
+        if: matrix.os == 'ubuntu-latest' || matrix.os == 'macOS-latest'
         run: |
           pip install highspy
       - name: Test with pulptest
