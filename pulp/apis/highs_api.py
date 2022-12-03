@@ -229,6 +229,9 @@ class HiGHS_CMD(LpSolver_CMD):
 
 
 class HiGHS(LpSolver):
+
+    name = "HiGHS"
+
     try:
         global highspy
         import highspy
