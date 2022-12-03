@@ -298,13 +298,16 @@ class HiGHS(LpSolver):
                     )
 
             for constraint in lp.constraints.values():
-                indices, coefficients = zip(
-                    *[
-                        (var.index, coefficient)
-                        for var, coefficient in constraint.items()
-                        if coefficient != 0
-                    ]
-                )
+                non_zero_constraint_items = [
+                    (var.index, coefficient)
+                    for var, coefficient in constraint.items()
+                    if coefficient != 0
+                ]
+
+                if len(non_zero_constraint_items) == 0:
+                    continue
+
+                indices, coefficients = zip(*non_zero_constraint_items)
 
                 lb = constraint.getLb()
                 ub = constraint.getUb()
