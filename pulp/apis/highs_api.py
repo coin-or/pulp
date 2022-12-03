@@ -275,13 +275,14 @@ class HiGHS(LpSolver):
 
             inf = highspy.kHighsInf
 
-            index_map = {}
+            obj_mult = -1 if lp.sense == constants.LpMaximize else 1
+
             i = 0
             for var in lp.variables():
                 lb = var.lowBound
                 ub = var.upBound
                 lp.solverModel.addCol(
-                    lp.objective.get(var, 0.0),
+                    obj_mult * lp.objective.get(var, 0.0),
                     -inf if lb is None else lb,
                     inf if ub is None else ub,
                     0,
@@ -305,10 +306,8 @@ class HiGHS(LpSolver):
                     ]
                 )
 
-                # print(constraint)
                 lb = constraint.getLb()
                 ub = constraint.getUb()
-                # print(f"{lb}, {ub}, {len(indices)}, {indices}, {coefficients}")
                 lp.solverModel.addRow(
                     -inf if lb is None else lb,
                     inf if ub is None else ub,
