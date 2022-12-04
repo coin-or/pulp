@@ -277,8 +277,7 @@ class HiGHS(LpSolver):
 
             obj_mult = -1 if lp.sense == constants.LpMaximize else 1
 
-            i = 0
-            for var in lp.variables():
+            for i, var in enumerate(lp.variables()):
                 lb = var.lowBound
                 ub = var.upBound
                 lp.solverModel.addCol(
@@ -290,7 +289,6 @@ class HiGHS(LpSolver):
                     [],
                 )
                 var.index = i
-                i = i + 1
 
                 if var.cat == constants.LpInteger and self.mip:
                     lp.solverModel.changeColIntegrality(
