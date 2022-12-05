@@ -138,6 +138,12 @@
 <li class="toctree-l4"><a class="reference internal" href="#pulp.apis.GUROBI_CMD.writesol"><code class="docutils literal notranslate"><span class="pre">GUROBI_CMD.writesol()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.HiGHS"><code class="docutils literal notranslate"><span class="pre">HiGHS</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.HiGHS.actualSolve"><code class="docutils literal notranslate"><span class="pre">HiGHS.actualSolve()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.HiGHS.available"><code class="docutils literal notranslate"><span class="pre">HiGHS.available()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.HiGHS.name"><code class="docutils literal notranslate"><span class="pre">HiGHS.name</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#pulp.apis.HiGHS_CMD"><code class="docutils literal notranslate"><span class="pre">HiGHS_CMD</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#pulp.apis.HiGHS_CMD.SOLUTION_STYLE"><code class="docutils literal notranslate"><span class="pre">HiGHS_CMD.SOLUTION_STYLE</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#pulp.apis.HiGHS_CMD.actualSolve"><code class="docutils literal notranslate"><span class="pre">HiGHS_CMD.actualSolve()</span></code></a></li>
@@ -845,6 +851,42 @@ e.g. gapRel=0.1, gapAbs=10, logPath=””,</p></li>
 <span class="sig-name descname"><span class="pre">writesol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.GUROBI_CMD.writesol" title="Permalink to this definition"></a></dt>
 <dd><p>Writes a GUROBI solution file</p>
 </dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pulp.apis.HiGHS">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">HiGHS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeLimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.HiGHS" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pulp.apis.LpSolver" title="pulp.apis.core.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpSolver</span></code></a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
+<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a>) – if False, no log is shown</p></li>
+<li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><em>list</em></a>) – </p></li>
+<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
+<li><p><strong>args</strong> – </p></li>
+<li><p><strong>kwargs</strong> – optional named options to pass to each solver,
+e.g. gapRel=0.1, gapAbs=10, logPath=””,</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pulp.apis.HiGHS.actualSolve">
+<span class="sig-name descname"><span class="pre">actualSolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">callback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.HiGHS.actualSolve" title="Permalink to this definition"></a></dt>
+<dd><p>Solve a well formulated lp problem</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulp.apis.HiGHS.available">
+<span class="sig-name descname"><span class="pre">available</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.HiGHS.available" title="Permalink to this definition"></a></dt>
+<dd><p>True if the solver is available</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulp.apis.HiGHS.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'HiGHS'</span></em><a class="headerlink" href="#pulp.apis.HiGHS.name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
 
 </dd></dl>
 
