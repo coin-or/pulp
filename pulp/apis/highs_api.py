@@ -30,7 +30,7 @@
 
 from typing import List
 
-from .core import LpSolver_CMD, subprocess, PulpSolverError
+from .core import LpSolver, LpSolver_CMD, subprocess, PulpSolverError
 import os, sys
 from .. import constants
 
@@ -226,3 +226,137 @@ class HiGHS_CMD(LpSolver_CMD):
             name, value = line.split()
             values[name] = float(value)
         return values
+
+
+class HiGHS(LpSolver):
+
+    name = "HiGHS"
+
+    try:
+        global highspy
+        import highspy
+    except:
+
+        def available(self):
+            """True if the solver is available"""
+            return False
+
+        def actualSolve(self, lp, callback=None):
+            """Solve a well formulated lp problem"""
+            raise PulpSolverError("HiGHS: Not Available")
+
+    else:
+
+        def __init__(
+            self,
+            mip=True,
+            msg=True,
+            timeLimit=None,
+            epgap=None,
+            gapRel=None,
+            warmStart=False,
+            logPath=None,
+            *args,
+            **solverParams,
+        ):
+            super().__init__(mip, msg, timeLimit, gapRel=gapRel, *args, **solverParams)
+
+        def available(self):
+            return True
+
+        def callSolver(self, lp):
+            lp.solverModel.run()
+
+        def buildSolverModel(self, lp):
+            lp.solverModel = highspy.Highs()
+
+            gapRel = self.optionsDict.get("gapRel", 0)
+            lp.solverModel.setOptionValue("mip_rel_gap", gapRel)
+
+            inf = highspy.kHighsInf
+
+            obj_mult = -1 if lp.sense == constants.LpMaximize else 1
+
+            for i, var in enumerate(lp.variables()):
+                lb = var.lowBound
+                ub = var.upBound
+                lp.solverModel.addCol(
+                    obj_mult * lp.objective.get(var, 0.0),
+                    -inf if lb is None else lb,
+                    inf if ub is None else ub,
+                    0,
+                    [],
+                    [],
+                )
+                var.index = i
+
+                if var.cat == constants.LpInteger and self.mip:
+                    lp.solverModel.changeColIntegrality(
+                        var.index, highspy.HighsVarType.kInteger
+                    )
+
+            for constraint in lp.constraints.values():
+                non_zero_constraint_items = [
+                    (var.index, coefficient)
+                    for var, coefficient in constraint.items()
+                    if coefficient != 0
+                ]
+
+                if len(non_zero_constraint_items) == 0:
+                    indices, coefficients = [], []
+                else:
+                    indices, coefficients = zip(*non_zero_constraint_items)
+
+                lb = constraint.getLb()
+                ub = constraint.getUb()
+                lp.solverModel.addRow(
+                    -inf if lb is None else lb,
+                    inf if ub is None else ub,
+                    len(indices),
+                    indices,
+                    coefficients,
+                )
+
+        def findSolutionValues(self, lp):
+            status = lp.solverModel.getModelStatus()
+            solution = lp.solverModel.getSolution()
+            HighsModelStatus = highspy.HighsModelStatus
+            status_dict = {
+                HighsModelStatus.kNotset: constants.LpStatusNotSolved,
+                HighsModelStatus.kLoadError: constants.LpStatusNotSolved,
+                HighsModelStatus.kModelError: constants.LpStatusNotSolved,
+                HighsModelStatus.kPresolveError: constants.LpStatusNotSolved,
+                HighsModelStatus.kSolveError: constants.LpStatusNotSolved,
+                HighsModelStatus.kPostsolveError: constants.LpStatusNotSolved,
+                HighsModelStatus.kModelEmpty: constants.LpStatusNotSolved,
+                HighsModelStatus.kOptimal: constants.LpStatusOptimal,
+                HighsModelStatus.kInfeasible: constants.LpStatusInfeasible,
+                HighsModelStatus.kUnboundedOrInfeasible: constants.LpStatusInfeasible,
+                HighsModelStatus.kUnbounded: constants.LpStatusUnbounded,
+                HighsModelStatus.kObjectiveBound: constants.LpStatusNotSolved,
+                HighsModelStatus.kObjectiveTarget: constants.LpStatusNotSolved,
+                HighsModelStatus.kTimeLimit: constants.LpStatusNotSolved,
+                HighsModelStatus.kIterationLimit: constants.LpStatusNotSolved,
+                HighsModelStatus.kUnknown: constants.LpStatusNotSolved,
+            }
+
+            for var in lp.variables():
+                var.varValue = solution.col_value[var.index]
+
+            return status_dict[status]
+
+        def actualSolve(self, lp):
+            self.buildSolverModel(lp)
+            self.callSolver(lp)
+
+            solutionStatus = self.findSolutionValues(lp)
+
+            for var in lp.variables():
+                var.modified = False
+            for constraint in lp.constraints.values():
+                constraint.modifier = False
+
+            return solutionStatus
+
+        def actualResolve(self, lp, **kwargs):
+            raise PulpSolverError("HiGHS: Resolving is not supported")

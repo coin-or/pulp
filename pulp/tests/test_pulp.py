@@ -206,6 +206,7 @@ class BaseSolverTest:
                 SCIP_CMD,
                 FSCIP_CMD,
                 SCIP_PY,
+                HiGHS,
                 HiGHS_CMD,
                 XPRESS,
                 XPRESS_CMD,
@@ -255,6 +256,7 @@ class BaseSolverTest:
                 SCIP_CMD,
                 FSCIP_CMD,
                 SCIP_PY,
+                HiGHS,
                 HiGHS_CMD,
                 XPRESS,
                 XPRESS_CMD,
@@ -588,12 +590,7 @@ class BaseSolverTest:
             x = LpVariable("x", 0, 4, const.LpContinuous, obj + b)
             y = LpVariable("y", -1, 1, const.LpContinuous, 4 * obj - c)
             z = LpVariable("z", 0, None, const.LpContinuous, 9 * obj + b + c)
-            if self.solver.__class__ in [
-                CPLEX_CMD,
-                COINMP_DLL,
-                YAPOSIB,
-                PYGLPK,
-            ]:
+            if self.solver.__class__ in [CPLEX_CMD, COINMP_DLL, YAPOSIB, PYGLPK]:
                 print("\t Testing column based modelling with empty constraints")
                 pulpTestCheck(
                     prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6}
@@ -1329,21 +1326,16 @@ class BaseSolverTest:
             with self.assertRaises(TypeError):
                 # both variables
                 assign_vars_matrix = LpVariable.dicts(
-                    name="test",
-                    indices=(customers, agents),
-                    indexs=(customers, agents),
+                    name="test", indices=(customers, agents), indexs=(customers, agents)
                 )
 
             with self.assertRaises(TypeError):
                 # no variables
-                assign_vars_matrix = LpVariable.dicts(
-                    name="test",
-                )
+                assign_vars_matrix = LpVariable.dicts(name="test")
 
             with self.assertWarns(DeprecationWarning):
                 assign_vars_matrix = LpVariable.dicts(
-                    name="test",
-                    indexs=(customers, agents),
+                    name="test", indexs=(customers, agents)
                 )
 
         def test_parse_cplex_mipopt_solution(self):
@@ -1475,6 +1467,10 @@ class FSCIP_CMDTest(BaseSolverTest.PuLPTest):
 
 class SCIP_PYTest(BaseSolverTest.PuLPTest):
     solveInst = SCIP_PY
+
+
+class HiGHS_PYTest(BaseSolverTest.PuLPTest):
+    solveInst = HiGHS
 
 
 class HiGHS_CMDTest(BaseSolverTest.PuLPTest):

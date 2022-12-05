@@ -29,6 +29,7 @@ _all_solvers = [
     SCIP_CMD,
     FSCIP_CMD,
     SCIP_PY,
+    HiGHS,
     HiGHS_CMD,
 ]
 
