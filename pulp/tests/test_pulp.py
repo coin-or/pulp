@@ -1212,7 +1212,7 @@ class BaseSolverTest:
 
             time_limit = 10
             solver_settings = dict(
-                PULP_CBC_CMD=30, COIN_CMD=30, SCIP_CMD=30, GUROBI_CMD=50, CPLEX_CMD=50
+                PULP_CBC_CMD=30, COIN_CMD=30, SCIP_CMD=30, GUROBI_CMD=50, CPLEX_CMD=50, HiGHS = 50
             )
             bins = solver_settings.get(self.solver.name)
             if bins is None:
