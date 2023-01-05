@@ -612,6 +612,9 @@ class LpVariable(LpElement):
         else:
             return 1
 
+    def __bool__(self):
+        return bool(self.varValue)
+
     def addVariableToConstraints(self, e):
         """adds a variable to the constraints indicated by
         the LpConstraintVars in e
