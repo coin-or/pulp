@@ -28,6 +28,8 @@ from .core import LpSolver, PulpSolverError
 from .. import constants
 import sys
 
+from typing import Optional
+
 
 class MOSEK(LpSolver):
     """Mosek lp and mip solver (via Mosek Optimizer API)."""
@@ -54,7 +56,8 @@ class MOSEK(LpSolver):
             self,
             mip=True,
             msg=True,
-            options={},
+            timeLimit: Optional[float] = None,
+            options: Optional[dict] = None,
             task_file_name="",
             sol_type=mosek.soltype.bas,
         ):
@@ -65,6 +68,8 @@ class MOSEK(LpSolver):
             @param mip: If False, then solve MIP as LP.
 
             @param msg: Enable Mosek log output.
+
+            @param float timeLimit: maximum time for solver (in seconds)
 
             @param options: Accepts a dictionary of Mosek solver parameters. Ignore to
                             use default parameter values. Eg: options = {mosek.dparam.mio_max_time:30}
@@ -85,9 +90,19 @@ class MOSEK(LpSolver):
             """
             self.mip = mip
             self.msg = msg
+            self.timeLimit = timeLimit
             self.task_file_name = task_file_name
             self.solution_type = sol_type
+            if options is None:
+                options = {}
             self.options = options
+            if self.timeLimit is not None:
+                timeLimit_keys = {"MSK_DPAR_MIO_MAX_TIME", mosek.dparam.mio_max_time}
+                if not timeLimit_keys.isdisjoint(self.options.keys()):
+                    raise ValueError(
+                        "timeLimit parameter has been provided trough `timeLimit` and `options`."
+                    )
+                self.options["MSK_DPAR_MIO_MAX_TIME"] = self.timeLimit
 
         def available(self):
             """True if Mosek is available."""
