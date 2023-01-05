@@ -192,7 +192,7 @@ class LpElement:
         return self
 
     def __bool__(self):
-        return 1
+        return True
 
     def __add__(self, other):
         return LpAffineExpression(self) + other
