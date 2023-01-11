@@ -263,8 +263,8 @@ class LpVariable(LpElement):
         self.varValue = None
         self.dj = None
         if cat == const.LpBinary:
-            self.lowBound = 0
-            self.upBound = 1
+            self._lowbound_original = self.lowBound = 0
+            self._upbound_original = self.upBound = 1
             self.cat = const.LpInteger
         # Code to add a variable to constraints for column based
         # modelling.
