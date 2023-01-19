@@ -567,7 +567,7 @@ class SCIP_PY(LpSolver):
                     if status == constants.LpStatusOptimal:
                         lp.assignStatus(status, constants.LpSolutionOptimal)
                     else :
-                        lp.assignStatus(status, constants.LpSolutionIntegerFeasible)
+                        lp.assignStatus(constants.LpStatusOptimal, constants.LpSolutionIntegerFeasible)
                 except: # No solution found
                     lp.assignStatus(status, constants.LpSolutionNoSolutionFound)
             else :
