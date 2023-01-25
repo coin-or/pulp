@@ -148,7 +148,7 @@ class SCIP_CMD(LpSolver_CMD):
         options = iter(self.options)
         for option in options:
             # identify cli options by a leading dash (-) and treat other options as file options
-            if option.starts_with("-"):
+            if option.startswith("-"):
                 # assumption: all cli options require an argument which is provided as a separate parameter
                 argument = next(options)
                 command.extend([option, argument])
