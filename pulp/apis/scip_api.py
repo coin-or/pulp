@@ -113,15 +113,9 @@ class SCIP_CMD(LpSolver_CMD):
         """True if the solver is available"""
         return self.executable(self.path)
 
-    def actualSolve(self, lp):
-        """Solve a well formulated lp problem"""
-        if not self.executable(self.path):
-            raise PulpSolverError("PuLP: cannot execute " + self.path)
-
-        tmpLp, tmpSol, tmpOptions = self.create_tmp_files(lp.name, "lp", "sol", "set")
-        lp.writeLP(tmpLp)
-
+    def _build_file_options(self) -> List[str]:
         file_options: List[str] = []
+
         if self.timeLimit is not None:
             file_options.append(f"limits/time={self.timeLimit}")
         if "gapRel" in self.optionsDict:
@@ -134,11 +128,12 @@ class SCIP_CMD(LpSolver_CMD):
             warnings.warn(
                 "SCIP can only run with a single thread - use FSCIP_CMD for a parallel version of SCIP"
             )
-        if not self.mip:
-            warnings.warn(f"{self.name} does not allow a problem to be relaxed")
 
-        command: List[str] = []
-        command.append(self.path)
+        return file_options
+
+    def _build_solve_command(self, file_options: List[str], tmpLp: str, tmpSol: str, tmpOptions: str) -> List[str]:
+        """Build the command to execute the solver, with all the provided options."""
+        command: List[str] = [self.path]
         command.extend(["-s", tmpOptions])
         if not self.msg:
             command.append("-q")
@@ -164,6 +159,22 @@ class SCIP_CMD(LpSolver_CMD):
         command.extend(["-c", "optimize"])
         command.extend(["-c", f'write solution "{tmpSol}"'])
         command.extend(["-c", "quit"])
+
+        return command
+
+    def actualSolve(self, lp):
+        """Solve a well formulated lp problem"""
+        if not self.executable(self.path):
+            raise PulpSolverError("PuLP: cannot execute " + self.path)
+
+        tmpLp, tmpSol, tmpOptions = self.create_tmp_files(lp.name, "lp", "sol", "set")
+        lp.writeLP(tmpLp)
+
+        file_options = self._build_file_options()
+        command = self._build_solve_command(file_options, tmpLp, tmpSol, tmpOptions)
+
+        if not self.mip:
+            warnings.warn(f"{self.name} does not allow a problem to be relaxed")
 
         with open(tmpOptions, "w") as options_file:
             options_file.write("\n".join(file_options))
