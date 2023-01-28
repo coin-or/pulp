@@ -113,7 +113,10 @@ class SCIP_CMD(LpSolver_CMD):
         """True if the solver is available"""
         return self.executable(self.path)
 
-    def _build_file_options(self) -> List[str]:
+    def _build_solve_command(self, tmpLp: str, tmpSol: str, tmpOptions: str) -> Tuple[List[str], List[str]]:
+        """Build the command to execute the solver, with all the provided options.
+
+        :returns: The command options and the file options."""
         file_options: List[str] = []
 
         if self.timeLimit is not None:
@@ -129,10 +132,6 @@ class SCIP_CMD(LpSolver_CMD):
                 "SCIP can only run with a single thread - use FSCIP_CMD for a parallel version of SCIP"
             )
 
-        return file_options
-
-    def _build_solve_command(self, file_options: List[str], tmpLp: str, tmpSol: str, tmpOptions: str) -> List[str]:
-        """Build the command to execute the solver, with all the provided options."""
         command: List[str] = [self.path]
         command.extend(["-s", tmpOptions])
         if not self.msg:
@@ -160,7 +159,7 @@ class SCIP_CMD(LpSolver_CMD):
         command.extend(["-c", f'write solution "{tmpSol}"'])
         command.extend(["-c", "quit"])
 
-        return command
+        return command, file_options
 
     def actualSolve(self, lp):
         """Solve a well formulated lp problem"""
@@ -170,8 +169,7 @@ class SCIP_CMD(LpSolver_CMD):
         tmpLp, tmpSol, tmpOptions = self.create_tmp_files(lp.name, "lp", "sol", "set")
         lp.writeLP(tmpLp)
 
-        file_options = self._build_file_options()
-        command = self._build_solve_command(file_options, tmpLp, tmpSol, tmpOptions)
+        command, file_options = self._build_solve_command(tmpLp, tmpSol, tmpOptions)
 
         if not self.mip:
             warnings.warn(f"{self.name} does not allow a problem to be relaxed")
