@@ -321,14 +321,10 @@ class FSCIP_CMD(LpSolver_CMD):
         if not self.mip:
             warnings.warn(f"{self.name} does not allow a problem to be relaxed")
 
-        file_parameters: List[str] = []
         # disable presolving in the LoadCoordinator to make sure a solution file is always written
-        file_parameters.append("NoPreprocessingInLC = TRUE")
+        file_parameters: List[str] = ["NoPreprocessingInLC = TRUE"]
 
-        command: List[str] = []
-        command.append(self.path)
-        command.append(tmpParams)
-        command.append(tmpLp)
+        command: List[str] = [self.path, tmpParams, tmpLp]
         command.extend(["-s", tmpOptions])
         command.extend(["-fsol", tmpSol])
         if not self.msg:
