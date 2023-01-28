@@ -114,9 +114,11 @@ class SCIP_CMD(LpSolver_CMD):
         return self.executable(self.path)
 
     def _build_solve_command(self, tmpLp: str, tmpSol: str, tmpOptions: str) -> Tuple[List[str], List[str]]:
-        """Build the command to execute the solver, with all the provided options.
+        """
+        Build the command to execute the solver, with all the provided options.
 
-        :returns: The command options and the file options."""
+        :returns: The command options and the file options.
+        """
         file_options: List[str] = []
 
         if self.timeLimit is not None:
@@ -301,16 +303,12 @@ class FSCIP_CMD(LpSolver_CMD):
         """True if the solver is available"""
         return self.executable(self.path)
 
-    def actualSolve(self, lp):
-        """Solve a well formulated lp problem"""
-        if not self.executable(self.path):
-            raise PulpSolverError("PuLP: cannot execute " + self.path)
+    def _build_solve_command(self, tmpLp: str, tmpSol: str, tmpOptions: str, tmpParams: str) -> Tuple[List[str], List[str], List[str]]:
+        """
+        Build the command to execute the solver, with all the provided options.
 
-        tmpLp, tmpSol, tmpOptions, tmpParams = self.create_tmp_files(
-            lp.name, "lp", "sol", "set", "prm"
-        )
-        lp.writeLP(tmpLp)
-
+        :returns: The command options, the file options and the file parameters.
+        """
         file_options: List[str] = []
         if self.timeLimit is not None:
             file_options.append(f"limits/time={self.timeLimit}")
@@ -360,6 +358,20 @@ class FSCIP_CMD(LpSolver_CMD):
                     file_options.append(option)
                 else:
                     file_parameters.append(option)
+
+        return command, file_options, file_parameters
+
+    def actualSolve(self, lp):
+        """Solve a well formulated lp problem"""
+        if not self.executable(self.path):
+            raise PulpSolverError("PuLP: cannot execute " + self.path)
+
+        tmpLp, tmpSol, tmpOptions, tmpParams = self.create_tmp_files(
+            lp.name, "lp", "sol", "set", "prm"
+        )
+        lp.writeLP(tmpLp)
+
+        command, file_options, file_parameters = self._build_solve_command(tmpLp, tmpSol, tmpOptions, tmpParams)
 
         # wipe the solution file since FSCIP does not overwrite it if no solution was found which causes parsing errors
         self.silent_remove(tmpSol)
