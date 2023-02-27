@@ -192,7 +192,7 @@ class LpElement:
         return self
 
     def __bool__(self):
-        return 1
+        return True
 
     def __add__(self, other):
         return LpAffineExpression(self) + other
@@ -613,7 +613,7 @@ class LpVariable(LpElement):
             return 1
 
     def __bool__(self):
-        return bool(self.varValue)
+        return bool(self.roundedValue())
 
     def addVariableToConstraints(self, e):
         """adds a variable to the constraints indicated by
