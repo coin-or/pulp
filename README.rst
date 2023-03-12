@@ -1,7 +1,14 @@
 pulp
 **************************
+
 .. image:: https://travis-ci.org/coin-or/pulp.svg?branch=master
     :target: https://travis-ci.org/coin-or/pulp
+.. image:: https://img.shields.io/pypi/v/pulp
+    :target: https://pypi.org/project/PuLP/
+    :alt: PyPI
+.. image:: https://img.shields.io/pypi/dm/pulp
+    :target: https://pypi.org/project/PuLP/
+    :alt: PyPI - Downloads
 
 PuLP is an LP modeler written in Python. PuLP can generate MPS or LP files and call GLPK_, COIN-OR CLP/`CBC`_, CPLEX_, GUROBI_, MOSEK_, XPRESS_, CHOCO_, MIPCL_, HiGHS_, SCIP_/FSCIP_ to solve linear problems.
 
