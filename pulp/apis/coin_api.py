@@ -155,7 +155,7 @@ class COIN_CMD(LpSolver_CMD):
             )
             cmds = " " + tmpMps + " "
             if lp.sense == constants.LpMaximize:
-                cmds += "max "
+                cmds += "-max "
         else:
             vs = lp.writeLP(tmpLp)
             # In the Lp we do not create new variable or constraint names:
@@ -164,18 +164,18 @@ class COIN_CMD(LpSolver_CMD):
             cmds = " " + tmpLp + " "
         if self.optionsDict.get("warmStart", False):
             self.writesol(tmpMst, lp, vs, variablesNames, constraintsNames)
-            cmds += f"mips {tmpMst} "
+            cmds += f"-mips {tmpMst} "
         if self.timeLimit is not None:
-            cmds += f"sec {self.timeLimit} "
+            cmds += f"-sec {self.timeLimit} "
         options = self.options + self.getOptions()
         for option in options:
-            cmds += option + " "
+            cmds += "-" + option + " "
         if self.mip:
-            cmds += "branch "
+            cmds += "-branch "
         else:
-            cmds += "initialSolve "
-        cmds += "printingOptions all "
-        cmds += "solution " + tmpSol + " "
+            cmds += "-initialSolve "
+        cmds += "-printingOptions all "
+        cmds += "-solution " + tmpSol + " "
         if self.msg:
             pipe = None
         else:
