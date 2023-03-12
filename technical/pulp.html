@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>pulp: Pulp classes &mdash; PuLP 2.7.0 documentation</title>
@@ -11,10 +11,8 @@
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
         <script src="../_static/sphinx_highlight.js"></script>
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -30,14 +28,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../index.html" class="icon icon-home"> PuLP
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            PuLP
           </a>
               <div class="version">
                 2.7
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -96,7 +98,7 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../index.html" class="icon icon-home"></a></li>
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="index.html">PuLP Internal Documentation</a></li>
       <li class="breadcrumb-item active"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp</span></code>:  Pulp classes</li>
       <li class="wy-breadcrumbs-aside">
@@ -111,10 +113,6 @@
   <section id="module-pulp">
 <span id="pulp-pulp-classes"></span><h1><a class="reference internal" href="#module-pulp" title="pulp"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp</span></code></a>:  Pulp classes<a class="headerlink" href="#module-pulp" title="Permalink to this heading"></a></h1>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#pulp.LpProblem" title="pulp.LpProblem"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LpProblem</span></code></a>([name, sense])</p></td>
 <td><p>An LP Problem</p></td>
@@ -150,13 +148,13 @@
 <p>Creates an LP Problem</p>
 <p>This function creates a new LP Problem  with the specified associated parameters</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> – name of the problem used in the output .lp file</p></li>
 <li><p><strong>sense</strong> – of the LP problem objective.                  Either <code class="xref py py-data docutils literal notranslate"><span class="pre">LpMinimize</span></code> (default)                 or <code class="xref py py-data docutils literal notranslate"><span class="pre">LpMaximize</span></code>.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>An LP Problem</p>
 </dd>
 </dl>
@@ -189,7 +187,7 @@ of the problem from the solver.</p>
 <p>This function changes the problem to make it suitable for solving
 then calls the solver.actualSolve() method to find the solution</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>solver</strong> – Optional: the specific solver to be used, defaults to the
 default solver.</p>
 </dd>
@@ -224,7 +222,7 @@ default solver.</p>
 <span class="sig-name descname"><span class="pre">setObjective</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpProblem.setObjective" title="Permalink to this definition"></a></dt>
 <dd><p>Sets the input variable as the objective function. Used in Columnwise Modelling</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>obj</strong> – the objective function of type <code class="xref py py-class docutils literal notranslate"><span class="pre">LpConstraintVar</span></code></p>
 </dd>
 </dl>
@@ -243,10 +241,10 @@ default solver.</p>
 <p>This function writes the specifications (objective function,
 constraints, variables) of the defined Lp problem to a file.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – the name of the file to be created.</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>variables</p>
 </dd>
 </dl>
@@ -263,7 +261,7 @@ constraints, variables) of the defined Lp problem to a file.</p>
 <span class="sig-name descname"><span class="pre">writeMPS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mpsSense</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_objsense</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpProblem.writeMPS" title="Permalink to this definition"></a></dt>
 <dd><p>Writes an mps files from the problem information</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – name of the file to write</p></li>
 <li><p><strong>mpsSense</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><em>int</em></a>) – </p></li>
@@ -271,7 +269,7 @@ constraints, variables) of the defined Lp problem to a file.</p>
 <li><p><strong>mip</strong> – variables and variable renames</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p></p>
 </dd>
 </dl>
@@ -288,14 +286,14 @@ constraints, variables) of the defined Lp problem to a file.</p>
 <span class="sig-name descname"><span class="pre">toJson</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpProblem.toJson" title="Permalink to this definition"></a></dt>
 <dd><p>Creates a json file from the LpProblem information</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – filename to write json</p></li>
 <li><p><strong>args</strong> – additional arguments for json function</p></li>
 <li><p><strong>kwargs</strong> – additional keyword arguments for json function</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>None</p>
 </dd>
 </dl>
@@ -306,13 +304,13 @@ constraints, variables) of the defined Lp problem to a file.</p>
 <em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">fromJson</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpProblem.fromJson" title="Permalink to this definition"></a></dt>
 <dd><p>Creates a new Lp Problem from a json file with information</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – json file name</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>a tuple with a dictionary of variables and an LpProblem</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>(dict, <a class="reference internal" href="#pulp.LpProblem" title="pulp.LpProblem"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpProblem</span></code></a>)</p>
 </dd>
 </dl>
@@ -323,10 +321,10 @@ constraints, variables) of the defined Lp problem to a file.</p>
 <span class="sig-name descname"><span class="pre">variables</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpProblem.variables" title="Permalink to this definition"></a></dt>
 <dd><p>Returns the problem variables</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>A list containing the problem variables</p>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>(list, <a class="reference internal" href="#pulp.LpVariable" title="pulp.LpVariable"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpVariable</span></code></a>)</p>
 </dd>
 </dl>
@@ -349,7 +347,7 @@ constraints, variables) of the defined Lp problem to a file.</p>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pulp.</span></span><span class="sig-name descname"><span class="pre">LpVariable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lowBound</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upBound</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Continuous'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">e</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable" title="Permalink to this definition"></a></dt>
 <dd><p>This class models an LP Variable with the specified associated parameters</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> – The name of the variable used in the output .lp file</p></li>
 <li><p><strong>lowBound</strong> – The lower bound on this variable’s range.
@@ -375,7 +373,7 @@ the LpConstraintVars in e</p>
 <em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">dicts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lowBound</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upBound</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Continuous'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indexStart</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indexs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable.dicts" title="Permalink to this definition"></a></dt>
 <dd><p>This function creates a dictionary of <a class="reference internal" href="#pulp.LpVariable" title="pulp.LpVariable"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpVariable</span></code></a> with the specified associated parameters.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> – The prefix to the name of each LP variable created</p></li>
 <li><p><strong>indices</strong> – A list of strings of the keys to the dictionary of LP
@@ -389,7 +387,7 @@ Continuous(default)</p></li>
 <li><p><strong>indexs</strong> – (deprecated) Replaced with <cite>indices</cite> parameter</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>A dictionary of <a class="reference internal" href="#pulp.LpVariable" title="pulp.LpVariable"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpVariable</span></code></a></p>
 </dd>
 </dl>
@@ -407,17 +405,17 @@ Continuous(default)</p></li>
 <em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">fromDict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dj</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">varValue</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable.fromDict" title="Permalink to this definition"></a></dt>
 <dd><p>Initializes a variable object from information that comes from a dictionary (kwargs)</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>dj</strong> – shadow price of the variable</p></li>
 <li><p><strong>varValue</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a>) – the value to set the variable</p></li>
 <li><p><strong>kwargs</strong> – arguments to initialize the variable</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>a <a class="reference internal" href="#pulp.LpVariable" title="pulp.LpVariable"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpVariable</span></code></a></p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>:LpVariable</p>
 </dd>
 </dl>
@@ -428,17 +426,17 @@ Continuous(default)</p></li>
 <em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dj</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">varValue</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable.from_dict" title="Permalink to this definition"></a></dt>
 <dd><p>Initializes a variable object from information that comes from a dictionary (kwargs)</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>dj</strong> – shadow price of the variable</p></li>
 <li><p><strong>varValue</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a>) – the value to set the variable</p></li>
 <li><p><strong>kwargs</strong> – arguments to initialize the variable</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>a <a class="reference internal" href="#pulp.LpVariable" title="pulp.LpVariable"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpVariable</span></code></a></p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>:LpVariable</p>
 </dd>
 </dl>
@@ -448,10 +446,10 @@ Continuous(default)</p></li>
 <dt class="sig sig-object py" id="pulp.LpVariable.isFixed">
 <span class="sig-name descname"><span class="pre">isFixed</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable.isFixed" title="Permalink to this definition"></a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>True if upBound and lowBound are the same</p>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)">bool</a></p>
 </dd>
 </dl>
@@ -463,16 +461,16 @@ Continuous(default)</p></li>
 <dd><p>sets the initial value of the variable to <cite>val</cite>
 May be used for warmStart a solver, if supported by the solver</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>val</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a>) – value to set to variable</p></li>
 <li><p><strong>check</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a>) – if True, we check if the value fits inside the variable bounds</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>True if the value was set</p>
 </dd>
-<dt class="field-odd">Raises</dt>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.11)"><strong>ValueError</strong></a> – if check=True and the value does not fit inside the bounds</p>
 </dd>
 </dl>
@@ -483,10 +481,10 @@ May be used for warmStart a solver, if supported by the solver</p>
 <span class="sig-name descname"><span class="pre">toDict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable.toDict" title="Permalink to this definition"></a></dt>
 <dd><p>Exports a variable into a dictionary with its relevant information</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>a dictionary with the variable information</p>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)">dict</a></p>
 </dd>
 </dl>
@@ -497,10 +495,10 @@ May be used for warmStart a solver, if supported by the solver</p>
 <span class="sig-name descname"><span class="pre">to_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable.to_dict" title="Permalink to this definition"></a></dt>
 <dd><p>Exports a variable into a dictionary with its relevant information</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>a dictionary with the variable information</p>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)">dict</a></p>
 </dd>
 </dl>
@@ -578,10 +576,10 @@ I])} = \sum_{i \in I} a_i x_i\)</span> where  (note the order):</p>
 <dd><p>exports the <a class="reference internal" href="#pulp.LpAffineExpression" title="pulp.LpAffineExpression"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpAffineExpression</span></code></a> into a list of dictionaries with the coefficients
 it does not export the constant</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>list of dictionaries with the coefficients</p>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)">list</a></p>
 </dd>
 </dl>
@@ -593,10 +591,10 @@ it does not export the constant</p>
 <dd><p>exports the <a class="reference internal" href="#pulp.LpAffineExpression" title="pulp.LpAffineExpression"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpAffineExpression</span></code></a> into a list of dictionaries with the coefficients
 it does not export the constant</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>list of dictionaries with the coefficients</p>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)">list</a></p>
 </dd>
 </dl>
@@ -610,7 +608,7 @@ it does not export the constant</p>
 <span class="sig-prename descclassname"><span class="pre">pulp.</span></span><span class="sig-name descname"><span class="pre">lpSum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vector</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.lpSum" title="Permalink to this definition"></a></dt>
 <dd><p>Calculate the sum of a list of linear expressions</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>vector</strong> – A list of linear expressions</p>
 </dd>
 </dl>
@@ -625,7 +623,7 @@ it does not export the constant</p>
 <dd><p>Bases: <a class="reference internal" href="#pulp.LpAffineExpression" title="pulp.pulp.LpAffineExpression"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpAffineExpression</span></code></a></p>
 <p>An LP constraint</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>e</strong> – an instance of <a class="reference internal" href="#pulp.LpAffineExpression" title="pulp.LpAffineExpression"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpAffineExpression</span></code></a></p></li>
 <li><p><strong>sense</strong> – one of <code class="xref py py-data docutils literal notranslate"><span class="pre">LpConstraintEQ</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">LpConstraintGE</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">LpConstraintLE</span></code> (0, 1, -1 respectively)</p></li>
@@ -657,10 +655,10 @@ it does not export the constant</p>
 <em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">fromDict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpConstraint.fromDict" title="Permalink to this definition"></a></dt>
 <dd><p>Initializes a constraint object from a dictionary with necessary information</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>_dict</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><em>dict</em></a>) – dictionary with data</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>a new <a class="reference internal" href="#pulp.LpConstraint" title="pulp.LpConstraint"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpConstraint</span></code></a></p>
 </dd>
 </dl>
@@ -671,10 +669,10 @@ it does not export the constant</p>
 <em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpConstraint.from_dict" title="Permalink to this definition"></a></dt>
 <dd><p>Initializes a constraint object from a dictionary with necessary information</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>_dict</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><em>dict</em></a>) – dictionary with data</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>a new <a class="reference internal" href="#pulp.LpConstraint" title="pulp.LpConstraint"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpConstraint</span></code></a></p>
 </dd>
 </dl>
@@ -692,7 +690,7 @@ it does not export the constant</p>
 <span class="sig-name descname"><span class="pre">toDict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpConstraint.toDict" title="Permalink to this definition"></a></dt>
 <dd><p>exports constraint information into a dictionary</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>dictionary with all the constraint information</p>
 </dd>
 </dl>
@@ -707,7 +705,7 @@ it does not export the constant</p>
 <p>Contains the subproblem generated by converting a fixed constraint
 <span class="math notranslate nohighlight">\(\sum_{i}a_i x_i = b\)</span> into an elastic constraint.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>constraint</strong> – The LpConstraint that the elastic constraint is based on</p></li>
 <li><p><strong>penalty</strong> – penalty applied for violation (+ve or -ve) of the constraints</p></li>
@@ -720,13 +718,13 @@ constraint violation that is free from penalty</p></li>
 <p>Creates an LP Problem</p>
 <p>This function creates a new LP Problem  with the specified associated parameters</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> – name of the problem used in the output .lp file</p></li>
 <li><p><strong>sense</strong> – of the LP problem objective.                  Either <code class="xref py py-data docutils literal notranslate"><span class="pre">LpMinimize</span></code> (default)                 or <code class="xref py py-data docutils literal notranslate"><span class="pre">LpMaximize</span></code>.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>An LP Problem</p>
 </dd>
 </dl>
@@ -785,13 +783,13 @@ rhs</p>
 <span class="sig-prename descclassname"><span class="pre">pulp.</span></span><span class="sig-name descname"><span class="pre">allcombinations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">orgset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.allcombinations" title="Permalink to this definition"></a></dt>
 <dd><p>returns all combinations of orgset with up to k items</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>orgset</strong> – the list to be iterated</p></li>
 <li><p><strong>k</strong> – the maxcardinality of the subsets</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>an iterator of the subsets</p>
 </dd>
 </dl>
@@ -825,13 +823,13 @@ rhs</p>
 <span class="sig-prename descclassname"><span class="pre">pulp.</span></span><span class="sig-name descname"><span class="pre">allpermutations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">orgset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.allpermutations" title="Permalink to this definition"></a></dt>
 <dd><p>returns all permutations of orgset with up to k items</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>orgset</strong> – the list to be iterated</p></li>
 <li><p><strong>k</strong> – the maxcardinality of the subsets</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>an iterator of the subsets</p>
 </dd>
 </dl>
