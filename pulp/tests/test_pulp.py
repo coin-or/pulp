@@ -1338,7 +1338,6 @@ class BaseSolverTest:
                     name="test", indexs=(customers, agents)
                 )
 
-
         def test_parse_cplex_mipopt_solution(self):
             """
             Ensures `readsol` can parse CPLEX mipopt solutions (see issue #508).

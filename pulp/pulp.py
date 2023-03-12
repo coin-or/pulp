@@ -323,7 +323,6 @@ class LpVariable(LpElement):
         indexStart=[],
         indexs=None,
     ):
-
         # Backwards Compatiblity with Deprecation Warning for indexs
         if indices is not None and indexs is not None:
             raise TypeError(
