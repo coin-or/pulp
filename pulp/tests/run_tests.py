@@ -1,6 +1,6 @@
 import unittest
 import pulp
-from pulp.tests import test_pulp, test_examples, test_apis
+from pulp.tests import test_pulp, test_examples
 
 
 def pulpTestAll(test_docs=False):
@@ -19,8 +19,6 @@ def get_test_suite(test_docs=False):
     # we get suite with all PuLP tests
     pulp_solver_tests = loader.loadTestsFromModule(test_pulp)
     suite_all.addTests(pulp_solver_tests)
-    pulp_api_tests = loader.loadTestsFromModule(test_apis)
-    suite_all.addTests(pulp_api_tests)
     # We add examples and docs tests
     if test_docs:
         docs_examples = loader.loadTestsFromTestCase(test_examples.Examples_DocsTests)

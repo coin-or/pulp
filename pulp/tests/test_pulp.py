@@ -1460,9 +1460,60 @@ class MOSEKTest(BaseSolverTest.PuLPTest):
 class SCIP_CMDTest(BaseSolverTest.PuLPTest):
     solveInst = SCIP_CMD
 
+    def testBuildSolveCommand(self):
+        """Test that the SCIP solve command is built correctly."""
+        scip = SCIP_CMD(options=["-c", "set presolving emphasis aggressive"])
+
+        command, file_options = scip._build_solve_command(
+            "tmpLp", "tmpSol", "tmpOptions"
+        )
+
+        assert command == [
+            scip.path,
+            "-s",
+            "tmpOptions",
+            "-c",
+            "set presolving emphasis aggressive",
+            "-c",
+            'read "tmpLp"',
+            "-c",
+            "optimize",
+            "-c",
+            'write solution "tmpSol"',
+            "-c",
+            "quit",
+        ], f"Command is not equal: {command}"
+
+        assert file_options == [], f"File options are not equal: {file_options}"
+
 
 class FSCIP_CMDTest(BaseSolverTest.PuLPTest):
     solveInst = FSCIP_CMD
+
+    def testBuildSolveCommand(self):
+        """Test that the FSCIP solve command is built correctly."""
+        fscip = FSCIP_CMD(options=["-sl", "foo"])
+
+        command, file_options, file_parameters = fscip._build_solve_command(
+            "tmpLp", "tmpSol", "tmpOptions", "tmpParams"
+        )
+
+        assert command == [
+            fscip.path,
+            "tmpParams",
+            "tmpLp",
+            "-s",
+            "tmpOptions",
+            "-fsol",
+            "tmpSol",
+            "-sl",
+            "foo",
+        ], f"Command is not equal: {command}"
+
+        assert file_options == [], f"File options are not equal: {file_options}"
+        assert file_parameters == [
+            "NoPreprocessingInLC = TRUE"
+        ], f"File parameters are not equal: {file_parameters}"
 
 
 class SCIP_PYTest(BaseSolverTest.PuLPTest):
