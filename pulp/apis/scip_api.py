@@ -676,7 +676,7 @@ class SCIP_PY(LpSolver):
             ##################################################
             # add warm start
             ##################################################
-            if self.optionsDict["warmStart"]:
+            if self.optionsDict.get("warmStart", False):
                 s = lp.solverModel.createPartialSol()
                 for var in lp.variables():
                     if var.varValue is not None: # Warm start variables having an initial value
@@ -711,12 +711,3 @@ class SCIP_PY(LpSolver):
             raise PulpSolverError(
                 f"The {self.name} solver does not implement resolving"
             )
-            
-        def getGap(self, lp):
-            """
-            Return SCIP's gap (in %), i.e. |(primalbound - dualbound)/min(|primalbound|,|dualbound|)|.
-            """
-            try:
-                return lp.solverModel.getGap() * 100
-            except AttributeError: # lp has no attribute solverModel, meaning self still has not optimized lp
-                raise PulpSolverError("This method can only be called after the optimization.")
