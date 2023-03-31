@@ -261,7 +261,7 @@ class HiGHS(LpSolver):
             *args,
             **solverParams,
         ):
-            super().__init__(mip, msg, timeLimit, gapRel=gapRel, *args, **solverParams)
+            super().__init__(mip, msg, timeLimit=timeLimit, gapRel=gapRel, *args, **solverParams)
 
         def available(self):
             return True
@@ -274,6 +274,9 @@ class HiGHS(LpSolver):
 
             gapRel = self.optionsDict.get("gapRel", 0)
             lp.solverModel.setOptionValue("mip_rel_gap", gapRel)
+
+            if self.timeLimit is not None:
+                lp.solverModel.setOptionValue("time_limit", float(self.timeLimit))
 
             inf = highspy.kHighsInf
 
@@ -342,8 +345,9 @@ class HiGHS(LpSolver):
                 HighsModelStatus.kUnknown: constants.LpStatusNotSolved,
             }
 
+            col_values = list(solution.col_value)
             for var in lp.variables():
-                var.varValue = solution.col_value[var.index]
+                var.varValue = col_values[var.index]
 
             return status_dict[status]
 
@@ -355,6 +359,7 @@ class HiGHS(LpSolver):
 
             for var in lp.variables():
                 var.modified = False
+                
             for constraint in lp.constraints.values():
                 constraint.modifier = False
 
