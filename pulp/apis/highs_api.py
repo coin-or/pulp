@@ -254,14 +254,11 @@ class HiGHS(LpSolver):
             mip=True,
             msg=True,
             timeLimit=None,
-            epgap=None,
-            gapRel=None,
             warmStart=False,
             logPath=None,
-            *args,
             **solverParams,
         ):
-            super().__init__(mip, msg, timeLimit=timeLimit, gapRel=gapRel, *args, **solverParams)
+            super().__init__(mip, msg, timeLimit=timeLimit, **solverParams)
 
         def available(self):
             return True
@@ -359,7 +356,7 @@ class HiGHS(LpSolver):
 
             for var in lp.variables():
                 var.modified = False
-                
+
             for constraint in lp.constraints.values():
                 constraint.modifier = False
 
