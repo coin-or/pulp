@@ -129,6 +129,10 @@ def initialize(filename, operating_system="linux", arch="64"):
         fscip_path = config.get("locations", "FscipPath")
     except configparser.Error:
         fscip_path = "fscip"
+    try:
+        pscip_path = config.get("locations", "PscipPath")
+    except configparser.Error:
+        pscip_path = "parascip"
     for i, path in enumerate(coinMP_path):
         if not os.path.dirname(path):
             # if no pathname is supplied assume the file is in the same directory
@@ -144,6 +148,7 @@ def initialize(filename, operating_system="linux", arch="64"):
         pulp_cbc_path,
         scip_path,
         fscip_path,
+        pscip_path,
     )
 
 
@@ -179,6 +184,7 @@ config_filename = os.path.normpath(os.path.join(DIRNAME, "..", PULPCFGFILE))
     pulp_cbc_path,
     scip_path,
     fscip_path,
+    pscip_path,
 ) = initialize(config_filename, operating_system, arch)
 
 

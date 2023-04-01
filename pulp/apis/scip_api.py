@@ -30,7 +30,7 @@ import sys
 import warnings
 
 from .core import LpSolver_CMD, LpSolver, subprocess, PulpSolverError
-from .core import scip_path, fscip_path
+from .core import scip_path, fscip_path, pscip_path
 from .. import constants
 
 from typing import Dict, List, Optional, Tuple
@@ -452,6 +452,168 @@ class FSCIP_CMD(LpSolver_CMD):
 
 
 FSCIP = FSCIP_CMD
+
+
+class PSCIP_CMD(FSCIP_CMD):
+    """The multi-process ParaSCIP version of the SCIP optimization solver"""
+
+    name = "PSCIP_CMD"
+
+    def __init__(
+        self,
+        path=None,
+        mip=True,
+        keepFiles=False,
+        msg=True,
+        options=None,
+        timeLimit=None,
+        gapRel=None,
+        gapAbs=None,
+        maxNodes=None,
+        processes=None,
+        hostfile=None,
+        logPath=None,
+    ):
+        """
+        :param bool msg: if False, no log is shown
+        :param bool mip: if False, assume LP even if integer variables
+        :param list options: list of additional options to pass to solver
+        :param bool keepFiles: if True, files are saved in the current directory and not deleted after solving
+        :param str path: path to the solver binary
+        :param float timeLimit: maximum time for solver (in seconds)
+        :param float gapRel: relative gap tolerance for the solver to stop (in fraction)
+        :param float gapAbs: absolute gap tolerance for the solver to stop
+        :param int maxNodes: max number of nodes during branching. Stops the solving when reached.
+        :param int processes: sets the maximum number of processes
+        :param str logPath: path to the log file
+        """
+        FSCIP_CMD.__init__(
+            self,
+            mip=mip,
+            msg=msg,
+            options=options,
+            path=path,
+            keepFiles=keepFiles,
+            timeLimit=timeLimit,
+            gapRel=gapRel,
+            gapAbs=gapAbs,
+            maxNodes=maxNodes,
+            logPath=logPath,
+        )
+        if processes is not None:
+            self.optionsDict["processes"] = processes
+        if hostfile is not None:
+            self.optionsDict["hostfile"] = hostfile
+
+    PSCIP_STATUSES = {
+        "No Solution": constants.LpStatusNotSolved,
+        "Final Solution": constants.LpStatusOptimal,
+    }
+    NO_SOLUTION_STATUSES = {
+        constants.LpStatusInfeasible,
+        constants.LpStatusUnbounded,
+        constants.LpStatusNotSolved,
+    }
+
+    def defaultPath(self):
+        return self.executableExtension(pscip_path)
+
+    def actualSolve(self, lp):
+        """Solve a well formulated lp problem"""
+        if not self.executable(self.path):
+            raise PulpSolverError("PuLP: cannot execute " + self.path)
+
+        tmpLp, tmpSol, tmpOptions, tmpParams = self.create_tmp_files(
+            lp.name, "lp", "sol", "set", "prm"
+        )
+        lp.writeLP(tmpLp)
+
+        file_options: List[str] = []
+        if self.timeLimit is not None:
+            file_options.append(f"limits/time={self.timeLimit}")
+        if "gapRel" in self.optionsDict:
+            file_options.append(f"limits/gap={self.optionsDict['gapRel']}")
+        if "gapAbs" in self.optionsDict:
+            file_options.append(f"limits/absgap={self.optionsDict['gapAbs']}")
+        if "maxNodes" in self.optionsDict:
+            file_options.append(f"limits/nodes={self.optionsDict['maxNodes']}")
+        if not self.mip:
+            warnings.warn(f"{self.name} does not allow a problem to be relaxed")
+
+        file_parameters: List[str] = []
+        # disable presolving in the LoadCoordinator to make sure a solution file is always written
+        file_parameters.append("NoPreprocessingInLC = TRUE")
+
+        command: List[str] = []
+        command.append("mpirun")
+        if "processes" in self.optionsDict:
+            command.extend(["-np", f"{self.optionsDict['processes']}"])
+        if "hostfile" in self.optionsDict:
+            command.extend(["--hostfile", f"{self.optionsDict['hostfile']}"])
+        command.append(self.path)
+        command.append(tmpParams)
+        command.append(tmpLp)
+        command.extend(["-s", tmpOptions])
+        command.extend(["-fsol", tmpSol])
+        if not self.msg:
+            command.append("-q")
+        if "logPath" in self.optionsDict:
+            command.extend(["-l", self.optionsDict["logPath"]])
+
+        options = iter(self.options)
+        for option in options:
+            # identify cli options by a leading dash (-) and treat other options as file options
+            if option.starts_with("-"):
+                # assumption: all cli options require an argument which is provided as a separate parameter
+                argument = next(options)
+                command.extend([option, argument])
+            else:
+                # assumption: all file options contain a slash (/)
+                is_file_options = "/" in option
+
+                # assumption: all file options and parameters require an argument which is provided after the equal sign (=)
+                if "=" not in option:
+                    argument = next(options)
+                    option += f"={argument}"
+
+                if is_file_options:
+                    file_options.append(option)
+                else:
+                    file_parameters.append(option)
+
+        # wipe the solution file since FSCIP does not overwrite it if no solution was found which causes parsing errors
+        self.silent_remove(tmpSol)
+        with open(tmpOptions, "w") as options_file:
+            options_file.write("\n".join(file_options))
+        with open(tmpParams, "w") as parameters_file:
+            parameters_file.write("\n".join(file_parameters))
+        try:
+            subprocess.check_call(
+                command,
+                stdout=sys.stdout if self.msg else subprocess.DEVNULL,
+                stderr=sys.stderr if self.msg else subprocess.DEVNULL,
+            )
+        except subprocess.CalledProcessError as e:
+            print(f"CalledProcessError: {e}")
+        except Exception as e:
+            print(f"Error: {e}")
+            raise e
+
+        if not os.path.exists(tmpSol):
+            raise PulpSolverError("PuLP: Error while executing " + self.path)
+        status, values = self.readsol(tmpSol)
+        # Make sure to add back in any 0-valued variables SCIP leaves out.
+        finalVals = {}
+        for v in lp.variables():
+            finalVals[v.name] = values.get(v.name, 0.0)
+
+        lp.assignVarsVals(finalVals)
+        lp.assignStatus(status)
+        self.delete_tmp_files(tmpLp, tmpSol, tmpOptions, tmpParams)
+        return status
+
+
+PSCIP = PSCIP_CMD
 
 
 class SCIP_PY(LpSolver):
