@@ -275,6 +275,10 @@ class HiGHS(LpSolver):
             if self.timeLimit is not None:
                 lp.solverModel.setOptionValue("time_limit", float(self.timeLimit))
 
+            # set remaining parameter values
+            for key, value in self.optionsDict.items():
+                lp.solverModel.setOptionValue(key, value)
+
             inf = highspy.kHighsInf
 
             obj_mult = -1 if lp.sense == constants.LpMaximize else 1
