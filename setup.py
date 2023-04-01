@@ -13,7 +13,7 @@ version_dict = {}
 exec(open("pulp/constants.py").read(), version_dict)
 VERSION = version_dict["VERSION"]
 
-with open(readme_name, "r") as fh:
+with open(readme_name) as fh:
     long_description = fh.read()
 
 setup(
@@ -35,6 +35,7 @@ setup(
         "Programming Language :: Python",
         "Topic :: Scientific/Engineering :: Mathematics",
     ],
+    python_requires=">=3.7",
     # need the cbc directories here as the executable bit is set
     packages=[
         "pulp",

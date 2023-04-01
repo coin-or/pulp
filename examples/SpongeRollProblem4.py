@@ -63,7 +63,7 @@ def makePatterns(totalRollLength, lenOpts):
 
     # The different cutting lengths are printed, and the number of each roll of that length in each
     # pattern is printed below. This is so the user can see what each pattern contains.
-    print("Lens: %s" % lenOpts)
+    print(f"Lens: {lenOpts}")
     for i in Patterns:
         print(i, " = %s" % [i.lengthsdict[j] for j in lenOpts])
 
@@ -128,7 +128,7 @@ for j in Pattern.lenOpts:
     prob += (
         lpSum([pattVars[i] * i.lengthsdict[j] for i in Patterns]) - surplusVars[j]
         >= rollDemand[j],
-        "Ensuring enough %s cm rolls" % j,
+        f"Ensuring enough {j} cm rolls",
     )
 
 # The problem data is written to an .lp file

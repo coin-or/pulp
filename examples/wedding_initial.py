@@ -42,7 +42,7 @@ seating_model += (
 for guest in guests:
     seating_model += (
         pulp.lpSum([x[table] for table in possible_tables if guest in table]) == 1,
-        "Must_seat_%s" % guest,
+        f"Must_seat_{guest}",
     )
 
 # I've taken the optimal solution from a previous solving. x is the variable dictionary.
@@ -64,7 +64,7 @@ solver = pulp.PULP_CBC_CMD(msg=True, warmStart=True)
 seating_model.solve(solver)
 
 
-print("The choosen tables are out of a total of %s:" % len(possible_tables))
+print(f"The choosen tables are out of a total of {len(possible_tables)}:")
 for table in possible_tables:
     if x[table].value() == 1.0:
         print(table)

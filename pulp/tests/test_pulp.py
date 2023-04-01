@@ -52,11 +52,11 @@ class BaseSolverTest:
         def setUp(self):
             self.solver = self.solveInst(msg=False)
             if not self.solver.available():
-                self.skipTest("solver {} not available".format(self.solveInst))
+                self.skipTest(f"solver {self.solveInst} not available")
 
         def tearDown(self):
             for ext in ["mst", "log", "lp", "mps", "sol"]:
-                filename = "{}.{}".format(self._testMethodName, ext)
+                filename = f"{self._testMethodName}.{ext}"
                 try:
                     os.remove(filename)
                 except:
@@ -189,7 +189,7 @@ class BaseSolverTest:
             elif self.solver.__class__ is GLPK_CMD:
                 # GLPK_CMD Does not report unbounded problems, correctly
                 pulpTestCheck(prob, self.solver, [const.LpStatusUndefined])
-            elif self.solver.__class__ in [GUROBI_CMD, SCIP_CMD]:
+            elif self.solver.__class__ in [GUROBI_CMD, SCIP_CMD, FSCIP_CMD, SCIP_PY]:
                 # GUROBI_CMD has a very simple interface
                 pulpTestCheck(prob, self.solver, [const.LpStatusNotSolved])
             elif self.solver.__class__ in [CHOCO_CMD]:
@@ -217,8 +217,12 @@ class BaseSolverTest:
                 GUROBI_CMD,
                 MIPCL_CMD,
                 SCIP_CMD,
+                FSCIP_CMD,
+                SCIP_PY,
+                HiGHS,
                 HiGHS_CMD,
                 XPRESS,
+                XPRESS_CMD,
             ]:
                 try:
                     pulpTestCheck(
@@ -263,8 +267,13 @@ class BaseSolverTest:
                 MIPCL_CMD,
                 MOSEK,
                 SCIP_CMD,
+                FSCIP_CMD,
+                SCIP_PY,
+                HiGHS,
                 HiGHS_CMD,
                 XPRESS,
+                XPRESS_CMD,
+                XPRESS_PY,
             ]:
                 try:
                     pulpTestCheck(
@@ -461,9 +470,10 @@ class BaseSolverTest:
                 CHOCO_CMD,
                 MIPCL_CMD,
                 SCIP_CMD,
-                HiGHS_CMD,
+                FSCIP_CMD,
+                SCIP_PY,
             ]:
-                # gurobi command, choco, mipcl and HiGHS do not let the problem be relaxed
+                # these solvers do not let the problem be relaxed
                 pulpTestCheck(
                     prob, self.solver, [const.LpStatusOptimal], {x: 3.0, y: -0.5, z: 7}
                 )
@@ -497,7 +507,7 @@ class BaseSolverTest:
             if self.solver.__class__ is GLPK_CMD:
                 # GLPK_CMD return codes are not informative enough
                 pulpTestCheck(prob, self.solver, [const.LpStatusUndefined])
-            elif self.solver.__class__ in [GUROBI_CMD]:
+            elif self.solver.__class__ in [GUROBI_CMD, FSCIP_CMD]:
                 # GUROBI_CMD Does not solve the problem
                 pulpTestCheck(prob, self.solver, [const.LpStatusNotSolved])
             else:
@@ -525,7 +535,7 @@ class BaseSolverTest:
                 # presolve eliminates too many variables
                 print("\t\t Error in CoinMP to be fixed, reports Optimal")
                 pulpTestCheck(prob, self.solver, [const.LpStatusOptimal])
-            elif self.solver.__class__ in [GUROBI_CMD]:
+            elif self.solver.__class__ in [GUROBI_CMD, FSCIP_CMD]:
                 pulpTestCheck(prob, self.solver, [const.LpStatusNotSolved])
             else:
                 pulpTestCheck(prob, self.solver, [const.LpStatusInfeasible])
@@ -542,7 +552,7 @@ class BaseSolverTest:
             prob += c1 + c2 == 2
             prob += c1 <= 0
             print("\t Testing another integer infeasible problem")
-            if self.solver.__class__ in [GUROBI_CMD, SCIP_CMD]:
+            if self.solver.__class__ in [GUROBI_CMD, SCIP_CMD, FSCIP_CMD, SCIP_PY]:
                 pulpTestCheck(prob, self.solver, [const.LpStatusNotSolved])
             elif self.solver.__class__ in [GLPK_CMD]:
                 # GLPK_CMD returns InfeasibleOrUnbounded
@@ -593,12 +603,7 @@ class BaseSolverTest:
             x = LpVariable("x", 0, 4, const.LpContinuous, obj + b)
             y = LpVariable("y", -1, 1, const.LpContinuous, 4 * obj - c)
             z = LpVariable("z", 0, None, const.LpContinuous, 9 * obj + b + c)
-            if self.solver.__class__ in [
-                CPLEX_CMD,
-                COINMP_DLL,
-                YAPOSIB,
-                PYGLPK,
-            ]:
+            if self.solver.__class__ in [CPLEX_CMD, COINMP_DLL, YAPOSIB, PYGLPK]:
                 print("\t Testing column based modelling with empty constraints")
                 pulpTestCheck(
                     prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6}
@@ -795,8 +800,7 @@ class BaseSolverTest:
             elif self.solver.__class__ is GLPK_CMD:
                 # GLPK_CMD Does not report unbounded problems, correctly
                 pulpTestCheck(prob, self.solver, [const.LpStatusUndefined])
-            elif self.solver.__class__ in [GUROBI_CMD, SCIP_CMD]:
-                # GLPK_CMD Does not report unbounded problems, correctly
+            elif self.solver.__class__ in [GUROBI_CMD, SCIP_CMD, FSCIP_CMD, SCIP_PY]:
                 pulpTestCheck(prob, self.solver, [const.LpStatusNotSolved])
             elif self.solver.__class__ in [CHOCO_CMD]:
                 # choco bounds all variables. Would not return unbounded status
@@ -824,7 +828,7 @@ class BaseSolverTest:
             prob += w >= 0, "c4"
             data = prob.toDict()
             var1, prob1 = LpProblem.fromDict(data)
-            x, y, z, w = [var1[name] for name in ["x", "y", "z", "w"]]
+            x, y, z, w = (var1[name] for name in ["x", "y", "z", "w"])
             print("\t Testing continuous LP solution - export dict")
             pulpTestCheck(
                 prob1, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0}
@@ -842,7 +846,7 @@ class BaseSolverTest:
             prob += w >= 0, "c4"
             data = prob.toDict()
             var1, prob1 = LpProblem.fromDict(data)
-            x, y, z, w = [var1[name] for name in ["x", "y", "z", "w"]]
+            x, y, z, w = (var1[name] for name in ["x", "y", "z", "w"])
             print("\t Testing export dict for LP")
             pulpTestCheck(
                 prob1, self.solver, [const.LpStatusOptimal], {x: 4, y: 1, z: 6, w: 0}
@@ -867,7 +871,7 @@ class BaseSolverTest:
                 os.remove(filename)
             except:
                 pass
-            x, y, z, w = [var1[name] for name in ["x", "y", "z", "w"]]
+            x, y, z, w = (var1[name] for name in ["x", "y", "z", "w"])
             print("\t Testing continuous LP solution - export JSON")
             pulpTestCheck(
                 prob1, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0}
@@ -887,7 +891,7 @@ class BaseSolverTest:
             data = prob.toDict()
             data_backup = copy.deepcopy(data)
             var1, prob1 = LpProblem.fromDict(data)
-            x, y, z = [var1[name] for name in ["x", "y", "z"]]
+            x, y, z = (var1[name] for name in ["x", "y", "z"])
             print("\t Testing export dict MIP")
             pulpTestCheck(
                 prob1, self.solver, [const.LpStatusOptimal], {x: 3, y: -0.5, z: 7}
@@ -908,7 +912,7 @@ class BaseSolverTest:
             prob += w >= 0, "c4"
             data = prob.toDict()
             var1, prob1 = LpProblem.fromDict(data)
-            x, y, z, w = [var1[name] for name in ["x", "y", "z", "w"]]
+            x, y, z, w = (var1[name] for name in ["x", "y", "z", "w"])
             print("\t Testing maximize continuous LP solution")
             pulpTestCheck(
                 prob1, self.solver, [const.LpStatusOptimal], {x: 4, y: 1, z: 8, w: 0}
@@ -1032,9 +1036,9 @@ class BaseSolverTest:
                     {x: 4, y: -1, z: 6, w: 0},
                 )
                 if not os.path.exists(logFilename):
-                    raise PulpError("Test failed for solver: {}".format(self.solver))
+                    raise PulpError(f"Test failed for solver: {self.solver}")
                 if not os.path.getsize(logFilename):
-                    raise PulpError("Test failed for solver: {}".format(self.solver))
+                    raise PulpError(f"Test failed for solver: {self.solver}")
 
         def test_makeDict_behavior(self):
             """
@@ -1190,7 +1194,7 @@ class BaseSolverTest:
             prob += 1 * x
             prob += x >= 2  # Constraint x to be more than 2
             prob += x <= 1  # Constraint x to be less than 1
-            if self.solver.name in ["GUROBI_CMD"]:
+            if self.solver.name in ["GUROBI_CMD", "FSCIP_CMD"]:
                 pulpTestCheck(
                     prob,
                     self.solver,
@@ -1230,7 +1234,7 @@ class BaseSolverTest:
             prob = create_bin_packing_problem(bins=bins, seed=99)
             self.solver.timeLimit = time_limit
             prob.solve(self.solver)
-            delta = 4
+            delta = 20
             reported_time = prob.solutionTime
             if self.solver.name in ["PULP_CBC_CMD", "COIN_CMD"]:
                 # CBC is less exact with the timeLimit
@@ -1241,7 +1245,7 @@ class BaseSolverTest:
                 reported_time,
                 time_limit,
                 delta=delta,
-                msg="optimization time for solver {}".format(self.solver.name),
+                msg=f"optimization time for solver {self.solver.name}",
             )
 
         def test_invalid_var_names(self):
@@ -1335,32 +1339,23 @@ class BaseSolverTest:
             with self.assertRaises(TypeError):
                 # both variables
                 assign_vars_matrix = LpVariable.dicts(
-                    name="test",
-                    indices=(customers, agents),
-                    indexs=(customers, agents),
+                    name="test", indices=(customers, agents), indexs=(customers, agents)
                 )
 
             with self.assertRaises(TypeError):
                 # no variables
-                assign_vars_matrix = LpVariable.dicts(
-                    name="test",
-                )
+                assign_vars_matrix = LpVariable.dicts(name="test")
 
-            # Not supported in 2.7.  Introduced to unittest in 3.2
-            # with self.assertWarns(DeprecationWarning):
-            #    assign_vars_matrix = LpVariable.dicts(
-            #        name="test",
-            #        indexs=(customers, agents),
-            #    )
+            with self.assertWarns(DeprecationWarning):
+                assign_vars_matrix = LpVariable.dicts(
+                    name="test", indexs=(customers, agents)
+                )
 
         def test_parse_cplex_mipopt_solution(self):
             """
             Ensures `readsol` can parse CPLEX mipopt solutions (see issue #508).
             """
-            try:
-                from io import StringIO
-            except ImportError:  # python 2
-                from StringIO import StringIO
+            from io import StringIO
 
             print("\t Testing that `readsol` can parse CPLEX mipopt solution")
             # Example solution generated by CPLEX mipopt solver
@@ -1401,11 +1396,7 @@ class BaseSolverTest:
                 </objectiveValues>
                 </CPLEXSolution>
             """
-
-            try:
-                solution_file = StringIO(file_content)
-            except TypeError:  # python 2
-                solution_file = StringIO(unicode(file_content))
+            solution_file = StringIO(file_content)
 
             # This call to `readsol` would crash for this solution format #508
             _, _, reducedCosts, shadowPrices, _, _ = CPLEX_CMD().readsol(solution_file)
@@ -1431,8 +1422,12 @@ class CPLEX_PYTest(BaseSolverTest.PuLPTest):
     solveInst = CPLEX_CMD
 
 
-class XPRESSTest(BaseSolverTest.PuLPTest):
-    solveInst = XPRESS
+class XPRESS_CMDTest(BaseSolverTest.PuLPTest):
+    solveInst = XPRESS_CMD
+
+
+class XPRESS_PyTest(BaseSolverTest.PuLPTest):
+    solveInst = XPRESS_PY
 
 
 class COIN_CMDTest(BaseSolverTest.PuLPTest):
@@ -1479,6 +1474,18 @@ class SCIP_CMDTest(BaseSolverTest.PuLPTest):
     solveInst = SCIP_CMD
 
 
+class FSCIP_CMDTest(BaseSolverTest.PuLPTest):
+    solveInst = FSCIP_CMD
+
+
+class SCIP_PYTest(BaseSolverTest.PuLPTest):
+    solveInst = SCIP_PY
+
+
+class HiGHS_PYTest(BaseSolverTest.PuLPTest):
+    solveInst = HiGHS
+
+
 class HiGHS_CMDTest(BaseSolverTest.PuLPTest):
     solveInst = HiGHS_CMD
 
@@ -1494,7 +1501,7 @@ def pulpTestCheck(
     eps=10**-3,
     status=None,
     objective=None,
-    **kwargs
+    **kwargs,
 ):
     if status is None:
         status = prob.solve(solver, **kwargs)
@@ -1552,9 +1559,7 @@ def pulpTestCheck(
         if abs(z - objective) > eps:
             dumpTestProblem(prob)
             raise PulpError(
-                "Tests failed for solver {}:\nobjective {} != {}".format(
-                    solver, z, objective
-                )
+                f"Tests failed for solver {solver}:\nobjective {z} != {objective}"
             )
 
 

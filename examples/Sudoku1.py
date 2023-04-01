@@ -75,7 +75,7 @@ input_data = [
     (5, 8, 9),
 ]
 
-for (v, r, c) in input_data:
+for v, r, c in input_data:
     prob += choices[v][r][c] == 1
 
 # The problem data is written to an .lp file

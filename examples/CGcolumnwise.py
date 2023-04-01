@@ -34,7 +34,6 @@ class Pattern:
 
 
 def createMaster():
-
     rollData = {  # Length Demand SalePrice
         "5": [150, 0.25],
         "7": [200, 0.33],
@@ -73,12 +72,10 @@ def createMaster():
 
 
 def addPatterns(obj, constraints, newPatterns):
-
     # A list called Patterns is created to contain all the Pattern class
     # objects created in this function call
     Patterns = []
     for i in newPatterns:
-
         # The new patterns are checked to see that their length does not exceed
         # the total roll length
         lsum = 0
@@ -109,7 +106,6 @@ def addPatterns(obj, constraints, newPatterns):
 
 
 def masterSolve(prob, relax=True):
-
     # Unrelaxes the Integer Constraint
     if not relax:
         for v in prob.variables():
@@ -135,7 +131,6 @@ def masterSolve(prob, relax=True):
 
 
 def subSolve(duals):
-
     # The variable 'prob' is created
     prob = LpProblem("SubProb", LpMinimize)
 

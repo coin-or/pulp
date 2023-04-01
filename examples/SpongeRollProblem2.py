@@ -60,7 +60,7 @@ for i in LenOpts:
     prob += (
         lpSum([pattVars[j] * patterns[i][j] for j in PatternNames]) - surplusVars[i]
         >= rollDemand[i],
-        "Ensuring enough %s cm rolls" % i,
+        f"Ensuring enough {i} cm rolls",
     )
 
 # The problem data is written to an .lp file
