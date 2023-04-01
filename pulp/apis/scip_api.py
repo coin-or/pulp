@@ -113,7 +113,9 @@ class SCIP_CMD(LpSolver_CMD):
         """True if the solver is available"""
         return self.executable(self.path)
 
-    def _build_solve_command(self, tmpLp: str, tmpSol: str, tmpOptions: str) -> Tuple[List[str], List[str]]:
+    def _build_solve_command(
+        self, tmpLp: str, tmpSol: str, tmpOptions: str
+    ) -> Tuple[List[str], List[str]]:
         """
         Build the command to execute the solver, with all the provided options.
 
@@ -197,7 +199,6 @@ class SCIP_CMD(LpSolver_CMD):
     def readsol(filename):
         """Read a SCIP solution file"""
         with open(filename) as f:
-
             # First line must contain 'solution status: <something>'
             try:
                 line = f.readline()
@@ -303,7 +304,9 @@ class FSCIP_CMD(LpSolver_CMD):
         """True if the solver is available"""
         return self.executable(self.path)
 
-    def _build_solve_command(self, tmpLp: str, tmpSol: str, tmpOptions: str, tmpParams: str) -> Tuple[List[str], List[str], List[str]]:
+    def _build_solve_command(
+        self, tmpLp: str, tmpSol: str, tmpOptions: str, tmpParams: str
+    ) -> Tuple[List[str], List[str], List[str]]:
         """
         Build the command to execute the solver, with all the provided options.
 
@@ -367,7 +370,9 @@ class FSCIP_CMD(LpSolver_CMD):
         )
         lp.writeLP(tmpLp)
 
-        command, file_options, file_parameters = self._build_solve_command(tmpLp, tmpSol, tmpOptions, tmpParams)
+        command, file_options, file_parameters = self._build_solve_command(
+            tmpLp, tmpSol, tmpOptions, tmpParams
+        )
 
         # wipe the solution file since FSCIP does not overwrite it if no solution was found which causes parsing errors
         self.silent_remove(tmpSol)
@@ -437,7 +442,6 @@ class FSCIP_CMD(LpSolver_CMD):
     def readsol(filename):
         """Read a FSCIP solution file"""
         with open(filename) as file:
-
             # First line must contain a solution status
             status_line = file.readline()
             status = FSCIP_CMD.parse_status(status_line)
@@ -486,7 +490,6 @@ class SCIP_PY(LpSolver):
     name = "SCIP_PY"
 
     try:
-
         global scip
         import pyscipopt as scip
 
