@@ -655,8 +655,6 @@ class LpVariable(LpElement):
         changes lower bound and upper bound to the initial value if exists.
         :return: None
         """
-        self._lowbound_unfix = self.lowBound
-        self._upbound_unfix = self.upBound
         val = self.varValue
         if val is not None:
             self.bounds(val, val)
