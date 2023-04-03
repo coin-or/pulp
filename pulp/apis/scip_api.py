@@ -186,7 +186,6 @@ class SCIP_CMD(LpSolver_CMD):
     def readsol(filename):
         """Read a SCIP solution file"""
         with open(filename) as f:
-
             # First line must contain 'solution status: <something>'
             try:
                 line = f.readline()
@@ -420,7 +419,6 @@ class FSCIP_CMD(LpSolver_CMD):
     def readsol(filename):
         """Read a FSCIP solution file"""
         with open(filename) as file:
-
             # First line must contain a solution status
             status_line = file.readline()
             status = FSCIP_CMD.parse_status(status_line)
@@ -469,7 +467,6 @@ class SCIP_PY(LpSolver):
     name = "SCIP_PY"
 
     try:
-
         global scip
         import pyscipopt as scip
 
@@ -544,19 +541,20 @@ class SCIP_PY(LpSolver):
                 "restartlimit": constants.LpStatusNotSolved,
                 "unknown": constants.LpStatusUndefined,
             }
-            possible_solution_found_statuses = ("optimal",
-                                                "timelimit",
-                                                "userinterrupt",
-                                                "nodelimit",
-                                                "totalnodelimit",
-                                                "stallnodelimit",
-                                                "gaplimit",
-                                                "memlimit",
+            possible_solution_found_statuses = (
+                "optimal",
+                "timelimit",
+                "userinterrupt",
+                "nodelimit",
+                "totalnodelimit",
+                "stallnodelimit",
+                "gaplimit",
+                "memlimit",
             )
             status = scip_to_pulp_status[solutionStatus]
-            
+
             if solutionStatus in possible_solution_found_statuses:
-                try: # Feasible solution found
+                try:  # Feasible solution found
                     solution = lp.solverModel.getBestSol()
                     for variable in lp._variables:
                         variable.varValue = solution[variable.solverVar]
@@ -566,14 +564,14 @@ class SCIP_PY(LpSolver):
                         )
                     if status == constants.LpStatusOptimal:
                         lp.assignStatus(status, constants.LpSolutionOptimal)
-                    else :
+                    else:
                         status = constants.LpStatusOptimal
                         lp.assignStatus(status, constants.LpSolutionIntegerFeasible)
-                except: # No solution found
+                except:  # No solution found
                     lp.assignStatus(status, constants.LpSolutionNoSolutionFound)
-            else :
-                lp.assignStatus(status)  
-            
+            else:
+                lp.assignStatus(status)
+
                 # TODO: check if problem is an LP i.e. does not have integer variables
                 # if :
                 #     for variable in lp._variables:
@@ -672,14 +670,15 @@ class SCIP_PY(LpSolver):
                     ),
                     name=name,
                 )
-                
+
             ##################################################
             # add warm start
             ##################################################
             if self.optionsDict.get("warmStart", False):
                 s = lp.solverModel.createPartialSol()
                 for var in lp.variables():
-                    if var.varValue is not None: # Warm start variables having an initial value
+                    if var.varValue is not None:
+                        # Warm start variables having an initial value
                         lp.solverModel.setSolVal(s, var.solverVar, var.varValue)
                 lp.solverModel.addSol(s)
 
