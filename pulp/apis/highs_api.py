@@ -276,7 +276,7 @@ class HiGHS(LpSolver):
             :param float gapAbs: absolute gap tolerance for the solver to stop
             :param int threads: sets the maximum number of threads
             :param float timeLimit: maximum time for solver (in seconds)
-            :param dict solverParams list of named options to pass to the HiGHS solver
+            :param dict solverParams: list of named options to pass directly to the HiGHS solver
             """
             super().__init__(mip=mip, msg=msg, timeLimit=timeLimit, **solverParams)
             self.callbackTuple = callbackTuple
@@ -312,6 +312,7 @@ class HiGHS(LpSolver):
             if self.timeLimit is not None:
                 lp.solverModel.setOptionValue("time_limit", float(self.timeLimit))
 
+            # set remaining parameter values
             for key, value in self.optionsDict.items():
                 lp.solverModel.setOptionValue(key, value)
 
