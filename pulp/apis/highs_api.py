@@ -300,20 +300,20 @@ class HiGHS(LpSolver):
                 )
                 lp.solverModel.setLogCallback(*callbackTuple)
 
-            options = {
-                **({} if self.gapRel is None else {"mip_rel_gap": self.gapRel}),
-                **({} if self.gapAbs is None else {"mip_abs_gap": self.gapAbs}),
-                **({} if self.threads is None else {"threads": self.threads}),
-                **(
-                    {}
-                    if self.timeLimit is None
-                    else {"time_limit": float(self.timeLimit)}
-                ),
-                **self.optionsDict,
-            }
+            if self.gapRel is not None:
+                lp.solverModel.setOptionValue("mip_rel_gap", self.gapRel)
 
-            for name, val in options.items():
-                lp.solverModel.setOptionValue(name, val)
+            if self.gapAbs is not None:
+                lp.solverModel.setOptionValue("mip_abs_gap", self.gapAbs)
+
+            if self.threads is not None:
+                lp.solverModel.setOptionValue("threads", self.threads)
+
+            if self.timeLimit is not None:
+                lp.solverModel.setOptionValue("time_limit", float(self.timeLimit))
+
+            for key, value in self.optionsDict.items():
+                lp.solverModel.setOptionValue(key, value)
 
         def buildSolverModel(self, lp):
             inf = highspy.kHighsInf
