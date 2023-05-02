@@ -1254,9 +1254,15 @@ class BaseSolverTest:
             prob += -y + z == 7, "c3"
             prob += w >= 0, "c4"
             print("\t Testing invalid var names")
-            pulpTestCheck(
-                prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0}
-            )
+            if self.solver.name not in [
+                "GUROBI_CMD",  # end is a key-word for LP files
+            ]:
+                pulpTestCheck(
+                    prob,
+                    self.solver,
+                    [const.LpStatusOptimal],
+                    {x: 4, y: -1, z: 6, w: 0},
+                )
 
         def test_LpVariable_indexs_param(self):
             """

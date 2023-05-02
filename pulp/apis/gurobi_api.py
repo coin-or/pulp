@@ -158,35 +158,30 @@ class GUROBI(LpSolver):
                 var.isModified = False
             status = gurobiLpStatus.get(solutionStatus, constants.LpStatusUndefined)
             lp.assignStatus(status)
-            if status in [constants.LpStatusOptimal, constants.LpStatusNotSolved]:
-                try:
-                    # populate pulp solution values
+            if model.SolCount >= 1:
+                # populate pulp solution values
+                for var, value in zip(
+                    lp._variables, model.getAttr(GRB.Attr.X, model.getVars())
+                ):
+                    var.varValue = value
+                # populate pulp constraints slack
+                for constr, value in zip(
+                    lp.constraints.values(),
+                    model.getAttr(GRB.Attr.Slack, model.getConstrs()),
+                ):
+                    constr.slack = value
+                # put pi and slack variables against the constraints
+                if not model.IsMIP:
                     for var, value in zip(
-                        lp._variables, model.getAttr(GRB.Attr.X, model.getVars())
+                        lp._variables, model.getAttr(GRB.Attr.RC, model.getVars())
                     ):
-                        var.varValue = value
+                        var.dj = value
 
-                    # populate pulp constraints slack
                     for constr, value in zip(
                         lp.constraints.values(),
-                        model.getAttr(GRB.Attr.Slack, model.getConstrs()),
+                        model.getAttr(GRB.Attr.Pi, model.getConstrs()),
                     ):
-                        constr.slack = value
-
-                    if not model.getAttr(GRB.Attr.IsMIP):
-                        for var, value in zip(
-                            lp._variables, model.getAttr(GRB.Attr.RC, model.getVars())
-                        ):
-                            var.dj = value
-
-                        # put pi and slack variables against the constraints
-                        for constr, value in zip(
-                            lp.constraints.values(),
-                            model.getAttr(GRB.Attr.Pi, model.getConstrs()),
-                        ):
-                            constr.pi = value
-                except gp.GurobiError as e:
-                    raise e
+                        constr.pi = value
             return status
 
         def available(self):
@@ -214,7 +209,6 @@ class GUROBI(LpSolver):
                 # Set solver parameters
                 for param, value in self.solver_params.items():
                     self.model.setParam(param, value)
-            # for param, value in self.env_options:
             except gp.GurobiError as e:
                 raise e
 
@@ -246,6 +240,8 @@ class GUROBI(LpSolver):
                 lp.solverModel.setParam("LogFile", logPath)
 
             log.debug("add the variables to the problem")
+            lp.solverModel.update()
+            nvars = lp.solverModel.NumVars
             for var in lp.variables():
                 lowBound = var.lowBound
                 if lowBound is None:
@@ -257,9 +253,11 @@ class GUROBI(LpSolver):
                 varType = gp.GRB.CONTINUOUS
                 if var.cat == constants.LpInteger and self.mip:
                     varType = gp.GRB.INTEGER
-                var.solverVar = lp.solverModel.addVar(
-                    lowBound, upBound, vtype=varType, obj=obj, name=var.name
-                )
+                # only add variable once, ow new variable will be created.
+                if not hasattr(var, "solverVar") or nvars == 0:
+                    var.solverVar = lp.solverModel.addVar(
+                        lowBound, upBound, vtype=varType, obj=obj, name=var.name
+                    )
             if self.optionsDict.get("warmStart", False):
                 # Once lp.variables() has been used at least once in the building of the model.
                 # we can use the lp._variables with the cache.

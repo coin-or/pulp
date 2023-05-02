@@ -26,7 +26,7 @@ class GurobiEnvTests(unittest.TestCase):
         self.options = {"OutputFlag": 1}
         self.env_options = {"MemLimit": 1}
 
-    def testGpEnv(self):
+    def test_gp_env(self):
         # Using gp.Env within a context manager
         with gp.Env(params=self.env_options) as env:
             prob = generate_lp()
@@ -35,7 +35,7 @@ class GurobiEnvTests(unittest.TestCase):
             solver.close()
         check_dummy_env()
 
-    def testMultipleGpEnv(self):
+    def test_multiple_gp_env(self):
         # Using the same env multiple times
         with gp.Env() as env:
             solver = GUROBI(msg=True, env=env)
@@ -51,7 +51,7 @@ class GurobiEnvTests(unittest.TestCase):
         check_dummy_env()
 
     @unittest.SkipTest
-    def testBackwardCompatibility(self):
+    def test_backward_compatibility(self):
         """
         Backward compatibility check as previously the environment was not being
         freed. On a single-use license this passes (fails to initialise a dummy
@@ -65,7 +65,7 @@ class GurobiEnvTests(unittest.TestCase):
         gp.disposeDefaultEnv()
         solver.close()
 
-    def testManageEnvTrue(self):
+    def test_manage_env(self):
         solver = GUROBI(msg=True, manageEnv=True, **self.options)
         prob = generate_lp()
         prob.solve(solver)
@@ -73,7 +73,7 @@ class GurobiEnvTests(unittest.TestCase):
         solver.close()
         check_dummy_env()
 
-    def testMultipleSolves(self):
+    def test_multiple_solves(self):
         solver = GUROBI(msg=True, manageEnv=True, **self.options)
         prob = generate_lp()
         prob.solve(solver)
@@ -88,7 +88,7 @@ class GurobiEnvTests(unittest.TestCase):
         check_dummy_env()
 
     @unittest.SkipTest
-    def testLeak(self):
+    def test_leak(self):
         """
         Check that we cannot initialise environments after a memory leak. On a
         single-use license this passes (fails to initialise a dummy env with a
