@@ -2,7 +2,6 @@ import unittest
 
 import gurobipy as gp
 
-
 from pulp import GUROBI, GUROBI_CMD, LpProblem, LpVariable, const
 
 
@@ -34,6 +33,15 @@ class GurobiEnvTests(unittest.TestCase):
             prob.solve(solver)
             solver.close()
         check_dummy_env()
+
+    @unittest.SkipTest
+    def test_gp_env_no_close(self):
+        # Not closing results in an error for a single use license.
+        with gp.Env(params=self.env_options) as env:
+            prob = generate_lp()
+            solver = GUROBI(msg=True, env=env, **self.options)
+            prob.solve(solver)
+        self.assertRaises(gp.GurobiError, check_dummy_env)
 
     def test_multiple_gp_env(self):
         # Using the same env multiple times

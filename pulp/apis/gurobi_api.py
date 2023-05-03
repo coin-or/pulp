@@ -87,10 +87,58 @@ class GUROBI(LpSolver):
             :param bool warmStart: if True, the solver will use the current value of variables as a start
             :param str logPath: path to the log file
             :param float epgap: deprecated for gapRel
-            :param gp.Env env: gurobipyEnv. Default None.
-            :param dict envOptions: environment options
-            :param bool manageEnv: if False, assume gp.Env's is handled
-            internally and outside of context manager
+            :param gp.Env env: Gurobi environment to use. Default None.
+            :param dict envOptions: environment options.
+            :param bool manageEnv: if False, assume the environment is handled by the user.
+
+
+            If ``manageEnv`` is set to True, the ``GUROBI`` object creates a
+            local Gurobi environment and manages all associated Gurobi
+            resources. Importantly, this enables Gurobi licenses to be freed
+            and connections terminated when the ``.close()`` function is called
+            (this function always disposes of the Gurobi model, and the
+            environment)::
+
+                solver = GUROBI(manageEnv=True)
+                prob.solve(solver)
+                solver.close() # Must be called to free Gurobi resources.
+                # All Gurobi models and environments are freed
+
+            ``manageEnv=True`` is required when setting license or connection
+            parameters. The ``envOptions`` argument is used to pass parameters
+            to the Gurobi environment. For example, to connect to a Gurobi
+            Cluster Manager::
+
+                options = {
+                    "CSManager": "<url>",
+                    "CSAPIAccessID": "<access-id>",
+                    "CSAPISecret": "<api-key>",
+                }
+                solver = GUROBI(manageEnv=True, envOptions=options)
+                solver.close()
+                # Compute server connection terminated
+
+            Alternatively, one can also pass a ``gp.Env`` object. In this case,
+            to be safe, one should still call ``.close()`` to dispose of the
+            model::
+
+                with gp.Env(params=options) as env:
+                    # Pass environment as a parameter
+                    solver = GUROBI(env=env)
+                    prob.solve(solver)
+                    solver.close()
+                    # Still call `close` as this disposes the model which is required to correctly free env
+
+            If ``manageEnv`` is set to False (the default), the ``GUROBI``
+            object uses the global default Gurobi environment which will be
+            freed once the object is deleted. In this case, one can still call
+            ``.close()`` to dispose of the model::
+
+                solver = GUROBI()
+                prob.solve(solver)
+                # The global default environment and model remain active
+                solver.close()
+                # Only the global default environment remains active
             """
             self.env = env
             self.env_options = envOptions if envOptions else {}
@@ -128,11 +176,16 @@ class GUROBI(LpSolver):
             self.close()
 
         def close(self):
+            """
+            Must be called when internal Gurobi model and/or environment
+            requires disposing. The environment (default or otherwise) will be
+            disposed only if ``manageEnv`` is set to True.
+            """
             if not self.init_gurobi:
                 return
+            self.model.dispose()
             if self.manage_env:
                 self.env.dispose()
-            self.model.dispose()
 
         def findSolutionValues(self, lp):
             model = lp.solverModel
