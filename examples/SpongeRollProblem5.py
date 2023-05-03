@@ -27,7 +27,6 @@ for i in patternslist:
 
 # This loop will be repeated until morePatterns is set to False
 while morePatterns == True:
-
     # Solve the problem as a Relaxed LP
     duals = masterSolve(Patterns, rollData)
 

@@ -92,10 +92,10 @@ class MIPCL_CMD(LpSolver_CMD):
         except:
             pass
         cmd = self.path
-        cmd += " %s" % tmpMps
-        cmd += " -solfile %s" % tmpSol
+        cmd += f" {tmpMps}"
+        cmd += f" -solfile {tmpSol}"
         if self.timeLimit is not None:
-            cmd += " -time %s" % self.timeLimit
+            cmd += f" -time {self.timeLimit}"
         for option in self.options:
             cmd += " " + option
         if lp.isMIP():

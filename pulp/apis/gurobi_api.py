@@ -190,7 +190,7 @@ class GUROBI(LpSolver):
                 with gp.Env():
                     pass
             except gurobipy.GurobiError as e:
-                warnings.warn("GUROBI error: {}.".format(e))
+                warnings.warn(f"GUROBI error: {e}.")
                 return False
             return True
 
@@ -404,7 +404,7 @@ class GUROBI_CMD(LpSolver_CMD):
             # normal execution
             return True
         # error: we display the gurobi message
-        warnings.warn("GUROBI error: {}.".format(out))
+        warnings.warn(f"GUROBI error: {out}.")
         return False
 
     def actualSolve(self, lp):
@@ -422,16 +422,16 @@ class GUROBI_CMD(LpSolver_CMD):
         options = self.options + self.getOptions()
         if self.timeLimit is not None:
             options.append(("TimeLimit", self.timeLimit))
-        cmd += " " + " ".join(["%s=%s" % (key, value) for key, value in options])
-        cmd += " ResultFile=%s" % tmpSol
+        cmd += " " + " ".join([f"{key}={value}" for key, value in options])
+        cmd += f" ResultFile={tmpSol}"
         if self.optionsDict.get("warmStart", False):
             self.writesol(filename=tmpMst, vs=vs)
-            cmd += " InputFile=%s" % tmpMst
+            cmd += f" InputFile={tmpMst}"
 
         if lp.isMIP():
             if not self.mip:
                 warnings.warn("GUROBI_CMD does not allow a problem to be relaxed")
-        cmd += " %s" % tmpLp
+        cmd += f" {tmpLp}"
         if self.msg:
             pipe = None
         else:
@@ -492,7 +492,7 @@ class GUROBI_CMD(LpSolver_CMD):
         values = [(v.name, v.value()) for v in vs if v.value() is not None]
         rows = []
         for name, value in values:
-            rows.append("{} {}".format(name, value))
+            rows.append(f"{name} {value}")
         with open(filename, "w") as f:
             f.write("\n".join(rows))
         return True

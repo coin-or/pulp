@@ -279,7 +279,7 @@ class CPLEX_PY(LpSolver):
     try:
         global cplex
         import cplex
-    except (Exception) as e:
+    except Exception as e:
         err = e
         """The CPLEX LP/MIP solver from python PHANTOM Something went wrong!!!!"""
 
@@ -289,7 +289,7 @@ class CPLEX_PY(LpSolver):
 
         def actualSolve(self, lp):
             """Solve a well formulated lp problem"""
-            raise PulpSolverError("CPLEX_PY: Not Available:\n{}".format(self.err))
+            raise PulpSolverError(f"CPLEX_PY: Not Available:\n{self.err}")
 
     else:
 
@@ -367,7 +367,7 @@ class CPLEX_PY(LpSolver):
             Takes the pulp lp model and translates it into a cplex model
             """
             model_variables = lp.variables()
-            self.n2v = dict((var.name, var) for var in model_variables)
+            self.n2v = {var.name: var for var in model_variables}
             if len(self.n2v) != len(model_variables):
                 raise PulpSolverError(
                     "Variables must have unique names for cplex solver"

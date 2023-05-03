@@ -4,7 +4,9 @@
 # See the LICENSE file for copyright information.
 2.7.0
     added HiGHS solver
-    added pysmps dependency for mps parsing
+    added XPRESS_PY solver
+    fixed bugs
+    updated docs
 2.6.0 2021-12-04
     dropped packaged choco
     fixed bugs

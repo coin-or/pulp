@@ -32,7 +32,6 @@ class Pattern:
 
 
 def masterSolve(Patterns, rollData, relax=True):
-
     # The rollData is made into separate dictionaries
     (rollDemand, surplusPrice) = splitDict(rollData)
 
@@ -62,7 +61,7 @@ def masterSolve(Patterns, rollData, relax=True):
         prob += (
             lpSum([pattVars[i] * i.lengthsdict[j] for i in Patterns]) - surplusVars[j]
             >= rollDemand[j],
-            "Min%s" % j,
+            f"Min{j}",
         )
 
     # The problem is solved
@@ -93,7 +92,6 @@ def masterSolve(Patterns, rollData, relax=True):
 
 
 def subSolve(Patterns, duals):
-
     # The variable 'prob' is created
     prob = LpProblem("SubProb", LpMinimize)
 

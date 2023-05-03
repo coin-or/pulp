@@ -1,11 +1,16 @@
 pulp
 **************************
+
 .. image:: https://travis-ci.org/coin-or/pulp.svg?branch=master
     :target: https://travis-ci.org/coin-or/pulp
+.. image:: https://img.shields.io/pypi/v/pulp
+    :target: https://pypi.org/project/PuLP/
+    :alt: PyPI
+.. image:: https://img.shields.io/pypi/dm/pulp
+    :target: https://pypi.org/project/PuLP/
+    :alt: PyPI - Downloads
 
-PuLP is an LP modeler written in Python. PuLP can generate MPS or LP files
-and call GLPK_, COIN-OR CLP/`CBC`_, CPLEX_, GUROBI_, MOSEK_, XPRESS_, CHOCO_, MIPCL_, SCIP_ to solve linear
-problems.
+PuLP is an LP modeler written in Python. PuLP can generate MPS or LP files and call GLPK_, COIN-OR CLP/`CBC`_, CPLEX_, GUROBI_, MOSEK_, XPRESS_, CHOCO_, MIPCL_, HiGHS_, SCIP_/FSCIP_ to solve linear problems.
 
 Installation
 ================
@@ -36,7 +41,7 @@ Examples
 
 See the examples directory for examples.
 
-PuLP requires Python 2.7 or Python >= 3.4.
+PuLP requires Python 3.7 or newer.
 
 The examples use the default solver (CBC). To use other solvers they must be available (installed and accessible). For more information on how to do that, see the `guide on configuring solvers <https://coin-or.github.io/pulp/guides/how_to_configure_solvers.html>`_.
 
@@ -106,8 +111,8 @@ Exported Functions:
 Building the documentation
 --------------------------
 
-The PuLP documentation is built with `Sphinx <https://www.sphinx-doc.org>`_.  We recommended using a 
-`virtual environment <https://docs.python.org/3/library/venv.html>`_ to build the documentation locally. 
+The PuLP documentation is built with `Sphinx <https://www.sphinx-doc.org>`_.  We recommended using a
+`virtual environment <https://docs.python.org/3/library/venv.html>`_ to build the documentation locally.
 
 To build, run the following in a terminal window, in the PuLP root directory
 
@@ -117,11 +122,11 @@ To build, run the following in a terminal window, in the PuLP root directory
     python -m pip install -r requirements-dev.txt
     cd doc
     make html
-	 
+
 A folder named html will be created inside the ``build/`` directory.
 The home page for the documentation is ``doc/build/html/index.html`` which can be opened in a browser.
 
-	 
+
 
 
 
@@ -147,3 +152,5 @@ The home page for the documentation is ``doc/build/html/index.html`` which can b
 .. _CHOCO: https://choco-solver.org/
 .. _MIPCL: http://mipcl-cpp.appspot.com/
 .. _SCIP: https://www.scipopt.org/
+.. _HiGHS: https://highs.dev
+.. _FSCIP: https://ug.zib.de

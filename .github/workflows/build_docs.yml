@@ -5,19 +5,15 @@ on:
     branches:
       - master
 
-
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v1
-    - uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
       with:
         # Semantic version range syntax or exact version of a Python version
-        python-version: '3.8'
-        architecture: 'x64'
+        python-version: '3.10'
     # Standard drop-in approach that should work for most people.
     - name: Install dependencies
       run: |
