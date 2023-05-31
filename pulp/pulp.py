@@ -1540,7 +1540,7 @@ class LpProblem:
     from_json = fromJson
 
     @classmethod
-    def fromMPS(cls, filename, sense=const.LpMinimize, **kwargs):
+    def fromMPS(cls, filename, sense=None, **kwargs):
         data = mpslp.readMPS(filename, sense=sense, **kwargs)
         return cls.fromDict(data)
 
