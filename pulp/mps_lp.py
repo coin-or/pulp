@@ -152,7 +152,7 @@ def readMPS(path, sense, dropConsNames=False):
                 if line[1] not in bnd_names:
                     bnd_names.append(line[1])
             elif mode == CORE_FILE_OBJSENSE_MODE:
-                parameters['sense'] = const.LpMaximize if line[1] == 'MAX'\
+                parameters['sense'] = const.LpMaximize if line[0] == 'MAX'\
                         else const.LpMinimize
     constraints = list(constraints.values())
     if dropConsNames:
