@@ -303,6 +303,7 @@ class CPLEX_PY(LpSolver):
             logPath=None,
             epgap=None,
             logfilename=None,
+            randomseed=None,
         ):
             """
             :param bool mip: if False, assume LP even if integer variables
@@ -313,6 +314,7 @@ class CPLEX_PY(LpSolver):
             :param str logPath: path to the log file
             :param float epgap: deprecated for gapRel
             :param str logfilename: deprecated for logPath
+            :param int randomseed: The random seed to pass to cplex
             """
             if epgap is not None:
                 warnings.warn("Parameter epgap is being depreciated for gapRel")
@@ -337,6 +339,7 @@ class CPLEX_PY(LpSolver):
                 timeLimit=timeLimit,
                 warmStart=warmStart,
                 logPath=logPath,
+                randomseed=randomseed,
             )
 
         def available(self):
@@ -468,6 +471,9 @@ class CPLEX_PY(LpSolver):
                 self.solverModel.MIP_starts.add(
                     cplex.SparsePair(ind=ind, val=val), effort, "1"
                 )
+            randomseed = self.optionsDict.get("randomseed")
+            if randomseed is not None:
+                self.setRandomseed(randomseed)
 
         def setlogfile(self, fileobj):
             """
@@ -489,6 +495,13 @@ class CPLEX_PY(LpSolver):
             Make cplex limit the time it takes --added CBM 8/28/09
             """
             self.solverModel.parameters.timelimit.set(timeLimit)
+
+        def setRandomseed(self, randomseed):
+            """
+            Set the random seed which can influence the solution produced.
+            See: https://www.ibm.com/docs/en/icos/12.8.0.0?topic=parameters-random-seed
+            """
+            self.solverModel.parameters.randomseed.set(randomseed)
 
         def callSolver(self, isMIP):
             """Solves the problem with cplex"""
