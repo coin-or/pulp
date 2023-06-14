@@ -8,6 +8,7 @@ from .mosek_api import *
 from .scip_api import *
 from .xpress_api import *
 from .highs_api import *
+from .copt_api import *
 from .core import *
 
 _all_solvers = [
@@ -31,6 +32,9 @@ _all_solvers = [
     SCIP_PY,
     HiGHS,
     HiGHS_CMD,
+    COPT,
+    COPT_DLL,
+    COPT_CMD,
 ]
 
 import json
