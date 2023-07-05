@@ -303,7 +303,7 @@ class CPLEX_PY(LpSolver):
             logPath=None,
             epgap=None,
             logfilename=None,
-            nthreads=0
+            threads=0
         ):
             """
             :param bool mip: if False, assume LP even if integer variables
@@ -314,7 +314,7 @@ class CPLEX_PY(LpSolver):
             :param str logPath: path to the log file
             :param float epgap: deprecated for gapRel
             :param str logfilename: deprecated for logPath
-            :param int nthreads: number of threads to be used by CPLEX to solve a problem (default 0 uses all available)
+            :param int threads: number of threads to be used by CPLEX to solve a problem (default 0 uses all available)
             """
             if epgap is not None:
                 warnings.warn("Parameter epgap is being depreciated for gapRel")
@@ -339,7 +339,7 @@ class CPLEX_PY(LpSolver):
                 timeLimit=timeLimit,
                 warmStart=warmStart,
                 logPath=logPath,
-                threads=nthreads,
+                threads=threads,
             )
 
         def available(self):
@@ -482,11 +482,11 @@ class CPLEX_PY(LpSolver):
             self.solverModel.set_warning_stream(fileobj)
             self.solverModel.set_results_stream(fileobj)
 
-        def setThreads(self, nthreads=0):
+        def setThreads(self, threads=0):
             """
             Change cplex thread count used (0 is default which uses all available resources)
             """
-            self.solverModel.parameters.threads.set(nthreads)
+            self.solverModel.parameters.threads.set(threads)
 
         def changeEpgap(self, epgap=10**-4):
             """
