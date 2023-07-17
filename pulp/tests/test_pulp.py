@@ -161,7 +161,7 @@ class BaseSolverTest:
             prob += -y + z == 7, "c3"
             prob += w >= 0, "c4"
             print("\t Testing unbounded continuous LP solution")
-            if self.solver.__class__ in [GUROBI, CPLEX_CMD, YAPOSIB, MOSEK]:
+            if self.solver.__class__ in [GUROBI, CPLEX_CMD, YAPOSIB, MOSEK, COPT]:
                 # These solvers report infeasible or unbounded
                 pulpTestCheck(
                     prob,
@@ -415,7 +415,7 @@ class BaseSolverTest:
             x.setInitialValue(3)
             y.setInitialValue(-0.5)
             z.setInitialValue(7)
-            if self.solver.name in ["GUROBI", "GUROBI_CMD", "CPLEX_CMD", "CPLEX_PY"]:
+            if self.solver.name in ["GUROBI", "GUROBI_CMD", "CPLEX_CMD", "CPLEX_PY", "COPT"]:
                 self.solver.optionsDict["warmStart"] = True
             print("\t Testing Initial value in MIP solution")
             pulpTestCheck(
@@ -671,7 +671,7 @@ class BaseSolverTest:
             obj2 = 0 * x - 1 * y + 0 * z
             prob += x <= 1, "c1"
 
-            if self.solver.__class__ in [COINMP_DLL, GUROBI]:
+            if self.solver.__class__ in [COINMP_DLL, GUROBI, COPT]:
                 print("\t Testing Sequential Solves")
                 status = prob.sequentialSolve([obj1, obj2], solver=self.solver)
                 pulpTestCheck(
@@ -777,7 +777,7 @@ class BaseSolverTest:
             prob += -y + z == 7, "c3"
             prob.extend((w >= -1).makeElasticSubProblem(penalty=0.9))
             print("\t Testing elastic constraints (penalty unbounded)")
-            if self.solver.__class__ in [COINMP_DLL, GUROBI, CPLEX_CMD, YAPOSIB, MOSEK]:
+            if self.solver.__class__ in [COINMP_DLL, GUROBI, CPLEX_CMD, YAPOSIB, MOSEK, COPT]:
                 # COINMP_DLL Does not report unbounded problems, correctly
                 pulpTestCheck(
                     prob,
@@ -1212,7 +1212,7 @@ class BaseSolverTest:
 
             time_limit = 10
             solver_settings = dict(
-                PULP_CBC_CMD=30, COIN_CMD=30, SCIP_CMD=30, GUROBI_CMD=50, CPLEX_CMD=50
+                PULP_CBC_CMD=30, COIN_CMD=30, SCIP_CMD=30, GUROBI_CMD=50, CPLEX_CMD=50, COPT=30
             )
             bins = solver_settings.get(self.solver.name)
             if bins is None:
@@ -1476,6 +1476,8 @@ class HiGHS_PYTest(BaseSolverTest.PuLPTest):
 class HiGHS_CMDTest(BaseSolverTest.PuLPTest):
     solveInst = HiGHS_CMD
 
+class COPTTest(BaseSolverTest.PuLPTest):
+    solveInst = COPT
 
 def pulpTestCheck(
     prob,

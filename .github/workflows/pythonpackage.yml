@@ -30,6 +30,10 @@ jobs:
         if: matrix.os == 'ubuntu-latest' || matrix.os == 'macOS-latest'
         run: |
           pip install highspy
+      - name: Install coptpy
+        if: matrix.os == 'ubuntu-latest' || matrix.os == 'macOS-latest' || matrix.os == 'windows-latest'
+        run: |
+          pip install coptpy
       - name: Test with pulptest
         run: pulptest
       - name: Code Quality
