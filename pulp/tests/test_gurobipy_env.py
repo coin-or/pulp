@@ -2,7 +2,7 @@ import unittest
 
 import gurobipy as gp
 
-from pulp import GUROBI, GUROBI_CMD, LpProblem, LpVariable, const
+from pulp import GUROBI, LpProblem, LpVariable, const
 
 
 def check_dummy_env():
