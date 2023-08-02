@@ -31,6 +31,7 @@ the current version
 """
 
 import os
+import platform
 import shutil
 import sys
 import ctypes
@@ -152,6 +153,8 @@ PULPCFGFILE = "pulp.cfg"
 is_64bits = sys.maxsize > 2**32
 if is_64bits:
     arch = "64"
+    if platform.machine().lower() in ["aarch64", "arm64"]:
+        arch = "arm64"
 else:
     arch = "32"
 operating_system = None
