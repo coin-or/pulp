@@ -10,7 +10,13 @@ from pulp import LpVariable, LpProblem, lpSum, LpConstraintVar, LpFractionConstr
 from pulp import constants as const
 from pulp.tests.bin_packing_problem import create_bin_packing_problem
 from pulp.utilities import makeDict
+import functools
 import unittest
+
+try:
+    import gurobipy as gp
+except ImportError:
+    gp = None
 
 # from: http://lpsolve.sourceforge.net/5.5/mps-format.htm
 EXAMPLE_MPS_RHS56 = """NAME          TESTPROB
@@ -35,6 +41,25 @@ BOUNDS
  UP BND1      YTWO                 1
 ENDATA
 """
+
+
+def gurobi_test(test_item):
+    @functools.wraps(test_item)
+    def skip_wrapper(*args, **kwargs):
+        if gp is None:
+            raise unittest.SkipTest("No gurobipy, can't check license")
+        try:
+            test_item(*args, **kwargs)
+        except gp.GurobiError as ge:
+            # Skip the test if the failure was due to licensing
+            if ge.errno == gp.GRB.Error.SIZE_LIMIT_EXCEEDED:
+                raise unittest.SkipTest("Size-limited Gurobi license")
+            if ge.errno == gp.GRB.Error.NO_LICENSE:
+                raise unittest.SkipTest("No Gurobi license")
+            # Otherwise, let the error go through as-is
+            raise
+
+    return skip_wrapper
 
 
 def dumpTestProblem(prob):
@@ -1207,6 +1232,7 @@ class BaseSolverTest:
 
             self.assertRaises(TypeError, add_const, prob=prob)
 
+        @gurobi_test
         def test_measuring_solving_time(self):
             print("\t Testing measuring optimization time")
 
