@@ -170,6 +170,7 @@ class GUROBI(LpSolver):
                 if self.manage_env:
                     self.env_options["OutputFlag"] = 0
                 else:
+                    self.env_options["OutputFlag"] = 0
                     self.solver_params["OutputFlag"] = 0
 
         def __del__(self):
@@ -240,7 +241,7 @@ class GUROBI(LpSolver):
         def available(self):
             """True if the solver is available"""
             try:
-                with gp.Env():
+                with gp.Env(params=self.env_options):
                     pass
             except gurobipy.GurobiError as e:
                 warnings.warn(f"GUROBI error: {e}.")
