@@ -795,6 +795,29 @@ class BaseSolverTest:
             else:
                 pulpTestCheck(prob, self.solver, [const.LpStatusUnbounded])
 
+        def test_msg_arg(self):
+            """
+            Test setting the msg arg to True does not interfere with solve
+            """
+            prob = LpProblem("test_msg_arg", const.LpMinimize)
+            x = LpVariable("x", 0, 4)
+            y = LpVariable("y", -1, 1)
+            z = LpVariable("z", 0)
+            w = LpVariable("w", 0)
+            prob += x + 4 * y + 9 * z, "obj"
+            prob += x + y <= 5, "c1"
+            prob += x + z >= 10, "c2"
+            prob += -y + z == 7, "c3"
+            prob += w >= 0, "c4"
+            data = prob.toDict()
+            var1, prob1 = LpProblem.fromDict(data)
+            x, y, z, w = (var1[name] for name in ["x", "y", "z", "w"])
+
+            self.solver.msg = True
+            pulpTestCheck(
+                prob1, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0}
+            )
+
         def test_pulpTestAll(self):
             """
             Test the availability of the function pulpTestAll
