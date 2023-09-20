@@ -192,7 +192,7 @@ class LpElement:
         return self
 
     def __bool__(self):
-        return 1
+        return True
 
     def __add__(self, other):
         return LpAffineExpression(self) + other
@@ -264,8 +264,8 @@ class LpVariable(LpElement):
         self.varValue = None
         self.dj = None
         if cat == const.LpBinary:
-            self.lowBound = 0
-            self.upBound = 1
+            self._lowbound_original = self.lowBound = 0
+            self._upbound_original = self.upBound = 1
             self.cat = const.LpInteger
         # Code to add a variable to constraints for column based
         # modelling.
@@ -323,7 +323,6 @@ class LpVariable(LpElement):
         indexStart=[],
         indexs=None,
     ):
-
         # Backwards Compatiblity with Deprecation Warning for indexs
         if indices is not None and indexs is not None:
             raise TypeError(
@@ -612,6 +611,9 @@ class LpVariable(LpElement):
         else:
             return 1
 
+    def __bool__(self):
+        return bool(self.roundedValue())
+
     def addVariableToConstraints(self, e):
         """adds a variable to the constraints indicated by
         the LpConstraintVars in e
@@ -653,8 +655,6 @@ class LpVariable(LpElement):
         changes lower bound and upper bound to the initial value if exists.
         :return: None
         """
-        self._lowbound_unfix = self.lowBound
-        self._upbound_unfix = self.upBound
         val = self.varValue
         if val is not None:
             self.bounds(val, val)

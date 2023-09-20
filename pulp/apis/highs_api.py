@@ -187,8 +187,11 @@ class HiGHS_CMD(LpSolver_CMD):
                 constants.LpStatusUnbounded,
                 constants.LpSolutionNoSolutionFound,
             )
-        else:
-            raise PulpSolverError("Pulp: Error while executing", self.path)
+        else:  # no solution
+            status, status_sol = (
+                constants.LpStatusNotSolved,
+                constants.LpSolutionNoSolutionFound,
+            )
 
         if not os.path.exists(tmpSol) or os.stat(tmpSol).st_size == 0:
             status_sol = constants.LpSolutionNoSolutionFound
@@ -229,7 +232,6 @@ class HiGHS_CMD(LpSolver_CMD):
 
 
 class HiGHS(LpSolver):
-
     name = "HiGHS"
 
     try:
@@ -246,20 +248,41 @@ class HiGHS(LpSolver):
             raise PulpSolverError("HiGHS: Not Available")
 
     else:
+        # Note(maciej): It was surprising to me that higshpy wasn't logging out of the box,
+        #  even with the different logging options set. This callback seems to work, but there
+        #  are probably better ways of doing this ¯\_(ツ)_/¯
+        DEFAULT_CALLBACK = lambda logType, logMsg, callbackValue: print(
+            f"[{logType.name}] {logMsg}"
+        )
+        DEFAULT_CALLBACK_VALUE = ""
 
         def __init__(
             self,
             mip=True,
             msg=True,
-            timeLimit=None,
-            epgap=None,
+            callbackTuple=None,
+            gapAbs=None,
             gapRel=None,
-            warmStart=False,
-            logPath=None,
-            *args,
+            threads=None,
+            timeLimit=None,
             **solverParams,
         ):
-            super().__init__(mip, msg, timeLimit, gapRel=gapRel, *args, **solverParams)
+            """
+            :param bool mip: if False, assume LP even if integer variables
+            :param bool msg: if False, no log is shown
+            :param tuple callbackTuple: Tuple of log callback function (see DEFAULT_CALLBACK above for definition)
+                and callbackValue (tag embedded in every callback)
+            :param float gapRel: relative gap tolerance for the solver to stop (in fraction)
+            :param float gapAbs: absolute gap tolerance for the solver to stop
+            :param int threads: sets the maximum number of threads
+            :param float timeLimit: maximum time for solver (in seconds)
+            :param dict solverParams: list of named options to pass directly to the HiGHS solver
+            """
+            super().__init__(mip=mip, msg=msg, timeLimit=timeLimit, **solverParams)
+            self.callbackTuple = callbackTuple
+            self.gapAbs = gapAbs
+            self.gapRel = gapRel
+            self.threads = threads
 
         def available(self):
             return True
@@ -267,12 +290,33 @@ class HiGHS(LpSolver):
         def callSolver(self, lp):
             lp.solverModel.run()
 
-        def buildSolverModel(self, lp):
+        def createAndConfigureSolver(self, lp):
             lp.solverModel = highspy.Highs()
 
-            gapRel = self.optionsDict.get("gapRel", 0)
-            lp.solverModel.setOptionValue("mip_rel_gap", gapRel)
+            if self.msg or self.callbackTuple:
+                callbackTuple = self.callbackTuple or (
+                    HiGHS.DEFAULT_CALLBACK,
+                    HiGHS.DEFAULT_CALLBACK_VALUE,
+                )
+                lp.solverModel.setLogCallback(*callbackTuple)
 
+            if self.gapRel is not None:
+                lp.solverModel.setOptionValue("mip_rel_gap", self.gapRel)
+
+            if self.gapAbs is not None:
+                lp.solverModel.setOptionValue("mip_abs_gap", self.gapAbs)
+
+            if self.threads is not None:
+                lp.solverModel.setOptionValue("threads", self.threads)
+
+            if self.timeLimit is not None:
+                lp.solverModel.setOptionValue("time_limit", float(self.timeLimit))
+
+            # set remaining parameter values
+            for key, value in self.optionsDict.items():
+                lp.solverModel.setOptionValue(key, value)
+
+        def buildSolverModel(self, lp):
             inf = highspy.kHighsInf
 
             obj_mult = -1 if lp.sense == constants.LpMaximize else 1
@@ -340,12 +384,14 @@ class HiGHS(LpSolver):
                 HighsModelStatus.kUnknown: constants.LpStatusNotSolved,
             }
 
+            col_values = list(solution.col_value)
             for var in lp.variables():
-                var.varValue = solution.col_value[var.index]
+                var.varValue = col_values[var.index]
 
             return status_dict[status]
 
         def actualSolve(self, lp):
+            self.createAndConfigureSolver(lp)
             self.buildSolverModel(lp)
             self.callSolver(lp)
 
@@ -353,6 +399,7 @@ class HiGHS(LpSolver):
 
             for var in lp.variables():
                 var.modified = False
+
             for constraint in lp.constraints.values():
                 constraint.modifier = False
 

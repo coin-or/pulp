@@ -61,7 +61,7 @@ def setConfigInformation(**keywords):
     config = Parser()
     config.read(config_filename)
     # set the new keys
-    for (key, val) in keywords.items():
+    for key, val in keywords.items():
         config.set("locations", key, val)
     # write the new configuration
     fp = open(config_filename, "w")
@@ -85,7 +85,7 @@ def configSolvers():
         + "for each solver available"
     )
     configdict = {}
-    for (default, key, msg) in configlist:
+    for default, key, msg in configlist:
         value = input(msg + "[" + str(default) + "]")
         if value:
             configdict[key] = value

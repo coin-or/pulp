@@ -1212,7 +1212,13 @@ class BaseSolverTest:
 
             time_limit = 10
             solver_settings = dict(
-                PULP_CBC_CMD=30, COIN_CMD=30, SCIP_CMD=30, GUROBI_CMD=50, CPLEX_CMD=50, COPT=30
+                PULP_CBC_CMD=30,
+                COIN_CMD=30,
+                SCIP_CMD=30,
+                GUROBI_CMD=50,
+                CPLEX_CMD=50,
+                HiGHS=50,
+                COPT=30
             )
             bins = solver_settings.get(self.solver.name)
             if bins is None:
@@ -1224,9 +1230,7 @@ class BaseSolverTest:
             delta = 20
             reported_time = prob.solutionTime
             if self.solver.name in ["PULP_CBC_CMD", "COIN_CMD"]:
-                # CBC is less exact with the timeLimit
                 reported_time = prob.solutionCpuTime
-                delta = 5
 
             self.assertAlmostEqual(
                 reported_time,
