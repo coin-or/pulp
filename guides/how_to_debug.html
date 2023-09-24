@@ -11,11 +11,11 @@
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/doctools.js"></script>
-        <script src="../_static/sphinx_highlight.js"></script>
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=dfec817d"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -93,10 +93,10 @@
            <div itemprop="articleBody">
              
   <section id="how-to-debug-most-errors-during-solving">
-<h1>How to debug most errors during solving<a class="headerlink" href="#how-to-debug-most-errors-during-solving" title="Permalink to this heading"></a></h1>
+<h1>How to debug most errors during solving<a class="headerlink" href="#how-to-debug-most-errors-during-solving" title="Link to this heading"></a></h1>
 <p>Here I will put all the main questions and advice from years of solving and helping other solve problems with PuLP. Additional answers can be added via a PR.</p>
 <section id="giving-feedback-and-asking-for-help">
-<h2>Giving feedback and asking for help<a class="headerlink" href="#giving-feedback-and-asking-for-help" title="Permalink to this heading"></a></h2>
+<h2>Giving feedback and asking for help<a class="headerlink" href="#giving-feedback-and-asking-for-help" title="Link to this heading"></a></h2>
 <p>The two ways one can ask for help or report a problem are:</p>
 <ol class="arabic simple">
 <li><p>The PuLP Github Discussions page: <a class="reference external" href="https://github.com/coin-or/pulp/discussions">https://github.com/coin-or/pulp/discussions</a></p></li>
@@ -124,7 +124,7 @@ General pointers (that are nonetheless, very important):</p>
 </ol>
 </section>
 <section id="error-while-trying-to-execute-cbc-exe">
-<h2>Error while trying to execute cbc.exe<a class="headerlink" href="#error-while-trying-to-execute-cbc-exe" title="Permalink to this heading"></a></h2>
+<h2>Error while trying to execute cbc.exe<a class="headerlink" href="#error-while-trying-to-execute-cbc-exe" title="Link to this heading"></a></h2>
 <p>The complete message is usually something like <cite>pulp.solvers.PulpSolverError: Pulp: Error while trying to execute PATH_TO_CBC/cbc.exe</cite>.</p>
 <p>The default solver is CBC and is run via the command line.</p>
 <ol class="arabic simple">
@@ -145,7 +145,7 @@ General pointers (that are nonetheless, very important):</p>
 </ol>
 </section>
 <section id="infeasible-problems">
-<h2>Infeasible problems<a class="headerlink" href="#infeasible-problems" title="Permalink to this heading"></a></h2>
+<h2>Infeasible problems<a class="headerlink" href="#infeasible-problems" title="Link to this heading"></a></h2>
 <ol class="arabic simple">
 <li><p>Add slack variables. As described <a class="reference external" href="https://stackoverflow.com/a/62771338/6508131">in this SO post</a>.</p></li>
 <li><p>Take out constraints and see if the problem becomes feasible.</p></li>
@@ -154,7 +154,7 @@ General pointers (that are nonetheless, very important):</p>
 </ol>
 </section>
 <section id="jupyter-notebooks-anaconda-conda-issues">
-<h2>Jupyter notebooks / anaconda / conda issues<a class="headerlink" href="#jupyter-notebooks-anaconda-conda-issues" title="Permalink to this heading"></a></h2>
+<h2>Jupyter notebooks / anaconda / conda issues<a class="headerlink" href="#jupyter-notebooks-anaconda-conda-issues" title="Link to this heading"></a></h2>
 <p>There have been several issues of the default solver (CBC) not working with an error like:</p>
 <p><cite>pulp.solvers.PulpSolverError: Pulp: Error while trying to execute PATH_TO_CBC/cbc.exe</cite></p>
 <p>or</p>

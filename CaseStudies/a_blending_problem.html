@@ -11,11 +11,11 @@
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/doctools.js"></script>
-        <script src="../_static/sphinx_highlight.js"></script>
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=dfec817d"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -99,9 +99,9 @@
            <div itemprop="articleBody">
              
   <section id="a-blending-problem">
-<h1>A Blending Problem<a class="headerlink" href="#a-blending-problem" title="Permalink to this heading"></a></h1>
+<h1>A Blending Problem<a class="headerlink" href="#a-blending-problem" title="Link to this heading"></a></h1>
 <section id="problem-description">
-<h2>Problem Description<a class="headerlink" href="#problem-description" title="Permalink to this heading"></a></h2>
+<h2>Problem Description<a class="headerlink" href="#problem-description" title="Link to this heading"></a></h2>
 <img alt="../_images/whiskas_label.jpg" src="../_images/whiskas_label.jpg" />
 <p>Whiskas cat food, shown above, is manufactured by Uncle Ben’s.
 Uncle Ben’s want to produce their cat food products as cheaply as possible
@@ -169,10 +169,10 @@ gram of ingredient are given in the table below.</p>
 </table>
 </div></blockquote>
 <section id="simplified-formulation">
-<h3>Simplified Formulation<a class="headerlink" href="#simplified-formulation" title="Permalink to this heading"></a></h3>
+<h3>Simplified Formulation<a class="headerlink" href="#simplified-formulation" title="Link to this heading"></a></h3>
 <p>First we will consider a simplified problem to build a simple Python model.</p>
 <section id="identify-the-decision-variables">
-<h4>Identify the Decision Variables<a class="headerlink" href="#identify-the-decision-variables" title="Permalink to this heading"></a></h4>
+<h4>Identify the Decision Variables<a class="headerlink" href="#identify-the-decision-variables" title="Link to this heading"></a></h4>
 <p>Assume Whiskas want to make their cat food out of just two ingredients:
 Chicken and Beef. We will first define our decision variables:</p>
 <div class="math notranslate nohighlight">
@@ -182,13 +182,13 @@ x_2 &amp;= \text{ percentage of beef used in a can of cat food }\end{split}\]</d
 for the Python implementation, they are not entered or listed separately or with the other constraints.</p>
 </section>
 <section id="formulate-the-objective-function">
-<h4>Formulate the Objective Function<a class="headerlink" href="#formulate-the-objective-function" title="Permalink to this heading"></a></h4>
+<h4>Formulate the Objective Function<a class="headerlink" href="#formulate-the-objective-function" title="Link to this heading"></a></h4>
 <p>The objective function becomes:</p>
 <div class="math notranslate nohighlight">
 \[\textbf{ min } 0.013 x_1 + 0.008 x_2\]</div>
 </section>
 <section id="the-constraints">
-<h4>The Constraints<a class="headerlink" href="#the-constraints" title="Permalink to this heading"></a></h4>
+<h4>The Constraints<a class="headerlink" href="#the-constraints" title="Link to this heading"></a></h4>
 <p>The constraints on the variables are that they must sum to 100 and that the nutritional requirements are met:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}1.000 x_1  + 1.000 x_2 &amp;= 100.0\\
@@ -199,7 +199,7 @@ for the Python implementation, they are not entered or listed separately or with
 </section>
 </section>
 <section id="solution-to-simplified-problem">
-<h3>Solution to Simplified Problem<a class="headerlink" href="#solution-to-simplified-problem" title="Permalink to this heading"></a></h3>
+<h3>Solution to Simplified Problem<a class="headerlink" href="#solution-to-simplified-problem" title="Link to this heading"></a></h3>
 <p>To obtain the solution to this Linear Program, we can write a short
 program in Python to call PuLP’s modelling functions, which will then
 call a solver. This will explain step-by-step how to write this Python
@@ -339,7 +339,7 @@ Total cost of ingredients per can is 96 cents.</p>
 </section>
 </section>
 <section id="full-formulation">
-<h2>Full Formulation<a class="headerlink" href="#full-formulation" title="Permalink to this heading"></a></h2>
+<h2>Full Formulation<a class="headerlink" href="#full-formulation" title="Link to this heading"></a></h2>
 <p>Now we will formulate the problem fully with
 all the variables. Whilst it could be implemented into Python with
 little addition to our method above, we will look at a better way which
@@ -396,7 +396,7 @@ protein, fat, fibre and salt from the ingredients:</p>
 </li>
 </ol>
 <section id="solution-to-full-problem">
-<h3>Solution to Full Problem<a class="headerlink" href="#solution-to-full-problem" title="Permalink to this heading"></a></h3>
+<h3>Solution to Full Problem<a class="headerlink" href="#solution-to-full-problem" title="Link to this heading"></a></h3>
 <p>To obtain the solution to this Linear Program, we again write a
 short program in Python to call PuLP’s modelling functions, which will
 then call a solver. This will explain step-by-step how to write this
