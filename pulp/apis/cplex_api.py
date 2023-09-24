@@ -279,7 +279,7 @@ class CPLEX_PY(LpSolver):
     try:
         global cplex
         import cplex
-    except (Exception) as e:
+    except Exception as e:
         err = e
         """The CPLEX LP/MIP solver from python PHANTOM Something went wrong!!!!"""
 

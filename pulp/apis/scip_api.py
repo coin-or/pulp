@@ -186,7 +186,6 @@ class SCIP_CMD(LpSolver_CMD):
     def readsol(filename):
         """Read a SCIP solution file"""
         with open(filename) as f:
-
             # First line must contain 'solution status: <something>'
             try:
                 line = f.readline()
@@ -420,7 +419,6 @@ class FSCIP_CMD(LpSolver_CMD):
     def readsol(filename):
         """Read a FSCIP solution file"""
         with open(filename) as file:
-
             # First line must contain a solution status
             status_line = file.readline()
             status = FSCIP_CMD.parse_status(status_line)
@@ -469,7 +467,6 @@ class SCIP_PY(LpSolver):
     name = "SCIP_PY"
 
     try:
-
         global scip
         import pyscipopt as scip
 

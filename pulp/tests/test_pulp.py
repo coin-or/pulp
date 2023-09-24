@@ -10,7 +10,13 @@ from pulp import LpVariable, LpProblem, lpSum, LpConstraintVar, LpFractionConstr
 from pulp import constants as const
 from pulp.tests.bin_packing_problem import create_bin_packing_problem
 from pulp.utilities import makeDict
+import functools
 import unittest
+
+try:
+    import gurobipy as gp
+except ImportError:
+    gp = None
 
 # from: http://lpsolve.sourceforge.net/5.5/mps-format.htm
 EXAMPLE_MPS_RHS56 = """NAME          TESTPROB
@@ -35,6 +41,25 @@ BOUNDS
  UP BND1      YTWO                 1
 ENDATA
 """
+
+
+def gurobi_test(test_item):
+    @functools.wraps(test_item)
+    def skip_wrapper(*args, **kwargs):
+        if gp is None:
+            raise unittest.SkipTest("No gurobipy, can't check license")
+        try:
+            test_item(*args, **kwargs)
+        except gp.GurobiError as ge:
+            # Skip the test if the failure was due to licensing
+            if ge.errno == gp.GRB.Error.SIZE_LIMIT_EXCEEDED:
+                raise unittest.SkipTest("Size-limited Gurobi license")
+            if ge.errno == gp.GRB.Error.NO_LICENSE:
+                raise unittest.SkipTest("No Gurobi license")
+            # Otherwise, let the error go through as-is
+            raise
+
+    return skip_wrapper
 
 
 def dumpTestProblem(prob):
@@ -1207,12 +1232,19 @@ class BaseSolverTest:
 
             self.assertRaises(TypeError, add_const, prob=prob)
 
+        @gurobi_test
         def test_measuring_solving_time(self):
             print("\t Testing measuring optimization time")
 
             time_limit = 10
             solver_settings = dict(
-                PULP_CBC_CMD=30, COIN_CMD=30, SCIP_CMD=30, GUROBI_CMD=50, CPLEX_CMD=50
+                PULP_CBC_CMD=30,
+                COIN_CMD=30,
+                SCIP_CMD=30,
+                GUROBI_CMD=50,
+                CPLEX_CMD=50,
+                GUROBI=50,
+                HiGHS=50,
             )
             bins = solver_settings.get(self.solver.name)
             if bins is None:
@@ -1224,9 +1256,7 @@ class BaseSolverTest:
             delta = 20
             reported_time = prob.solutionTime
             if self.solver.name in ["PULP_CBC_CMD", "COIN_CMD"]:
-                # CBC is less exact with the timeLimit
                 reported_time = prob.solutionCpuTime
-                delta = 5
 
             self.assertAlmostEqual(
                 reported_time,
@@ -1234,6 +1264,9 @@ class BaseSolverTest:
                 delta=delta,
                 msg=f"optimization time for solver {self.solver.name}",
             )
+            self.assertTrue(prob.objective.value() is not None)
+            for v in prob.variables():
+                self.assertTrue(v.varValue is not None)
 
         def test_invalid_var_names(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
@@ -1247,9 +1280,15 @@ class BaseSolverTest:
             prob += -y + z == 7, "c3"
             prob += w >= 0, "c4"
             print("\t Testing invalid var names")
-            pulpTestCheck(
-                prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0}
-            )
+            if self.solver.name not in [
+                "GUROBI_CMD",  # end is a key-word for LP files
+            ]:
+                pulpTestCheck(
+                    prob,
+                    self.solver,
+                    [const.LpStatusOptimal],
+                    {x: 4, y: -1, z: 6, w: 0},
+                )
 
         def test_LpVariable_indexs_param(self):
             """

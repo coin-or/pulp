@@ -32,7 +32,6 @@ class Pattern:
 
 
 def masterSolve(Patterns, rollData, relax=True):
-
     # The rollData is made into separate dictionaries
     (rollDemand, surplusPrice) = splitDict(rollData)
 
@@ -93,7 +92,6 @@ def masterSolve(Patterns, rollData, relax=True):
 
 
 def subSolve(Patterns, duals):
-
     # The variable 'prob' is created
     prob = LpProblem("SubProb", LpMinimize)
 
