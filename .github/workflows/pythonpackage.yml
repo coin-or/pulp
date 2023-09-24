@@ -26,6 +26,9 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install .
+      - name: Install gurobipy
+        run: |
+          python -m pip install gurobipy
 #      - name: Install highspy
 #        if: matrix.os == 'ubuntu-latest' || matrix.os == 'macOS-latest'
 #        run: |
