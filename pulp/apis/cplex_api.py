@@ -303,7 +303,7 @@ class CPLEX_PY(LpSolver):
             logPath=None,
             epgap=None,
             logfilename=None,
-            threads=None
+            threads=None,
         ):
             """
             :param bool mip: if False, assume LP even if integer variables
