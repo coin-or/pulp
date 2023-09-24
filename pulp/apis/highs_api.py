@@ -142,30 +142,27 @@ class HiGHS_CMD(LpSolver_CMD):
 
         with open(tmpOptions, "w") as options_file:
             options_file.write("\n".join(file_options))
-        
+
         if self.msg:
             pipe = None
         else:
             pipe = open(os.devnull, "w")
-        
+
         lp_status = None
 
-#		The following method of starting the subprocess causes exception UnsupportedOperation("fileno") in iostream.py in Windows            
-#        process = subprocess.run(command, stdout=sys.stdout, stderr=sys.stderr, universal_newlines=True)
+        # 		The following method of starting the subprocess causes exception UnsupportedOperation("fileno") in iostream.py in Windows
+        #        process = subprocess.run(command, stdout=sys.stdout, stderr=sys.stderr, universal_newlines=True)
 
         with subprocess.Popen(
-                    command,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,
-                    universal_newlines=True,
-                ) as proc, open(tmpLog, "w") as log_file:
-                    for line in proc.stdout:
-                        if self.msg:
-                            sys.__stdout__.write(line)
-                        log_file.write(line)
-
-
-        
+            command,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            universal_newlines=True,
+        ) as proc, open(tmpLog, "w") as log_file:
+            for line in proc.stdout:
+                if self.msg:
+                    sys.__stdout__.write(line)
+                log_file.write(line)
 
         # HiGHS return code semantics (see: https://github.com/ERGO-Code/HiGHS/issues/527#issuecomment-946575028)
         # - -1: error
