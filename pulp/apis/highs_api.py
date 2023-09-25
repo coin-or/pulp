@@ -446,7 +446,7 @@ class HiGHS(LpSolver):
                 HighsModelStatus.kTimeLimit,
                 HighsModelStatus.kIterationLimit,
             ):
-                return status_dict[status][0], constants.LpSolutionNoSolutionFound
+                return constants.LpStatusNotSolved, constants.LpSolutionNoSolutionFound
             else:
                 return status_dict[status]
 
