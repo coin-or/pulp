@@ -369,39 +369,86 @@ class HiGHS(LpSolver):
             solution = lp.solverModel.getSolution()
             HighsModelStatus = highspy.HighsModelStatus
 
+            status_dict = {
+                HighsModelStatus.kNotset: (
+                    constants.LpStatusNotSolved,
+                    constants.LpSolutionNoSolutionFound,
+                ),
+                HighsModelStatus.kLoadError: (
+                    constants.LpStatusNotSolved,
+                    constants.LpSolutionNoSolutionFound,
+                ),
+                HighsModelStatus.kModelError: (
+                    constants.LpStatusNotSolved,
+                    constants.LpSolutionNoSolutionFound,
+                ),
+                HighsModelStatus.kPresolveError: (
+                    constants.LpStatusNotSolved,
+                    constants.LpSolutionNoSolutionFound,
+                ),
+                HighsModelStatus.kSolveError: (
+                    constants.LpStatusNotSolved,
+                    constants.LpSolutionNoSolutionFound,
+                ),
+                HighsModelStatus.kPostsolveError: (
+                    constants.LpStatusNotSolved,
+                    constants.LpSolutionNoSolutionFound,
+                ),
+                HighsModelStatus.kModelEmpty: (
+                    constants.LpStatusNotSolved,
+                    constants.LpSolutionNoSolutionFound,
+                ),
+                HighsModelStatus.kOptimal: (
+                    constants.LpStatusOptimal,
+                    constants.LpSolutionOptimal,
+                ),
+                HighsModelStatus.kInfeasible: (
+                    constants.LpStatusInfeasible,
+                    constants.LpSolutionInfeasible,
+                ),
+                HighsModelStatus.kUnboundedOrInfeasible: (
+                    constants.LpStatusInfeasible,
+                    constants.LpSolutionInfeasible,
+                ),
+                HighsModelStatus.kUnbounded: (
+                    constants.LpStatusUnbounded,
+                    constants.LpSolutionUnbounded,
+                ),
+                HighsModelStatus.kObjectiveBound: (
+                    constants.LpStatusNotSolved,
+                    constants.LpSolutionIntegerFeasible,
+                ),
+                HighsModelStatus.kObjectiveTarget: (
+                    constants.LpStatusNotSolved,
+                    constants.LpSolutionIntegerFeasible,
+                ),
+                HighsModelStatus.kTimeLimit: (
+                    constants.LpStatusNotSolved,
+                    constants.LpSolutionIntegerFeasible,
+                ),
+                HighsModelStatus.kIterationLimit: (
+                    constants.LpStatusNotSolved,
+                    constants.LpSolutionIntegerFeasible,
+                ),
+                HighsModelStatus.kUnknown: (
+                    constants.LpStatusNotSolved,
+                    constants.LpSolutionNoSolutionFound,
+                ),
+            }
+
             col_values = list(solution.col_value)
 
             # Assign values to the variables as with lp.assignVarsVals()
             for var in lp.variables():
                 var.varValue = col_values[var.index]
 
-            # Calculate both status codes
-            if status == HighsModelStatus.kOptimal:
-                return constants.LpStatusOptimal, constants.LpSolutionOptimal
-
-            elif (
-                status == HighsModelStatus.kInfeasible
-                or status == HighsModelStatus.kUnboundedOrInfeasible
+            if obj_value == float(inf) and status in (
+                HighsModelStatus.kTimeLimit,
+                HighsModelStatus.kIterationLimit,
             ):
-                return constants.LpStatusInfeasible, constants.LpSolutionInfeasible
-
-            elif status == HighsModelStatus.kUnbounded:
-                return constants.LpStatusUnbounded, constants.LpSolutionUnbounded
-
-            elif (
-                status == HighsModelStatus.kObjectiveBound
-                or status == HighsModelStatus.kObjectiveTarget
-            ):
-                return constants.LpStatusOptimal, constants.LpSolutionIntegerFeasible
-
-            elif (
-                status == HighsModelStatus.kTimeLimit
-                or status == HighsModelStatus.kIterationLimit
-            ) and obj_value != float(inf):
-                return constants.LpStatusOptimal, constants.LpSolutionIntegerFeasible
-
+                return status_dict[status][0], constants.LpSolutionNoSolutionFound
             else:
-                return constants.LpStatusNotSolved, constants.LpSolutionNoSolutionFound
+                return status_dict[status]
 
         def actualSolve(self, lp):
             self.createAndConfigureSolver(lp)
