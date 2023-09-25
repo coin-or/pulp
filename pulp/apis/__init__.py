@@ -149,10 +149,13 @@ def listSolvers(onlyAvailable=False):
     :return: list of solver names
     :rtype: list
     """
-    solvers = [s() for s in _all_solvers]
-    if onlyAvailable:
-        return [solver.name for solver in solvers if solver.available()]
-    return [solver.name for solver in solvers]
+    result = []
+    for s in _all_solvers:
+        solver = s()
+        if (not onlyAvailable) or solver.available():
+            result.append(solver.name)
+        del solver
+    return result
 
 
 # DEPRECATED aliases:
