@@ -190,6 +190,7 @@ PuLP has the integrations with the official python API solvers for the following
 * Mosek (MOSEK)
 * Gurobi (GUROBI)
 * Cplex (CPLEX_PY)
+* Xpress (XPRESS_PY)
 
 These API offer a series of advantages over using the command line option:
 
@@ -218,8 +219,10 @@ Following my installation paths it would be (Linux):
 
 As you can see, it is necessary to have admin rights to install it.
 
+.. _solver-specific-config:
 Using solver-specific functionality
 **********************************************
+
 
 In order to access this functionality, the user needs to use the solver object included inside the PuLP problem. PuLP uses the ``solverModel`` attribute on the problem object. This attribute is created and filled when the method ``buildSolverModel()`` is executed.
 

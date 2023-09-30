@@ -154,3 +154,21 @@ Include the solver in PuLP's test suite by adding a couple of lines correspondin
     # (...)
     class MIPCL_CMDTest(BaseSolverTest.PuLPTest):
         solveInst = MIPCL_CMD
+
+
+Extra: adding a official solver API
+---------------------------------------------
+
+There are additional best practices to take into account with these solvers. The ``actualSolve`` method has the following structure::
+
+    def actualSolve(self, lp):
+        self.buildSolverModel(lp)
+        # set the initial solution
+        self.callSolver(lp)
+        # get the solution information
+        solutionStatus = self.findSolutionValues(lp)
+        return solutionStatus
+
+In addition to this, the ``buildSolverModel`` method fills a property named `lp.solverModel` in the LP problem. This property will include a pointer to the model object from the official solver API (e.g., ``gurobipy.Model`` for GUROBI).
+
+These considerations will permit a consistent, more standard way to call official solvers. In particular, they allow for detailed configuration, such as the one explained :ref:`here <solver-specific-config>`.

@@ -1340,7 +1340,7 @@ class BaseSolverTest:
             print("\t Testing 'indexs' param continues to work for LpVariable.matrix")
             # explicit param creates list of list of LpVariable
             assign_vars_matrix = LpVariable.matrix(
-                name="test", indexs=(customers, agents)
+                name="test", indices=(customers, agents)
             )
             for a in assign_vars_matrix:
                 for b in a:
