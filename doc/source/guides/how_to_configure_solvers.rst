@@ -14,7 +14,7 @@ PuLP has some helper functions that permit a user to query which solvers are ava
     solver_list = pl.listSolvers()
     # ['GLPK_CMD', 'PYGLPK', 'CPLEX_CMD', 'CPLEX_PY', 'CPLEX_DLL', 'GUROBI', 'GUROBI_CMD', 'MOSEK', 'XPRESS', 'PULP_CBC_CMD', 'COIN_CMD', 'COINMP_DLL', 'CHOCO_CMD', 'MIPCL_CMD', 'SCIP_CMD']
 
-If passed the `only_available=True` argument, PuLP lists the solvers that are currently available::
+If passed the `onlyAvailable=True` argument, PuLP lists the solvers that are currently available::
 
     import pulp as pl
     solver_list = pl.listSolvers(onlyAvailable=True)

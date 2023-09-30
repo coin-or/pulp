@@ -21,7 +21,7 @@ prob += lpSum([costs[c] * vars[c] for c in Chairs])
 for r in Resources:
     prob += (
         lpSum([activity[r][c] * vars[c] for c in Chairs]) <= capacity[r],
-        "capacity_of_%s" % r,
+        f"capacity_of_{r}",
     )
 prob.writeLP("furniture.lp")
 prob.solve()

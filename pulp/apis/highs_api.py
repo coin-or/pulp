@@ -28,16 +28,19 @@
 # Users would need to install HiGHS on their machine and provide the path to the executable. Please look at this thread: https://github.com/ERGO-Code/HiGHS/issues/527#issuecomment-894852288
 # More instructions on: https://www.highs.dev
 
-from .core import LpSolver_CMD, subprocess, PulpSolverError
+from typing import List
+
+from .core import LpSolver, LpSolver_CMD, subprocess, PulpSolverError
 import os, sys
 from .. import constants
-import warnings
 
 
 class HiGHS_CMD(LpSolver_CMD):
     """The HiGHS_CMD solver"""
 
-    name = "HiGHS_CMD"
+    name: str = "HiGHS_CMD"
+
+    SOLUTION_STYLE: int = 0
 
     def __init__(
         self,
@@ -47,23 +50,35 @@ class HiGHS_CMD(LpSolver_CMD):
         msg=True,
         options=None,
         timeLimit=None,
+        gapRel=None,
+        gapAbs=None,
+        threads=None,
+        logPath=None,
     ):
         """
         :param bool mip: if False, assume LP even if integer variables
         :param bool msg: if False, no log is shown
         :param float timeLimit: maximum time for solver (in seconds)
-        :param list options: list of additional options to pass to solver
+        :param float gapRel: relative gap tolerance for the solver to stop (in fraction)
+        :param float gapAbs: absolute gap tolerance for the solver to stop
+        :param list[str] options: list of additional options to pass to solver
         :param bool keepFiles: if True, files are saved in the current directory and not deleted after solving
         :param str path: path to the solver binary (you can get binaries for your platform from https://github.com/JuliaBinaryWrappers/HiGHS_jll.jl/releases, or else compile from source - https://highs.dev)
+        :param int threads: sets the maximum number of threads
+        :param str logPath: path to the log file
         """
         LpSolver_CMD.__init__(
             self,
             mip=mip,
             msg=msg,
             timeLimit=timeLimit,
+            gapRel=gapRel,
+            gapAbs=gapAbs,
             options=options,
             path=path,
             keepFiles=keepFiles,
+            threads=threads,
+            logPath=logPath,
         )
 
     def defaultPath(self):
@@ -77,111 +92,111 @@ class HiGHS_CMD(LpSolver_CMD):
         """Solve a well formulated lp problem"""
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute " + self.path)
+        lp.checkDuplicateVars()
+
         tmpMps, tmpSol, tmpOptions, tmpLog = self.create_tmp_files(
             lp.name, "mps", "sol", "HiGHS", "HiGHS_log"
         )
-        write_lines = [
-            "solution_file = %s\n" % tmpSol,
-            "write_solution_to_file = true\n",
-            "write_solution_style = 2\n",
-        ]
-        with open(tmpOptions, "w") as fp:
-            fp.writelines(write_lines)
+        lp.writeMPS(tmpMps, with_objsense=True)
 
-        if lp.sense == constants.LpMaximize:
-            # we swap the objectives
-            # because it does not handle maximization.
-            warnings.warn(
-                "HiGHS_CMD does not currently allow maximization, "
-                "we will minimize the inverse of the objective function."
-            )
-            lp += -lp.objective
-        lp.checkDuplicateVars()
-        lp.writeMPS(tmpMps)  # , mpsSense=constants.LpMinimize)
+        file_options: List[str] = []
+        file_options.append(f"solution_file={tmpSol}")
+        file_options.append("write_solution_to_file=true")
+        file_options.append(f"write_solution_style={HiGHS_CMD.SOLUTION_STYLE}")
+        if not self.msg:
+            file_options.append("log_to_console=false")
+        if "threads" in self.optionsDict:
+            file_options.append(f"threads={self.optionsDict['threads']}")
+        if "gapRel" in self.optionsDict:
+            file_options.append(f"mip_rel_gap={self.optionsDict['gapRel']}")
+        if "gapAbs" in self.optionsDict:
+            file_options.append(f"mip_abs_gap={self.optionsDict['gapAbs']}")
+        if "logPath" in self.optionsDict:
+            highs_log_file = self.optionsDict["logPath"]
+        else:
+            highs_log_file = tmpLog
+        file_options.append(f"log_file={highs_log_file}")
 
-        # just to report duplicated variables:
-        try:
-            os.remove(tmpSol)
-        except:
-            pass
-        cmd = self.path
-        cmd += " %s" % tmpMps
-        cmd += " --options_file %s" % tmpOptions
+        command: List[str] = []
+        command.append(self.path)
+        command.append(tmpMps)
+        command.append(f"--options_file={tmpOptions}")
         if self.timeLimit is not None:
-            cmd += " --time_limit %s" % self.timeLimit
-        for option in self.options:
-            cmd += " " + option
-        if lp.isMIP():
-            if not self.mip:
-                warnings.warn("HiGHS_CMD cannot solve the relaxation of a problem")
-        if self.msg:
-            pipe = None
-        else:
-            pipe = open(os.devnull, "w")
-        lp_status = None
-        with subprocess.Popen(
-            cmd.split(),
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            universal_newlines=True,
-        ) as proc, open(tmpLog, "w") as log_file:
-            for line in proc.stdout:
-                if self.msg:
-                    sys.__stdout__.write(line)
-                log_file.write(line)
+            command.append(f"--time_limit={self.timeLimit}")
+        if not self.mip:
+            command.append("--solver=simplex")
+        if "threads" in self.optionsDict:
+            command.append("--parallel=on")
 
-        # We need to undo the objective swap before finishing
-        if lp.sense == constants.LpMaximize:
-            lp += -lp.objective
+        options = iter(self.options)
+        for option in options:
+            # assumption: all cli and file options require an argument which is provided after the equal sign (=)
+            if "=" not in option:
+                option += f"={next(options)}"
 
-        # The return code for HiGHS on command line follows: 0:program ran successfully, 1: warning, -1: error - https://github.com/ERGO-Code/HiGHS/issues/527#issuecomment-946575028
-        return_code = proc.wait()
-        if return_code in [0, 1]:
-            with open(tmpLog, "r") as log_file:
-                content = log_file.readlines()
-            content = [l.strip().split() for l in content]
-            # LP
-            model_line = [l for l in content if l[:2] == ["Model", "status"]]
-            if len(model_line) > 0:
-                model_status = " ".join(model_line[0][3:])  # Model status: ...
+            # identify cli options by a leading dash (-) and treat other options as file options
+            if option.starts_with("-"):
+                command.append(option)
             else:
-                # ILP
-                model_line = [l for l in content if "Status" in l][0]
-                model_status = " ".join(model_line[1:])
-            sol_line = [l for l in content if l[:2] == ["Solution", "status"]]
-            sol_line = sol_line[0] if len(sol_line) > 0 else ["Not solved"]
-            sol_status = sol_line[-1]
-            if model_status.lower() == "optimal":  # optimal
-                status, status_sol = (
-                    constants.LpStatusOptimal,
-                    constants.LpSolutionOptimal,
-                )
-            elif sol_status.lower() == "feasible":  # feasible
-                # Following the PuLP convention
-                status, status_sol = (
-                    constants.LpStatusOptimal,
-                    constants.LpSolutionIntegerFeasible,
-                )
-            elif model_status.lower() == "infeasible":  # infeasible
-                status, status_sol = (
-                    constants.LpStatusInfeasible,
-                    constants.LpSolutionNoSolutionFound,
-                )
-            elif model_status.lower() == "unbounded":  # unbounded
-                status, status_sol = (
-                    constants.LpStatusUnbounded,
-                    constants.LpSolutionNoSolutionFound,
-                )
-        else:
-            status = constants.LpStatusUndefined
-            status_sol = constants.LpSolutionNoSolutionFound
-            raise PulpSolverError("Pulp: Error while executing", self.path)
+                file_options.append(option)
 
-        if status == constants.LpStatusUndefined:
-            raise PulpSolverError("Pulp: Error while executing", self.path)
+        with open(tmpOptions, "w") as options_file:
+            options_file.write("\n".join(file_options))
+        process = subprocess.run(command, stdout=sys.stdout, stderr=sys.stderr)
+
+        # HiGHS return code semantics (see: https://github.com/ERGO-Code/HiGHS/issues/527#issuecomment-946575028)
+        # - -1: error
+        # -  0: success
+        # -  1: warning
+        if process.returncode == -1:
+            raise PulpSolverError("Error while executing HiGHS")
+
+        with open(highs_log_file, "r") as log_file:
+            lines = log_file.readlines()
+        lines = [line.strip().split() for line in lines]
+
+        # LP
+        model_line = [line for line in lines if line[:2] == ["Model", "status"]]
+        if len(model_line) > 0:
+            model_status = " ".join(model_line[0][3:])  # Model status: ...
+        else:
+            # ILP
+            model_line = [line for line in lines if "Status" in line][0]
+            model_status = " ".join(model_line[1:])
+        sol_line = [line for line in lines if line[:2] == ["Solution", "status"]]
+        sol_line = sol_line[0] if len(sol_line) > 0 else ["Not solved"]
+        sol_status = sol_line[-1]
+        if model_status.lower() == "optimal":  # optimal
+            status, status_sol = (
+                constants.LpStatusOptimal,
+                constants.LpSolutionOptimal,
+            )
+        elif sol_status.lower() == "feasible":  # feasible
+            # Following the PuLP convention
+            status, status_sol = (
+                constants.LpStatusOptimal,
+                constants.LpSolutionIntegerFeasible,
+            )
+        elif model_status.lower() == "infeasible":  # infeasible
+            status, status_sol = (
+                constants.LpStatusInfeasible,
+                constants.LpSolutionNoSolutionFound,
+            )
+        elif model_status.lower() == "unbounded":  # unbounded
+            status, status_sol = (
+                constants.LpStatusUnbounded,
+                constants.LpSolutionNoSolutionFound,
+            )
+        else:  # no solution
+            status, status_sol = (
+                constants.LpStatusNotSolved,
+                constants.LpSolutionNoSolutionFound,
+            )
 
         if not os.path.exists(tmpSol) or os.stat(tmpSol).st_size == 0:
             status_sol = constants.LpSolutionNoSolutionFound
+            values = None
+        elif status_sol == constants.LpSolutionNoSolutionFound:
             values = None
         else:
             values = self.readsol(lp.variables(), tmpSol)
@@ -197,22 +212,198 @@ class HiGHS_CMD(LpSolver_CMD):
     @staticmethod
     def readsol(variables, filename):
         """Read a HiGHS solution file"""
-        with open(filename) as f:
-            content = f.readlines()
-        content = [l.strip() for l in content]
+        with open(filename) as file:
+            lines = file.readlines()
+
+        begin, end = None, None
+        for index, line in enumerate(lines):
+            if begin is None and line.startswith("# Columns"):
+                begin = index + 1
+            if end is None and line.startswith("# Rows"):
+                end = index
+        if begin is None or end is None:
+            raise PulpSolverError("Cannot read HiGHS solver output")
+
         values = {}
-        if not len(content):  # if file is empty, update the status_sol
-            return None
-        # extract everything between the line Columns and Rows
-        col_id = content.index("Columns")
-        row_id = content.index("Rows")
-        solution = content[col_id + 1 : row_id]
-        # check whether it is an LP or an ILP
-        if "T Basis" in content:  # LP
-            for var, line in zip(variables, solution):
-                value = line.split()[0]
-                values[var.name] = float(value)
-        else:  # ILP
-            for var, value in zip(variables, solution):
-                values[var.name] = float(value)
+        for line in lines[begin:end]:
+            name, value = line.split()
+            values[name] = float(value)
         return values
+
+
+class HiGHS(LpSolver):
+    name = "HiGHS"
+
+    try:
+        global highspy
+        import highspy
+    except:
+
+        def available(self):
+            """True if the solver is available"""
+            return False
+
+        def actualSolve(self, lp, callback=None):
+            """Solve a well formulated lp problem"""
+            raise PulpSolverError("HiGHS: Not Available")
+
+    else:
+        # Note(maciej): It was surprising to me that higshpy wasn't logging out of the box,
+        #  even with the different logging options set. This callback seems to work, but there
+        #  are probably better ways of doing this ¯\_(ツ)_/¯
+        DEFAULT_CALLBACK = lambda logType, logMsg, callbackValue: print(
+            f"[{logType.name}] {logMsg}"
+        )
+        DEFAULT_CALLBACK_VALUE = ""
+
+        def __init__(
+            self,
+            mip=True,
+            msg=True,
+            callbackTuple=None,
+            gapAbs=None,
+            gapRel=None,
+            threads=None,
+            timeLimit=None,
+            **solverParams,
+        ):
+            """
+            :param bool mip: if False, assume LP even if integer variables
+            :param bool msg: if False, no log is shown
+            :param tuple callbackTuple: Tuple of log callback function (see DEFAULT_CALLBACK above for definition)
+                and callbackValue (tag embedded in every callback)
+            :param float gapRel: relative gap tolerance for the solver to stop (in fraction)
+            :param float gapAbs: absolute gap tolerance for the solver to stop
+            :param int threads: sets the maximum number of threads
+            :param float timeLimit: maximum time for solver (in seconds)
+            :param dict solverParams: list of named options to pass directly to the HiGHS solver
+            """
+            super().__init__(mip=mip, msg=msg, timeLimit=timeLimit, **solverParams)
+            self.callbackTuple = callbackTuple
+            self.gapAbs = gapAbs
+            self.gapRel = gapRel
+            self.threads = threads
+
+        def available(self):
+            return True
+
+        def callSolver(self, lp):
+            lp.solverModel.run()
+
+        def createAndConfigureSolver(self, lp):
+            lp.solverModel = highspy.Highs()
+
+            if self.msg or self.callbackTuple:
+                callbackTuple = self.callbackTuple or (
+                    HiGHS.DEFAULT_CALLBACK,
+                    HiGHS.DEFAULT_CALLBACK_VALUE,
+                )
+                lp.solverModel.setLogCallback(*callbackTuple)
+
+            if self.gapRel is not None:
+                lp.solverModel.setOptionValue("mip_rel_gap", self.gapRel)
+
+            if self.gapAbs is not None:
+                lp.solverModel.setOptionValue("mip_abs_gap", self.gapAbs)
+
+            if self.threads is not None:
+                lp.solverModel.setOptionValue("threads", self.threads)
+
+            if self.timeLimit is not None:
+                lp.solverModel.setOptionValue("time_limit", float(self.timeLimit))
+
+            # set remaining parameter values
+            for key, value in self.optionsDict.items():
+                lp.solverModel.setOptionValue(key, value)
+
+        def buildSolverModel(self, lp):
+            inf = highspy.kHighsInf
+
+            obj_mult = -1 if lp.sense == constants.LpMaximize else 1
+
+            for i, var in enumerate(lp.variables()):
+                lb = var.lowBound
+                ub = var.upBound
+                lp.solverModel.addCol(
+                    obj_mult * lp.objective.get(var, 0.0),
+                    -inf if lb is None else lb,
+                    inf if ub is None else ub,
+                    0,
+                    [],
+                    [],
+                )
+                var.index = i
+
+                if var.cat == constants.LpInteger and self.mip:
+                    lp.solverModel.changeColIntegrality(
+                        var.index, highspy.HighsVarType.kInteger
+                    )
+
+            for constraint in lp.constraints.values():
+                non_zero_constraint_items = [
+                    (var.index, coefficient)
+                    for var, coefficient in constraint.items()
+                    if coefficient != 0
+                ]
+
+                if len(non_zero_constraint_items) == 0:
+                    indices, coefficients = [], []
+                else:
+                    indices, coefficients = zip(*non_zero_constraint_items)
+
+                lb = constraint.getLb()
+                ub = constraint.getUb()
+                lp.solverModel.addRow(
+                    -inf if lb is None else lb,
+                    inf if ub is None else ub,
+                    len(indices),
+                    indices,
+                    coefficients,
+                )
+
+        def findSolutionValues(self, lp):
+            status = lp.solverModel.getModelStatus()
+            solution = lp.solverModel.getSolution()
+            HighsModelStatus = highspy.HighsModelStatus
+            status_dict = {
+                HighsModelStatus.kNotset: constants.LpStatusNotSolved,
+                HighsModelStatus.kLoadError: constants.LpStatusNotSolved,
+                HighsModelStatus.kModelError: constants.LpStatusNotSolved,
+                HighsModelStatus.kPresolveError: constants.LpStatusNotSolved,
+                HighsModelStatus.kSolveError: constants.LpStatusNotSolved,
+                HighsModelStatus.kPostsolveError: constants.LpStatusNotSolved,
+                HighsModelStatus.kModelEmpty: constants.LpStatusNotSolved,
+                HighsModelStatus.kOptimal: constants.LpStatusOptimal,
+                HighsModelStatus.kInfeasible: constants.LpStatusInfeasible,
+                HighsModelStatus.kUnboundedOrInfeasible: constants.LpStatusInfeasible,
+                HighsModelStatus.kUnbounded: constants.LpStatusUnbounded,
+                HighsModelStatus.kObjectiveBound: constants.LpStatusNotSolved,
+                HighsModelStatus.kObjectiveTarget: constants.LpStatusNotSolved,
+                HighsModelStatus.kTimeLimit: constants.LpStatusNotSolved,
+                HighsModelStatus.kIterationLimit: constants.LpStatusNotSolved,
+                HighsModelStatus.kUnknown: constants.LpStatusNotSolved,
+            }
+
+            col_values = list(solution.col_value)
+            for var in lp.variables():
+                var.varValue = col_values[var.index]
+
+            return status_dict[status]
+
+        def actualSolve(self, lp):
+            self.createAndConfigureSolver(lp)
+            self.buildSolverModel(lp)
+            self.callSolver(lp)
+
+            solutionStatus = self.findSolutionValues(lp)
+
+            for var in lp.variables():
+                var.modified = False
+
+            for constraint in lp.constraints.values():
+                constraint.modifier = False
+
+            return solutionStatus
+
+        def actualResolve(self, lp, **kwargs):
+            raise PulpSolverError("HiGHS: Resolving is not supported")
