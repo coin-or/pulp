@@ -293,7 +293,6 @@ class COPT_DLL(LpSolver):
             raise PulpSolverError(f"COPT_DLL: Not Available:\n{self.err}")
 
     else:
-
         # COPT API name map
         CreateEnv = coptlib.COPT_CreateEnv
         DeleteEnv = coptlib.COPT_DeleteEnv
@@ -331,7 +330,6 @@ class COPT_DLL(LpSolver):
             logfile=None,
             **params,
         ):
-
             """
             Initialize COPT solver
             """
