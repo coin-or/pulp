@@ -264,6 +264,7 @@
 <li><p>Mosek (MOSEK)</p></li>
 <li><p>Gurobi (GUROBI)</p></li>
 <li><p>Cplex (CPLEX_PY)</p></li>
+<li><p>Xpress (XPRESS_PY)</p></li>
 </ul>
 <p>These API offer a series of advantages over using the command line option:</p>
 <ul class="simple">
@@ -290,7 +291,7 @@ sudo python3 setup.py install</p>
 <p>As you can see, it is necessary to have admin rights to install it.</p>
 </section>
 <section id="using-solver-specific-functionality">
-<h3>Using solver-specific functionality<a class="headerlink" href="#using-solver-specific-functionality" title="Link to this heading"></a></h3>
+<span id="solver-specific-config"></span><h3>Using solver-specific functionality<a class="headerlink" href="#using-solver-specific-functionality" title="Link to this heading"></a></h3>
 <p>In order to access this functionality, the user needs to use the solver object included inside the PuLP problem. PuLP uses the <code class="docutils literal notranslate"><span class="pre">solverModel</span></code> attribute on the problem object. This attribute is created and filled when the method <code class="docutils literal notranslate"><span class="pre">buildSolverModel()</span></code> is executed.</p>
 <p>For example, using the <code class="docutils literal notranslate"><span class="pre">CPLEX_PY</span></code> API we can access the api object after the solving is done:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pulp</span>

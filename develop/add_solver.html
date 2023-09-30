@@ -59,6 +59,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#defaultpath-method"><code class="docutils literal notranslate"><span class="pre">defaultPath</span></code> method</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#making-the-solver-available-to-pulp">Making the solver available to PuLP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#including-the-solver-in-tests-suite">Including the solver in tests suite</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#extra-adding-a-official-solver-api">Extra: adding a official solver API</a></li>
 </ul>
 </li>
 </ul>
@@ -239,6 +240,21 @@
     <span class="n">solveInst</span> <span class="o">=</span> <span class="n">MIPCL_CMD</span>
 </pre></div>
 </div>
+</section>
+<section id="extra-adding-a-official-solver-api">
+<h2>Extra: adding a official solver API<a class="headerlink" href="#extra-adding-a-official-solver-api" title="Link to this heading"></a></h2>
+<p>There are additional best practices to take into account with these solvers. The <code class="docutils literal notranslate"><span class="pre">actualSolve</span></code> method has the following structure:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">actualSolve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lp</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">buildSolverModel</span><span class="p">(</span><span class="n">lp</span><span class="p">)</span>
+    <span class="c1"># set the initial solution</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">callSolver</span><span class="p">(</span><span class="n">lp</span><span class="p">)</span>
+    <span class="c1"># get the solution information</span>
+    <span class="n">solutionStatus</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">findSolutionValues</span><span class="p">(</span><span class="n">lp</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">solutionStatus</span>
+</pre></div>
+</div>
+<p>In addition to this, the <code class="docutils literal notranslate"><span class="pre">buildSolverModel</span></code> method fills a property named <cite>lp.solverModel</cite> in the LP problem. This property will include a pointer to the model object from the official solver API (e.g., <code class="docutils literal notranslate"><span class="pre">gurobipy.Model</span></code> for GUROBI).</p>
+<p>These considerations will permit a consistent, more standard way to call official solvers. In particular, they allow for detailed configuration, such as the one explained <a class="reference internal" href="../guides/how_to_configure_solvers.html#solver-specific-config"><span class="std std-ref">here</span></a>.</p>
 </section>
 </section>
 
