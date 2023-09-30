@@ -84,6 +84,29 @@
 <li class="toctree-l4"><a class="reference internal" href="#pulp.apis.COIN_CMD.writesol"><code class="docutils literal notranslate"><span class="pre">COIN_CMD.writesol()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.COPT"><code class="docutils literal notranslate"><span class="pre">COPT</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.COPT.actualSolve"><code class="docutils literal notranslate"><span class="pre">COPT.actualSolve()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.COPT.available"><code class="docutils literal notranslate"><span class="pre">COPT.available()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.COPT.name"><code class="docutils literal notranslate"><span class="pre">COPT.name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.COPT_CMD"><code class="docutils literal notranslate"><span class="pre">COPT_CMD</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.COPT_CMD.actualSolve"><code class="docutils literal notranslate"><span class="pre">COPT_CMD.actualSolve()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.COPT_CMD.available"><code class="docutils literal notranslate"><span class="pre">COPT_CMD.available()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.COPT_CMD.defaultPath"><code class="docutils literal notranslate"><span class="pre">COPT_CMD.defaultPath()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.COPT_CMD.name"><code class="docutils literal notranslate"><span class="pre">COPT_CMD.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.COPT_CMD.readsol"><code class="docutils literal notranslate"><span class="pre">COPT_CMD.readsol()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.COPT_CMD.writemst"><code class="docutils literal notranslate"><span class="pre">COPT_CMD.writemst()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.COPT_DLL"><code class="docutils literal notranslate"><span class="pre">COPT_DLL</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.COPT_DLL.actualSolve"><code class="docutils literal notranslate"><span class="pre">COPT_DLL.actualSolve()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.COPT_DLL.available"><code class="docutils literal notranslate"><span class="pre">COPT_DLL.available()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.COPT_DLL.err"><code class="docutils literal notranslate"><span class="pre">COPT_DLL.err</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.COPT_DLL.name"><code class="docutils literal notranslate"><span class="pre">COPT_DLL.name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.COPT_DLL_loadlib"><code class="docutils literal notranslate"><span class="pre">COPT_DLL_loadlib()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#pulp.apis.CPLEX"><code class="docutils literal notranslate"><span class="pre">CPLEX</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#pulp.apis.CPLEX_CMD"><code class="docutils literal notranslate"><span class="pre">CPLEX_CMD</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#pulp.apis.CPLEX_CMD.actualSolve"><code class="docutils literal notranslate"><span class="pre">CPLEX_CMD.actualSolve()</span></code></a></li>
@@ -255,8 +278,10 @@
 <li class="toctree-l4"><a class="reference internal" href="#pulp.apis.YAPOSIB.name"><code class="docutils literal notranslate"><span class="pre">YAPOSIB.name</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.byref"><code class="docutils literal notranslate"><span class="pre">byref()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#pulp.apis.clock"><code class="docutils literal notranslate"><span class="pre">clock()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#pulp.apis.configSolvers"><code class="docutils literal notranslate"><span class="pre">configSolvers()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.coptstr"><code class="docutils literal notranslate"><span class="pre">coptstr()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#pulp.apis.ctypesArrayFill"><code class="docutils literal notranslate"><span class="pre">ctypesArrayFill()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#pulp.apis.getSolver"><code class="docutils literal notranslate"><span class="pre">getSolver()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#pulp.apis.getSolverFromDict"><code class="docutils literal notranslate"><span class="pre">getSolverFromDict()</span></code></a></li>
@@ -497,6 +522,139 @@ returns status, values, reducedCosts, shadowPrices, slacks, sol_status</p>
 returns True on success</p>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pulp.apis.COPT">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">COPT</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeLimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.COPT" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pulp.apis.LpSolver" title="pulp.apis.core.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpSolver</span></code></a></p>
+<p>The COPT Optimizer via its python interface</p>
+<p>The COPT variables are available (after a solve) in var.solverVar
+Constraints in constraint.solverConstraint
+and the Model is in prob.solverModel</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
+<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a>) – if False, no log is shown</p></li>
+<li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><em>list</em></a>) – </p></li>
+<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
+<li><p><strong>args</strong> – </p></li>
+<li><p><strong>kwargs</strong> – optional named options to pass to each solver,
+e.g. gapRel=0.1, gapAbs=10, logPath=””,</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pulp.apis.COPT.actualSolve">
+<span class="sig-name descname"><span class="pre">actualSolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">callback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.COPT.actualSolve" title="Link to this definition"></a></dt>
+<dd><p>Solve a well formulated lp problem</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulp.apis.COPT.available">
+<span class="sig-name descname"><span class="pre">available</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.COPT.available" title="Link to this definition"></a></dt>
+<dd><p>True if the solver is available</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulp.apis.COPT.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'COPT'</span></em><a class="headerlink" href="#pulp.apis.COPT.name" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pulp.apis.COPT_CMD">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">COPT_CMD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepFiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mip_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warmStart</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.COPT_CMD" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pulp.apis.LpSolver_CMD" title="pulp.apis.core.LpSolver_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpSolver_CMD</span></code></a></p>
+<p>The COPT command-line solver</p>
+<p>Initialize command-line solver</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pulp.apis.COPT_CMD.actualSolve">
+<span class="sig-name descname"><span class="pre">actualSolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.COPT_CMD.actualSolve" title="Link to this definition"></a></dt>
+<dd><p>Solve a well formulated LP problem</p>
+<p>This function borrowed implementation of CPLEX_CMD.actualSolve and
+GUROBI_CMD.actualSolve, with some modifications.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulp.apis.COPT_CMD.available">
+<span class="sig-name descname"><span class="pre">available</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.COPT_CMD.available" title="Link to this definition"></a></dt>
+<dd><p>True if ‘copt_cmd’ is available</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulp.apis.COPT_CMD.defaultPath">
+<span class="sig-name descname"><span class="pre">defaultPath</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.COPT_CMD.defaultPath" title="Link to this definition"></a></dt>
+<dd><p>The default path of ‘copt_cmd’</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulp.apis.COPT_CMD.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'COPT_CMD'</span></em><a class="headerlink" href="#pulp.apis.COPT_CMD.name" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulp.apis.COPT_CMD.readsol">
+<span class="sig-name descname"><span class="pre">readsol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.COPT_CMD.readsol" title="Link to this definition"></a></dt>
+<dd><p>Read COPT solution file</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulp.apis.COPT_CMD.writemst">
+<span class="sig-name descname"><span class="pre">writemst</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lpvars</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.COPT_CMD.writemst" title="Link to this definition"></a></dt>
+<dd><p>Write COPT MIP start file</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pulp.apis.COPT_DLL">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">COPT_DLL</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeLimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.COPT_DLL" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pulp.apis.LpSolver" title="pulp.apis.core.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpSolver</span></code></a></p>
+<p>The COPT dynamic library solver</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
+<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a>) – if False, no log is shown</p></li>
+<li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><em>list</em></a>) – </p></li>
+<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
+<li><p><strong>args</strong> – </p></li>
+<li><p><strong>kwargs</strong> – optional named options to pass to each solver,
+e.g. gapRel=0.1, gapAbs=10, logPath=””,</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pulp.apis.COPT_DLL.actualSolve">
+<span class="sig-name descname"><span class="pre">actualSolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.COPT_DLL.actualSolve" title="Link to this definition"></a></dt>
+<dd><p>Solve a well formulated lp problem</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulp.apis.COPT_DLL.available">
+<span class="sig-name descname"><span class="pre">available</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.COPT_DLL.available" title="Link to this definition"></a></dt>
+<dd><p>True if the solver is available</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulp.apis.COPT_DLL.err">
+<span class="sig-name descname"><span class="pre">err</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">TypeError('expected</span> <span class="pre">str,</span> <span class="pre">bytes</span> <span class="pre">or</span> <span class="pre">os.PathLike</span> <span class="pre">object,</span> <span class="pre">not</span> <span class="pre">NoneType')</span></em><a class="headerlink" href="#pulp.apis.COPT_DLL.err" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulp.apis.COPT_DLL.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'COPT_DLL'</span></em><a class="headerlink" href="#pulp.apis.COPT_DLL.name" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pulp.apis.COPT_DLL_loadlib">
+<span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">COPT_DLL_loadlib</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.COPT_DLL_loadlib" title="Link to this definition"></a></dt>
+<dd><p>Load COPT shared library in all supported platforms</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -1612,6 +1770,13 @@ e.g. gapRel=0.1, gapAbs=10, logPath=””,</p></li>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="pulp.apis.byref">
+<span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">byref</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">C</span> <span class="pre">instance</span></span></em><span class="optional">[</span>, <em class="sig-param"><span class="n"><span class="pre">offset=0</span></span></em><span class="optional">]</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">byref-object</span></span></span><a class="headerlink" href="#pulp.apis.byref" title="Link to this definition"></a></dt>
+<dd><p>Return a pointer lookalike to a C instance, only usable
+as function argument</p>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="pulp.apis.clock">
 <span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">clock</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.clock" title="Link to this definition"></a></dt>
 <dd><p>monotonic() -&gt; float</p>
@@ -1625,6 +1790,11 @@ e.g. gapRel=0.1, gapAbs=10, logPath=””,</p></li>
 <p>Designed to configure the file locations of the solvers from the
 command line after installation</p>
 </dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pulp.apis.coptstr">
+<span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">coptstr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.coptstr" title="Link to this definition"></a></dt>
+<dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pulp.apis.ctypesArrayFill">
