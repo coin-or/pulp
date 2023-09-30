@@ -36,6 +36,9 @@ jobs:
         if: matrix.os == 'ubuntu-latest' || matrix.os == 'macOS-latest'
         run: |
           pip install highspy numpy
+      - name: Install coptpy
+        run: |
+          pip install coptpy
       - name: Test with pulptest
         run: pulptest
       - name: Code Quality
