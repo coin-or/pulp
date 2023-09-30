@@ -1283,7 +1283,6 @@ class BaseSolverTest:
                 CPLEX_CMD=50,
                 GUROBI=50,
                 HiGHS=50,
-                COPT=30,
             )
             bins = solver_settings.get(self.solver.name)
             if bins is None:
