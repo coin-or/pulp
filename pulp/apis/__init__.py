@@ -8,6 +8,7 @@ from .mosek_api import *
 from .scip_api import *
 from .xpress_api import *
 from .highs_api import *
+from .copt_api import *
 from .core import *
 
 _all_solvers = [
@@ -31,6 +32,9 @@ _all_solvers = [
     SCIP_PY,
     HiGHS,
     HiGHS_CMD,
+    COPT,
+    COPT_DLL,
+    COPT_CMD,
 ]
 
 import json
@@ -145,10 +149,13 @@ def listSolvers(onlyAvailable=False):
     :return: list of solver names
     :rtype: list
     """
-    solvers = [s() for s in _all_solvers]
-    if onlyAvailable:
-        return [solver.name for solver in solvers if solver.available()]
-    return [solver.name for solver in solvers]
+    result = []
+    for s in _all_solvers:
+        solver = s()
+        if (not onlyAvailable) or solver.available():
+            result.append(solver.name)
+        del solver
+    return result
 
 
 # DEPRECATED aliases:
