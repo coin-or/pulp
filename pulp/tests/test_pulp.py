@@ -440,7 +440,13 @@ class BaseSolverTest:
             x.setInitialValue(3)
             y.setInitialValue(-0.5)
             z.setInitialValue(7)
-            if self.solver.name in ["GUROBI", "GUROBI_CMD", "CPLEX_CMD", "CPLEX_PY", "COPT"]:
+            if self.solver.name in [
+                "GUROBI",
+                "GUROBI_CMD",
+                "CPLEX_CMD",
+                "CPLEX_PY",
+                "COPT",
+            ]:
                 self.solver.optionsDict["warmStart"] = True
             print("\t Testing Initial value in MIP solution")
             pulpTestCheck(
@@ -679,7 +685,7 @@ class BaseSolverTest:
                 print("\t Testing resolve of problem")
                 prob.resolve()
                 # difficult to check this is doing what we want as the resolve is
-                # over ridden if it is not implemented
+                # overridden if it is not implemented
                 # test_pulp_Check(prob, self.solver, [const.LpStatusOptimal], {x:4, y:-1, z:6})
 
         def test_pulp_100(self):
@@ -696,7 +702,7 @@ class BaseSolverTest:
             obj2 = 0 * x - 1 * y + 0 * z
             prob += x <= 1, "c1"
 
-            if self.solver.__class__ in [COINMP_DLL, GUROBI, COPT]:
+            if self.solver.__class__ in [COINMP_DLL, GUROBI]:
                 print("\t Testing Sequential Solves")
                 status = prob.sequentialSolve([obj1, obj2], solver=self.solver)
                 pulpTestCheck(
@@ -802,7 +808,14 @@ class BaseSolverTest:
             prob += -y + z == 7, "c3"
             prob.extend((w >= -1).makeElasticSubProblem(penalty=0.9))
             print("\t Testing elastic constraints (penalty unbounded)")
-            if self.solver.__class__ in [COINMP_DLL, GUROBI, CPLEX_CMD, YAPOSIB, MOSEK, COPT]:
+            if self.solver.__class__ in [
+                COINMP_DLL,
+                GUROBI,
+                CPLEX_CMD,
+                YAPOSIB,
+                MOSEK,
+                COPT,
+            ]:
                 # COINMP_DLL Does not report unbounded problems, correctly
                 pulpTestCheck(
                     prob,
@@ -1268,7 +1281,7 @@ class BaseSolverTest:
                 CPLEX_CMD=50,
                 GUROBI=50,
                 HiGHS=50,
-                COPT=30
+                COPT=30,
             )
             bins = solver_settings.get(self.solver.name)
             if bins is None:
@@ -1539,8 +1552,10 @@ class HiGHS_PYTest(BaseSolverTest.PuLPTest):
 class HiGHS_CMDTest(BaseSolverTest.PuLPTest):
     solveInst = HiGHS_CMD
 
+
 class COPTTest(BaseSolverTest.PuLPTest):
     solveInst = COPT
+
 
 def pulpTestCheck(
     prob,

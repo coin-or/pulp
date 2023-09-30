@@ -1,15 +1,7 @@
 from .core import LpSolver_CMD, LpSolver, subprocess, PulpSolverError, clock, log
-from .core import (
-    cplex_dll_path,
-    ctypesArrayFill,
-    ilm_cplex_license,
-    ilm_cplex_license_signature,
-    to_string,
-)
-from .. import constants, sparse
+from .. import constants
 import os
 import warnings
-import re
 
 
 class CPLEX_CMD(LpSolver_CMD):
@@ -281,7 +273,7 @@ class CPLEX_PY(LpSolver):
         import cplex
     except Exception as e:
         err = e
-        """The CPLEX LP/MIP solver from python PHANTOM Something went wrong!!!!"""
+        """The CPLEX LP/MIP solver from python. Something went wrong!!!!"""
 
         def available(self):
             """True if the solver is available"""
