@@ -135,7 +135,7 @@ class HiGHS_CMD(LpSolver_CMD):
                 option += f"={next(options)}"
 
             # identify cli options by a leading dash (-) and treat other options as file options
-            if option.starts_with("-"):
+            if option.startswith("-"):
                 command.append(option)
             else:
                 file_options.append(option)
