@@ -415,19 +415,19 @@ class HiGHS(LpSolver):
                     constants.LpSolutionUnbounded,
                 ),
                 HighsModelStatus.kObjectiveBound: (
-                    constants.LpStatusNotSolved,
+                    constants.LpStatusOptimal,
                     constants.LpSolutionIntegerFeasible,
                 ),
                 HighsModelStatus.kObjectiveTarget: (
-                    constants.LpStatusNotSolved,
+                    constants.LpStatusOptimal,
                     constants.LpSolutionIntegerFeasible,
                 ),
                 HighsModelStatus.kTimeLimit: (
-                    constants.LpStatusNotSolved,
+                    constants.LpStatusOptimal,
                     constants.LpSolutionIntegerFeasible,
                 ),
                 HighsModelStatus.kIterationLimit: (
-                    constants.LpStatusNotSolved,
+                    constants.LpStatusOptimal,
                     constants.LpSolutionIntegerFeasible,
                 ),
                 HighsModelStatus.kUnknown: (
