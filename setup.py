@@ -35,7 +35,7 @@ setup(
         "Programming Language :: Python",
         "Topic :: Scientific/Engineering :: Mathematics",
     ],
-    python_requires=">=3.7",
+    python_requires=">=3.8",
     # need the cbc directories here as the executable bit is set
     packages=[
         "pulp",
