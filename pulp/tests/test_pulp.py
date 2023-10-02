@@ -1473,6 +1473,37 @@ class BaseSolverTest:
             # it should be all None
             self.assertTrue(all(c is None for c in shadowPrices.values()))
 
+        def test_options_parsing_SCIP_HIGHS(self):
+            name = self._testMethodName
+            prob = LpProblem(name, const.LpMinimize)
+            x = LpVariable("x", 0, 4)
+            y = LpVariable("y", -1, 1)
+            z = LpVariable("z", 0)
+            w = LpVariable("w", 0)
+            prob += x + 4 * y + 9 * z, "obj"
+            prob += x + y <= 5, "c1"
+            prob += x + z >= 10, "c2"
+            prob += -y + z == 7, "c3"
+            prob += w >= 0, "c4"
+            # CHOCO has issues when given a time limit
+            print("\t Testing options parsing")
+            if self.solver.__class__ in [SCIP_CMD, FSCIP_CMD]:
+                self.solver.options = ["limits/time", 20]
+                pulpTestCheck(
+                    prob,
+                    self.solver,
+                    [const.LpStatusOptimal],
+                    {x: 4, y: -1, z: 6, w: 0},
+                )
+            elif self.solver.__class__ in [HiGHS_CMD]:
+                self.solver.options = ["time_limit", 20]
+                pulpTestCheck(
+                    prob,
+                    self.solver,
+                    [const.LpStatusOptimal],
+                    {x: 4, y: -1, z: 6, w: 0},
+                )
+
 
 class PULP_CBC_CMDTest(BaseSolverTest.PuLPTest):
     solveInst = PULP_CBC_CMD
