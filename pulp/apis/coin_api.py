@@ -63,6 +63,7 @@ class COIN_CMD(LpSolver_CMD):
         logPath=None,
         timeMode="elapsed",
         mip_start=False,
+        maxNodes=None,
     ):
         """
         :param bool mip: if False, assume LP even if integer variables
@@ -83,6 +84,7 @@ class COIN_CMD(LpSolver_CMD):
         :param float maxSeconds: deprecated for timeLimit
         :param str timeMode: "elapsed": count wall-time to timeLimit; "cpu": count cpu-time
         :param bool mip_start: deprecated for warmStart
+        :param int maxNodes: max number of nodes during branching. Stops the solving when reached.
         """
 
         if fracGap is not None:
@@ -124,6 +126,7 @@ class COIN_CMD(LpSolver_CMD):
             gapAbs=gapAbs,
             logPath=logPath,
             timeMode=timeMode,
+            maxNodes=maxNodes,
         )
 
     def copy(self):
@@ -236,6 +239,7 @@ class COIN_CMD(LpSolver_CMD):
             strong="strong {}",
             cuts="gomory on knapsack on probing on",
             timeMode="timeMode {}",
+            maxNodes="maxNodes {}",
         )
 
         return [
