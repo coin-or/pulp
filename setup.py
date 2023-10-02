@@ -42,6 +42,7 @@ setup(
         "pulp.solverdir",
         "pulp.solverdir.cbc.linux.32",
         "pulp.solverdir.cbc.linux.64",
+        "pulp.solverdir.cbc.linux.arm64",
         "pulp.solverdir.cbc.win.32",
         "pulp.solverdir.cbc.win.64",
         "pulp.solverdir.cbc.osx.64",
@@ -49,6 +50,7 @@ setup(
     package_data={
         "pulp.solverdir.cbc.linux.32": ["*", "*.*"],
         "pulp.solverdir.cbc.linux.64": ["*", "*.*"],
+        "pulp.solverdir.cbc.linux.arm64": ["*", "*.*"],
         "pulp.solverdir.cbc.win.32": ["*", "*.*"],
         "pulp.solverdir.cbc.win.64": ["*", "*.*"],
         "pulp.solverdir.cbc.osx.64": ["*", "*.*"],

@@ -1,15 +1,7 @@
 from .core import LpSolver_CMD, LpSolver, subprocess, PulpSolverError, clock, log
-from .core import (
-    cplex_dll_path,
-    ctypesArrayFill,
-    ilm_cplex_license,
-    ilm_cplex_license_signature,
-    to_string,
-)
-from .. import constants, sparse
+from .. import constants
 import os
 import warnings
-import re
 
 
 class CPLEX_CMD(LpSolver_CMD):
@@ -281,7 +273,7 @@ class CPLEX_PY(LpSolver):
         import cplex
     except Exception as e:
         err = e
-        """The CPLEX LP/MIP solver from python PHANTOM Something went wrong!!!!"""
+        """The CPLEX LP/MIP solver from python. Something went wrong!!!!"""
 
         def available(self):
             """True if the solver is available"""
@@ -303,6 +295,7 @@ class CPLEX_PY(LpSolver):
             logPath=None,
             epgap=None,
             logfilename=None,
+            threads=None,
         ):
             """
             :param bool mip: if False, assume LP even if integer variables
@@ -313,6 +306,7 @@ class CPLEX_PY(LpSolver):
             :param str logPath: path to the log file
             :param float epgap: deprecated for gapRel
             :param str logfilename: deprecated for logPath
+            :param int threads: number of threads to be used by CPLEX to solve a problem (default None uses all available)
             """
             if epgap is not None:
                 warnings.warn("Parameter epgap is being depreciated for gapRel")
@@ -337,6 +331,7 @@ class CPLEX_PY(LpSolver):
                 timeLimit=timeLimit,
                 warmStart=warmStart,
                 logPath=logPath,
+                threads=threads,
             )
 
         def available(self):
@@ -455,6 +450,7 @@ class CPLEX_PY(LpSolver):
                 self.changeEpgap(gapRel)
             if self.timeLimit is not None:
                 self.setTimeLimit(self.timeLimit)
+            self.setThreads(self.optionsDict.get("threads", None))
             if self.optionsDict.get("warmStart", False):
                 # We assume "auto" for the effort_level
                 effort = self.solverModel.MIP_starts.effort_level.auto
@@ -477,6 +473,12 @@ class CPLEX_PY(LpSolver):
             self.solverModel.set_log_stream(fileobj)
             self.solverModel.set_warning_stream(fileobj)
             self.solverModel.set_results_stream(fileobj)
+
+        def setThreads(self, threads=None):
+            """
+            Change cplex thread count used (None is default which uses all available resources)
+            """
+            self.solverModel.parameters.threads.set(threads or 0)
 
         def changeEpgap(self, epgap=10**-4):
             """
