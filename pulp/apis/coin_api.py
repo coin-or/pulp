@@ -349,8 +349,6 @@ class PULP_CBC_CMD(COIN_CMD):
             mip=True,
             msg=True,
             timeLimit=None,
-            fracGap=None,
-            maxSeconds=None,
             gapRel=None,
             gapAbs=None,
             presolve=None,
@@ -362,7 +360,6 @@ class PULP_CBC_CMD(COIN_CMD):
             path=None,
             threads=None,
             logPath=None,
-            mip_start=False,
             timeMode="elapsed",
         ):
             if path is not None:
@@ -374,8 +371,6 @@ class PULP_CBC_CMD(COIN_CMD):
                 mip=mip,
                 msg=msg,
                 timeLimit=timeLimit,
-                fracGap=fracGap,
-                maxSeconds=maxSeconds,
                 gapRel=gapRel,
                 gapAbs=gapAbs,
                 presolve=presolve,
@@ -386,7 +381,6 @@ class PULP_CBC_CMD(COIN_CMD):
                 keepFiles=keepFiles,
                 threads=threads,
                 logPath=logPath,
-                mip_start=mip_start,
                 timeMode=timeMode,
             )
 
@@ -450,14 +444,14 @@ class COINMP_DLL(LpSolver):
             rounding=1,
             integerPresolve=1,
             strong=5,
-            epgap=None,
             *args,
             **kwargs,
         ):
             LpSolver.__init__(self, *args, **kwargs)
             self.fracGap = None
-            if epgap is not None:
-                self.fracGap = float(epgap)
+            gapRel = self.optionsDict.get("gapRel")
+            if gapRel is not None:
+                self.fracGap = float(gapRel)
             if self.timeLimit is not None:
                 self.timeLimit = float(self.timeLimit)
             # Todo: these options are not yet implemented

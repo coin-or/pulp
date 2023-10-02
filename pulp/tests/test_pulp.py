@@ -1339,7 +1339,7 @@ class BaseSolverTest:
 
             print("\t Testing 'indexs' param continues to work for LpVariable.dicts")
             # explicit param creates a dict of type LpVariable
-            assign_vars = LpVariable.dicts(name="test", indexs=(customers, agents))
+            assign_vars = LpVariable.dicts(name="test", indices=(customers, agents))
             for k, v in assign_vars.items():
                 for a, b in v.items():
                     self.assertIsInstance(b, LpVariable)
@@ -1351,7 +1351,7 @@ class BaseSolverTest:
                     self.assertIsInstance(b, LpVariable)
 
             print("\t Testing 'indexs' param continues to work for LpVariable.matrix")
-            # explicit param creates list of list of LpVariable
+            # explicit param creates list of LpVariable
             assign_vars_matrix = LpVariable.matrix(
                 name="test", indices=(customers, agents)
             )
