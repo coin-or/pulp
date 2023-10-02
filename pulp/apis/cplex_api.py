@@ -11,7 +11,6 @@ class CPLEX_CMD(LpSolver_CMD):
 
     def __init__(
         self,
-        timelimit=None,
         mip=True,
         msg=True,
         timeLimit=None,
@@ -25,7 +24,6 @@ class CPLEX_CMD(LpSolver_CMD):
         logPath=None,
         maxMemory=None,
         maxNodes=None,
-        mip_start=False,
     ):
         """
         :param bool mip: if False, assume LP even if integer variables
@@ -41,25 +39,7 @@ class CPLEX_CMD(LpSolver_CMD):
         :param str logPath: path to the log file
         :param float maxMemory: max memory to use during the solving. Stops the solving when reached.
         :param int maxNodes: max number of nodes during branching. Stops the solving when reached.
-        :param bool mip_start: deprecated for warmStart
-        :param float timelimit: deprecated for timeLimit
         """
-        if timelimit is not None:
-            warnings.warn("Parameter timelimit is being depreciated for timeLimit")
-            if timeLimit is not None:
-                warnings.warn(
-                    "Parameter timeLimit and timelimit passed, using timeLimit "
-                )
-            else:
-                timeLimit = timelimit
-        if mip_start:
-            warnings.warn("Parameter mip_start is being depreciated for warmStart")
-            if warmStart:
-                warnings.warn(
-                    "Parameter mipStart and mip_start passed, using warmStart"
-                )
-            else:
-                warmStart = mip_start
         LpSolver_CMD.__init__(
             self,
             gapRel=gapRel,
@@ -293,8 +273,6 @@ class CPLEX_PY(LpSolver):
             gapRel=None,
             warmStart=False,
             logPath=None,
-            epgap=None,
-            logfilename=None,
             threads=None,
         ):
             """
@@ -304,24 +282,8 @@ class CPLEX_PY(LpSolver):
             :param float gapRel: relative gap tolerance for the solver to stop (in fraction)
             :param bool warmStart: if True, the solver will use the current value of variables as a start
             :param str logPath: path to the log file
-            :param float epgap: deprecated for gapRel
-            :param str logfilename: deprecated for logPath
             :param int threads: number of threads to be used by CPLEX to solve a problem (default None uses all available)
             """
-            if epgap is not None:
-                warnings.warn("Parameter epgap is being depreciated for gapRel")
-                if gapRel is not None:
-                    warnings.warn("Parameter gapRel and epgap passed, using gapRel")
-                else:
-                    gapRel = epgap
-            if logfilename is not None:
-                warnings.warn("Parameter logfilename is being depreciated for logPath")
-                if logPath is not None:
-                    warnings.warn(
-                        "Parameter logPath and logfilename passed, using logPath"
-                    )
-                else:
-                    logPath = logfilename
 
             LpSolver.__init__(
                 self,

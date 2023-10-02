@@ -2,6 +2,13 @@
 #       Copyright S.A.Mitchell (s.mitchell@auckland.ac.nz), 2007-
 #       Copyright F.Peschiera (pchtsp@gmail.com), 2019-
 # See the LICENSE file for copyright information.
+2.8.0 2023-10-02
+    GUROBI solver with environment handling
+    added COPT solver
+    added gurobi, highs, xpress, copt to github actions
+    cbc arm binary
+    fixes to SCIPS
+    took out deprecations in arguments
 2.7.0
     added HiGHS solver
     added XPRESS_PY solver

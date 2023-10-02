@@ -316,30 +316,12 @@ class LpVariable(LpElement):
     def matrix(
         cls,
         name,
-        indices=None,  # required param. enforced within function for backwards compatibility
+        indices=None,
         lowBound=None,
         upBound=None,
         cat=const.LpContinuous,
         indexStart=[],
-        indexs=None,
     ):
-        # Backwards Compatiblity with Deprecation Warning for indexs
-        if indices is not None and indexs is not None:
-            raise TypeError(
-                "Both 'indices' and 'indexs' provided to LpVariable.matrix.  Use one only, preferably 'indices'."
-            )
-        elif indices is not None:
-            pass
-        elif indexs is not None:
-            warnings.warn(
-                "'indexs' is deprecated; use 'indices'.", DeprecationWarning, 2
-            )
-            indices = indexs
-        else:
-            raise TypeError(
-                "LpVariable.matrix missing both 'indices' and deprecated 'indexs' arguments."
-            )
-
         if not isinstance(indices, tuple):
             indices = (indices,)
         if "%" not in name:
@@ -364,12 +346,11 @@ class LpVariable(LpElement):
     def dicts(
         cls,
         name,
-        indices=None,  # required param. enforced within function for backwards compatibility
+        indices=None,
         lowBound=None,
         upBound=None,
         cat=const.LpContinuous,
         indexStart=[],
-        indexs=None,
     ):
         """
         This function creates a dictionary of :py:class:`LpVariable` with the specified associated parameters.
@@ -383,27 +364,9 @@ class LpVariable(LpElement):
             positive infinity
         :param cat: The category these variables are in, Integer or
             Continuous(default)
-        :param indexs: (deprecated) Replaced with `indices` parameter
 
         :return: A dictionary of :py:class:`LpVariable`
         """
-
-        # Backwards Compatiblity with Deprecation Warning for indexs
-        if indices is not None and indexs is not None:
-            raise TypeError(
-                "Both 'indices' and 'indexs' provided to LpVariable.dicts.  Use one only, preferably 'indices'."
-            )
-        elif indices is not None:
-            pass
-        elif indexs is not None:
-            warnings.warn(
-                "'indexs' is deprecated; use 'indices'.", DeprecationWarning, 2
-            )
-            indices = indexs
-        else:
-            raise TypeError(
-                "LpVariable.dicts missing both 'indices' and deprecated 'indexs' arguments."
-            )
 
         if not isinstance(indices, tuple):
             indices = (indices,)

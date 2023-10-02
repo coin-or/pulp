@@ -70,7 +70,6 @@ class GUROBI(LpSolver):
             mip=True,
             msg=True,
             timeLimit=None,
-            epgap=None,
             gapRel=None,
             warmStart=False,
             logPath=None,
@@ -86,7 +85,6 @@ class GUROBI(LpSolver):
             :param float gapRel: relative gap tolerance for the solver to stop (in fraction)
             :param bool warmStart: if True, the solver will use the current value of variables as a start
             :param str logPath: path to the log file
-            :param float epgap: deprecated for gapRel
             :param gp.Env env: Gurobi environment to use. Default None.
             :param dict envOptions: environment options.
             :param bool manageEnv: if False, assume the environment is handled by the user.
@@ -147,13 +145,6 @@ class GUROBI(LpSolver):
 
             self.model = None
             self.init_gurobi = False  # whether env and model have been initialised
-
-            if epgap is not None:
-                warnings.warn("Parameter epgap is being depreciated for gapRel")
-                if gapRel is not None:
-                    warnings.warn("Parameter gapRel and epgap passed, using gapRel")
-                else:
-                    gapRel = epgap
 
             LpSolver.__init__(
                 self,
@@ -243,7 +234,7 @@ class GUROBI(LpSolver):
             try:
                 with gp.Env(params=self.env_options):
                     pass
-            except gurobipy.GurobiError as e:
+            except gp.GurobiError as e:
                 warnings.warn(f"GUROBI error: {e}.")
                 return False
             return True
@@ -416,16 +407,7 @@ class GUROBI_CMD(LpSolver_CMD):
         :param bool keepFiles: if True, files are saved in the current directory and not deleted after solving
         :param str path: path to the solver binary
         :param str logPath: path to the log file
-        :param bool mip_start: deprecated for warmStart
         """
-        if mip_start:
-            warnings.warn("Parameter mip_start is being depreciated for warmStart")
-            if warmStart:
-                warnings.warn(
-                    "Parameter warmStart and mip_start passed, using warmStart"
-                )
-            else:
-                warmStart = mip_start
         LpSolver_CMD.__init__(
             self,
             gapRel=gapRel,

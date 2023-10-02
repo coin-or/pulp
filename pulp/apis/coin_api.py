@@ -48,8 +48,6 @@ class COIN_CMD(LpSolver_CMD):
         mip=True,
         msg=True,
         timeLimit=None,
-        fracGap=None,
-        maxSeconds=None,
         gapRel=None,
         gapAbs=None,
         presolve=None,
@@ -62,7 +60,6 @@ class COIN_CMD(LpSolver_CMD):
         threads=None,
         logPath=None,
         timeMode="elapsed",
-        mip_start=False,
     ):
         """
         :param bool mip: if False, assume LP even if integer variables
@@ -79,34 +76,9 @@ class COIN_CMD(LpSolver_CMD):
         :param bool presolve: if True, adds presolve on
         :param bool cuts: if True, adds gomory on knapsack on probing on
         :param bool strong: if True, adds strong
-        :param float fracGap: deprecated for gapRel
-        :param float maxSeconds: deprecated for timeLimit
         :param str timeMode: "elapsed": count wall-time to timeLimit; "cpu": count cpu-time
-        :param bool mip_start: deprecated for warmStart
         """
 
-        if fracGap is not None:
-            warnings.warn("Parameter fracGap is being depreciated for gapRel")
-            if gapRel is not None:
-                warnings.warn("Parameter gapRel and fracGap passed, using gapRel")
-            else:
-                gapRel = fracGap
-        if maxSeconds is not None:
-            warnings.warn("Parameter maxSeconds is being depreciated for timeLimit")
-            if timeLimit is not None:
-                warnings.warn(
-                    "Parameter timeLimit and maxSeconds passed, using timeLimit"
-                )
-            else:
-                timeLimit = maxSeconds
-        if mip_start:
-            warnings.warn("Parameter mip_start is being depreciated for warmStart")
-            if warmStart:
-                warnings.warn(
-                    "Parameter mipStart and mip_start passed, using warmStart"
-                )
-            else:
-                warmStart = mip_start
         LpSolver_CMD.__init__(
             self,
             gapRel=gapRel,

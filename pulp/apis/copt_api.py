@@ -51,15 +51,6 @@ class COPT_CMD(LpSolver_CMD):
         """
         Initialize command-line solver
         """
-        if mip_start:
-            warnings.warn("Parameter mip_start is being depreciated for warmStart")
-            if warmStart:
-                warnings.warn(
-                    "Parameter warmStart and mip_start passed, using warmStart"
-                )
-            else:
-                warmStart = mip_start
-
         LpSolver_CMD.__init__(self, path, keepFiles, mip, msg, [])
 
         self.mipstart = warmStart
@@ -333,14 +324,6 @@ class COPT_DLL(LpSolver):
             """
             Initialize COPT solver
             """
-            if mip_start:
-                warnings.warn("Parameter mip_start is being depreciated for warmStart")
-                if warmStart:
-                    warnings.warn(
-                        "Parameter warmStart and mip_start passed, using warmStart"
-                    )
-                else:
-                    warmStart = mip_start
 
             LpSolver.__init__(self, mip, msg)
 
@@ -888,7 +871,6 @@ class COPT(LpSolver):
             mip=True,
             msg=True,
             timeLimit=None,
-            epgap=None,
             gapRel=None,
             warmStart=False,
             logPath=None,
@@ -901,14 +883,7 @@ class COPT(LpSolver):
             :param float gapRel: relative gap tolerance for the solver to stop (in fraction)
             :param bool warmStart: if True, the solver will use the current value of variables as a start
             :param str logPath: path to the log file
-            :param float epgap: deprecated for gapRel
             """
-            if epgap is not None:
-                warnings.warn("Parameter epgap is being depreciated for gapRel")
-                if gapRel is not None:
-                    warnings.warn("Parameter gapRel and epgap passed, using gapRel")
-                else:
-                    gapRel = epgap
 
             LpSolver.__init__(
                 self,

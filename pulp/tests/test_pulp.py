@@ -1389,32 +1389,6 @@ class BaseSolverTest:
                 for b in a:
                     self.assertIsInstance(b, LpVariable)
 
-        def test_LpVariable_indexs_deprecation_logic(self):
-            """
-            Test that logic put in place for deprecation handling of indexs works
-            """
-            print(
-                "\t Test that logic put in place for deprecation handling of indexs works"
-            )
-            prob = LpProblem(self._testMethodName, const.LpMinimize)
-            customers = [1, 2, 3]
-            agents = ["A", "B", "C"]
-
-            with self.assertRaises(TypeError):
-                # both variables
-                assign_vars_matrix = LpVariable.dicts(
-                    name="test", indices=(customers, agents), indexs=(customers, agents)
-                )
-
-            with self.assertRaises(TypeError):
-                # no variables
-                assign_vars_matrix = LpVariable.dicts(name="test")
-
-            with self.assertWarns(DeprecationWarning):
-                assign_vars_matrix = LpVariable.dicts(
-                    name="test", indexs=(customers, agents)
-                )
-
         def test_parse_cplex_mipopt_solution(self):
             """
             Ensures `readsol` can parse CPLEX mipopt solutions (see issue #508).
