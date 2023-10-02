@@ -1290,7 +1290,8 @@ class BaseSolverTest:
                 return
             prob = create_bin_packing_problem(bins=bins, seed=99)
             self.solver.timeLimit = time_limit
-            prob.solve(self.solver)
+            status = prob.solve(self.solver)
+
             delta = 20
             reported_time = prob.solutionTime
             if self.solver.name in ["PULP_CBC_CMD", "COIN_CMD"]:
@@ -1303,8 +1304,26 @@ class BaseSolverTest:
                 msg=f"optimization time for solver {self.solver.name}",
             )
             self.assertTrue(prob.objective.value() is not None)
+            self.assertEqual(status, const.LpStatusOptimal)
             for v in prob.variables():
                 self.assertTrue(v.varValue is not None)
+
+        @gurobi_test
+        def test_time_limit_no_solution(self):
+            print("\t Test time limit with no solution")
+
+            time_limit = 1
+            solver_settings = dict(HiGHS=50, PULP_CBC_CMD=30, COIN_CMD=30)
+            bins = solver_settings.get(self.solver.name)
+            if bins is None:
+                # not all solvers have timeLimit support
+                return
+            prob = create_bin_packing_problem(bins=bins, seed=99)
+            self.solver.timeLimit = time_limit
+            status = prob.solve(self.solver)
+            self.assertEqual(prob.status, const.LpStatusNotSolved)
+            self.assertEqual(status, const.LpStatusNotSolved)
+            self.assertEqual(prob.sol_status, const.LpSolutionNoSolutionFound)
 
         def test_invalid_var_names(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
