@@ -41,7 +41,7 @@ Examples
 
 See the examples directory for examples.
 
-PuLP requires Python 3.8 or newer.
+PuLP requires Python 3.7 or newer.
 
 The examples use the default solver (CBC). To use other solvers they must be available (installed and accessible). For more information on how to do that, see the `guide on configuring solvers <https://coin-or.github.io/pulp/guides/how_to_configure_solvers.html>`_.
 

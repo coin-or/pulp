@@ -39,6 +39,7 @@ The info below often helps, please fill it out if you're able to. :)
 
 #### I'm using python version:
 
+- [ ] 3.7
 - [ ] 3.8
 - [ ] 3.9
 - [ ] 3.10
