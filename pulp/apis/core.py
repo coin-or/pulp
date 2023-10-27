@@ -71,6 +71,12 @@ class PulpSolverError(const.PulpError):
 
     pass
 
+class PulpTimeoutError(PulpSolverError):
+    """
+    Exception that's raised when we have to kill a solver due to time limit
+    """
+    pass
+
 
 # import configuration information
 def initialize(filename, operating_system="linux", arch="64"):
