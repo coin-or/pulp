@@ -209,7 +209,10 @@ class COIN_CMD(LpSolver_CMD):
         # Implement a timeout that kills the process if it takes too long
         timer = None
         if self.timeLimit is not None:
-            timer = Timer(self.timeLimit, cbc.kill)
+            # Give the solver a buffer above the time limit before we kill it
+            # since it's better for the solver to timeout gracefully
+            buffer_time = 10 
+            timer = Timer(self.timeLimit + buffer_time, cbc.kill)
             timer.start()
 
         try:
