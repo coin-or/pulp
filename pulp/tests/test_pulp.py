@@ -1525,12 +1525,12 @@ class BaseSolverTest:
                     self.solver.optionsDict["killOnTimeLimit"] = origKillSetting
                     self.solver.timeLimit = origTimeLimit
 
-            hangFilePath = os.path.join(os.path.dirname(__file__), "cbc_hang.mps")
+            hangFilePath = os.path.join(os.path.dirname(__file__), "cbc_hang.test_mps")
             _, prob = LpProblem.fromMPS(hangFilePath)
             with enableKillOnTimeLimit(timeLimit=5):
                 try:
                     prob.solve(self.solver)
-                    assert False, "Should have timed out"
+                    assert False, "Should have kill the process due to time out"
                 except PulpTimeoutError:
                     pass
 
