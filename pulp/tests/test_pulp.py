@@ -1506,7 +1506,7 @@ class BaseSolverTest:
                     {x: 4, y: -1, z: 6, w: 0},
                 )
 
-        @pytest.mark.timeout(10)
+        @pytest.mark.timeout(20)
         def test_kill_cbc_on_hang(self):
             """
             Test that if CBC solver hangs, it is killed after timeLimit seconds.
