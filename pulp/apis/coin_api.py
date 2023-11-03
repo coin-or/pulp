@@ -24,13 +24,15 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."""
 
-from .core import LpSolver_CMD, LpSolver, subprocess, PulpSolverError, clock, log
+from .core import LpSolver_CMD, LpSolver, subprocess, PulpSolverError, PulpTimeoutError, clock, log
 from .core import cbc_path, pulp_cbc_path, coinMP_path, devnull, operating_system
 import os
 from .. import constants
 from tempfile import mktemp
 import ctypes
 import warnings
+from threading import Timer
+
 
 
 class COIN_CMD(LpSolver_CMD):
@@ -64,6 +66,7 @@ class COIN_CMD(LpSolver_CMD):
         timeMode="elapsed",
         mip_start=False,
         maxNodes=None,
+        killOnTimeLimit=False,
     ):
         """
         :param bool mip: if False, assume LP even if integer variables
@@ -85,6 +88,7 @@ class COIN_CMD(LpSolver_CMD):
         :param str timeMode: "elapsed": count wall-time to timeLimit; "cpu": count cpu-time
         :param bool mip_start: deprecated for warmStart
         :param int maxNodes: max number of nodes during branching. Stops the solving when reached.
+        :param bool killOnTimeLimit: If the solver takes more than 10 seconds than the time limit to stop, kill it and raise an error.
         """
 
         if fracGap is not None:
@@ -127,6 +131,7 @@ class COIN_CMD(LpSolver_CMD):
             logPath=logPath,
             timeMode=timeMode,
             maxNodes=maxNodes,
+            killOnTimeLimit=killOnTimeLimit,
         )
 
     def copy(self):
@@ -203,13 +208,33 @@ class COIN_CMD(LpSolver_CMD):
             )
         else:
             cbc = subprocess.Popen(args, stdout=pipe, stderr=pipe, stdin=devnull)
-        if cbc.wait() != 0:
-            if pipe:
-                pipe.close()
-            raise PulpSolverError(
-                "Pulp: Error while trying to execute, use msg=True for more details"
-                + self.path
-            )
+
+        # Optionally implement a timeout that kills the process if it takes too long
+        timer = None
+        if self.optionsDict.get('killOnTimeLimit', False) and self.timeLimit is not None:
+            # Give the solver a buffer above the time limit before we kill it
+            # since it's better for the solver to timeout gracefully
+            buffer_time = 10 
+            timer = Timer(self.timeLimit + buffer_time, cbc.kill)
+            timer.start()
+
+        try:
+            exit_code = cbc.wait()
+            if exit_code != 0:
+                if pipe:
+                    pipe.close()
+                if exit_code == -9 and timer is not None:
+                    raise PulpTimeoutError(
+                        f"Pulp: CBC Solver timed out after {self.timeLimit} seconds"
+                    )
+                else:
+                    raise PulpSolverError(
+                        f"Pulp: Error while trying to execute, use msg=True for more details {self.path}"
+                    )
+        finally:
+            if timer is not None:
+                timer.cancel()
+
         if pipe:
             pipe.close()
         if not os.path.exists(tmpSol):
@@ -392,6 +417,7 @@ class PULP_CBC_CMD(COIN_CMD):
             logPath=None,
             mip_start=False,
             timeMode="elapsed",
+            killOnTimeLimit=False,
         ):
             if path is not None:
                 raise PulpSolverError("Use COIN_CMD if you want to set a path")
@@ -416,6 +442,7 @@ class PULP_CBC_CMD(COIN_CMD):
                 logPath=logPath,
                 mip_start=mip_start,
                 timeMode=timeMode,
+                killOnTimeLimit=killOnTimeLimit
             )
 
 

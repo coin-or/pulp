@@ -3,6 +3,7 @@ Tests for pulp
 """
 import os
 import tempfile
+from contextlib import contextmanager
 
 from pulp.constants import PulpError
 from pulp.apis import *
@@ -1503,6 +1504,35 @@ class BaseSolverTest:
                     [const.LpStatusOptimal],
                     {x: 4, y: -1, z: 6, w: 0},
                 )
+
+        def test_kill_cbc_on_hang(self):
+            """
+            Test that if CBC solver hangs, it is killed after timeLimit seconds.
+            """
+            if self.solver.__class__ not in (PULP_CBC_CMD, COIN_CMD):
+                return
+
+            @contextmanager
+            def enableKillOnTimeLimit(timeLimit: float = 5):
+                # A context manager that lets us temperarily enable killOnTimeLimit and set a time limit
+                origKillSetting = self.solver.optionsDict.get("killOnTimeLimit", False)
+                origTimeLimit = self.solver.timeLimit
+                self.solver.optionsDict["killOnTimeLimit"] = True
+                self.solver.timeLimit = timeLimit
+                try:
+                    yield
+                finally:
+                    self.solver.optionsDict["killOnTimeLimit"] = origKillSetting
+                    self.solver.timeLimit = origTimeLimit
+
+            hangFilePath = os.path.join(os.path.dirname(__file__), "cbc_hang.test_mps")
+            _, prob = LpProblem.fromMPS(hangFilePath)
+            with enableKillOnTimeLimit(timeLimit=5):
+                try:
+                    prob.solve(self.solver)
+                    assert False, "Should have kill the process due to time out"
+                except PulpTimeoutError:
+                    pass
 
 
 class PULP_CBC_CMDTest(BaseSolverTest.PuLPTest):

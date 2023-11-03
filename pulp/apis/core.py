@@ -71,6 +71,12 @@ class PulpSolverError(const.PulpError):
 
     pass
 
+class PulpTimeoutError(PulpSolverError):
+    """
+    Exception that's raised when we have to kill a solver due to time limit
+    """
+    pass
+
 
 # import configuration information
 def initialize(filename, operating_system="linux", arch="64"):
@@ -210,7 +216,7 @@ class LpSolver:
         self.timeLimit = timeLimit
 
         # here we will store all other relevant information including:
-        # gapRel, gapAbs, maxMemory, maxNodes, threads, logPath, timeMode
+        # gapRel, gapAbs, maxMemory, maxNodes, threads, logPath, timeMode, killOnTimeLimit
         self.optionsDict = {k: v for k, v in kwargs.items() if v is not None}
 
     def available(self):
