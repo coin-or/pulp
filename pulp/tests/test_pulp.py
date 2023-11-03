@@ -2,6 +2,7 @@
 Tests for pulp
 """
 import os
+import pytest
 import tempfile
 from contextlib import contextmanager
 
@@ -1505,9 +1506,11 @@ class BaseSolverTest:
                     {x: 4, y: -1, z: 6, w: 0},
                 )
 
+        @pytest.mark.timeout(10)
         def test_kill_cbc_on_hang(self):
             """
             Test that if CBC solver hangs, it is killed after timeLimit seconds.
+            If CBC does not hang (which may happen), the test still passes
             """
             if self.solver.__class__ not in (PULP_CBC_CMD, COIN_CMD):
                 return
@@ -1530,7 +1533,6 @@ class BaseSolverTest:
             with enableKillOnTimeLimit(timeLimit=5):
                 try:
                     prob.solve(self.solver)
-                    assert False, "Should have kill the process due to time out"
                 except PulpTimeoutError:
                     pass
 
