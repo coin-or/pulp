@@ -149,7 +149,7 @@ class GUROBI(LpSolver):
             self.init_gurobi = False  # whether env and model have been initialised
 
             if epgap is not None:
-                warnings.warn("Parameter epgap is being depreciated for gapRel")
+                warnings.warn("Parameter epgap is being deprecated for gapRel")
                 if gapRel is not None:
                     warnings.warn("Parameter gapRel and epgap passed, using gapRel")
                 else:
@@ -419,7 +419,7 @@ class GUROBI_CMD(LpSolver_CMD):
         :param bool mip_start: deprecated for warmStart
         """
         if mip_start:
-            warnings.warn("Parameter mip_start is being depreciated for warmStart")
+            warnings.warn("Parameter mip_start is being deprecated for warmStart")
             if warmStart:
                 warnings.warn(
                     "Parameter warmStart and mip_start passed, using warmStart"

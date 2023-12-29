@@ -52,7 +52,7 @@ class COPT_CMD(LpSolver_CMD):
         Initialize command-line solver
         """
         if mip_start:
-            warnings.warn("Parameter mip_start is being depreciated for warmStart")
+            warnings.warn("Parameter mip_start is being deprecated for warmStart")
             if warmStart:
                 warnings.warn(
                     "Parameter warmStart and mip_start passed, using warmStart"
@@ -334,7 +334,7 @@ class COPT_DLL(LpSolver):
             Initialize COPT solver
             """
             if mip_start:
-                warnings.warn("Parameter mip_start is being depreciated for warmStart")
+                warnings.warn("Parameter mip_start is being deprecated for warmStart")
                 if warmStart:
                     warnings.warn(
                         "Parameter warmStart and mip_start passed, using warmStart"
@@ -904,7 +904,7 @@ class COPT(LpSolver):
             :param float epgap: deprecated for gapRel
             """
             if epgap is not None:
-                warnings.warn("Parameter epgap is being depreciated for gapRel")
+                warnings.warn("Parameter epgap is being deprecated for gapRel")
                 if gapRel is not None:
                     warnings.warn("Parameter gapRel and epgap passed, using gapRel")
                 else:
