@@ -215,12 +215,11 @@ class HiGHS_CMD(LpSolver_CMD):
 
         return status
 
-
     def writesol(self, filename, lp):
         """Writes a HiGHS solution file"""
 
         variable_rows = []
-        for var in lp.variables(): # zero variables must be included
+        for var in lp.variables():  # zero variables must be included
             variable_rows.append(f"{var.name} {var.varValue or 0}")
 
         # Required preamble for HiGHS to accept a solution
@@ -237,7 +236,6 @@ class HiGHS_CMD(LpSolver_CMD):
 
         with open(filename, "w") as file:
             file.write("\n".join(all_rows))
-        
 
     def readsol(self, filename):
         """Read a HiGHS solution file"""
