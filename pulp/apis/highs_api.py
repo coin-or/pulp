@@ -54,6 +54,7 @@ class HiGHS_CMD(LpSolver_CMD):
         gapAbs=None,
         threads=None,
         logPath=None,
+        warmStart=False,
     ):
         """
         :param bool mip: if False, assume LP even if integer variables
@@ -66,6 +67,7 @@ class HiGHS_CMD(LpSolver_CMD):
         :param str path: path to the solver binary (you can get binaries for your platform from https://github.com/JuliaBinaryWrappers/HiGHS_jll.jl/releases, or else compile from source - https://highs.dev)
         :param int threads: sets the maximum number of threads
         :param str logPath: path to the log file
+        :param bool warmStart: if True, the solver will use the current value of variables as a start
         """
         LpSolver_CMD.__init__(
             self,
@@ -79,6 +81,7 @@ class HiGHS_CMD(LpSolver_CMD):
             keepFiles=keepFiles,
             threads=threads,
             logPath=logPath,
+            warmStart=False,
         )
 
     def defaultPath(self):
@@ -94,8 +97,8 @@ class HiGHS_CMD(LpSolver_CMD):
             raise PulpSolverError("PuLP: cannot execute " + self.path)
         lp.checkDuplicateVars()
 
-        tmpMps, tmpSol, tmpOptions, tmpLog = self.create_tmp_files(
-            lp.name, "mps", "sol", "HiGHS", "HiGHS_log"
+        tmpMps, tmpSol, tmpOptions, tmpLog, tmpMst = self.create_tmp_files(
+            lp.name, "mps", "sol", "HiGHS", "HiGHS_log", "mst"
         )
         lp.writeMPS(tmpMps, with_objsense=True)
 
@@ -127,6 +130,9 @@ class HiGHS_CMD(LpSolver_CMD):
             command.append("--solver=simplex")
         if "threads" in self.optionsDict:
             command.append("--parallel=on")
+        if self.optionsDict.get("warmStart", False):
+            self.writesol(filename=tmpMst)
+            cmd += f"--read_solution_file={tmpMst}"
 
         options = iter(self.options)
         for option in options:
@@ -199,9 +205,9 @@ class HiGHS_CMD(LpSolver_CMD):
         elif status_sol == constants.LpSolutionNoSolutionFound:
             values = None
         else:
-            values = self.readsol(lp.variables(), tmpSol)
+            values = self.readsol(tmpSol)
 
-        self.delete_tmp_files(tmpMps, tmpSol, tmpOptions, tmpLog)
+        self.delete_tmp_files(tmpMps, tmpSol, tmpOptions, tmpLog, tmpMst)
         lp.assignStatus(status, status_sol)
 
         if status == constants.LpStatusOptimal:
@@ -209,8 +215,13 @@ class HiGHS_CMD(LpSolver_CMD):
 
         return status
 
-    @staticmethod
-    def readsol(variables, filename):
+    def writesol(self, filename):
+        """Writes a HiGHS solution file"""
+        with open(filename, "w") as file:
+            file.write("HiGHS Solution File\n")
+        
+
+    def readsol(self, filename):
         """Read a HiGHS solution file"""
         with open(filename) as file:
             lines = file.readlines()
