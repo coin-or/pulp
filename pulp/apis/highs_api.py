@@ -81,7 +81,7 @@ class HiGHS_CMD(LpSolver_CMD):
             keepFiles=keepFiles,
             threads=threads,
             logPath=logPath,
-            warmStart=False,
+            warmStart=warmStart,
         )
 
     def defaultPath(self):
@@ -131,8 +131,8 @@ class HiGHS_CMD(LpSolver_CMD):
         if "threads" in self.optionsDict:
             command.append("--parallel=on")
         if self.optionsDict.get("warmStart", False):
-            self.writesol(filename=tmpMst)
-            cmd += f"--read_solution_file={tmpMst}"
+            self.writesol(tmpMst, lp)
+            command.append(f"--read_solution_file={tmpMst}")
 
         options = iter(self.options)
         for option in options:
@@ -215,10 +215,28 @@ class HiGHS_CMD(LpSolver_CMD):
 
         return status
 
-    def writesol(self, filename):
+
+    def writesol(self, filename, lp):
         """Writes a HiGHS solution file"""
+
+        variable_rows = []
+        for var in lp.variables(): # zero variables must be included
+            variable_rows.append(f"{var.name} {var.varValue or 0}")
+
+        # Required preamble for HiGHS to accept a solution
+        all_rows = [
+            "Model status",
+            "None",
+            "",
+            "# Primal solution values",
+            "Feasible",
+            "",
+            f"# Columns {len(variable_rows)}",
+        ]
+        all_rows.extend(variable_rows)
+
         with open(filename, "w") as file:
-            file.write("HiGHS Solution File\n")
+            file.write("\n".join(all_rows))
         
 
     def readsol(self, filename):
