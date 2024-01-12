@@ -1359,7 +1359,7 @@ class BaseSolverTest:
 
             print("\t Testing 'indexs' param continues to work for LpVariable.dicts")
             # explicit param creates a dict of type LpVariable
-            assign_vars = LpVariable.dicts(name="test", indexs=(customers, agents))
+            assign_vars = LpVariable.dicts(name="test", indices=(customers, agents))
             for k, v in assign_vars.items():
                 for a, b in v.items():
                     self.assertIsInstance(b, LpVariable)
@@ -1371,7 +1371,7 @@ class BaseSolverTest:
                     self.assertIsInstance(b, LpVariable)
 
             print("\t Testing 'indexs' param continues to work for LpVariable.matrix")
-            # explicit param creates list of list of LpVariable
+            # explicit param creates list of LpVariable
             assign_vars_matrix = LpVariable.matrix(
                 name="test", indices=(customers, agents)
             )
@@ -1408,32 +1408,6 @@ class BaseSolverTest:
             for a in assign_vars_matrix:
                 for b in a:
                     self.assertIsInstance(b, LpVariable)
-
-        def test_LpVariable_indexs_deprecation_logic(self):
-            """
-            Test that logic put in place for deprecation handling of indexs works
-            """
-            print(
-                "\t Test that logic put in place for deprecation handling of indexs works"
-            )
-            prob = LpProblem(self._testMethodName, const.LpMinimize)
-            customers = [1, 2, 3]
-            agents = ["A", "B", "C"]
-
-            with self.assertRaises(TypeError):
-                # both variables
-                assign_vars_matrix = LpVariable.dicts(
-                    name="test", indices=(customers, agents), indexs=(customers, agents)
-                )
-
-            with self.assertRaises(TypeError):
-                # no variables
-                assign_vars_matrix = LpVariable.dicts(name="test")
-
-            with self.assertWarns(DeprecationWarning):
-                assign_vars_matrix = LpVariable.dicts(
-                    name="test", indexs=(customers, agents)
-                )
 
         def test_parse_cplex_mipopt_solution(self):
             """

@@ -54,8 +54,6 @@ class XPRESS(LpSolver_CMD):
         options=None,
         keepFiles=False,
         path=None,
-        maxSeconds=None,
-        targetGap=None,
         heurFreq=None,
         heurStra=None,
         coverCuts=None,
@@ -69,8 +67,6 @@ class XPRESS(LpSolver_CMD):
         :param bool msg: if False, no log is shown
         :param float timeLimit: maximum time for solver (in seconds)
         :param float gapRel: relative gap tolerance for the solver to stop (in fraction)
-        :param maxSeconds: deprecated for timeLimit
-        :param targetGap: deprecated for gapRel
         :param heurFreq: the frequency at which heuristics are used in the tree search
         :param heurStra: heuristic strategy
         :param coverCuts: the number of rounds of lifted cover inequalities at the top node
@@ -80,20 +76,6 @@ class XPRESS(LpSolver_CMD):
                         https://www.fico.com/fico-xpress-optimization/docs/latest/solver/optimizer/HTML/chapter7.html
         :param bool warmStart: if True, then use current variable values as start
         """
-        if maxSeconds:
-            warnings.warn("Parameter maxSeconds is being deprecated for timeLimit")
-            if timeLimit is not None:
-                warnings.warn(
-                    "Parameter timeLimit and maxSeconds passed, using timeLimit"
-                )
-            else:
-                timeLimit = maxSeconds
-        if targetGap is not None:
-            warnings.warn("Parameter targetGap is being deprecated for gapRel")
-            if gapRel is not None:
-                warnings.warn("Parameter gapRel and epgap passed, using gapRel")
-            else:
-                gapRel = targetGap
         LpSolver_CMD.__init__(
             self,
             gapRel=gapRel,

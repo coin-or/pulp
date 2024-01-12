@@ -207,7 +207,7 @@ class PYGLPK(LpSolver):
     else:
 
         def __init__(
-            self, mip=True, msg=True, timeLimit=None, epgap=None, **solverParams
+            self, mip=True, msg=True, timeLimit=None, gapRel=None, **solverParams
         ):
             """
             Initializes the glpk solver.
@@ -215,7 +215,7 @@ class PYGLPK(LpSolver):
             @param mip: if False the solver will solve a MIP as an LP
             @param msg: displays information from the solver to stdout
             @param timeLimit: not handled
-            @param epgap: not handled
+            @param gapRel: not handled
             @param solverParams: not handled
             """
             LpSolver.__init__(self, mip, msg)

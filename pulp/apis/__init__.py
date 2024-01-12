@@ -156,10 +156,3 @@ def listSolvers(onlyAvailable=False):
             result.append(solver.name)
         del solver
     return result
-
-
-# DEPRECATED aliases:
-get_solver = getSolver
-get_solver_from_json = getSolverFromJson
-get_solver_from_dict = getSolverFromDict
-list_solvers = listSolvers
