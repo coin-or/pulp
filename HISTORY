@@ -2,7 +2,8 @@
 #       Copyright S.A.Mitchell (s.mitchell@auckland.ac.nz), 2007-
 #       Copyright F.Peschiera (pchtsp@gmail.com), 2019-
 # See the LICENSE file for copyright information.
-2.8.0 2023-10-02
+2.8.0 2024-01-12
+    mip start in HiGHS_CMD and SCIP_PY
     GUROBI solver with environment handling
     added COPT solver
     added gurobi, highs, xpress, copt to github actions
