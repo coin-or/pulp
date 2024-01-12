@@ -45,7 +45,7 @@ class CPLEX_CMD(LpSolver_CMD):
         :param float timelimit: deprecated for timeLimit
         """
         if timelimit is not None:
-            warnings.warn("Parameter timelimit is being depreciated for timeLimit")
+            warnings.warn("Parameter timelimit is being deprecated for timeLimit")
             if timeLimit is not None:
                 warnings.warn(
                     "Parameter timeLimit and timelimit passed, using timeLimit "
@@ -53,7 +53,7 @@ class CPLEX_CMD(LpSolver_CMD):
             else:
                 timeLimit = timelimit
         if mip_start:
-            warnings.warn("Parameter mip_start is being depreciated for warmStart")
+            warnings.warn("Parameter mip_start is being deprecated for warmStart")
             if warmStart:
                 warnings.warn(
                     "Parameter mipStart and mip_start passed, using warmStart"
@@ -309,13 +309,13 @@ class CPLEX_PY(LpSolver):
             :param int threads: number of threads to be used by CPLEX to solve a problem (default None uses all available)
             """
             if epgap is not None:
-                warnings.warn("Parameter epgap is being depreciated for gapRel")
+                warnings.warn("Parameter epgap is being deprecated for gapRel")
                 if gapRel is not None:
                     warnings.warn("Parameter gapRel and epgap passed, using gapRel")
                 else:
                     gapRel = epgap
             if logfilename is not None:
-                warnings.warn("Parameter logfilename is being depreciated for logPath")
+                warnings.warn("Parameter logfilename is being deprecated for logPath")
                 if logPath is not None:
                     warnings.warn(
                         "Parameter logPath and logfilename passed, using logPath"

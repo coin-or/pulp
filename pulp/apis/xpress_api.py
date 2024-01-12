@@ -81,7 +81,7 @@ class XPRESS(LpSolver_CMD):
         :param bool warmStart: if True, then use current variable values as start
         """
         if maxSeconds:
-            warnings.warn("Parameter maxSeconds is being depreciated for timeLimit")
+            warnings.warn("Parameter maxSeconds is being deprecated for timeLimit")
             if timeLimit is not None:
                 warnings.warn(
                     "Parameter timeLimit and maxSeconds passed, using timeLimit"
@@ -89,7 +89,7 @@ class XPRESS(LpSolver_CMD):
             else:
                 timeLimit = maxSeconds
         if targetGap is not None:
-            warnings.warn("Parameter targetGap is being depreciated for gapRel")
+            warnings.warn("Parameter targetGap is being deprecated for gapRel")
             if gapRel is not None:
                 warnings.warn("Parameter gapRel and epgap passed, using gapRel")
             else:

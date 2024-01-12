@@ -446,6 +446,7 @@ class BaseSolverTest:
                 "CPLEX_CMD",
                 "CPLEX_PY",
                 "COPT",
+                "HiGHS_CMD",
             ]:
                 self.solver.optionsDict["warmStart"] = True
             print("\t Testing Initial value in MIP solution")

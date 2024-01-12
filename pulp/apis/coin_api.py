@@ -88,13 +88,13 @@ class COIN_CMD(LpSolver_CMD):
         """
 
         if fracGap is not None:
-            warnings.warn("Parameter fracGap is being depreciated for gapRel")
+            warnings.warn("Parameter fracGap is being deprecated for gapRel")
             if gapRel is not None:
                 warnings.warn("Parameter gapRel and fracGap passed, using gapRel")
             else:
                 gapRel = fracGap
         if maxSeconds is not None:
-            warnings.warn("Parameter maxSeconds is being depreciated for timeLimit")
+            warnings.warn("Parameter maxSeconds is being deprecated for timeLimit")
             if timeLimit is not None:
                 warnings.warn(
                     "Parameter timeLimit and maxSeconds passed, using timeLimit"
@@ -102,7 +102,7 @@ class COIN_CMD(LpSolver_CMD):
             else:
                 timeLimit = maxSeconds
         if mip_start:
-            warnings.warn("Parameter mip_start is being depreciated for warmStart")
+            warnings.warn("Parameter mip_start is being deprecated for warmStart")
             if warmStart:
                 warnings.warn(
                     "Parameter mipStart and mip_start passed, using warmStart"
