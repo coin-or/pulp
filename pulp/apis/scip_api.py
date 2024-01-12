@@ -493,6 +493,7 @@ class SCIP_PY(LpSolver):
             maxNodes=None,
             logPath=None,
             threads=None,
+            warmStart=False,
         ):
             """
             :param bool mip: if False, assume LP even if integer variables
@@ -504,6 +505,7 @@ class SCIP_PY(LpSolver):
             :param int maxNodes: max number of nodes during branching. Stops the solving when reached.
             :param str logPath: path to the log file
             :param int threads: sets the maximum number of threads
+            :param bool warmStart: if True, the solver will use the current value of variables as a start
             """
             super().__init__(
                 mip=mip,
@@ -515,6 +517,7 @@ class SCIP_PY(LpSolver):
                 maxNodes=maxNodes,
                 logPath=logPath,
                 threads=threads,
+                warmStart=warmStart,
             )
 
         def findSolutionValues(self, lp):
@@ -538,17 +541,36 @@ class SCIP_PY(LpSolver):
                 "restartlimit": constants.LpStatusNotSolved,
                 "unknown": constants.LpStatusUndefined,
             }
+            possible_solution_found_statuses = (
+                "optimal",
+                "timelimit",
+                "userinterrupt",
+                "nodelimit",
+                "totalnodelimit",
+                "stallnodelimit",
+                "gaplimit",
+                "memlimit",
+            )
             status = scip_to_pulp_status[solutionStatus]
-            lp.assignStatus(status)
 
-            if status == constants.LpStatusOptimal:
-                solution = lp.solverModel.getBestSol()
-                for variable in lp._variables:
-                    variable.varValue = solution[variable.solverVar]
-                for constraint in lp.constraints.values():
-                    constraint.slack = lp.solverModel.getSlack(
-                        constraint.solverConstraint, solution
-                    )
+            if solutionStatus in possible_solution_found_statuses:
+                try:  # Feasible solution found
+                    solution = lp.solverModel.getBestSol()
+                    for variable in lp._variables:
+                        variable.varValue = solution[variable.solverVar]
+                    for constraint in lp.constraints.values():
+                        constraint.slack = lp.solverModel.getSlack(
+                            constraint.solverConstraint, solution
+                        )
+                    if status == constants.LpStatusOptimal:
+                        lp.assignStatus(status, constants.LpSolutionOptimal)
+                    else:
+                        status = constants.LpStatusOptimal
+                        lp.assignStatus(status, constants.LpSolutionIntegerFeasible)
+                except:  # No solution found
+                    lp.assignStatus(status, constants.LpSolutionNoSolutionFound)
+            else:
+                lp.assignStatus(status)
 
                 # TODO: check if problem is an LP i.e. does not have integer variables
                 # if :
@@ -648,6 +670,17 @@ class SCIP_PY(LpSolver):
                     ),
                     name=name,
                 )
+
+            ##################################################
+            # add warm start
+            ##################################################
+            if self.optionsDict.get("warmStart", False):
+                s = lp.solverModel.createPartialSol()
+                for var in lp.variables():
+                    if var.varValue is not None:
+                        # Warm start variables having an initial value
+                        lp.solverModel.setSolVal(s, var.solverVar, var.varValue)
+                lp.solverModel.addSol(s)
 
         def actualSolve(self, lp):
             """

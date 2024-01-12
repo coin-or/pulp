@@ -1,5 +1,6 @@
 # PuLP : Python LP Modeler
 # Version 2.4
+from math import inf
 
 # Copyright (c) 2002-2005, Jean-Sebastien Roy (js@jeannot.org)
 # Modifications Copyright (c) 2007- Stuart Anthony Mitchell (s.mitchell@auckland.ac.nz)
@@ -54,6 +55,7 @@ class HiGHS_CMD(LpSolver_CMD):
         gapAbs=None,
         threads=None,
         logPath=None,
+        warmStart=False,
     ):
         """
         :param bool mip: if False, assume LP even if integer variables
@@ -66,6 +68,7 @@ class HiGHS_CMD(LpSolver_CMD):
         :param str path: path to the solver binary (you can get binaries for your platform from https://github.com/JuliaBinaryWrappers/HiGHS_jll.jl/releases, or else compile from source - https://highs.dev)
         :param int threads: sets the maximum number of threads
         :param str logPath: path to the log file
+        :param bool warmStart: if True, the solver will use the current value of variables as a start
         """
         LpSolver_CMD.__init__(
             self,
@@ -79,6 +82,7 @@ class HiGHS_CMD(LpSolver_CMD):
             keepFiles=keepFiles,
             threads=threads,
             logPath=logPath,
+            warmStart=warmStart,
         )
 
     def defaultPath(self):
@@ -94,8 +98,8 @@ class HiGHS_CMD(LpSolver_CMD):
             raise PulpSolverError("PuLP: cannot execute " + self.path)
         lp.checkDuplicateVars()
 
-        tmpMps, tmpSol, tmpOptions, tmpLog = self.create_tmp_files(
-            lp.name, "mps", "sol", "HiGHS", "HiGHS_log"
+        tmpMps, tmpSol, tmpOptions, tmpLog, tmpMst = self.create_tmp_files(
+            lp.name, "mps", "sol", "HiGHS", "HiGHS_log", "mst"
         )
         lp.writeMPS(tmpMps, with_objsense=True)
 
@@ -127,6 +131,9 @@ class HiGHS_CMD(LpSolver_CMD):
             command.append("--solver=simplex")
         if "threads" in self.optionsDict:
             command.append("--parallel=on")
+        if self.optionsDict.get("warmStart", False):
+            self.writesol(tmpMst, lp)
+            command.append(f"--read_solution_file={tmpMst}")
 
         options = iter(self.options)
         for option in options:
@@ -180,12 +187,12 @@ class HiGHS_CMD(LpSolver_CMD):
         elif model_status.lower() == "infeasible":  # infeasible
             status, status_sol = (
                 constants.LpStatusInfeasible,
-                constants.LpSolutionNoSolutionFound,
+                constants.LpSolutionInfeasible,
             )
         elif model_status.lower() == "unbounded":  # unbounded
             status, status_sol = (
                 constants.LpStatusUnbounded,
-                constants.LpSolutionNoSolutionFound,
+                constants.LpSolutionUnbounded,
             )
         else:  # no solution
             status, status_sol = (
@@ -199,9 +206,9 @@ class HiGHS_CMD(LpSolver_CMD):
         elif status_sol == constants.LpSolutionNoSolutionFound:
             values = None
         else:
-            values = self.readsol(lp.variables(), tmpSol)
+            values = self.readsol(tmpSol)
 
-        self.delete_tmp_files(tmpMps, tmpSol, tmpOptions, tmpLog)
+        self.delete_tmp_files(tmpMps, tmpSol, tmpOptions, tmpLog, tmpMst)
         lp.assignStatus(status, status_sol)
 
         if status == constants.LpStatusOptimal:
@@ -209,8 +216,29 @@ class HiGHS_CMD(LpSolver_CMD):
 
         return status
 
-    @staticmethod
-    def readsol(variables, filename):
+    def writesol(self, filename, lp):
+        """Writes a HiGHS solution file"""
+
+        variable_rows = []
+        for var in lp.variables():  # zero variables must be included
+            variable_rows.append(f"{var.name} {var.varValue or 0}")
+
+        # Required preamble for HiGHS to accept a solution
+        all_rows = [
+            "Model status",
+            "None",
+            "",
+            "# Primal solution values",
+            "Feasible",
+            "",
+            f"# Columns {len(variable_rows)}",
+        ]
+        all_rows.extend(variable_rows)
+
+        with open(filename, "w") as file:
+            file.write("\n".join(all_rows))
+
+    def readsol(self, filename):
         """Read a HiGHS solution file"""
         with open(filename) as file:
             lines = file.readlines()
@@ -363,39 +391,98 @@ class HiGHS(LpSolver):
 
         def findSolutionValues(self, lp):
             status = lp.solverModel.getModelStatus()
+            obj_value = lp.solverModel.getObjectiveValue()
+
             solution = lp.solverModel.getSolution()
             HighsModelStatus = highspy.HighsModelStatus
+
             status_dict = {
-                HighsModelStatus.kNotset: constants.LpStatusNotSolved,
-                HighsModelStatus.kLoadError: constants.LpStatusNotSolved,
-                HighsModelStatus.kModelError: constants.LpStatusNotSolved,
-                HighsModelStatus.kPresolveError: constants.LpStatusNotSolved,
-                HighsModelStatus.kSolveError: constants.LpStatusNotSolved,
-                HighsModelStatus.kPostsolveError: constants.LpStatusNotSolved,
-                HighsModelStatus.kModelEmpty: constants.LpStatusNotSolved,
-                HighsModelStatus.kOptimal: constants.LpStatusOptimal,
-                HighsModelStatus.kInfeasible: constants.LpStatusInfeasible,
-                HighsModelStatus.kUnboundedOrInfeasible: constants.LpStatusInfeasible,
-                HighsModelStatus.kUnbounded: constants.LpStatusUnbounded,
-                HighsModelStatus.kObjectiveBound: constants.LpStatusNotSolved,
-                HighsModelStatus.kObjectiveTarget: constants.LpStatusNotSolved,
-                HighsModelStatus.kTimeLimit: constants.LpStatusNotSolved,
-                HighsModelStatus.kIterationLimit: constants.LpStatusNotSolved,
-                HighsModelStatus.kUnknown: constants.LpStatusNotSolved,
+                HighsModelStatus.kNotset: (
+                    constants.LpStatusNotSolved,
+                    constants.LpSolutionNoSolutionFound,
+                ),
+                HighsModelStatus.kLoadError: (
+                    constants.LpStatusNotSolved,
+                    constants.LpSolutionNoSolutionFound,
+                ),
+                HighsModelStatus.kModelError: (
+                    constants.LpStatusNotSolved,
+                    constants.LpSolutionNoSolutionFound,
+                ),
+                HighsModelStatus.kPresolveError: (
+                    constants.LpStatusNotSolved,
+                    constants.LpSolutionNoSolutionFound,
+                ),
+                HighsModelStatus.kSolveError: (
+                    constants.LpStatusNotSolved,
+                    constants.LpSolutionNoSolutionFound,
+                ),
+                HighsModelStatus.kPostsolveError: (
+                    constants.LpStatusNotSolved,
+                    constants.LpSolutionNoSolutionFound,
+                ),
+                HighsModelStatus.kModelEmpty: (
+                    constants.LpStatusNotSolved,
+                    constants.LpSolutionNoSolutionFound,
+                ),
+                HighsModelStatus.kOptimal: (
+                    constants.LpStatusOptimal,
+                    constants.LpSolutionOptimal,
+                ),
+                HighsModelStatus.kInfeasible: (
+                    constants.LpStatusInfeasible,
+                    constants.LpSolutionInfeasible,
+                ),
+                HighsModelStatus.kUnboundedOrInfeasible: (
+                    constants.LpStatusInfeasible,
+                    constants.LpSolutionInfeasible,
+                ),
+                HighsModelStatus.kUnbounded: (
+                    constants.LpStatusUnbounded,
+                    constants.LpSolutionUnbounded,
+                ),
+                HighsModelStatus.kObjectiveBound: (
+                    constants.LpStatusOptimal,
+                    constants.LpSolutionIntegerFeasible,
+                ),
+                HighsModelStatus.kObjectiveTarget: (
+                    constants.LpStatusOptimal,
+                    constants.LpSolutionIntegerFeasible,
+                ),
+                HighsModelStatus.kTimeLimit: (
+                    constants.LpStatusOptimal,
+                    constants.LpSolutionIntegerFeasible,
+                ),
+                HighsModelStatus.kIterationLimit: (
+                    constants.LpStatusOptimal,
+                    constants.LpSolutionIntegerFeasible,
+                ),
+                HighsModelStatus.kUnknown: (
+                    constants.LpStatusNotSolved,
+                    constants.LpSolutionNoSolutionFound,
+                ),
             }
 
             col_values = list(solution.col_value)
+
+            # Assign values to the variables as with lp.assignVarsVals()
             for var in lp.variables():
                 var.varValue = col_values[var.index]
 
-            return status_dict[status]
+            if obj_value == float(inf) and status in (
+                HighsModelStatus.kTimeLimit,
+                HighsModelStatus.kIterationLimit,
+            ):
+                return constants.LpStatusNotSolved, constants.LpSolutionNoSolutionFound
+            else:
+                return status_dict[status]
 
         def actualSolve(self, lp):
             self.createAndConfigureSolver(lp)
             self.buildSolverModel(lp)
             self.callSolver(lp)
 
-            solutionStatus = self.findSolutionValues(lp)
+            status, sol_status = self.findSolutionValues(lp)
 
             for var in lp.variables():
                 var.modified = False
@@ -403,7 +490,9 @@ class HiGHS(LpSolver):
             for constraint in lp.constraints.values():
                 constraint.modifier = False
 
-            return solutionStatus
+            lp.assignStatus(status, sol_status)
+
+            return status
 
         def actualResolve(self, lp, **kwargs):
             raise PulpSolverError("HiGHS: Resolving is not supported")
