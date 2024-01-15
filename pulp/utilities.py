@@ -175,7 +175,7 @@ def splitDict(data):
     """
     Split a dictionary with lists as the data, into smaller dictionaries
 
-    :param data: A dictionary with lists as the values
+    :param dict data: A dictionary with lists as the values
 
     :return: A tuple of dictionaries each containing the data separately,
             with the same dictionary keys
@@ -198,9 +198,9 @@ def read_table(data, coerce_type, transpose=False):
     simple script
     ::return: a dictionary of with the keys being a tuple of the strings
        in the first row and colum of the table
-    ::param data: the multiline string containing the table data
-    ::param coerce_type: the type that the table data is converted to
-    ::param transpose: reverses the data if needed
+    :param str data: the multiline string containing the table data
+    :param coerce_type: the type that the table data is converted to
+    :param bool transpose: reverses the data if needed
 
     Example:
     >>> table_data = '''

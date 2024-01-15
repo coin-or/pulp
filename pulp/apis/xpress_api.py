@@ -537,7 +537,7 @@ class XPRESS_PY(LpSolver):
             # passed explicitly into the constructor.
             for option in self.options:
                 if isinstance(option, tuple):
-                    name = optione[0]
+                    name = option[0]
                     value = option[1]
                 else:
                     fields = option.split("=", 1)

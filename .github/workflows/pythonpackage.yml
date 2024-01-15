@@ -8,7 +8,7 @@ jobs:
     strategy:
       max-parallel: 21
       matrix:
-        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11']
+        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11', '3.12']
         os: [ubuntu-latest, macOS-latest, windows-latest]
 
     steps:
@@ -27,13 +27,13 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -qq glpk-utils
       - name: install xpress
-        if: matrix.os != 'macOS-latest' || matrix.python-version < '3.11'
+        if: (matrix.os != 'macOS-latest' || matrix.python-version < '3.11') && matrix.python-version < '3.12'
         run: pip install xpress
       - name: Install gurobipy
         run: |
           python -m pip install gurobipy
       - name: Install highspy
-        if: matrix.os == 'ubuntu-latest' || matrix.os == 'macOS-latest'
+        if: (matrix.os == 'ubuntu-latest' || matrix.os == 'macOS-latest') && matrix.python-version < '3.12'
         run: |
           pip install highspy numpy
       - name: Install coptpy
