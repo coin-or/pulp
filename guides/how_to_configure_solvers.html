@@ -115,12 +115,14 @@
 <p>PuLP has some helper functions that permit a user to query which solvers are available and initialize a solver from its name.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pulp</span> <span class="k">as</span> <span class="nn">pl</span>
 <span class="n">solver_list</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">listSolvers</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">solver_list</span><span class="p">)</span>
 <span class="c1"># [&#39;GLPK_CMD&#39;, &#39;PYGLPK&#39;, &#39;CPLEX_CMD&#39;, &#39;CPLEX_PY&#39;, &#39;CPLEX_DLL&#39;, &#39;GUROBI&#39;, &#39;GUROBI_CMD&#39;, &#39;MOSEK&#39;, &#39;XPRESS&#39;, &#39;PULP_CBC_CMD&#39;, &#39;COIN_CMD&#39;, &#39;COINMP_DLL&#39;, &#39;CHOCO_CMD&#39;, &#39;MIPCL_CMD&#39;, &#39;SCIP_CMD&#39;]</span>
 </pre></div>
 </div>
 <p>If passed the <cite>onlyAvailable=True</cite> argument, PuLP lists the solvers that are currently available:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pulp</span> <span class="k">as</span> <span class="nn">pl</span>
 <span class="n">solver_list</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">listSolvers</span><span class="p">(</span><span class="n">onlyAvailable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">solver_list</span><span class="p">)</span>
 <span class="c1"># [&#39;GLPK_CMD&#39;, &#39;CPLEX_CMD&#39;, &#39;CPLEX_PY&#39;, &#39;GUROBI&#39;, &#39;GUROBI_CMD&#39;, &#39;PULP_CBC_CMD&#39;, &#39;COIN_CMD&#39;]</span>
 </pre></div>
 </div>
@@ -135,9 +137,9 @@
 <section id="what-is-an-environment-variable">
 <h2>What is an environment variable<a class="headerlink" href="#what-is-an-environment-variable" title="Link to this heading"></a></h2>
 <p>An environment variable is probably better explained <a class="reference external" href="https://en.wikipedia.org/wiki/Environment_variable">somewhere else</a>. For the sake of this document, it is a text value stored during your session that allows you to configure some applications that make use of them. For example, when you write:</p>
-<blockquote>
-<div><p>python</p>
-</div></blockquote>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span>
+</pre></div>
+</div>
 <p>in your command line, it usually opens a python console. But how did your computer know where to find python? It knew because there is an environment variable call “PATH” that stores a list of locations in your hard-drive where your pc looks for executables that match the thing you write.</p>
 <p>It has many advantages such as not leaving any trace in the pc and being fairly cross-platform, among many others.</p>
 </section>
@@ -170,9 +172,9 @@
 <span class="n">result</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>The only to do was to look for the ‘cplex.exe’ file (in Windows, although in Linux and Mac is something similar but with ‘cplex’) and pass the absolute path to the solver.</p>
+<p>The only thing to do was to look for the ‘cplex.exe’ file (if you’re in Windows, for Linux and Mac you look for the ‘cplex’ file) and pass the absolute path to the solver.</p>
 <p>The second one is a little more cumbersome but you only do it once per machine. You need to configure the <code class="docutils literal notranslate"><span class="pre">PATH</span></code> environment variable to include the path to the <code class="docutils literal notranslate"><span class="pre">C:\Program</span> <span class="pre">Files\IBM\ILOG\CPLEX_Studio128\cplex\bin\x64_win64</span></code> directory.</p>
-<p>Here is one random guide to editing environment variables in: <a class="reference external" href="https://opentechguides.com/how-to/article/windows-10/113/windows-10-set-path.html">Windows</a> or <a class="reference external" href="https://askubuntu.com/questions/730/how-do-i-set-environment-variables">Linux or Mac</a>. The idea is that once it is correctly configured you can forget about it (until you change pc or solver version).</p>
+<p>Here is one random guide to editing environment variables in: <a class="reference external" href="https://opentechguides.com/how-to/article/windows-10/113/windows-10-set-path.html">Windows</a> and <a class="reference external" href="https://askubuntu.com/questions/730/how-do-i-set-environment-variables">Linux or Mac</a>. The idea is that once it is correctly configured you can forget about it (until you change pc or solver version).</p>
 <p>Once we have done that, we just do something very similar to the previous example:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pulp</span> <span class="k">as</span> <span class="nn">pl</span>
 <span class="n">model</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;Example&quot;</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
@@ -191,7 +193,7 @@
 <p>Whatever the reason, it’s better to be safe than sorry and this means knowing what variables are usually used by which solver. Here are the necessary environment variables that are needed for each solver. The procedure is very similar to what we did with the <code class="docutils literal notranslate"><span class="pre">PATH</span></code> variable: sometimes you need to edit an existing environment variable and sometimes you need to create a new environment variable. So it looks explicit, I will be using my own paths to variables, but you will have to adapt them to your actual paths (e.g., if the version of the solver is not the same). I will be using my <strong>Linux paths, since it just implies copying the last lines of my ~.bashrc file</strong>. I’ve adapted them to the Windows command line but, preferably, you would like to edit them via the GUI in windows.</p>
 <section id="cplex">
 <h3>CPLEX<a class="headerlink" href="#cplex" title="Link to this heading"></a></h3>
-<p><strong>Linux / Mac: add the following lines to the ~.bashrc (or ~.profile or /etc/profile or /etc/bash.bashrc) file</strong>:</p>
+<p><strong>Linux / Mac</strong>: add the following lines to the ~.bashrc (or ~.profile or /etc/profile or /etc/bash.bashrc) file:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">export</span> <span class="n">CPLEX_HOME</span><span class="o">=</span><span class="s2">&quot;/opt/ibm/ILOG/CPLEX_Studio128/cplex&quot;</span>
 <span class="n">export</span> <span class="n">CPO_HOME</span><span class="o">=</span><span class="s2">&quot;/opt/ibm/ILOG/CPLEX_Studio128/cpoptimizer&quot;</span>
 <span class="n">export</span> <span class="n">PATH</span><span class="o">=</span><span class="s2">&quot;$</span><span class="si">{PATH}</span><span class="s2">:$</span><span class="si">{CPLEX_HOME}</span><span class="s2">/bin/x86-64_linux:$</span><span class="si">{CPO_HOME}</span><span class="s2">/bin/x86-64_linux&quot;</span>
@@ -199,7 +201,7 @@
 <span class="n">export</span> <span class="n">PYTHONPATH</span><span class="o">=</span><span class="s2">&quot;$</span><span class="si">{PYTHONPATH}</span><span class="s2">:/opt/ibm/ILOG/CPLEX_Studio128/cplex/python/3.5/x86-64_linux&quot;</span>
 </pre></div>
 </div>
-<p><strong>Windows: add the following environment variables (via the command line or the graphical user interface)</strong>:</p>
+<p><strong>Windows</strong>: add the following environment variables (via the command line or the graphical user interface):</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">set</span> <span class="n">CPLEX_HOME</span><span class="o">=</span><span class="n">C</span><span class="p">:</span><span class="o">/</span><span class="n">Program</span> <span class="n">Files</span><span class="o">/</span><span class="n">IBM</span><span class="o">/</span><span class="n">ILOG</span><span class="o">/</span><span class="n">CPLEX_Studio128</span><span class="o">/</span><span class="n">cplex</span>
 <span class="nb">set</span> <span class="n">CPO_HOME</span><span class="o">=</span><span class="n">C</span><span class="p">:</span><span class="o">/</span><span class="n">Program</span> <span class="n">Files</span><span class="o">/</span><span class="n">IBM</span><span class="o">/</span><span class="n">ILOG</span><span class="o">/</span><span class="n">CPLEX_Studio128</span><span class="o">/</span><span class="n">cpoptimizer</span>
 <span class="nb">set</span> <span class="n">PATH</span><span class="o">=%</span><span class="n">PATH</span><span class="o">%</span><span class="p">;</span><span class="o">%</span><span class="n">CPLEX_HOME</span><span class="o">%/</span><span class="nb">bin</span><span class="o">/</span><span class="n">x64_win64</span><span class="p">;</span><span class="o">%</span><span class="n">CPO_HOME</span><span class="o">%/</span><span class="nb">bin</span><span class="o">/</span><span class="n">x64_win64</span>
@@ -210,13 +212,13 @@
 </section>
 <section id="gurobi">
 <h3>GUROBI<a class="headerlink" href="#gurobi" title="Link to this heading"></a></h3>
-<p><strong>Linux / Mac: add the following lines to the ~.bashrc (or ~.profile or /etc/profile or /etc/bash.bashrc) file</strong>:</p>
+<p><strong>Linux / Mac</strong>: add the following lines to the ~.bashrc (or ~.profile or /etc/profile or /etc/bash.bashrc) file:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">export</span> <span class="n">GUROBI_HOME</span><span class="o">=</span><span class="s2">&quot;/opt/gurobi801/linux64&quot;</span>
 <span class="n">export</span> <span class="n">PATH</span><span class="o">=</span><span class="s2">&quot;$</span><span class="si">{PATH}</span><span class="s2">:$</span><span class="si">{GUROBI_HOME}</span><span class="s2">/bin&quot;</span>
-<span class="n">export</span> <span class="n">LD_LIBRARY_PATH</span><span class="o">=</span><span class="s2">&quot;$</span><span class="si">{GUROBI_HOME}</span><span class="s2">/lib&quot;</span>
+<span class="n">export</span> <span class="n">LD_LIBRARY_PATH</span><span class="o">=</span><span class="s2">&quot;$</span><span class="si">{LD_LIBRARY_PATH}</span><span class="s2">:$</span><span class="si">{GUROBI_HOME}</span><span class="s2">/lib&quot;</span>
 </pre></div>
 </div>
-<p><strong>Windows: add the following environment variables (via the command line or graphical user interface)</strong>:</p>
+<p><strong>Windows</strong>: add the following environment variables (via the command line or graphical user interface):</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">set</span> <span class="n">GUROBI_HOME</span><span class="o">=/</span><span class="n">opt</span><span class="o">/</span><span class="n">gurobi801</span><span class="o">/</span><span class="n">linux64</span>
 <span class="nb">set</span> <span class="n">PATH</span><span class="o">=%</span><span class="n">PATH</span><span class="o">%</span><span class="p">;</span><span class="o">%</span><span class="n">GUROBI_HOME</span><span class="o">%/</span><span class="nb">bin</span>
 <span class="nb">set</span> <span class="n">LD_LIBRARY_PATH</span><span class="o">=%</span><span class="n">LD_LIBRARY_PATH</span><span class="o">%</span><span class="p">;</span><span class="o">%</span><span class="n">GUROBI_HOME</span><span class="o">%/</span><span class="n">lib</span>
@@ -226,7 +228,7 @@
 </section>
 <section id="configuring-where-the-cmd-solvers-write-their-temporary-files">
 <h2>Configuring where the CMD solvers write their temporary files<a class="headerlink" href="#configuring-where-the-cmd-solvers-write-their-temporary-files" title="Link to this heading"></a></h2>
-<p>In the case of solver APIs that use the command line (again, those that end in <code class="docutils literal notranslate"><span class="pre">CMD</span></code>, sometimes a user wants to control where the files are written. There are plenty of options.</p>
+<p>In the case of solver APIs that use the command line (again, those that end in <code class="docutils literal notranslate"><span class="pre">CMD</span></code>), sometimes a user wants to control where the files are written. There are plenty of options.</p>
 <p>By default, PuLP does not keep the intermediary files (the *.mps, *.lp, *.mst, *.sol) and they are written in a temporary directory of the operating system. PuLP looks for the TEMP, TMP and TMPDIR environment variables to write the file (in that order). After using them, PuLP deletes them. If you change any of these environment variables before solving, you should be able to choose where you want PuLP to write the results.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pulp</span> <span class="k">as</span> <span class="nn">pl</span>
 <span class="n">model</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;Example&quot;</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
@@ -267,6 +269,10 @@
 <li><p>Gurobi (GUROBI)</p></li>
 <li><p>Cplex (CPLEX_PY)</p></li>
 <li><p>Xpress (XPRESS_PY)</p></li>
+<li><p>HiGHS (HiGHS)</p></li>
+<li><p>SCIP (SCIP_PY)</p></li>
+<li><p>XPRESS (XPRESS_PY)</p></li>
+<li><p>COPT (COPT)</p></li>
 </ul>
 <p>These API offer a series of advantages over using the command line option:</p>
 <ul class="simple">
@@ -286,10 +292,10 @@
 <h3>Installing GUROBI<a class="headerlink" href="#installing-gurobi" title="Link to this heading"></a></h3>
 <p>For this solver to work, the only option is to install the python package that comes with the gurobi installation.</p>
 <p>Following my installation paths it would be (Linux):</p>
-<blockquote>
-<div><p>cd /opt/gurobi801/linux64/
-sudo python3 setup.py install</p>
-</div></blockquote>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">gurobi801</span><span class="o">/</span><span class="n">linux64</span><span class="o">/</span>
+<span class="n">sudo</span> <span class="n">python3</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">install</span>
+</pre></div>
+</div>
 <p>As you can see, it is necessary to have admin rights to install it.</p>
 </section>
 <section id="using-solver-specific-functionality">
