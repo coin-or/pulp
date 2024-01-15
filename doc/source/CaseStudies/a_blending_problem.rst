@@ -303,7 +303,7 @@ the data.
     :lines: 10-61
 
 The ``prob`` variable is created to contain the formulation, and the
-usual parameters are passed into :obj:`~pulp.LpProblem`.
+usual parameters are passed into :class:`~pulp.LpProblem`.
 
 .. literalinclude:: ../../../examples/WhiskasModel2.py
     :lines: 63-64
@@ -330,7 +330,7 @@ Further list comprehensions are used to define the other 5 constraints, which ar
 .. literalinclude:: ../../../examples/WhiskasModel2.py
     :lines: 75-92
  
-Following this, the :ref:`writeLP<writeLP>` line etc follow exactly the same as
+Following this, the :meth:`~pulp.LpProblem.writeLP` line etc follow exactly the same as
 in the simplified example.
 
 The optimal solution is 60% Beef and 40% Gel leading to a objective

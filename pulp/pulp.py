@@ -1562,7 +1562,7 @@ class LpProblem:
         """
         Adds a variable to the problem before a constraint is added
 
-        @param variable: the variable to be added
+        :param variable: the variable to be added
         """
         if variable.hash not in self._variable_ids:
             self._variables.append(variable)
@@ -1572,7 +1572,7 @@ class LpProblem:
         """
         Adds variables to the problem before a constraint is added
 
-        @param variables: the variables to be added
+        :param variables: the variables to be added
         """
         for v in variables:
             self.addVariable(v)
@@ -1686,7 +1686,7 @@ class LpProblem:
         extends an LpProblem by adding constraints either from a dictionary
         a tuple or another LpProblem object.
 
-        @param use_objective: determines whether the objective is imported from
+        :param bool use_objective: determines whether the objective is imported from
         the other problem
 
         For dictionaries the constraints will be named with the keys
@@ -1742,6 +1742,7 @@ class LpProblem:
         :param bool rename: if True, normalized names are used for variables and constraints
         :param mip: variables and variable renames
         :return:
+
         Side Effects:
             - The file is created
         """
@@ -1763,6 +1764,7 @@ class LpProblem:
 
         :param str filename: the name of the file to be created.
         :return: variables
+
         Side Effects:
             - The file is created
         """

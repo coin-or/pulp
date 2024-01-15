@@ -12,12 +12,14 @@ PuLP has some helper functions that permit a user to query which solvers are ava
 
     import pulp as pl
     solver_list = pl.listSolvers()
+    print(solver_list)
     # ['GLPK_CMD', 'PYGLPK', 'CPLEX_CMD', 'CPLEX_PY', 'CPLEX_DLL', 'GUROBI', 'GUROBI_CMD', 'MOSEK', 'XPRESS', 'PULP_CBC_CMD', 'COIN_CMD', 'COINMP_DLL', 'CHOCO_CMD', 'MIPCL_CMD', 'SCIP_CMD']
 
 If passed the `onlyAvailable=True` argument, PuLP lists the solvers that are currently available::
 
     import pulp as pl
     solver_list = pl.listSolvers(onlyAvailable=True)
+    print(solver_list)
     # ['GLPK_CMD', 'CPLEX_CMD', 'CPLEX_PY', 'GUROBI', 'GUROBI_CMD', 'PULP_CBC_CMD', 'COIN_CMD']
 
 Also, it's possible to get a solver object by using the name of the solver. Any arguments passed to this function are passed to the constructor:
@@ -33,7 +35,7 @@ In the next sections, we will explain how to configure a solver to be accessible
 What is an environment variable
 --------------------------------------
 
-An environment variable is probably better explained `somewhere else <https://en.wikipedia.org/wiki/Environment_variable>`_. For the sake of this document, it is a text value stored during your session that allows you to configure some applications that make use of them. For example, when you write:
+An environment variable is probably better explained `somewhere else <https://en.wikipedia.org/wiki/Environment_variable>`_. For the sake of this document, it is a text value stored during your session that allows you to configure some applications that make use of them. For example, when you write::
 
     python
 
@@ -76,11 +78,11 @@ Imagine using the ``CPLEX_CMD`` solver, the first one is really simple:
     model += _var + _var2 == 1 
     result = model.solve(solver)
 
-The only to do was to look for the 'cplex.exe' file (in Windows, although in Linux and Mac is something similar but with 'cplex') and pass the absolute path to the solver.
+The only thing to do was to look for the 'cplex.exe' file (if you're in Windows, for Linux and Mac you look for the 'cplex' file) and pass the absolute path to the solver.
 
 The second one is a little more cumbersome but you only do it once per machine. You need to configure the ``PATH`` environment variable to include the path to the ``C:\Program Files\IBM\ILOG\CPLEX_Studio128\cplex\bin\x64_win64`` directory.
 
-Here is one random guide to editing environment variables in: `Windows <https://opentechguides.com/how-to/article/windows-10/113/windows-10-set-path.html>`_ or `Linux or Mac <https://askubuntu.com/questions/730/how-do-i-set-environment-variables>`_. The idea is that once it is correctly configured you can forget about it (until you change pc or solver version).
+Here is one random guide to editing environment variables in: `Windows <https://opentechguides.com/how-to/article/windows-10/113/windows-10-set-path.html>`_ and `Linux or Mac <https://askubuntu.com/questions/730/how-do-i-set-environment-variables>`_. The idea is that once it is correctly configured you can forget about it (until you change pc or solver version).
 
 Once we have done that, we just do something very similar to the previous example:
 
@@ -107,7 +109,7 @@ Whatever the reason, it's better to be safe than sorry and this means knowing wh
 CPLEX
 *******
 
-**Linux / Mac: add the following lines to the ~.bashrc (or ~.profile or /etc/profile or /etc/bash.bashrc) file**::
+**Linux / Mac**: add the following lines to the ~.bashrc (or ~.profile or /etc/profile or /etc/bash.bashrc) file::
 
     export CPLEX_HOME="/opt/ibm/ILOG/CPLEX_Studio128/cplex"
     export CPO_HOME="/opt/ibm/ILOG/CPLEX_Studio128/cpoptimizer"
@@ -115,7 +117,7 @@ CPLEX
     export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${CPLEX_HOME}/bin/x86-64_linux:${CPO_HOME}/bin/x86-64_linux"
     export PYTHONPATH="${PYTHONPATH}:/opt/ibm/ILOG/CPLEX_Studio128/cplex/python/3.5/x86-64_linux"
 
-**Windows: add the following environment variables (via the command line or the graphical user interface)**::
+**Windows**: add the following environment variables (via the command line or the graphical user interface)::
 
     set CPLEX_HOME=C:/Program Files/IBM/ILOG/CPLEX_Studio128/cplex
     set CPO_HOME=C:/Program Files/IBM/ILOG/CPLEX_Studio128/cpoptimizer
@@ -126,13 +128,13 @@ CPLEX
 GUROBI
 *******
 
-**Linux / Mac: add the following lines to the ~.bashrc (or ~.profile or /etc/profile or /etc/bash.bashrc) file**::
+**Linux / Mac**: add the following lines to the ~.bashrc (or ~.profile or /etc/profile or /etc/bash.bashrc) file::
 
     export GUROBI_HOME="/opt/gurobi801/linux64"
     export PATH="${PATH}:${GUROBI_HOME}/bin"
-    export LD_LIBRARY_PATH="${GUROBI_HOME}/lib"
+    export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${GUROBI_HOME}/lib"
 
-**Windows: add the following environment variables (via the command line or graphical user interface)**::
+**Windows**: add the following environment variables (via the command line or graphical user interface)::
 
     set GUROBI_HOME=/opt/gurobi801/linux64
     set PATH=%PATH%;%GUROBI_HOME%/bin
@@ -142,7 +144,7 @@ GUROBI
 Configuring where the CMD solvers write their temporary files
 ---------------------------------------------------------------------------
 
-In the case of solver APIs that use the command line (again, those that end in ``CMD``, sometimes a user wants to control where the files are written. There are plenty of options.
+In the case of solver APIs that use the command line (again, those that end in ``CMD``), sometimes a user wants to control where the files are written. There are plenty of options.
 
 By default, PuLP does not keep the intermediary files (the \*.mps, \*.lp, \*.mst, \*.sol) and they are written in a temporary directory of the operating system. PuLP looks for the TEMP, TMP and TMPDIR environment variables to write the file (in that order). After using them, PuLP deletes them. If you change any of these environment variables before solving, you should be able to choose where you want PuLP to write the results.
 
@@ -191,6 +193,10 @@ PuLP has the integrations with the official python API solvers for the following
 * Gurobi (GUROBI)
 * Cplex (CPLEX_PY)
 * Xpress (XPRESS_PY)
+* HiGHS (HiGHS)
+* SCIP (SCIP_PY)
+* XPRESS (XPRESS_PY)
+* COPT (COPT)
 
 These API offer a series of advantages over using the command line option:
 
@@ -212,7 +218,7 @@ Installing GUROBI
 
 For this solver to work, the only option is to install the python package that comes with the gurobi installation.
 
-Following my installation paths it would be (Linux):
+Following my installation paths it would be (Linux)::
 
      cd /opt/gurobi801/linux64/
      sudo python3 setup.py install
@@ -220,6 +226,7 @@ Following my installation paths it would be (Linux):
 As you can see, it is necessary to have admin rights to install it.
 
 .. _solver-specific-config:
+
 Using solver-specific functionality
 **********************************************
 
