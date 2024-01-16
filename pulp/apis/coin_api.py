@@ -361,6 +361,7 @@ class PULP_CBC_CMD(COIN_CMD):
             threads=None,
             logPath=None,
             timeMode="elapsed",
+            maxNodes=None,
         ):
             if path is not None:
                 raise PulpSolverError("Use COIN_CMD if you want to set a path")
@@ -382,6 +383,7 @@ class PULP_CBC_CMD(COIN_CMD):
                 threads=threads,
                 logPath=logPath,
                 timeMode=timeMode,
+                maxNodes=maxNodes,
             )
 
 
