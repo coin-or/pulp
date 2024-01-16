@@ -95,6 +95,7 @@ References:
 from collections import Counter
 import sys
 import warnings
+import math
 from time import time
 
 from .apis import LpSolverDefault, PULP_CBC_CMD
@@ -657,6 +658,8 @@ class LpAffineExpression(_DICT_TYPE):
        1*x_0 + -3*x_1 + 4*x_2 + 0
     """
 
+    constant: float
+    name: str
     # to remove illegal characters from the names
     trans = maketrans("-+[] ", "_____")
 
@@ -842,47 +845,43 @@ class LpAffineExpression(_DICT_TYPE):
         result = "%s\n" % "\n".join(result)
         return result
 
-    def addInPlace(self, other):
+    def addInPlace(self, other, sign=1):
+        """
+        :param int sign: the sign of the operation to do other.
+            if we add other => 1
+            if we subtract other => -1
+        """
         if isinstance(other, int) and (other == 0):
             return self
         if other is None:
             return self
         if isinstance(other, LpElement):
-            self.addterm(other, 1)
+            # if a variable, we add it to the dictionary
+            self.addterm(other, sign)
         elif isinstance(other, LpAffineExpression):
-            self.constant += other.constant
+            # if an expression, we add each variable and the constant
+            self.constant += other.constant * sign
             for v, x in other.items():
-                self.addterm(v, x)
+                self.addterm(v, x * sign)
         elif isinstance(other, dict):
+            # if a dictionary, we add each value
             for e in other.values():
-                self.addInPlace(e)
+                self.addInPlace(e, sign=sign)
         elif isinstance(other, list) or isinstance(other, Iterable):
+            # if a list, we add each element of the list
             for e in other:
-                self.addInPlace(e)
+                self.addInPlace(e, sign=sign)
+        # if we're here, other must be a number
+        # we check if it's an actual number:
+        elif not math.isfinite(other):
+            raise const.PulpError("Cannot add/subtract NaN/inf values")
+        # if it's indeed a number, we add it to the constant
         else:
-            self.constant += other
+            self.constant += other * sign
         return self
 
     def subInPlace(self, other):
-        if isinstance(other, int) and (other == 0):
-            return self
-        if other is None:
-            return self
-        if isinstance(other, LpElement):
-            self.addterm(other, -1)
-        elif isinstance(other, LpAffineExpression):
-            self.constant -= other.constant
-            for v, x in other.items():
-                self.addterm(v, -x)
-        elif isinstance(other, dict):
-            for e in other.values():
-                self.subInPlace(e)
-        elif isinstance(other, list) or isinstance(other, Iterable):
-            for e in other:
-                self.subInPlace(e)
-        else:
-            self.constant -= other
-        return self
+        return self.addInPlace(other, sign=-1)
 
     def __neg__(self):
         e = self.emptyCopy()
@@ -932,7 +931,9 @@ class LpAffineExpression(_DICT_TYPE):
         elif isinstance(other, LpVariable):
             return self * LpAffineExpression(other)
         else:
-            if other != 0:
+            if not math.isfinite(other):
+                raise const.PulpError("Cannot multiply variables with NaN/inf values")
+            elif other != 0:
                 e.constant = self.constant * other
                 for v, x in self.items():
                     e[v] = other * x
@@ -948,6 +949,8 @@ class LpAffineExpression(_DICT_TYPE):
                     "Expressions cannot be divided by a non-constant expression"
                 )
             other = other.constant
+        if not math.isfinite(other):
+            raise const.PulpError("Cannot divide variables with NaN/inf values")
         e = self.emptyCopy()
         e.constant = self.constant / other
         for v, x in self.items():
@@ -955,17 +958,7 @@ class LpAffineExpression(_DICT_TYPE):
         return e
 
     def __truediv__(self, other):
-        if isinstance(other, LpAffineExpression) or isinstance(other, LpVariable):
-            if len(other):
-                raise TypeError(
-                    "Expressions cannot be divided by a non-constant expression"
-                )
-            other = other.constant
-        e = self.emptyCopy()
-        e.constant = self.constant / other
-        for v, x in self.items():
-            e[v] = x / other
-        return e
+        return self.__div__(other)
 
     def __rdiv__(self, other):
         e = self.emptyCopy()
@@ -978,6 +971,8 @@ class LpAffineExpression(_DICT_TYPE):
             e.constant = other.constant / c
             for v, x in other.items():
                 e[v] = x / c
+        elif not math.isfinite(other):
+            raise const.PulpError("Cannot divide variables with NaN/inf values")
         else:
             e.constant = other / c
         return e
@@ -1080,37 +1075,29 @@ class LpConstraint(LpAffineExpression):
     def emptyCopy(self):
         return LpConstraint(sense=self.sense)
 
-    def addInPlace(self, other):
+    def addInPlace(self, other, sign=1):
+        """
+        :param int sign: the sign of the operation to do other.
+            if we add other => 1
+            if we subtract other => -1
+        """
         if isinstance(other, LpConstraint):
             if self.sense * other.sense >= 0:
-                LpAffineExpression.addInPlace(self, other)
+                LpAffineExpression.addInPlace(self, other, 1)
                 self.sense |= other.sense
             else:
-                LpAffineExpression.subInPlace(self, other)
+                LpAffineExpression.addInPlace(self, other, -1)
                 self.sense |= -other.sense
         elif isinstance(other, list):
             for e in other:
-                self.addInPlace(e)
+                self.addInPlace(e, sign)
         else:
-            LpAffineExpression.addInPlace(self, other)
+            LpAffineExpression.addInPlace(self, other, sign)
             # raise TypeError, "Constraints and Expressions cannot be added"
         return self
 
     def subInPlace(self, other):
-        if isinstance(other, LpConstraint):
-            if self.sense * other.sense <= 0:
-                LpAffineExpression.subInPlace(self, other)
-                self.sense |= -other.sense
-            else:
-                LpAffineExpression.addInPlace(self, other)
-                self.sense |= other.sense
-        elif isinstance(other, list):
-            for e in other:
-                self.subInPlace(e)
-        else:
-            LpAffineExpression.subInPlace(self, other)
-            # raise TypeError, "Constraints and Expressions cannot be added"
-        return self
+        return self.addInPlace(other, -1)
 
     def __neg__(self):
         c = LpAffineExpression.__neg__(self)
