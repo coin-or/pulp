@@ -90,7 +90,7 @@ class BaseSolverTest:
 
         def test_pulp_001(self):
             """
-            Test that a variable is deleted when it is suptracted to 0
+            Test that a variable is deleted when it is subtracted to 0
             """
             x = LpVariable("x", 0, 4)
             y = LpVariable("y", -1, 1)
@@ -98,7 +98,8 @@ class BaseSolverTest:
             c1 = x + y <= 5
             c2 = c1 + z - z
             print("\t Testing zero subtraction")
-            assert str(c2)  # will raise an exception
+            assert str(c2)
+            assert c2[z] == 0
 
         def test_pulp_009(self):
             # infeasible
@@ -1497,6 +1498,20 @@ class BaseSolverTest:
                     [const.LpStatusOptimal],
                     {x: 4, y: -1, z: 6, w: 0},
                 )
+
+        def test_sum_nan_values(self):
+            import math
+
+            a = math.nan
+            x = LpVariable("x")
+            self.assertRaises(PulpError, lambda: x + a)
+
+        def test_multiply_nan_values(self):
+            import math
+
+            a = math.nan
+            x = LpVariable("x")
+            self.assertRaises(PulpError, lambda: x * a)
 
 
 class PULP_CBC_CMDTest(BaseSolverTest.PuLPTest):
