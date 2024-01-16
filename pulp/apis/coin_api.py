@@ -417,7 +417,7 @@ class PULP_CBC_CMD(COIN_CMD):
                 logPath=logPath,
                 mip_start=mip_start,
                 timeMode=timeMode,
-                maxNodes=None,
+                maxNodes=maxNodes,
             )
 
 
