@@ -549,6 +549,18 @@ I])} = \sum_{i \in I} a_i x_i\)</span> where  (note the order):</p>
 </ul>
 </div></blockquote>
 <dl class="py method">
+<dt class="sig sig-object py" id="pulp.LpAffineExpression.addInPlace">
+<span class="sig-name descname"><span class="pre">addInPlace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sign</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpAffineExpression.addInPlace" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>sign</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><em>int</em></a>) – the sign of the operation to do other.
+if we add other =&gt; 1
+if we subtract other =&gt; -1</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="pulp.LpAffineExpression.asCplexLpAffineExpression">
 <span class="sig-name descname"><span class="pre">asCplexLpAffineExpression</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constant</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpAffineExpression.asCplexLpAffineExpression" title="Link to this definition"></a></dt>
 <dd><p>returns a string that represents the Affine Expression in lp format</p>
@@ -634,6 +646,18 @@ it does not export the constant</p>
 </ul>
 </dd>
 </dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pulp.LpConstraint.addInPlace">
+<span class="sig-name descname"><span class="pre">addInPlace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sign</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpConstraint.addInPlace" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>sign</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><em>int</em></a>) – the sign of the operation to do other.
+if we add other =&gt; 1
+if we subtract other =&gt; -1</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.LpConstraint.asCplexLpConstraint">
 <span class="sig-name descname"><span class="pre">asCplexLpConstraint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpConstraint.asCplexLpConstraint" title="Link to this definition"></a></dt>
