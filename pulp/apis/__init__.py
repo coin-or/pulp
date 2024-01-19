@@ -9,6 +9,7 @@ from .scip_api import *
 from .xpress_api import *
 from .highs_api import *
 from .copt_api import *
+from .sas_api import *
 from .core import *
 
 _all_solvers = [
@@ -35,6 +36,8 @@ _all_solvers = [
     COPT,
     COPT_DLL,
     COPT_CMD,
+    SAS94,
+    SASCAS
 ]
 
 import json
@@ -156,3 +159,10 @@ def listSolvers(onlyAvailable=False):
             result.append(solver.name)
         del solver
     return result
+
+
+# DEPRECATED aliases:
+get_solver = getSolver
+get_solver_from_json = getSolverFromJson
+get_solver_from_dict = getSolverFromDict
+list_solvers = listSolvers
