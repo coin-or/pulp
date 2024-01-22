@@ -36,15 +36,6 @@ from typing import Union
 
 from uuid import uuid4
 
-# STATUS_TO_SOLVERSTATUS = {
-#     "OK": SolverStatus.ok,
-#     "SYNTAX_ERROR": SolverStatus.error,
-#     "DATA_ERROR": SolverStatus.error,
-#     "OUT_OF_MEMORY": SolverStatus.aborted,
-#     "IO_ERROR": SolverStatus.error,
-#     "ERROR": SolverStatus.error,
-# }
-
 # The maximum length of the names of variables and constraints.
 MAX_NAME_LENGTH=256
 
@@ -77,36 +68,6 @@ SOLSTATUS_TO_STATUS = {
     "FAIL_NOSOL": constants.LpStatusNotSolved,
     "ERROR": constants.LpStatusNotSolved,
 }
-
-
-# SOLSTATUS_TO_MESSAGE = {
-#     "OPTIMAL": "The solution is optimal.",
-#     "OPTIMAL_AGAP": "The solution is optimal within the absolute gap specified by the ABSOBJGAP= option.",
-#     "OPTIMAL_RGAP": "The solution is optimal within the relative gap specified by the RELOBJGAP= option.",
-#     "OPTIMAL_COND": "The solution is optimal, but some infeasibilities (primal, bound, or integer) exceed tolerances due to scaling or choice of a small INTTOL= value.",
-#     "TARGET": "The solution is not worse than the target specified by the TARGET= option.",
-#     "CONDITIONAL_OPTIMAL": "The solution is optimal, but some infeasibilities (primal, dual or bound) exceed tolerances due to scaling or preprocessing.",
-#     "FEASIBLE": "The problem is feasible. This status is displayed when the IIS=TRUE option is specified and the problem is feasible.",
-#     "INFEASIBLE": "The problem is infeasible.",
-#     "UNBOUNDED": "The problem is unbounded.",
-#     "INFEASIBLE_OR_UNBOUNDED": "The problem is infeasible or unbounded.",
-#     "SOLUTION_LIM": "The solver reached the maximum number of solutions specified by the MAXSOLS= option.",
-#     "NODE_LIM_SOL": "The solver reached the maximum number of nodes specified by the MAXNODES= option and found a solution.",
-#     "NODE_LIM_NOSOL": "The solver reached the maximum number of nodes specified by the MAXNODES= option and did not find a solution.",
-#     "ITERATION_LIMIT_REACHED": "The maximum allowable number of iterations was reached.",
-#     "TIME_LIM_SOL": "The solver reached the execution time limit specified by the MAXTIME= option and found a solution.",
-#     "TIME_LIM_NOSOL": "The solver reached the execution time limit specified by the MAXTIME= option and did not find a solution.",
-#     "TIME_LIMIT_REACHED": "The solver reached its execution time limit.",
-#     "ABORTED": "The solver was interrupted externally.",
-#     "ABORT_SOL": "The solver was stopped by the user but still found a solution.",
-#     "ABORT_NOSOL": "The solver was stopped by the user and did not find a solution.",
-#     "OUTMEM_SOL": "The solver ran out of memory but still found a solution.",
-#     "OUTMEM_NOSOL": "The solver ran out of memory and either did not find a solution or failed to output the solution due to insufficient memory.",
-#     "FAILED": "The solver failed to converge, possibly due to numerical issues.",
-#     "FAIL_SOL": "The solver stopped due to errors but still found a solution.",
-#     "FAIL_NOSOL": "The solver stopped due to errors and did not find a solution.",
-# }
-
 
 CAS_OPTION_NAMES = [
     "hostname",
@@ -168,9 +129,6 @@ class SAS94(LpSolver):
         def available(self):
             """True if SAS94 is available."""
             return True
-
-        # def __del__(self):
-        #     self._sas.endsas()
 
         def _create_statement_str(self, statement):
             """Helper function to create the strings for the statements of the proc OPTLP/OPTMILP code."""
@@ -347,24 +305,13 @@ class SAS94(LpSolver):
                     ),
                     results="TEXT",
                 )
-            # TODO: make sure all the files handled correctly.
-            # breakpoint()
-
 
             self._delete_tmp_files(tmpMps, tmpMst)
-
-            # self.solveTime += clock()
 
             # Store log and ODS output
             self._log = res["LOG"]
             if self.msg:
                 print(self._log)
-            # if "ERROR 22-322: Syntax error" in self._log:
-            #     raise PulpSolverError(
-            #         "An option passed to the SAS solver caused a syntax error: {_log}".format(
-            #             _log=self._log
-            #         )
-            #     )
             self._macro = dict(
                 (key.strip(), value.strip())
                 for key, value in (
@@ -372,42 +319,19 @@ class SAS94(LpSolver):
                 )
             )
 
-            # self._lst = res["LST"]
-
-
-
             primal_out = sas.sd2df(f"primalout{postfix}")
             dual_out = sas.sd2df(f"dualout{postfix}")
-            # t = time.time()
-            # # sas.endsas()
-            # print("Actual solve time: ", time.time() - t)
-            # # Remove primalout and dualout in SAS.
-            # rm_text = sas.submit(
-            #     """
-            #         proc delete data=primalout{postfix};
-            #         proc delete data=dualout{postfix};
-            #         run;
-            #     """.format(postfix=postfix),
-            #     result="TEXT",
-            # )
-
-
-            # print(rm_text["LOG"])
-            #     t = -clock()
-            # print(clock()+t)
 
 
             if self._macro.get("STATUS", "ERROR") != "OK":
                 raise PulpSolverError("PuLP: Error ({err_name}) \
                         while trying to solve the instance: {name}".format(
                         err_name=self._macro.get("STATUS", "ERROR"), name=lp.name))
-            # print(self._macro)
             status = self._read_solution(lp, primal_out, dual_out)
 
             return status
 
         def _read_solution(self, lp, primal_out, dual_out):
-            # print("The status: ", self._macro.get("SOLUTION_STATUS", "ERROR"))
             status = SOLSTATUS_TO_STATUS[self._macro.get("SOLUTION_STATUS", "ERROR")]
 
             if self.proc == "OPTLP":
@@ -507,7 +431,6 @@ class SASCAS(LpSolver):
             return True
 
         def _read_solution(self, lp, primal_out, dual_out):
-            # print("The status: ", self._macro.get("SOLUTION_STATUS", "ERROR"))
             status = SOLSTATUS_TO_STATUS[self._macro.get("SOLUTION_STATUS", "ERROR")]
 
             if self.proc == "OPTLP":
@@ -536,16 +459,12 @@ class SASCAS(LpSolver):
                 for line in f.readlines():
                     maxLen = max(maxLen, max([len(word) for word in line.split(" ")]))
             return maxLen + 1
-            # varLen = max(len(varName) for varName in lp.variablesDict().keys())
-            # conLen = max(len(varName) for varName in lp.constraints.keys())
-            # return max(varLen, conLen, 2) + 1
 
         def actualSolve(self, lp):
             """Solve a well formulated lp problem"""
             log.debug("Running SAS")
 
             if (self.cas_options == {}):
-                # print("cas_options:", CAS_OPTION_NAMES)
                 raise PulpSolverError("""SASCAS: Provide cas_options with
                     {port: , host: , authinfo: }
                     or {port: , host: , username: , password: }.""")
@@ -554,7 +473,6 @@ class SASCAS(LpSolver):
                 raise PulpSolverError("SASCAS: Currently SAS doesn't support SOS1 and SOS2.")
 
 
-            # breakpoint()
             proc = self.proc = "OPTMILP" if self.mip else "OPTLP"
             # Get Obj Sense
             if lp.sense == constants.LpMaximize:
@@ -627,7 +545,6 @@ class SASCAS(LpSolver):
                             importoptions={"filetype": "CSV"},
                         )
                         self.solverOptions["primalin"] = f"primalin{postfix}"
-                    # breakpoint()
                     # Delete the temp files.
                     self._delete_tmp_files(tmpMps, tmpMstCsv, tmpMpsCsv)
 
@@ -653,7 +570,6 @@ class SASCAS(LpSolver):
                         if self._macro.get("STATUS", "ERROR") != "OK":
                             raise PulpSolverError("PuLP: Error ({err_name}) while trying to solve the instance: {name}".format(
                                     err_name=self._macro.get("STATUS", "ERROR"), name=lp.name))
-                        # print("OBJ solution:", r["objective"])
                         # If we get solution successfully.
                         if proc == "OPTMILP":
                             primal_out = s.CASTable(name=f"primalout{postfix}")
@@ -685,36 +601,23 @@ class SASCAS(LpSolver):
 
 
 class SASLogWriter:
-    """Helper class to take the log from stdout and put it also in a StringIO."""
-
+    # Helper class to take the log from stdout and put it also in a StringIO.
     def __init__(self, tee):
-        """Set up the two outputs."""
+        # Set up the two outputs.
         self.tee = tee
         self._log = StringIO()
         self.stdout = sys.stdout
 
     def write(self, message):
-        """If the tee options is specified, write to both outputs."""
+        # If the tee options is specified, write to both outputs.
         if self.tee:
             self.stdout.write(message)
         self._log.write(message)
 
     def flush(self):
-        """Nothing to do, just here for compatibility reasons."""
         # Do nothing since we flush right away
         pass
 
     def log(self):
-        """ "Get the log as a string."""
+        # Get the log as a string.
         return self._log.getvalue()
-
-
-
-
-
-
-
-
-
-
-
