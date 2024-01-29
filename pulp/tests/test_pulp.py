@@ -1,7 +1,7 @@
 """
 Tests for pulp
 """
-import os
+
 import tempfile
 
 from pulp.constants import PulpError
