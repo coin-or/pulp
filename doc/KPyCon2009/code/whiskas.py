@@ -1,6 +1,7 @@
 """
 Example problem file that solves the whiskas blending problem
 """
+
 import pulp
 
 # initialise the model

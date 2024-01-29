@@ -1,7 +1,7 @@
 """
 Tests for pulp
 """
-import os
+
 import tempfile
 
 from pulp.constants import PulpError
@@ -45,11 +45,14 @@ ENDATA
 
 def gurobi_test(test_item):
     @functools.wraps(test_item)
-    def skip_wrapper(*args, **kwargs):
+    def skip_wrapper(test_obj, *args, **kwargs):
+        if not test_obj.solver.name in ["GUROBI", "GUROBI_CMD"]:
+            # if we're not testing gurobi, we do not care on the licence
+            return test_item(test_obj, *args, **kwargs)
         if gp is None:
             raise unittest.SkipTest("No gurobipy, can't check license")
         try:
-            test_item(*args, **kwargs)
+            return test_item(test_obj, *args, **kwargs)
         except gp.GurobiError as ge:
             # Skip the test if the failure was due to licensing
             if ge.errno == gp.GRB.Error.SIZE_LIMIT_EXCEEDED:
