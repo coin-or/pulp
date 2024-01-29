@@ -52,7 +52,7 @@ def gurobi_test(test_item):
         if gp is None:
             raise unittest.SkipTest("No gurobipy, can't check license")
         try:
-            return test_item(*args, **kwargs)
+            return test_item(test_obj, *args, **kwargs)
         except gp.GurobiError as ge:
             # Skip the test if the failure was due to licensing
             if ge.errno == gp.GRB.Error.SIZE_LIMIT_EXCEEDED:
