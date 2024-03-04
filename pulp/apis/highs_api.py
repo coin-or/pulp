@@ -325,12 +325,15 @@ class HiGHS(LpSolver):
         def createAndConfigureSolver(self, lp):
             lp.solverModel = highspy.Highs()
 
-            if self.msg or self.callbackTuple:
+            if self.msg and self.callbackTuple:
                 callbackTuple = self.callbackTuple or (
                     HiGHS.DEFAULT_CALLBACK,
                     HiGHS.DEFAULT_CALLBACK_VALUE,
                 )
                 lp.solverModel.setLogCallback(*callbackTuple)
+
+            if not self.msg:
+                lp.solverModel.setOptionValue("output_flag", False)
 
             if self.gapRel is not None:
                 lp.solverModel.setOptionValue("mip_rel_gap", self.gapRel)
