@@ -203,7 +203,11 @@ class HiGHS_CMD(LpSolver_CMD):
         if not os.path.exists(tmpSol) or os.stat(tmpSol).st_size == 0:
             status_sol = constants.LpSolutionNoSolutionFound
             values = None
-        elif status_sol == constants.LpSolutionNoSolutionFound:
+        elif status_sol in {
+            constants.LpSolutionNoSolutionFound,
+            constants.LpSolutionInfeasible,
+            constants.LpSolutionUnbounded,
+        }:
             values = None
         else:
             values = self.readsol(tmpSol)
