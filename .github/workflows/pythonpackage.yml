@@ -39,6 +39,12 @@ jobs:
       - name: Install coptpy
         run: |
           pip install coptpy
+      - name: Install saspy
+        run: |
+          pip install saspy
+      - name: Install swat
+        run: |
+          pip install swat
       - name: Test with pulptest
         run: pulptest
       - name: Code Quality

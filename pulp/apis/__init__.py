@@ -37,7 +37,7 @@ _all_solvers = [
     COPT_DLL,
     COPT_CMD,
     SAS94,
-    SASCAS
+    SASCAS,
 ]
 
 import json
