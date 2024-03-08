@@ -68,22 +68,6 @@ SOLSTATUS_TO_STATUS = {
     "ERROR": constants.LpStatusNotSolved,
 }
 
-CAS_OPTION_NAMES = [
-    "hostname",
-    "port",
-    "username",
-    "password",
-    "session",
-    "locale",
-    "name",
-    "nworkers",
-    "authinfo",
-    "protocol",
-    "path",
-    "ssl_ca_list",
-    "authcode",
-]
-
 
 class SASsolver(LpSolver_CMD):
     name = "SASsolver"
@@ -506,11 +490,6 @@ class SASCAS(SASsolver):
                     """SASCAS: Provide a valid CAS session by parameter cas=."""
                 )
 
-            # if (self.cas_options == {}):
-            #     raise PulpSolverError("""SASCAS: Provide cas_options with
-            #         {port: , host: , authinfo: }
-            #         or {port: , host: , username: , password: }.""")
-
             if len(lp.sos1) or len(lp.sos2):
                 raise PulpSolverError(
                     "SASCAS: Currently SAS doesn't support SOS1 and SOS2."
@@ -547,8 +526,6 @@ class SASCAS(SASsolver):
                                         (including indices) should not exceed {MAX_NAME_LENGTH}."
                     )
                 try:
-                    # # Load the optimization action set
-                    # s.loadactionset('optimization')
                     if lp.isMIP() and not self.mip:
                         warnings.warn(
                             "SASCAS will solve the relaxed problem of the MILP instance."

@@ -916,7 +916,7 @@ class BaseSolverTest:
 
         def test_export_json_LP(self):
             if self.solver.name in ["SAS94", "SASCAS"]:
-                # SASCAS does not support this functionality
+                # SAS API does not support this functionality
                 return
             name = self._testMethodName
             prob = LpProblem(name, const.LpMinimize)
@@ -1003,7 +1003,7 @@ class BaseSolverTest:
 
         def test_export_solver_json(self):
             if self.solver.name in ["SAS94", "SASCAS"]:
-                # SASCAS does not support this functionality
+                # SAS API does not support this functionality
                 return
             name = self._testMethodName
             prob = LpProblem(name, const.LpMinimize)
