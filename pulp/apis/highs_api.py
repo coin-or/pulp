@@ -203,7 +203,11 @@ class HiGHS_CMD(LpSolver_CMD):
         if not os.path.exists(tmpSol) or os.stat(tmpSol).st_size == 0:
             status_sol = constants.LpSolutionNoSolutionFound
             values = None
-        elif status_sol == constants.LpSolutionNoSolutionFound:
+        elif status_sol in {
+            constants.LpSolutionNoSolutionFound,
+            constants.LpSolutionInfeasible,
+            constants.LpSolutionUnbounded,
+        }:
             values = None
         else:
             values = self.readsol(tmpSol)
@@ -321,12 +325,15 @@ class HiGHS(LpSolver):
         def createAndConfigureSolver(self, lp):
             lp.solverModel = highspy.Highs()
 
-            if self.msg or self.callbackTuple:
+            if self.msg and self.callbackTuple:
                 callbackTuple = self.callbackTuple or (
                     HiGHS.DEFAULT_CALLBACK,
                     HiGHS.DEFAULT_CALLBACK_VALUE,
                 )
                 lp.solverModel.setLogCallback(*callbackTuple)
+
+            if not self.msg:
+                lp.solverModel.setOptionValue("output_flag", False)
 
             if self.gapRel is not None:
                 lp.solverModel.setOptionValue("mip_rel_gap", self.gapRel)
