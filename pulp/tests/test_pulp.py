@@ -2,6 +2,7 @@
 Tests for pulp
 """
 
+import os
 import tempfile
 
 from pulp.constants import PulpError
@@ -81,6 +82,11 @@ class BaseSolverTest:
             self.solver = self.solveInst(msg=False)
             if not self.solver.available():
                 self.skipTest(f"solver {self.solveInst} not available")
+            elif (
+                self.solver.name in ["SASCAS", "SAS94"]
+                and not self.solver.sasAvailable()
+            ):
+                self.skipTest(f"solver {self.solveInst} valid solver not provided")
 
         def tearDown(self):
             for ext in ["mst", "log", "lp", "mps", "sol"]:
@@ -239,6 +245,8 @@ class BaseSolverTest:
                 HiGHS_CMD,
                 XPRESS,
                 XPRESS_CMD,
+                SAS94,
+                SASCAS,
             ]:
                 try:
                     pulpTestCheck(
@@ -290,6 +298,8 @@ class BaseSolverTest:
                 XPRESS,
                 XPRESS_CMD,
                 XPRESS_PY,
+                SAS94,
+                SASCAS,
             ]:
                 try:
                     pulpTestCheck(
@@ -908,6 +918,9 @@ class BaseSolverTest:
             )
 
         def test_export_json_LP(self):
+            if self.solver.name in ["SAS94", "SASCAS"]:
+                # SAS API does not support this functionality
+                return
             name = self._testMethodName
             prob = LpProblem(name, const.LpMinimize)
             x = LpVariable("x", 0, 4)
@@ -992,6 +1005,9 @@ class BaseSolverTest:
             )
 
         def test_export_solver_json(self):
+            if self.solver.name in ["SAS94", "SASCAS"]:
+                # SAS API does not support this functionality
+                return
             name = self._testMethodName
             prob = LpProblem(name, const.LpMinimize)
             x = LpVariable("x", 0, 4)
@@ -1599,6 +1615,14 @@ class HiGHS_CMDTest(BaseSolverTest.PuLPTest):
 
 class COPTTest(BaseSolverTest.PuLPTest):
     solveInst = COPT
+
+
+class SAS94Test(BaseSolverTest.PuLPTest):
+    solveInst = SAS94
+
+
+class SASCASTest(BaseSolverTest.PuLPTest):
+    solveInst = SASCAS
 
 
 def pulpTestCheck(
