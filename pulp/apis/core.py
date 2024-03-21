@@ -213,6 +213,10 @@ class LpSolver:
         # gapRel, gapAbs, maxMemory, maxNodes, threads, logPath, timeMode
         self.optionsDict = {k: v for k, v in kwargs.items() if v is not None}
 
+        # if not msg then deactivate logging
+        if not msg:
+            log.setLevel(logging.ERROR)
+
     def available(self):
         """True if the solver is available"""
         raise NotImplementedError
