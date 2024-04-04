@@ -471,11 +471,11 @@ class XPRESS_PY(LpSolver):
                 lp.assignVarsDj({v.name: djs[v._xprs[0]] for v in lp.variables()})
             if duals is not None:
                 lp.assignConsPi(
-                    {n: duals[c._xprs[0]] for (n,c) in lp.constraints.items()}
+                    {n: duals[c._xprs[0]] for (n, c) in lp.constraints.items()}
                 )
             if slacks is not None:
                 lp.assignConsSlack(
-                    {n: slacks[c._xprs[0]] for (n,c) in lp.constraints.items()}
+                    {n: slacks[c._xprs[0]] for (n, c) in lp.constraints.items()}
                 )
 
             status = statusmap.get(
