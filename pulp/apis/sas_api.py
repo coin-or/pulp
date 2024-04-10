@@ -89,15 +89,18 @@ class SASsolver(LpSolver_CMD):
         :param solverParams: SAS proc OPTMILP or OPTLP parameters
         """
         LpSolver_CMD.__init__(
-            self, mip=mip, msg=msg, warmStart=warmStart, keepFiles=keepFiles
+            self,
+            mip=mip,
+            msg=msg,
+            keepFiles=keepFiles,
+            timeLimit=timeLimit,
+            warmStart=warmStart,
+            **solverParams,
         )
-        self.timeLimit = timeLimit
-        # Only named options are allowed in SAS solvers.
-        self.solverOptions = {key: value for key, value in solverParams.items()}
 
     def _create_statement_str(self, statement):
         """Helper function to create the strings for the statements of the proc OPTLP/OPTMILP code."""
-        stmt = self.solverOptions.pop(statement, None)
+        stmt = self.optionsDict.get(statement, None)
         if stmt:
             return (
                 statement.strip()
@@ -127,10 +130,10 @@ class SASsolver(LpSolver_CMD):
                 maxLen = max(maxLen, max([len(word) for word in line.split(" ")]))
         return maxLen + 1
 
-    def _read_solution(self, lp, primal_out, dual_out):
+    def _read_solution(self, lp, primal_out, dual_out, proc):
         status = SOLSTATUS_TO_STATUS[self._macro.get("SOLUTION_STATUS", "ERROR")]
 
-        if self.proc == "OPTLP":
+        if proc == "OPTLP":
             # TODO: Check whether there is better implementation than zip().
             values = dict(zip(primal_out["_VAR_"], primal_out["_VALUE_"]))
             rc = dict(zip(primal_out["_VAR_"], primal_out["_R_COST_"]))
@@ -198,41 +201,23 @@ class SAS94(SASsolver):
                 keepFiles=keepFiles,
                 warmStart=warmStart,
                 timeLimit=timeLimit,
+                sas=sas,
                 **solverParams,
             )
-
-            self.sas = sas
 
         def available(self):
             """True if SAS94 is available."""
             return True
 
         def sasAvailable(self):
-            if not self.sas:
-                return False
             try:
-                self.sas.sasver
+                if self.optionsDict.get("sas", None) is None:
+                    return False
+                sas = self.optionsDict.get("sas", None)
+                sas.sasver
                 return True
             except:
                 return False
-
-        def toDict(self):
-            data = dict(solver=self.name)
-            for k in ["mip", "msg", "keepFiles", "warmStart"]:
-                try:
-                    data[k] = getattr(self, k)
-                except AttributeError:
-                    pass
-            for k in ["sas", "timeLimit"]:
-                # with these ones, we only export if it has some content:
-                try:
-                    value = getattr(self, k)
-                    if value:
-                        data[k] = value
-                except AttributeError:
-                    pass
-            data.update(self.solverOptions)
-            return data
 
         def actualSolve(self, lp):
             """Solve a well formulated lp problem"""
@@ -258,19 +243,27 @@ class SAS94(SASsolver):
                                     (including indices) should not exceed {MAX_NAME_LENGTH}."
                 )
 
-            proc = self.proc = "OPTMILP" if self.mip else "OPTLP"
+            proc = "OPTMILP" if self.mip else "OPTLP"
+
+            solverOptions = {
+                key: self.optionsDict[key]
+                for key in self.optionsDict.keys()
+                if key not in ["warmStart", "sas", "cas"]
+            }
+            warmStart = self.optionsDict.get("warmStart")
+            sas = self.optionsDict.get("sas")
 
             # Get Obj Sense
             if lp.sense == constants.LpMaximize:
-                self.solverOptions["objsense"] = "max"
+                solverOptions["objsense"] = "max"
             elif lp.sense == constants.LpMinimize:
-                self.solverOptions["objsense"] = "min"
+                solverOptions["objsense"] = "min"
             else:
                 raise PulpSolverError("SAS94 : Objective sense should be min or max.")
 
             # Get timeLimit. SAS solvers use MAXTIME instead of timeLimit as a parameter.
             if self.timeLimit:
-                self.solverOptions["MAXTIME"] = self.timeLimit
+                solverOptions["MAXTIME"] = self.timeLimit
             # Get the rootnode options
             decomp_str = self._create_statement_str("decomp")
             decompmaster_str = self._create_statement_str("decompmaster")
@@ -284,7 +277,7 @@ class SAS94(SASsolver):
                 )
             # Handle warmstart
             warmstart_str = ""
-            if self.optionsDict.get("warmStart", False):
+            if warmStart:
                 self._write_sol(filename=tmpMst, vs=vs)
 
                 # Set the warmstart basis option
@@ -305,10 +298,8 @@ class SAS94(SASsolver):
 
             # Convert options to string
             opt_str = " ".join(
-                option + "=" + str(value)
-                for option, value in self.solverOptions.items()
+                option + "=" + str(value) for option, value in solverOptions.items()
             )
-            sas = self.sas
 
             # Find the version of 9.4 we are using
             if sas.sasver.startswith("9.04.01M5"):
@@ -393,7 +384,7 @@ class SAS94(SASsolver):
                         err_name=self._macro.get("STATUS", "ERROR"), name=lp.name
                     )
                 )
-            status = self._read_solution(lp, primal_out, dual_out)
+            status = self._read_solution(lp, primal_out, dual_out, proc)
 
             return status
 
@@ -445,41 +436,24 @@ class SASCAS(SASsolver):
                 keepFiles=keepFiles,
                 warmStart=warmStart,
                 timeLimit=timeLimit,
+                cas=cas,
                 **solverParams,
             )
-            self.cas = cas
 
         def available(self):
             return True
 
         def sasAvailable(self):
-            if self.cas == None:
-                return False
             try:
+                if self.optionsDict.get("cas", None) is None:
+                    return False
                 with redirect_stdout(SASLogWriter(self.msg)) as self._log_writer:
                     # Load the optimization action set
-                    self.cas.loadactionset("optimization")
+                    cas = self.optionsDict.get("cas", None)
+                    cas.loadactionset("optimization")
                     return True
             except:
                 return False
-
-        def toDict(self):
-            data = dict(solver=self.name)
-            for k in ["mip", "msg", "warmStart", "keepFiles"]:
-                try:
-                    data[k] = getattr(self, k)
-                except AttributeError:
-                    pass
-            for k in ["cas", "timeLimit"]:
-                # with these ones, we only export if it has some content:
-                try:
-                    value = getattr(self, k)
-                    if value:
-                        data[k] = value
-                except AttributeError:
-                    pass
-            data.update(self.solverOptions)
-            return data
 
         def actualSolve(self, lp):
             """Solve a well formulated lp problem"""
@@ -495,19 +469,26 @@ class SASCAS(SASsolver):
                     "SASCAS: Currently SAS doesn't support SOS1 and SOS2."
                 )
 
-            s = self.cas
-            proc = self.proc = "OPTMILP" if self.mip else "OPTLP"
+            solverOptions = {
+                key: self.optionsDict[key]
+                for key in self.optionsDict.keys()
+                if key not in ["warmStart", "sas", "cas"]
+            }
+            warmStart = self.optionsDict.get("warmStart")
+            s = self.optionsDict.get("cas")
+
+            proc = "OPTMILP" if self.mip else "OPTLP"
             # Get Obj Sense
             if lp.sense == constants.LpMaximize:
-                self.solverOptions["objsense"] = "max"
+                solverOptions["objsense"] = "max"
             elif lp.sense == constants.LpMinimize:
-                self.solverOptions["objsense"] = "min"
+                solverOptions["objsense"] = "min"
             else:
                 raise PulpSolverError("SASCAS : Objective sense should be min or max.")
 
             # Get timeLimit. SAS solvers use MAXTIME instead of timeLimit as a parameter.
             if self.timeLimit:
-                self.solverOptions["MAXTIME"] = self.timeLimit
+                solverOptions["MAXTIME"] = self.timeLimit
 
             status = None
             with redirect_stdout(SASLogWriter(self.msg)) as self._log_writer:
@@ -533,7 +514,7 @@ class SASCAS(SASsolver):
                     # load_mps
                     self._load_mps(s, tmpMps, tmpMpsCsv, postfix, nameLen)
 
-                    if self.optionsDict.get("warmStart", False) and (proc == "OPTMILP"):
+                    if warmStart and (proc == "OPTMILP"):
                         self._write_sol(filename=tmpMstCsv, vs=vs)
                         # Upload warmstart file to CAS
                         s.upload_file(
@@ -541,7 +522,7 @@ class SASCAS(SASsolver):
                             casout={"name": f"primalin{postfix}", "replace": True},
                             importoptions={"filetype": "CSV"},
                         )
-                        self.solverOptions["primalin"] = f"primalin{postfix}"
+                        solverOptions["primalin"] = f"primalin{postfix}"
                     # Delete the temp files.
                     self.delete_tmp_files(tmpMps, tmpMstCsv, tmpMpsCsv)
 
@@ -550,18 +531,18 @@ class SASCAS(SASsolver):
                         r = s.optimization.solveMilp(
                             data={"name": f"mpsdata{postfix}"},
                             primalOut={"name": f"primalout{postfix}", "replace": True},
-                            **self.solverOptions,
+                            **solverOptions,
                         )
                     else:
                         r = s.optimization.solveLp(
                             data={"name": f"mpsdata{postfix}"},
                             primalOut={"name": f"primalout{postfix}", "replace": True},
                             dualOut={"name": f"dualout{postfix}", "replace": True},
-                            **self.solverOptions,
+                            **solverOptions,
                         )
                     if r:
                         primal_out, dual_out = self._get_output(lp, s, r, proc, postfix)
-                        status = self._read_solution(lp, primal_out, dual_out)
+                        status = self._read_solution(lp, primal_out, dual_out, proc)
                 finally:
                     self.delete_tmp_files(tmpMps, tmpMstCsv, tmpMpsCsv)
 
