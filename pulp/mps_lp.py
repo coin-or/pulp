@@ -175,6 +175,9 @@ def readMPSSetBounds(line, variable_dict):
     elif bound == "BV":
         set_both_bounds(0, 1)
         return
+    elif bound == "PL":
+        # bounds equal to defaults
+        return
     value = float(line[3])
     if bound in ["LO", "UP"]:
         set_one_bound(bound, value)
