@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 # PuLP : Python LP Modeler
-
+from __future__ import annotations
 
 # Copyright (c) 2002-2005, Jean-Sebastien Roy (js@jeannot.org)
 # Modifications Copyright (c) 2007- Stuart Anthony Mitchell (s.mitchell@auckland.ac.nz)
@@ -977,14 +977,23 @@ class LpAffineExpression(_DICT_TYPE):
             e.constant = other / c
         return e
 
-    def __le__(self, other):
-        return LpConstraint(self - other, const.LpConstraintLE)
+    def __le__(self, other) -> LpConstraint:
+        if isinstance(other, (int, float)):
+            return LpConstraint(self, const.LpConstraintLE, rhs=other)
+        else:
+            return LpConstraint(self - other, const.LpConstraintLE)
 
-    def __ge__(self, other):
-        return LpConstraint(self - other, const.LpConstraintGE)
+    def __ge__(self, other) -> LpConstraint:
+        if isinstance(other, (int, float)):
+            return LpConstraint(self, const.LpConstraintGE, rhs=other)
+        else:
+            return LpConstraint(self - other, const.LpConstraintGE)
 
-    def __eq__(self, other):
-        return LpConstraint(self - other, const.LpConstraintEQ)
+    def __eq__(self, other) -> LpConstraint:
+        if isinstance(other, (int, float)):
+            return LpConstraint(self, const.LpConstraintEQ, rhs=other)
+        else:
+            return LpConstraint(self - other, const.LpConstraintEQ)
 
     def toDict(self):
         """
