@@ -1232,6 +1232,9 @@ class LpConstraint:
     def isNumericalConstant(self):
         return self.expr.isNumericalConstant()
 
+    def __len__(self):
+        return len(self.expr)
+
     def __iter__(self):
         return iter(self.expr)
 
