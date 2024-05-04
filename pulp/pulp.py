@@ -189,7 +189,7 @@ class LpElement:
     def __pos__(self):
         return self
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return True
 
     def __add__(self, other):
@@ -659,16 +659,16 @@ class LpAffineExpression(_DICT_TYPE):
     # to remove illegal characters from the names
     trans = maketrans("-+[] ", "_____")
 
-    def setName(self, name):
+    @property
+    def name(self) -> str | None:
+        return self.__name
+
+    @name.setter
+    def name(self, name: str | None):
         if name:
             self.__name = str(name).translate(self.trans)
         else:
             self.__name = None
-
-    def getName(self):
-        return self.__name
-
-    name = property(fget=getName, fset=setName)
 
     def __init__(self, e=None, constant: float=0.0, name: str | None=None):
         self.name = name
@@ -722,11 +722,9 @@ class LpAffineExpression(_DICT_TYPE):
             s += v.valueOrDefault() * x
         return s
 
-    def addterm(self, key, value):
-        y = self.get(key, 0)
-        if y:
-            y += value
-            self[key] = y
+    def addterm(self, key: LpElement, value: float | int):
+        if key in self:
+            self[key] += value
         else:
             self[key] = value
 
@@ -1045,7 +1043,7 @@ class LpConstraint:
         Returns a constraint as a string
         """
         result, line = self.expr.asCplexVariablesOnly(name)
-        if not list(self.keys()):
+        if len(self.keys()) == 0:
             line += ["0"]
         c = -self.constant
         if c == 0:
@@ -1354,8 +1352,8 @@ class LpProblem:
         if " " in name:
             warnings.warn("Spaces are not permitted in the name. Converted to '_'")
             name = name.replace(" ", "_")
-        self.objective = None
-        self.constraints = _DICT_TYPE()
+        self.objective: None | LpAffineExpression = None
+        self.constraints = _DICT_TYPE[str, LpConstraint]()
         self.name = name
         self.sense = sense
         self.sos1 = {}
@@ -1364,11 +1362,12 @@ class LpProblem:
         self.sol_status = const.LpSolutionNoSolutionFound
         self.noOverlap = 1
         self.solver = None
+        self.solverModel = None
         self.modifiedVariables = []
         self.modifiedConstraints = []
         self.resolveOK = False
-        self._variables = []
-        self._variable_ids = {}  # old school using dict.keys() for a set
+        self._variables: list[LpVariable] = []
+        self._variable_ids: dict[int, LpVariable] = {}  # old school using dict.keys() for a set
         self.dummyVar = None
         self.solutionTime = 0
         self.solutionCpuTime = 0
@@ -1420,7 +1419,7 @@ class LpProblem:
         lpcopy = LpProblem(name=self.name, sense=self.sense)
         if self.objective is not None:
             lpcopy.objective = self.objective.copy()
-        lpcopy.constraints = {}
+        lpcopy.constraints = _DICT_TYPE[str, LpConstraint]()
         for k, v in self.constraints.items():
             lpcopy.constraints[k] = v.copy()
         lpcopy.sos1 = self.sos1.copy()
@@ -1443,6 +1442,7 @@ class LpProblem:
                 "Duplicated names found in variables:\nto export the model, variable names need to be unique"
             )
         self.fixObjective()
+        assert self.objective is not None
         variables = self.variables()
         return dict(
             objective=dict(
@@ -1571,7 +1571,7 @@ class LpProblem:
 
     def unusedConstraintName(self):
         self.lastUnused += 1
-        while 1:
+        while True:
             s = "_C%d" % self.lastUnused
             if s not in self.constraints:
                 break
@@ -1597,7 +1597,7 @@ class LpProblem:
                 gap = max(abs(c.value()), gap)
         return gap
 
-    def addVariable(self, variable):
+    def addVariable(self, variable: LpVariable):
         """
         Adds a variable to the problem before a constraint is added
 
@@ -1607,7 +1607,7 @@ class LpProblem:
             self._variables.append(variable)
             self._variable_ids[variable.hash] = variable
 
-    def addVariables(self, variables):
+    def addVariables(self, variables: Iterable[LpVariable]):
         """
         Adds variables to the problem before a constraint is added
 
@@ -1616,7 +1616,7 @@ class LpProblem:
         for v in variables:
             self.addVariable(v)
 
-    def variables(self):
+    def variables(self) -> list[LpVariable]:
         """
         Returns the problem variables
 
@@ -1624,9 +1624,9 @@ class LpProblem:
         :rtype: (list, :py:class:`LpVariable`)
         """
         if self.objective:
-            self.addVariables(list(self.objective.keys()))
+            self.addVariables(self.objective.keys())
         for c in self.constraints.values():
-            self.addVariables(list(c.keys()))
+            self.addVariables(c.keys())
         self._variables.sort(key=lambda v: v.name)
         return self._variables
 
@@ -1635,7 +1635,7 @@ class LpProblem:
         if self.objective:
             for v in self.objective:
                 variables[v.name] = v
-        for c in list(self.constraints.values()):
+        for c in self.constraints.values():
             for v in c:
                 variables[v.name] = v
         return variables
@@ -1643,7 +1643,7 @@ class LpProblem:
     def add(self, constraint, name=None):
         self.addConstraint(constraint, name)
 
-    def addConstraint(self, constraint, name=None):
+    def addConstraint(self, constraint: LpConstraint, name=None):
         if not isinstance(constraint, LpConstraint):
             raise TypeError("Can only add LpConstraint objects")
         if name:
@@ -1666,7 +1666,7 @@ class LpProblem:
                 print("Warning: overlapping constraint names:", name)
         self.constraints[name] = constraint
         self.modifiedConstraints.append(constraint)
-        self.addVariables(list(constraint.keys()))
+        self.addVariables(constraint.keys())
 
     def setObjective(self, obj):
         """
@@ -2281,7 +2281,9 @@ class FractionElasticSubProblem(FixedElasticSubProblem):
             return False
 
 
-def lpSum(vector):
+def lpSum(vector: Iterable[LpAffineExpression] |
+                  Iterable[tuple[LpElement, float]] |
+                  int | float | LpElement):
     """
     Calculate the sum of a list of linear expressions
 
