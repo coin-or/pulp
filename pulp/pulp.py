@@ -670,7 +670,7 @@ class LpAffineExpression(_DICT_TYPE):
         else:
             self.__name = None
 
-    def __init__(self, e=None, constant: float=0.0, name: str | None=None):
+    def __init__(self, e=None, constant: float = 0.0, name: str | None = None):
         self.name = name
         # TODO remove isinstance usage
         if e is None:
@@ -937,7 +937,9 @@ class LpAffineExpression(_DICT_TYPE):
         return self * other
 
     def __div__(self, other):
-        if isinstance(other, (LpAffineExpression, LpConstraint)) or isinstance(other, LpVariable):
+        if isinstance(other, (LpAffineExpression, LpConstraint)) or isinstance(
+            other, LpVariable
+        ):
             if len(other):
                 raise TypeError(
                     "Expressions cannot be divided by a non-constant expression"
@@ -1012,7 +1014,9 @@ class LpConstraint:
         :param name: identifying string
         :param rhs: numerical value of constraint target
         """
-        self.expr = e if isinstance(e, LpAffineExpression) else LpAffineExpression(e, name=name)
+        self.expr = (
+            e if isinstance(e, LpAffineExpression) else LpAffineExpression(e, name=name)
+        )
         if rhs is not None:
             self.constant -= rhs
         self.sense = sense
@@ -1370,7 +1374,9 @@ class LpProblem:
         self.modifiedConstraints = []
         self.resolveOK = False
         self._variables: list[LpVariable] = []
-        self._variable_ids: dict[int, LpVariable] = {}  # old school using dict.keys() for a set
+        self._variable_ids: dict[int, LpVariable] = (
+            {}
+        )  # old school using dict.keys() for a set
         self.dummyVar = None
         self.solutionTime = 0
         self.solutionCpuTime = 0
@@ -2284,9 +2290,15 @@ class FractionElasticSubProblem(FixedElasticSubProblem):
             return False
 
 
-def lpSum(vector: Iterable[LpAffineExpression] |
-                  Iterable[tuple[LpElement, float]] |
-                  int | float | LpElement):
+def lpSum(
+    vector: (
+        Iterable[LpAffineExpression]
+        | Iterable[tuple[LpElement, float]]
+        | int
+        | float
+        | LpElement
+    )
+):
     """
     Calculate the sum of a list of linear expressions
 
