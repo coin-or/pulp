@@ -764,13 +764,12 @@ class LpAffineExpression(_DICT_TYPE):
             s = "0"
         return s
 
-    def sorted_keys(self):
+    def sorted_keys(self) -> list[LpElement]:
         """
         returns the list of keys sorted by name
         """
-        result = [(v.name, v) for v in self.keys()]
-        result.sort()
-        result = [v for _, v in result]
+        result = list(self.keys())
+        result.sort(key=lambda v: v.name)
         return result
 
     def __repr__(self):
