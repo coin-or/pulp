@@ -339,6 +339,8 @@ class CPLEX_PY(LpSolver):
                 lp.solverModel.objective.set_sense(
                     lp.solverModel.objective.sense.maximize
                 )
+            if lp.objective is None:
+                raise PulpSolverError("No objective set")
             obj = [float(lp.objective.get(var, 0.0)) for var in model_variables]
 
             def cplex_var_lb(var):
@@ -372,15 +374,16 @@ class CPLEX_PY(LpSolver):
             rows = []
             senses = []
             rhs = []
-            rownames = []
-            for name, constraint in lp.constraints.items():
+            rownames = list(lp.constraints.keys())
+            for constraint in lp.constraints.values():
                 # build the expression
-                expr = [(var.name, float(coeff)) for var, coeff in constraint.items()]
-                if not expr:
+                if len(constraint) == 0:
                     # if the constraint is empty
                     rows.append(([], []))
                 else:
-                    rows.append(list(zip(*expr)))
+                    expr1 = [var.name for var in constraint.keys()]
+                    expr2 = [float(coeff) for coeff in constraint.values()]
+                    rows.append((expr1, expr2))
                 if constraint.sense == constants.LpConstraintLE:
                     senses.append("L")
                 elif constraint.sense == constants.LpConstraintGE:
@@ -389,7 +392,6 @@ class CPLEX_PY(LpSolver):
                     senses.append("E")
                 else:
                     raise PulpSolverError("Detected an invalid constraint type")
-                rownames.append(name)
                 rhs.append(float(-constraint.constant))
             lp.solverModel.linear_constraints.add(
                 lin_expr=rows, senses=senses, rhs=rhs, names=rownames
