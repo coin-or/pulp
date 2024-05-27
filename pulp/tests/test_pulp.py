@@ -42,6 +42,10 @@ BOUNDS
 ENDATA
 """
 
+EXAMPLE_MPS_PL_BOUNDS = EXAMPLE_MPS_RHS56.replace(
+    "LO BND1      YTWO                -1", "PL BND1      YTWO                  "
+)
+
 
 def gurobi_test(test_item):
     @functools.wraps(test_item)
@@ -1207,6 +1211,15 @@ class BaseSolverTest:
             _, problem = LpProblem.fromMPS(h.name)
             os.unlink(h.name)
             self.assertEqual(problem.constraints["LIM2"].constant, -10)
+
+        def test_importMPS_PL_bound(self):
+            """Import MPS file with PL bound type."""
+            with tempfile.NamedTemporaryFile(delete=False) as h:
+                h.write(str.encode(EXAMPLE_MPS_PL_BOUNDS))
+            print("\t Testing reading MPS files - PL bound")
+            _, problem = LpProblem.fromMPS(h.name)
+            os.unlink(h.name)
+            self.assertIsInstance(problem, LpProblem)
 
         # def test_importMPS_2(self):
         #     name = self._testMethodName
