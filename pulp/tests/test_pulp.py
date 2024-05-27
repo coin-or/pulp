@@ -95,7 +95,7 @@ class BaseSolverTest:
                     pass
             pass
 
-        def test_pulp_001(self):
+        def test_variable_0_is_deleted(self):
             """
             Test that a variable is deleted when it is subtracted to 0
             """
@@ -108,9 +108,8 @@ class BaseSolverTest:
             assert str(c2)
             assert c2[z] == 0
 
-        def test_pulp_009(self):
-            # infeasible
-            prob = LpProblem("test09", const.LpMinimize)
+        def test_infeasible(self):
+            prob = LpProblem(self._testMethodName, const.LpMinimize)
             x = LpVariable("x", 0, 4)
             y = LpVariable("y", -1, 1)
             z = LpVariable("z", 0)
@@ -147,9 +146,8 @@ class BaseSolverTest:
                     ],
                 )
 
-        def test_pulp_010(self):
-            # Continuous
-            prob = LpProblem("test010", const.LpMinimize)
+        def test_continuous(self):
+            prob = LpProblem(self._testMethodName, const.LpMinimize)
             x = LpVariable("x", 0, 4)
             y = LpVariable("y", -1, 1)
             z = LpVariable("z", 0)
@@ -164,9 +162,8 @@ class BaseSolverTest:
                 prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0}
             )
 
-        def test_pulp_011(self):
-            # Continuous Maximisation
-            prob = LpProblem("test011", const.LpMaximize)
+        def test_continuous_max(self):
+            prob = LpProblem(self._testMethodName, const.LpMaximize)
             x = LpVariable("x", 0, 4)
             y = LpVariable("y", -1, 1)
             z = LpVariable("z", 0)
@@ -181,9 +178,8 @@ class BaseSolverTest:
                 prob, self.solver, [const.LpStatusOptimal], {x: 4, y: 1, z: 8, w: 0}
             )
 
-        def test_pulp_012(self):
-            # Unbounded
-            prob = LpProblem("test012", const.LpMaximize)
+        def test_unbounded(self):
+            prob = LpProblem(self._testMethodName, const.LpMaximize)
             x = LpVariable("x", 0, 4)
             y = LpVariable("y", -1, 1)
             z = LpVariable("z", 0)
@@ -218,9 +214,8 @@ class BaseSolverTest:
             else:
                 pulpTestCheck(prob, self.solver, [const.LpStatusUnbounded])
 
-        def test_pulp_013(self):
-            # Long name
-            prob = LpProblem("test013", const.LpMinimize)
+        def test_long_var_name(self):
+            prob = LpProblem(self._testMethodName, const.LpMinimize)
             x = LpVariable("x" * 120, 0, 4)
             y = LpVariable("y", -1, 1)
             z = LpVariable("z", 0)
@@ -262,9 +257,8 @@ class BaseSolverTest:
                     {x: 4, y: -1, z: 6, w: 0},
                 )
 
-        def test_pulp_014(self):
-            # repeated name
-            prob = LpProblem("test014", const.LpMinimize)
+        def test_repeated_name(self):
+            prob = LpProblem(self._testMethodName, const.LpMinimize)
             x = LpVariable("x", 0, 4)
             y = LpVariable("x", -1, 1)
             z = LpVariable("z", 0)
@@ -313,9 +307,8 @@ class BaseSolverTest:
                     {x: 4, y: -1, z: 6, w: 0},
                 )
 
-        def test_pulp_015(self):
-            # zero constraint
-            prob = LpProblem("test015", const.LpMinimize)
+        def test_zero_constraint(self):
+            prob = LpProblem(self._testMethodName, const.LpMinimize)
             x = LpVariable("x", 0, 4)
             y = LpVariable("y", -1, 1)
             z = LpVariable("z", 0)
@@ -331,9 +324,8 @@ class BaseSolverTest:
                 prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0}
             )
 
-        def test_pulp_016(self):
-            # zero objective
-            prob = LpProblem("test016", const.LpMinimize)
+        def test_no_objective(self):
+            prob = LpProblem(self._testMethodName, const.LpMinimize)
             x = LpVariable("x", 0, 4)
             y = LpVariable("y", -1, 1)
             z = LpVariable("z", 0)
@@ -346,9 +338,8 @@ class BaseSolverTest:
             print("\t Testing zero objective")
             pulpTestCheck(prob, self.solver, [const.LpStatusOptimal])
 
-        def test_pulp_017(self):
-            # variable as objective
-            prob = LpProblem("test017", const.LpMinimize)
+        def test_variable_as_objective(self):
+            prob = LpProblem(self._testMethodName, const.LpMinimize)
             x = LpVariable("x", 0, 4)
             y = LpVariable("y", -1, 1)
             z = LpVariable("z", 0)
@@ -362,9 +353,8 @@ class BaseSolverTest:
             print("\t Testing LpVariable (not LpAffineExpression) objective")
             pulpTestCheck(prob, self.solver, [const.LpStatusOptimal])
 
-        def test_pulp_018(self):
-            # Long name in lp
-            prob = LpProblem("test018", const.LpMinimize)
+        def test_longname_lp(self):
+            prob = LpProblem(self._testMethodName, const.LpMinimize)
             x = LpVariable("x" * 90, 0, 4)
             y = LpVariable("y" * 90, -1, 1)
             z = LpVariable("z" * 90, 0)
@@ -384,9 +374,8 @@ class BaseSolverTest:
                     use_mps=False,
                 )
 
-        def test_pulp_019(self):
-            # divide
-            prob = LpProblem("test019", const.LpMinimize)
+        def test_divide(self):
+            prob = LpProblem(self._testMethodName, const.LpMinimize)
             x = LpVariable("x", 0, 4)
             y = LpVariable("y", -1, 1)
             z = LpVariable("z", 0)
@@ -401,9 +390,8 @@ class BaseSolverTest:
                 prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0}
             )
 
-        def test_pulp_020(self):
-            # MIP
-            prob = LpProblem("test020", const.LpMinimize)
+        def test_mip(self):
+            prob = LpProblem(self._testMethodName, const.LpMinimize)
             x = LpVariable("x", 0, 4)
             y = LpVariable("y", -1, 1)
             z = LpVariable("z", 0, None, const.LpInteger)
@@ -416,9 +404,8 @@ class BaseSolverTest:
                 prob, self.solver, [const.LpStatusOptimal], {x: 3, y: -0.5, z: 7}
             )
 
-        def test_pulp_021(self):
-            # MIP with floats in objective
-            prob = LpProblem("test021", const.LpMinimize)
+        def test_mip_floats_objective(self):
+            prob = LpProblem(self._testMethodName, const.LpMinimize)
             x = LpVariable("x", 0, 4)
             y = LpVariable("y", -1, 1)
             z = LpVariable("z", 0, None, const.LpInteger)
@@ -435,9 +422,8 @@ class BaseSolverTest:
                 objective=64.95,
             )
 
-        def test_pulp_022(self):
-            # Initial value
-            prob = LpProblem("test022", const.LpMinimize)
+        def test_initial_value(self):
+            prob = LpProblem(self._testMethodName, const.LpMinimize)
             x = LpVariable("x", 0, 4)
             y = LpVariable("y", -1, 1)
             z = LpVariable("z", 0, None, const.LpInteger)
@@ -462,9 +448,8 @@ class BaseSolverTest:
                 prob, self.solver, [const.LpStatusOptimal], {x: 3, y: -0.5, z: 7}
             )
 
-        def test_pulp_023(self):
-            # Initial value (fixed)
-            prob = LpProblem("test023", const.LpMinimize)
+        def test_fixed_value(self):
+            prob = LpProblem(self._testMethodName, const.LpMinimize)
             x = LpVariable("x", 0, 4)
             y = LpVariable("y", -1, 1)
             z = LpVariable("z", 0, None, const.LpInteger)
@@ -480,9 +465,8 @@ class BaseSolverTest:
             print("\t Testing fixing value in MIP solution")
             pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], solution)
 
-        def test_pulp_030(self):
-            # relaxed MIP
-            prob = LpProblem("test030", const.LpMinimize)
+        def test_relaxed_mip(self):
+            prob = LpProblem(self._testMethodName, const.LpMinimize)
             x = LpVariable("x", 0, 4)
             y = LpVariable("y", -1, 1)
             z = LpVariable("z", 0, None, const.LpInteger)
@@ -509,9 +493,8 @@ class BaseSolverTest:
                     prob, self.solver, [const.LpStatusOptimal], {x: 3.5, y: -1, z: 6.5}
                 )
 
-        def test_pulp_040(self):
-            # Feasibility only
-            prob = LpProblem("test040", const.LpMinimize)
+        def test_feasibility_only(self):
+            prob = LpProblem(self._testMethodName, const.LpMinimize)
             x = LpVariable("x", 0, 4)
             y = LpVariable("y", -1, 1)
             z = LpVariable("z", 0, None, const.LpInteger)
@@ -521,9 +504,8 @@ class BaseSolverTest:
             print("\t Testing feasibility problem (no objective)")
             pulpTestCheck(prob, self.solver, [const.LpStatusOptimal])
 
-        def test_pulp_050(self):
-            # Infeasible
-            prob = LpProblem("test050", const.LpMinimize)
+        def test_infeasible_2(self):
+            prob = LpProblem(self._testMethodName, const.LpMinimize)
             x = LpVariable("x", 0, 4)
             y = LpVariable("y", -1, 1)
             z = LpVariable("z", 0, 10)
@@ -540,9 +522,8 @@ class BaseSolverTest:
             else:
                 pulpTestCheck(prob, self.solver, [const.LpStatusInfeasible])
 
-        def test_pulp_060(self):
-            # Integer Infeasible
-            prob = LpProblem("test060", const.LpMinimize)
+        def test_integer_infeasible(self):
+            prob = LpProblem(self._testMethodName, const.LpMinimize)
             x = LpVariable("x", 0, 4, const.LpInteger)
             y = LpVariable("y", -1, 1, const.LpInteger)
             z = LpVariable("z", 0, 10, const.LpInteger)
@@ -567,9 +548,8 @@ class BaseSolverTest:
             else:
                 pulpTestCheck(prob, self.solver, [const.LpStatusInfeasible])
 
-        def test_pulp_061(self):
-            # Integer Infeasible
-            prob = LpProblem("sample", const.LpMaximize)
+        def test_integer_infeasible_2(self):
+            prob = LpProblem(self._testMethodName, const.LpMaximize)
 
             dummy = LpVariable("dummy")
             c1 = LpVariable("c1", 0, 1, const.LpBinary)
@@ -591,9 +571,8 @@ class BaseSolverTest:
             else:
                 pulpTestCheck(prob, self.solver, [const.LpStatusInfeasible])
 
-        def test_pulp_070(self):
-            # Column Based modelling of test_pulp_1
-            prob = LpProblem("test070", const.LpMinimize)
+        def test_column_based(self):
+            prob = LpProblem(self._testMethodName, const.LpMinimize)
             obj = LpConstraintVar("obj")
             # constraints
             a = LpConstraintVar("C1", const.LpConstraintLE, 5)
@@ -613,9 +592,8 @@ class BaseSolverTest:
                 prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6}
             )
 
-        def test_pulp_075(self):
-            # Column Based modelling of test_pulp_1 with empty constraints
-            prob = LpProblem("test075", const.LpMinimize)
+        def test_colum_based_empty_constraints(self):
+            prob = LpProblem(self._testMethodName, const.LpMinimize)
             obj = LpConstraintVar("obj")
             # constraints
             a = LpConstraintVar("C1", const.LpConstraintLE, 5)
@@ -636,11 +614,11 @@ class BaseSolverTest:
                     prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6}
                 )
 
-        def test_pulp_080(self):
+        def test_dual_variables_reduced_costs(self):
             """
             Test the reporting of dual variables slacks and reduced costs
             """
-            prob = LpProblem("test080", const.LpMinimize)
+            prob = LpProblem(self._testMethodName, const.LpMinimize)
             x = LpVariable("x", 0, 5)
             y = LpVariable("y", -1, 1)
             z = LpVariable("z", 0)
@@ -671,9 +649,8 @@ class BaseSolverTest:
                     slacks={"c1": 2, "c2": 0, "c3": 0},
                 )
 
-        def test_pulp_090(self):
-            # Column Based modelling of test_pulp_1 with a resolve
-            prob = LpProblem("test090", const.LpMinimize)
+        def test_column_based_modelling_resolve(self):
+            prob = LpProblem(self._testMethodName, const.LpMinimize)
             obj = LpConstraintVar("obj")
             # constraints
             a = LpConstraintVar("C1", const.LpConstraintLE, 5)
@@ -697,12 +674,12 @@ class BaseSolverTest:
                 # overridden if it is not implemented
                 # test_pulp_Check(prob, self.solver, [const.LpStatusOptimal], {x:4, y:-1, z:6})
 
-        def test_pulp_100(self):
+        def test_sequential_solve(self):
             """
             Test the ability to sequentially solve a problem
             """
             # set up a cubic feasible region
-            prob = LpProblem("test100", const.LpMinimize)
+            prob = LpProblem(self._testMethodName, const.LpMinimize)
             x = LpVariable("x", 0, 1)
             y = LpVariable("y", 0, 1)
             z = LpVariable("z", 0, 1)
@@ -722,11 +699,11 @@ class BaseSolverTest:
                     status=status,
                 )
 
-        def test_pulp_110(self):
+        def test_fractional_constraints(self):
             """
             Test the ability to use fractional constraints
             """
-            prob = LpProblem("test110", const.LpMinimize)
+            prob = LpProblem(self._testMethodName, const.LpMinimize)
             x = LpVariable("x", 0, 4)
             y = LpVariable("y", -1, 1)
             z = LpVariable("z", 0)
@@ -745,11 +722,11 @@ class BaseSolverTest:
                 {x: 10 / 3.0, y: -1 / 3.0, z: 20 / 3.0, w: 0},
             )
 
-        def test_pulp_120(self):
+        def test_elastic_constraints(self):
             """
             Test the ability to use Elastic constraints
             """
-            prob = LpProblem("test120", const.LpMinimize)
+            prob = LpProblem(self._testMethodName, const.LpMinimize)
             x = LpVariable("x", 0, 4)
             y = LpVariable("y", -1, 1)
             z = LpVariable("z", 0)
@@ -764,11 +741,11 @@ class BaseSolverTest:
                 prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: -1}
             )
 
-        def test_pulp_121(self):
+        def test_elastic_constraints_2(self):
             """
             Test the ability to use Elastic constraints
             """
-            prob = LpProblem("test121", const.LpMinimize)
+            prob = LpProblem(self._testMethodName, const.LpMinimize)
             x = LpVariable("x", 0, 4)
             y = LpVariable("y", -1, 1)
             z = LpVariable("z", 0)
@@ -783,11 +760,11 @@ class BaseSolverTest:
                 prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: -1.1}
             )
 
-        def test_pulp_122(self):
+        def test_elastic_constraints_penalty_unchanged(self):
             """
             Test the ability to use Elastic constraints (penalty unchanged)
             """
-            prob = LpProblem("test122", const.LpMinimize)
+            prob = LpProblem(self._testMethodName, const.LpMinimize)
             x = LpVariable("x", 0, 4)
             y = LpVariable("y", -1, 1)
             z = LpVariable("z", 0)
@@ -802,11 +779,11 @@ class BaseSolverTest:
                 prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: -1.0}
             )
 
-        def test_pulp_123(self):
+        def test_elastic_constraints_penalty_unbounded(self):
             """
             Test the ability to use Elastic constraints (penalty unbounded)
             """
-            prob = LpProblem("test123", const.LpMinimize)
+            prob = LpProblem(self._testMethodName, const.LpMinimize)
             x = LpVariable("x", 0, 4)
             y = LpVariable("y", -1, 1)
             z = LpVariable("z", 0)
@@ -846,7 +823,7 @@ class BaseSolverTest:
             """
             Test setting the msg arg to True does not interfere with solve
             """
-            prob = LpProblem("test_msg_arg", const.LpMinimize)
+            prob = LpProblem(self._testMethodName, const.LpMinimize)
             x = LpVariable("x", 0, 4)
             y = LpVariable("y", -1, 1)
             z = LpVariable("z", 0)
@@ -875,7 +852,7 @@ class BaseSolverTest:
             from pulp import pulpTestAll
 
         def test_export_dict_LP(self):
-            prob = LpProblem("test_export_dict_LP", const.LpMinimize)
+            prob = LpProblem(self._testMethodName, const.LpMinimize)
             x = LpVariable("x", 0, 4)
             y = LpVariable("y", -1, 1)
             z = LpVariable("z", 0)
@@ -894,7 +871,7 @@ class BaseSolverTest:
             )
 
         def test_export_dict_LP_no_obj(self):
-            prob = LpProblem("test_export_dict_LP_no_obj", const.LpMinimize)
+            prob = LpProblem(self._testMethodName, const.LpMinimize)
             x = LpVariable("x", 0, 4)
             y = LpVariable("y", -1, 1)
             z = LpVariable("z", 0)
@@ -913,7 +890,7 @@ class BaseSolverTest:
 
         def test_export_json_LP(self):
             name = self._testMethodName
-            prob = LpProblem(name, const.LpMinimize)
+            prob = LpProblem(self._testMethodName, const.LpMinimize)
             x = LpVariable("x", 0, 4)
             y = LpVariable("y", -1, 1)
             z = LpVariable("z", 0)
@@ -1369,8 +1346,6 @@ class BaseSolverTest:
             """
             Test that 'indexs' param continues to work
             """
-
-            prob = LpProblem(self._testMethodName, const.LpMinimize)
             customers = [1, 2, 3]
             agents = ["A", "B", "C"]
 
