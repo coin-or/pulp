@@ -24,6 +24,11 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."""
 
+from typing import Any, Optional, List, Dict, TYPE_CHECKING, Tuple, Union
+
+if TYPE_CHECKING:
+    from pulp.pulp import LpProblem, LpVariable
+
 from .core import LpSolver_CMD, LpSolver, subprocess, PulpSolverError, clock, log
 from .core import cbc_path, pulp_cbc_path, coinMP_path, devnull, operating_system
 import os
@@ -45,22 +50,22 @@ class COIN_CMD(LpSolver_CMD):
 
     def __init__(
         self,
-        mip=True,
-        msg=True,
-        timeLimit=None,
-        gapRel=None,
-        gapAbs=None,
-        presolve=None,
-        cuts=None,
-        strong=None,
-        options=None,
-        warmStart=False,
-        keepFiles=False,
-        path=None,
-        threads=None,
-        logPath=None,
-        timeMode="elapsed",
-        maxNodes=None,
+        mip: bool = True,
+        msg: bool = True,
+        timeLimit: Optional[float] = None,
+        gapRel: Optional[float] = None,
+        gapAbs: Optional[float] = None,
+        presolve: Optional[bool] = None,
+        cuts: Optional[bool] = None,
+        strong: Optional[bool] = None,
+        options: Optional[Dict[str, Any]] = None,
+        warmStart: bool = False,
+        keepFiles: bool = False,
+        path: Optional[str] = None,
+        threads: Optional[int] = None,
+        logPath: Optional[str] = None,
+        timeMode: str = "elapsed",
+        maxNodes: Optional[int] = None,
     ):
         """
         :param bool mip: if False, assume LP even if integer variables
@@ -101,21 +106,21 @@ class COIN_CMD(LpSolver_CMD):
             maxNodes=maxNodes,
         )
 
-    def copy(self):
+    def copy(self) -> LpSolver:
         """Make a copy of self"""
         aCopy = LpSolver_CMD.copy(self)
         aCopy.optionsDict = self.optionsDict
         return aCopy
 
-    def actualSolve(self, lp, **kwargs):
+    def actualSolve(self, lp: "LpProblem", **kwargs: Any) -> int:
         """Solve a well formulated lp problem"""
         return self.solve_CBC(lp, **kwargs)
 
-    def available(self):
+    def available(self) -> bool:
         """True if the solver is available"""
-        return self.executable(self.path)
+        return self.executable(self.path) is not None
 
-    def solve_CBC(self, lp, use_mps=True):
+    def solve_CBC(self, lp: "LpProblem", use_mps: bool = True) -> int:
         """Solve a MIP problem using CBC"""
         if not self.executable(self.path):
             raise PulpSolverError(
@@ -254,13 +259,20 @@ class COIN_CMD(LpSolver_CMD):
                     shadowPrices[reverseCn[vn]] = float(dj)
         return status, values, reducedCosts, shadowPrices, slacks, sol_status
 
-    def writesol(self, filename, lp, vs, variablesNames, constraintsNames):
+    def writesol(
+        self,
+        filename: str,
+        lp: "LpProblem",
+        vs: "List[LpVariable]",
+        variablesNames: Dict[str, str],
+        constraintsNames: Dict[str, str],
+    ) -> bool:
         """
         Writes a CBC solution file generated from an mps / lp file (possible different names)
         returns True on success
         """
         values = {v.name: v.value() if v.value() is not None else 0 for v in vs}
-        value_lines = []
+        value_lines: List[Tuple[int, str, Union[int, float, None], int]] = []
         value_lines += [
             (i, v, values[k], 0) for i, (k, v) in enumerate(variablesNames.items())
         ]
@@ -272,7 +284,7 @@ class COIN_CMD(LpSolver_CMD):
 
         return True
 
-    def readsol_LP(self, filename, lp, vs):
+    def readsol_LP(self, filename: str, lp: "LpProblem", vs: "List[LpVariable]"):
         """
         Read a CBC solution file generated from an lp (good names)
         returns status, values, reducedCosts, shadowPrices, slacks, sol_status
@@ -281,7 +293,7 @@ class COIN_CMD(LpSolver_CMD):
         constraintsNames = {c: c for c in lp.constraints}
         return self.readsol_MPS(filename, lp, vs, variablesNames, constraintsNames)
 
-    def get_status(self, filename):
+    def get_status(self, filename: str):
         cbcStatus = {
             "Optimal": constants.LpStatusOptimal,
             "Infeasible": constants.LpStatusInfeasible,
@@ -331,11 +343,11 @@ class PULP_CBC_CMD(COIN_CMD):
                 os.chmod(pulp_cbc_path, stat.S_IXUSR + stat.S_IXOTH)
     except:  # probably due to incorrect permissions
 
-        def available(self):
+        def available(self) -> bool:
             """True if the solver is available"""
             return False
 
-        def actualSolve(self, lp, callback=None):
+        def actualSolve(self, lp: "LpProblem", callback: Optional[Any] = None) -> Any:
             """Solve a well formulated lp problem"""
             raise PulpSolverError(
                 "PULP_CBC_CMD: Not Available (check permissions on %s)"
@@ -387,7 +399,7 @@ class PULP_CBC_CMD(COIN_CMD):
             )
 
 
-def COINMP_DLL_load_dll(path):
+def COINMP_DLL_load_dll(path: str) -> ctypes.CDLL:
     """
     function that loads the DLL useful for debugging installation problems
     """
@@ -417,11 +429,11 @@ class COINMP_DLL(LpSolver):
     except (ImportError, OSError):
 
         @classmethod
-        def available(cls):
+        def available(cls) -> bool:
             """True if the solver is available"""
             return False
 
-        def actualSolve(self, lp):
+        def actualSolve(self, lp: "LpProblem") -> Any:
             """Solve a well formulated lp problem"""
             raise PulpSolverError("COINMP_DLL: Not Available")
 
@@ -480,11 +492,11 @@ class COINMP_DLL(LpSolver):
             return aCopy
 
         @classmethod
-        def available(cls):
+        def available(cls) -> bool:
             """True if the solver is available"""
             return True
 
-        def getSolverVersion(self):
+        def getSolverVersion(self) -> Any:
             """
             returns a solver version string
 
@@ -494,7 +506,7 @@ class COINMP_DLL(LpSolver):
             """
             return self.lib.CoinGetVersionStr()
 
-        def actualSolve(self, lp):
+        def actualSolve(self, lp: "LpProblem"):
             """Solve a well formulated lp problem"""
             # TODO alter so that msg parameter is handled correctly
             self.debug = 0

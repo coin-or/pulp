@@ -27,11 +27,20 @@ sparse this module provides basic pure python sparse matrix implementation
 notably this allows the sparse matrix to be output in various formats
 """
 
+from typing import TypeVar, Dict, List, Tuple, Any
 
-class Matrix(dict):
+_VT = TypeVar("_VT")
+
+
+class Matrix(Dict[Tuple[int, int], _VT]):
     """This is a dictionary based sparse matrix class"""
 
-    def __init__(self, rows, cols):
+    rows: List[int]
+    cols: List[int]
+    rowdict: Dict[int, Dict[Any, Any]]
+    coldict: Dict[int, Dict[Any, Any]]
+
+    def __init__(self, rows: List[int], cols: List[int]):
         """initialises the class by creating a matrix that will have the given
         rows and columns
         """
@@ -40,10 +49,17 @@ class Matrix(dict):
         self.rowdict = {row: {} for row in rows}
         self.coldict = {col: {} for col in cols}
 
-    def add(self, row, col, item, colcheck=False, rowcheck=False):
+    def add(
+        self,
+        row: int,
+        col: int,
+        item: _VT,
+        colcheck: bool = False,
+        rowcheck: bool = False,
+    ):
         if not (rowcheck and row not in self.rows):
             if not (colcheck and col not in self.cols):
-                dict.__setitem__(self, (row, col), item)
+                self.__setitem__((row, col), item)
                 self.rowdict[row][col] = item
                 self.coldict[col][row] = item
             else:
@@ -52,7 +68,7 @@ class Matrix(dict):
         else:
             raise RuntimeError(f"row {row} is not in the matrix rows")
 
-    def addcol(self, col, rowitems):
+    def addcol(self, col: int, rowitems: Dict[int, _VT]):
         """adds a column"""
         if col in self.cols:
             for row, item in rowitems.items():
@@ -60,16 +76,18 @@ class Matrix(dict):
         else:
             raise RuntimeError("col is not in the matrix columns")
 
-    def get(self, k, d=0):
-        return dict.get(self, k, d)
+    def get(self, k: Tuple[int, int], d: _VT) -> _VT:  # type: ignore
+        return dict.get(self, k, d)  # type: ignore
 
-    def col_based_arrays(self):
+    def col_based_arrays(
+        self,
+    ) -> Tuple[int, List[int], List[int], List[int], List[_VT]]:
         numEls = len(self)
-        elemBase = []
-        startsBase = []
-        indBase = []
-        lenBase = []
-        for i, col in enumerate(self.cols):
+        elemBase: List[_VT] = []
+        startsBase: List[int] = []
+        indBase: List[int] = []
+        lenBase: List[int] = []
+        for _, col in enumerate(self.cols):
             startsBase.append(len(elemBase))
             elemBase.extend(list(self.coldict[col].values()))
             indBase.extend(list(self.coldict[col].keys()))
@@ -82,7 +100,7 @@ if __name__ == "__main__":
     """unit test"""
     rows = list(range(10))
     cols = list(range(50, 60))
-    mat = Matrix(rows, cols)
+    mat: Matrix[str] = Matrix(rows, cols)
     mat.add(1, 52, "item")
     mat.add(2, 54, "stuff")
     print(mat.col_based_arrays())

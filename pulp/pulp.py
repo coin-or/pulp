@@ -92,55 +92,47 @@ References:
 [5] http://www.mosek.com/
 """
 
+from typing import (
+    Collection,
+    Dict,
+    List,
+    Any,
+    Union,
+    Optional,
+    TypeVar,
+    Tuple,
+    Iterable,
+    NoReturn,
+    TypedDict,
+    Callable,
+    cast,
+    TYPE_CHECKING,
+)
+
 from collections import Counter
-import sys
 import warnings
 import math
 from time import time
 
-from .apis import LpSolverDefault, PULP_CBC_CMD
-from .apis.core import clock
+from .apis import LpSolverDefault
+from .apis.core import LpSolver, clock
 from .utilities import value
 from . import constants as const
 from . import mps_lp as mpslp
-
-try:
-    from collections.abc import Iterable
-except ImportError:
-    # python 2.7 compatible
-    from collections.abc import Iterable
 
 import logging
 
 log = logging.getLogger(__name__)
 
-try:  # allow Python 2/3 compatibility
-    maketrans = str.maketrans
-except AttributeError:
-    from string import maketrans
+maketrans = str.maketrans
 
-_DICT_TYPE = dict
-
-if sys.platform not in ["cli"]:
-    # iron python does not like an OrderedDict
-    try:
-        from odict import OrderedDict
-
-        _DICT_TYPE = OrderedDict
-    except ImportError:
-        pass
-    try:
-        # python 2.7 or 3.1
-        from collections import OrderedDict
-
-        _DICT_TYPE = OrderedDict
-    except ImportError:
-        pass
-
-try:
-    import ujson as json
-except ImportError:
+if TYPE_CHECKING:
     import json
+else:
+    try:
+        import ujson as json
+    except ImportError:
+        import json
 
 import re
 
@@ -149,95 +141,140 @@ class LpElement:
     """Base class for LpVariable and LpConstraintVar"""
 
     # To remove illegal characters from the names
-    illegal_chars = "-+[] ->/"
-    expression = re.compile(f"[{re.escape(illegal_chars)}]")
-    trans = maketrans(illegal_chars, "________")
+    illegal_chars: str = "-+[] ->/"
+    expression_pattern: "re.Pattern[str]" = re.compile(f"[{re.escape(illegal_chars)}]")
+    trans: Dict[int, int] = maketrans(illegal_chars, "________")
+    __name: str
 
-    def setName(self, name):
-        if name:
-            if self.expression.match(name):
-                warnings.warn(
-                    "The name {} has illegal characters that will be replaced by _".format(
-                        name
-                    )
-                )
-            self.__name = str(name).translate(self.trans)
-        else:
-            self.__name = None
-
-    def getName(self):
+    @property
+    def name(self):
         return self.__name
 
-    name = property(fget=getName, fset=setName)
+    @name.setter
+    def name(self, value: Optional[str]):
+        if value is not None:
+            if self.expression_pattern.match(value):
+                warnings.warn(
+                    "The name {} has illegal characters that will be replaced by _".format(
+                        value
+                    )
+                )
+            self.__name = str(value).translate(self.trans)
+        else:
+            # use empty str replace None
+            self.__name = ""
 
-    def __init__(self, name):
+    def setName(self, name: str):
+        self.name = name
+
+    def getName(self) -> str:
+        return self.name
+
+    def __init__(self, name: Optional[str]):
         self.name = name
         # self.hash MUST be different for each variable
         # else dict() will call the comparison operators that are overloaded
         self.hash = id(self)
         self.modified = True
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return self.hash
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.name
 
-    def __neg__(self):
-        return -LpAffineExpression(self)
+    def __neg__(self) -> "LpAffineExpression":
+        return -LpAffineExpression(self)  # type: ignore
 
-    def __pos__(self):
+    def __pos__(self) -> "LpElement":
         return self
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return True
 
-    def __add__(self, other):
+    def __add__(
+        self,
+        other: Union[
+            "LpAffineExpression", "LpVariable", "LpConstraintVar", int, float, None
+        ],
+    ) -> "LpAffineExpression":
+        self = cast(Union[LpVariable, LpConstraintVar], self)
         return LpAffineExpression(self) + other
 
-    def __radd__(self, other):
+    def __radd__(
+        self, other: Union["LpVariable", "LpConstraintVar", int, float]
+    ) -> "LpAffineExpression":
+        self = cast(Union[LpVariable, LpConstraintVar], self)
         return LpAffineExpression(self) + other
 
-    def __sub__(self, other):
+    def __sub__(
+        self, other: Union["LpVariable", "LpConstraintVar", int, float]
+    ) -> "LpAffineExpression":
+        self = cast(Union[LpVariable, LpConstraintVar], self)
         return LpAffineExpression(self) - other
 
-    def __rsub__(self, other):
+    def __rsub__(
+        self, other: Union["LpVariable", "LpConstraintVar", int, float]
+    ) -> "LpAffineExpression":
+        self = cast(Union[LpVariable, LpConstraintVar], self)
         return other - LpAffineExpression(self)
 
-    def __mul__(self, other):
+    def __mul__(self, other: Union["LpVariable", int, float]) -> "LpAffineExpression":
+        self = cast(Union[LpVariable, LpConstraintVar], self)
         return LpAffineExpression(self) * other
 
-    def __rmul__(self, other):
+    def __rmul__(self, other: Union["LpVariable", int, float]) -> "LpAffineExpression":
+        self = cast(Union[LpVariable, LpConstraintVar], self)
         return LpAffineExpression(self) * other
 
-    def __div__(self, other):
+    def __div__(self, other: Union["LpVariable", int, float]) -> "LpAffineExpression":
+        self = cast(Union[LpVariable, LpConstraintVar], self)
         return LpAffineExpression(self) / other
 
-    def __rdiv__(self, other):
+    def __rdiv__(self, other: Any) -> NoReturn:
         raise TypeError("Expressions cannot be divided by a variable")
 
-    def __le__(self, other):
+    def __le__(
+        self, other: Union["LpVariable", "LpConstraintVar", int, float]
+    ) -> "LpConstraint":
+        self = cast(Union[LpVariable, LpConstraintVar], self)
         return LpAffineExpression(self) <= other
 
-    def __ge__(self, other):
+    def __ge__(
+        self, other: Union["LpVariable", "LpConstraintVar", int, float]
+    ) -> "LpConstraint":
+        self = cast(Union[LpVariable, LpConstraintVar], self)
         return LpAffineExpression(self) >= other
 
-    def __eq__(self, other):
+    def __eq__(self, other: Union["LpVariable", "LpConstraintVar", int, float]) -> "LpConstraint":  # type: ignore
+        self = cast(Union[LpVariable, LpConstraintVar], self)
         return LpAffineExpression(self) == other
 
-    def __ne__(self, other):
+    def __ne__(self, other: Any) -> bool:
         if isinstance(other, LpVariable):
             return self.name is not other.name
         elif isinstance(other, LpAffineExpression):
             if other.isAtomic():
                 return self is not other.atom()
             else:
-                return 1
+                return True
         else:
-            return 1
+            return True
+
+
+class LpVariableDict(TypedDict):
+    lowBound: Any
+    upBound: Any
+    cat: Any
+    varValue: Union[int, float, None]
+    dj: Any
+    name: str
+
+
+_T = TypeVar("_T")
 
 
 class LpVariable(LpElement):
@@ -255,8 +292,22 @@ class LpVariable(LpElement):
         existence in the objective function and constraints
     """
 
+    expression: "LpAffineExpression"
+    _lowbound_original: Union[int, float, None]
+    _upbound_original: Union[int, float, None]
+    lowBound: Union[int, float, None]
+    upBound: Union[int, float, None]
+    cat: str
+    varValue: Union[int, float, None]
+    dj: Union[int, float, None]
+
     def __init__(
-        self, name, lowBound=None, upBound=None, cat=const.LpContinuous, e=None
+        self,
+        name: str,
+        lowBound: Union[int, float, None] = None,
+        upBound: Union[int, float, None] = None,
+        cat: str = const.LpContinuous,
+        e: Union["LpAffineExpression", None] = None,
     ):
         LpElement.__init__(self, name)
         self._lowbound_original = self.lowBound = lowBound
@@ -273,26 +324,31 @@ class LpVariable(LpElement):
         if e:
             self.add_expression(e)
 
-    def toDict(self):
+    def toDict(self) -> LpVariableDict:
         """
         Exports a variable into a dictionary with its relevant information
 
         :return: a dictionary with the variable information
         :rtype: dict
         """
-        return dict(
-            lowBound=self.lowBound,
-            upBound=self.upBound,
-            cat=self.cat,
-            varValue=self.varValue,
-            dj=self.dj,
-            name=self.name,
-        )
+        return {
+            "lowBound": self.lowBound,
+            "upBound": self.upBound,
+            "cat": self.cat,
+            "varValue": self.varValue,
+            "dj": self.dj,
+            "name": self.name,
+        }
 
     to_dict = toDict
 
     @classmethod
-    def fromDict(cls, dj=None, varValue=None, **kwargs):
+    def fromDict(
+        cls,
+        dj: Union[int, float, None] = None,
+        varValue: Optional[float] = None,
+        **kwargs: Any,
+    ):
         """
         Initializes a variable object from information that comes from a dictionary (kwargs)
 
@@ -309,50 +365,50 @@ class LpVariable(LpElement):
 
     from_dict = fromDict
 
-    def add_expression(self, e):
+    def add_expression(self, e: "LpAffineExpression"):
         self.expression = e
         self.addVariableToConstraints(e)
 
     @classmethod
     def matrix(
         cls,
-        name,
-        indices=None,
-        lowBound=None,
-        upBound=None,
-        cat=const.LpContinuous,
-        indexStart=[],
-    ):
+        name: str,
+        indices: Any = None,
+        lowBound: Union[int, float, None] = None,
+        upBound: Union[int, float, None] = None,
+        cat: str = const.LpContinuous,
+        indexStart: List[int] = [],
+    ) -> Any:
         if not isinstance(indices, tuple):
             indices = (indices,)
         if "%" not in name:
-            name += "_%s" * len(indices)
+            name += "_%s" * len(indices)  # type: ignore
 
-        index = indices[0]
+        index = indices[0]  # type: ignore
         indices = indices[1:]
         if len(indices) == 0:
             return [
                 LpVariable(name % tuple(indexStart + [i]), lowBound, upBound, cat)
-                for i in index
+                for i in index  # type: ignore
             ]
         else:
             return [
                 LpVariable.matrix(
                     name, indices, lowBound, upBound, cat, indexStart + [i]
                 )
-                for i in index
+                for i in index  # type: ignore
             ]
 
     @classmethod
     def dicts(
         cls,
-        name,
-        indices=None,
-        lowBound=None,
-        upBound=None,
-        cat=const.LpContinuous,
-        indexStart=[],
-    ):
+        name: str,
+        indices: Any = None,
+        lowBound: Union[int, float, None] = None,
+        upBound: Union[int, float, None] = None,
+        cat: str = const.LpContinuous,
+        indexStart: List[int] = [],
+    ) -> Any:
         """
         This function creates a dictionary of :py:class:`LpVariable` with the specified associated parameters.
 
@@ -372,66 +428,79 @@ class LpVariable(LpElement):
         if not isinstance(indices, tuple):
             indices = (indices,)
         if "%" not in name:
-            name += "_%s" * len(indices)
+            name += "_%s" * len(indices)  # type: ignore
 
-        index = indices[0]
+        index = indices[0]  # type: ignore
         indices = indices[1:]
         d = {}
         if len(indices) == 0:
+            index = cast(List[str], index)
+            d = cast(Dict[str, LpVariable], d)
             for i in index:
                 d[i] = LpVariable(
                     name % tuple(indexStart + [str(i)]), lowBound, upBound, cat
                 )
         else:
+            index = cast(List[int], index)
             for i in index:
-                d[i] = LpVariable.dicts(
-                    name, indices, lowBound, upBound, cat, indexStart + [i]
+                d[i] = cast(
+                    Dict[str, LpVariable],
+                    LpVariable.dicts(
+                        name, indices, lowBound, upBound, cat, indexStart + [i]
+                    ),
                 )
         return d
 
     @classmethod
-    def dict(cls, name, indices, lowBound=None, upBound=None, cat=const.LpContinuous):
+    def dict(
+        cls,
+        name: str,
+        indices: Union[Tuple[Any, ...], Any],
+        lowBound: Union[int, float, None] = None,
+        upBound: Union[int, float, None] = None,
+        cat: str = const.LpContinuous,
+    ) -> Dict[Any, Any]:
         if not isinstance(indices, tuple):
             indices = (indices,)
         if "%" not in name:
-            name += "_%s" * len(indices)
+            name += "_%s" * len(indices)  # type: ignore
 
-        lists = indices
+        lists = indices  # type: ignore
 
-        if len(indices) > 1:
+        if len(indices) > 1:  # type: ignore
             # Cartesian product
             res = []
             while len(lists):
-                first = lists[-1]
+                first = lists[-1]  # type: ignore
                 nres = []
                 if res:
                     if first:
-                        for f in first:
-                            nres.extend([[f] + r for r in res])
+                        for f in first:  # type: ignore
+                            nres.extend([[f] + r for r in res])  # type: ignore
                     else:
-                        nres = res
-                    res = nres
+                        nres = res  # type: ignore
+                    res = nres  # type: ignore
                 else:
-                    res = [[f] for f in first]
-                lists = lists[:-1]
-            index = [tuple(r) for r in res]
+                    res = [[f] for f in first]  # type: ignore
+                lists = lists[:-1]  # type: ignore
+            index = [tuple(r) for r in res]  # type: ignore
         elif len(indices) == 1:
             index = indices[0]
         else:
             return {}
 
         d = {}
-        for i in index:
+        for i in index:  # type: ignore
             d[i] = cls(name % i, lowBound, upBound, cat)
-        return d
+        return d  # type: ignore
 
-    def getLb(self):
+    def getLb(self) -> Union[int, float, None]:
         return self.lowBound
 
-    def getUb(self):
+    def getUb(self) -> Union[int, float, None]:
         return self.upBound
 
-    def bounds(self, low, up):
+    def bounds(self, low: Union[int, float, None], up: Union[int, float, None]):
         self.lowBound = low
         self.upBound = up
         self.modified = True
@@ -439,10 +508,10 @@ class LpVariable(LpElement):
     def positive(self):
         self.bounds(0, None)
 
-    def value(self):
+    def value(self) -> Union[int, float, None]:
         return self.varValue
 
-    def round(self, epsInt=1e-5, eps=1e-7):
+    def round(self, epsInt: float = 1e-5, eps: float = 1e-7):
         if self.varValue is not None:
             if (
                 self.upBound != None
@@ -462,7 +531,7 @@ class LpVariable(LpElement):
             ):
                 self.varValue = round(self.varValue)
 
-    def roundedValue(self, eps=1e-5):
+    def roundedValue(self, eps: float = 1e-5) -> Union[int, float, None]:
         if (
             self.cat == const.LpInteger
             and self.varValue != None
@@ -472,7 +541,7 @@ class LpVariable(LpElement):
         else:
             return self.varValue
 
-    def valueOrDefault(self):
+    def valueOrDefault(self) -> Union[int, float]:
         if self.varValue != None:
             return self.varValue
         elif self.lowBound != None:
@@ -497,7 +566,7 @@ class LpVariable(LpElement):
         else:
             return 0
 
-    def valid(self, eps):
+    def valid(self, eps: float):
         if self.name == "__dummy" and self.varValue is None:
             return True
         if self.varValue is None:
@@ -513,7 +582,7 @@ class LpVariable(LpElement):
             return False
         return True
 
-    def infeasibilityGap(self, mip=1):
+    def infeasibilityGap(self, mip: int = 1):
         if self.varValue == None:
             raise ValueError("variable value is None")
         if self.upBound != None and self.varValue > self.upBound:
@@ -528,22 +597,22 @@ class LpVariable(LpElement):
             return round(self.varValue) - self.varValue
         return 0
 
-    def isBinary(self):
+    def isBinary(self) -> bool:
         return self.cat == const.LpInteger and self.lowBound == 0 and self.upBound == 1
 
-    def isInteger(self):
+    def isInteger(self) -> bool:
         return self.cat == const.LpInteger
 
-    def isFree(self):
+    def isFree(self) -> bool:
         return self.lowBound is None and self.upBound is None
 
-    def isConstant(self):
+    def isConstant(self) -> bool:
         return self.lowBound is not None and self.upBound == self.lowBound
 
-    def isPositive(self):
+    def isPositive(self) -> bool:
         return self.lowBound == 0 and self.upBound is None
 
-    def asCplexLpVariable(self):
+    def asCplexLpVariable(self) -> str:
         if self.isFree():
             return self.name + " free"
         if self.isConstant():
@@ -561,31 +630,34 @@ class LpVariable(LpElement):
             s += f" <= {self.upBound:.12g}"
         return s
 
-    def asCplexLpAffineExpression(self, name, constant=1):
+    def asCplexLpAffineExpression(
+        self, name: str, constant: Union[int, float] = 1
+    ) -> str:
         return LpAffineExpression(self).asCplexLpAffineExpression(name, constant)
 
-    def __ne__(self, other):
+    def __ne__(self, other: Any) -> bool:
         if isinstance(other, LpElement):
             return self.name is not other.name
         elif isinstance(other, LpAffineExpression):
             if other.isAtomic():
                 return self is not other.atom()
             else:
-                return 1
+                return False
         else:
-            return 1
+            return False
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return bool(self.roundedValue())
 
-    def addVariableToConstraints(self, e):
+    def addVariableToConstraints(self, e: "LpAffineExpression"):
         """adds a variable to the constraints indicated by
         the LpConstraintVars in e
         """
         for constraint, coeff in e.items():
+            constraint = cast(LpConstraintVar, constraint)
             constraint.addVariable(self, coeff)
 
-    def setInitialValue(self, val, check=True):
+    def setInitialValue(self, val: Union[int, float], check: bool = True) -> bool:
         """
         sets the initial value of the variable to `val`
         May be used for warmStart a solver, if supported by the solver
@@ -598,8 +670,8 @@ class LpVariable(LpElement):
         lb = self.lowBound
         ub = self.upBound
         config = [
-            ("smaller", "lowBound", lb, lambda: val < lb),
-            ("greater", "upBound", ub, lambda: val > ub),
+            ("smaller", "lowBound", lb, lambda: val < lb),  # type: ignore
+            ("greater", "upBound", ub, lambda: val > ub),  # type: ignore
         ]
 
         for rel, bound_name, bound_value, condition in config:
@@ -623,7 +695,7 @@ class LpVariable(LpElement):
         if val is not None:
             self.bounds(val, val)
 
-    def isFixed(self):
+    def isFixed(self) -> bool:
         """
 
         :return: True if upBound and lowBound are the same
@@ -635,7 +707,12 @@ class LpVariable(LpElement):
         self.bounds(self._lowbound_original, self._upbound_original)
 
 
-class LpAffineExpression(_DICT_TYPE):
+class LpAffineExpressionDict(TypedDict):
+    name: str
+    value: Union[int, float]
+
+
+class LpAffineExpression(Dict[Union[LpVariable, "LpConstraintVar"], Union[int, float]]):
     """
     A linear combination of :class:`LpVariables<LpVariable>`.
     Can be initialised with the following:
@@ -658,37 +735,60 @@ class LpAffineExpression(_DICT_TYPE):
        1*x_0 + -3*x_1 + 4*x_2 + 0
     """
 
-    constant: float
-    name: str
+    constant: Union[float, int]
     # to remove illegal characters from the names
-    trans = maketrans("-+[] ", "_____")
+    trans: Dict[int, int] = maketrans("-+[] ", "_____")
+    sense: int
 
-    def setName(self, name):
-        if name:
-            self.__name = str(name).translate(self.trans)
+    @property
+    def name(self) -> Optional[str]:
+        self.__name
+
+    @name.setter
+    def name(self, value: Optional[str]):
+        if value:
+            self.__name = str(value).translate(self.trans)
         else:
             self.__name = None
 
-    def getName(self):
-        return self.__name
-
-    name = property(fget=getName, fset=setName)
-
-    def __init__(self, e=None, constant=0, name=None):
+    def setName(self, name: str):
         self.name = name
-        # TODO remove isinstance usage
+
+    def getName(self):
+        return self.name
+
+    def __init__(
+        self,
+        e: Union[
+            "LpAffineExpression",
+            Dict[Union[LpVariable, "LpConstraintVar"], Union[int, float]],
+            Iterable[Tuple[str, Union[int, float]]],
+            LpVariable,
+            "LpConstraintVar",
+            float,
+            int,
+            None,
+        ] = {},
+        constant: Union[int, float] = 0,
+        name: Optional[str] = None,
+    ):
         if e is None:
             e = {}
+        self.name = name
+        # TODO remove isinstance usage
         if isinstance(e, LpAffineExpression):
-            # Will not copy the name
             self.constant = e.constant
             super().__init__(list(e.items()))
+            dict()
         elif isinstance(e, dict):
+            # python not support diff type
+            # we ignore Dict[Tuple[LpVariable, Union[int,float]], Unknown]
+            e = cast(Dict[Union[LpVariable, "LpConstraintVar"], Union[int, float]], e)
             self.constant = constant
             super().__init__(list(e.items()))
         elif isinstance(e, Iterable):
             self.constant = constant
-            super().__init__(e)
+            super().__init__(e)  # type: ignore : I don't know what the expected type, sorry.
         elif isinstance(e, LpElement):
             self.constant = 0
             super().__init__([(e, 1)])
@@ -698,35 +798,39 @@ class LpAffineExpression(_DICT_TYPE):
 
     # Proxy functions for variables
 
-    def isAtomic(self):
+    def isAtomic(self) -> bool:
         return len(self) == 1 and self.constant == 0 and list(self.values())[0] == 1
 
-    def isNumericalConstant(self):
+    def isNumericalConstant(self) -> bool:
         return len(self) == 0
 
-    def atom(self):
+    def atom(self) -> LpElement:
         return list(self.keys())[0]
 
     # Functions on expressions
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return (float(self.constant) != 0.0) or (len(self) > 0)
 
-    def value(self):
+    def value(self) -> Union[float, int, None]:
         s = self.constant
         for v, x in self.items():
+            v = cast(LpVariable, v)
             if v.varValue is None:
                 return None
             s += v.varValue * x
         return s
 
-    def valueOrDefault(self):
+    def valueOrDefault(self) -> Union[int, float]:
         s = self.constant
         for v, x in self.items():
+            v = cast(LpVariable, v)
             s += v.valueOrDefault() * x
         return s
 
-    def addterm(self, key, value):
+    def addterm(
+        self, key: Union[LpVariable, "LpConstraintVar"], value: Union[int, float]
+    ):
         y = self.get(key, 0)
         if y:
             y += value
@@ -734,15 +838,15 @@ class LpAffineExpression(_DICT_TYPE):
         else:
             self[key] = value
 
-    def emptyCopy(self):
+    def emptyCopy(self) -> "LpAffineExpression":
         return LpAffineExpression()
 
-    def copy(self):
+    def copy(self) -> "LpAffineExpression":
         """Make a copy of self except the name which is reset"""
         # Will not copy the name
         return LpAffineExpression(self)
 
-    def __str__(self, constant=1):
+    def __str__(self, constant: Union[int, float, None] = 1) -> str:
         s = ""
         for v in self.sorted_keys():
             val = self[v]
@@ -770,7 +874,7 @@ class LpAffineExpression(_DICT_TYPE):
             s = "0"
         return s
 
-    def sorted_keys(self):
+    def sorted_keys(self) -> List[Union[LpVariable, "LpConstraintVar"]]:
         """
         returns the list of keys sorted by name
         """
@@ -779,23 +883,23 @@ class LpAffineExpression(_DICT_TYPE):
         result = [v for _, v in result]
         return result
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         l = [str(self[v]) + "*" + str(v) for v in self.sorted_keys()]
         l.append(str(self.constant))
         s = " + ".join(l)
         return s
 
     @staticmethod
-    def _count_characters(line):
+    def _count_characters(line: List[str]) -> int:
         # counts the characters in a list of strings
         return sum(len(t) for t in line)
 
-    def asCplexVariablesOnly(self, name):
+    def asCplexVariablesOnly(self, name: str) -> Tuple[List[str], List[str]]:
         """
         helper for asCplexLpAffineExpression
         """
-        result = []
-        line = [f"{name}:"]
+        result: List[str] = []
+        line: List[str] = [f"{name}:"]
         notFirst = 0
         variables = self.sorted_keys()
         for v in variables:
@@ -821,7 +925,9 @@ class LpAffineExpression(_DICT_TYPE):
                 line += [term]
         return result, line
 
-    def asCplexLpAffineExpression(self, name, constant=1):
+    def asCplexLpAffineExpression(
+        self, name: str, constant: Union[int, float] = 1
+    ) -> str:
         """
         returns a string that represents the Affine Expression in lp format
         """
@@ -845,7 +951,23 @@ class LpAffineExpression(_DICT_TYPE):
         result = "%s\n" % "\n".join(result)
         return result
 
-    def addInPlace(self, other, sign=1):
+    def addInPlace(
+        self,
+        other: Union[
+            "LpAffineExpression",
+            Dict[LpVariable, Union[int, float]],
+            List[
+                Union["LpAffineExpression", LpVariable, "LpConstraintVar", int, float]
+            ],
+            Iterable[LpVariable],
+            LpVariable,
+            "LpConstraintVar",
+            int,
+            float,
+            None,
+        ],
+        sign: int = 1,
+    ):
         """
         :param int sign: the sign of the operation to do other.
             if we add other => 1
@@ -865,6 +987,7 @@ class LpAffineExpression(_DICT_TYPE):
                 self.addterm(v, x * sign)
         elif isinstance(other, dict):
             # if a dictionary, we add each value
+            other = cast(Dict[LpVariable, int], other)
             for e in other.values():
                 self.addInPlace(e, sign=sign)
         elif isinstance(other, list) or isinstance(other, Iterable):
@@ -880,38 +1003,145 @@ class LpAffineExpression(_DICT_TYPE):
             self.constant += other * sign
         return self
 
-    def subInPlace(self, other):
+    def subInPlace(
+        self,
+        other: Union[
+            "LpAffineExpression",
+            Dict[LpVariable, Union[int, float]],
+            List[
+                Union["LpAffineExpression", LpVariable, "LpConstraintVar", int, float]
+            ],
+            Iterable[LpVariable],
+            LpVariable,
+            "LpConstraintVar",
+            int,
+            float,
+            None,
+        ],
+    ) -> "LpAffineExpression":
         return self.addInPlace(other, sign=-1)
 
-    def __neg__(self):
+    def __neg__(self) -> "LpAffineExpression":
         e = self.emptyCopy()
         e.constant = -self.constant
         for v, x in self.items():
             e[v] = -x
         return e
 
-    def __pos__(self):
+    def __pos__(self) -> "LpAffineExpression":
         return self
 
-    def __add__(self, other):
+    def __add__(
+        self,
+        other: Union[
+            "LpAffineExpression",
+            Dict[LpVariable, Union[int, float]],
+            List[
+                Union["LpAffineExpression", LpVariable, "LpConstraintVar", int, float]
+            ],
+            Iterable[LpVariable],
+            LpVariable,
+            "LpConstraintVar",
+            int,
+            float,
+            None,
+        ],
+    ) -> "LpAffineExpression":
         return self.copy().addInPlace(other)
 
-    def __radd__(self, other):
+    def __radd__(
+        self,
+        other: Union[
+            "LpAffineExpression",
+            Dict[LpVariable, Union[int, float]],
+            List[
+                Union["LpAffineExpression", LpVariable, "LpConstraintVar", int, float]
+            ],
+            Iterable[LpVariable],
+            LpVariable,
+            "LpConstraintVar",
+            int,
+            float,
+            None,
+        ],
+    ) -> "LpAffineExpression":
         return self.copy().addInPlace(other)
 
-    def __iadd__(self, other):
+    def __iadd__(
+        self,
+        other: Union[
+            "LpAffineExpression",
+            Dict[LpVariable, Union[int, float]],
+            List[
+                Union["LpAffineExpression", LpVariable, "LpConstraintVar", int, float]
+            ],
+            Iterable[LpVariable],
+            LpVariable,
+            "LpConstraintVar",
+            int,
+            float,
+            None,
+        ],
+    ) -> "LpAffineExpression":
         return self.addInPlace(other)
 
-    def __sub__(self, other):
+    def __sub__(
+        self,
+        other: Union[
+            "LpAffineExpression",
+            Dict[LpVariable, Union[int, float]],
+            List[
+                Union["LpAffineExpression", LpVariable, "LpConstraintVar", int, float]
+            ],
+            Iterable[LpVariable],
+            LpVariable,
+            "LpConstraintVar",
+            int,
+            float,
+            None,
+        ],
+    ) -> "LpAffineExpression":
         return self.copy().subInPlace(other)
 
-    def __rsub__(self, other):
+    def __rsub__(
+        self,
+        other: Union[
+            "LpAffineExpression",
+            Dict[LpVariable, Union[int, float]],
+            List[
+                Union["LpAffineExpression", LpVariable, "LpConstraintVar", int, float]
+            ],
+            Iterable[LpVariable],
+            LpVariable,
+            "LpConstraintVar",
+            int,
+            float,
+            None,
+        ],
+    ) -> "LpAffineExpression":
         return (-self).addInPlace(other)
 
-    def __isub__(self, other):
+    def __isub__(
+        self,
+        other: Union[
+            "LpAffineExpression",
+            Dict[LpVariable, Union[int, float]],
+            List[
+                Union["LpAffineExpression", LpVariable, "LpConstraintVar", int, float]
+            ],
+            Iterable[LpVariable],
+            LpVariable,
+            "LpConstraintVar",
+            int,
+            float,
+            None,
+        ],
+    ) -> "LpAffineExpression":
         return (self).subInPlace(other)
 
-    def __mul__(self, other):
+    def __mul__(
+        self, other: Union["LpAffineExpression", LpVariable, int, float]
+    ) -> "LpAffineExpression":
         e = self.emptyCopy()
         if isinstance(other, LpAffineExpression):
             e.constant = self.constant * other.constant
@@ -939,16 +1169,24 @@ class LpAffineExpression(_DICT_TYPE):
                     e[v] = other * x
         return e
 
-    def __rmul__(self, other):
+    def __rmul__(
+        self, other: Union["LpAffineExpression", LpVariable, int, float]
+    ) -> "LpAffineExpression":
         return self * other
 
-    def __div__(self, other):
-        if isinstance(other, LpAffineExpression) or isinstance(other, LpVariable):
-            if len(other):
+    def __div__(
+        self, other: Union["LpAffineExpression", LpVariable, int, float]
+    ) -> "LpAffineExpression":
+        if isinstance(other, LpAffineExpression):
+            if len(other) != 0:
                 raise TypeError(
                     "Expressions cannot be divided by a non-constant expression"
                 )
             other = other.constant
+        if isinstance(other, LpVariable):
+            raise TypeError(
+                "Expressions cannot be divided by a non-constant expression"
+            )
         if not math.isfinite(other):
             raise const.PulpError("Cannot divide variables with NaN/inf values")
         e = self.emptyCopy()
@@ -957,12 +1195,16 @@ class LpAffineExpression(_DICT_TYPE):
             e[v] = x / other
         return e
 
-    def __truediv__(self, other):
+    def __truediv__(
+        self, other: Union["LpAffineExpression", LpVariable, int, float]
+    ) -> "LpAffineExpression":
         return self.__div__(other)
 
-    def __rdiv__(self, other):
+    def __rdiv__(
+        self, other: Union["LpAffineExpression", int, float]
+    ) -> "LpAffineExpression":
         e = self.emptyCopy()
-        if len(self):
+        if len(self) != 0:
             raise TypeError(
                 "Expressions cannot be divided by a non-constant expression"
             )
@@ -977,16 +1219,62 @@ class LpAffineExpression(_DICT_TYPE):
             e.constant = other / c
         return e
 
-    def __le__(self, other):
+    def __le__(
+        self,
+        other: Union[
+            "LpAffineExpression",
+            Dict[LpVariable, Union[int, float]],
+            List[
+                Union["LpAffineExpression", LpVariable, "LpConstraintVar", int, float]
+            ],
+            Iterable[LpVariable],
+            LpVariable,
+            "LpConstraintVar",
+            int,
+            float,
+            None,
+        ],
+    ) -> "LpConstraint":
         return LpConstraint(self - other, const.LpConstraintLE)
 
-    def __ge__(self, other):
+    def __ge__(
+        self,
+        other: Union[
+            "LpAffineExpression",
+            Dict[LpVariable, Union[int, float]],
+            List[
+                Union["LpAffineExpression", LpVariable, "LpConstraintVar", int, float]
+            ],
+            Iterable[LpVariable],
+            LpVariable,
+            "LpConstraintVar",
+            int,
+            float,
+            None,
+        ],
+    ) -> "LpConstraint":
         return LpConstraint(self - other, const.LpConstraintGE)
 
-    def __eq__(self, other):
+    # see https://discuss.python.org/t/make-type-hints-for-eq-of-primitives-less-strict/34240
+    def __eq__(  # type: ignore
+        self,
+        other: Union[
+            "LpAffineExpression",
+            Dict[LpVariable, Union[int, float]],
+            List[
+                Union["LpAffineExpression", LpVariable, "LpConstraintVar", int, float]
+            ],
+            Iterable[LpVariable],
+            LpVariable,
+            "LpConstraintVar",
+            int,
+            float,
+            None,
+        ],
+    ) -> "LpConstraint":
         return LpConstraint(self - other, const.LpConstraintEQ)
 
-    def toDict(self):
+    def toDict(self) -> List[LpAffineExpressionDict]:
         """
         exports the :py:class:`LpAffineExpression` into a list of dictionaries with the coefficients
         it does not export the constant
@@ -994,15 +1282,40 @@ class LpAffineExpression(_DICT_TYPE):
         :return: list of dictionaries with the coefficients
         :rtype: list
         """
-        return [dict(name=k.name, value=v) for k, v in self.items()]
+        return [{"name": k.name, "value": v} for k, v in self.items()]
 
     to_dict = toDict
+
+
+class LpConstraintCoefficientsDict(TypedDict):
+    name: str
+    value: Union[int, float]
+
+
+class LpConstraintDict(TypedDict):
+    sense: int
+    pi: Optional[Any]
+    constant: Union[int, float]
+    name: Optional[str]
+    coefficients: List[LpConstraintCoefficientsDict]
 
 
 class LpConstraint(LpAffineExpression):
     """An LP constraint"""
 
-    def __init__(self, e=None, sense=const.LpConstraintEQ, name=None, rhs=None):
+    constant: Union[int, float]
+    sense: int
+    pi: Optional[Any]
+    slack: Optional[Any]
+    modified: bool
+
+    def __init__(
+        self,
+        e: Union[LpAffineExpression, int, float, None] = None,
+        sense: int = const.LpConstraintEQ,
+        name: Optional[str] = None,
+        rhs: Optional[Union[int, float]] = None,
+    ):
         """
         :param e: an instance of :class:`LpAffineExpression`
         :param sense: one of :data:`~pulp.const.LpConstraintEQ`, :data:`~pulp.const.LpConstraintGE`, :data:`~pulp.const.LpConstraintLE` (0, 1, -1 respectively)
@@ -1012,30 +1325,30 @@ class LpConstraint(LpAffineExpression):
         LpAffineExpression.__init__(self, e, name=name)
         if rhs is not None:
             self.constant -= rhs
-        self.sense = sense
+        self.sense = sense  # type: ignore
         self.pi = None
         self.slack = None
         self.modified = True
 
-    def getLb(self):
+    def getLb(self) -> Union[int, float, None]:
         if (self.sense == const.LpConstraintGE) or (self.sense == const.LpConstraintEQ):
             return -self.constant
         else:
             return None
 
-    def getUb(self):
+    def getUb(self) -> Union[int, float, None]:
         if (self.sense == const.LpConstraintLE) or (self.sense == const.LpConstraintEQ):
             return -self.constant
         else:
             return None
 
-    def __str__(self):
-        s = LpAffineExpression.__str__(self, 0)
-        if self.sense is not None:
+    def __str__(self, constant: Union[int, float, None] = 0) -> str:
+        s = LpAffineExpression.__str__(self, constant)
+        if self.sense is not None:  # type: ignore
             s += " " + const.LpConstraintSenses[self.sense] + " " + str(-self.constant)
         return s
 
-    def asCplexLpConstraint(self, name):
+    def asCplexLpConstraint(self, name: str) -> str:
         """
         Returns a constraint as a string
         """
@@ -1055,27 +1368,31 @@ class LpConstraint(LpAffineExpression):
         result = "%s\n" % "\n".join(result)
         return result
 
-    def changeRHS(self, RHS):
+    def changeRHS(self, RHS: Union[int, float]):
         """
         alters the RHS of a constraint so that it can be modified in a resolve
         """
         self.constant = -RHS
         self.modified = True
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         s = LpAffineExpression.__repr__(self)
-        if self.sense is not None:
+        if self.sense is not None:  # type: ignore
             s += " " + const.LpConstraintSenses[self.sense] + " 0"
         return s
 
-    def copy(self):
+    def copy(self) -> "LpConstraint":
         """Make a copy of self"""
         return LpConstraint(self, self.sense)
 
-    def emptyCopy(self):
+    def emptyCopy(self) -> "LpConstraint":
         return LpConstraint(sense=self.sense)
 
-    def addInPlace(self, other, sign=1):
+    def addInPlace(
+        self,
+        other: Union["LpConstraint", List["LpConstraint"], Any],
+        sign: int = 1,
+    ):
         """
         :param int sign: the sign of the operation to do other.
             if we add other => 1
@@ -1084,10 +1401,10 @@ class LpConstraint(LpAffineExpression):
         if isinstance(other, LpConstraint):
             if self.sense * other.sense >= 0:
                 LpAffineExpression.addInPlace(self, other, 1)
-                self.sense |= other.sense
+                self.sense |= other.sense  # type: ignore
             else:
                 LpAffineExpression.addInPlace(self, other, -1)
-                self.sense |= -other.sense
+                self.sense |= -other.sense  # type: ignore
         elif isinstance(other, list):
             for e in other:
                 self.addInPlace(e, sign)
@@ -1096,70 +1413,142 @@ class LpConstraint(LpAffineExpression):
             # raise TypeError, "Constraints and Expressions cannot be added"
         return self
 
-    def subInPlace(self, other):
+    def subInPlace(
+        self, other: Union["LpConstraint", List["LpConstraint"], Any]
+    ) -> "LpConstraint":
         return self.addInPlace(other, -1)
 
-    def __neg__(self):
+    def __neg__(self) -> LpAffineExpression:
         c = LpAffineExpression.__neg__(self)
         c.sense = -c.sense
         return c
 
-    def __add__(self, other):
+    def __add__(
+        self,
+        other: Union[
+            "LpAffineExpression",
+            Dict[LpVariable, Union[int, float]],
+            List[
+                Union["LpAffineExpression", LpVariable, "LpConstraintVar", int, float]
+            ],
+            Iterable[LpVariable],
+            LpVariable,
+            "LpConstraintVar",
+            int,
+            float,
+            None,
+        ],
+    ) -> "LpConstraint":
         return self.copy().addInPlace(other)
 
-    def __radd__(self, other):
+    def __radd__(
+        self,
+        other: Union[
+            "LpAffineExpression",
+            Dict[LpVariable, Union[int, float]],
+            List[
+                Union["LpAffineExpression", LpVariable, "LpConstraintVar", int, float]
+            ],
+            Iterable[LpVariable],
+            LpVariable,
+            "LpConstraintVar",
+            int,
+            float,
+            None,
+        ],
+    ) -> "LpConstraint":
         return self.copy().addInPlace(other)
 
-    def __sub__(self, other):
+    def __sub__(
+        self,
+        other: Union[
+            "LpAffineExpression",
+            Dict[LpVariable, Union[int, float]],
+            List[
+                Union["LpAffineExpression", LpVariable, "LpConstraintVar", int, float]
+            ],
+            Iterable[LpVariable],
+            LpVariable,
+            "LpConstraintVar",
+            int,
+            float,
+            None,
+        ],
+    ) -> "LpConstraint":
         return self.copy().subInPlace(other)
 
-    def __rsub__(self, other):
+    def __rsub__(
+        self,
+        other: Union[
+            "LpAffineExpression",
+            Dict[LpVariable, Union[int, float]],
+            List[
+                Union["LpAffineExpression", LpVariable, "LpConstraintVar", int, float]
+            ],
+            Iterable[LpVariable],
+            LpVariable,
+            "LpConstraintVar",
+            int,
+            float,
+            None,
+        ],
+    ) -> LpAffineExpression:
         return (-self).addInPlace(other)
 
-    def __mul__(self, other):
+    def __mul__(
+        self, other: Union[LpAffineExpression, LpVariable, int, float]
+    ) -> LpAffineExpression:
         if isinstance(other, LpConstraint):
             c = LpAffineExpression.__mul__(self, other)
             if c.sense == 0:
                 c.sense = other.sense
             elif other.sense != 0:
-                c.sense *= other.sense
+                c.sense *= other.sense  # type: ignore
             return c
         else:
             return LpAffineExpression.__mul__(self, other)
 
-    def __rmul__(self, other):
+    def __rmul__(
+        self, other: Union[LpAffineExpression, LpVariable, int, float]
+    ) -> LpAffineExpression:
         return self * other
 
-    def __div__(self, other):
+    def __div__(
+        self, other: Union[LpAffineExpression, LpVariable, int, float]
+    ) -> LpAffineExpression:
         if isinstance(other, LpConstraint):
             c = LpAffineExpression.__div__(self, other)
             if c.sense == 0:
                 c.sense = other.sense
             elif other.sense != 0:
-                c.sense *= other.sense
+                c.sense *= other.sense  # type: ignore
             return c
         else:
             return LpAffineExpression.__mul__(self, other)
 
-    def __rdiv__(self, other):
+    def __rdiv__(
+        self, other: Union[LpAffineExpression, LpVariable, int, float]
+    ) -> LpAffineExpression:
         if isinstance(other, LpConstraint):
             c = LpAffineExpression.__rdiv__(self, other)
             if c.sense == 0:
                 c.sense = other.sense
             elif other.sense != 0:
-                c.sense *= other.sense
+                c.sense *= other.sense  # type: ignore
             return c
         else:
             return LpAffineExpression.__mul__(self, other)
 
-    def valid(self, eps=0):
-        val = self.value()
+    def valid(self, eps: Union[int, float] = 0) -> bool:
+        val = cast(Union[int, float], self.value())
         if self.sense == const.LpConstraintEQ:
             return abs(val) <= eps
         else:
             return val * self.sense >= -eps
 
-    def makeElasticSubProblem(self, *args, **kwargs):
+    def makeElasticSubProblem(
+        self, *args: Any, **kwargs: Any
+    ) -> "FixedElasticSubProblem":
         """
         Builds an elastic subproblem by adding variables to a hard constraint
 
@@ -1167,22 +1556,22 @@ class LpConstraint(LpAffineExpression):
         """
         return FixedElasticSubProblem(self, *args, **kwargs)
 
-    def toDict(self):
+    def toDict(self) -> LpConstraintDict:  # type: ignore
         """
         exports constraint information into a dictionary
 
         :return: dictionary with all the constraint information
         """
-        return dict(
-            sense=self.sense,
-            pi=self.pi,
-            constant=self.constant,
-            name=self.name,
-            coefficients=LpAffineExpression.toDict(self),
-        )
+        return {
+            "sense": self.sense,
+            "pi": self.pi,
+            "constant": self.constant,
+            "name": self.name,
+            "coefficients": LpAffineExpression.toDict(self),
+        }
 
     @classmethod
-    def fromDict(cls, _dict):
+    def fromDict(cls, _dict: LpConstraintDict) -> "LpConstraint":
         """
         Initializes a constraint object from a dictionary with necessary information
 
@@ -1190,7 +1579,7 @@ class LpConstraint(LpAffineExpression):
         :return: a new :py:class:`LpConstraint`
         """
         const = cls(
-            e=_dict["coefficients"],
+            e=_dict["coefficients"],  # type: ignore
             rhs=-_dict["constant"],
             name=_dict["name"],
             sense=_dict["sense"],
@@ -1206,14 +1595,18 @@ class LpFractionConstraint(LpConstraint):
     Creates a constraint that enforces a fraction requirement a/b = c
     """
 
+    numerator: Union[LpAffineExpression, LpVariable, int, float]
+    denominator: Union[LpAffineExpression, LpVariable, int, float]
+    complement: Union[LpAffineExpression, LpVariable, int, float]
+
     def __init__(
         self,
-        numerator,
-        denominator=None,
-        sense=const.LpConstraintEQ,
-        RHS=1.0,
-        name=None,
-        complement=None,
+        numerator: Union[LpAffineExpression, LpVariable, int, float],
+        denominator: Union[LpAffineExpression, LpVariable, int, float, None] = None,
+        sense: int = const.LpConstraintEQ,
+        RHS: Union[int, float] = 1.0,
+        name: Optional[str] = None,
+        complement: Union[LpAffineExpression, LpVariable, int, float, None] = None,
     ):
         """
         creates a fraction Constraint to model constraints of
@@ -1235,33 +1628,37 @@ class LpFractionConstraint(LpConstraint):
             self.denominator = denominator
             self.complement = denominator - numerator
         else:
+            assert denominator is not None
+            assert complement is not None
             self.denominator = denominator
             self.complement = complement
         lhs = self.numerator - RHS * self.denominator
         LpConstraint.__init__(self, lhs, sense=sense, rhs=0, name=name)
         self.RHS = RHS
 
-    def findLHSValue(self):
+    def findLHSValue(self) -> float:
         """
         Determines the value of the fraction in the constraint after solution
         """
-        if abs(value(self.denominator)) >= const.EPS:
-            return value(self.numerator) / value(self.denominator)
+        if abs(value(self.denominator)) >= const.EPS:  # type: ignore
+            return value(self.numerator) / value(self.denominator)  # type: ignore
         else:
-            if abs(value(self.numerator)) <= const.EPS:
+            if abs(value(self.numerator)) <= const.EPS:  # type: ignore
                 # zero divided by zero will return 1
                 return 1.0
             else:
                 raise ZeroDivisionError
 
-    def makeElasticSubProblem(self, *args, **kwargs):
+    def makeElasticSubProblem(
+        self, *args: Any, **kwargs: Any
+    ) -> "FractionElasticSubProblem":
         """
         Builds an elastic subproblem by adding variables and splitting the
         hard constraint
 
         uses FractionElasticSubProblem
         """
-        return FractionElasticSubProblem(self, *args, **kwargs)
+        return FractionElasticSubProblem(*args, **kwargs)
 
 
 class LpConstraintVar(LpElement):
@@ -1269,25 +1666,81 @@ class LpConstraintVar(LpElement):
     a LpProblem by columns
     """
 
-    def __init__(self, name=None, sense=None, rhs=None, e=None):
+    constraint: LpConstraint
+
+    def __init__(
+        self,
+        name: Optional[str] = None,
+        sense: int = const.LpConstraintEQ,
+        rhs: Union[int, float, None] = None,
+        e: Optional[Any] = None,
+    ):
         LpElement.__init__(self, name)
+        if e is not None:
+            print("ok")
         self.constraint = LpConstraint(name=self.name, sense=sense, rhs=rhs, e=e)
 
-    def addVariable(self, var, coeff):
+    def addVariable(self, var: LpVariable, coeff: Union[int, float]):
         """
         Adds a variable to the constraint with the
         activity coeff
         """
         self.constraint.addterm(var, coeff)
 
-    def value(self):
+    def value(self) -> Union[int, float, None]:
         return self.constraint.value()
+
+
+class LpProblemObjectiveDict(TypedDict):
+    name: Optional[str]
+    coefficients: Any
+
+
+class LpProblemParametersDict(TypedDict):
+    name: str
+    sense: int
+    status: int
+    sol_status: int
+
+
+class LpProblemDict(TypedDict):
+    objective: LpProblemObjectiveDict
+    constraints: List[LpConstraintDict]
+    variables: List[LpVariableDict]
+    parameters: LpProblemParametersDict
+    sos1: List[Any]
+    sos2: List[Any]
+
+
+class LpProblemFromDictArgsDict(TypedDict):
+    name: str
+    sense: int
 
 
 class LpProblem:
     """An LP Problem"""
 
-    def __init__(self, name="NoName", sense=const.LpMinimize):
+    objective: Optional[LpAffineExpression]
+    constraints: Dict[Any, Any]
+    name: str
+    sense: int
+    sos1: Dict[Any, Any] = {}
+    sos2: Dict[Any, Any] = {}
+    status: int = const.LpStatusNotSolved
+    sol_status: int = const.LpSolutionNoSolutionFound
+    noOverlap: bool
+    solver: Optional[Any]
+    modifiedVariables: List[Any]
+    modifiedConstraints: List[Any]
+    resolveOK: bool
+    _variables: List[LpVariable]
+    _variable_ids: Dict[Any, Any]
+    dummyVar: Optional[LpVariable]
+    solutionTime: float
+    solutionCpuTime: float
+    lastUnused: int
+
+    def __init__(self, name: str = "NoName", sense: int = const.LpMinimize):
         """
         Creates an LP Problem
 
@@ -1302,15 +1755,14 @@ class LpProblem:
         if " " in name:
             warnings.warn("Spaces are not permitted in the name. Converted to '_'")
             name = name.replace(" ", "_")
-        self.objective = None
-        self.constraints = _DICT_TYPE()
+        self.constraints = dict()
         self.name = name
         self.sense = sense
         self.sos1 = {}
         self.sos2 = {}
         self.status = const.LpStatusNotSolved
         self.sol_status = const.LpSolutionNoSolutionFound
-        self.noOverlap = 1
+        self.noOverlap = False
         self.solver = None
         self.modifiedVariables = []
         self.modifiedConstraints = []
@@ -1322,9 +1774,9 @@ class LpProblem:
         self.solutionCpuTime = 0
 
         # locals
-        self.lastUnused = 0
+        self.lastUnused = True
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         s = self.name + ":\n"
         if self.sense == 1:
             s += "MINIMIZE\n"
@@ -1341,20 +1793,20 @@ class LpProblem:
             s += v.asCplexLpVariable() + " " + const.LpCategories[v.cat] + "\n"
         return s
 
-    def __getstate__(self):
+    def __getstate__(self) -> Dict[str, Any]:
         # Remove transient data prior to pickling.
         state = self.__dict__.copy()
         del state["_variable_ids"]
         return state
 
-    def __setstate__(self, state):
+    def __setstate__(self, state: Dict[str, Any]):
         # Update transient data prior to unpickling.
         self.__dict__.update(state)
         self._variable_ids = {}
         for v in self._variables:
             self._variable_ids[v.hash] = v
 
-    def copy(self):
+    def copy(self) -> "LpProblem":
         """Make a copy of self. Expressions are copied by reference"""
         lpcopy = LpProblem(name=self.name, sense=self.sense)
         lpcopy.objective = self.objective
@@ -1363,7 +1815,7 @@ class LpProblem:
         lpcopy.sos2 = self.sos2.copy()
         return lpcopy
 
-    def deepcopy(self):
+    def deepcopy(self) -> "LpProblem":
         """Make a copy of self. Expressions are copied by value"""
         lpcopy = LpProblem(name=self.name, sense=self.sense)
         if self.objective is not None:
@@ -1375,7 +1827,7 @@ class LpProblem:
         lpcopy.sos2 = self.sos2.copy()
         return lpcopy
 
-    def toDict(self):
+    def toDict(self) -> LpProblemDict:
         """
         creates a dictionary from the model with as much data as possible.
         It replaces variables by variable names.
@@ -1392,26 +1844,28 @@ class LpProblem:
             )
         self.fixObjective()
         variables = self.variables()
-        return dict(
-            objective=dict(
-                name=self.objective.name, coefficients=self.objective.toDict()
-            ),
-            constraints=[v.toDict() for v in self.constraints.values()],
-            variables=[v.toDict() for v in variables],
-            parameters=dict(
-                name=self.name,
-                sense=self.sense,
-                status=self.status,
-                sol_status=self.sol_status,
-            ),
-            sos1=list(self.sos1.values()),
-            sos2=list(self.sos2.values()),
-        )
+        assert self.objective is not None
+        return {
+            "objective": {
+                "name": self.objective.name,
+                "coefficients": self.objective.toDict(),
+            },
+            "constraints": [v.toDict() for v in self.constraints.values()],
+            "variables": [v.toDict() for v in variables],
+            "parameters": {
+                "name": self.name,
+                "sense": self.sense,
+                "status": self.status,
+                "sol_status": self.sol_status,
+            },
+            "sos1": list(self.sos1.values()),
+            "sos2": list(self.sos2.values()),
+        }
 
     to_dict = toDict
 
     @classmethod
-    def fromDict(cls, _dict):
+    def fromDict(cls, _dict: LpProblemDict):
         """
         Takes a dictionary with all necessary information to build a model.
         And returns a dictionary of variables and a problem object
@@ -1422,8 +1876,10 @@ class LpProblem:
 
         # we instantiate the problem
         params = _dict["parameters"]
-        pb_params = {"name", "sense"}
-        args = {k: params[k] for k in pb_params}
+        args: LpProblemFromDictArgsDict = {
+            "name": params["name"],
+            "sense": params["sense"],
+        }
         pb = cls(**args)
         pb.status = params["status"]
         pb.sol_status = params["sol_status"]
@@ -1434,13 +1890,12 @@ class LpProblem:
         # objective function.
         # we change the names for the objects:
         obj_e = {var[v["name"]]: v["value"] for v in _dict["objective"]["coefficients"]}
-        pb += LpAffineExpression(e=obj_e, name=_dict["objective"]["name"])
+        pb += LpAffineExpression(e=obj_e, name=_dict["objective"]["name"])  # type: ignore
 
         # constraints
         # we change the names for the objects:
-        def edit_const(const):
-            const = dict(const)
-            const["coefficients"] = {
+        def edit_const(const: LpConstraintDict) -> LpConstraintDict:
+            const["coefficients"] = {  # type: ignore
                 var[v["name"]]: v["value"] for v in const["coefficients"]
             }
             return const
@@ -1450,7 +1905,7 @@ class LpProblem:
             pb += LpConstraint.fromDict(c)
 
         # last, parameters, other options
-        list_to_dict = lambda v: {k: v for k, v in enumerate(v)}
+        list_to_dict: Callable[[Any], Any] = lambda v: {k: v for k, v in enumerate(v)}
         pb.sos1 = list_to_dict(_dict["sos1"])
         pb.sos2 = list_to_dict(_dict["sos2"])
 
@@ -1458,7 +1913,7 @@ class LpProblem:
 
     from_dict = fromDict
 
-    def toJson(self, filename, *args, **kwargs):
+    def toJson(self, filename: str, *args: Any, **kwargs: Any):
         """
         Creates a json file from the LpProblem information
 
@@ -1473,7 +1928,7 @@ class LpProblem:
     to_json = toJson
 
     @classmethod
-    def fromJson(cls, filename):
+    def fromJson(cls, filename: str) -> Tuple[Dict[str, LpVariable], "LpProblem"]:
         """
         Creates a new Lp Problem from a json file with information
 
@@ -1488,23 +1943,25 @@ class LpProblem:
     from_json = fromJson
 
     @classmethod
-    def fromMPS(cls, filename, sense=const.LpMinimize, **kwargs):
+    def fromMPS(
+        cls, filename: str, sense: int = const.LpMinimize, **kwargs: Any
+    ) -> Tuple[Dict[str, LpVariable], "LpProblem"]:
         data = mpslp.readMPS(filename, sense=sense, **kwargs)
         return cls.fromDict(data)
 
-    def normalisedNames(self):
+    def normalisedNames(self) -> Tuple[Dict[Any, str], Dict[str, str], str]:
         constraintsNames = {k: "C%07d" % i for i, k in enumerate(self.constraints)}
         _variables = self.variables()
         variablesNames = {k.name: "X%07d" % i for i, k in enumerate(_variables)}
         return constraintsNames, variablesNames, "OBJ"
 
-    def isMIP(self):
+    def isMIP(self) -> bool:
         for v in self.variables():
             if v.cat == const.LpInteger:
-                return 1
-        return 0
+                return True
+        return False
 
-    def roundSolution(self, epsInt=1e-5, eps=1e-7):
+    def roundSolution(self, epsInt: float = 1e-5, eps: float = 1e-7):
         """
         Rounds the lp variables
 
@@ -1519,14 +1976,14 @@ class LpProblem:
 
     def unusedConstraintName(self):
         self.lastUnused += 1
-        while 1:
+        while True:
             s = "_C%d" % self.lastUnused
             if s not in self.constraints:
                 break
             self.lastUnused += 1
         return s
 
-    def valid(self, eps=0):
+    def valid(self, eps: float = 0) -> bool:
         for v in self.variables():
             if not v.valid(eps):
                 return False
@@ -1536,7 +1993,7 @@ class LpProblem:
         else:
             return True
 
-    def infeasibilityGap(self, mip=1):
+    def infeasibilityGap(self, mip: int = 1) -> float:
         gap = 0
         for v in self.variables():
             gap = max(abs(v.infeasibilityGap(mip)), gap)
@@ -1545,7 +2002,7 @@ class LpProblem:
                 gap = max(abs(c.value()), gap)
         return gap
 
-    def addVariable(self, variable):
+    def addVariable(self, variable: LpVariable):
         """
         Adds a variable to the problem before a constraint is added
 
@@ -1555,7 +2012,7 @@ class LpProblem:
             self._variables.append(variable)
             self._variable_ids[variable.hash] = variable
 
-    def addVariables(self, variables):
+    def addVariables(self, variables: Iterable[LpVariable]):
         """
         Adds variables to the problem before a constraint is added
 
@@ -1564,7 +2021,7 @@ class LpProblem:
         for v in variables:
             self.addVariable(v)
 
-    def variables(self):
+    def variables(self) -> List[LpVariable]:
         """
         Returns the problem variables
 
@@ -1572,14 +2029,14 @@ class LpProblem:
         :rtype: (list, :py:class:`LpVariable`)
         """
         if self.objective:
-            self.addVariables(list(self.objective.keys()))
+            self.addVariables(cast(List[LpVariable], list(self.objective.keys())))
         for c in self.constraints.values():
             self.addVariables(list(c.keys()))
         self._variables.sort(key=lambda v: v.name)
         return self._variables
 
-    def variablesDict(self):
-        variables = {}
+    def variablesDict(self) -> Dict[str, Union[LpVariable, LpConstraintVar]]:
+        variables: Dict[str, Union[LpVariable, LpConstraintVar]] = {}
         if self.objective:
             for v in self.objective:
                 variables[v.name] = v
@@ -1588,11 +2045,11 @@ class LpProblem:
                 variables[v.name] = v
         return variables
 
-    def add(self, constraint, name=None):
+    def add(self, constraint: LpConstraint, name: Optional[str] = None):
         self.addConstraint(constraint, name)
 
-    def addConstraint(self, constraint, name=None):
-        if not isinstance(constraint, LpConstraint):
+    def addConstraint(self, constraint: LpConstraint, name: Optional[str] = None):
+        if not isinstance(constraint, LpConstraint):  # type: ignore
             raise TypeError("Can only add LpConstraint objects")
         if name:
             constraint.name = name
@@ -1614,9 +2071,11 @@ class LpProblem:
                 print("Warning: overlapping constraint names:", name)
         self.constraints[name] = constraint
         self.modifiedConstraints.append(constraint)
-        self.addVariables(list(constraint.keys()))
+        self.addVariables(cast(List[LpVariable], list(constraint.keys())))
 
-    def setObjective(self, obj):
+    def setObjective(
+        self, obj: Union[LpConstraint, LpAffineExpression, LpVariable, LpConstraintVar]
+    ):
         """
         Sets the input variable as the objective function. Used in Columnwise Modelling
 
@@ -1629,15 +2088,26 @@ class LpProblem:
             # allows the user to add a LpVariable as an objective
             obj = obj + 0.0
         try:
-            obj = obj.constraint
-            name = obj.name
+            obj = obj.constraint  # type: ignore
+            name = obj.name  # type: ignore
         except AttributeError:
             name = None
-        self.objective = obj
-        self.objective.name = name
+        self.objective = obj  # type: ignore
+        self.objective.name = name  # type: ignore
         self.resolveOK = False
 
-    def __iadd__(self, other):
+    def __iadd__(
+        self,
+        other: Union[
+            Tuple[LpAffineExpression, str],
+            LpAffineExpression,
+            LpConstraintVar,
+            LpConstraint,
+            LpVariable,
+            int,
+            float,
+        ],
+    ) -> "LpProblem":
         if isinstance(other, tuple):
             other, name = other
         else:
@@ -1657,7 +2127,7 @@ class LpProblem:
             if name is not None:
                 # we may keep the LpAffineExpression name
                 self.objective.name = name
-        elif isinstance(other, LpVariable) or isinstance(other, (int, float)):
+        elif isinstance(other, LpVariable) or isinstance(other, (int, float)):  # type: ignore
             if self.objective is not None:
                 warnings.warn("Overwriting previously set objective.")
             self.objective = LpAffineExpression(other)
@@ -1668,7 +2138,11 @@ class LpProblem:
             )
         return self
 
-    def extend(self, other, use_objective=True):
+    def extend(
+        self,
+        other: Union[Dict[str, LpConstraint], List[Tuple[str, Any]], "LpProblem"],
+        use_objective: bool = True,
+    ):
         """
         extends an LpProblem by adding constraints either from a dictionary
         a tuple or another LpProblem object.
@@ -1691,10 +2165,11 @@ class LpProblem:
                 c.name = other.name + name
                 self.addConstraint(c)
             if use_objective:
+                assert self.objective is not None
                 self.objective += other.objective
         else:
             for c in other:
-                if isinstance(c, tuple):
+                if isinstance(c, tuple):  # type: ignore
                     name = c[0]
                     c = c[1]
                 else:
@@ -1705,8 +2180,8 @@ class LpProblem:
                     name = self.unusedConstraintName()
                 self.constraints[name] = c
 
-    def coefficients(self, translation=None):
-        coefs = []
+    def coefficients(self, translation: Optional[Any] = None):
+        coefs: List[Tuple[str, LpConstraint, Any]] = []
         if translation == None:
             for c in self.constraints:
                 cst = self.constraints[c]
@@ -1719,8 +2194,21 @@ class LpProblem:
         return coefs
 
     def writeMPS(
-        self, filename, mpsSense=0, rename=0, mip=1, with_objsense: bool = False
-    ):
+        self,
+        filename: str,
+        mpsSense: int = 0,
+        rename: bool = False,
+        mip: bool = True,
+        with_objsense: bool = False,
+    ) -> Union[
+        List[LpVariable],
+        Tuple[
+            List[LpVariable],
+            Dict[str, str],
+            Union[Dict[Any, str], Dict[Any, Any]],
+            Optional[str],
+        ],
+    ]:
         """
         Writes an mps files from the problem information
 
@@ -1742,7 +2230,13 @@ class LpProblem:
             with_objsense=with_objsense,
         )
 
-    def writeLP(self, filename, writeSOS=1, mip=1, max_length=100):
+    def writeLP(
+        self,
+        filename: str,
+        writeSOS: bool = True,
+        mip: bool = True,
+        max_length: int = 100,
+    ) -> List[LpVariable]:
         """
         Write the given Lp problem to a .lp file.
 
@@ -1759,7 +2253,7 @@ class LpProblem:
             self, filename=filename, writeSOS=writeSOS, mip=mip, max_length=max_length
         )
 
-    def checkDuplicateVars(self) -> None:
+    def checkDuplicateVars(self):
         """
         Checks if there are at least two variables with the same name
         :return: 1
@@ -1772,7 +2266,7 @@ class LpProblem:
         if repeated_names:
             raise const.PulpError(f"Repeated variable names: {repeated_names}")
 
-    def checkLengthVars(self, max_length: int) -> None:
+    def checkLengthVars(self, max_length: int):
         """
         Checks if variables have names smaller than `max_length`
         :param int max_length: max size for variable name
@@ -1789,26 +2283,28 @@ class LpProblem:
                 f"Variable names too long for Lp format: {long_names}"
             )
 
-    def assignVarsVals(self, values):
+    def assignVarsVals(self, values: Dict[str, float]):
         variables = self.variablesDict()
         for name in values:
             if name != "__dummy":
-                variables[name].varValue = values[name]
+                var = cast(LpVariable, variables[name])
+                var.varValue = values[name]
 
-    def assignVarsDj(self, values):
+    def assignVarsDj(self, values: Dict[str, float]):
         variables = self.variablesDict()
         for name in values:
             if name != "__dummy":
-                variables[name].dj = values[name]
+                var = cast(LpVariable, variables[name])
+                var.dj = values[name]
 
-    def assignConsPi(self, values):
+    def assignConsPi(self, values: Dict[str, float]):
         for name in values:
             try:
                 self.constraints[name].pi = values[name]
             except KeyError:
                 pass
 
-    def assignConsSlack(self, values, activity=False):
+    def assignConsSlack(self, values: Dict[str, float], activity: bool = False):
         for name in values:
             try:
                 if activity:
@@ -1826,13 +2322,13 @@ class LpProblem:
             self.dummyVar = LpVariable("__dummy", 0, 0)
         return self.dummyVar
 
-    def fixObjective(self):
+    def fixObjective(self) -> Tuple[bool, Optional[LpVariable]]:
         if self.objective is None:
-            self.objective = 0
-            wasNone = 1
+            self.objective = 0  # type: ignore : ???
+            wasNone = True
         else:
-            wasNone = 0
-        if not isinstance(self.objective, LpAffineExpression):
+            wasNone = False
+        if not isinstance(self.objective, LpAffineExpression):  # type: ignore
             self.objective = LpAffineExpression(self.objective)
         if self.objective.isNumericalConstant():
             dummyVar = self.get_dummyVar()
@@ -1841,13 +2337,14 @@ class LpProblem:
             dummyVar = None
         return wasNone, dummyVar
 
-    def restoreObjective(self, wasNone, dummyVar):
+    def restoreObjective(self, wasNone: bool, dummyVar: Optional[LpVariable]):
         if wasNone:
             self.objective = None
-        elif not dummyVar is None:
+        elif dummyVar is not None:
+            assert self.objective is not None
             self.objective -= dummyVar
 
-    def solve(self, solver=None, **kwargs):
+    def solve(self, solver: Optional[LpSolver] = None, **kwargs: Any):
         """
         Solve the given Lp problem.
 
@@ -1862,13 +2359,14 @@ class LpProblem:
               :meth:`~pulp.solver.LpSolver.actualSolve()` to reflect the Lp solution
         """
 
-        if not (solver):
+        if solver is None:
             solver = self.solver
-        if not (solver):
+        if solver is None:
             solver = LpSolverDefault
         wasNone, dummyVar = self.fixObjective()
         # time it
         self.startClock()
+        assert solver is not None
         status = solver.actualSolve(self, **kwargs)
         self.stopClock()
         self.restoreObjective(wasNone, dummyVar)
@@ -1886,8 +2384,13 @@ class LpProblem:
         self.solutionCpuTime += clock()
 
     def sequentialSolve(
-        self, objectives, absoluteTols=None, relativeTols=None, solver=None, debug=False
-    ):
+        self,
+        objectives: List[LpAffineExpression],
+        absoluteTols: Optional[List[Any]] = None,
+        relativeTols: Optional[List[Any]] = None,
+        solver: Optional[LpSolver] = None,
+        debug: bool = False,
+    ) -> List[Any]:
         """
         Solve the given Lp problem with several objective functions.
 
@@ -1904,21 +2407,22 @@ class LpProblem:
         # TODO Add a penalty variable to make problems elastic
         # TODO add the ability to accept different status values i.e. infeasible etc
 
-        if not (solver):
+        if solver is None:
             solver = self.solver
-        if not (solver):
+        if solver is None:
             solver = LpSolverDefault
-        if not (absoluteTols):
+        if absoluteTols is None:
             absoluteTols = [0] * len(objectives)
-        if not (relativeTols):
+        if relativeTols is None:
             relativeTols = [1] * len(objectives)
         # time it
         self.startClock()
-        statuses = []
+        statuses: List[int] = []
         for i, (obj, absol, rel) in enumerate(
             zip(objectives, absoluteTols, relativeTols)
         ):
             self.setObjective(obj)
+            assert solver is not None
             status = solver.actualSolve(self)
             statuses.append(status)
             if debug:
@@ -1931,41 +2435,42 @@ class LpProblem:
         self.solver = solver
         return statuses
 
-    def resolve(self, solver=None, **kwargs):
+    def resolve(self, solver: Optional[LpSolver] = None, **kwargs: Any):
         """
         resolves an Problem using the same solver as previously
         """
-        if not (solver):
+        assert self.solver is not None
+        if solver is None:
             solver = self.solver
         if self.resolveOK:
             return self.solver.actualResolve(self, **kwargs)
         else:
             return self.solve(solver=solver, **kwargs)
 
-    def setSolver(self, solver=LpSolverDefault):
+    def setSolver(self, solver: Optional[LpSolver] = LpSolverDefault):
         """Sets the Solver for this problem useful if you are using
         resolve
         """
         self.solver = solver
 
-    def numVariables(self):
+    def numVariables(self) -> int:
         """
 
         :return: number of variables in model
         """
         return len(self._variable_ids)
 
-    def numConstraints(self):
+    def numConstraints(self) -> int:
         """
 
         :return: number of constraints in model
         """
         return len(self.constraints)
 
-    def getSense(self):
+    def getSense(self) -> int:
         return self.sense
 
-    def assignStatus(self, status, sol_status=None):
+    def assignStatus(self, status: int, sol_status: Optional[int] = None) -> bool:
         """
         Sets the status of the model after solving.
         :param status: code for the status of the model
@@ -2002,56 +2507,66 @@ class FixedElasticSubProblem(LpProblem):
         where [-ve, +ve]
     """
 
+    objective: LpAffineExpression
+    constraint: LpConstraint
+    constant: Union[int, float]
+    RHS: Union[int, float]
+    objective: LpAffineExpression
+    freeVar: LpVariable
+    upVar: LpVariable
+    lowVar: LpVariable
+
     def __init__(
         self,
-        constraint,
-        penalty=None,
-        proportionFreeBound=None,
-        proportionFreeBoundList=None,
+        constraint: LpConstraint,
+        penalty: Optional[Any] = None,
+        proportionFreeBound: Optional[Any] = None,
+        proportionFreeBoundList: Optional[Any] = None,
     ):
         subProblemName = f"{constraint.name}_elastic_SubProblem"
         LpProblem.__init__(self, subProblemName, const.LpMinimize)
         self.objective = LpAffineExpression()
         self.constraint = constraint
         self.constant = constraint.constant
-        self.RHS = -constraint.constant
+        self.RHS = -constraint.constant  # type: ignore
         self.objective = LpAffineExpression()
         self += constraint, "_Constraint"
         # create and add these variables but disabled
-        self.freeVar = LpVariable("_free_bound", upBound=0, lowBound=0)
-        self.upVar = LpVariable("_pos_penalty_var", upBound=0, lowBound=0)
-        self.lowVar = LpVariable("_neg_penalty_var", upBound=0, lowBound=0)
-        constraint.addInPlace(self.freeVar + self.lowVar + self.upVar)
+        self.freeVar = LpVariable("_free_bound", upBound=0, lowBound=0)  # type: ignore
+        self.upVar = LpVariable("_pos_penalty_var", upBound=0, lowBound=0)  # type: ignore
+        self.lowVar = LpVariable("_neg_penalty_var", upBound=0, lowBound=0)  # type: ignore
+        constraint.addInPlace(self.freeVar + self.lowVar + self.upVar)  # type: ignore
         if proportionFreeBound:
             proportionFreeBoundList = [proportionFreeBound, proportionFreeBound]
         if proportionFreeBoundList:
             # add a costless variable
-            self.freeVar.upBound = abs(constraint.constant * proportionFreeBoundList[0])
-            self.freeVar.lowBound = -abs(
+            self.freeVar.upBound = abs(constraint.constant * proportionFreeBoundList[0])  # type: ignore
+            self.freeVar.lowBound = -abs(  # type: ignore
                 constraint.constant * proportionFreeBoundList[1]
             )
             # Note the reversal of the upbound and lowbound due to the nature of the
             # variable
         if penalty is not None:
             # activate these variables
-            self.upVar.upBound = None
-            self.lowVar.lowBound = None
-            self.objective = penalty * self.upVar - penalty * self.lowVar
+            self.upVar.upBound = None  # type: ignore
+            self.lowVar.lowBound = None  # type: ignore
+            self.objective = penalty * self.upVar - penalty * self.lowVar  # type: ignore
 
-    def _findValue(self, attrib):
+    def _findValue(self, attrib: str) -> Union[int, float]:
         """
         safe way to get the value of a variable that may not exist
         """
         var = getattr(self, attrib, 0)
         if var:
-            if value(var) is not None:
-                return value(var)
+            val = value(var)
+            if val is not None:
+                return val
             else:
                 return 0.0
         else:
             return 0.0
 
-    def isViolated(self):
+    def isViolated(self) -> bool:
         """
         returns true if the penalty variables are non-zero
         """
@@ -2067,13 +2582,13 @@ class FixedElasticSubProblem(LpProblem):
             log.debug(f"isViolated value lhs {self.findLHSValue()} constant {self.RHS}")
         return result
 
-    def findDifferenceFromRHS(self):
+    def findDifferenceFromRHS(self) -> Union[float, int]:
         """
         The amount the actual value varies from the RHS (sense: LHS - RHS)
         """
         return self.findLHSValue() - self.RHS
 
-    def findLHSValue(self):
+    def findLHSValue(self) -> Union[float, int]:
         """
         for elastic constraints finds the LHS value of the constraint without
         the free variable and or penalty variable assumes the constant is on the
@@ -2082,7 +2597,9 @@ class FixedElasticSubProblem(LpProblem):
         upVar = self._findValue("upVar")
         lowVar = self._findValue("lowVar")
         freeVar = self._findValue("freeVar")
-        return self.constraint.value() - self.constant - upVar - lowVar - freeVar
+        val = self.constraint.value()
+        assert val is not None
+        return val - self.constant - upVar - lowVar - freeVar
 
     def deElasticize(self):
         """de-elasticize constraint"""
@@ -2098,7 +2615,7 @@ class FixedElasticSubProblem(LpProblem):
         self.lowVar.upBound = 0
         self.lowVar.lowBound = None
 
-    def alterName(self, name):
+    def alterName(self, name: str):
         """
         Alters the name of anonymous parts of the problem
 
@@ -2127,17 +2644,29 @@ class FractionElasticSubProblem(FixedElasticSubProblem):
         where [-ve, +ve]
     """
 
+    complement: Union[int, float]
+    numerator: Union[int, float]
+    denominator: Union[int, float]
+    RHS: Union[int, float]
+    lowTarget: Union[int, float, None]
+    upTarget: Union[int, float, None]
+    freeVar: LpVariable
+    upVar: LpVariable
+    lowVar: LpVariable
+
     def __init__(
         self,
-        name,
-        numerator,
-        RHS,
-        sense,
-        complement=None,
-        denominator=None,
-        penalty=None,
-        proportionFreeBound=None,
-        proportionFreeBoundList=None,
+        name: str,
+        numerator: Union[int, float],
+        RHS: Union[int, float],
+        sense: int,
+        complement: Optional[Any] = None,
+        denominator: Optional[Any] = None,
+        penalty: Optional[Any] = None,
+        proportionFreeBound: Union[int, float, None] = None,
+        proportionFreeBoundTuple: Optional[
+            Tuple[Union[int, float], Union[int, float]]
+        ] = None,
     ):
         subProblemName = f"{name}_elastic_SubProblem"
         self.numerator = numerator
@@ -2151,16 +2680,16 @@ class FractionElasticSubProblem(FixedElasticSubProblem):
             raise const.PulpError(
                 "only one of denominator and complement must be specified"
             )
-        self.RHS = RHS
+        self.RHS = RHS  # type: ignore
         self.lowTarget = self.upTarget = None
         LpProblem.__init__(self, subProblemName, const.LpMinimize)
         self.freeVar = LpVariable("_free_bound", upBound=0, lowBound=0)
         self.upVar = LpVariable("_pos_penalty_var", upBound=0, lowBound=0)
         self.lowVar = LpVariable("_neg_penalty_var", upBound=0, lowBound=0)
         if proportionFreeBound:
-            proportionFreeBoundList = [proportionFreeBound, proportionFreeBound]
-        if proportionFreeBoundList:
-            upProportionFreeBound, lowProportionFreeBound = proportionFreeBoundList
+            proportionFreeBoundTuple = (proportionFreeBound, proportionFreeBound)
+        if proportionFreeBoundTuple:
+            upProportionFreeBound, lowProportionFreeBound = proportionFreeBoundTuple
         else:
             upProportionFreeBound, lowProportionFreeBound = (0, 0)
         # create an objective
@@ -2168,68 +2697,69 @@ class FractionElasticSubProblem(FixedElasticSubProblem):
         # There are three cases if the constraint.sense is ==, <=, >=
         if sense in [const.LpConstraintEQ, const.LpConstraintLE]:
             # create a constraint the sets the upper bound of target
-            self.upTarget = RHS + upProportionFreeBound
-            self.upConstraint = LpFractionConstraint(
-                self.numerator,
-                self.complement,
+            self.upTarget = RHS + upProportionFreeBound  # type: ignore
+            self.upConstraint = LpFractionConstraint(  # type: ignore
+                self.numerator,  # type: ignore
+                self.complement,  # type: ignore
                 const.LpConstraintLE,
-                self.upTarget,
-                denominator=self.denominator,
+                self.upTarget,  # type: ignore
             )
             if penalty is not None:
-                self.lowVar.lowBound = None
-                self.objective += -1 * penalty * self.lowVar
-                self.upConstraint += self.lowVar
-            self += self.upConstraint, "_upper_constraint"
+                self.lowVar.lowBound = None  # type: ignore
+                self.objective += -1 * penalty * self.lowVar  # type: ignore
+                self.upConstraint += self.lowVar  # type: ignore
+            self += self.upConstraint, "_upper_constraint"  # type: ignore
         if sense in [const.LpConstraintEQ, const.LpConstraintGE]:
             # create a constraint the sets the lower bound of target
-            self.lowTarget = RHS - lowProportionFreeBound
-            self.lowConstraint = LpFractionConstraint(
-                self.numerator,
-                self.complement,
+            self.lowTarget = RHS - lowProportionFreeBound  # type: ignore
+            self.lowConstraint = LpFractionConstraint(  # type: ignore
+                self.numerator,  # type: ignore
+                self.complement,  # type: ignore
                 const.LpConstraintGE,
-                self.lowTarget,
-                denominator=self.denominator,
+                self.lowTarget,  # type: ignore
             )
             if penalty is not None:
-                self.upVar.upBound = None
-                self.objective += penalty * self.upVar
-                self.lowConstraint += self.upVar
-            self += self.lowConstraint, "_lower_constraint"
+                self.upVar.upBound = None  # type: ignore
+                self.objective += penalty * self.upVar  # type: ignore
+                self.lowConstraint += self.upVar  # type: ignore
+            self += self.lowConstraint, "_lower_constraint"  # type: ignore
 
-    def findLHSValue(self):
+    def findLHSValue(self) -> float:
         """
         for elastic constraints finds the LHS value of the constraint without
         the free variable and or penalty variable assumes the constant is on the
         rhs
         """
         # uses code from LpFractionConstraint
-        if abs(value(self.denominator)) >= const.EPS:
-            return value(self.numerator) / value(self.denominator)
+        if abs(value(self.denominator)) >= const.EPS:  # type: ignore
+            return value(self.numerator) / value(self.denominator)  # type: ignore
         else:
-            if abs(value(self.numerator)) <= const.EPS:
+            if abs(value(self.numerator)) <= const.EPS:  # type: ignore
                 # zero divided by zero will return 1
                 return 1.0
             else:
                 raise ZeroDivisionError
 
-    def isViolated(self):
+    def isViolated(self) -> bool:
         """
         returns true if the penalty variables are non-zero
         """
-        if abs(value(self.denominator)) >= const.EPS:
+        if abs(value(self.denominator)) >= const.EPS:  # type: ignore
             if self.lowTarget is not None:
                 if self.lowTarget > self.findLHSValue():
                     return True
             if self.upTarget is not None:
                 if self.findLHSValue() > self.upTarget:
                     return True
+            return False
         else:
             # if the denominator is zero the constraint is satisfied
             return False
 
 
-def lpSum(vector):
+def lpSum(
+    vector: List[Union[LpAffineExpression, LpConstraintVar, LpVariable, int, float]]
+) -> LpAffineExpression:
     """
     Calculate the sum of a list of linear expressions
 
@@ -2238,13 +2768,31 @@ def lpSum(vector):
     return LpAffineExpression().addInPlace(vector)
 
 
-def lpDot(v1, v2):
+def lpDot(
+    v1: Union[
+        Collection[Union[LpAffineExpression, LpConstraintVar, LpVariable, int, float]],
+        LpAffineExpression,
+        LpVariable,
+        LpConstraintVar,
+        int,
+        float,
+    ],
+    v2: Union[
+        Collection[Union[LpAffineExpression, LpConstraintVar, LpVariable, int, float]],
+        LpAffineExpression,
+        LpVariable,
+        LpConstraintVar,
+        int,
+        float,
+    ],
+) -> LpAffineExpression:
     """Calculate the dot product of two lists of linear expressions"""
-    if not const.isiterable(v1) and not const.isiterable(v2):
-        return v1 * v2
-    elif not const.isiterable(v1):
+    if not isinstance(v1, Iterable) and not isinstance(v2, Iterable):
+        return v1 * v2  # type: ignore
+    elif not isinstance(v1, Iterable):
+        v2 = cast(Collection[Union[LpAffineExpression, LpVariable]], v2)
         return lpDot([v1] * len(v2), v2)
-    elif not const.isiterable(v2):
+    elif not isinstance(v2, Iterable):
         return lpDot(v1, [v2] * len(v1))
     else:
         return lpSum([lpDot(e1, e2) for e1, e2 in zip(v1, v2)])

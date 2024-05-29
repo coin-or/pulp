@@ -27,6 +27,9 @@
 This file contains the constant definitions for PuLP
 Note that hopefully these will be changed into something more pythonic
 """
+
+from typing import Any
+
 VERSION = "2.8.0"
 EPS = 1e-7
 
@@ -87,7 +90,7 @@ LpConstraintSenses = {LpConstraintEQ: "=", LpConstraintLE: "<=", LpConstraintGE:
 LpCplexLPLineSize = 78
 
 
-def isiterable(obj):
+def isiterable(obj: Any) -> bool:
     try:
         obj = iter(obj)
     except:

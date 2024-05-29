@@ -3,7 +3,7 @@ import pulp
 from pulp.tests import test_pulp, test_examples, test_gurobipy_env
 
 
-def pulpTestAll(test_docs=False):
+def pulpTestAll(test_docs: bool = False):
     runner = unittest.TextTestRunner()
     suite_all = get_test_suite(test_docs)
     # we run all tests at the same time
@@ -12,7 +12,7 @@ def pulpTestAll(test_docs=False):
         raise pulp.PulpError("Tests Failed")
 
 
-def get_test_suite(test_docs=False):
+def get_test_suite(test_docs: bool = False) -> unittest.TestSuite:
     # Tests
     loader = unittest.TestLoader()
     suite_all = unittest.TestSuite()

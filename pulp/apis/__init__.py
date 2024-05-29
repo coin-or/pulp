@@ -1,3 +1,7 @@
+from typing import Any
+
+from pulp.apis.core import LpSolver
+
 from .coin_api import *
 from .cplex_api import *
 from .gurobi_api import *
@@ -40,6 +44,7 @@ _all_solvers = [
 import json
 
 # Default solver selection
+LpSolverDefault: Union[PULP_CBC_CMD, GLPK_CMD, COIN_CMD, None]
 if PULP_CBC_CMD().available():
     LpSolverDefault = PULP_CBC_CMD()
 elif GLPK_CMD().available():
@@ -50,7 +55,7 @@ else:
     LpSolverDefault = None
 
 
-def setConfigInformation(**keywords):
+def setConfigInformation(**keywords: Any):
     """
     set the data in the configuration file
     at the moment will only edit things in [locations]
@@ -92,7 +97,7 @@ def configSolvers():
     setConfigInformation(**configdict)
 
 
-def getSolver(solver, *args, **kwargs):
+def getSolver(solver: str, *args: Any, **kwargs: Any) -> LpSolver:
     """
     Instantiates a solver from its name
 
@@ -112,7 +117,7 @@ def getSolver(solver, *args, **kwargs):
         )
 
 
-def getSolverFromDict(data):
+def getSolverFromDict(data: Dict[str, Any]) -> LpSolver:
     """
     Instantiates a solver from a dictionary with its data
 
@@ -128,7 +133,7 @@ def getSolverFromDict(data):
     return getSolver(solver, **data)
 
 
-def getSolverFromJson(filename):
+def getSolverFromJson(filename: str) -> LpSolver:
     """
     Instantiates a solver from a json file with its data
 
@@ -141,7 +146,7 @@ def getSolverFromJson(filename):
     return getSolverFromDict(data)
 
 
-def listSolvers(onlyAvailable=False):
+def listSolvers(onlyAvailable: bool = False) -> List[str]:
     """
     List the names of all the existing solvers in PuLP
 
@@ -149,7 +154,7 @@ def listSolvers(onlyAvailable=False):
     :return: list of solver names
     :rtype: list
     """
-    result = []
+    result: List[str] = []
     for s in _all_solvers:
         solver = s()
         if (not onlyAvailable) or solver.available():

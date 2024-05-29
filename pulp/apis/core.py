@@ -30,17 +30,34 @@ Note that the solvers that require a compiled extension may not work in
 the current version
 """
 
+from typing import (
+    Callable,
+    TypeVar,
+    Union,
+    Optional,
+    Tuple,
+    Any,
+    List,
+    Dict,
+    Type,
+    TYPE_CHECKING,
+)
+
+if TYPE_CHECKING:
+    from pulp.pulp import LpProblem, LpVariable
+
 import os
 import platform
 import shutil
 import sys
 import ctypes
+from ctypes import Array, c_char_p, c_double, c_char
 
 
 from time import monotonic as clock
 
 import configparser
-from typing import Union
+
 
 Parser = configparser.ConfigParser
 
@@ -49,17 +66,20 @@ from .. import constants as const
 
 import logging
 
-try:
-    import ujson as json
-except ImportError:
+if TYPE_CHECKING:
     import json
+else:
+    try:
+        import ujson as json
+    except ImportError:
+        import json
 
 log = logging.getLogger(__name__)
 
 import subprocess
 
 devnull = subprocess.DEVNULL
-to_string = lambda _obj: str(_obj).encode()
+to_string: Callable[[Any], bytes] = lambda _obj: str(_obj).encode()
 
 from uuid import uuid4
 
@@ -73,7 +93,9 @@ class PulpSolverError(const.PulpError):
 
 
 # import configuration information
-def initialize(filename, operating_system="linux", arch="64"):
+def initialize(
+    filename: str, operating_system: str = "linux", arch: str = "64"
+) -> Tuple[Any, ...]:
     """reads the configuration file to initialise the module"""
     here = os.path.dirname(filename)
     config = Parser({"here": here, "os": operating_system, "arch": arch})
@@ -160,14 +182,14 @@ else:
 operating_system = None
 if sys.platform in ["win32", "cli"]:
     operating_system = "win"
-    PULPCFGFILE += ".win"
+    PULPCFGFILE += ".win"  # type: ignore
 elif sys.platform in ["darwin"]:
     operating_system = "osx"
     arch = "64"
-    PULPCFGFILE += ".osx"
+    PULPCFGFILE += ".osx"  # type: ignore
 else:
     operating_system = "linux"
-    PULPCFGFILE += ".linux"
+    PULPCFGFILE += ".linux"  # type: ignore
 
 DIRNAME = os.path.dirname(__file__)
 config_filename = os.path.normpath(os.path.join(DIRNAME, "..", PULPCFGFILE))
@@ -188,10 +210,23 @@ config_filename = os.path.normpath(os.path.join(DIRNAME, "..", PULPCFGFILE))
 class LpSolver:
     """A generic LP Solver"""
 
-    name = "LpSolver"
+    name: str = "LpSolver"
+    mip: bool
+    msg: bool
+    options: List[Any]
+    timeLimit: Optional[float]
+    v2n: Dict[Any, int]
+    vname2n: Dict[Any, int]
+    n2v: Dict[int, Any]
 
     def __init__(
-        self, mip=True, msg=True, options=None, timeLimit=None, *args, **kwargs
+        self,
+        mip: bool = True,
+        msg: bool = True,
+        options: Optional[List[Any]] = None,
+        timeLimit: Optional[float] = None,
+        *args: Any,
+        **kwargs: Any,
     ):
         """
         :param bool mip: if False, assume LP even if integer variables
@@ -213,15 +248,15 @@ class LpSolver:
         # gapRel, gapAbs, maxMemory, maxNodes, threads, logPath, timeMode
         self.optionsDict = {k: v for k, v in kwargs.items() if v is not None}
 
-    def available(self):
+    def available(self) -> bool:
         """True if the solver is available"""
         raise NotImplementedError
 
-    def actualSolve(self, lp):
+    def actualSolve(self, lp: "LpProblem") -> Any:
         """Solve a well formulated lp problem"""
         raise NotImplementedError
 
-    def actualResolve(self, lp, **kwargs):
+    def actualResolve(self, lp: "LpProblem", **kwargs: Any):
         """
         uses existing problem information and solves the problem
         If it is not implemented in the solver
@@ -229,7 +264,7 @@ class LpSolver:
         """
         self.actualSolve(lp, **kwargs)
 
-    def copy(self):
+    def copy(self) -> "Self":
         """Make a copy of self"""
 
         aCopy = self.__class__()
@@ -238,15 +273,43 @@ class LpSolver:
         aCopy.options = self.options
         return aCopy
 
-    def solve(self, lp):
+    def solve(self, lp: "LpProblem"):
         """Solve the problem lp"""
         # Always go through the solve method of LpProblem
         return lp.solve(self)
 
     # TODO: Not sure if this code should be here or in a child class
     def getCplexStyleArrays(
-        self, lp, senseDict=None, LpVarCategories=None, LpObjSenses=None, infBound=1e20
-    ):
+        self,
+        lp: "LpProblem",
+        senseDict: Optional[Dict[int, str]] = None,
+        LpVarCategories: Optional[Dict[str, str]] = None,
+        LpObjSenses: Optional[Dict[int, int]] = None,
+        infBound: float = 1e20,
+    ) -> Tuple[
+        int,
+        int,
+        int,
+        int,
+        int,
+        "Array[c_double]",
+        c_double,
+        "Array[c_double]",
+        "Array[c_double]",
+        "Array[c_char]",
+        Any,
+        Any,
+        Any,
+        Any,
+        "Array[c_double]",
+        "Array[c_double]",
+        "Array[c_double]",
+        "Array[c_char_p]",
+        "Array[c_char_p]",
+        "Array[c_char]",
+        Dict[int, "LpVariable"],
+        Dict[Any, Any],
+    ]:
         """returns the arrays suitable to pass to a cdll Cplex
         or other solvers that are similar
 
@@ -399,7 +462,13 @@ class LpSolver_CMD(LpSolver):
 
     name = "LpSolver_CMD"
 
-    def __init__(self, path=None, keepFiles=False, *args, **kwargs):
+    def __init__(
+        self,
+        path: Optional[str] = None,
+        keepFiles: bool = False,
+        *args: Any,
+        **kwargs: Any,
+    ):
         """
 
         :param bool mip: if False, assume LP even if integer variables
@@ -445,43 +514,50 @@ class LpSolver_CMD(LpSolver):
         elif not os.access(self.tmpDir, os.F_OK + os.W_OK):
             self.tmpDir = ""
 
-    def create_tmp_files(self, name, *args):
+    def create_tmp_files(self, name: str, *args: Any):
         if self.keepFiles:
             prefix = name
         else:
             prefix = os.path.join(self.tmpDir, uuid4().hex)
         return (f"{prefix}-pulp.{n}" for n in args)
 
-    def silent_remove(self, file: Union[str, bytes, os.PathLike]) -> None:
+    def silent_remove(
+        self, file: Union[str, bytes, "os.PathLike[str]", "os.PathLike[bytes]"]
+    ) -> None:
         try:
             os.remove(file)
         except FileNotFoundError:
             pass
 
-    def delete_tmp_files(self, *args):
+    def delete_tmp_files(
+        self, *args: Union[str, bytes, "os.PathLike[str]", "os.PathLike[bytes]"]
+    ):
         if self.keepFiles:
             return
         for file in args:
             self.silent_remove(file)
 
-    def defaultPath(self):
+    def defaultPath(self) -> str:
         raise NotImplementedError
 
     @staticmethod
-    def executableExtension(name):
+    def executableExtension(name: str) -> str:
         if os.name != "nt":
             return name
         else:
             return name + ".exe"
 
     @staticmethod
-    def executable(command):
+    def executable(command: str):
         """Checks that the solver command is executable,
         And returns the actual path to it."""
         return shutil.which(command)
 
 
-def ctypesArrayFill(myList, type=ctypes.c_double):
+_T = TypeVar("_T")
+
+
+def ctypesArrayFill(myList: List[Any], type: Type[_T] = ctypes.c_double):
     """
     Creates a c array with ctypes from a python list
     type is the type of the c array

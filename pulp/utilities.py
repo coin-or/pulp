@@ -1,86 +1,75 @@
 # Utility functions
+from typing import (
+    Any,
+    Optional,
+    Union,
+    Dict,
+    List,
+    Tuple,
+    Type,
+    TypeVar,
+    Protocol,
+    cast,
+    TYPE_CHECKING,
+)
 import itertools
 import collections
 
+if TYPE_CHECKING:
+    from pulp.pulp import LpAffineExpression, LpVariable
 
-def resource_clock():
-    import resource
+_KT = TypeVar("_KT")
+_T = TypeVar("_T")
 
-    return resource.getrusage(resource.RUSAGE_CHILDREN).ru_utime
+import os
+
+if os.name == "posix":
+
+    def resource_clock() -> float:
+        import resource
+
+        return resource.getrusage(resource.RUSAGE_CHILDREN).ru_utime
 
 
-def isNumber(x):
+def isNumber(x: Any) -> bool:
     """Returns true if x is an int or a float"""
     return isinstance(x, (int, float))
 
 
-def value(x):
+def value(
+    x: Union[int, float, "LpVariable", "LpAffineExpression", None]
+) -> Union[int, float, None]:
     """Returns the value of the variable/expression x, or x if it is a number"""
-    if isNumber(x):
+    if x is None:
+        return None
+    elif isNumber(x):
+        x = cast(Union[int, float], x)
         return x
     else:
+        x = cast("Union[LpVariable, LpAffineExpression]", x)
         return x.value()
 
 
-def valueOrDefault(x):
+def valueOrDefault(
+    x: Union[int, float, "LpVariable", "LpAffineExpression"]
+) -> Union[int, float]:
     """Returns the value of the variable/expression x, or x if it is a number
     Variable without value (None) are affected a possible value (within their
     bounds)."""
     if isNumber(x):
+        x = cast(Union[int, float], x)
         return x
     else:
+        x = cast(Union["LpVariable", "LpAffineExpression"], x)
         return x.valueOrDefault()
 
 
-def __combination(orgset, k):
-    """
-    fall back if probstat is not installed note it is GPL so cannot
-    be included
-    """
-    if k == 1:
-        for i in orgset:
-            yield (i,)
-    elif k > 1:
-        for i, x in enumerate(orgset):
-            # iterates though to near the end
-            for s in __combination(orgset[i + 1 :], k - 1):
-                yield (x,) + s
+# target is python 3.7, useless compatibility code removed
+from itertools import combinations as combination
+from itertools import permutations as permutation
 
 
-try:  # python >= 3.4
-    from itertools import combinations as combination
-except ImportError:
-    try:  # python 2.7
-        from itertools import combination
-    except ImportError:  # pulp's
-        combination = __combination
-
-
-def __permutation(orgset, k):
-    """
-    fall back if probstat is not installed note it is GPL so cannot
-    be included
-    """
-    if k == 1:
-        for i in orgset:
-            yield (i,)
-    elif k > 1:
-        for i, x in enumerate(orgset):
-            # iterates though to near the end
-            for s in __permutation(orgset[:i] + orgset[i + 1 :], k - 1):
-                yield (x,) + s
-
-
-try:  # python >= 3.4
-    from itertools import permutations as permutation
-except ImportError:
-    try:  # python 2.7
-        from itertools import permutation
-    except ImportError:  # pulp's
-        permutation = __permutation
-
-
-def allpermutations(orgset, k):
+def allpermutations(orgset: List[_T], k: int) -> "itertools.chain[Tuple[_T, ...]]":
     """
     returns all permutations of orgset with up to k items
 
@@ -114,7 +103,7 @@ def allpermutations(orgset, k):
     return itertools.chain(*[permutation(orgset, i) for i in range(1, k + 1)])
 
 
-def allcombinations(orgset, k):
+def allcombinations(orgset: List[_T], k: int) -> "itertools.chain[Tuple[_T, ...]]":
     """
     returns all combinations of orgset with up to k items
 
@@ -142,36 +131,45 @@ def allcombinations(orgset, k):
     return itertools.chain(*[combination(orgset, i) for i in range(1, k + 1)])
 
 
-def makeDict(headers, array, default=None):
+_T1 = TypeVar("_T1")
+_T2 = TypeVar("_T2")
+
+
+def makeDict(
+    headers: List[List[_T1]], array: List[_T2], default: Any = None
+) -> Dict[_T1, Dict[_T1, _T2]]:
     """
     makes a list into a dictionary with the headings given in headings
     headers is a list of header lists
     array is a list with the data
     """
-    result, defdict = __makeDict(headers, array, default)
+    result, _defdict = __makeDict(headers, array, default)
     return result
 
 
-def __makeDict(headers, array, default=None):
+def __makeDict(headers: Any, array: Any, default: Optional[Any] = None) -> Any:
     # this is a recursive function so end the recursion as follows
     result = {}
     returndefaultvalue = None
     if len(headers) == 1:
-        result.update(dict(zip(headers[0], array)))
+        result.update(dict(zip(headers[0], array)))  # type: ignore
         defaultvalue = default
     else:
         for i, h in enumerate(headers[0]):
             result[h], defaultvalue = __makeDict(headers[1:], array[i], default)
+            result = result
     if default is not None:
-        f = lambda: defaultvalue
-        defresult = collections.defaultdict(f)
-        defresult.update(result)
-        result = defresult
-        returndefaultvalue = collections.defaultdict(f)
+        # defaultvalue = cast(Any, defaultvalue)
+        f = lambda: defaultvalue  # type: ignore
+        defresult = collections.defaultdict(f)  # type: ignore
+        result = result
+        defresult.update(result)  # type: ignore
+        result = defresult  # type: ignore
+        returndefaultvalue = collections.defaultdict(f)  # type: ignore
     return result, returndefaultvalue
 
 
-def splitDict(data):
+def splitDict(data: Dict[_KT, List[_T]]) -> Tuple[Dict[_KT, _T], ...]:
     """
     Split a dictionary with lists as the data, into smaller dictionaries
 
@@ -182,7 +180,7 @@ def splitDict(data):
     """
     # find the maximum number of items in the dictionary
     maxitems = max([len(values) for values in data.values()])
-    output = [dict() for _ in range(maxitems)]
+    output: List[Dict[_KT, _T]] = [dict() for _ in range(maxitems)]
     for key, values in data.items():
         for i, val in enumerate(values):
             output[i][key] = val
@@ -190,7 +188,16 @@ def splitDict(data):
     return tuple(output)
 
 
-def read_table(data, coerce_type, transpose=False):
+class Constructable(Protocol):
+    def __init__(self, *args: Any, **kwargs: Any): ...
+
+
+_T_class = TypeVar("_T_class", bound=Constructable)
+
+
+def read_table(
+    data: str, coerce_type: Type[_T_class], transpose: bool = False
+) -> Dict[Tuple[str, str], _T_class]:
     """
     Reads in data from a simple table and forces it to be a particular type
 
@@ -220,7 +227,7 @@ def read_table(data, coerce_type, transpose=False):
     """
     lines = data.splitlines()
     headings = lines[1].split()
-    result = {}
+    result: Dict[Tuple[str, str], _T_class] = {}
     for row in lines[2:]:
         items = row.split()
         for i, item in enumerate(items[1:]):

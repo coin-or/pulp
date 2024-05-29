@@ -24,6 +24,11 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."""
 
+from typing import Any, Dict, List, Optional, TYPE_CHECKING, Tuple
+
+if TYPE_CHECKING:
+    from pulp import LpProblem
+
 from .core import LpSolver_CMD, subprocess, PulpSolverError
 import os
 from .. import constants
@@ -37,12 +42,12 @@ class CHOCO_CMD(LpSolver_CMD):
 
     def __init__(
         self,
-        path=None,
-        keepFiles=False,
-        mip=True,
-        msg=True,
-        options=None,
-        timeLimit=None,
+        path: Optional[str] = None,
+        keepFiles: bool = False,
+        mip: bool = True,
+        msg: bool = True,
+        options: Optional[List[Any]] = None,
+        timeLimit: Optional[float] = None,
     ):
         """
         :param bool mip: if False, assume LP even if integer variables
@@ -62,15 +67,18 @@ class CHOCO_CMD(LpSolver_CMD):
             keepFiles=keepFiles,
         )
 
-    def defaultPath(self):
+    def defaultPath(self) -> str:
         return self.executableExtension("choco-parsers-with-dependencies.jar")
 
-    def available(self):
+    def available(self) -> bool:
         """True if the solver is available"""
         java_path = self.executableExtension("java")
-        return self.executable(self.path) and self.executable(java_path)
+        return (
+            self.executable(self.path) is not None
+            and self.executable(java_path) is not None
+        )
 
-    def actualSolve(self, lp):
+    def actualSolve(self, lp: "LpProblem") -> int:
         """Solve a well formulated lp problem"""
         java_path = self.executableExtension("java")
         if not self.executable(java_path):
@@ -117,12 +125,13 @@ class CHOCO_CMD(LpSolver_CMD):
 
         lp.assignStatus(status, status_sol)
         if status not in [constants.LpStatusInfeasible, constants.LpStatusNotSolved]:
+            assert values is not None
             lp.assignVarsVals(values)
 
         return status
 
     @staticmethod
-    def readsol(filename):
+    def readsol(filename: str) -> Tuple[int, Dict[str, float], int]:
         """Read a Choco solution file"""
         # TODO: figure out the unbounded status in choco solver
         chocoStatus = {
@@ -141,7 +150,7 @@ class CHOCO_CMD(LpSolver_CMD):
 
         status = constants.LpStatusNotSolved
         sol_status = constants.LpSolutionNoSolutionFound
-        values = {}
+        values: Dict[str, float] = {}
         with open(filename) as f:
             content = f.readlines()
         content = [l.strip() for l in content if l[:2] not in ["o ", "c "]]

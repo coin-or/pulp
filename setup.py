@@ -3,13 +3,14 @@
 Setup script for PuLP added by Stuart Mitchell 2007
 Copyright 2007 Stuart Mitchell
 """
+from typing import Any, Dict
 from setuptools import setup
 
 readme_name = "README.rst"
 Description = open(readme_name).read()
 
 # read the version number safely from the constants.py file
-version_dict = {}
+version_dict: Dict[str, Any] = {}
 exec(open("pulp/constants.py").read(), version_dict)
 VERSION = version_dict["VERSION"]
 
