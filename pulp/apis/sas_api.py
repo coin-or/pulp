@@ -183,7 +183,6 @@ class SAS94(SASsolver):
             keepFiles=False,
             warmStart=False,
             timeLimit=None,
-            sas=None,
             **solverParams,
         ):
             """
@@ -191,7 +190,6 @@ class SAS94(SASsolver):
             :param bool msg: if False, no log is shown
             :param bool keepFiles: if False, mps and mst files will not be saved
             :param bool warmStart: if False, no warmstart or initial primal solution provided
-            :param object sas: sas session. It must be provided by the user.
             :param solverParams: SAS proc OPTMILP or OPTLP parameters
             """
             SASsolver.__init__(
@@ -201,9 +199,14 @@ class SAS94(SASsolver):
                 keepFiles=keepFiles,
                 warmStart=warmStart,
                 timeLimit=timeLimit,
-                sas=sas,
                 **solverParams,
             )
+            self.sas = None
+
+
+        def __del__(self):
+            if self.sas:
+                self.sas.endsas()
 
         def available(self):
             """True if SAS94 is available."""
@@ -211,10 +214,9 @@ class SAS94(SASsolver):
 
         def sasAvailable(self):
             try:
-                if self.optionsDict.get("sas", None) is None:
-                    return False
-                sas = self.optionsDict.get("sas", None)
-                sas.sasver
+                if not self.sas:
+                    self.sas = saspy.SASsession()
+                self.sas.sasver
                 return True
             except:
                 return False
@@ -222,10 +224,12 @@ class SAS94(SASsolver):
         def actualSolve(self, lp):
             """Solve a well formulated lp problem"""
             log.debug("Running SAS")
+
             if not self.sasAvailable():
                 raise PulpSolverError(
-                    "SAS94: Provide a valid SAS session by parameter sas=."
+                    "SAS94: Cannot connect to a SAS session."
                 )
+            sas = self.sas
             if len(lp.sos1) or len(lp.sos2):
                 raise PulpSolverError(
                     "SAS94: Currently SAS doesn't support SOS1 and SOS2."
@@ -245,13 +249,15 @@ class SAS94(SASsolver):
 
             proc = "OPTMILP" if self.mip else "OPTLP"
 
+            optionList = ["warmStart", "decomp", "decompmaster",
+                        "decompsubprob", "rootnode"]
+
             solverOptions = {
                 key: self.optionsDict[key]
                 for key in self.optionsDict.keys()
-                if key not in ["warmStart", "sas", "cas"]
+                if key not in optionList
             }
-            warmStart = self.optionsDict.get("warmStart")
-            sas = self.optionsDict.get("sas")
+            warmStart = self.optionsDict.get("warmStart", None)
 
             # Get Obj Sense
             if lp.sense == constants.LpMaximize:
@@ -418,7 +424,7 @@ class SASCAS(SASsolver):
             keepFiles=False,
             warmStart=False,
             timeLimit=None,
-            cas=None,
+            casOptions={},
             **solverParams,
         ):
             """
@@ -426,7 +432,7 @@ class SASCAS(SASsolver):
             :param bool msg: if False, no log is shown
             :param bool keepFiles: if False, mps and mst files will not be saved
             :param bool warmStart: if False, no warmstart or initial primal solution provided
-            :param cas: CAS object. See swat.CAS
+            :param dict casOptions: options for cas connection.
             :param solverParams: SAS proc OPTMILP or OPTLP parameters
             """
             SASsolver.__init__(
@@ -436,21 +442,27 @@ class SASCAS(SASsolver):
                 keepFiles=keepFiles,
                 warmStart=warmStart,
                 timeLimit=timeLimit,
-                cas=cas,
+                casOptions=casOptions,
                 **solverParams,
             )
+            self.cas = None
+
+        def __del__(self):
+            if self.cas:
+                self.cas.close()
 
         def available(self):
             return True
 
         def sasAvailable(self):
             try:
-                if self.optionsDict.get("cas", None) is None:
-                    return False
+                if not self.cas:
+                    casOptions = self.optionsDict.get("casOptions", None)
+                    self.cas = swat.CAS(**casOptions)
+
                 with redirect_stdout(SASLogWriter(self.msg)) as self._log_writer:
                     # Load the optimization action set
-                    cas = self.optionsDict.get("cas", None)
-                    cas.loadactionset("optimization")
+                    self.cas.loadactionset("optimization")
                     return True
             except:
                 return False
@@ -461,9 +473,9 @@ class SASCAS(SASsolver):
 
             if not self.sasAvailable():
                 raise PulpSolverError(
-                    """SASCAS: Provide a valid CAS session by parameter cas=."""
+                    """SASCAS: Cannot connect to a CAS session."""
                 )
-
+            s = self.cas
             if len(lp.sos1) or len(lp.sos2):
                 raise PulpSolverError(
                     "SASCAS: Currently SAS doesn't support SOS1 and SOS2."
@@ -472,10 +484,10 @@ class SASCAS(SASsolver):
             solverOptions = {
                 key: self.optionsDict[key]
                 for key in self.optionsDict.keys()
-                if key not in ["warmStart", "sas", "cas"]
+                if key not in ["warmStart", "casOptions"]
             }
             warmStart = self.optionsDict.get("warmStart")
-            s = self.optionsDict.get("cas")
+
 
             proc = "OPTMILP" if self.mip else "OPTLP"
             # Get Obj Sense
@@ -546,8 +558,6 @@ class SASCAS(SASsolver):
                 finally:
                     self.delete_tmp_files(tmpMps, tmpMstCsv, tmpMpsCsv)
 
-            if self.msg:
-                print(self._log_writer.log())
             if status:
                 return status
             else:
@@ -556,63 +566,63 @@ class SASCAS(SASsolver):
                                 {lp.name} via SASCAS."
                 )
 
-    def _get_output(self, lp, s, r, proc, postfix):
-        self._macro = {
-            "STATUS": r.get("status", "ERROR").upper(),
-            "SOLUTION_STATUS": r.get("solutionStatus", "ERROR").upper(),
-        }
-        if self._macro.get("STATUS", "ERROR") != "OK":
-            raise PulpSolverError(
-                "PuLP: Error ({err_name}) while trying to solve the instance: {name}".format(
-                    err_name=self._macro.get("STATUS", "ERROR"), name=lp.name
+        def _get_output(self, lp, s, r, proc, postfix):
+            self._macro = {
+                "STATUS": r.get("status", "ERROR").upper(),
+                "SOLUTION_STATUS": r.get("solutionStatus", "ERROR").upper(),
+            }
+            if self._macro.get("STATUS", "ERROR") != "OK":
+                raise PulpSolverError(
+                    "PuLP: Error ({err_name}) while trying to solve the instance: {name}".format(
+                        err_name=self._macro.get("STATUS", "ERROR"), name=lp.name
+                    )
                 )
-            )
-        # If we get solution successfully.
-        if proc == "OPTMILP":
-            primal_out = s.CASTable(name=f"primalout{postfix}")
-            primal_out = primal_out[["_VAR_", "_VALUE_", "_STATUS_", "_R_COST_"]]
-            dual_out = None
-        else:
-            primal_out = s.CASTable(name=f"primalout{postfix}")
-            primal_out = primal_out[["_VAR_", "_VALUE_", "_STATUS_", "_R_COST_"]]
-            dual_out = s.CASTable(name=f"dualout{postfix}")
-            dual_out = dual_out[["_ROW_", "_VALUE_", "_STATUS_", "_ACTIVITY_"]]
-        return primal_out, dual_out
+            # If we get solution successfully.
+            if proc == "OPTMILP":
+                primal_out = s.CASTable(name=f"primalout{postfix}")
+                primal_out = primal_out[["_VAR_", "_VALUE_", "_STATUS_", "_R_COST_"]]
+                dual_out = None
+            else:
+                primal_out = s.CASTable(name=f"primalout{postfix}")
+                primal_out = primal_out[["_VAR_", "_VALUE_", "_STATUS_", "_R_COST_"]]
+                dual_out = s.CASTable(name=f"dualout{postfix}")
+                dual_out = dual_out[["_ROW_", "_VALUE_", "_STATUS_", "_ACTIVITY_"]]
+            return primal_out, dual_out
 
-    def _load_mps(self, s, tmpMps, tmpMpsCsv, postfix, nameLen):
-        if os.stat(tmpMps).st_size >= 2 * 1024**3:
-            # For large files, use convertMPS, first create file for upload
-            with open(tmpMpsCsv, "w") as mpsWithId:
-                mpsWithId.write("_ID_\tText\n")
-                with open(tmpMps, "r") as f:
-                    id = 0
-                    for line in f:
-                        id += 1
-                        mpsWithId.write(str(id) + "\t" + line.rstrip() + "\n")
+        def _load_mps(self, s, tmpMps, tmpMpsCsv, postfix, nameLen):
+            if os.stat(tmpMps).st_size >= 2 * 1024**3:
+                # For large files, use convertMPS, first create file for upload
+                with open(tmpMpsCsv, "w") as mpsWithId:
+                    mpsWithId.write("_ID_\tText\n")
+                    with open(tmpMps, "r") as f:
+                        id = 0
+                        for line in f:
+                            id += 1
+                            mpsWithId.write(str(id) + "\t" + line.rstrip() + "\n")
 
-            # Upload .mps.csv file
-            s.upload_file(
-                tmpMpsCsv,
-                casout={"name": f"mpscsv{postfix}", "replace": True},
-                importoptions={"filetype": "CSV", "delimiter": "\t"},
-            )
+                # Upload .mps.csv file
+                s.upload_file(
+                    tmpMpsCsv,
+                    casout={"name": f"mpscsv{postfix}", "replace": True},
+                    importoptions={"filetype": "CSV", "delimiter": "\t"},
+                )
 
-            # Convert .mps.csv file to .mps
-            s.optimization.convertMps(
-                data=f"mpscsv{postfix}",
-                casOut={"name": f"mpsdata{postfix}", "replace": True},
-                format="FREE",
-                maxLength=min(nameLen, MAX_NAME_LENGTH),
-            )
-        else:
-            # For small files, use loadMPS
-            with open(tmpMps, "r") as mps_file:
-                s.optimization.loadMps(
-                    mpsFileString=mps_file.read(),
-                    casout={"name": f"mpsdata{postfix}", "replace": True},
+                # Convert .mps.csv file to .mps
+                s.optimization.convertMps(
+                    data=f"mpscsv{postfix}",
+                    casOut={"name": f"mpsdata{postfix}", "replace": True},
                     format="FREE",
                     maxLength=min(nameLen, MAX_NAME_LENGTH),
                 )
+            else:
+                # For small files, use loadMPS
+                with open(tmpMps, "r") as mps_file:
+                    s.optimization.loadMps(
+                        mpsFileString=mps_file.read(),
+                        casout={"name": f"mpsdata{postfix}", "replace": True},
+                        format="FREE",
+                        maxLength=min(nameLen, MAX_NAME_LENGTH),
+                    )
 
 
 class SASLogWriter:
