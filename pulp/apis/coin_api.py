@@ -182,8 +182,10 @@ class COIN_CMD(LpSolver_CMD):
                 "Pulp: Error while trying to execute, use msg=True for more details"
                 + self.path
             )
-        if pipe:
+        try:
             pipe.close()
+        except:
+            pass
         if not os.path.exists(tmpSol):
             raise PulpSolverError("Pulp: Error while executing " + self.path)
         (
