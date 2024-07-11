@@ -836,12 +836,11 @@ class BaseSolverTest:
             data = prob.toDict()
             var1, prob1 = LpProblem.fromDict(data)
             x, y, z, w = (var1[name] for name in ["x", "y", "z", "w"])
-            if self.solver.name in ["HiGHS"]:
-                # HiGHS has issues with displaying output in Ubuntu
-                return
-            self.solver.msg = True
             pulpTestCheck(
-                prob1, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0}
+                prob1,
+                self.solveInst(msg=True),
+                [const.LpStatusOptimal],
+                {x: 4, y: -1, z: 6, w: 0},
             )
 
         def test_pulpTestAll(self):
@@ -1278,6 +1277,7 @@ class BaseSolverTest:
                 CPLEX_CMD=50,
                 GUROBI=50,
                 HiGHS=50,
+                HiGHS_CMD=50,
             )
             bins = solver_settings.get(self.solver.name)
             if bins is None:
@@ -1308,7 +1308,7 @@ class BaseSolverTest:
             print("\t Test time limit with no solution")
 
             time_limit = 1
-            solver_settings = dict(HiGHS=50, PULP_CBC_CMD=30, COIN_CMD=30)
+            solver_settings = dict(HiGHS_CMD=50, HiGHS=50, PULP_CBC_CMD=30, COIN_CMD=30)
             bins = solver_settings.get(self.solver.name)
             if bins is None:
                 # not all solvers have timeLimit support
