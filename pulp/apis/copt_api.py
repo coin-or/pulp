@@ -902,13 +902,14 @@ class COPT(LpSolver):
             # workaround to deactivate logging when msg=False
             if not self.msg:
                 oldstdout_fno = os.dup(sys.stdout.fileno())
+                # for some reason, using os.devnull does not work.
                 if operating_system == "win":
                     # windows doesn't have /dev/null
-                    os.dup2(0, 1)
+                    devnull = open('nul', "w")
                 else:
                     # linux and mac should have /dev/null
                     devnull = open("/dev/null", "w")
-                    os.dup2(devnull.fileno(), 1)
+                os.dup2(devnull.fileno(), 1)
                 self.coptenv = coptpy.Envr()
                 self.coptmdl = self.coptenv.createModel()
                 os.dup2(oldstdout_fno, 1)
