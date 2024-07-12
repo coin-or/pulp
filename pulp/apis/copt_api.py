@@ -905,7 +905,7 @@ class COPT(LpSolver):
                 # for some reason, using os.devnull does not work.
                 if operating_system == "win":
                     # windows doesn't have /dev/null
-                    devnull = open('nul', "w")
+                    devnull = open("nul", "w")
                 else:
                     # linux and mac should have /dev/null
                     devnull = open("/dev/null", "w")
