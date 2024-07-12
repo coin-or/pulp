@@ -909,10 +909,10 @@ class COPT(LpSolver):
                 else:
                     # linux and mac should have /dev/null
                     devnull = open("/dev/null", "w")
-                os.dup2(devnull.fileno(), 1)
+                os.dup2(devnull.fileno(), sys.stdout.fileno())
                 self.coptenv = coptpy.Envr()
                 self.coptmdl = self.coptenv.createModel()
-                os.dup2(oldstdout_fno, 1)
+                os.dup2(oldstdout_fno, sys.stdout.fileno())
             else:
                 self.coptenv = coptpy.Envr()
                 self.coptmdl = self.coptenv.createModel()
