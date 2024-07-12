@@ -151,7 +151,7 @@ def listSolvers(onlyAvailable=False):
     """
     result = []
     for s in _all_solvers:
-        solver = s(msg=False)
+        solver = s()
         if (not onlyAvailable) or solver.available():
             result.append(solver.name)
         del solver
