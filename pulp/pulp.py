@@ -104,12 +104,7 @@ from .utilities import value
 from . import constants as const
 from . import mps_lp as mpslp
 
-try:
-    from collections.abc import Iterable
-except ImportError:
-    # python 2.7 compatible
-    from collections.abc import Iterable
-
+from collections.abc import Iterable
 import logging
 
 log = logging.getLogger(__name__)
