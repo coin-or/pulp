@@ -440,7 +440,8 @@ class GUROBI_CMD(LpSolver_CMD):
             # normal execution
             return True
         # error: we display the gurobi message
-        warnings.warn(f"GUROBI error: {out}.")
+        if self.msg:
+            warnings.warn(f"GUROBI error: {out}.")
         return False
 
     def actualSolve(self, lp):

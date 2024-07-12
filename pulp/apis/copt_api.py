@@ -6,7 +6,7 @@ import warnings
 
 from uuid import uuid4
 from .core import sparse, ctypesArrayFill, PulpSolverError
-from .core import clock, log
+from .core import clock
 
 from .core import LpSolver, LpSolver_CMD
 from ..constants import (
@@ -894,9 +894,17 @@ class COPT(LpSolver):
                 logPath=logPath,
                 warmStart=warmStart,
             )
-
-            self.coptenv = coptpy.Envr()
-            self.coptmdl = self.coptenv.createModel()
+            # workaround to deactivate logging when msg=False
+            if not self.msg:
+                devnull = open("/dev/null", "w")
+                oldstdout_fno = os.dup(sys.stdout.fileno())
+                os.dup2(devnull.fileno(), 1)
+                self.coptenv = coptpy.Envr()
+                self.coptmdl = self.coptenv.createModel()
+                os.dup2(oldstdout_fno, 1)
+            else:
+                self.coptenv = coptpy.Envr()
+                self.coptmdl = self.coptenv.createModel()
 
             if not self.msg:
                 self.coptmdl.setParam("Logging", 0)
