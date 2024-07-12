@@ -5,10 +5,15 @@ import subprocess
 import warnings
 
 from uuid import uuid4
-from .core import sparse, ctypesArrayFill, PulpSolverError
-from .core import clock
-
-from .core import LpSolver, LpSolver_CMD
+from .core import (
+    sparse,
+    ctypesArrayFill,
+    PulpSolverError,
+    LpSolver,
+    LpSolver_CMD,
+    clock,
+    operating_system,
+)
 from ..constants import (
     LpStatusNotSolved,
     LpStatusOptimal,
@@ -896,9 +901,14 @@ class COPT(LpSolver):
             )
             # workaround to deactivate logging when msg=False
             if not self.msg:
-                devnull = open("/dev/null", "w")
                 oldstdout_fno = os.dup(sys.stdout.fileno())
-                os.dup2(devnull.fileno(), 1)
+                if operating_system == "win":
+                    # windows doesn't have /dev/null
+                    os.dup2(0, 1)
+                else:
+                    # linux and mac should have /dev/null
+                    devnull = open("/dev/null", "w")
+                    os.dup2(devnull.fileno(), 1)
                 self.coptenv = coptpy.Envr()
                 self.coptmdl = self.coptenv.createModel()
                 os.dup2(oldstdout_fno, 1)
