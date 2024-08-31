@@ -1,0 +1,2 @@
+[tool.mypy]
+exclude = ['32', '64']
