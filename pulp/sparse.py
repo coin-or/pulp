@@ -38,9 +38,9 @@ class Matrix(dict):
         self.rows = rows
         self.cols = cols
         self.rowdict = {row: {} for row in rows}
-        self.coldict = {col: {} for col in cols}
+        self.coldict: dict[int, dict] = {col: {} for col in cols}
 
-    def add(self, row, col, item, colcheck=False, rowcheck=False):
+    def add(self, row, col, item, colcheck: bool = False, rowcheck: bool = False):
         if not (rowcheck and row not in self.rows):
             if not (colcheck and col not in self.cols):
                 dict.__setitem__(self, (row, col), item)
