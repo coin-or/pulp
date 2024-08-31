@@ -1,3 +1,5 @@
+.. _blending_problem:
+
 A Blending Problem 
 ===================
 

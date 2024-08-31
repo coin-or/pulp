@@ -56,11 +56,18 @@
 <li class="toctree-l2"><a class="reference internal" href="amply.html">Amply</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">README</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#installation">Installation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#documentation">Documentation</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#building-the-documentation">Building the documentation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#quickstart">Quickstart</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#essential-classes">Essential Classes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#useful-functions">Useful Functions</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="#more-examples">More Examples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#for-developers">For Developers</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#building-the-documentation">Building the documentation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#contributing-to-pulp">Contributing to PuLP</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#copyright-and-license">Copyright and License</a></li>
 </ul>
 </li>
 </ul>
@@ -102,61 +109,46 @@
 <a class="reference external image-reference" href="https://travis-ci.org/coin-or/pulp"><img alt="https://travis-ci.org/coin-or/pulp.svg?branch=master" src="https://travis-ci.org/coin-or/pulp.svg?branch=master" /></a>
 <a class="reference external image-reference" href="https://pypi.org/project/PuLP/"><img alt="PyPI" src="https://img.shields.io/pypi/v/pulp" /></a>
 <a class="reference external image-reference" href="https://pypi.org/project/PuLP/"><img alt="PyPI - Downloads" src="https://img.shields.io/pypi/dm/pulp" /></a>
-<p>PuLP is an LP modeler written in Python. PuLP can generate MPS or LP files and call <a class="reference external" href="http://www.gnu.org/software/glpk/glpk.html">GLPK</a>, COIN-OR CLP/<a class="reference external" href="https://github.com/coin-or/Cbc">CBC</a>, <a class="reference external" href="http://www.cplex.com/">CPLEX</a>, <a class="reference external" href="http://www.gurobi.com/">GUROBI</a>, <a class="reference external" href="https://www.mosek.com/">MOSEK</a>, <a class="reference external" href="https://www.fico.com/es/products/fico-xpress-solver">XPRESS</a>, <a class="reference external" href="https://choco-solver.org/">CHOCO</a>, <a class="reference external" href="http://mipcl-cpp.appspot.com/">MIPCL</a>, <a class="reference external" href="https://highs.dev">HiGHS</a>, <a class="reference external" href="https://www.scipopt.org/">SCIP</a>/<a class="reference external" href="https://ug.zib.de">FSCIP</a> to solve linear problems.</p>
+<p>PuLP is an linear and mixed integer programming modeler written in Python. With PuLP, it is simple to create MILP optimisation problems and solve them with the latest open-source (or proprietary) solvers.  PuLP can generate MPS or LP files and call solvers such as <a class="reference external" href="http://www.gnu.org/software/glpk/glpk.html">GLPK</a>, COIN-OR CLP/<a class="reference external" href="https://github.com/coin-or/Cbc">CBC</a>, <a class="reference external" href="http://www.cplex.com/">CPLEX</a>, <a class="reference external" href="http://www.gurobi.com/">GUROBI</a>, <a class="reference external" href="https://www.mosek.com/">MOSEK</a>, <a class="reference external" href="https://www.fico.com/es/products/fico-xpress-solver">XPRESS</a>, <a class="reference external" href="https://choco-solver.org/">CHOCO</a>, <a class="reference external" href="http://mipcl-cpp.appspot.com/">MIPCL</a>, <a class="reference external" href="https://highs.dev">HiGHS</a>, <a class="reference external" href="https://www.scipopt.org/">SCIP</a>/<a class="reference external" href="https://ug.zib.de">FSCIP</a>.</p>
+<p>The documentation for PuLP can be <a class="reference external" href="https://coin-or.github.io/pulp/">found here</a>.</p>
+<p>PuLP is part of the <a class="reference external" href="https://www.coin-or.org/">COIN-OR project</a>.</p>
 <section id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h2>
-<p>The easiest way to install pulp is via <a class="reference external" href="https://pypi.python.org/pypi/PuLP">PyPi</a></p>
-<p>If pip is available on your system:</p>
+<p>PuLP requires Python 3.7 or newer.</p>
+<p>The easiest way to install PuLP is with <code class="docutils literal notranslate"><span class="pre">pip</span></code>. If <code class="docutils literal notranslate"><span class="pre">pip</span></code> is available on your system, type:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">pulp</span>
 </pre></div>
 </div>
-<p>Otherwise follow the download instructions on the PyPi page.</p>
-<p>If you want to install the latest version from github you can run the following:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">U</span> <span class="n">git</span><span class="o">+</span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">coin</span><span class="o">-</span><span class="ow">or</span><span class="o">/</span><span class="n">pulp</span>
-</pre></div>
-</div>
-<p>On Linux and OSX systems the tests must be run to make the default
-solver executable.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">pulptest</span>
-</pre></div>
-</div>
+<p>Otherwise follow the download instructions on the <a class="reference external" href="https://pypi.python.org/pypi/PuLP">PyPi page</a>.</p>
 </section>
-<section id="examples">
-<h2>Examples<a class="headerlink" href="#examples" title="Link to this heading"></a></h2>
-<p>See the examples directory for examples.</p>
-<p>PuLP requires Python 3.7 or newer.</p>
-<p>The examples use the default solver (CBC). To use other solvers they must be available (installed and accessible). For more information on how to do that, see the <a class="reference external" href="https://coin-or.github.io/pulp/guides/how_to_configure_solvers.html">guide on configuring solvers</a>.</p>
-</section>
-<section id="documentation">
-<h2>Documentation<a class="headerlink" href="#documentation" title="Link to this heading"></a></h2>
-<p>Documentation is found on <a class="reference external" href="https://coin-or.github.io/pulp/">https://coin-or.github.io/pulp/</a>.</p>
-<p>Use LpVariable() to create new variables. To create a variable 0 &lt;= x &lt;= 3:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">LpVariable</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<section id="quickstart">
+<h2>Quickstart<a class="headerlink" href="#quickstart" title="Link to this heading"></a></h2>
+<p>Use <code class="docutils literal notranslate"><span class="pre">LpVariable</span></code> to create new variables. To create a variable x with 0  ≤  x  ≤  3:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pulp</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">LpVariable</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>To create a variable 0 &lt;= y &lt;= 1:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">y</span> <span class="o">=</span> <span class="n">LpVariable</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<p>To create a binary variable, y, with values either 0 or 1:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">y</span> <span class="o">=</span> <span class="n">LpVariable</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="n">cat</span><span class="o">=</span><span class="s2">&quot;Binary&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Use LpProblem() to create new problems. Create “myProblem”:</p>
+<p>Use <code class="docutils literal notranslate"><span class="pre">LpProblem</span></code> to create new problems. Create a problem called “myProblem” like so:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">prob</span> <span class="o">=</span> <span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;myProblem&quot;</span><span class="p">,</span> <span class="n">LpMinimize</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Combine variables to create expressions and constraints, then add them to the
-problem:</p>
+<p>Combine variables in order to create expressions and constraints, and then add them to the problem.:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="mi">2</span>
 </pre></div>
 </div>
-<p>If you add an expression (not a constraint), it will
-become the objective:</p>
+<p>An expression is a constraint without a right-hand side (RHS) sense (one of <code class="docutils literal notranslate"><span class="pre">=</span></code>, <code class="docutils literal notranslate"><span class="pre">&lt;=</span></code> or <code class="docutils literal notranslate"><span class="pre">&gt;=</span></code>). If you add an expression to a problem, it will become the objective:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">prob</span> <span class="o">+=</span> <span class="o">-</span><span class="mi">4</span><span class="o">*</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span>
 </pre></div>
 </div>
-<p>To solve with the default included solver:</p>
+<p>To solve the problem  with the default included solver:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">status</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>To use another sovler to solve the problem:</p>
+<p>If you want to try another solver to solve the problem:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">status</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">GLPK</span><span class="p">(</span><span class="n">msg</span> <span class="o">=</span> <span class="mi">0</span><span class="p">))</span>
 </pre></div>
 </div>
@@ -165,28 +157,48 @@ become the objective:</p>
 <span class="o">&gt;</span> <span class="s1">&#39;Optimal&#39;</span>
 </pre></div>
 </div>
-<p>You can get the value of the variables using value(). ex:</p>
+<p>You can get the value of the variables using <code class="docutils literal notranslate"><span class="pre">value</span></code>. ex:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">value</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 <span class="o">&gt;</span> <span class="mf">2.0</span>
 </pre></div>
 </div>
-<p>Exported Classes:</p>
+<section id="essential-classes">
+<h3>Essential Classes<a class="headerlink" href="#essential-classes" title="Link to this heading"></a></h3>
 <ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">LpProblem</span></code> – Container class for a Linear programming problem</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">LpVariable</span></code> – Variables that are added to constraints in the LP</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">LpConstraint</span></code> – A constraint of the general form</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">LpProblem</span></code> – Container class for a Linear or Integer programming problem</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LpVariable</span></code> – Variables that are added into constraints in the LP problem</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LpConstraint</span></code> – Constraints of the general form</p>
 <blockquote>
-<div><p>a1x1+a2x2 …anxn (&lt;=, =, &gt;=) b</p>
+<div><p>a1x1 + a2x2 + … + anxn (&lt;=, =, &gt;=) b</p>
 </div></blockquote>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">LpConstraintVar</span></code> – Used to construct a column of the model in column-wise modelling</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LpConstraintVar</span></code> – A special type of constraint for constructing column of the model in column-wise modelling</p></li>
 </ul>
-<p>Exported Functions:</p>
+</section>
+<section id="useful-functions">
+<h3>Useful Functions<a class="headerlink" href="#useful-functions" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">value()</span></code> – Finds the value of a variable or expression</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">lpSum()</span></code> – given a list of the form [a1*x1, a2x2, …, anxn] will construct a linear expression to be used as a constraint or variable</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">lpDot()</span></code> –given two lists of the form [a1, a2, …, an] and [ x1, x2, …, xn] will construct a linear expression to be used as a constraint or variable</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lpSum()</span></code> – Given a list of the form [a1*x1, a2*x2, …, an*xn] will construct a linear expression to be used as a constraint or variable</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lpDot()</span></code> – Given two lists of the form [a1, a2, …, an] and [x1, x2, …, xn] will construct a linear expression to be used as a constraint or variable</p></li>
 </ul>
+</section>
+</section>
+<section id="more-examples">
+<h2>More Examples<a class="headerlink" href="#more-examples" title="Link to this heading"></a></h2>
+<p>Several tutorial are given in <a class="reference external" href="https://coin-or.github.io/pulp/CaseStudies/index.html">documentation</a> and pure code examples are available in <a class="reference external" href="https://github.com/coin-or/pulp/tree/master/examples">examples/ directory</a> .</p>
+<p>The examples use the default solver (CBC). To use other solvers they must be available (installed and accessible). For more information on how to do that, see the <a class="reference external" href="https://coin-or.github.io/pulp/guides/how_to_configure_solvers.html">guide on configuring solvers</a>.</p>
+</section>
+<section id="for-developers">
+<h2>For Developers<a class="headerlink" href="#for-developers" title="Link to this heading"></a></h2>
+<p>If you want to install the latest version from GitHub you can run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">U</span> <span class="n">git</span><span class="o">+</span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">coin</span><span class="o">-</span><span class="ow">or</span><span class="o">/</span><span class="n">pulp</span>
+</pre></div>
+</div>
+<p>On Linux and MacOS systems, you must run the tests to make the default solver executable:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">pulptest</span>
+</pre></div>
+</div>
 <section id="building-the-documentation">
 <h3>Building the documentation<a class="headerlink" href="#building-the-documentation" title="Link to this heading"></a></h3>
 <p>The PuLP documentation is built with <a class="reference external" href="https://www.sphinx-doc.org">Sphinx</a>.  We recommended using a
@@ -200,19 +212,26 @@ become the objective:</p>
 </div>
 <p>A folder named html will be created inside the <code class="docutils literal notranslate"><span class="pre">build/</span></code> directory.
 The home page for the documentation is <code class="docutils literal notranslate"><span class="pre">doc/build/html/index.html</span></code> which can be opened in a browser.</p>
-<p><strong>Comments, bug reports, patches and suggestions are welcome.</strong></p>
-<ul>
+</section>
+<section id="contributing-to-pulp">
+<h3>Contributing to PuLP<a class="headerlink" href="#contributing-to-pulp" title="Link to this heading"></a></h3>
+<p>Instructions for making your first contribution to PuLP are given <a class="reference external" href="https://coin-or.github.io/pulp/develop/contribute.html">here</a>.</p>
+<p><strong>Comments, bug reports, patches and suggestions are very welcome!</strong></p>
+<ul class="simple">
 <li><p>Comments and suggestions: <a class="reference external" href="https://github.com/coin-or/pulp/discussions">https://github.com/coin-or/pulp/discussions</a></p></li>
 <li><p>Bug reports: <a class="reference external" href="https://github.com/coin-or/pulp/issues">https://github.com/coin-or/pulp/issues</a></p></li>
-<li><p>Patches: <a class="reference external" href="https://github.com/coin-or/pulp/pulls">https://github.com/coin-or/pulp/pulls</a></p>
+<li><p>Patches: <a class="reference external" href="https://github.com/coin-or/pulp/pulls">https://github.com/coin-or/pulp/pulls</a></p></li>
+</ul>
+</section>
+</section>
+<section id="copyright-and-license">
+<h2>Copyright and License<a class="headerlink" href="#copyright-and-license" title="Link to this heading"></a></h2>
+<p>PuLP is distributed under an MIT license.</p>
 <blockquote>
 <div><p>Copyright J.S. Roy, 2003-2005
 Copyright Stuart A. Mitchell
 See the LICENSE file for copyright information.</p>
 </div></blockquote>
-</li>
-</ul>
-</section>
 </section>
 </section>
 
