@@ -2264,13 +2264,17 @@ def lpSum(vector):
     return LpAffineExpression().addInPlace(vector)
 
 
+def _vector_like(obj):
+    return isinstance(obj, Iterable) and not isinstance(obj, LpAffineExpression)
+
+
 def lpDot(v1, v2):
     """Calculate the dot product of two lists of linear expressions"""
-    if not const.isiterable(v1) and not const.isiterable(v2):
+    if not _vector_like(v1) and not _vector_like(v2):
         return v1 * v2
-    elif not const.isiterable(v1):
+    elif not _vector_like(v1):
         return lpDot([v1] * len(v2), v2)
-    elif not const.isiterable(v2):
+    elif not _vector_like(v2):
         return lpDot(v1, [v2] * len(v1))
     else:
         return lpSum([lpDot(e1, e2) for e1, e2 in zip(v1, v2)])

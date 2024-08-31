@@ -87,15 +87,6 @@ LpConstraintSenses = {LpConstraintEQ: "=", LpConstraintLE: "<=", LpConstraintGE:
 LpCplexLPLineSize = 78
 
 
-def isiterable(obj):
-    try:
-        obj = iter(obj)
-    except:
-        return False
-    else:
-        return True
-
-
 class PulpError(Exception):
     """
     Pulp Exception Class
