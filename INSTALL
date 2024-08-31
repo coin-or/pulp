@@ -120,5 +120,5 @@ Solver pulp.solvers.YAPOSIB unavailable
 .. _`installing python`: http://www.diveintopython.org/installing_python/index.html
 .. _github: https://github.com/coin-or/pulp-or
 .. _pip: https://pypi.python.org/pypi/pip
-.. _`PuLP zipfile`: https://github.com/coi-nor/pulp-or/archive/master.zip
+.. _`PuLP zipfile`: https://github.com/coin-or/pulp-or/archive/master.zip
 

@@ -5,10 +5,15 @@ import subprocess
 import warnings
 
 from uuid import uuid4
-from .core import sparse, ctypesArrayFill, PulpSolverError
-from .core import clock, log
-
-from .core import LpSolver, LpSolver_CMD
+from .core import (
+    sparse,
+    ctypesArrayFill,
+    PulpSolverError,
+    LpSolver,
+    LpSolver_CMD,
+    clock,
+    operating_system,
+)
 from ..constants import (
     LpStatusNotSolved,
     LpStatusOptimal,
@@ -894,7 +899,6 @@ class COPT(LpSolver):
                 logPath=logPath,
                 warmStart=warmStart,
             )
-
             self.coptenv = coptpy.Envr()
             self.coptmdl = self.coptenv.createModel()
 
