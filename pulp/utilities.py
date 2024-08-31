@@ -1,6 +1,8 @@
 # Utility functions
-import itertools
 import collections
+import itertools
+from itertools import combinations as combination
+from itertools import permutations as permutation
 
 
 def resource_clock():
@@ -30,54 +32,6 @@ def valueOrDefault(x):
         return x
     else:
         return x.valueOrDefault()
-
-
-def __combination(orgset, k):
-    """
-    fall back if probstat is not installed note it is GPL so cannot
-    be included
-    """
-    if k == 1:
-        for i in orgset:
-            yield (i,)
-    elif k > 1:
-        for i, x in enumerate(orgset):
-            # iterates though to near the end
-            for s in __combination(orgset[i + 1 :], k - 1):
-                yield (x,) + s
-
-
-try:  # python >= 3.4
-    from itertools import combinations as combination
-except ImportError:
-    try:  # python 2.7
-        from itertools import combination
-    except ImportError:  # pulp's
-        combination = __combination
-
-
-def __permutation(orgset, k):
-    """
-    fall back if probstat is not installed note it is GPL so cannot
-    be included
-    """
-    if k == 1:
-        for i in orgset:
-            yield (i,)
-    elif k > 1:
-        for i, x in enumerate(orgset):
-            # iterates though to near the end
-            for s in __permutation(orgset[:i] + orgset[i + 1 :], k - 1):
-                yield (x,) + s
-
-
-try:  # python >= 3.4
-    from itertools import permutations as permutation
-except ImportError:
-    try:  # python 2.7
-        from itertools import permutation
-    except ImportError:  # pulp's
-        permutation = __permutation
 
 
 def allpermutations(orgset, k):
