@@ -26,70 +26,101 @@
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 """
-PuLP is an LP modeler written in python. PuLP can generate MPS or LP files
-and call GLPK[1], COIN CLP/CBC[2], CPLEX[3], GUROBI[4] and MOSEK[5] to solve linear
-problems.
+PuLP is an linear and mixed integer programming modeler written in Python.
 
-See the examples directory for examples.
+With PuLP, it is simple to create MILP optimisation problems and solve them with the
+latest open-source (or proprietary) solvers.  PuLP can generate MPS or LP files and
+call solvers such as GLPK_, COIN-OR CLP/`CBC`_, CPLEX_, GUROBI_, MOSEK_, XPRESS_,
+CHOCO_, MIPCL_, HiGHS_, SCIP_/FSCIP_.
 
+The documentation for PuLP can be `found here <https://coin-or.github.io/pulp/>`_.
+
+Many examples are shown in the `documentation <https://coin-or.github.io/pulp/CaseStudies/index.html>`_
+and pure code examples are available in `examples/ directory <https://github.com/coin-or/pulp/tree/master/examples>`_ .
 The examples require at least a solver in your PATH or a shared library file.
 
-Documentation is found on https://www.coin-or.org/PuLP/.
-A comprehensive wiki can be found at https://www.coin-or.org/PuLP/
+Quickstart
+------------
+Use ``LpVariable`` to create new variables. To create a variable x with 0  ≤  x  ≤  3::
 
-Use LpVariable() to create new variables. To create a variable 0 <= x <= 3
->>> x = LpVariable("x", 0, 3)
+     from pulp import *
+     x = LpVariable("x", 0, 3)
 
-To create a variable 0 <= y <= 1
->>> y = LpVariable("y", 0, 1)
+To create a binary variable, y, with values either 0 or 1::
 
-Use LpProblem() to create new problems. Create "myProblem"
->>> prob = LpProblem("myProblem", const.LpMinimize)
+     y = LpVariable("y", cat="Binary")
 
-Combine variables to create expressions and constraints and add them to the
-problem.
->>> prob += x + y <= 2
+Use ``LpProblem`` to create new problems. Create a problem called "myProblem" like so::
 
-If you add an expression (not a constraint), it will
-become the objective.
->>> prob += -4 * x + y
+     prob = LpProblem("myProblem", LpMinimize)
 
-Choose a solver and solve the problem. ex:
->>> status = prob.solve(PULP_CBC_CMD(msg=0))
+Combine variables in order to create expressions and constraints, and then add them to
+the problem.::
 
-Display the status of the solution
->>> const.LpStatus[status]
-'Optimal'
+     prob += x + y <= 2
 
-You can get the value of the variables using value(). ex:
->>> value(x)
-2.0
+An expression is a constraint without a right-hand side (RHS) sense (one of ``=``,
+``<=`` or ``>=``). If you add an expression to a problem, it will become the
+objective::
 
-Exported Classes:
-    - LpProblem -- Container class for a Linear programming problem
-    - LpVariable -- Variables that are added to constraints in the LP
-    - LpConstraint -- A constraint of the general form
-      a1x1+a2x2 ...anxn (<=, =, >=) b
-    - LpConstraintVar -- Used to construct a column of the model in column-wise
-      modelling
+     prob += -4*x + y
 
-Exported Functions:
-    - value() -- Finds the value of a variable or expression
-    - lpSum() -- given a list of the form [a1*x1, a2x2, ..., anxn] will construct
-      a linear expression to be used as a constraint or variable
-    - lpDot() --given two lists of the form [a1, a2, ..., an] and
-      [ x1, x2, ..., xn] will construct a linear epression to be used
-      as a constraint or variable
+To solve the problem  with the default included solver::
 
-Comments, bug reports, patches and suggestions are welcome.
-https://github.com/coin-or/pulp
+     status = prob.solve()
 
-References:
+If you want to try another solver to solve the problem::
+
+     status = prob.solve(GLPK(msg = 0))
+
+Display the status of the solution::
+
+     LpStatus[status]
+     > 'Optimal'
+
+You can get the value of the variables using ``value``. ex::
+
+     value(x)
+     > 2.0
+
+Useful Classes and Functions
+-----------------------------
+
+Exported classes:
+
+* ``LpProblem`` -- Container class for a Linear or Integer programming problem
+* ``LpVariable`` -- Variables that are added into constraints in the LP problem
+* ``LpConstraint`` -- Constraints of the general form
+
+      a1x1 + a2x2 + ... + anxn (<=, =, >=) b
+
+* ``LpConstraintVar`` -- A special type of constraint for constructing column of the model in column-wise modelling
+
+Exported functions:
+
+* ``value()`` -- Finds the value of a variable or expression
+* ``lpSum()`` -- Given a list of the form [a1*x1, a2*x2, ..., an*xn] will construct a linear expression to be used as a constraint or variable
+* ``lpDot()`` -- Given two lists of the form [a1, a2, ..., an] and [x1, x2, ..., xn] will construct a linear expression to be used as a constraint or variable
+
+Contributing to PuLP
+-----------------------
+Instructions for making your first contribution to PuLP are given
+`here <https://coin-or.github.io/pulp/develop/contribute.html>`_.
+
+**Comments, bug reports, patches and suggestions are very welcome!**
+
+* Comments and suggestions: https://github.com/coin-or/pulp/discussions
+* Bug reports: https://github.com/coin-or/pulp/issues
+* Patches: https://github.com/coin-or/pulp/pulls
+
+References
+----------
 [1] http://www.gnu.org/software/glpk/glpk.html
 [2] http://www.coin-or.org/
 [3] http://www.cplex.com/
 [4] http://www.gurobi.com/
 [5] http://www.mosek.com/
+
 """
 
 from collections import Counter
