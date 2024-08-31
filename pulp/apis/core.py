@@ -163,7 +163,6 @@ if sys.platform in ["win32", "cli"]:
     PULPCFGFILE += ".win"
 elif sys.platform in ["darwin"]:
     operating_system = "osx"
-    arch = "64"
     PULPCFGFILE += ".osx"
 else:
     operating_system = "linux"
