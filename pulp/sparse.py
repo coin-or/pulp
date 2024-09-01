@@ -1,3 +1,6 @@
+from beartype import beartype
+
+
 # Sparse : Python basic dictionary sparse matrix
 
 # Copyright (c) 2007, Stuart Mitchell (s.mitchell@auckland.ac.nz)
@@ -28,19 +31,27 @@ notably this allows the sparse matrix to be output in various formats
 """
 
 
+@beartype
 class Matrix(dict):
     """This is a dictionary based sparse matrix class"""
 
-    def __init__(self, rows, cols):
+    def __init__(self, rows: list[int], cols: list[int]):
         """initialises the class by creating a matrix that will have the given
         rows and columns
         """
-        self.rows = rows
-        self.cols = cols
-        self.rowdict = {row: {} for row in rows}
+        self.rows: list[int] = rows
+        self.cols: list[int] = cols
+        self.rowdict: dict[int, dict] = {row: {} for row in rows}
         self.coldict: dict[int, dict] = {col: {} for col in cols}
 
-    def add(self, row, col, item, colcheck: bool = False, rowcheck: bool = False):
+    def add(
+        self,
+        row: int,
+        col: int,
+        item: str,
+        colcheck: bool = False,
+        rowcheck: bool = False,
+    ):
         if not (rowcheck and row not in self.rows):
             if not (colcheck and col not in self.cols):
                 dict.__setitem__(self, (row, col), item)
@@ -52,7 +63,7 @@ class Matrix(dict):
         else:
             raise RuntimeError(f"row {row} is not in the matrix rows")
 
-    def addcol(self, col, rowitems):
+    def addcol(self, col: int, rowitems: int):
         """adds a column"""
         if col in self.cols:
             for row, item in rowitems.items():
@@ -60,12 +71,15 @@ class Matrix(dict):
         else:
             raise RuntimeError("col is not in the matrix columns")
 
-    def get(self, k, d=0):
+    def get(self, k: int, d: int = 0) -> int:
         return dict.get(self, k, d)
 
-    def col_based_arrays(self):
+    def col_based_arrays(
+        self,
+    ) -> tuple[int, list[int], list[int], list[int], list[str]]:
+
         numEls = len(self)
-        elemBase = []
+        elemBase: list[str] = []
         startsBase = []
         indBase = []
         lenBase = []
@@ -74,5 +88,6 @@ class Matrix(dict):
             elemBase.extend(list(self.coldict[col].values()))
             indBase.extend(list(self.coldict[col].keys()))
             lenBase.append(len(elemBase) - startsBase[-1])
+
         startsBase.append(len(elemBase))
         return numEls, startsBase, lenBase, indBase, elemBase
