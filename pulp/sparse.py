@@ -74,12 +74,9 @@ class Matrix(Generic[T], Dict[Tuple[int, int], T]):
     def get(  # type: ignore[override]
         self,
         coords: Tuple[int, int],
-        default: int = 0,
+        default: T = 0,  # type: ignore[assignment]
     ) -> T:
-        # not actually true unless T == int
-        cast(T, default)
-
-        return cast(T, dict.get(self, coords, default))
+        return dict.get(self, coords, default)
 
     def col_based_arrays(
         self,
