@@ -1,6 +1,7 @@
 import unittest
+
 import pulp
-from pulp.tests import test_pulp, test_examples, test_gurobipy_env, test_sparse
+from pulp.tests import test_examples, test_gurobipy_env, test_pulp, test_sparse
 
 
 def pulpTestAll(test_docs=False):
