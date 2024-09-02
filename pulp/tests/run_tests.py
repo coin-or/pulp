@@ -1,6 +1,6 @@
 import unittest
 import pulp
-from pulp.tests import test_pulp, test_examples, test_gurobipy_env
+from pulp.tests import test_pulp, test_examples, test_gurobipy_env, test_sparse
 
 
 def pulpTestAll(test_docs=False):
@@ -16,20 +16,20 @@ def pulpTestAll(test_docs=False):
         raise pulp.PulpError("Tests Failed")
 
 
-def get_test_suite(test_docs=False):
-    # Tests
+def get_test_suite(test_docs: bool = False) -> unittest.TestSuite:
     loader = unittest.TestLoader()
     suite_all = unittest.TestSuite()
-    # we get suite with all PuLP tests
-    pulp_solver_tests = loader.loadTestsFromModule(test_pulp)
-    suite_all.addTests(pulp_solver_tests)
-    # Add tests for gurobipy env
-    gurobipy_env = loader.loadTestsFromModule(test_gurobipy_env)
-    suite_all.addTests(gurobipy_env)
+
+    suite_all.addTests(loader.loadTestsFromModule(test_pulp))
+    suite_all.addTests(loader.loadTestsFromModule(test_sparse))
+    suite_all.addTests(loader.loadTestsFromModule(test_gurobipy_env))
+
     # We add examples and docs tests
     if test_docs:
-        docs_examples = loader.loadTestsFromTestCase(test_examples.Examples_DocsTests)
-        suite_all.addTests(docs_examples)
+        suite_all.addTests(
+            loader.loadTestsFromTestCase(test_examples.Examples_DocsTests)
+        )
+
     return suite_all
 
 
