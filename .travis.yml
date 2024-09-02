@@ -37,6 +37,8 @@ before_install:
 
 install:
 - pip install .
+- pip install -r requirements-dev.txt
 
-script: pulptest
-
+script:
+  - pulptest
+  - mypy --follow-imports=silent --strict --check-untyped-defs ./pulp/sparse.py
