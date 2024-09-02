@@ -1,5 +1,4 @@
-from typing import Generic, TypeVar, cast
-
+from typing import Dict, Generic, List, Tuple, TypeVar, cast
 
 # Sparse : Python basic dictionary sparse matrix
 
@@ -33,17 +32,17 @@ notably this allows the sparse matrix to be output in various formats
 T = TypeVar("T")
 
 
-class Matrix(Generic[T], dict[tuple[int, int], T]):
+class Matrix(Generic[T], Dict[Tuple[int, int], T]):
     """This is a dictionary based sparse matrix class"""
 
-    def __init__(self, rows: list[int], cols: list[int]):
+    def __init__(self, rows: List[int], cols: List[int]):
         """initialises the class by creating a matrix that will have the given
         rows and columns
         """
-        self.rows: list[int] = rows
-        self.cols: list[int] = cols
-        self.rowdict: dict[int, dict[int, T]] = {row: {} for row in rows}
-        self.coldict: dict[int, dict[int, T]] = {col: {} for col in cols}
+        self.rows: List[int] = rows
+        self.cols: List[int] = cols
+        self.rowdict: Dict[int, Dict[int, T]] = {row: {} for row in rows}
+        self.coldict: Dict[int, Dict[int, T]] = {col: {} for col in cols}
 
     def add(
         self,
@@ -64,7 +63,7 @@ class Matrix(Generic[T], dict[tuple[int, int], T]):
         else:
             raise RuntimeError(f"row {row} is not in the matrix rows")
 
-    def addcol(self, col: int, rowitems: dict[int, T]) -> None:
+    def addcol(self, col: int, rowitems: Dict[int, T]) -> None:
         """adds a column"""
         if col in self.cols:
             for row, item in rowitems.items():
@@ -74,19 +73,19 @@ class Matrix(Generic[T], dict[tuple[int, int], T]):
 
     def get(  # type: ignore[override]
         self,
-        coords: tuple[int, int],
+        coords: Tuple[int, int],
         default: int = 0,
     ) -> T:
         # not actually true unless T == int
         cast(T, default)
 
-        return cast(T, dict.get(self, coords, default))  # type: ignore[redundant-cast]
+        return cast(T, dict.get(self, coords, default))
 
     def col_based_arrays(
         self,
-    ) -> tuple[int, list[int], list[int], list[int], list[T]]:
+    ) -> Tuple[int, List[int], List[int], List[int], List[T]]:
         numEls = len(self)
-        elemBase: list[T] = []
+        elemBase: List[T] = []
         startsBase = []
         indBase = []
         lenBase = []
