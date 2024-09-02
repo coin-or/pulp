@@ -42,3 +42,4 @@ install:
 script:
   - pulptest
   - mypy ./
+  - black . --check
