@@ -1,4 +1,4 @@
-from beartype import beartype
+from typing import Generic, Literal, Tuple, TypeVar, cast
 
 
 # Sparse : Python basic dictionary sparse matrix
@@ -30,9 +30,10 @@ sparse this module provides basic pure python sparse matrix implementation
 notably this allows the sparse matrix to be output in various formats
 """
 
+T = TypeVar("T", float, str)
 
-@beartype
-class Matrix(dict):
+
+class Matrix(Generic[T], dict[tuple[int, int], T]):
     """This is a dictionary based sparse matrix class"""
 
     def __init__(self, rows: list[int], cols: list[int]):
@@ -41,19 +42,19 @@ class Matrix(dict):
         """
         self.rows: list[int] = rows
         self.cols: list[int] = cols
-        self.rowdict: dict[int, dict] = {row: {} for row in rows}
-        self.coldict: dict[int, dict] = {col: {} for col in cols}
+        self.rowdict: dict[int, dict[int, T]] = {row: {} for row in rows}
+        self.coldict: dict[int, dict[int, T]] = {col: {} for col in cols}
 
     def add(
         self,
         row: int,
         col: int,
-        item: str,
+        item: T,
         colcheck: bool = False,
         rowcheck: bool = False,
-    ):
-        if not (rowcheck and row not in self.rows):
-            if not (colcheck and col not in self.cols):
+    ) -> None:
+        if not rowcheck or row in self.rows:
+            if not colcheck or col in self.cols:
                 dict.__setitem__(self, (row, col), item)
                 self.rowdict[row][col] = item
                 self.coldict[col][row] = item
@@ -63,7 +64,7 @@ class Matrix(dict):
         else:
             raise RuntimeError(f"row {row} is not in the matrix rows")
 
-    def addcol(self, col: int, rowitems: int):
+    def addcol(self, col: int, rowitems: dict[int, T]) -> None:
         """adds a column"""
         if col in self.cols:
             for row, item in rowitems.items():
@@ -71,15 +72,21 @@ class Matrix(dict):
         else:
             raise RuntimeError("col is not in the matrix columns")
 
-    def get(self, k: int, d: int = 0) -> int:
-        return dict.get(self, k, d)
+    def get(  # type: ignore[override]
+        self,
+        coords: tuple[int, int],
+        default: int = 0,
+    ) -> T:
+        # not actually true unless T == int
+        cast(T, default)
+
+        return cast(T, dict.get(self, coords, default))  # type: ignore[redundant-cast]
 
     def col_based_arrays(
         self,
-    ) -> tuple[int, list[int], list[int], list[int], list[str]]:
-
+    ) -> tuple[int, list[int], list[int], list[int], list[T]]:
         numEls = len(self)
-        elemBase: list[str] = []
+        elemBase: list[T] = []
         startsBase = []
         indBase = []
         lenBase = []
