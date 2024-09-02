@@ -76,13 +76,3 @@ class Matrix(dict):
             lenBase.append(len(elemBase) - startsBase[-1])
         startsBase.append(len(elemBase))
         return numEls, startsBase, lenBase, indBase, elemBase
-
-
-if __name__ == "__main__":
-    """unit test"""
-    rows = list(range(10))
-    cols = list(range(50, 60))
-    mat = Matrix(rows, cols)
-    mat.add(1, 52, "item")
-    mat.add(2, 54, "stuff")
-    print(mat.col_based_arrays())
