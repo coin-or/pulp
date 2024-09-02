@@ -30,7 +30,7 @@ sparse this module provides basic pure python sparse matrix implementation
 notably this allows the sparse matrix to be output in various formats
 """
 
-T = TypeVar("T", float, str)
+T = TypeVar("T")
 
 
 class Matrix(Generic[T], dict[tuple[int, int], T]):
