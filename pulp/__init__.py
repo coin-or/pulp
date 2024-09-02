@@ -30,7 +30,6 @@ Module file that imports all of the pulp functions
 Copyright 2007- Stuart Mitchell (s.mitchell@auckland.ac.nz)
 """
 from .constants import VERSION
-from beartype.claw import beartype_this_package
 from .pulp import *
 from .apis import *
 from .utilities import *
@@ -39,6 +38,3 @@ from .tests import pulpTestAll
 
 __doc__ = pulp.__doc__
 __version__ = VERSION
-
-
-beartype_this_package()
