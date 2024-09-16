@@ -68,6 +68,25 @@ SOLSTATUS_TO_STATUS = {
     "ERROR": constants.LpStatusNotSolved,
 }
 
+SASPY_OPTIONS = ["cfgname", "cfgfile"]
+
+SWAT_OPTIONS = [
+    "hostname",
+    "port",
+    "username",
+    "password",
+    "session",
+    "locale",
+    "name",
+    "nworkers",
+    "authinfo",
+    "protocol",
+    "path",
+    "ssl_ca_list",
+    "authcode",
+    "pkce",
+]
+
 
 class SASsolver(LpSolver_CMD):
     name = "SASsolver"
@@ -132,23 +151,22 @@ class SASsolver(LpSolver_CMD):
 
     def _read_solution(self, lp, primal_out, dual_out, proc):
         status = SOLSTATUS_TO_STATUS[self._macro.get("SOLUTION_STATUS", "ERROR")]
+        primal_out = primal_out.set_index("_VAR_", drop=True)
+        values = primal_out["_VALUE_"].to_dict()
+        lp.assignVarsVals(values)
 
         if proc == "OPTLP":
-            # TODO: Check whether there is better implementation than zip().
-            values = dict(zip(primal_out["_VAR_"], primal_out["_VALUE_"]))
-            rc = dict(zip(primal_out["_VAR_"], primal_out["_R_COST_"]))
-            lp.assignVarsVals(values)
+            rc = primal_out["_R_COST_"].to_dict()
             lp.assignVarsDj(rc)
 
-            prices = dict(zip(dual_out["_ROW_"], dual_out["_VALUE_"]))
-            slacks = dict(zip(dual_out["_ROW_"], dual_out["_ACTIVITY_"]))
+            dual_out = dual_out.set_index("_ROW_", drop=True)
+
+            prices = dual_out["_VALUE_"].to_dict()
             lp.assignConsPi(prices)
+
+            slacks = dual_out["_ACTIVITY_"].to_dict()
             lp.assignConsSlack(slacks, activity=True)
-        else:
-            # Convert primal out data set to variable dictionary
-            # Use pandas functions for efficiency
-            values = dict(zip(primal_out["_VAR_"], primal_out["_VALUE_"]))
-            lp.assignVarsVals(values)
+
         lp.assignStatus(status)
         return status
 
@@ -192,6 +210,13 @@ class SAS94(SASsolver):
             :param bool warmStart: if False, no warmstart or initial primal solution provided
             :param solverParams: SAS proc OPTMILP or OPTLP parameters
             """
+            # Extract saspy connection options
+            self._saspy_options = {}
+            for option in SASPY_OPTIONS:
+                value = solverParams.pop(option, None)
+                if value:
+                    self._saspy_options[option] = value
+
             SASsolver.__init__(
                 self,
                 mip=mip,
@@ -201,8 +226,15 @@ class SAS94(SASsolver):
                 timeLimit=timeLimit,
                 **solverParams,
             )
-            self.sas = None
 
+            # Connect to saspy
+            self.sas = None
+            try:
+                self.sas = saspy.SASsession(**self._saspy_options)
+            except:
+                raise PulpSolverError(
+                    "SAS94: Cannot connect to a SAS session. Try using using the cfgfile option."
+                )
 
         def __del__(self):
             if self.sas:
@@ -213,12 +245,9 @@ class SAS94(SASsolver):
             return True
 
         def sasAvailable(self):
-            try:
-                if not self.sas:
-                    self.sas = saspy.SASsession()
-                self.sas.sasver
+            if self.sas:
                 return True
-            except:
+            else:
                 return False
 
         def actualSolve(self, lp):
@@ -226,9 +255,7 @@ class SAS94(SASsolver):
             log.debug("Running SAS")
 
             if not self.sasAvailable():
-                raise PulpSolverError(
-                    "SAS94: Cannot connect to a SAS session."
-                )
+                raise PulpSolverError("SAS94: SAS session might have timed out.")
             sas = self.sas
             if len(lp.sos1) or len(lp.sos2):
                 raise PulpSolverError(
@@ -236,21 +263,46 @@ class SAS94(SASsolver):
                 )
 
             postfix = uuid4().hex[:16]
-            tmpMps, tmpMst = self.create_tmp_files(lp.name, "mps", "mst")
+            mpsName = f"pulp{postfix}.mps"
+            localMps = os.path.join(self.tmpDir, mpsName)
+            remoteMps = f"/tmp/{mpsName}"  # Remote machine is always Linux
+            mstName = f"pulp{postfix}.mst"
+            localMst = os.path.join(self.tmpDir, mstName)
+            remoteMst = f"/tmp/{mstName}"  # Remote machine is always Linux
 
-            vs = lp.writeMPS(tmpMps, with_objsense=False)
+            vs = lp.writeMPS(localMps, with_objsense=False)
 
-            nameLen = self._get_max_upload_len(tmpMps)
+            nameLen = self._get_max_upload_len(localMps)
             if nameLen > MAX_NAME_LENGTH:
                 raise PulpSolverError(
                     f"SAS94: The lengths of the variable or constraint names \
                                     (including indices) should not exceed {MAX_NAME_LENGTH}."
                 )
 
-            proc = "OPTMILP" if self.mip else "OPTLP"
+            # If we use a remote SAS installation, need to upload the file
+            upload_mps = False
+            usedMps = localMps
+            if not sas.file_info(localMps, quiet=True):
+                sas.upload(localMps, remoteMps, overwrite=True)
+                usedMps = remoteMps
+                upload_mps = True
 
-            optionList = ["warmStart", "decomp", "decompmaster",
-                        "decompsubprob", "rootnode"]
+            # Figure out if the problem has integer variables
+            with_opt = self.optionsDict.pop("with", None)
+            if with_opt == "lp":
+                proc = "OPTLP"
+            elif with_opt == "milp":
+                proc = "OPTMILP"
+            else:
+                proc = "OPTMILP" if (lp.isMIP() and self.mip) else "OPTLP"
+
+            optionList = [
+                "warmStart",
+                "decomp",
+                "decompmaster",
+                "decompsubprob",
+                "rootnode",
+            ]
 
             solverOptions = {
                 key: self.optionsDict[key]
@@ -277,14 +329,26 @@ class SAS94(SASsolver):
             decompsubprob_str = self._create_statement_str("decompsubprob")
             rootnode_str = self._create_statement_str("rootnode")
 
-            if lp.isMIP() and not self.mip:
+            if lp.isMIP() and (proc == "OPTLP" or not self.mip):
                 warnings.warn(
                     "SAS94 will solve the relaxed problem of the MILP instance."
                 )
             # Handle warmstart
             warmstart_str = ""
+            upload_pin = False
             if warmStart:
-                self._write_sol(filename=tmpMst, vs=vs)
+                self._write_sol(filename=localMst, vs=vs)
+
+                # If we use a remote SAS installation, need to upload the file
+                usedMst = localMst
+                if not sas.file_info(localMst, quiet=True):
+                    sas.upload(
+                        localMst,
+                        remoteMst,
+                        overwrite=True,
+                    )
+                    usedMst = remoteMst
+                    upload_pin = True
 
                 # Set the warmstart basis option
                 if proc == "OPTMILP":
@@ -296,9 +360,10 @@ class SAS94(SASsolver):
                                         getnames=yes;
                                         run;
                                     """.format(
-                        primalin=tmpMst,
+                        primalin=usedMst,
                         postfix=postfix,
                     )
+                    solverOptions["primalin"] = f"primalin{postfix}"
                 elif proc == "OPTLP":
                     pass
 
@@ -307,12 +372,22 @@ class SAS94(SASsolver):
                 option + "=" + str(value) for option, value in solverOptions.items()
             )
 
+            # Set some SAS options to make the log more clean
+            sas_options = "option notes nonumber nodate nosource pagesize=max;"
+
             # Find the version of 9.4 we are using
-            if sas.sasver.startswith("9.04.01M5"):
+            major_version = sas.sasver[0]
+            minor_version = sas.sasver.split("M", 1)[1][0]
+            if major_version == "9" and int(minor_version) < 5:
+                raise NotImplementedError(
+                    "Support for SAS 9.4 M4 and earlier is not implemented."
+                )
+            elif major_version == "9" and int(minor_version) == 5:
                 # In 9.4M5 we have to create an MPS data set from an MPS file first
                 # Earlier versions will not work because the MPS format in incompatible'
                 res = sas.submit(
                     """
+                                {sas_options}
                                 option notes nonumber nodate nosource pagesize=max;
                                 {warmstart}
                                 %MPS2SASD(MPSFILE="{mpsfile}", OUTDATA=mpsdata{postfix}, MAXLEN={maxLen}, FORMAT=FREE);
@@ -325,9 +400,10 @@ class SAS94(SASsolver):
                                 proc delete data=mpsdata{postfix};
                                 run;
                                 """.format(
+                        sas_options=sas_options,
                         warmstart=warmstart_str,
                         postfix=postfix,
-                        mpsfile=tmpMps,
+                        mpsfile=usedMps,
                         proc=proc,
                         maxLen=min(nameLen, MAX_NAME_LENGTH),
                         options=opt_str,
@@ -341,10 +417,9 @@ class SAS94(SASsolver):
                 )
             else:
                 # Since 9.4M6+ optlp/optmilp can read mps files directly
-                # TODO: Check whether there are limits for length of variable and constraint names
                 res = sas.submit(
                     """
-                                option notes nonumber nodate nosource pagesize=max;
+                                {sas_options}
                                 {warmstart}
                                 proc {proc} mpsfile=\"{mpsfile}\" {options} primalout=primalout{postfix} dualout=dualout{postfix};
                                 {decomp}
@@ -354,10 +429,11 @@ class SAS94(SASsolver):
                                 {rootnode}
                                 run;
                                 """.format(
+                        sas_options=sas_options,
                         warmstart=warmstart_str,
                         postfix=postfix,
                         proc=proc,
-                        mpsfile=tmpMps,
+                        mpsfile=usedMps,
                         options=opt_str,
                         decomp=decomp_str,
                         decompmaster=decompmaster_str,
@@ -368,11 +444,19 @@ class SAS94(SASsolver):
                     results="TEXT",
                 )
 
-            self.delete_tmp_files(tmpMps, tmpMst)
+            # Clean up local files
+            self.delete_tmp_files(localMps, localMst)
+
+            # Clean up uploaded files
+            if upload_mps:
+                sas.file_delete(remoteMps, quiet=True)
+            if upload_pin:
+                sas.file_delete(remoteMst, quiet=True)
 
             # Store SAS output
             if self.msg:
-                print(res["LOG"])
+                self._log = res["LOG"]
+                print(self._log)
             self._macro = dict(
                 (key.strip(), value.strip())
                 for key, value in (
@@ -380,9 +464,7 @@ class SAS94(SASsolver):
                 )
             )
 
-            primal_out = sas.sd2df(f"primalout{postfix}")
-            dual_out = sas.sd2df(f"dualout{postfix}")
-
+            # Check for error and raise exception
             if self._macro.get("STATUS", "ERROR") != "OK":
                 raise PulpSolverError(
                     "PuLP: Error ({err_name}) \
@@ -390,6 +472,10 @@ class SAS94(SASsolver):
                         err_name=self._macro.get("STATUS", "ERROR"), name=lp.name
                     )
                 )
+
+            # Prepare output
+            primal_out = sas.sd2df(f"primalout{postfix}")
+            dual_out = sas.sd2df(f"dualout{postfix}")
             status = self._read_solution(lp, primal_out, dual_out, proc)
 
             return status
@@ -424,7 +510,6 @@ class SASCAS(SASsolver):
             keepFiles=False,
             warmStart=False,
             timeLimit=None,
-            casOptions={},
             **solverParams,
         ):
             """
@@ -432,9 +517,21 @@ class SASCAS(SASsolver):
             :param bool msg: if False, no log is shown
             :param bool keepFiles: if False, mps and mst files will not be saved
             :param bool warmStart: if False, no warmstart or initial primal solution provided
-            :param dict casOptions: options for cas connection.
             :param solverParams: SAS proc OPTMILP or OPTLP parameters
             """
+
+            # Extract cas_options connection options
+            self._cas_options = {}
+            for option in SWAT_OPTIONS:
+                value = solverParams.pop(option, None)
+                if value:
+                    self._cas_options[option] = value
+
+            if self._cas_options == {}:
+                self._cas_options["hostname"] = os.environ["CAS_SERVER"]
+                self._cas_options["port"] = os.environ["CAS_PORT"]
+                self._cas_options["authinfo"] = os.environ["CAS_AUTHINFO"]
+
             SASsolver.__init__(
                 self,
                 mip=mip,
@@ -442,10 +539,10 @@ class SASCAS(SASsolver):
                 keepFiles=keepFiles,
                 warmStart=warmStart,
                 timeLimit=timeLimit,
-                casOptions=casOptions,
                 **solverParams,
             )
-            self.cas = None
+
+            self.cas = swat.CAS(**self._cas_options)
 
         def __del__(self):
             if self.cas:
@@ -457,8 +554,7 @@ class SASCAS(SASsolver):
         def sasAvailable(self):
             try:
                 if not self.cas:
-                    casOptions = self.optionsDict.get("casOptions", None)
-                    self.cas = swat.CAS(**casOptions)
+                    return False
 
                 with redirect_stdout(SASLogWriter(self.msg)) as self._log_writer:
                     # Load the optimization action set
@@ -472,24 +568,27 @@ class SASCAS(SASsolver):
             log.debug("Running SAS")
 
             if not self.sasAvailable():
-                raise PulpSolverError(
-                    """SASCAS: Cannot connect to a CAS session."""
-                )
+                raise PulpSolverError("""SASCAS: Cannot connect to a CAS session.""")
             s = self.cas
             if len(lp.sos1) or len(lp.sos2):
                 raise PulpSolverError(
                     "SASCAS: Currently SAS doesn't support SOS1 and SOS2."
                 )
 
-            solverOptions = {
-                key: self.optionsDict[key]
-                for key in self.optionsDict.keys()
-                if key not in ["warmStart", "casOptions"]
-            }
-            warmStart = self.optionsDict.get("warmStart")
+            warmStart = self.optionsDict.pop("warmStart", False)
 
+            # Figure out if the problem has integer variables
+            with_opt = self.optionsDict.pop("with", None)
+            if with_opt == "lp":
+                proc = "OPTLP"
+            elif with_opt == "milp":
+                proc = "OPTMILP"
+            else:
+                proc = "OPTMILP" if (lp.isMIP() and self.mip) else "OPTLP"
 
-            proc = "OPTMILP" if self.mip else "OPTLP"
+            # The options are exactly what it's left in the optionsDict
+            solverOptions = self.optionsDict
+
             # Get Obj Sense
             if lp.sense == constants.LpMaximize:
                 solverOptions["objsense"] = "max"
@@ -579,13 +678,13 @@ class SASCAS(SASsolver):
                 )
             # If we get solution successfully.
             if proc == "OPTMILP":
-                primal_out = s.CASTable(name=f"primalout{postfix}")
-                primal_out = primal_out[["_VAR_", "_VALUE_", "_STATUS_", "_R_COST_"]]
+                primal_out = s.CASTable(name=f"primalout{postfix}").to_frame()
+                primal_out = primal_out[["_VAR_", "_VALUE_"]]
                 dual_out = None
             else:
-                primal_out = s.CASTable(name=f"primalout{postfix}")
+                primal_out = s.CASTable(name=f"primalout{postfix}").to_frame()
                 primal_out = primal_out[["_VAR_", "_VALUE_", "_STATUS_", "_R_COST_"]]
-                dual_out = s.CASTable(name=f"dualout{postfix}")
+                dual_out = s.CASTable(name=f"dualout{postfix}").to_frame()
                 dual_out = dual_out[["_ROW_", "_VALUE_", "_STATUS_", "_ACTIVITY_"]]
             return primal_out, dual_out
 

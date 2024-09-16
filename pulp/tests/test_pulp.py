@@ -451,6 +451,8 @@ class BaseSolverTest:
                 "CPLEX_PY",
                 "COPT",
                 "HiGHS_CMD",
+                "SAS94",
+                "SASCAS",
             ]:
                 self.solver.optionsDict["warmStart"] = True
             print("\t Testing Initial value in MIP solution")
@@ -647,6 +649,8 @@ class BaseSolverTest:
                 PULP_CBC_CMD,
                 YAPOSIB,
                 PYGLPK,
+                SAS94,
+                SASCAS,
             ]:
                 print("\t Testing dual variables and slacks reporting")
                 pulpTestCheck(
@@ -1599,11 +1603,29 @@ class COPTTest(BaseSolverTest.PuLPTest):
     solveInst = COPT
 
 
-class SAS94Test(BaseSolverTest.PuLPTest):
+class SASTest:
+
+    def test_sas_with_option(self):
+        prob = LpProblem("test", LpMinimize)
+        X = LpVariable.dicts("x", [1, 2, 3], lowBound=0.0, cat="Integer")
+        prob += 2 * X[1] - 3 * X[2] - 4 * X[3], "obj"
+        prob += -2 * X[2] - 3 * X[3] >= -5, "R1"
+        prob += X[1] + X[2] + 2 * X[3] <= 4, "R2"
+        prob += X[1] + 2 * X[2] + 3 * X[3] <= 7, "R3"
+        self.solver.optionsDict["with"] = "lp"
+        pulpTestCheck(
+            prob,
+            self.solver,
+            [const.LpStatusOptimal],
+            {X[1]: 0.0, X[2]: 2.5, X[3]: 0.0},
+        )
+
+
+class SAS94Test(BaseSolverTest.PuLPTest, SASTest):
     solveInst = SAS94
 
 
-class SASCASTest(BaseSolverTest.PuLPTest):
+class SASCASTest(BaseSolverTest.PuLPTest, SASTest):
     solveInst = SASCAS
 
 
