@@ -32,7 +32,7 @@ from math import inf
 from typing import List
 
 from .core import LpSolver, LpSolver_CMD, subprocess, PulpSolverError
-import os, sys
+import os
 from .. import constants
 
 
@@ -149,14 +149,19 @@ class HiGHS_CMD(LpSolver_CMD):
 
         with open(tmpOptions, "w") as options_file:
             options_file.write("\n".join(file_options))
-        process = subprocess.run(command, stdout=sys.stdout, stderr=sys.stderr)
+        # print(command)
+        process = subprocess.Popen(command, stdout=None, stderr=None)
 
         # HiGHS return code semantics (see: https://github.com/ERGO-Code/HiGHS/issues/527#issuecomment-946575028)
         # - -1: error
         # -  0: success
         # -  1: warning
-        if process.returncode == -1:
-            raise PulpSolverError("Error while executing HiGHS")
+        # process = subprocess.run(command, stdout=sys.stdout, stderr=sys.stderr)
+        if process.wait() == -1:
+            raise PulpSolverError(
+                "Pulp: Error while executing HiGHS, use msg=True for more details"
+                + self.path
+            )
 
         with open(highs_log_file, "r") as log_file:
             lines = log_file.readlines()

@@ -1,3 +1,5 @@
+.. _optimisation_concepts:
+
 Optimisation Concepts
 =====================
 

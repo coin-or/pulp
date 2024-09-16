@@ -4,6 +4,10 @@ from pulp.tests import test_pulp, test_examples, test_gurobipy_env
 
 
 def pulpTestAll(test_docs=False):
+    all_solvers = pulp.listSolvers(onlyAvailable=False)
+    available = pulp.listSolvers(onlyAvailable=True)
+    print(f"Available solvers: {available}")
+    print(f"Unavailable solvers: {set(all_solvers) - set(available)}")
     runner = unittest.TextTestRunner()
     suite_all = get_test_suite(test_docs)
     # we run all tests at the same time

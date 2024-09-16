@@ -49,6 +49,14 @@ jobs:
         # alternatively if: contains(fromJSON("['3.7', '3.8', '3.9', '3.10', '3.11']"), matrix.python-version)
         run: |
           pip install highspy numpy
+      - name: Install highspy cmd
+        if: matrix.os == 'ubuntu-latest'
+        uses: supplypike/setup-bin@v4
+        with:
+          uri: 'https://github.com/JuliaBinaryWrappers/HiGHSstatic_jll.jl/releases/download/HiGHSstatic-v1.7.1%2B0/HiGHSstatic.v1.7.1.x86_64-linux-gnu-cxx11.tar.gz'
+          subPath: 'bin'
+          name: 'highs'
+          version: '1.7.1'
       - name: Install coptpy
         run: |
           pip install coptpy

@@ -27,7 +27,7 @@
 This file contains the constant definitions for PuLP
 Note that hopefully these will be changed into something more pythonic
 """
-VERSION = "2.8.0"
+VERSION = "2.9.0"
 EPS = 1e-7
 
 # variable categories
@@ -85,15 +85,6 @@ LpConstraintTypeToMps = {LpConstraintLE: "L", LpConstraintEQ: "E", LpConstraintG
 LpConstraintSenses = {LpConstraintEQ: "=", LpConstraintLE: "<=", LpConstraintGE: ">="}
 # LP line size
 LpCplexLPLineSize = 78
-
-
-def isiterable(obj):
-    try:
-        obj = iter(obj)
-    except:
-        return False
-    else:
-        return True
 
 
 class PulpError(Exception):

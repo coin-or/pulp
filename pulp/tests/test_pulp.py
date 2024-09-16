@@ -75,7 +75,7 @@ def dumpTestProblem(prob):
         prob.writeLP("debug.lp")
         prob.writeMPS("debug.mps")
     except:
-        print("(Failed to write the test problem.)")
+        pass
 
 
 class BaseSolverTest:
@@ -85,12 +85,7 @@ class BaseSolverTest:
         def setUp(self):
             self.solver = self.solveInst(msg=False)
             if not self.solver.available():
-                self.skipTest(f"solver {self.solveInst} not available")
-            elif (
-                self.solver.name in ["SASCAS", "SAS94"]
-                and not self.solver.sasAvailable()
-            ):
-                self.skipTest(f"solver {self.solveInst} valid solver not provided")
+                self.skipTest(f"solver {self.solveInst.name} not available")
 
         def tearDown(self):
             for ext in ["mst", "log", "lp", "mps", "sol"]:
@@ -110,7 +105,6 @@ class BaseSolverTest:
             z = LpVariable("z", 0)
             c1 = x + y <= 5
             c2 = c1 + z - z
-            print("\t Testing zero subtraction")
             assert str(c2)
             assert c2[z] == 0
 
@@ -128,7 +122,6 @@ class BaseSolverTest:
             prob += x + z >= 10, "c2"
             prob += -y + z == 7, "c3"
             prob += w >= 0, "c4"
-            print("\t Testing inconsistent lp solution")
             # this was a problem with use_mps=false
             if self.solver.__class__ in [PULP_CBC_CMD, COIN_CMD]:
                 pulpTestCheck(
@@ -163,7 +156,6 @@ class BaseSolverTest:
             prob += x + z >= 10, "c2"
             prob += -y + z == 7, "c3"
             prob += w >= 0, "c4"
-            print("\t Testing continuous LP solution")
             pulpTestCheck(
                 prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0}
             )
@@ -179,7 +171,6 @@ class BaseSolverTest:
             prob += x + z >= 10, "c2"
             prob += -y + z == 7, "c3"
             prob += w >= 0, "c4"
-            print("\t Testing maximize continuous LP solution")
             pulpTestCheck(
                 prob, self.solver, [const.LpStatusOptimal], {x: 4, y: 1, z: 8, w: 0}
             )
@@ -195,7 +186,6 @@ class BaseSolverTest:
             prob += x + z >= 10, "c2"
             prob += -y + z == 7, "c3"
             prob += w >= 0, "c4"
-            print("\t Testing unbounded continuous LP solution")
             if self.solver.__class__ in [GUROBI, CPLEX_CMD, YAPOSIB, MOSEK, COPT]:
                 # These solvers report infeasible or unbounded
                 pulpTestCheck(
@@ -206,7 +196,6 @@ class BaseSolverTest:
             elif self.solver.__class__ in [COINMP_DLL, MIPCL_CMD]:
                 # COINMP_DLL is just plain wrong
                 # also MIPCL_CMD
-                print("\t\t Error in CoinMP and MIPCL_CMD: reports Optimal")
                 pulpTestCheck(prob, self.solver, [const.LpStatusOptimal])
             elif self.solver.__class__ is GLPK_CMD:
                 # GLPK_CMD Does not report unbounded problems, correctly
@@ -214,8 +203,9 @@ class BaseSolverTest:
             elif self.solver.__class__ in [GUROBI_CMD, SCIP_CMD, FSCIP_CMD, SCIP_PY]:
                 # GUROBI_CMD has a very simple interface
                 pulpTestCheck(prob, self.solver, [const.LpStatusNotSolved])
-            elif self.solver.__class__ in [CHOCO_CMD]:
+            elif self.solver.__class__ in [CHOCO_CMD, HiGHS_CMD]:
                 # choco bounds all variables. Would not return unbounded status
+                # highs_cmd is inconsistent
                 pass
             else:
                 pulpTestCheck(prob, self.solver, [const.LpStatusUnbounded])
@@ -231,7 +221,6 @@ class BaseSolverTest:
             prob += x + z >= 10, "c2"
             prob += -y + z == 7, "c3"
             prob += w >= 0, "c4"
-            print("\t Testing Long Names")
             if self.solver.__class__ in [
                 CPLEX_CMD,
                 GLPK_CMD,
@@ -276,7 +265,6 @@ class BaseSolverTest:
             prob += x + z >= 10, "c2"
             prob += -y + z == 7, "c3"
             prob += w >= 0, "c4"
-            print("\t Testing repeated Names")
             if self.solver.__class__ in [
                 COIN_CMD,
                 COINMP_DLL,
@@ -329,7 +317,6 @@ class BaseSolverTest:
             prob += -y + z == 7, "c3"
             prob += w >= 0, "c4"
             prob += lpSum([0, 0]) <= 0, "c5"
-            print("\t Testing zero constraint")
             pulpTestCheck(
                 prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0}
             )
@@ -345,7 +332,6 @@ class BaseSolverTest:
             prob += -y + z == 7, "c3"
             prob += w >= 0, "c4"
             prob += lpSum([0, 0]) <= 0, "c5"
-            print("\t Testing zero objective")
             pulpTestCheck(prob, self.solver, [const.LpStatusOptimal])
 
         def test_variable_as_objective(self):
@@ -360,7 +346,6 @@ class BaseSolverTest:
             prob += -y + z == 7, "c3"
             prob += w >= 0, "c4"
             prob += lpSum([0, 0]) <= 0, "c5"
-            print("\t Testing LpVariable (not LpAffineExpression) objective")
             pulpTestCheck(prob, self.solver, [const.LpStatusOptimal])
 
         def test_longname_lp(self):
@@ -375,7 +360,6 @@ class BaseSolverTest:
             prob += -y + z == 7, "c3"
             prob += w >= 0, "c4"
             if self.solver.__class__ in [PULP_CBC_CMD, COIN_CMD]:
-                print("\t Testing Long lines in LP")
                 pulpTestCheck(
                     prob,
                     self.solver,
@@ -395,7 +379,6 @@ class BaseSolverTest:
             prob += x + z >= 10, "c2"
             prob += -y + z == 7, "c3"
             prob += w >= 0, "c4"
-            print("\t Testing LpAffineExpression divide")
             pulpTestCheck(
                 prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0}
             )
@@ -409,7 +392,6 @@ class BaseSolverTest:
             prob += x + y <= 5, "c1"
             prob += x + z >= 10, "c2"
             prob += -y + z == 7.5, "c3"
-            print("\t Testing MIP solution")
             pulpTestCheck(
                 prob, self.solver, [const.LpStatusOptimal], {x: 3, y: -0.5, z: 7}
             )
@@ -423,7 +405,6 @@ class BaseSolverTest:
             prob += x + y <= 5, "c1"
             prob += x + z >= 10, "c2"
             prob += -y + z == 7.5, "c3"
-            print("\t Testing MIP solution with floats in objective")
             pulpTestCheck(
                 prob,
                 self.solver,
@@ -455,7 +436,6 @@ class BaseSolverTest:
                 "SASCAS",
             ]:
                 self.solver.optionsDict["warmStart"] = True
-            print("\t Testing Initial value in MIP solution")
             pulpTestCheck(
                 prob, self.solver, [const.LpStatusOptimal], {x: 3, y: -0.5, z: 7}
             )
@@ -474,7 +454,6 @@ class BaseSolverTest:
                 v.setInitialValue(solution[v])
                 v.fixValue()
             self.solver.optionsDict["warmStart"] = True
-            print("\t Testing fixing value in MIP solution")
             pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], solution)
 
         def test_relaxed_mip(self):
@@ -487,7 +466,6 @@ class BaseSolverTest:
             prob += x + z >= 10, "c2"
             prob += -y + z == 7.5, "c3"
             self.solver.mip = 0
-            print("\t Testing MIP relaxation")
             if self.solver.__class__ in [
                 GUROBI_CMD,
                 CHOCO_CMD,
@@ -513,7 +491,6 @@ class BaseSolverTest:
             prob += x + y <= 5, "c1"
             prob += x + z >= 10, "c2"
             prob += -y + z == 7.5, "c3"
-            print("\t Testing feasibility problem (no objective)")
             pulpTestCheck(prob, self.solver, [const.LpStatusOptimal])
 
         def test_infeasible_2(self):
@@ -524,7 +501,6 @@ class BaseSolverTest:
             prob += x + y <= 5.2, "c1"
             prob += x + z >= 10.3, "c2"
             prob += -y + z == 17.5, "c3"
-            print("\t Testing an infeasible problem")
             if self.solver.__class__ is GLPK_CMD:
                 # GLPK_CMD return codes are not informative enough
                 pulpTestCheck(prob, self.solver, [const.LpStatusUndefined])
@@ -542,7 +518,6 @@ class BaseSolverTest:
             prob += x + y <= 5.2, "c1"
             prob += x + z >= 10.3, "c2"
             prob += -y + z == 7.4, "c3"
-            print("\t Testing an integer infeasible problem")
             if self.solver.__class__ in [GLPK_CMD, COIN_CMD, PULP_CBC_CMD, MOSEK]:
                 # GLPK_CMD returns InfeasibleOrUnbounded
                 pulpTestCheck(
@@ -553,7 +528,6 @@ class BaseSolverTest:
             elif self.solver.__class__ in [COINMP_DLL]:
                 # Currently there is an error in COINMP for problems where
                 # presolve eliminates too many variables
-                print("\t\t Error in CoinMP to be fixed, reports Optimal")
                 pulpTestCheck(prob, self.solver, [const.LpStatusOptimal])
             elif self.solver.__class__ in [GUROBI_CMD, FSCIP_CMD]:
                 pulpTestCheck(prob, self.solver, [const.LpStatusNotSolved])
@@ -570,7 +544,6 @@ class BaseSolverTest:
             prob += dummy
             prob += c1 + c2 == 2
             prob += c1 <= 0
-            print("\t Testing another integer infeasible problem")
             if self.solver.__class__ in [GUROBI_CMD, SCIP_CMD, FSCIP_CMD, SCIP_PY]:
                 pulpTestCheck(prob, self.solver, [const.LpStatusNotSolved])
             elif self.solver.__class__ in [GLPK_CMD]:
@@ -599,7 +572,6 @@ class BaseSolverTest:
             x = LpVariable("x", 0, 4, const.LpContinuous, obj + a + b)
             y = LpVariable("y", -1, 1, const.LpContinuous, 4 * obj + a - c)
             z = LpVariable("z", 0, None, const.LpContinuous, 9 * obj + b + c)
-            print("\t Testing column based modelling")
             pulpTestCheck(
                 prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6}
             )
@@ -621,7 +593,6 @@ class BaseSolverTest:
             y = LpVariable("y", -1, 1, const.LpContinuous, 4 * obj - c)
             z = LpVariable("z", 0, None, const.LpContinuous, 9 * obj + b + c)
             if self.solver.__class__ in [CPLEX_CMD, COINMP_DLL, YAPOSIB, PYGLPK]:
-                print("\t Testing column based modelling with empty constraints")
                 pulpTestCheck(
                     prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6}
                 )
@@ -652,7 +623,6 @@ class BaseSolverTest:
                 SAS94,
                 SASCAS,
             ]:
-                print("\t Testing dual variables and slacks reporting")
                 pulpTestCheck(
                     prob,
                     self.solver,
@@ -682,7 +652,6 @@ class BaseSolverTest:
             prob.resolve()
             z = LpVariable("z", 0, None, const.LpContinuous, 9 * obj + b + c)
             if self.solver.__class__ in [COINMP_DLL]:
-                print("\t Testing resolve of problem")
                 prob.resolve()
                 # difficult to check this is doing what we want as the resolve is
                 # overridden if it is not implemented
@@ -703,7 +672,6 @@ class BaseSolverTest:
             prob += x <= 1, "c1"
 
             if self.solver.__class__ in [COINMP_DLL, GUROBI]:
-                print("\t Testing Sequential Solves")
                 status = prob.sequentialSolve([obj1, obj2], solver=self.solver)
                 pulpTestCheck(
                     prob,
@@ -728,7 +696,6 @@ class BaseSolverTest:
             prob += -y + z == 7, "c3"
             prob += w >= 0, "c4"
             prob += LpFractionConstraint(x, z, const.LpConstraintEQ, 0.5, name="c5")
-            print("\t Testing fractional constraints")
             pulpTestCheck(
                 prob,
                 self.solver,
@@ -750,7 +717,6 @@ class BaseSolverTest:
             prob += x + z >= 10, "c2"
             prob += -y + z == 7, "c3"
             prob.extend((w >= -1).makeElasticSubProblem())
-            print("\t Testing elastic constraints (no change)")
             pulpTestCheck(
                 prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: -1}
             )
@@ -769,7 +735,6 @@ class BaseSolverTest:
             prob += x + z >= 10, "c2"
             prob += -y + z == 7, "c3"
             prob.extend((w >= -1).makeElasticSubProblem(proportionFreeBound=0.1))
-            print("\t Testing elastic constraints (freebound)")
             pulpTestCheck(
                 prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: -1.1}
             )
@@ -788,7 +753,6 @@ class BaseSolverTest:
             prob += x + z >= 10, "c2"
             prob += -y + z == 7, "c3"
             prob.extend((w >= -1).makeElasticSubProblem(penalty=1.1))
-            print("\t Testing elastic constraints (penalty unchanged)")
             pulpTestCheck(
                 prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: -1.0}
             )
@@ -807,7 +771,6 @@ class BaseSolverTest:
             prob += x + z >= 10, "c2"
             prob += -y + z == 7, "c3"
             prob.extend((w >= -1).makeElasticSubProblem(penalty=0.9))
-            print("\t Testing elastic constraints (penalty unbounded)")
             if self.solver.__class__ in [
                 COINMP_DLL,
                 GUROBI,
@@ -850,19 +813,17 @@ class BaseSolverTest:
             data = prob.toDict()
             var1, prob1 = LpProblem.fromDict(data)
             x, y, z, w = (var1[name] for name in ["x", "y", "z", "w"])
-            if self.solver.name in ["HiGHS"]:
-                # HiGHS has issues with displaying output in Ubuntu
-                return
-            self.solver.msg = True
             pulpTestCheck(
-                prob1, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0}
+                prob1,
+                self.solveInst(msg=True),
+                [const.LpStatusOptimal],
+                {x: 4, y: -1, z: 6, w: 0},
             )
 
         def test_pulpTestAll(self):
             """
             Test the availability of the function pulpTestAll
             """
-            print("\t Testing the availability of the function pulpTestAll")
             from pulp import pulpTestAll
 
         def test_export_dict_LP(self):
@@ -879,7 +840,6 @@ class BaseSolverTest:
             data = prob.toDict()
             var1, prob1 = LpProblem.fromDict(data)
             x, y, z, w = (var1[name] for name in ["x", "y", "z", "w"])
-            print("\t Testing continuous LP solution - export dict")
             pulpTestCheck(
                 prob1, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0}
             )
@@ -897,7 +857,6 @@ class BaseSolverTest:
             data = prob.toDict()
             var1, prob1 = LpProblem.fromDict(data)
             x, y, z, w = (var1[name] for name in ["x", "y", "z", "w"])
-            print("\t Testing export dict for LP")
             pulpTestCheck(
                 prob1, self.solver, [const.LpStatusOptimal], {x: 4, y: 1, z: 6, w: 0}
             )
@@ -922,7 +881,6 @@ class BaseSolverTest:
             except:
                 pass
             x, y, z, w = (var1[name] for name in ["x", "y", "z", "w"])
-            print("\t Testing continuous LP solution - export JSON")
             pulpTestCheck(
                 prob1, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0}
             )
@@ -942,7 +900,6 @@ class BaseSolverTest:
             data_backup = copy.deepcopy(data)
             var1, prob1 = LpProblem.fromDict(data)
             x, y, z = (var1[name] for name in ["x", "y", "z"])
-            print("\t Testing export dict MIP")
             pulpTestCheck(
                 prob1, self.solver, [const.LpStatusOptimal], {x: 3, y: -0.5, z: 7}
             )
@@ -963,7 +920,6 @@ class BaseSolverTest:
             data = prob.toDict()
             var1, prob1 = LpProblem.fromDict(data)
             x, y, z, w = (var1[name] for name in ["x", "y", "z", "w"])
-            print("\t Testing maximize continuous LP solution")
             pulpTestCheck(
                 prob1, self.solver, [const.LpStatusOptimal], {x: 4, y: 1, z: 8, w: 0}
             )
@@ -981,7 +937,6 @@ class BaseSolverTest:
             prob += w >= 0, "c4"
             data = self.solver.toDict()
             solver1 = getSolverFromDict(data)
-            print("\t Testing continuous LP solution - export solver dict")
             pulpTestCheck(
                 prob, solver1, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0}
             )
@@ -1021,7 +976,6 @@ class BaseSolverTest:
                 os.remove(filename)
             except:
                 pass
-            print("\t Testing continuous LP solution - export solver JSON")
             pulpTestCheck(
                 prob, solver1, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0}
             )
@@ -1040,7 +994,6 @@ class BaseSolverTest:
             prob += w >= 0, "c4"
             self.solver.timeLimit = 20
             # CHOCO has issues when given a time limit
-            print("\t Testing timeLimit argument")
             if self.solver.name != "CHOCO_CMD":
                 pulpTestCheck(
                     prob,
@@ -1050,7 +1003,6 @@ class BaseSolverTest:
                 )
 
         def test_assignInvalidStatus(self):
-            print("\t Testing invalid status")
             t = LpProblem("test")
             Invalid = -100
             self.assertRaises(const.PulpError, lambda: t.assignStatus(Invalid))
@@ -1078,7 +1030,6 @@ class BaseSolverTest:
                 "PULP_CBC_CMD",
                 "COIN_CMD",
             ]:
-                print("\t Testing logPath argument")
                 pulpTestCheck(
                     prob,
                     self.solver,
@@ -1099,7 +1050,6 @@ class BaseSolverTest:
             target = {"A": {"C": 1, "D": 2}, "B": {"C": 3, "D": 4}}
             dict_with_default = makeDict(headers, values, default=0)
             dict_without_default = makeDict(headers, values)
-            print("\t Testing makeDict general behavior")
             self.assertEqual(dict_with_default, target)
             self.assertEqual(dict_without_default, target)
 
@@ -1111,7 +1061,6 @@ class BaseSolverTest:
             values = [[1, 2], [3, 4]]
             dict_with_default = makeDict(headers, values, default=0)
             dict_without_default = makeDict(headers, values)
-            print("\t Testing makeDict default value behavior")
             # Check if a default value is passed
             self.assertEqual(dict_with_default["X"]["Y"], 0)
             # Check if a KeyError is raised
@@ -1135,7 +1084,6 @@ class BaseSolverTest:
             _vars, prob2 = LpProblem.fromMPS(filename, sense=prob.sense)
             _dict1 = getSortedDict(prob)
             _dict2 = getSortedDict(prob2)
-            print("\t Testing reading MPS files - maximize")
             self.assertDictEqual(_dict1, _dict2)
 
         def test_importMPS_noname(self):
@@ -1155,7 +1103,6 @@ class BaseSolverTest:
             _vars, prob2 = LpProblem.fromMPS(filename, sense=prob.sense)
             _dict1 = getSortedDict(prob)
             _dict2 = getSortedDict(prob2)
-            print("\t Testing reading MPS files - noname")
             self.assertDictEqual(_dict1, _dict2)
 
         def test_importMPS_integer(self):
@@ -1173,7 +1120,6 @@ class BaseSolverTest:
             _vars, prob2 = LpProblem.fromMPS(filename, sense=prob.sense)
             _dict1 = getSortedDict(prob)
             _dict2 = getSortedDict(prob2)
-            print("\t Testing reading MPS files - integer variable")
             self.assertDictEqual(_dict1, _dict2)
 
         def test_importMPS_binary(self):
@@ -1192,7 +1138,6 @@ class BaseSolverTest:
             )
             _dict1 = getSortedDict(prob, keyCons="constant")
             _dict2 = getSortedDict(prob2, keyCons="constant")
-            print("\t Testing reading MPS files - binary variable, no constraint names")
             self.assertDictEqual(_dict1, _dict2)
 
         def test_importMPS_RHS_fields56(self):
@@ -1207,19 +1152,9 @@ class BaseSolverTest:
             """Import MPS file with PL bound type."""
             with tempfile.NamedTemporaryFile(delete=False) as h:
                 h.write(str.encode(EXAMPLE_MPS_PL_BOUNDS))
-            print("\t Testing reading MPS files - PL bound")
             _, problem = LpProblem.fromMPS(h.name)
             os.unlink(h.name)
             self.assertIsInstance(problem, LpProblem)
-
-        # def test_importMPS_2(self):
-        #     name = self._testMethodName
-        #     # filename = name + ".mps"
-        #     filename = "/home/pchtsp/Downloads/test.mps"
-        #     _vars, _prob = LpProblem.fromMPS(filename)
-        #     _prob.solve()
-        #     for k, v in _vars.items():
-        #         print(k, v.value())
 
         def test_unset_objective_value__is_valid(self):
             """Given a valid problem that does not converge,
@@ -1281,7 +1216,6 @@ class BaseSolverTest:
 
         @gurobi_test
         def test_measuring_solving_time(self):
-            print("\t Testing measuring optimization time")
 
             time_limit = 10
             solver_settings = dict(
@@ -1292,6 +1226,7 @@ class BaseSolverTest:
                 CPLEX_CMD=50,
                 GUROBI=50,
                 HiGHS=50,
+                HiGHS_CMD=50,
             )
             bins = solver_settings.get(self.solver.name)
             if bins is None:
@@ -1319,10 +1254,9 @@ class BaseSolverTest:
 
         @gurobi_test
         def test_time_limit_no_solution(self):
-            print("\t Test time limit with no solution")
 
             time_limit = 1
-            solver_settings = dict(HiGHS=50, PULP_CBC_CMD=30, COIN_CMD=30)
+            solver_settings = dict(HiGHS_CMD=60, HiGHS=60, PULP_CBC_CMD=60, COIN_CMD=60)
             bins = solver_settings.get(self.solver.name)
             if bins is None:
                 # not all solvers have timeLimit support
@@ -1345,7 +1279,6 @@ class BaseSolverTest:
             prob += x + z >= 10, "c2"
             prob += -y + z == 7, "c3"
             prob += w >= 0, "c4"
-            print("\t Testing invalid var names")
             if self.solver.name not in [
                 "GUROBI_CMD",  # end is a key-word for LP files
             ]:
@@ -1363,7 +1296,6 @@ class BaseSolverTest:
             customers = [1, 2, 3]
             agents = ["A", "B", "C"]
 
-            print("\t Testing 'indexs' param continues to work for LpVariable.dicts")
             # explicit param creates a dict of type LpVariable
             assign_vars = LpVariable.dicts(name="test", indices=(customers, agents))
             for k, v in assign_vars.items():
@@ -1376,7 +1308,6 @@ class BaseSolverTest:
                 for a, b in v.items():
                     self.assertIsInstance(b, LpVariable)
 
-            print("\t Testing 'indexs' param continues to work for LpVariable.matrix")
             # explicit param creates list of LpVariable
             assign_vars_matrix = LpVariable.matrix(
                 name="test", indices=(customers, agents)
@@ -1399,14 +1330,12 @@ class BaseSolverTest:
             customers = [1, 2, 3]
             agents = ["A", "B", "C"]
 
-            print("\t Testing 'indices' argument works in LpVariable.dicts")
             # explicit param creates a dict of type LpVariable
             assign_vars = LpVariable.dicts(name="test", indices=(customers, agents))
             for k, v in assign_vars.items():
                 for a, b in v.items():
                     self.assertIsInstance(b, LpVariable)
 
-            print("\t Testing 'indices' param continues to work for LpVariable.matrix")
             # explicit param creates list of list of LpVariable
             assign_vars_matrix = LpVariable.matrix(
                 name="test", indices=(customers, agents)
@@ -1421,7 +1350,6 @@ class BaseSolverTest:
             """
             from io import StringIO
 
-            print("\t Testing that `readsol` can parse CPLEX mipopt solution")
             # Example solution generated by CPLEX mipopt solver
             file_content = """<?xml version = "1.0" encoding="UTF-8" standalone="yes"?>
                 <CPLEXSolution version="1.2">
@@ -1486,7 +1414,6 @@ class BaseSolverTest:
             prob += -y + z == 7, "c3"
             prob += w >= 0, "c4"
             # CHOCO has issues when given a time limit
-            print("\t Testing options parsing")
             if self.solver.__class__ in [SCIP_CMD, FSCIP_CMD]:
                 self.solver.options = ["limits/time", 20]
                 pulpTestCheck(
