@@ -184,9 +184,6 @@ class SAS94(SASsolver):
             """True if SAS94 is available."""
             return False
 
-        def sasAvailable(self):
-            return False
-
         def actualSolve(self, lp, callback=None):
             """Solves a well-formulated lp problem."""
             raise PulpSolverError("SAS94 : Not Available")
@@ -227,14 +224,14 @@ class SAS94(SASsolver):
                 **solverParams,
             )
 
-            # Connect to saspy
+            # Try to connect to saspy, if this fails, don't throw the error here.
+            # Instead we return False on available() to be consistent with
+            # other interfaces.
             self.sas = None
             try:
                 self.sas = saspy.SASsession(**self._saspy_options)
-            except:
-                raise PulpSolverError(
-                    "SAS94: Cannot connect to a SAS session. Try using using the cfgfile option."
-                )
+            except Exception:
+                pass
 
         def __del__(self):
             if self.sas:
@@ -242,9 +239,6 @@ class SAS94(SASsolver):
 
         def available(self):
             """True if SAS94 is available."""
-            return True
-
-        def sasAvailable(self):
             if self.sas:
                 return True
             else:
@@ -254,8 +248,11 @@ class SAS94(SASsolver):
             """Solve a well formulated lp problem"""
             log.debug("Running SAS")
 
-            if not self.sasAvailable():
-                raise PulpSolverError("SAS94: SAS session might have timed out.")
+            if not self.sas:
+                raise PulpSolverError(
+                    "SAS94: Cannot connect to a SAS session. Try the cfgfile option or adjust options in that file."
+                )
+
             sas = self.sas
             if len(lp.sos1) or len(lp.sos2):
                 raise PulpSolverError(
@@ -494,9 +491,6 @@ class SASCAS(SASsolver):
             """True if SASCAS is available."""
             return False
 
-        def sasAvailable(self):
-            return False
-
         def actualSolve(self, lp, callback=None):
             """Solves a well-formulated lp problem."""
             raise PulpSolverError("SASCAS : Not Available")
@@ -519,6 +513,7 @@ class SASCAS(SASsolver):
             :param bool warmStart: if False, no warmstart or initial primal solution provided
             :param solverParams: SAS proc OPTMILP or OPTLP parameters
             """
+            self.cas = None
 
             # Extract cas_options connection options
             self._cas_options = {}
@@ -528,9 +523,9 @@ class SASCAS(SASsolver):
                     self._cas_options[option] = value
 
             if self._cas_options == {}:
-                self._cas_options["hostname"] = os.environ["CAS_SERVER"]
-                self._cas_options["port"] = os.environ["CAS_PORT"]
-                self._cas_options["authinfo"] = os.environ["CAS_AUTHINFO"]
+                self._cas_options["hostname"] = os.getenv("CAS_SERVER")
+                self._cas_options["port"] = os.getenv("CAS_PORT")
+                self._cas_options["authinfo"] = os.getenv("CAS_AUTHINFO")
 
             SASsolver.__init__(
                 self,
@@ -542,33 +537,33 @@ class SASCAS(SASsolver):
                 **solverParams,
             )
 
-            self.cas = swat.CAS(**self._cas_options)
+            # Try to connect to SWAT, if this fails, don't throw the error here.
+            # Instead we return False on available() to be consistent with
+            # other interfaces.
+            try:
+                self.cas = swat.CAS(**self._cas_options)
+            except Exception:
+                pass
 
         def __del__(self):
             if self.cas:
                 self.cas.close()
 
         def available(self):
-            return True
-
-        def sasAvailable(self):
-            try:
-                if not self.cas:
-                    return False
-
-                with redirect_stdout(SASLogWriter(self.msg)) as self._log_writer:
-                    # Load the optimization action set
-                    self.cas.loadactionset("optimization")
-                    return True
-            except:
+            if not self.cas:
                 return False
+            else:
+                return True
 
         def actualSolve(self, lp):
             """Solve a well formulated lp problem"""
             log.debug("Running SAS")
 
-            if not self.sasAvailable():
-                raise PulpSolverError("""SASCAS: Cannot connect to a CAS session.""")
+            if not self.cas:
+                raise PulpSolverError(
+                    "SAS94: Cannot connect to a SAS session. Try the cfgfile option or adjust options in that file."
+                )
+
             s = self.cas
             if len(lp.sos1) or len(lp.sos2):
                 raise PulpSolverError(
@@ -603,6 +598,8 @@ class SASCAS(SASsolver):
 
             status = None
             with redirect_stdout(SASLogWriter(self.msg)) as self._log_writer:
+                # Load the optimization action set
+                s.loadactionset("optimization")
 
                 # Used for naming the data structure in SAS.
                 postfix = uuid4().hex[:16]
