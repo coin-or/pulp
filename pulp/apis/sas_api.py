@@ -229,7 +229,9 @@ class SAS94(SASsolver):
             # other interfaces.
             self.sas = None
             try:
+                saspy.logger.disabled = True
                 self.sas = saspy.SASsession(**self._saspy_options)
+                saspy.logger.disabled = False
             except Exception:
                 pass
 
@@ -561,7 +563,7 @@ class SASCAS(SASsolver):
 
             if not self.cas:
                 raise PulpSolverError(
-                    "SAS94: Cannot connect to a SAS session. Try the cfgfile option or adjust options in that file."
+                    "SASCAS: Cannot connect to a CAS. Try setting CAS connection options."
                 )
 
             s = self.cas
