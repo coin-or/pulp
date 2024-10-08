@@ -74,9 +74,9 @@ class COIN_CMD(LpSolver_CMD):
         :param bool keepFiles: if True, files are saved in the current directory and not deleted after solving
         :param str path: path to the solver binary
         :param str logPath: path to the log file
-        :param bool presolve: if True, adds presolve on
-        :param bool cuts: if True, adds gomory on knapsack on probing on
-        :param bool strong: if True, adds strong
+        :param bool presolve: if True, adds presolve on, if False, adds presolve off
+        :param bool cuts: if True, adds gomory on knapsack on probing on, if False adds cuts off
+        :param int strong: number of variables to look at in strong branching (range is 0 to 2147483647)
         :param str timeMode: "elapsed": count wall-time to timeLimit; "cpu": count cpu-time
         :param int maxNodes: max number of nodes during branching. Stops the solving when reached.
         """
@@ -142,6 +142,20 @@ class COIN_CMD(LpSolver_CMD):
             cmds += f"-mips {tmpMst} "
         if self.timeLimit is not None:
             cmds += f"-sec {self.timeLimit} "
+        if self.optionsDict.get("presolve") is not None:
+            if self.optionsDict["presolve"]:
+                # presolve is True: add 'presolve on'
+                cmds += f"-presolve on "
+            else:
+                # presolve is False: add 'presolve off'
+                cmds += f"-presolve off "
+        if self.optionsDict.get("cuts") is not None:
+            if self.optionsDict["cuts"]:
+                # activate gomory, knapsack, and probing cuts
+                cmds += f"-gomory on knapsack on probing on "
+            else:
+                # turn off all cuts
+                cmds += f"-cuts off "
         options = self.options + self.getOptions()
         for option in options:
             cmds += "-" + option + " "
@@ -209,9 +223,7 @@ class COIN_CMD(LpSolver_CMD):
             gapRel="ratio {}",
             gapAbs="allow {}",
             threads="threads {}",
-            presolve="presolve on",
             strong="strong {}",
-            cuts="gomory on knapsack on probing on",
             timeMode="timeMode {}",
             maxNodes="maxNodes {}",
         )
