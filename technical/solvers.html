@@ -442,9 +442,9 @@ now only uses cbc</p>
 <li><p><strong>keepFiles</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – if True, files are saved in the current directory and not deleted after solving</p></li>
 <li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – path to the solver binary</p></li>
 <li><p><strong>logPath</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – path to the log file</p></li>
-<li><p><strong>presolve</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – if True, adds presolve on</p></li>
-<li><p><strong>cuts</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – if True, adds gomory on knapsack on probing on</p></li>
-<li><p><strong>strong</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – if True, adds strong</p></li>
+<li><p><strong>presolve</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – if True, adds presolve on, if False, adds presolve off</p></li>
+<li><p><strong>cuts</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – if True, adds gomory on knapsack on probing on, if False adds cuts off</p></li>
+<li><p><strong>strong</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – number of variables to look at in strong branching (range is 0 to 2147483647)</p></li>
 <li><p><strong>timeMode</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – “elapsed”: count wall-time to timeLimit; “cpu”: count cpu-time</p></li>
 <li><p><strong>maxNodes</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – max number of nodes during branching. Stops the solving when reached.</p></li>
 </ul>
@@ -1368,9 +1368,9 @@ e.g. gapRel=0.1, gapAbs=10, logPath=””,</p></li>
 <li><p><strong>keepFiles</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – if True, files are saved in the current directory and not deleted after solving</p></li>
 <li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – path to the solver binary</p></li>
 <li><p><strong>logPath</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – path to the log file</p></li>
-<li><p><strong>presolve</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – if True, adds presolve on</p></li>
-<li><p><strong>cuts</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – if True, adds gomory on knapsack on probing on</p></li>
-<li><p><strong>strong</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – if True, adds strong</p></li>
+<li><p><strong>presolve</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – if True, adds presolve on, if False, adds presolve off</p></li>
+<li><p><strong>cuts</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – if True, adds gomory on knapsack on probing on, if False adds cuts off</p></li>
+<li><p><strong>strong</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – number of variables to look at in strong branching (range is 0 to 2147483647)</p></li>
 <li><p><strong>timeMode</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – “elapsed”: count wall-time to timeLimit; “cpu”: count cpu-time</p></li>
 <li><p><strong>maxNodes</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – max number of nodes during branching. Stops the solving when reached.</p></li>
 </ul>
