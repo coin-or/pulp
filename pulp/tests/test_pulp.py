@@ -1208,7 +1208,6 @@ class BaseSolverTest:
 
         @gurobi_test
         def test_measuring_solving_time(self):
-
             time_limit = 10
             solver_settings = dict(
                 PULP_CBC_CMD=30,
@@ -1246,7 +1245,6 @@ class BaseSolverTest:
 
         @gurobi_test
         def test_time_limit_no_solution(self):
-
             time_limit = 1
             solver_settings = dict(HiGHS_CMD=60, HiGHS=60, PULP_CBC_CMD=60, COIN_CMD=60)
             bins = solver_settings.get(self.solver.name)
