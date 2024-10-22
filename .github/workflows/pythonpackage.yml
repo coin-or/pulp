@@ -22,14 +22,17 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Update pip
+      - name: Update pip, install dev deps
         run: |
           python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
       - name: Code Quality
         if: matrix.python-version != '3.7'
         run: |
-          pip install black
           black pulp/ --check
+      - name: Type Check
+        run: |
+          mypy ./
       - name: Install dependencies
         run: |
           pip install .
