@@ -614,6 +614,7 @@ class BaseSolverTest:
                 PULP_CBC_CMD,
                 YAPOSIB,
                 PYGLPK,
+                HiGHS,
             ]:
                 pulpTestCheck(
                     prob,

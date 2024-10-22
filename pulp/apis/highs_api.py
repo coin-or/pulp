@@ -379,7 +379,7 @@ class HiGHS(LpSolver):
                         var.index, highspy.HighsVarType.kInteger
                     )
 
-            for constraint in lp.constraints.values():
+            for i, constraint in enumerate(lp.constraints.values()):
                 non_zero_constraint_items = [
                     (var.index, coefficient)
                     for var, coefficient in constraint.items()
@@ -390,6 +390,8 @@ class HiGHS(LpSolver):
                     indices, coefficients = [], []
                 else:
                     indices, coefficients = zip(*non_zero_constraint_items)
+
+                constraint.index = i
 
                 lb = constraint.getLb()
                 ub = constraint.getUb()
@@ -476,10 +478,24 @@ class HiGHS(LpSolver):
             }
 
             col_values = list(solution.col_value)
+            col_duals = list(solution.col_dual)
 
             # Assign values to the variables as with lp.assignVarsVals()
             for var in lp.variables():
                 var.varValue = col_values[var.index]
+                var.dj = col_duals[var.index]
+
+            for constraint in lp.constraints.values():
+                # PuLP returns LpConstraint.constant as if it were on the
+                # left-hand side, which means the signs on the following line
+                # are correct
+                constraint.slack = (
+                    constraint.constant + solution.row_value[constraint.index]
+                )
+                # We need to flip the sign for slacks for LE constraints
+                if constraint.sense == constants.LpConstraintLE:
+                    constraint.slack *= -1.0
+                constraint.pi = solution.row_dual[constraint.index]
 
             if obj_value == float(inf) and status in (
                 HighsModelStatus.kTimeLimit,
