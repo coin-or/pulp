@@ -555,6 +555,8 @@ class LpVariable(LpElement):
         return 0
 
     def isBinary(self):
+        if self.cat == const.LpBinary:
+            return True
         return self.cat == const.LpInteger and self.lowBound == 0 and self.upBound == 1
 
     def isInteger(self):

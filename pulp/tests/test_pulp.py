@@ -2,6 +2,7 @@
 Tests for pulp
 """
 
+import os
 import tempfile
 
 from pulp.constants import PulpError
@@ -10,6 +11,7 @@ from pulp import LpVariable, LpProblem, lpSum, LpConstraintVar, LpFractionConstr
 from pulp import constants as const
 from pulp.tests.bin_packing_problem import create_bin_packing_problem
 from pulp.utilities import makeDict
+import re
 import functools
 import unittest
 
@@ -232,6 +234,8 @@ class BaseSolverTest:
                 HiGHS_CMD,
                 XPRESS,
                 XPRESS_CMD,
+                SAS94,
+                SASCAS,
             ]:
                 try:
                     pulpTestCheck(
@@ -281,6 +285,8 @@ class BaseSolverTest:
                 XPRESS,
                 XPRESS_CMD,
                 XPRESS_PY,
+                SAS94,
+                SASCAS,
             ]:
                 try:
                     pulpTestCheck(
@@ -427,6 +433,8 @@ class BaseSolverTest:
                 "CPLEX_PY",
                 "COPT",
                 "HiGHS_CMD",
+                "SAS94",
+                "SASCAS",
             ]:
                 self.solver.optionsDict["warmStart"] = True
             pulpTestCheck(
@@ -614,6 +622,8 @@ class BaseSolverTest:
                 YAPOSIB,
                 PYGLPK,
                 HiGHS,
+                SAS94,
+                SASCAS,
             ]:
                 pulpTestCheck(
                     prob,
@@ -1441,6 +1451,199 @@ class BaseSolverTest:
 class PULP_CBC_CMDTest(BaseSolverTest.PuLPTest):
     solveInst = PULP_CBC_CMD
 
+    @staticmethod
+    def read_command_line_from_log_file(logPath):
+        """
+        Read from log file the command line executed.
+        """
+        with open(logPath) as fp:
+            for row in fp.readlines():
+                if row.startswith("command line "):
+                    return row
+        raise ValueError(f"Unable to find the command line in {logPath}")
+
+    @staticmethod
+    def extract_option_from_command_line(
+        command_line, option, prefix="-", grp_pattern="[a-zA-Z]+"
+    ):
+        """
+        Extract option value from command line string.
+
+        :param command_line: str that we extract the option value from
+        :param option: str representing the option name (e.g., presolve, sec, etc)
+        :param prefix: str (default: '-')
+        :param grp_pattern: str (default: '[a-zA-Z]+') - regex to capture option value
+
+        :return: option value captured (str); otherwise, None
+
+        example:
+
+        >>> cmd = "cbc model.mps -presolve off -timeMode elapsed -branch"
+        >>> PULP_CBC_CMDTest.extract_option_from_command_line(cmd, "presolve")
+        'off'
+
+        >>> cmd = "cbc model.mps -strong 101 -timeMode elapsed -branch"
+        >>> PULP_CBC_CMDTest.extract_option_from_command_line(cmd, "strong", grp_pattern="\d+")
+        '101'
+        """
+        pattern = re.compile(rf"{prefix}{option}\s+({grp_pattern})\s*")
+        m = pattern.search(command_line)
+        if not m:
+            print(f"{option} not found in {command_line}")
+            return None
+        option_value = m.groups()[0]
+        return option_value
+
+    def test_presolve_off(self):
+        """
+        Test if setting presolve=False in PULP_CBC_CMD adds presolve off to the
+        command line.
+        """
+        name = self._testMethodName
+        prob = LpProblem(name, const.LpMinimize)
+        x = LpVariable("x", 0, 4)
+        y = LpVariable("y", -1, 1)
+        z = LpVariable("z", 0)
+        w = LpVariable("w", 0)
+        prob += x + 4 * y + 9 * z, "obj"
+        prob += x + y <= 5, "c1"
+        prob += x + z >= 10, "c2"
+        prob += -y + z == 7, "c3"
+        prob += w >= 0, "c4"
+        logFilename = name + ".log"
+        self.solver.optionsDict["logPath"] = logFilename
+        self.solver.optionsDict["presolve"] = False
+        pulpTestCheck(
+            prob,
+            self.solver,
+            [const.LpStatusOptimal],
+            {x: 4, y: -1, z: 6, w: 0},
+        )
+        if not os.path.exists(logFilename):
+            raise PulpError(f"Test failed for solver: {self.solver}")
+        if not os.path.getsize(logFilename):
+            raise PulpError(f"Test failed for solver: {self.solver}")
+        # Extract option_value from command line
+        command_line = PULP_CBC_CMDTest.read_command_line_from_log_file(logFilename)
+        option_value = PULP_CBC_CMDTest.extract_option_from_command_line(
+            command_line, option="presolve"
+        )
+        self.assertEqual("off", option_value)
+
+    def test_cuts_on(self):
+        """
+        Test if setting cuts=True in PULP_CBC_CMD adds "gomory on knapsack on
+        probing on" to the command line.
+        """
+        name = self._testMethodName
+        prob = LpProblem(name, const.LpMinimize)
+        x = LpVariable("x", 0, 4)
+        y = LpVariable("y", -1, 1)
+        z = LpVariable("z", 0)
+        w = LpVariable("w", 0)
+        prob += x + 4 * y + 9 * z, "obj"
+        prob += x + y <= 5, "c1"
+        prob += x + z >= 10, "c2"
+        prob += -y + z == 7, "c3"
+        prob += w >= 0, "c4"
+        logFilename = name + ".log"
+        self.solver.optionsDict["logPath"] = logFilename
+        self.solver.optionsDict["cuts"] = True
+        pulpTestCheck(
+            prob,
+            self.solver,
+            [const.LpStatusOptimal],
+            {x: 4, y: -1, z: 6, w: 0},
+        )
+        if not os.path.exists(logFilename):
+            raise PulpError(f"Test failed for solver: {self.solver}")
+        if not os.path.getsize(logFilename):
+            raise PulpError(f"Test failed for solver: {self.solver}")
+        # Extract option values from command line
+        command_line = PULP_CBC_CMDTest.read_command_line_from_log_file(logFilename)
+        gomory_value = PULP_CBC_CMDTest.extract_option_from_command_line(
+            command_line, option="gomory"
+        )
+        knapsack_value = PULP_CBC_CMDTest.extract_option_from_command_line(
+            command_line, option="knapsack", prefix=""
+        )
+        probing_value = PULP_CBC_CMDTest.extract_option_from_command_line(
+            command_line, option="probing", prefix=""
+        )
+        self.assertListEqual(
+            ["on", "on", "on"], [gomory_value, knapsack_value, probing_value]
+        )
+
+    def test_cuts_off(self):
+        """
+        Test if setting cuts=False adds cuts off to the command line.
+        """
+        name = self._testMethodName
+        prob = LpProblem(name, const.LpMinimize)
+        x = LpVariable("x", 0, 4)
+        y = LpVariable("y", -1, 1)
+        z = LpVariable("z", 0)
+        w = LpVariable("w", 0)
+        prob += x + 4 * y + 9 * z, "obj"
+        prob += x + y <= 5, "c1"
+        prob += x + z >= 10, "c2"
+        prob += -y + z == 7, "c3"
+        prob += w >= 0, "c4"
+        logFilename = name + ".log"
+        self.solver.optionsDict["logPath"] = logFilename
+        self.solver.optionsDict["cuts"] = False
+        pulpTestCheck(
+            prob,
+            self.solver,
+            [const.LpStatusOptimal],
+            {x: 4, y: -1, z: 6, w: 0},
+        )
+        if not os.path.exists(logFilename):
+            raise PulpError(f"Test failed for solver: {self.solver}")
+        if not os.path.getsize(logFilename):
+            raise PulpError(f"Test failed for solver: {self.solver}")
+        # Extract option value from the command line
+        command_line = PULP_CBC_CMDTest.read_command_line_from_log_file(logFilename)
+        option_value = PULP_CBC_CMDTest.extract_option_from_command_line(
+            command_line, option="cuts"
+        )
+        self.assertEqual("off", option_value)
+
+    def test_strong(self):
+        """
+        Test if setting strong=10 adds strong 10 to the command line.
+        """
+        name = self._testMethodName
+        prob = LpProblem(name, const.LpMinimize)
+        x = LpVariable("x", 0, 4)
+        y = LpVariable("y", -1, 1)
+        z = LpVariable("z", 0)
+        w = LpVariable("w", 0)
+        prob += x + 4 * y + 9 * z, "obj"
+        prob += x + y <= 5, "c1"
+        prob += x + z >= 10, "c2"
+        prob += -y + z == 7, "c3"
+        prob += w >= 0, "c4"
+        logFilename = name + ".log"
+        self.solver.optionsDict["logPath"] = logFilename
+        self.solver.optionsDict["strong"] = 10
+        pulpTestCheck(
+            prob,
+            self.solver,
+            [const.LpStatusOptimal],
+            {x: 4, y: -1, z: 6, w: 0},
+        )
+        if not os.path.exists(logFilename):
+            raise PulpError(f"Test failed for solver: {self.solver}")
+        if not os.path.getsize(logFilename):
+            raise PulpError(f"Test failed for solver: {self.solver}")
+        # Extract option value from command line
+        command_line = PULP_CBC_CMDTest.read_command_line_from_log_file(logFilename)
+        option_value = PULP_CBC_CMDTest.extract_option_from_command_line(
+            command_line, option="strong", grp_pattern="\d+"
+        )
+        self.assertEqual("10", option_value)
+
 
 class CPLEX_CMDTest(BaseSolverTest.PuLPTest):
     solveInst = CPLEX_CMD
@@ -1520,6 +1723,32 @@ class HiGHS_CMDTest(BaseSolverTest.PuLPTest):
 
 class COPTTest(BaseSolverTest.PuLPTest):
     solveInst = COPT
+
+
+class SASTest:
+
+    def test_sas_with_option(self):
+        prob = LpProblem("test", LpMinimize)
+        X = LpVariable.dicts("x", [1, 2, 3], lowBound=0.0, cat="Integer")
+        prob += 2 * X[1] - 3 * X[2] - 4 * X[3], "obj"
+        prob += -2 * X[2] - 3 * X[3] >= -5, "R1"
+        prob += X[1] + X[2] + 2 * X[3] <= 4, "R2"
+        prob += X[1] + 2 * X[2] + 3 * X[3] <= 7, "R3"
+        self.solver.optionsDict["with"] = "lp"
+        pulpTestCheck(
+            prob,
+            self.solver,
+            [const.LpStatusOptimal],
+            {X[1]: 0.0, X[2]: 2.5, X[3]: 0.0},
+        )
+
+
+class SAS94Test(BaseSolverTest.PuLPTest, SASTest):
+    solveInst = SAS94
+
+
+class SASCASTest(BaseSolverTest.PuLPTest, SASTest):
+    solveInst = SASCAS
 
 
 def pulpTestCheck(
