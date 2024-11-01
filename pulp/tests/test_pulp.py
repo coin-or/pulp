@@ -621,6 +621,7 @@ class BaseSolverTest:
                 PULP_CBC_CMD,
                 YAPOSIB,
                 PYGLPK,
+                HiGHS,
                 SAS94,
                 SASCAS,
             ]:
