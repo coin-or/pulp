@@ -125,6 +125,7 @@ def getSolverFromDict(data):
     :raises PulpSolverError: if the dictionary does not have the "solver" key
     :rtype: LpSolver
     """
+    data = dict(data)
     solver = data.pop("solver", None)
     if solver is None:
         raise PulpSolverError("The json file has no solver attribute.")
