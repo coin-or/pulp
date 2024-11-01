@@ -2,6 +2,7 @@
 Tests for pulp
 """
 
+import os
 import tempfile
 
 from pulp.constants import PulpError
@@ -233,6 +234,8 @@ class BaseSolverTest:
                 HiGHS_CMD,
                 XPRESS,
                 XPRESS_CMD,
+                SAS94,
+                SASCAS,
             ]:
                 try:
                     pulpTestCheck(
@@ -282,6 +285,8 @@ class BaseSolverTest:
                 XPRESS,
                 XPRESS_CMD,
                 XPRESS_PY,
+                SAS94,
+                SASCAS,
             ]:
                 try:
                     pulpTestCheck(
@@ -428,6 +433,8 @@ class BaseSolverTest:
                 "CPLEX_PY",
                 "COPT",
                 "HiGHS_CMD",
+                "SAS94",
+                "SASCAS",
             ]:
                 self.solver.optionsDict["warmStart"] = True
             pulpTestCheck(
@@ -614,6 +621,8 @@ class BaseSolverTest:
                 PULP_CBC_CMD,
                 YAPOSIB,
                 PYGLPK,
+                SAS94,
+                SASCAS,
             ]:
                 pulpTestCheck(
                     prob,
@@ -1713,6 +1722,32 @@ class HiGHS_CMDTest(BaseSolverTest.PuLPTest):
 
 class COPTTest(BaseSolverTest.PuLPTest):
     solveInst = COPT
+
+
+class SASTest:
+
+    def test_sas_with_option(self):
+        prob = LpProblem("test", LpMinimize)
+        X = LpVariable.dicts("x", [1, 2, 3], lowBound=0.0, cat="Integer")
+        prob += 2 * X[1] - 3 * X[2] - 4 * X[3], "obj"
+        prob += -2 * X[2] - 3 * X[3] >= -5, "R1"
+        prob += X[1] + X[2] + 2 * X[3] <= 4, "R2"
+        prob += X[1] + 2 * X[2] + 3 * X[3] <= 7, "R3"
+        self.solver.optionsDict["with"] = "lp"
+        pulpTestCheck(
+            prob,
+            self.solver,
+            [const.LpStatusOptimal],
+            {X[1]: 0.0, X[2]: 2.5, X[3]: 0.0},
+        )
+
+
+class SAS94Test(BaseSolverTest.PuLPTest, SASTest):
+    solveInst = SAS94
+
+
+class SASCASTest(BaseSolverTest.PuLPTest, SASTest):
+    solveInst = SASCAS
 
 
 def pulpTestCheck(
