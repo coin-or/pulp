@@ -28,7 +28,7 @@ x = pulp.LpVariable.dicts(
     "table", possible_tables, lowBound=0, upBound=1, cat=pulp.LpInteger
 )
 
-seating_model = pulp.LpProblem("Wedding Seating Model", pulp.LpMinimize)
+seating_model = pulp.LpProblem("Wedding Seating Model", pulp.LpMaximize)
 
 seating_model += pulp.lpSum([happiness(table) * x[table] for table in possible_tables])
 
