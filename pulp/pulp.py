@@ -1091,6 +1091,12 @@ class LpConstraint:
         result = "%s\n" % "\n".join(result)
         return result
 
+    def asCplexLpAffineExpression(self, name: str, constant=1):
+        """
+        returns a string that represents the Affine Expression in lp format
+        """
+        return self.expr.asCplexLpAffineExpression(name, constant)
+
     def changeRHS(self, RHS):
         """
         alters the RHS of a constraint so that it can be modified in a resolve
