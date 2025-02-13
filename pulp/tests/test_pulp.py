@@ -2,18 +2,19 @@
 Tests for pulp
 """
 
+import functools
 import os
+import re
 import tempfile
+import unittest
 
-from pulp.constants import PulpError
-from pulp.apis import *
-from pulp import LpVariable, LpProblem, lpSum, LpConstraintVar, LpFractionConstraint
+from pulp import LpConstraintVar, LpFractionConstraint, LpProblem, LpVariable
 from pulp import constants as const
+from pulp import lpSum
+from pulp.apis import *
+from pulp.constants import PulpError
 from pulp.tests.bin_packing_problem import create_bin_packing_problem
 from pulp.utilities import makeDict
-import re
-import functools
-import unittest
 
 try:
     import gurobipy as gp
@@ -46,6 +47,10 @@ ENDATA
 
 EXAMPLE_MPS_PL_BOUNDS = EXAMPLE_MPS_RHS56.replace(
     "LO BND1      YTWO                -1", "PL BND1      YTWO                  "
+)
+
+EXAMPLE_MPS_MI_BOUNDS = EXAMPLE_MPS_RHS56.replace(
+    "LO BND1      YTWO                -1", "MI BND1      YTWO                  "
 )
 
 
@@ -1157,6 +1162,16 @@ class BaseSolverTest:
             _, problem = LpProblem.fromMPS(h.name)
             os.unlink(h.name)
             self.assertIsInstance(problem, LpProblem)
+
+        def test_importMPF_MI_bound(self):
+            """Import MPS file with MI bound type."""
+            with tempfile.NamedTemporaryFile(delete=False) as h:
+                h.write(str.encode(EXAMPLE_MPS_MI_BOUNDS))
+            vars, problem = LpProblem.fromMPS(h.name)
+            os.unlink(h.name)
+            self.assertIsInstance(problem, LpProblem)
+            mi_var = vars["YTWO"]
+            self.assertEqual(mi_var.lowBound, None)
 
         def test_unset_objective_value__is_valid(self):
             """Given a valid problem that does not converge,
