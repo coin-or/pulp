@@ -890,7 +890,7 @@ class LpAffineExpression(_DICT_TYPE):
             # if a dictionary, we add each value
             for e in other.values():
                 self.addInPlace(e, sign=sign)
-        elif isinstance(other, list) or isinstance(other, Iterable):
+        elif isinstance(other, Iterable):
             # if a list, we add each element of the list
             for e in other:
                 self.addInPlace(e, sign=sign)
@@ -1268,8 +1268,14 @@ class LpConstraint:
     def constant(self, v):
         self.expr.constant = v
 
+    def isAtomic(self):
+        return self.expr.isAtomic()
+
     def isNumericalConstant(self):
         return self.expr.isNumericalConstant()
+
+    def atom(self):
+        return self.expr.atom()
 
     def __len__(self):
         return len(self.expr)
