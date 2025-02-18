@@ -1,0 +1,17 @@
+[tool.mypy]
+exclude = [
+  "doc/",
+  "examples/",
+  "pulp/__init__.py",
+  "pulp/apis/",
+  "pulp/mps_lp.py",
+  "pulp/pulp.py",
+  "pulp/solverdir/",
+  "pulp/tests/",
+  "pulp/utilities.py",
+  "setup.py",
+  "venv/.*"
+]
+follow_imports = "silent"
+strict = true
+check_untyped_defs = true

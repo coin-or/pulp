@@ -9,6 +9,7 @@ from .scip_api import *
 from .xpress_api import *
 from .highs_api import *
 from .copt_api import *
+from .sas_api import *
 from .core import *
 
 _all_solvers = [
@@ -35,6 +36,8 @@ _all_solvers = [
     COPT,
     COPT_DLL,
     COPT_CMD,
+    SAS94,
+    SASCAS,
 ]
 
 import json
@@ -122,6 +125,7 @@ def getSolverFromDict(data):
     :raises PulpSolverError: if the dictionary does not have the "solver" key
     :rtype: LpSolver
     """
+    data = dict(data)
     solver = data.pop("solver", None)
     if solver is None:
         raise PulpSolverError("The json file has no solver attribute.")

@@ -1,4 +1,5 @@
+black
+mypy
 pre-commit==2.12.0
 sphinx
 sphinx_rtd_theme
-black
