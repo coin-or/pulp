@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 # PuLP : Python LP Modeler
-
+from __future__ import annotations
 
 # Copyright (c) 2002-2005, Jean-Sebastien Roy (js@jeannot.org)
 # Modifications Copyright (c) 2007- Stuart Anthony Mitchell (s.mitchell@auckland.ac.nz)
@@ -128,6 +128,7 @@ import sys
 import warnings
 import math
 from time import time
+from typing import Any
 
 from .apis import LpSolverDefault, PULP_CBC_CMD
 from .apis.core import clock
@@ -218,7 +219,7 @@ class LpElement:
     def __pos__(self):
         return self
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return True
 
     def __add__(self, other):
@@ -257,13 +258,13 @@ class LpElement:
     def __ne__(self, other):
         if isinstance(other, LpVariable):
             return self.name is not other.name
-        elif isinstance(other, LpAffineExpression):
+        elif isinstance(other, (LpAffineExpression, LpConstraint)):
             if other.isAtomic():
                 return self is not other.atom()
             else:
-                return 1
+                return True
         else:
-            return 1
+            return True
 
 
 class LpVariable(LpElement):
@@ -595,13 +596,13 @@ class LpVariable(LpElement):
     def __ne__(self, other):
         if isinstance(other, LpElement):
             return self.name is not other.name
-        elif isinstance(other, LpAffineExpression):
+        elif isinstance(other, (LpAffineExpression, LpConstraint)):
             if other.isAtomic():
                 return self is not other.atom()
             else:
-                return 1
+                return True
         else:
-            return 1
+            return True
 
     def __bool__(self):
         return bool(self.roundedValue())
@@ -687,33 +688,32 @@ class LpAffineExpression(_DICT_TYPE):
     """
 
     constant: float
-    name: str
     # to remove illegal characters from the names
     trans = maketrans("-+[] ", "_____")
 
-    def setName(self, name):
+    @property
+    def name(self) -> str | None:
+        return self.__name
+
+    @name.setter
+    def name(self, name: str | None):
         if name:
             self.__name = str(name).translate(self.trans)
         else:
             self.__name = None
 
-    def getName(self):
-        return self.__name
-
-    name = property(fget=getName, fset=setName)
-
-    def __init__(self, e=None, constant=0, name=None):
+    def __init__(self, e=None, constant: float = 0.0, name: str | None = None):
         self.name = name
         # TODO remove isinstance usage
         if e is None:
             e = {}
-        if isinstance(e, LpAffineExpression):
+        if isinstance(e, (LpAffineExpression, LpConstraint)):
             # Will not copy the name
             self.constant = e.constant
-            super().__init__(list(e.items()))
+            super().__init__(e.items())
         elif isinstance(e, dict):
             self.constant = constant
-            super().__init__(list(e.items()))
+            super().__init__(e.items())
         elif isinstance(e, Iterable):
             self.constant = constant
             super().__init__(e)
@@ -727,20 +727,20 @@ class LpAffineExpression(_DICT_TYPE):
     # Proxy functions for variables
 
     def isAtomic(self):
-        return len(self) == 1 and self.constant == 0 and list(self.values())[0] == 1
+        return len(self) == 1 and self.constant == 0 and next(iter(self.values())) == 1
 
     def isNumericalConstant(self):
         return len(self) == 0
 
     def atom(self):
-        return list(self.keys())[0]
+        return next(iter(self.keys()))
 
     # Functions on expressions
 
     def __bool__(self):
         return (float(self.constant) != 0.0) or (len(self) > 0)
 
-    def value(self):
+    def value(self) -> float | None:
         s = self.constant
         for v, x in self.items():
             if v.varValue is None:
@@ -748,17 +748,15 @@ class LpAffineExpression(_DICT_TYPE):
             s += v.varValue * x
         return s
 
-    def valueOrDefault(self):
+    def valueOrDefault(self) -> float:
         s = self.constant
         for v, x in self.items():
             s += v.valueOrDefault() * x
         return s
 
-    def addterm(self, key, value):
-        y = self.get(key, 0)
-        if y:
-            y += value
-            self[key] = y
+    def addterm(self, key: LpElement, value: float | int):
+        if key in self:
+            self[key] += value
         else:
             self[key] = value
 
@@ -798,13 +796,12 @@ class LpAffineExpression(_DICT_TYPE):
             s = "0"
         return s
 
-    def sorted_keys(self):
+    def sorted_keys(self) -> list[LpElement]:
         """
         returns the list of keys sorted by name
         """
-        result = [(v.name, v) for v in self.keys()]
-        result.sort()
-        result = [v for _, v in result]
+        result = list(self.keys())
+        result.sort(key=lambda v: v.name)
         return result
 
     def __repr__(self):
@@ -818,7 +815,7 @@ class LpAffineExpression(_DICT_TYPE):
         # counts the characters in a list of strings
         return sum(len(t) for t in line)
 
-    def asCplexVariablesOnly(self, name):
+    def asCplexVariablesOnly(self, name: str):
         """
         helper for asCplexLpAffineExpression
         """
@@ -849,7 +846,7 @@ class LpAffineExpression(_DICT_TYPE):
                 line += [term]
         return result, line
 
-    def asCplexLpAffineExpression(self, name, constant=1):
+    def asCplexLpAffineExpression(self, name: str, constant=1):
         """
         returns a string that represents the Affine Expression in lp format
         """
@@ -886,7 +883,7 @@ class LpAffineExpression(_DICT_TYPE):
         if isinstance(other, LpElement):
             # if a variable, we add it to the dictionary
             self.addterm(other, sign)
-        elif isinstance(other, LpAffineExpression):
+        elif isinstance(other, (LpAffineExpression, LpConstraint)):
             # if an expression, we add each variable and the constant
             self.constant += other.constant * sign
             for v, x in other.items():
@@ -895,7 +892,7 @@ class LpAffineExpression(_DICT_TYPE):
             # if a dictionary, we add each value
             for e in other.values():
                 self.addInPlace(e, sign=sign)
-        elif isinstance(other, list) or isinstance(other, Iterable):
+        elif isinstance(other, Iterable):
             # if a list, we add each element of the list
             for e in other:
                 self.addInPlace(e, sign=sign)
@@ -941,7 +938,7 @@ class LpAffineExpression(_DICT_TYPE):
 
     def __mul__(self, other):
         e = self.emptyCopy()
-        if isinstance(other, LpAffineExpression):
+        if isinstance(other, (LpAffineExpression, LpConstraint)):
             e.constant = self.constant * other.constant
             if len(other):
                 if len(self):
@@ -971,7 +968,9 @@ class LpAffineExpression(_DICT_TYPE):
         return self * other
 
     def __div__(self, other):
-        if isinstance(other, LpAffineExpression) or isinstance(other, LpVariable):
+        if isinstance(other, (LpAffineExpression, LpConstraint)) or isinstance(
+            other, LpVariable
+        ):
             if len(other):
                 raise TypeError(
                     "Expressions cannot be divided by a non-constant expression"
@@ -995,7 +994,7 @@ class LpAffineExpression(_DICT_TYPE):
                 "Expressions cannot be divided by a non-constant expression"
             )
         c = self.constant
-        if isinstance(other, LpAffineExpression):
+        if isinstance(other, (LpAffineExpression, LpConstraint)):
             e.constant = other.constant / c
             for v, x in other.items():
                 e[v] = x / c
@@ -1005,14 +1004,23 @@ class LpAffineExpression(_DICT_TYPE):
             e.constant = other / c
         return e
 
-    def __le__(self, other):
-        return LpConstraint(self - other, const.LpConstraintLE)
+    def __le__(self, other) -> LpConstraint:
+        if isinstance(other, (int, float)):
+            return LpConstraint(self, const.LpConstraintLE, rhs=other)
+        else:
+            return LpConstraint(self - other, const.LpConstraintLE)
 
-    def __ge__(self, other):
-        return LpConstraint(self - other, const.LpConstraintGE)
+    def __ge__(self, other) -> LpConstraint:
+        if isinstance(other, (int, float)):
+            return LpConstraint(self, const.LpConstraintGE, rhs=other)
+        else:
+            return LpConstraint(self - other, const.LpConstraintGE)
 
-    def __eq__(self, other):
-        return LpConstraint(self - other, const.LpConstraintEQ)
+    def __eq__(self, other) -> LpConstraint:
+        if isinstance(other, (int, float)):
+            return LpConstraint(self, const.LpConstraintEQ, rhs=other)
+        else:
+            return LpConstraint(self - other, const.LpConstraintEQ)
 
     def toDict(self):
         """
@@ -1027,7 +1035,7 @@ class LpAffineExpression(_DICT_TYPE):
     to_dict = toDict
 
 
-class LpConstraint(LpAffineExpression):
+class LpConstraint:
     """An LP constraint"""
 
     def __init__(self, e=None, sense=const.LpConstraintEQ, name=None, rhs=None):
@@ -1037,7 +1045,9 @@ class LpConstraint(LpAffineExpression):
         :param name: identifying string
         :param rhs: numerical value of constraint target
         """
-        LpAffineExpression.__init__(self, e, name=name)
+        self.expr = (
+            e if isinstance(e, LpAffineExpression) else LpAffineExpression(e, name=name)
+        )
         if rhs is not None:
             self.constant -= rhs
         self.sense = sense
@@ -1058,7 +1068,7 @@ class LpConstraint(LpAffineExpression):
             return None
 
     def __str__(self):
-        s = LpAffineExpression.__str__(self, 0)
+        s = self.expr.__str__(0)
         if self.sense is not None:
             s += " " + const.LpConstraintSenses[self.sense] + " " + str(-self.constant)
         return s
@@ -1067,14 +1077,14 @@ class LpConstraint(LpAffineExpression):
         """
         Returns a constraint as a string
         """
-        result, line = self.asCplexVariablesOnly(name)
-        if not list(self.keys()):
+        result, line = self.expr.asCplexVariablesOnly(name)
+        if len(self.keys()) == 0:
             line += ["0"]
         c = -self.constant
         if c == 0:
             c = 0  # Supress sign
         term = f" {const.LpConstraintSenses[self.sense]} {c:.12g}"
-        if self._count_characters(line) + len(term) > const.LpCplexLPLineSize:
+        if self.expr._count_characters(line) + len(term) > const.LpCplexLPLineSize:
             result += ["".join(line)]
             line = [term]
         else:
@@ -1082,6 +1092,12 @@ class LpConstraint(LpAffineExpression):
         result += ["".join(line)]
         result = "%s\n" % "\n".join(result)
         return result
+
+    def asCplexLpAffineExpression(self, name: str, constant=1):
+        """
+        returns a string that represents the Affine Expression in lp format
+        """
+        return self.expr.asCplexLpAffineExpression(name, constant)
 
     def changeRHS(self, RHS):
         """
@@ -1091,7 +1107,7 @@ class LpConstraint(LpAffineExpression):
         self.modified = True
 
     def __repr__(self):
-        s = LpAffineExpression.__repr__(self)
+        s = repr(self.expr)
         if self.sense is not None:
             s += " " + const.LpConstraintSenses[self.sense] + " 0"
         return s
@@ -1111,16 +1127,16 @@ class LpConstraint(LpAffineExpression):
         """
         if isinstance(other, LpConstraint):
             if self.sense * other.sense >= 0:
-                LpAffineExpression.addInPlace(self, other, 1)
+                self.expr.addInPlace(other.expr, 1)
                 self.sense |= other.sense
             else:
-                LpAffineExpression.addInPlace(self, other, -1)
+                self.expr.addInPlace(other.expr, -1)
                 self.sense |= -other.sense
         elif isinstance(other, list):
             for e in other:
                 self.addInPlace(e, sign)
         else:
-            LpAffineExpression.addInPlace(self, other, sign)
+            self.expr.addInPlace(other, sign)
             # raise TypeError, "Constraints and Expressions cannot be added"
         return self
 
@@ -1128,7 +1144,8 @@ class LpConstraint(LpAffineExpression):
         return self.addInPlace(other, -1)
 
     def __neg__(self):
-        c = LpAffineExpression.__neg__(self)
+        c = self.copy()
+        c.expr = -c.expr
         c.sense = -c.sense
         return c
 
@@ -1146,42 +1163,51 @@ class LpConstraint(LpAffineExpression):
 
     def __mul__(self, other):
         if isinstance(other, LpConstraint):
-            c = LpAffineExpression.__mul__(self, other)
+            c = self.copy()
+            c.expr = c.expr * other
             if c.sense == 0:
                 c.sense = other.sense
             elif other.sense != 0:
                 c.sense *= other.sense
             return c
         else:
-            return LpAffineExpression.__mul__(self, other)
+            c = self.copy()
+            c.expr = c.expr * other
+            return c
 
     def __rmul__(self, other):
         return self * other
 
     def __div__(self, other):
         if isinstance(other, LpConstraint):
-            c = LpAffineExpression.__div__(self, other)
+            c = self.copy()
+            c.expr = c.expr / other
             if c.sense == 0:
                 c.sense = other.sense
             elif other.sense != 0:
                 c.sense *= other.sense
             return c
         else:
-            return LpAffineExpression.__mul__(self, other)
+            c = self.copy()
+            c.expr = c.expr / other
+            return c
 
     def __rdiv__(self, other):
         if isinstance(other, LpConstraint):
-            c = LpAffineExpression.__rdiv__(self, other)
+            c = self.copy()
+            c.expr = c.expr / other
             if c.sense == 0:
                 c.sense = other.sense
             elif other.sense != 0:
                 c.sense *= other.sense
             return c
         else:
-            return LpAffineExpression.__mul__(self, other)
+            c = self.copy()
+            c.expr = c.expr / other
+            return
 
     def valid(self, eps=0):
-        val = self.value()
+        val = self.expr.value()
         if self.sense == const.LpConstraintEQ:
             return abs(val) <= eps
         else:
@@ -1206,7 +1232,7 @@ class LpConstraint(LpAffineExpression):
             pi=self.pi,
             constant=self.constant,
             name=self.name,
-            coefficients=LpAffineExpression.toDict(self),
+            coefficients=self.expr.toDict(),
         )
 
     @classmethod
@@ -1227,6 +1253,52 @@ class LpConstraint(LpAffineExpression):
         return const
 
     from_dict = fromDict
+
+    @property
+    def name(self):
+        return self.expr.name
+
+    @name.setter
+    def name(self, v):
+        self.expr.name = v
+
+    @property
+    def constant(self):
+        return self.expr.constant
+
+    @constant.setter
+    def constant(self, v):
+        self.expr.constant = v
+
+    def isAtomic(self):
+        return self.expr.isAtomic()
+
+    def isNumericalConstant(self):
+        return self.expr.isNumericalConstant()
+
+    def atom(self):
+        return self.expr.atom()
+
+    def __len__(self):
+        return len(self.expr)
+
+    def __iter__(self):
+        return iter(self.expr)
+
+    def __getitem__(self, key: LpElement):
+        return self.expr[key]
+
+    def get(self, key: LpVariable, default: float | None) -> float | None:
+        return self.expr.get(key, default)
+
+    def keys(self):
+        return self.expr.keys()
+
+    def values(self):
+        return self.expr.values()
+
+    def items(self):
+        return self.expr.items()
 
 
 class LpFractionConstraint(LpConstraint):
@@ -1282,7 +1354,7 @@ class LpFractionConstraint(LpConstraint):
             else:
                 raise ZeroDivisionError
 
-    def makeElasticSubProblem(self, *args, **kwargs):
+    def makeElasticSubProblem(self, *args: Any, **kwargs: Any):
         """
         Builds an elastic subproblem by adding variables and splitting the
         hard constraint
@@ -1306,10 +1378,10 @@ class LpConstraintVar(LpElement):
         Adds a variable to the constraint with the
         activity coeff
         """
-        self.constraint.addterm(var, coeff)
+        self.constraint.expr.addterm(var, coeff)
 
     def value(self):
-        return self.constraint.value()
+        return self.constraint.expr.value()
 
 
 class LpProblem:
@@ -1330,8 +1402,8 @@ class LpProblem:
         if " " in name:
             warnings.warn("Spaces are not permitted in the name. Converted to '_'")
             name = name.replace(" ", "_")
-        self.objective = None
-        self.constraints = _DICT_TYPE()
+        self.objective: None | LpAffineExpression = None
+        self.constraints: _DICT_TYPE[str, LpConstraint] = _DICT_TYPE()
         self.name = name
         self.sense = sense
         self.sos1 = {}
@@ -1340,11 +1412,14 @@ class LpProblem:
         self.sol_status = const.LpSolutionNoSolutionFound
         self.noOverlap = 1
         self.solver = None
+        self.solverModel = None
         self.modifiedVariables = []
         self.modifiedConstraints = []
         self.resolveOK = False
-        self._variables = []
-        self._variable_ids = {}  # old school using dict.keys() for a set
+        self._variables: list[LpVariable] = []
+        self._variable_ids: dict[int, LpVariable] = (
+            {}
+        )  # old school using dict.keys() for a set
         self.dummyVar = None
         self.solutionTime = 0
         self.solutionCpuTime = 0
@@ -1396,7 +1471,7 @@ class LpProblem:
         lpcopy = LpProblem(name=self.name, sense=self.sense)
         if self.objective is not None:
             lpcopy.objective = self.objective.copy()
-        lpcopy.constraints = {}
+        lpcopy.constraints = _DICT_TYPE[str, LpConstraint]()
         for k, v in self.constraints.items():
             lpcopy.constraints[k] = v.copy()
         lpcopy.sos1 = self.sos1.copy()
@@ -1419,6 +1494,7 @@ class LpProblem:
                 "Duplicated names found in variables:\nto export the model, variable names need to be unique"
             )
         self.fixObjective()
+        assert self.objective is not None
         variables = self.variables()
         return dict(
             objective=dict(
@@ -1547,7 +1623,7 @@ class LpProblem:
 
     def unusedConstraintName(self):
         self.lastUnused += 1
-        while 1:
+        while True:
             s = "_C%d" % self.lastUnused
             if s not in self.constraints:
                 break
@@ -1573,7 +1649,7 @@ class LpProblem:
                 gap = max(abs(c.value()), gap)
         return gap
 
-    def addVariable(self, variable):
+    def addVariable(self, variable: LpVariable):
         """
         Adds a variable to the problem before a constraint is added
 
@@ -1583,7 +1659,7 @@ class LpProblem:
             self._variables.append(variable)
             self._variable_ids[variable.hash] = variable
 
-    def addVariables(self, variables):
+    def addVariables(self, variables: Iterable[LpVariable]):
         """
         Adds variables to the problem before a constraint is added
 
@@ -1592,7 +1668,7 @@ class LpProblem:
         for v in variables:
             self.addVariable(v)
 
-    def variables(self):
+    def variables(self) -> list[LpVariable]:
         """
         Returns the problem variables
 
@@ -1600,9 +1676,9 @@ class LpProblem:
         :rtype: (list, :py:class:`LpVariable`)
         """
         if self.objective:
-            self.addVariables(list(self.objective.keys()))
+            self.addVariables(self.objective.keys())
         for c in self.constraints.values():
-            self.addVariables(list(c.keys()))
+            self.addVariables(c.keys())
         self._variables.sort(key=lambda v: v.name)
         return self._variables
 
@@ -1611,7 +1687,7 @@ class LpProblem:
         if self.objective:
             for v in self.objective:
                 variables[v.name] = v
-        for c in list(self.constraints.values()):
+        for c in self.constraints.values():
             for v in c:
                 variables[v.name] = v
         return variables
@@ -1619,7 +1695,7 @@ class LpProblem:
     def add(self, constraint, name=None):
         self.addConstraint(constraint, name)
 
-    def addConstraint(self, constraint, name=None):
+    def addConstraint(self, constraint: LpConstraint, name=None):
         if not isinstance(constraint, LpConstraint):
             raise TypeError("Can only add LpConstraint objects")
         if name:
@@ -1642,7 +1718,7 @@ class LpProblem:
                 print("Warning: overlapping constraint names:", name)
         self.constraints[name] = constraint
         self.modifiedConstraints.append(constraint)
-        self.addVariables(list(constraint.keys()))
+        self.addVariables(constraint.keys())
 
     def setObjective(self, obj):
         """
@@ -1856,17 +1932,17 @@ class LpProblem:
 
     def fixObjective(self):
         if self.objective is None:
-            self.objective = 0
-            wasNone = 1
+            self.objective = LpAffineExpression(0)
+            wasNone = True
         else:
-            wasNone = 0
-        if not isinstance(self.objective, LpAffineExpression):
-            self.objective = LpAffineExpression(self.objective)
+            wasNone = False
+
         if self.objective.isNumericalConstant():
             dummyVar = self.get_dummyVar()
             self.objective += dummyVar
         else:
             dummyVar = None
+
         return wasNone, dummyVar
 
     def restoreObjective(self, wasNone, dummyVar):
@@ -2257,7 +2333,15 @@ class FractionElasticSubProblem(FixedElasticSubProblem):
             return False
 
 
-def lpSum(vector):
+def lpSum(
+    vector: (
+        Iterable[LpAffineExpression]
+        | Iterable[tuple[LpElement, float]]
+        | int
+        | float
+        | LpElement
+    ),
+):
     """
     Calculate the sum of a list of linear expressions
 
