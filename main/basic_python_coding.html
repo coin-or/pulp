@@ -7,7 +7,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Basic Python Coding &mdash; PuLP 2.9.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
 
   
@@ -357,7 +357,7 @@ will need the import statement. This statement makes the contents of another
 module (file of program code) available in the module you are currently writing
 i.e. functions and values defined in pulp.py that you will be required to call,
 become usable. In this course you will use:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pulp</span> <span class="kn">import</span> <span class="o">*</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">pulp</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
 </pre></div>
 </div>
 <p>The asterisk represents that you are importing all names from the module of
@@ -367,7 +367,7 @@ defined in your own module.</p>
 <section id="functions">
 <h3>Functions<a class="headerlink" href="#functions" title="Link to this heading"></a></h3>
 <p>Functions in Python are defined by: (def is short for define)</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="n">inputparameter1</span><span class="p">,</span> <span class="n">inputparameter2</span><span class="p">,</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span><span class="p">):</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">name</span><span class="p">(</span><span class="n">inputparameter1</span><span class="p">,</span> <span class="n">inputparameter2</span><span class="p">,</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span><span class="p">):</span>
     <span class="c1">#function body</span>
 </pre></div>
 </div>
@@ -377,7 +377,7 @@ is passed in. The order of the input parameters (in the definition) does not
 matter at all, as long as when the function is called, the positional parameters
 are entered in the corresponding order. If keywords are used the order of the
 parameters does not matter at all:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">string_appender</span><span class="p">(</span><span class="n">head</span><span class="o">=</span><span class="s1">&#39;begin&#39;</span><span class="p">,</span> <span class="n">tail</span><span class="o">=</span><span class="s1">&#39;end&#39;</span><span class="p">,</span> <span class="n">end_message</span><span class="o">=</span><span class="s1">&#39;EOL&#39;</span><span class="p">):</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">string_appender</span><span class="p">(</span><span class="n">head</span><span class="o">=</span><span class="s1">&#39;begin&#39;</span><span class="p">,</span> <span class="n">tail</span><span class="o">=</span><span class="s1">&#39;end&#39;</span><span class="p">,</span> <span class="n">end_message</span><span class="o">=</span><span class="s1">&#39;EOL&#39;</span><span class="p">):</span>
     <span class="n">result</span> <span class="o">=</span> <span class="n">head</span> <span class="o">+</span> <span class="n">tail</span> <span class="o">+</span> <span class="n">end_message</span>
     <span class="k">return</span> <span class="n">result</span>
 </pre></div>
@@ -407,7 +407,7 @@ class and assigns the attributes of name and lengthsdict using self.</p>
 self must be in the input brackets.</p>
 </dd>
 </dl>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Pattern</span><span class="p">:</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Pattern</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Information on a specific pattern in the SpongeRoll Problem</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -416,14 +416,14 @@ self must be in the input brackets.</p>
     <span class="n">totalRollLength</span> <span class="o">=</span> <span class="mi">20</span>
     <span class="n">lenOpts</span> <span class="o">=</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">9</span><span class="p">]</span>
 
-<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">lengths</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">lengths</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">lengthsdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lenOpts</span><span class="p">,</span><span class="n">lengths</span><span class="p">))</span>
 
-<span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
 
-<span class="k">def</span> <span class="nf">trim</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">trim</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="k">return</span> <span class="n">Pattern</span><span class="o">.</span><span class="n">totalRollLength</span> <span class="o">-</span> <span class="nb">sum</span><span class="p">([</span><span class="nb">int</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">lengthsdict</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">lengthsdict</span><span class="p">])</span>
 </pre></div>
 </div>

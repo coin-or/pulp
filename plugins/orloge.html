@@ -7,7 +7,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>orloge: OR logs parser &mdash; PuLP 2.9.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
 
   
@@ -87,7 +87,7 @@
 <p>orloge is a log parser for several MIP solvers that standardizes the contents into a python dictionary with most of the useful information provided. It supports GUROBI, CPLEX and CBC. Information reported includes: best objective, best bound, cuts, gap, nodes, status, time, etc. It also provides a pandas dataframe with the whole progress log of the solver.</p>
 <p>site: <a class="reference external" href="https://github.com/pchtsp/orloge/">https://github.com/pchtsp/orloge/</a></p>
 <p>example with GUROBI:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">orloge</span> <span class="k">as</span> <span class="nn">ol</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">orloge</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ol</span>
 <span class="n">ol</span><span class="o">.</span><span class="n">get_info_log_solver</span><span class="p">(</span><span class="s1">&#39;tests/data/gurobi700-app1-2.out&#39;</span><span class="p">,</span> <span class="s1">&#39;GUROBI&#39;</span><span class="p">)</span>
 </pre></div>
 </div>

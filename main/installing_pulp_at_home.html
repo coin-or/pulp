@@ -7,7 +7,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Installing PuLP at Home &mdash; PuLP 2.9.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
 
   
@@ -140,7 +140,7 @@ $ sudo pulptest             #needed to get the default solver to work
 </li>
 </ul>
 <p>The PuLP function library is now able to be imported from any python command line. Go to IDLE or PyDev and type</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pulp</span> <span class="kn">import</span> <span class="o">*</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">pulp</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
 </pre></div>
 </div>
 <p>to load in the functions. (You need to re-import the functions each time after you close the GUI) PuLP is written in a programming language called Python, and to use PuLP you must write Python code to describe your optimization problem.</p>
@@ -180,7 +180,7 @@ $ sudo pulptest             #needed to get the default solver to work
 following into a python interpreter and note that the output should be similar.
 The output below is what you would expect if you have not installed any other
 solvers and the <a class="reference external" href="https://projects.coin-or.org/Cbc">CBC</a> solver bundled with pulp works.</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pulp</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">pulp</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">pulp</span><span class="o">.</span><span class="n">pulpTestAll</span><span class="p">()</span>
 <span class="go">         Testing zero subtraction</span>
 <span class="go">         Testing continuous LP solution</span>

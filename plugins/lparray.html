@@ -7,7 +7,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PuLP_LPARRAY: PuLP x NumPy, a match made in heaven &mdash; PuLP 2.9.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
 
   
@@ -89,7 +89,7 @@ Special support functions that allow efficient linearization of useful operation
 <p>site: <a class="reference external" href="https://github.com/qdbp/pulp-lparray">https://github.com/qdbp/pulp-lparray</a></p>
 <p>example:</p>
 <p>Let’s solve an unconstrained SuperSudoku puzzle. A SuperSudoku is a Sudoku with the additional requirement that all digits having box coordinates (x, y) be distinct for all (x, y):</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">lparray</span> <span class="kn">import</span> <span class="n">lparray</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">lparray</span><span class="w"> </span><span class="kn">import</span> <span class="n">lparray</span>
 
 <span class="c1"># name      R, C, r, c, n   lb ub type</span>
 <span class="n">X</span> <span class="o">=</span> <span class="n">lparray</span><span class="o">.</span><span class="n">create_anon</span><span class="p">(</span><span class="s2">&quot;Board&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">9</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">pp</span><span class="o">.</span><span class="n">LpBinary</span><span class="p">)</span>

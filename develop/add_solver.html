@@ -7,7 +7,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>How to add a new solver to PuLP &mdash; PuLP 2.9.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
 
   
@@ -101,16 +101,16 @@
 <section id="inheriting-base-classes">
 <h2>Inheriting base classes<a class="headerlink" href="#inheriting-base-classes" title="Link to this heading"></a></h2>
 <p>The solver needs to inherit one of two classes:  <a class="reference internal" href="../technical/solvers.html#pulp.apis.LpSolver" title="pulp.apis.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.LpSolver</span></code></a> or  <a class="reference internal" href="../technical/solvers.html#pulp.apis.LpSolver_CMD" title="pulp.apis.LpSolver_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.LpSolver_CMD</span></code></a> located in <code class="docutils literal notranslate"><span class="pre">pulp.apis.core.py</span></code>. The first one is a generic class. The second one is used for command-line based APIs to solvers. This is the one used for the example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">.core</span> <span class="kn">import</span> <span class="n">LpSolver_CMD</span><span class="p">,</span> <span class="n">subprocess</span><span class="p">,</span> <span class="n">PulpSolverError</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">constants</span>
-<span class="kn">import</span> <span class="nn">warnings</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">LpSolver_CMD</span><span class="p">,</span> <span class="n">subprocess</span><span class="p">,</span> <span class="n">PulpSolverError</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..</span><span class="w"> </span><span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 
-<span class="k">class</span> <span class="nc">MIPCL_CMD</span><span class="p">(</span><span class="n">LpSolver_CMD</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MIPCL_CMD</span><span class="p">(</span><span class="n">LpSolver_CMD</span><span class="p">):</span>
 
     <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;MIPCL_CMD&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">keepFiles</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -143,7 +143,7 @@
 <h2><code class="docutils literal notranslate"><span class="pre">available</span></code> method<a class="headerlink" href="#available-method" title="Link to this heading"></a></h2>
 <p>Required by <a class="reference internal" href="../technical/solvers.html#pulp.apis.LpSolver" title="pulp.apis.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.LpSolver</span></code></a> and <a class="reference internal" href="../technical/solvers.html#pulp.apis.LpSolver_CMD" title="pulp.apis.LpSolver_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.LpSolver_CMD</span></code></a>.</p>
 <p>Returns <code class="docutils literal notranslate"><span class="pre">True</span></code> if the solver is available and operational. <code class="docutils literal notranslate"><span class="pre">False</span></code> otherwise:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">available</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">available</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">executable</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -152,7 +152,7 @@
 <h2><code class="docutils literal notranslate"><span class="pre">actualSolve</span></code> method<a class="headerlink" href="#actualsolve-method" title="Link to this heading"></a></h2>
 <p>Required by <a class="reference internal" href="../technical/solvers.html#pulp.apis.LpSolver" title="pulp.apis.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.LpSolver</span></code></a> and <a class="reference internal" href="../technical/solvers.html#pulp.apis.LpSolver_CMD" title="pulp.apis.LpSolver_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.LpSolver_CMD</span></code></a>.</p>
 <p>Takes an <a class="reference internal" href="../technical/pulp.html#pulp.LpProblem" title="pulp.pulp.LpProblem"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.pulp.LpProblem</span></code></a> as argument, solves it, stores the solution, and returns a status code:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">actualSolve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lp</span><span class="p">):</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">actualSolve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lp</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Solve a well formulated lp problem&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">executable</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">):</span>
         <span class="k">raise</span> <span class="n">PulpSolverError</span><span class="p">(</span><span class="s2">&quot;PuLP: cannot execute &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
@@ -213,7 +213,7 @@
 <section id="defaultpath-method">
 <h2><code class="docutils literal notranslate"><span class="pre">defaultPath</span></code> method<a class="headerlink" href="#defaultpath-method" title="Link to this heading"></a></h2>
 <p>Only required by <a class="reference internal" href="../technical/solvers.html#pulp.apis.LpSolver_CMD" title="pulp.apis.LpSolver_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.LpSolver_CMD</span></code></a>. It returns the default path of the command-line solver:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">defaultPath</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">defaultPath</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">executableExtension</span><span class="p">(</span><span class="s2">&quot;mps_mipcl&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -221,7 +221,7 @@
 <section id="making-the-solver-available-to-pulp">
 <h2>Making the solver available to PuLP<a class="headerlink" href="#making-the-solver-available-to-pulp" title="Link to this heading"></a></h2>
 <p>Modify the <code class="docutils literal notranslate"><span class="pre">pulp/apis/__init__.py</span></code> file to import your solver and add it to the <code class="docutils literal notranslate"><span class="pre">_all_solvers</span></code> list:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">.mipcl_api</span> <span class="kn">import</span> <span class="n">MIPCL_CMD</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">.mipcl_api</span><span class="w"> </span><span class="kn">import</span> <span class="n">MIPCL_CMD</span>
 <span class="n">_all_solvers</span> <span class="o">=</span> <span class="p">[</span>
 <span class="c1"># (...)</span>
 <span class="n">MIPCL_CMD</span><span class="p">,</span>
@@ -233,7 +233,7 @@
 <h2>Including the solver in tests suite<a class="headerlink" href="#including-the-solver-in-tests-suite" title="Link to this heading"></a></h2>
 <p>Include the solver in PuLP’s test suite by adding a couple of lines corresponding to your solver to the <code class="docutils literal notranslate"><span class="pre">pulp/tests/test_pulp.py</span></code> file:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># (...)</span>
-<span class="k">class</span> <span class="nc">MIPCL_CMDTest</span><span class="p">(</span><span class="n">BaseSolverTest</span><span class="o">.</span><span class="n">PuLPTest</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MIPCL_CMDTest</span><span class="p">(</span><span class="n">BaseSolverTest</span><span class="o">.</span><span class="n">PuLPTest</span><span class="p">):</span>
     <span class="n">solveInst</span> <span class="o">=</span> <span class="n">MIPCL_CMD</span>
 </pre></div>
 </div>
@@ -241,7 +241,7 @@
 <section id="extra-adding-a-official-solver-api">
 <h2>Extra: adding a official solver API<a class="headerlink" href="#extra-adding-a-official-solver-api" title="Link to this heading"></a></h2>
 <p>There are additional best practices to take into account with these solvers. The <code class="docutils literal notranslate"><span class="pre">actualSolve</span></code> method has the following structure:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">actualSolve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lp</span><span class="p">):</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">actualSolve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lp</span><span class="p">):</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">buildSolverModel</span><span class="p">(</span><span class="n">lp</span><span class="p">)</span>
     <span class="c1"># set the initial solution</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">callSolver</span><span class="p">(</span><span class="n">lp</span><span class="p">)</span>

@@ -7,7 +7,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>A Transportation Problem &mdash; PuLP 2.9.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
 
   
@@ -253,7 +253,7 @@ problem is found in the examples directory BeerDistributionProblem.py</p>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="c1"># Import PuLP modeler functions</span>
-<span class="kn">from</span> <span class="nn">pulp</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pulp</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
 </pre></div>
 </div>
 <p>The start of the formulation is a simple definition of the nodes and their limits/capacities. The node names are put into lists, and their associated capacities are put into dictionaries with the node names as the reference keys:</p>
@@ -452,12 +452,12 @@ as a list of shipments, in a table, etc.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">TRANSPORTATION</span> <span class="n">SOLUTION</span> <span class="o">--</span> <span class="n">Non</span><span class="o">-</span><span class="n">zero</span> <span class="n">shipments</span>
 <span class="n">TotalCost</span> <span class="o">=</span> <span class="n">____</span>
 
-<span class="n">Ship</span> <span class="n">___</span> <span class="n">crates</span> <span class="n">of</span> <span class="n">beer</span> <span class="kn">from</span> <span class="nn">warehouse</span> <span class="n">A</span> <span class="n">to</span> <span class="n">pub</span> <span class="mi">1</span>
-<span class="n">Ship</span> <span class="n">___</span> <span class="n">crates</span> <span class="n">of</span> <span class="n">beer</span> <span class="kn">from</span> <span class="nn">warehouse</span> <span class="n">A</span> <span class="n">to</span> <span class="n">pub</span> <span class="mi">5</span>
-<span class="n">Ship</span> <span class="n">___</span> <span class="n">crates</span> <span class="n">of</span> <span class="n">beer</span> <span class="kn">from</span> <span class="nn">warehouse</span> <span class="n">B</span> <span class="n">to</span> <span class="n">pub</span> <span class="mi">1</span>
-<span class="n">Ship</span> <span class="n">___</span> <span class="n">crates</span> <span class="n">of</span> <span class="n">beer</span> <span class="kn">from</span> <span class="nn">warehouse</span> <span class="n">B</span> <span class="n">to</span> <span class="n">pub</span> <span class="mi">2</span>
-<span class="n">Ship</span> <span class="n">___</span> <span class="n">crates</span> <span class="n">of</span> <span class="n">beer</span> <span class="kn">from</span> <span class="nn">warehouse</span> <span class="n">B</span> <span class="n">to</span> <span class="n">pub</span> <span class="mi">3</span>
-<span class="n">Ship</span> <span class="n">___</span> <span class="n">crates</span> <span class="n">of</span> <span class="n">beer</span> <span class="kn">from</span> <span class="nn">warehouse</span> <span class="n">B</span> <span class="n">to</span> <span class="n">pub</span> <span class="mi">4</span>
+<span class="n">Ship</span> <span class="n">___</span> <span class="n">crates</span> <span class="n">of</span> <span class="n">beer</span> <span class="kn">from</span><span class="w"> </span><span class="nn">warehouse</span> <span class="n">A</span> <span class="n">to</span> <span class="n">pub</span> <span class="mi">1</span>
+<span class="n">Ship</span> <span class="n">___</span> <span class="n">crates</span> <span class="n">of</span> <span class="n">beer</span> <span class="kn">from</span><span class="w"> </span><span class="nn">warehouse</span> <span class="n">A</span> <span class="n">to</span> <span class="n">pub</span> <span class="mi">5</span>
+<span class="n">Ship</span> <span class="n">___</span> <span class="n">crates</span> <span class="n">of</span> <span class="n">beer</span> <span class="kn">from</span><span class="w"> </span><span class="nn">warehouse</span> <span class="n">B</span> <span class="n">to</span> <span class="n">pub</span> <span class="mi">1</span>
+<span class="n">Ship</span> <span class="n">___</span> <span class="n">crates</span> <span class="n">of</span> <span class="n">beer</span> <span class="kn">from</span><span class="w"> </span><span class="nn">warehouse</span> <span class="n">B</span> <span class="n">to</span> <span class="n">pub</span> <span class="mi">2</span>
+<span class="n">Ship</span> <span class="n">___</span> <span class="n">crates</span> <span class="n">of</span> <span class="n">beer</span> <span class="kn">from</span><span class="w"> </span><span class="nn">warehouse</span> <span class="n">B</span> <span class="n">to</span> <span class="n">pub</span> <span class="mi">3</span>
+<span class="n">Ship</span> <span class="n">___</span> <span class="n">crates</span> <span class="n">of</span> <span class="n">beer</span> <span class="kn">from</span><span class="w"> </span><span class="nn">warehouse</span> <span class="n">B</span> <span class="n">to</span> <span class="n">pub</span> <span class="mi">4</span>
 </pre></div>
 </div>
 <p>This information gives rise to the following management summary:</p>
