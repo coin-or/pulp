@@ -2340,7 +2340,7 @@ def lpSum(
         | int
         | float
         | LpElement
-    )
+    ),
 ):
     """
     Calculate the sum of a list of linear expressions
