@@ -5,6 +5,7 @@
 """
 
 import re
+
 from . import constants as const
 
 CORE_FILE_ROW_MODE = "ROWS"
@@ -177,6 +178,9 @@ def readMPSSetBounds(line, variable_dict):
         return
     elif bound == "PL":
         # bounds equal to defaults
+        return
+    elif bound == "MI":
+        set_one_bound("LO", None)
         return
 
     value = float(line[3])
