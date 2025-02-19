@@ -19,6 +19,7 @@ with open(readme_name) as fh:
 setup(
     name="PuLP",
     version=VERSION,
+    license="MIT",
     description="PuLP is an LP modeler written in python. PuLP can generate MPS or LP files and call GLPK, COIN CLP/CBC, CPLEX, and GUROBI to solve linear problems.",
     long_description=long_description,
     long_description_content_type="text/x-rst",
@@ -30,7 +31,7 @@ setup(
         "Development Status :: 5 - Production/Stable",
         "Environment :: Console",
         "Intended Audience :: Science/Research",
-        "License :: OSI Approved :: BSD License",
+        "License :: OSI Approved :: MIT License",
         "Natural Language :: English",
         "Programming Language :: Python",
         "Topic :: Scientific/Engineering :: Mathematics",
