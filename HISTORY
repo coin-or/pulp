@@ -2,6 +2,13 @@
 #       Copyright S.A.Mitchell (s.mitchell@auckland.ac.nz), 2007-
 #       Copyright F.Peschiera (pchtsp@gmail.com), 2019-
 # See the LICENSE file for copyright information.
+3.0.0 2025-02-19
+    Improved performance for large models
+    new solvers: SAS SAS94 and SASCAS
+    improvements to HiGHS API
+    some typing added
+    Add support for bound type `MI` in MPS reading
+    minor fixes
 2.9.0 2024-07-12
     HiGHS available as solver
     added HiGHS_CMD to github actions
