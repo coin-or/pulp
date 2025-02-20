@@ -590,8 +590,10 @@ class LpVariable(LpElement):
             s += f" <= {self.upBound:.12g}"
         return s
 
-    def asCplexLpAffineExpression(self, name, include_constant: bool=True):
-        return LpAffineExpression(self).asCplexLpAffineExpression(name, include_constant)
+    def asCplexLpAffineExpression(self, name, include_constant: bool = True):
+        return LpAffineExpression(self).asCplexLpAffineExpression(
+            name, include_constant
+        )
 
     def __ne__(self, other):
         if isinstance(other, LpElement):
@@ -846,7 +848,12 @@ class LpAffineExpression(_DICT_TYPE):
                 line += [term]
         return result, line
 
-    def asCplexLpAffineExpression(self, name: str, include_constant: bool=True, override_constant: float | None=None):
+    def asCplexLpAffineExpression(
+        self,
+        name: str,
+        include_constant: bool = True,
+        override_constant: float | None = None,
+    ):
         """
         returns a string that represents the Affine Expression in lp format
         """
@@ -857,7 +864,9 @@ class LpAffineExpression(_DICT_TYPE):
         else:
             term = ""
             if include_constant:
-                constant = self.constant if override_constant is None else override_constant
+                constant = (
+                    self.constant if override_constant is None else override_constant
+                )
 
                 if constant < 0:
                     term = " - %s" % (-constant)
@@ -1096,11 +1105,13 @@ class LpConstraint:
         result = "%s\n" % "\n".join(result)
         return result
 
-    def asCplexLpAffineExpression(self, name: str, include_constant: bool=True):
+    def asCplexLpAffineExpression(self, name: str, include_constant: bool = True):
         """
         returns a string that represents the Affine Expression in lp format
         """
-        return self.expr.asCplexLpAffineExpression(name, include_constant, override_constant=self.constant)
+        return self.expr.asCplexLpAffineExpression(
+            name, include_constant, override_constant=self.constant
+        )
 
     def changeRHS(self, RHS):
         """
