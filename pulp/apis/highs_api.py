@@ -1,5 +1,5 @@
 # PuLP : Python LP Modeler
-# Version 2.4
+# Version 2.4.1
 from math import inf
 
 # Copyright (c) 2002-2005, Jean-Sebastien Roy (js@jeannot.org)
@@ -403,10 +403,9 @@ class HiGHS(LpSolver):
                     coefficients,
                 )
 
-        def findSolutionValues(self, lp):
+        def findSolutionValues(self, lp) -> tuple[int, int]:
             status = lp.solverModel.getModelStatus()
             obj_value = lp.solverModel.getObjectiveValue()
-
             solution = lp.solverModel.getSolution()
             HighsModelStatus = highspy.HighsModelStatus
 
@@ -481,27 +480,32 @@ class HiGHS(LpSolver):
             col_duals = list(solution.col_dual)
 
             # Assign values to the variables as with lp.assignVarsVals()
-            for var in lp.variables():
+            lp_variables = lp.variables()
+            for var in lp_variables:
                 var.varValue = col_values[var.index]
                 var.dj = col_duals[var.index]
 
-            for constraint in lp.constraints.values():
+            constraints_list = list(lp.constraints.values())
+            row_values = list(solution.row_value)
+            row_duals = list(solution.row_dual)
+            for constraint in constraints_list:
                 # PuLP returns LpConstraint.constant as if it were on the
                 # left-hand side, which means the signs on the following line
                 # are correct
-                constraint.slack = (
-                    constraint.constant + solution.row_value[constraint.index]
-                )
                 # We need to flip the sign for slacks for LE constraints
+                constraint.slack = constraint.constant + row_values[constraint.index]
                 if constraint.sense == constants.LpConstraintLE:
                     constraint.slack *= -1.0
-                constraint.pi = solution.row_dual[constraint.index]
+                constraint.pi = row_duals[constraint.index]
 
             if obj_value == float(inf) and status in (
                 HighsModelStatus.kTimeLimit,
                 HighsModelStatus.kIterationLimit,
             ):
-                return constants.LpStatusNotSolved, constants.LpSolutionNoSolutionFound
+                return (
+                    constants.LpStatusNotSolved,
+                    constants.LpSolutionNoSolutionFound,
+                )
             else:
                 return status_dict[status]
 
