@@ -1408,7 +1408,7 @@ class LpConstraintVar(LpElement):
         self.constraint.expr.addterm(var, coeff)
 
     def value(self):
-        return self.constraint.expr.value()
+        return self.constraint.value()
 
 
 class LpProblem:
