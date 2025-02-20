@@ -168,12 +168,14 @@ class BaseSolverTest:
 
         def test_intermediate_var(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
-            x_vars = {i: LpVariable(f"x{i}", lowBound=0, cat=LpContinuous) for i in range(3)}
+            x_vars = {
+                i: LpVariable(f"x{i}", lowBound=0, cat=LpContinuous) for i in range(3)
+            }
             x = lpSum(x_vars[i] for i in range(3))
             prob += x >= 2
             prob += x <= 5
             for elem in prob.constraints.values():
-                self.assertIn(elem.constant,  [2, 5])
+                self.assertIn(elem.constant, [2, 5])
 
         def test_continuous_max(self):
             prob = LpProblem(self._testMethodName, const.LpMaximize)
