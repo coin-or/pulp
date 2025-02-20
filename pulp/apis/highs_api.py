@@ -31,7 +31,8 @@ from math import inf
 
 from typing import List
 
-from .core import LpSolver, LpSolver_CMD, subprocess, PulpSolverError
+from .core import LpSolver, LpSolver_CMD, PulpSolverError
+import subprocess
 import os
 from .. import constants
 
