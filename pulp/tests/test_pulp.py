@@ -8,7 +8,14 @@ import re
 import tempfile
 import unittest
 
-from pulp import LpConstraintVar, LpFractionConstraint, LpProblem, LpVariable
+from pulp import (
+    LpAffineExpression,
+    LpConstraint,
+    LpConstraintVar,
+    LpFractionConstraint,
+    LpProblem,
+    LpVariable,
+)
 from pulp import constants as const
 from pulp import lpSum
 from pulp.apis import *
@@ -1492,6 +1499,222 @@ class BaseSolverTest:
             a = math.nan
             x = LpVariable("x")
             self.assertRaises(PulpError, lambda: x * a)
+
+        def test_constraint_copy(self):
+            """
+            LpConstraint.copy()
+            """
+            x = LpVariable("x")
+            y = LpVariable("y")
+
+            expr: LpAffineExpression = x + y + 1
+            self.assertIsInstance(expr, LpAffineExpression)
+            self.assertEqual(expr.constant, 1)
+
+            c: LpConstraint = expr <= 5
+            self.assertIsInstance(c, LpConstraint)
+            self.assertEqual(c.constant, -4)
+            self.assertEqual(c.expr.constant, 1)
+
+            c2: LpConstraint = c.copy()
+            self.assertIsInstance(c2, LpConstraint)
+            self.assertEqual(c2.constant, -4)
+            self.assertEqual(c2.expr.constant, 1)
+            self.assertEqual(str(c), str(c2))
+            self.assertEqual(repr(c), repr(c2))
+
+        def test_constraint_add(self):
+            """
+            __add__ operator on LpConstraint
+            """
+            x = LpVariable("x")
+            y = LpVariable("y")
+
+            expr: LpAffineExpression = x + y + 1
+            self.assertIsInstance(expr, LpAffineExpression)
+            self.assertEqual(expr.constant, 1)
+
+            c1: LpConstraint = x + y <= 5
+            self.assertIsInstance(c1, LpConstraint)
+            self.assertEqual(c1.constant, -5)
+            self.assertEqual(c1.expr.constant, 0)
+            self.assertEqual(str(c1), "x + y <= 5")
+            self.assertEqual(repr(c1), "1*x + 1*y + -5 <= 0")
+
+            c1_int: LpConstraint = c1 + 2
+            self.assertIsInstance(c1_int, LpConstraint)
+            self.assertEqual(c1_int.constant, -3)
+            self.assertEqual(str(c1_int), "x + y <= 3")
+            self.assertEqual(repr(c1_int), "1*x + 1*y + -3 <= 0")
+
+            c1_variable: LpConstraint = c1 + x
+            self.assertIsInstance(c1_variable, LpConstraint)
+            self.assertEqual(str(c1_variable), str(2 * x + y <= 5))
+            self.assertEqual(repr(c1_variable), repr(2 * x + y <= 5))
+
+            expr: LpAffineExpression = x + 1
+            self.assertIsInstance(expr, LpAffineExpression)
+            self.assertEqual(expr.constant, 1)
+            self.assertEqual(str(expr), "x + 1")
+
+            c1_expr: LpConstraint = c1 + expr
+            self.assertIsInstance(c1_expr, LpConstraint)
+            self.assertEqual(c1_expr.expr.constant, 1)
+            self.assertEqual(c1_expr.constant, -4)
+            self.assertEqual(str(c1_expr), str(2 * x + y <= 4))
+            self.assertEqual(repr(c1_expr), repr(2 * x + y <= 4))
+
+            constraint: LpConstraint = x <= 1
+            self.assertIsInstance(constraint, LpConstraint)
+            c1_constraint: LpConstraint = c1 + constraint
+            self.assertEqual(str(c1_constraint), str(2 * x + y <= 6))
+            self.assertEqual(repr(c1_constraint), repr(2 * x + y <= 6))
+
+            constraint: LpConstraint = x + 1 <= 2
+            self.assertIsInstance(constraint, LpConstraint)
+            self.assertEqual(constraint.constant, -1)
+            self.assertEqual(constraint.expr.constant, 1)
+            c1_constraint: LpConstraint = c1 + constraint
+            self.assertEqual(str(c1_constraint), str(2 * x + y <= 6))
+            self.assertEqual(repr(c1_constraint), repr(2 * x + y <= 6))
+
+        def test_constraint_neg(self):
+            """
+            __neg__ operator on LpConstraint
+            """
+            x = LpVariable("x")
+            y = LpVariable("y")
+
+            c1: LpConstraint = x + y <= 5
+            self.assertIsInstance(c1, LpConstraint)
+            self.assertEqual(c1.constant, -5)
+
+            c1_neg: LpConstraint = -c1
+            self.assertIsInstance(c1_neg, LpConstraint)
+            self.assertEqual(c1_neg.constant, 5)
+            self.assertEqual(str(c1_neg), str(-x + -y <= -5))
+            self.assertEqual(repr(c1_neg), repr(-x + -y <= -5))
+
+        def test_constraint_sub(self):
+            """
+            __sub__ operator on LpConstraint
+            """
+            x = LpVariable("x")
+            y = LpVariable("y")
+
+            expr0: LpAffineExpression = 0 * x
+            self.assertIsInstance(expr0, LpAffineExpression)
+            self.assertTrue(expr0.isNumericalConstant())
+
+            c1: LpConstraint = x + y <= 5
+            self.assertIsInstance(c1, LpConstraint)
+            self.assertEqual(c1.constant, -5)
+
+            c1_int: LpConstraint = c1 - 2
+            self.assertIsInstance(c1_int, LpConstraint)
+            self.assertEqual(c1_int.constant, -7)
+
+            c1_variable: LpConstraint = c1 - x
+            self.assertIsInstance(c1_variable, LpConstraint)
+            self.assertEqual(str(c1_variable), "0*x + y <= 5")
+            self.assertEqual(repr(c1_variable), "0*x + 1*y + -5 <= 0")
+
+            expr: LpAffineExpression = x + 1
+            self.assertIsInstance(expr, LpAffineExpression)
+            c1_expr: LpConstraint = c1 - expr
+            self.assertIsInstance(c1_expr, LpConstraint)
+            self.assertEqual(str(c1_expr), "0*x + y <= 6")
+            self.assertEqual(repr(c1_expr), "0*x + 1*y + -6 <= 0")
+
+            constraint: LpConstraint = x <= 1
+            self.assertIsInstance(constraint, LpConstraint)
+            c1_constraint: LpConstraint = c1 - constraint
+            self.assertEqual(str(c1_constraint), "0*x + y <= 4")
+            self.assertEqual(repr(c1_constraint), "0*x + 1*y + -4 <= 0")
+
+            constraint: LpConstraint = x + 1 <= 2
+            self.assertIsInstance(constraint, LpConstraint)
+            c1_constraint: LpConstraint = c1 - constraint
+            self.assertEqual(str(c1_constraint), "0*x + y <= 4")
+            self.assertEqual(repr(c1_constraint), "0*x + 1*y + -4 <= 0")
+
+        def test_constraint_mul(self):
+            """
+            __mul__ operator on LpConstraint
+            """
+            x = LpVariable("x")
+            y = LpVariable("y")
+
+            c1: LpConstraint = x + y <= 5
+            self.assertIsInstance(c1, LpConstraint)
+            self.assertEqual(c1.constant, -5)
+
+            c2: LpConstraint = y <= 5
+            self.assertIsInstance(c2, LpConstraint)
+            self.assertEqual(c2.constant, -5)
+
+            c1_int: LpConstraint = c1 * 2
+            self.assertIsInstance(c1_int, LpConstraint)
+            self.assertEqual(c1_int.constant, -10)
+            self.assertEqual(str(c1_int), "2*x + 2*y <= 10")
+            self.assertEqual(repr(c1_int), "2*x + 2*y + -10 <= 0")
+
+            c1_const_expr: LpConstraint = c1 * LpAffineExpression(2)
+            self.assertIsInstance(c1_const_expr, LpConstraint)
+            self.assertEqual(c1_const_expr.constant, -10)
+            self.assertEqual(str(c1_int), "2*x + 2*y <= 10")
+            self.assertEqual(repr(c1_int), "2*x + 2*y + -10 <= 0")
+
+            with self.assertRaises(TypeError):
+                c1 * x
+
+            with self.assertRaises(TypeError):
+                c2 * x
+
+            with self.assertRaises(TypeError):
+                c1 * (x + 1)
+
+            with self.assertRaises(TypeError):
+                c2 * (x + 1)
+
+        def test_constraint_div(self):
+            """
+            __div__ operator on LpConstraint
+            """
+            x = LpVariable("x")
+            y = LpVariable("y")
+
+            c1: LpConstraint = x + y <= 5
+            self.assertIsInstance(c1, LpConstraint)
+            self.assertEqual(c1.constant, -5)
+
+            c2: LpConstraint = y <= 5
+            self.assertIsInstance(c2, LpConstraint)
+            self.assertEqual(c2.constant, -5)
+
+            c1_int: LpConstraint = c1 / 2.0
+            self.assertIsInstance(c1_int, LpConstraint)
+            self.assertEqual(c1_int.constant, -2.5)
+            self.assertEqual(str(c1_int), "0.5*x + 0.5*y <= 2.5")
+            self.assertEqual(repr(c1_int), "0.5*x + 0.5*y + -2.5 <= 0")
+
+            c1_const_expr: LpConstraint = c1 / LpAffineExpression(2)
+            self.assertIsInstance(c1_const_expr, LpConstraint)
+            self.assertEqual(c1_const_expr.constant, -2.5)
+            self.assertEqual(str(c1_const_expr), "0.5*x + 0.5*y <= 2.5")
+            self.assertEqual(repr(c1_const_expr), "0.5*x + 0.5*y + -2.5 <= 0")
+
+            with self.assertRaises(TypeError):
+                c1 / x
+
+            with self.assertRaises(TypeError):
+                c2 / x
+
+            with self.assertRaises(TypeError):
+                c1 / (x + 1)
+
+            with self.assertRaises(TypeError):
+                c2 / (x + 1)
 
 
 class PULP_CBC_CMDTest(BaseSolverTest.PuLPTest):

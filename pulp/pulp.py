@@ -128,7 +128,7 @@ import sys
 import warnings
 import math
 from time import time
-from typing import Any
+from typing import Any, Literal
 
 from .apis import LpSolverDefault, PULP_CBC_CMD
 from .apis.core import clock
@@ -770,7 +770,9 @@ class LpAffineExpression(_DICT_TYPE):
         # Will not copy the name
         return LpAffineExpression(self)
 
-    def __str__(self, constant=1):
+    def __str__(
+        self, include_constant: bool = True, override_constant: float | None = None
+    ):
         s = ""
         for v in self.sorted_keys():
             val = self[v]
@@ -786,14 +788,15 @@ class LpAffineExpression(_DICT_TYPE):
                 s += str(v)
             else:
                 s += str(val) + "*" + str(v)
-        if constant:
+        if include_constant:
+            constant = self.constant if override_constant is None else override_constant
             if s == "":
-                s = str(self.constant)
+                s = str(constant)
             else:
-                if self.constant < 0:
-                    s += " - " + str(-self.constant)
-                elif self.constant > 0:
-                    s += " + " + str(self.constant)
+                if constant < 0:
+                    s += " - " + str(-constant)
+                elif constant > 0:
+                    s += " + " + str(constant)
         elif s == "":
             s = "0"
         return s
@@ -806,9 +809,12 @@ class LpAffineExpression(_DICT_TYPE):
         result.sort(key=lambda v: v.name)
         return result
 
-    def __repr__(self):
+    def __repr__(self, override_constant: float | None = None):
+        constant = constant = (
+            self.constant if override_constant is None else override_constant
+        )
         l = [str(self[v]) + "*" + str(v) for v in self.sorted_keys()]
-        l.append(str(self.constant))
+        l.append(str(constant))
         s = " + ".join(l)
         return s
 
@@ -881,7 +887,7 @@ class LpAffineExpression(_DICT_TYPE):
         result = "%s\n" % "\n".join(result)
         return result
 
-    def addInPlace(self, other, sign=1):
+    def addInPlace(self, other, sign: Literal[+1, -1] = 1):
         """
         :param int sign: the sign of the operation to do other.
             if we add other => 1
@@ -1059,7 +1065,7 @@ class LpConstraint:
         self.expr = (
             e if isinstance(e, LpAffineExpression) else LpAffineExpression(e, name=name)
         )
-        self.constant: float = 0.0
+        self.constant: float = self.expr.constant
         if rhs is not None:
             self.constant -= rhs
         self.sense = sense
@@ -1080,9 +1086,15 @@ class LpConstraint:
             return None
 
     def __str__(self):
-        s = self.expr.__str__(0)
+        s = self.expr.__str__(include_constant=False, override_constant=self.constant)
         if self.sense is not None:
             s += " " + const.LpConstraintSenses[self.sense] + " " + str(-self.constant)
+        return s
+
+    def __repr__(self):
+        s = self.expr.__repr__(override_constant=self.constant)
+        if self.sense is not None:
+            s += " " + const.LpConstraintSenses[self.sense] + " 0"
         return s
 
     def asCplexLpConstraint(self, name):
@@ -1113,49 +1125,44 @@ class LpConstraint:
             name, include_constant, override_constant=self.constant
         )
 
-    def changeRHS(self, RHS):
+    def changeRHS(self, RHS: float):
         """
         alters the RHS of a constraint so that it can be modified in a resolve
         """
         self.constant = -RHS
         self.modified = True
 
-    def __repr__(self):
-        s = repr(self.expr)
-        if self.sense is not None:
-            s += " " + const.LpConstraintSenses[self.sense] + " 0"
-        return s
-
     def copy(self):
         """Make a copy of self"""
-        return LpConstraint(self, self.sense, rhs=-self.constant)
+        return LpConstraint(
+            self.expr.copy(), self.sense, rhs=-self.constant + self.expr.constant
+        )
 
     def emptyCopy(self):
         return LpConstraint(sense=self.sense)
 
-    def addInPlace(self, other, sign=1):
+    def addInPlace(self, other, sign: Literal[+1, -1] = 1):
         """
         :param int sign: the sign of the operation to do other.
             if we add other => 1
             if we subtract other => -1
         """
         if isinstance(other, LpConstraint):
-            if self.sense * other.sense >= 0:
-                self.constant += other.constant
-                self.expr.addInPlace(other.expr, 1)
-                self.sense |= other.sense
-            else:
-                self.constant -= other.constant
-                self.expr.addInPlace(other.expr, -1)
-                self.sense |= -other.sense
-        elif isinstance(other, list):
-            for e in other:
-                self.addInPlace(e, sign)
-        else:
-            if isinstance(other, (int, float)):
-                self.constant += other * sign
+            if not (self.sense * other.sense >= 0):
+                sign = -sign
+            self.constant += other.constant * sign
+            self.expr.addInPlace(other.expr, sign)
+            self.sense |= other.sense * sign
+        elif isinstance(other, (int, float)):
+            self.constant += other * sign
             self.expr.addInPlace(other, sign)
-            # raise TypeError, "Constraints and Expressions cannot be added"
+        elif isinstance(other, LpAffineExpression):
+            self.constant += other.constant * sign
+            self.expr.addInPlace(other, sign)
+        elif isinstance(other, LpVariable):
+            self.expr.addInPlace(other, sign)
+        else:
+            raise TypeError(f"Constraints and {type(other)} cannot be added")
         return self
 
     def subInPlace(self, other):
@@ -1163,8 +1170,8 @@ class LpConstraint:
 
     def __neg__(self):
         c = self.copy()
+        c.constant = -c.constant
         c.expr = -c.expr
-        c.sense = -c.sense
         return c
 
     def __add__(self, other):
@@ -1180,51 +1187,37 @@ class LpConstraint:
         return (-self).addInPlace(other)
 
     def __mul__(self, other):
-        if isinstance(other, LpConstraint):
+        if isinstance(other, (int, float)):
             c = self.copy()
+            c.constant = c.constant * other
             c.expr = c.expr * other
-            if c.sense == 0:
-                c.sense = other.sense
-            elif other.sense != 0:
-                c.sense *= other.sense
+            return c
+        elif isinstance(other, LpAffineExpression):
+            c = self.copy()
+            c.constant = c.constant * other.constant
+            c.expr = c.expr * other
             return c
         else:
-            c = self.copy()
-            c.expr = c.expr * other
-            return c
+            raise TypeError(f"Cannot multiple LpConstraint by {type(other)}")
 
     def __rmul__(self, other):
         return self * other
 
-    def __div__(self, other):
-        if isinstance(other, LpConstraint):
+    def __truediv__(self, other):
+        if isinstance(other, (int, float)):
             c = self.copy()
+            c.constant = c.constant / other
             c.expr = c.expr / other
-            if c.sense == 0:
-                c.sense = other.sense
-            elif other.sense != 0:
-                c.sense *= other.sense
+            return c
+        elif isinstance(other, LpAffineExpression):
+            c = self.copy()
+            c.constant = c.constant / other.constant
+            c.expr = c.expr / other
             return c
         else:
-            c = self.copy()
-            c.expr = c.expr / other
-            return c
+            raise TypeError(f"Cannot divide LpConstraint by {type(other)}")
 
-    def __rdiv__(self, other):
-        if isinstance(other, LpConstraint):
-            c = self.copy()
-            c.expr = c.expr / other
-            if c.sense == 0:
-                c.sense = other.sense
-            elif other.sense != 0:
-                c.sense *= other.sense
-            return c
-        else:
-            c = self.copy()
-            c.expr = c.expr / other
-            return
-
-    def valid(self, eps=0) -> bool:
+    def valid(self, eps: float = 0) -> bool:
         val = self.value()
         if self.sense == const.LpConstraintEQ:
             return abs(val) <= eps
