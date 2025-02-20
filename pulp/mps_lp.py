@@ -341,7 +341,9 @@ def writeLP(LpProblem, filename, writeSOS=1, mip=1, max_length=100):
     objName = LpProblem.objective.name
     if not objName:
         objName = "OBJ"
-    f.write(LpProblem.objective.asCplexLpAffineExpression(objName, constant=0))
+    f.write(
+        LpProblem.objective.asCplexLpAffineExpression(objName, include_constant=False)
+    )
     f.write("Subject To\n")
     ks = list(LpProblem.constraints.keys())
     ks.sort()

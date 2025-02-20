@@ -590,8 +590,10 @@ class LpVariable(LpElement):
             s += f" <= {self.upBound:.12g}"
         return s
 
-    def asCplexLpAffineExpression(self, name, constant=1):
-        return LpAffineExpression(self).asCplexLpAffineExpression(name, constant)
+    def asCplexLpAffineExpression(self, name, include_constant: bool = True):
+        return LpAffineExpression(self).asCplexLpAffineExpression(
+            name, include_constant
+        )
 
     def __ne__(self, other):
         if isinstance(other, LpElement):
@@ -846,7 +848,12 @@ class LpAffineExpression(_DICT_TYPE):
                 line += [term]
         return result, line
 
-    def asCplexLpAffineExpression(self, name: str, constant=1):
+    def asCplexLpAffineExpression(
+        self,
+        name: str,
+        include_constant: bool = True,
+        override_constant: float | None = None,
+    ):
         """
         returns a string that represents the Affine Expression in lp format
         """
@@ -856,11 +863,15 @@ class LpAffineExpression(_DICT_TYPE):
             term = f" {self.constant}"
         else:
             term = ""
-            if constant:
-                if self.constant < 0:
-                    term = " - %s" % (-self.constant)
-                elif self.constant > 0:
-                    term = f" + {self.constant}"
+            if include_constant:
+                constant = (
+                    self.constant if override_constant is None else override_constant
+                )
+
+                if constant < 0:
+                    term = " - %s" % (-constant)
+                elif constant > 0:
+                    term = f" + {constant}"
         if self._count_characters(line) + len(term) > const.LpCplexLPLineSize:
             result += ["".join(line)]
             line = [term]
@@ -1048,6 +1059,7 @@ class LpConstraint:
         self.expr = (
             e if isinstance(e, LpAffineExpression) else LpAffineExpression(e, name=name)
         )
+        self.constant: float = 0.0
         if rhs is not None:
             self.constant -= rhs
         self.sense = sense
@@ -1093,11 +1105,13 @@ class LpConstraint:
         result = "%s\n" % "\n".join(result)
         return result
 
-    def asCplexLpAffineExpression(self, name: str, constant=1):
+    def asCplexLpAffineExpression(self, name: str, include_constant: bool = True):
         """
         returns a string that represents the Affine Expression in lp format
         """
-        return self.expr.asCplexLpAffineExpression(name, constant)
+        return self.expr.asCplexLpAffineExpression(
+            name, include_constant, override_constant=self.constant
+        )
 
     def changeRHS(self, RHS):
         """
@@ -1114,7 +1128,7 @@ class LpConstraint:
 
     def copy(self):
         """Make a copy of self"""
-        return LpConstraint(self, self.sense)
+        return LpConstraint(self, self.sense, rhs=-self.constant)
 
     def emptyCopy(self):
         return LpConstraint(sense=self.sense)
@@ -1127,15 +1141,19 @@ class LpConstraint:
         """
         if isinstance(other, LpConstraint):
             if self.sense * other.sense >= 0:
+                self.constant += other.constant
                 self.expr.addInPlace(other.expr, 1)
                 self.sense |= other.sense
             else:
+                self.constant -= other.constant
                 self.expr.addInPlace(other.expr, -1)
                 self.sense |= -other.sense
         elif isinstance(other, list):
             for e in other:
                 self.addInPlace(e, sign)
         else:
+            if isinstance(other, (int, float)):
+                self.constant += other * sign
             self.expr.addInPlace(other, sign)
             # raise TypeError, "Constraints and Expressions cannot be added"
         return self
@@ -1206,8 +1224,8 @@ class LpConstraint:
             c.expr = c.expr / other
             return
 
-    def valid(self, eps=0):
-        val = self.expr.value()
+    def valid(self, eps=0) -> bool:
+        val = self.value()
         if self.sense == const.LpConstraintEQ:
             return abs(val) <= eps
         else:
@@ -1262,22 +1280,17 @@ class LpConstraint:
     def name(self, v):
         self.expr.name = v
 
-    @property
-    def constant(self):
-        return self.expr.constant
-
-    @constant.setter
-    def constant(self, v):
-        self.expr.constant = v
-
     def isAtomic(self):
-        return self.expr.isAtomic()
+        return len(self) == 1 and self.constant == 0 and next(iter(self.values())) == 1
 
     def isNumericalConstant(self):
         return self.expr.isNumericalConstant()
 
     def atom(self):
         return self.expr.atom()
+
+    def __bool__(self):
+        return (float(self.constant) != 0.0) or (len(self) > 0)
 
     def __len__(self):
         return len(self.expr)
@@ -1299,6 +1312,20 @@ class LpConstraint:
 
     def items(self):
         return self.expr.items()
+
+    def value(self) -> float | None:
+        s = self.constant
+        for v, x in self.items():
+            if v.varValue is None:
+                return None
+            s += v.varValue * x
+        return s
+
+    def valueOrDefault(self) -> float:
+        s = self.constant
+        for v, x in self.items():
+            s += v.valueOrDefault() * x
+        return s
 
 
 class LpFractionConstraint(LpConstraint):
@@ -1381,7 +1408,7 @@ class LpConstraintVar(LpElement):
         self.constraint.expr.addterm(var, coeff)
 
     def value(self):
-        return self.constraint.expr.value()
+        return self.constraint.value()
 
 
 class LpProblem:
@@ -1403,7 +1430,7 @@ class LpProblem:
             warnings.warn("Spaces are not permitted in the name. Converted to '_'")
             name = name.replace(" ", "_")
         self.objective: None | LpAffineExpression = None
-        self.constraints: _DICT_TYPE[str, LpConstraint] = _DICT_TYPE()
+        self.constraints = _DICT_TYPE()  # [str, LpConstraint]
         self.name = name
         self.sense = sense
         self.sos1 = {}
