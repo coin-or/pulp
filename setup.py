@@ -47,6 +47,8 @@ setup(
         "pulp.solverdir.cbc.win.32",
         "pulp.solverdir.cbc.win.64",
         "pulp.solverdir.cbc.osx.64",
+        "pulp.apis",
+        "pulp.tests",
     ],
     package_data={
         "pulp.solverdir.cbc.linux.32": ["*", "*.*"],
