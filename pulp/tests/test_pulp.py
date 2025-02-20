@@ -1719,25 +1719,25 @@ class BaseSolverTest:
         def test_regression_794(self):
             # See: https://github.com/coin-or/pulp/issues/794#issuecomment-2671682768
 
-            initial_stock = 8 # s_0
-            demands = [5, 4, 8, 10, 4, 2, 1] # demands[t] = d_t
-            max_periods = len(demands) - 1 # T
+            initial_stock = 8  # s_0
+            demands = [5, 4, 8, 10, 4, 2, 1]  # demands[t] = d_t
+            max_periods = len(demands) - 1  # T
 
             # Create decision variables.
             supply: list[LpVariable] = []  # supply[t] = x_t
             for t in range(1, max_periods + 1):
-                variable = LpVariable(f'x_{t}', cat='Integer', lowBound=0)
+                variable = LpVariable(f"x_{t}", cat="Integer", lowBound=0)
                 supply.append(variable)
 
-            stock: list[LpVariable | int] = [initial_stock] # stock[t] = s_t
+            stock: list[LpVariable | int] = [initial_stock]  # stock[t] = s_t
             for t in range(1, max_periods + 1):
-                variable = LpVariable(f's_{t}', cat='Integer', lowBound=0)
+                variable = LpVariable(f"s_{t}", cat="Integer", lowBound=0)
                 stock.append(variable)
 
             # Create the constraints.
             for t in range(1, max_periods + 1):
                 lhs = stock[t]
-                rhs = stock[t-1] + supply[t-1] - demands[t-1]
+                rhs = stock[t - 1] + supply[t - 1] - demands[t - 1]
                 expr = lhs == rhs
 
                 self.assertIsInstance(lhs, LpVariable)
@@ -1753,6 +1753,7 @@ class BaseSolverTest:
                 else:
                     self.assertEqual(str(rhs), f"s_{t-1} + x_{t} - {demands[t-1]}")
                     self.assertEqual(expr.constant, -rhs.constant)
+
 
 class PULP_CBC_CMDTest(BaseSolverTest.PuLPTest):
     solveInst = PULP_CBC_CMD
