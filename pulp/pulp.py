@@ -1006,19 +1006,19 @@ class LpAffineExpression(_DICT_TYPE):
 
     def __le__(self, other) -> LpConstraint:
         if isinstance(other, (int, float)):
-            return LpConstraint(self, const.LpConstraintLE, rhs=-other)
+            return LpConstraint(self, const.LpConstraintLE, rhs=other)
         else:
             return LpConstraint(self - other, const.LpConstraintLE)
 
     def __ge__(self, other) -> LpConstraint:
         if isinstance(other, (int, float)):
-            return LpConstraint(self, const.LpConstraintGE, rhs=-other)
+            return LpConstraint(self, const.LpConstraintGE, rhs=other)
         else:
             return LpConstraint(self - other, const.LpConstraintGE)
 
     def __eq__(self, other) -> LpConstraint:
         if isinstance(other, (int, float)):
-            return LpConstraint(self, const.LpConstraintEQ, rhs=-other)
+            return LpConstraint(self, const.LpConstraintEQ, rhs=other)
         else:
             return LpConstraint(self - other, const.LpConstraintEQ)
 
