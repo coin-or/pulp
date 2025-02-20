@@ -1224,8 +1224,8 @@ class LpConstraint:
             c.expr = c.expr / other
             return
 
-    def valid(self, eps=0):
-        val = self.expr.value()
+    def valid(self, eps=0) -> bool:
+        val = self.value()
         if self.sense == const.LpConstraintEQ:
             return abs(val) <= eps
         else:
@@ -1281,13 +1281,16 @@ class LpConstraint:
         self.expr.name = v
 
     def isAtomic(self):
-        return self.expr.isAtomic()
+        return len(self) == 1 and self.constant == 0 and next(iter(self.values())) == 1
 
     def isNumericalConstant(self):
         return self.expr.isNumericalConstant()
 
     def atom(self):
         return self.expr.atom()
+
+    def __bool__(self):
+        return (float(self.constant) != 0.0) or (len(self) > 0)
 
     def __len__(self):
         return len(self.expr)
@@ -1309,6 +1312,20 @@ class LpConstraint:
 
     def items(self):
         return self.expr.items()
+
+    def value(self) -> float | None:
+        s = self.constant
+        for v, x in self.items():
+            if v.varValue is None:
+                return None
+            s += v.varValue * x
+        return s
+
+    def valueOrDefault(self) -> float:
+        s = self.constant
+        for v, x in self.items():
+            s += v.valueOrDefault() * x
+        return s
 
 
 class LpFractionConstraint(LpConstraint):
