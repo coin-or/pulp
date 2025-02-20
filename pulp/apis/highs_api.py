@@ -403,7 +403,7 @@ class HiGHS(LpSolver):
                     coefficients,
                 )
 
-        def findSolutionValues(self, lp) -> tuple[int, int]:
+        def findSolutionValues(self, lp):
             status = lp.solverModel.getModelStatus()
             obj_value = lp.solverModel.getObjectiveValue()
             solution = lp.solverModel.getSolution()
