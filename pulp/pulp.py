@@ -1430,7 +1430,7 @@ class LpProblem:
             warnings.warn("Spaces are not permitted in the name. Converted to '_'")
             name = name.replace(" ", "_")
         self.objective: None | LpAffineExpression = None
-        self.constraints = _DICT_TYPE[str, LpConstraint]()
+        self.constraints = _DICT_TYPE() # [str, LpConstraint]
         self.name = name
         self.sense = sense
         self.sos1 = {}
