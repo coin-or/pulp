@@ -689,7 +689,6 @@ class LpAffineExpression(_DICT_TYPE):
        1*x_0 + -3*x_1 + 4*x_2 + 0
     """
 
-    constant: float
     # to remove illegal characters from the names
     trans = maketrans("-+[] ", "_____")
 
@@ -1073,13 +1072,13 @@ class LpConstraint:
         self.slack = None
         self.modified = True
 
-    def getLb(self):
+    def getLb(self) -> float | None:
         if (self.sense == const.LpConstraintGE) or (self.sense == const.LpConstraintEQ):
             return -self.constant
         else:
             return None
 
-    def getUb(self):
+    def getUb(self) -> float | None:
         if (self.sense == const.LpConstraintLE) or (self.sense == const.LpConstraintEQ):
             return -self.constant
         else:
@@ -1423,7 +1422,7 @@ class LpProblem:
             warnings.warn("Spaces are not permitted in the name. Converted to '_'")
             name = name.replace(" ", "_")
         self.objective: None | LpAffineExpression = None
-        self.constraints = _DICT_TYPE()  # [str, LpConstraint]
+        self.constraints: dict[str, LpConstraint] = _DICT_TYPE()
         self.name = name
         self.sense = sense
         self.sos1 = {}
@@ -1792,7 +1791,15 @@ class LpProblem:
             )
         return self
 
-    def extend(self, other, use_objective=True):
+    def extend(
+        self,
+        other: (
+            LpProblem
+            | dict[str, LpConstraint]
+            | Iterable[tuple[str, LpConstraint] | LpConstraint]
+        ),
+        use_objective: bool = True,
+    ):
         """
         extends an LpProblem by adding constraints either from a dictionary
         a tuple or another LpProblem object.
@@ -1806,8 +1813,8 @@ class LpProblem:
         name
         """
         if isinstance(other, dict):
-            for name in other:
-                self.constraints[name] = other[name]
+            for name, constraint in other.items():
+                self.constraints[name] = constraint
         elif isinstance(other, LpProblem):
             for v in set(other.variables()).difference(self.variables()):
                 v.name = other.name + v.name
@@ -1815,6 +1822,8 @@ class LpProblem:
                 c.name = other.name + name
                 self.addConstraint(c)
             if use_objective:
+                if other.objective is None:
+                    raise ValueError("Objective not set by provided problem")
                 self.objective += other.objective
         else:
             for c in other:
@@ -2128,18 +2137,16 @@ class FixedElasticSubProblem(LpProblem):
 
     def __init__(
         self,
-        constraint,
-        penalty=None,
-        proportionFreeBound=None,
-        proportionFreeBoundList=None,
+        constraint: LpConstraint,
+        penalty: float | None = None,
+        proportionFreeBound: float | None = None,
+        proportionFreeBoundList: tuple[float, float] | None = None,
     ):
         subProblemName = f"{constraint.name}_elastic_SubProblem"
-        LpProblem.__init__(self, subProblemName, const.LpMinimize)
-        self.objective = LpAffineExpression()
+        super().__init__(subProblemName, const.LpMinimize)
         self.constraint = constraint
         self.constant = constraint.constant
         self.RHS = -constraint.constant
-        self.objective = LpAffineExpression()
         self += constraint, "_Constraint"
         # create and add these variables but disabled
         self.freeVar = LpVariable("_free_bound", upBound=0, lowBound=0)
@@ -2147,7 +2154,7 @@ class FixedElasticSubProblem(LpProblem):
         self.lowVar = LpVariable("_neg_penalty_var", upBound=0, lowBound=0)
         constraint.addInPlace(self.freeVar + self.lowVar + self.upVar)
         if proportionFreeBound:
-            proportionFreeBoundList = [proportionFreeBound, proportionFreeBound]
+            proportionFreeBoundList = (proportionFreeBound, proportionFreeBound)
         if proportionFreeBoundList:
             # add a costless variable
             self.freeVar.upBound = abs(constraint.constant * proportionFreeBoundList[0])
@@ -2161,15 +2168,18 @@ class FixedElasticSubProblem(LpProblem):
             self.upVar.upBound = None
             self.lowVar.lowBound = None
             self.objective = penalty * self.upVar - penalty * self.lowVar
+        else:
+            self.objective = LpAffineExpression()
 
-    def _findValue(self, attrib):
+    def _findValue(self, attrib: str) -> float:
         """
         safe way to get the value of a variable that may not exist
         """
         var = getattr(self, attrib, 0)
         if var:
-            if value(var) is not None:
-                return value(var)
+            val = value(var)
+            if val is not None:
+                return val
             else:
                 return 0.0
         else:
@@ -2191,13 +2201,13 @@ class FixedElasticSubProblem(LpProblem):
             log.debug(f"isViolated value lhs {self.findLHSValue()} constant {self.RHS}")
         return result
 
-    def findDifferenceFromRHS(self):
+    def findDifferenceFromRHS(self) -> float:
         """
         The amount the actual value varies from the RHS (sense: LHS - RHS)
         """
         return self.findLHSValue() - self.RHS
 
-    def findLHSValue(self):
+    def findLHSValue(self) -> float:
         """
         for elastic constraints finds the LHS value of the constraint without
         the free variable and or penalty variable assumes the constant is on the
@@ -2206,7 +2216,10 @@ class FixedElasticSubProblem(LpProblem):
         upVar = self._findValue("upVar")
         lowVar = self._findValue("lowVar")
         freeVar = self._findValue("freeVar")
-        return self.constraint.value() - self.constant - upVar - lowVar - freeVar
+        constraint = self.constraint.value()
+        if constraint is None:
+            raise ValueError("Constraint has no value")
+        return constraint - self.constant - upVar - lowVar - freeVar
 
     def deElasticize(self):
         """de-elasticize constraint"""
@@ -2222,10 +2235,9 @@ class FixedElasticSubProblem(LpProblem):
         self.lowVar.upBound = 0
         self.lowVar.lowBound = None
 
-    def alterName(self, name):
+    def alterName(self, name: str):
         """
         Alters the name of anonymous parts of the problem
-
         """
         self.name = f"{name}_elastic_SubProblem"
         if hasattr(self, "freeVar"):
@@ -2355,7 +2367,7 @@ class FractionElasticSubProblem(FixedElasticSubProblem):
 
 def lpSum(
     vector: (
-        Iterable[LpAffineExpression]
+        Iterable[LpAffineExpression | LpVariable | int | float]
         | Iterable[tuple[LpElement, float]]
         | int
         | float
