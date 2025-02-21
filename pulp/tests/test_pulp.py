@@ -15,6 +15,7 @@ from pulp import (
     LpFractionConstraint,
     LpProblem,
     LpVariable,
+    FixedElasticSubProblem,
 )
 from pulp import constants as const
 from pulp import lpSum
@@ -421,7 +422,7 @@ class BaseSolverTest:
             z = LpVariable("z", 0)
             w = LpVariable("w", 0)
             prob += x + 4 * y + 9 * z, "obj"
-            prob += (2 * x + 2 * y).__div__(2.0) <= 5, "c1"
+            prob += ((2 * x + 2 * y) / 2.0) <= 5, "c1"
             prob += x + z >= 10, "c2"
             prob += -y + z == 7, "c3"
             prob += w >= 0, "c4"
@@ -817,7 +818,21 @@ class BaseSolverTest:
             prob += x + y <= 5, "c1"
             prob += x + z >= 10, "c2"
             prob += -y + z == 7, "c3"
-            prob.extend((w >= -1).makeElasticSubProblem(penalty=0.9))
+
+            sub_prob: FixedElasticSubProblem = (w >= -1).makeElasticSubProblem(
+                penalty=0.9
+            )
+            self.assertEqual(sub_prob.RHS, -1)
+            self.assertEqual(
+                str(sub_prob.objective), "-0.9*_neg_penalty_var + 0.9*_pos_penalty_var"
+            )
+
+            prob.extend(sub_prob)
+
+            elastic_constraint1 = sub_prob.constraints["_Constraint"]
+            elastic_constraint2 = prob.constraints["None_elastic_SubProblem_Constraint"]
+            self.assertEqual(str(elastic_constraint1), str(elastic_constraint2))
+
             if self.solver.__class__ in [
                 COINMP_DLL,
                 GUROBI,
@@ -835,7 +850,7 @@ class BaseSolverTest:
             elif self.solver.__class__ is GLPK_CMD:
                 # GLPK_CMD Does not report unbounded problems, correctly
                 pulpTestCheck(prob, self.solver, [const.LpStatusUndefined])
-            elif self.solver.__class__ in [GUROBI_CMD, SCIP_CMD, FSCIP_CMD, SCIP_PY]:
+            elif self.solver.__class__ in [GUROBI_CMD, FSCIP_CMD]:
                 pulpTestCheck(prob, self.solver, [const.LpStatusNotSolved])
             elif self.solver.__class__ in [CHOCO_CMD]:
                 # choco bounds all variables. Would not return unbounded status
@@ -1303,10 +1318,11 @@ class BaseSolverTest:
                 delta=delta,
                 msg=f"optimization time for solver {self.solver.name}",
             )
-            self.assertTrue(prob.objective.value() is not None)
+            self.assertIsNotNone(prob.objective)
+            self.assertIsNotNone(prob.objective.value())
             self.assertEqual(status, const.LpStatusOptimal)
             for v in prob.variables():
-                self.assertTrue(v.varValue is not None)
+                self.assertIsNotNone(v.varValue)
 
         @gurobi_test
         def test_time_limit_no_solution(self):
@@ -1790,7 +1806,7 @@ class PULP_CBC_CMDTest(BaseSolverTest.PuLPTest):
         'off'
 
         >>> cmd = "cbc model.mps -strong 101 -timeMode elapsed -branch"
-        >>> PULP_CBC_CMDTest.extract_option_from_command_line(cmd, "strong", grp_pattern="\d+")
+        >>> PULP_CBC_CMDTest.extract_option_from_command_line(cmd, "strong", grp_pattern="\\d+")
         '101'
         """
         pattern = re.compile(rf"{prefix}{option}\s+({grp_pattern})\s*")
@@ -1947,7 +1963,7 @@ class PULP_CBC_CMDTest(BaseSolverTest.PuLPTest):
         # Extract option value from command line
         command_line = PULP_CBC_CMDTest.read_command_line_from_log_file(logFilename)
         option_value = PULP_CBC_CMDTest.extract_option_from_command_line(
-            command_line, option="strong", grp_pattern="\d+"
+            command_line, option="strong", grp_pattern="\\d+"
         )
         self.assertEqual("10", option_value)
 
