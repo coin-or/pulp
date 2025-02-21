@@ -1790,7 +1790,7 @@ class PULP_CBC_CMDTest(BaseSolverTest.PuLPTest):
         'off'
 
         >>> cmd = "cbc model.mps -strong 101 -timeMode elapsed -branch"
-        >>> PULP_CBC_CMDTest.extract_option_from_command_line(cmd, "strong", grp_pattern="\d+")
+        >>> PULP_CBC_CMDTest.extract_option_from_command_line(cmd, "strong", grp_pattern="\\d+")
         '101'
         """
         pattern = re.compile(rf"{prefix}{option}\s+({grp_pattern})\s*")
@@ -1947,7 +1947,7 @@ class PULP_CBC_CMDTest(BaseSolverTest.PuLPTest):
         # Extract option value from command line
         command_line = PULP_CBC_CMDTest.read_command_line_from_log_file(logFilename)
         option_value = PULP_CBC_CMDTest.extract_option_from_command_line(
-            command_line, option="strong", grp_pattern="\d+"
+            command_line, option="strong", grp_pattern="\\d+"
         )
         self.assertEqual("10", option_value)
 
