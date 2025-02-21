@@ -1,8 +1,14 @@
 # Utility functions
+from __future__ import annotations
+
 import collections
 import itertools
 from itertools import combinations as combination
 from itertools import permutations as permutation
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pulp.pulp import LpVariable, LpAffineExpression, LpConstraint, LpConstraintVar
 
 
 def resource_clock():
@@ -11,24 +17,28 @@ def resource_clock():
     return resource.getrusage(resource.RUSAGE_CHILDREN).ru_utime
 
 
-def isNumber(x):
+def isNumber(x) -> bool:
     """Returns true if x is an int or a float"""
     return isinstance(x, (int, float))
 
 
-def value(x):
+def value(
+    x: int | float | LpVariable | LpAffineExpression | LpConstraint | LpConstraintVar,
+) -> int | float | None:
     """Returns the value of the variable/expression x, or x if it is a number"""
-    if isNumber(x):
+    if isinstance(x, (int, float)):
         return x
     else:
         return x.value()
 
 
-def valueOrDefault(x):
+def valueOrDefault(
+    x: int | float | LpVariable | LpAffineExpression | LpConstraint,
+) -> int | float:
     """Returns the value of the variable/expression x, or x if it is a number
     Variable without value (None) are affected a possible value (within their
     bounds)."""
-    if isNumber(x):
+    if isinstance(x, (int, float)):
         return x
     else:
         return x.valueOrDefault()
