@@ -8,6 +8,7 @@ import re
 
 from . import constants as const
 
+CORE_FILE_OBJSENSE_MODE = "OBJSENSE"
 CORE_FILE_ROW_MODE = "ROWS"
 CORE_FILE_COL_MODE = "COLUMNS"
 CORE_FILE_RHS_MODE = "RHS"
@@ -35,7 +36,9 @@ def readMPS(path, sense, dropConsNames=False):
     This dictionary can be used to generate an LpProblem
 
     :param path: path of mps file
-    :param sense: 1 for minimize, -1 for maximize
+    :param sense: 1 for minimize, -1 for maximize, can be None. If None and the
+    MPS file doesn't set the sense, then the objective sense defaults to
+    minimize.
     :param dropConsNames: if True, do not store the names of constraints
     :return: a dictionary with all the problem data
     """
@@ -84,6 +87,12 @@ def readMPS(path, sense, dropConsNames=False):
                     mode = CORE_FILE_BOUNDS_MODE_NAME_GIVEN
                 else:
                     mode = CORE_FILE_BOUNDS_MODE_NO_NAME
+            elif parameters['sense'] is None and line[0] == CORE_FILE_OBJSENSE_MODE:
+                if len(line) > 1:
+                    parameters['sense'] = const.LpMaximize if line[1] == 'MAX'\
+                            else const.LpMinimize
+                else:
+                    mode = CORE_FILE_OBJSENSE_MODE
 
             # here we query the mode variable
             elif mode == CORE_FILE_ROW_MODE:
@@ -143,12 +152,20 @@ def readMPS(path, sense, dropConsNames=False):
                 readMPSSetBounds(line, variable_info)
                 if line[1] not in bnd_names:
                     bnd_names.append(line[1])
+            elif mode == CORE_FILE_OBJSENSE_MODE:
+                parameters['sense'] = const.LpMaximize if line[0] == 'MAX'\
+                        else const.LpMinimize
     constraints = list(constraints.values())
     if dropConsNames:
         for c in constraints:
             c["name"] = None
         objective["name"] = None
     variable_info = list(variable_info.values())
+
+    # if the objective sense has not been read. Then it defaults to minimize
+    if parameters['sense'] is None:
+        parameters['sense'] = const.LpMinimize
+
     return dict(
         parameters=parameters,
         objective=objective,
