@@ -150,12 +150,12 @@ class CPLEX_CMD(LpSolver_CMD):
     def readsol(self, filename):
         """Read a CPLEX solution file"""
         # CPLEX solution codes: http://www-eio.upc.es/lceio/manuals/cplex-11/html/overviewcplex/statuscodes.html
-        try:
-            import xml.etree.ElementTree as et
-        except ImportError:
-            import elementtree.ElementTree as et
+        import xml.etree.ElementTree as et
+
         solutionXML = et.parse(filename).getroot()
         solutionheader = solutionXML.find("header")
+        if solutionheader is None:
+            raise constants.PulpError("Failed to find header")
         statusString = solutionheader.get("solutionStatusString")
         statusValue = solutionheader.get("solutionStatusValue")
         cplexStatus = {
@@ -188,6 +188,8 @@ class CPLEX_CMD(LpSolver_CMD):
         shadowPrices = {}
         slacks = {}
         constraints = solutionXML.find("linearConstraints")
+        if constraints is None:
+            raise constants.PulpError("Failed to find linearConstraints")
         for constraint in constraints:
             name = constraint.get("name")
             slack = constraint.get("slack")
@@ -216,10 +218,8 @@ class CPLEX_CMD(LpSolver_CMD):
 
     def writesol(self, filename, vs):
         """Writes a CPLEX solution file"""
-        try:
-            import xml.etree.ElementTree as et
-        except ImportError:
-            import elementtree.ElementTree as et
+        import xml.etree.ElementTree as et
+
         root = et.Element("CPLEXSolution", version="1.2")
         attrib_head = dict()
         attrib_quality = dict()
