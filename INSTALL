@@ -4,7 +4,7 @@ Installation
 Note that to install PuLP you must first have a working python installation as
 described in `installing python`_.
 
-PuLP requires Python >= 2.7 or Python >= 3.4.
+PuLP requires Python >= 3.9.
 
 The latest version of PuLP can be freely obtained from github_.
 
@@ -15,7 +15,7 @@ By far the easiest way to install pulp is through the use of pip_.
 
 * In  windows (please make sure pip is on your path)::
 
-    c:\Python34\Scripts\> pip install pulp
+    c:\Python39\Scripts\> pip install pulp
 
 * In Linux::
 

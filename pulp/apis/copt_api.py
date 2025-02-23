@@ -1,8 +1,12 @@
+from __future__ import annotations
+
 import os
 import sys
 import ctypes
 import subprocess
 import warnings
+from time import monotonic as clock
+from typing import TYPE_CHECKING, Any
 
 from uuid import uuid4
 from .core import (
@@ -11,8 +15,6 @@ from .core import (
     PulpSolverError,
     LpSolver,
     LpSolver_CMD,
-    clock,
-    operating_system,
 )
 from ..constants import (
     LpStatusNotSolved,
@@ -25,12 +27,14 @@ from ..constants import LpContinuous, LpBinary, LpInteger
 from ..constants import LpConstraintEQ, LpConstraintLE, LpConstraintGE
 from ..constants import LpMinimize, LpMaximize
 
+if TYPE_CHECKING:
+    from pulp.pulp import LpProblem, LpVariable
+
 
 # COPT string convention
-if sys.version_info >= (3, 0):
-    coptstr = lambda x: bytes(x, "utf-8")
-else:
-    coptstr = lambda x: x
+def coptstr(x: str) -> bytes:
+    return x.encode("utf-8")
+
 
 byref = ctypes.byref
 
@@ -44,19 +48,19 @@ class COPT_CMD(LpSolver_CMD):
 
     def __init__(
         self,
-        path=None,
-        keepFiles=0,
-        mip=True,
-        msg=True,
-        mip_start=False,
-        warmStart=False,
-        logfile=None,
-        **params,
+        path: str | None = None,
+        keepFiles: bool = False,
+        mip: bool = True,
+        msg: bool = True,
+        mip_start: bool = False,
+        warmStart: bool = False,
+        logfile: str | None = None,
+        **params: Any,
     ):
         """
         Initialize command-line solver
         """
-        LpSolver_CMD.__init__(self, path, keepFiles, mip, msg, [])
+        super().__init__(path, keepFiles, mip, msg, [])
 
         self.mipstart = warmStart
         self.logfile = logfile
@@ -68,13 +72,13 @@ class COPT_CMD(LpSolver_CMD):
         """
         return self.executableExtension("copt_cmd")
 
-    def available(self):
+    def available(self) -> bool:
         """
         True if 'copt_cmd' is available
         """
-        return self.executable(self.path)
+        return self.executable(self.path) is not None
 
-    def actualSolve(self, lp):
+    def actualSolve(self, lp: LpProblem):
         """
         Solve a well formulated LP problem
 
@@ -163,7 +167,7 @@ class COPT_CMD(LpSolver_CMD):
 
         return status
 
-    def readsol(self, filename):
+    def readsol(self, filename: str):
         """
         Read COPT solution file
         """
@@ -184,14 +188,12 @@ class COPT_CMD(LpSolver_CMD):
                     values[varname] = float(varval)
         return status, values
 
-    def writemst(self, filename, lpvars):
+    def writemst(self, filename: str, lpvars: list[LpVariable]):
         """
         Write COPT MIP start file
         """
         mstvals = [(v.name, v.value()) for v in lpvars if v.value() is not None]
-        mstline = []
-        for varname, varval in mstvals:
-            mstline.append("{0} {1}".format(varname, varval))
+        mstline = [f"{varname} {varval}" for varname, varval in mstvals]
 
         with open(filename, "w") as mstfile:
             mstfile.write("\n".join(mstline))
@@ -204,8 +206,6 @@ def COPT_DLL_loadlib():
     """
     from glob import glob
 
-    libfile = None
-    libpath = None
     libhome = os.getenv("COPT_HOME")
 
     if sys.platform == "win32":
@@ -220,17 +220,19 @@ def COPT_DLL_loadlib():
     # Find desired library in given search path
     if libfile:
         libpath = libfile[0]
+    else:
+        libpath = None
 
     if libpath is None:
         raise PulpSolverError(
             "COPT_PULP: Failed to locate solver library, "
             "please refer to COPT manual for installation guide"
         )
+
+    if sys.platform == "win32":
+        coptlib = ctypes.windll.LoadLibrary(libpath)
     else:
-        if sys.platform == "win32":
-            coptlib = ctypes.windll.LoadLibrary(libpath)
-        else:
-            coptlib = ctypes.cdll.LoadLibrary(libpath)
+        coptlib = ctypes.cdll.LoadLibrary(libpath)
 
     return coptlib
 
@@ -284,7 +286,7 @@ class COPT_DLL(LpSolver):
             """True if the solver is available"""
             return False
 
-        def actualSolve(self, lp):
+        def actualSolve(self, lp: LpProblem):
             """Solve a well formulated lp problem"""
             raise PulpSolverError(f"COPT_DLL: Not Available:\n{self.err}")
 
@@ -319,18 +321,18 @@ class COPT_DLL(LpSolver):
 
         def __init__(
             self,
-            mip=True,
-            msg=True,
-            mip_start=False,
-            warmStart=False,
-            logfile=None,
-            **params,
+            mip: bool = True,
+            msg: bool = True,
+            mip_start: bool = False,
+            warmStart: bool = False,
+            logfile: str | None = None,
+            **params: Any,
         ):
             """
             Initialize COPT solver
             """
 
-            LpSolver.__init__(self, mip, msg)
+            super().__init__(mip, msg)
 
             # Initialize COPT environment and problem
             self.coptenv = None
@@ -355,13 +357,13 @@ class COPT_DLL(LpSolver):
             for parname, parval in params.items():
                 self.setParam(parname, parval)
 
-        def available(self):
+        def available(self) -> bool:
             """
             True if dynamic library is available
             """
             return True
 
-        def actualSolve(self, lp):
+        def actualSolve(self, lp: LpProblem):
             """
             Solve a well formulated LP/MIP problem
 
@@ -459,14 +461,14 @@ class COPT_DLL(LpSolver):
 
             return status
 
-        def extract(self, lp):
+        def extract(self, lp: LpProblem):
             """
             Extract data from PuLP lp structure
 
             This function borrowed implementation of LpSolver.getCplexStyleArrays,
             with some modifications.
             """
-            cols = list(lp.variables())
+            cols = lp.variables()
             ncol = len(cols)
             nrow = len(lp.constraints)
 
@@ -487,8 +489,8 @@ class COPT_DLL(LpSolver):
             objconst = ctypes.c_double(0.0)
 
             # Associate each variable with a ordinal
-            self.v2n = dict(((cols[i], i) for i in range(ncol)))
-            self.vname2n = dict(((cols[i].name, i) for i in range(ncol)))
+            self.v2n = dict((cols[i], i) for i in range(ncol))
+            self.vname2n = dict((cols[i].name, i) for i in range(ncol))
             self.n2v = dict((i, cols[i]) for i in range(ncol))
             self.c2n = {}
             self.n2c = {}
@@ -614,7 +616,7 @@ class COPT_DLL(LpSolver):
                 self.coptenv = None
                 self.coptprob = None
 
-        def getsolution(self, lp, ncols, nrows):
+        def getsolution(self, lp: LpProblem, ncols: int, nrows: int):
             """Get problem solution
 
             This function borrowed implementation of CPLEX_DLL.findSolutionValues,
@@ -694,12 +696,12 @@ class COPT_DLL(LpSolver):
             lp.status = coptlpstat.get(status.value, LpStatusUndefined)
             return lp.status
 
-        def write(self, filename):
+        def write(self, filename: str):
             """
             Write problem, basis, parameter or solution to file
             """
             file_path = coptstr(filename)
-            file_name, file_ext = os.path.splitext(file_path)
+            _file_name, file_ext = os.path.splitext(file_path)
 
             if not file_ext:
                 raise PulpSolverError("COPT_PULP: Failed to determine output file type")
@@ -725,7 +727,7 @@ class COPT_DLL(LpSolver):
                     "COPT_PULP: Failed to write file '{}'".format(filename)
                 )
 
-        def setParam(self, name, val):
+        def setParam(self, name: str, val: float):
             """
             Set parameter to COPT problem
             """
@@ -873,13 +875,13 @@ class COPT(LpSolver):
 
         def __init__(
             self,
-            mip=True,
-            msg=True,
-            timeLimit=None,
-            gapRel=None,
-            warmStart=False,
-            logPath=None,
-            **solverParams,
+            mip: bool = True,
+            msg: bool = True,
+            timeLimit: float | None = None,
+            gapRel: float | None = None,
+            warmStart: bool = False,
+            logPath: str | None = None,
+            **solverParams: Any,
         ):
             """
             :param bool mip: if False, assume LP even if integer variables
@@ -890,8 +892,7 @@ class COPT(LpSolver):
             :param str logPath: path to the log file
             """
 
-            LpSolver.__init__(
-                self,
+            super().__init__(
                 mip=mip,
                 msg=msg,
                 timeLimit=timeLimit,
@@ -907,7 +908,7 @@ class COPT(LpSolver):
             for key, value in solverParams.items():
                 self.coptmdl.setParam(key, value)
 
-        def findSolutionValues(self, lp):
+        def findSolutionValues(self, lp: LpProblem):
             model = lp.solverModel
             solutionStatus = model.status
 
@@ -956,11 +957,11 @@ class COPT(LpSolver):
 
             return status
 
-        def available(self):
+        def available(self) -> bool:
             """True if the solver is available"""
             return True
 
-        def callSolver(self, lp, callback=None):
+        def callSolver(self, lp: LpProblem, callback=None):
             """Solves the problem with COPT"""
             self.solveTime = -clock()
             if callback is not None:
@@ -971,7 +972,7 @@ class COPT(LpSolver):
             lp.solverModel.solve()
             self.solveTime += clock()
 
-        def buildSolverModel(self, lp):
+        def buildSolverModel(self, lp: LpProblem):
             """
             Takes the pulp lp model and translates it into a COPT model
             """
@@ -1026,7 +1027,7 @@ class COPT(LpSolver):
                     expr, relation, -constraint.constant, name
                 )
 
-        def actualSolve(self, lp, callback=None):
+        def actualSolve(self, lp: LpProblem, callback=None):
             """
             Solve a well formulated lp problem
 
@@ -1043,7 +1044,7 @@ class COPT(LpSolver):
                 constraint.modified = False
             return solutionStatus
 
-        def actualResolve(self, lp, callback=None):
+        def actualResolve(self, lp: LpProblem, callback=None):
             """
             Solve a well formulated lp problem
 

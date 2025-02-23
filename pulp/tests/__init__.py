@@ -1,1 +1,1 @@
-from .run_tests import pulpTestAll
+from .run_tests import pulpTestAll  # type: ignore

@@ -9,7 +9,8 @@
 # The hydro unit has an initial storage.
 
 from pulp import *
-from math import *
+import math
+from typing import cast
 
 prob = LpProblem("test3", LpMinimize)
 
@@ -36,13 +37,13 @@ xtime = list(range(tmax + 1))
 unit = list(range(units))
 # The demand
 demand = [
-    dmin + (dmax - dmin) * 0.5 + 0.5 * (dmax - dmin) * sin(4 * t * 2 * 3.1415 / tmax)
+    dmin + (dmax - dmin) * 0.5 + 0.5 * (dmax - dmin) * math.sin(4 * t * 2 * 3.1415 / tmax)
     for t in time
 ]
 # Maximum output for the thermal units
-pmax = [tpmax / units for i in unit]
+pmax = [tpmax / units for _ in unit]
 # Minimum output for the thermal units
-pmin = [tpmax / (units * 3.0) for i in unit]
+pmin = [tpmax / (units * 3.0) for _ in unit]
 # Proportional cost of the thermal units
 costs = [i + 1 for i in unit]
 # Startup cost of the thermal units.
@@ -76,7 +77,7 @@ for t in time:
         prob += u[t][i] >= d[t + 1][i] - d[t][i]
 
 # Storage for the hydro plant (must not go below 0)
-s = LpVariable.matrix("s", xtime, 0)
+s: list[LpVariable | float] = cast(list[LpVariable | float], LpVariable.matrix("s", xtime, 0))
 
 # Initial storage
 s[0] = sini
@@ -103,6 +104,7 @@ prob += ctp + cts
 # Solve the problem
 prob.solve()
 
+assert prob.objective is not None
 print("Minimum total cost:", prob.objective.value())
 
 # Print the results

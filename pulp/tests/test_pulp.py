@@ -2,11 +2,15 @@
 Tests for pulp
 """
 
+from __future__ import annotations
+
 import functools
 import os
 import re
 import tempfile
 import unittest
+import dataclasses
+from typing import Callable, TypeVar, ParamSpec, Concatenate
 
 from pulp import (
     LpAffineExpression,
@@ -61,10 +65,17 @@ EXAMPLE_MPS_MI_BOUNDS = EXAMPLE_MPS_RHS56.replace(
     "LO BND1      YTWO                -1", "MI BND1      YTWO                  "
 )
 
+T = TypeVar("T")
 
-def gurobi_test(test_item):
+P = ParamSpec("P")
+R = TypeVar("R")
+
+
+def gurobi_test(test_item: Callable[Concatenate[BaseSolverTest.PuLPTest, P], R]):
     @functools.wraps(test_item)
-    def skip_wrapper(test_obj, *args, **kwargs):
+    def skip_wrapper(
+        test_obj: BaseSolverTest.PuLPTest, *args: P.args, **kwargs: P.kwargs
+    ) -> R:
         if not test_obj.solver.name in ["GUROBI", "GUROBI_CMD"]:
             # if we're not testing gurobi, we do not care on the licence
             return test_item(test_obj, *args, **kwargs)
@@ -84,7 +95,7 @@ def gurobi_test(test_item):
     return skip_wrapper
 
 
-def dumpTestProblem(prob):
+def dumpTestProblem(prob: LpProblem):
     try:
         prob.writeLP("debug.lp")
         prob.writeMPS("debug.mps")
@@ -94,9 +105,14 @@ def dumpTestProblem(prob):
 
 class BaseSolverTest:
     class PuLPTest(unittest.TestCase):
-        solveInst = None
+        solveInst: type[LpSolver] | None = None
+
+        def __init__(self, *args: Any, **kwargs: Any):
+            super().__init__(*args, **kwargs)
+            self.maxDiff = None
 
         def setUp(self):
+            assert self.solveInst is not None
             self.solver = self.solveInst(msg=False)
             if not self.solver.available():
                 self.skipTest(f"solver {self.solveInst.name} not available")
@@ -203,9 +219,9 @@ class BaseSolverTest:
             x = lpSum(x_vars[i] for i in range(3))
 
             with self.assertRaises(TypeError):
-                prob += x > 2
+                prob += x > 2  # type: ignore
             with self.assertRaises(TypeError):
-                prob += x < 5
+                prob += x < 5  # type: ignore
 
         def test_continuous_max(self):
             prob = LpProblem(self._testMethodName, const.LpMaximize)
@@ -496,7 +512,7 @@ class BaseSolverTest:
             prob += x + y <= 5, "c1"
             prob += x + z >= 10, "c2"
             prob += -y + z == 7.5, "c3"
-            solution = {x: 4, y: -0.5, z: 7}
+            solution: dict[LpVariable, int | float] = {x: 4, y: -0.5, z: 7}
             for v in [x, y, z]:
                 v.setInitialValue(solution[v])
                 v.fixValue()
@@ -512,7 +528,7 @@ class BaseSolverTest:
             prob += x + y <= 5, "c1"
             prob += x + z >= 10, "c2"
             prob += -y + z == 7.5, "c3"
-            self.solver.mip = 0
+            self.solver.mip = False
             if self.solver.__class__ in [
                 GUROBI_CMD,
                 CHOCO_CMD,
@@ -694,11 +710,14 @@ class BaseSolverTest:
             prob += b
             prob += c
 
+            self.assertIsNotNone(self.solver)
             prob.setSolver(self.solver)  # Variables
-            x = LpVariable("x", 0, 4, const.LpContinuous, obj + a + b)
-            y = LpVariable("y", -1, 1, const.LpContinuous, 4 * obj + a - c)
+            self.assertIsNotNone(prob.solver)
+
+            _x = LpVariable("x", 0, 4, const.LpContinuous, obj + a + b)
+            _y = LpVariable("y", -1, 1, const.LpContinuous, 4 * obj + a - c)
             prob.resolve()
-            z = LpVariable("z", 0, None, const.LpContinuous, 9 * obj + b + c)
+            _z = LpVariable("z", 0, None, const.LpContinuous, 9 * obj + b + c)
             if self.solver.__class__ in [COINMP_DLL]:
                 prob.resolve()
                 # difficult to check this is doing what we want as the resolve is
@@ -721,7 +740,7 @@ class BaseSolverTest:
 
             if self.solver.__class__ in [COINMP_DLL, GUROBI]:
                 status = prob.sequentialSolve([obj1, obj2], solver=self.solver)
-                pulpTestCheck(
+                pulpSequentialTestCheck(
                     prob,
                     self.solver,
                     [[const.LpStatusOptimal, const.LpStatusOptimal]],
@@ -872,9 +891,11 @@ class BaseSolverTest:
             prob += x + z >= 10, "c2"
             prob += -y + z == 7, "c3"
             prob += w >= 0, "c4"
-            data = prob.toDict()
-            var1, prob1 = LpProblem.fromDict(data)
+            data = prob.toDataclass()
+            var1, prob1 = LpProblem.fromDataclass(data)
             x, y, z, w = (var1[name] for name in ["x", "y", "z", "w"])
+            self.assertIsNotNone(self.solveInst)
+            assert self.solveInst is not None
             pulpTestCheck(
                 prob1,
                 self.solveInst(msg=True),
@@ -886,7 +907,7 @@ class BaseSolverTest:
             """
             Test the availability of the function pulpTestAll
             """
-            from pulp import pulpTestAll
+            from pulp import pulpTestAll  # type: ignore
 
         def test_export_dict_LP(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
@@ -899,8 +920,8 @@ class BaseSolverTest:
             prob += x + z >= 10, "c2"
             prob += -y + z == 7, "c3"
             prob += w >= 0, "c4"
-            data = prob.toDict()
-            var1, prob1 = LpProblem.fromDict(data)
+            data = prob.toDataclass()
+            var1, prob1 = LpProblem.fromDataclass(data)
             x, y, z, w = (var1[name] for name in ["x", "y", "z", "w"])
             pulpTestCheck(
                 prob1, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0}
@@ -916,8 +937,8 @@ class BaseSolverTest:
             prob += x + z == 10, "c2"
             prob += -y + z <= 7, "c3"
             prob += w >= 0, "c4"
-            data = prob.toDict()
-            var1, prob1 = LpProblem.fromDict(data)
+            data = prob.toDataclass()
+            var1, prob1 = LpProblem.fromDataclass(data)
             x, y, z, w = (var1[name] for name in ["x", "y", "z", "w"])
             pulpTestCheck(
                 prob1, self.solver, [const.LpStatusOptimal], {x: 4, y: 1, z: 6, w: 0}
@@ -958,15 +979,17 @@ class BaseSolverTest:
             prob += x + y <= 5, "c1"
             prob += x + z >= 10, "c2"
             prob += -y + z == 7.5, "c3"
-            data = prob.toDict()
+            data = prob.toDataclass()
             data_backup = copy.deepcopy(data)
-            var1, prob1 = LpProblem.fromDict(data)
+            var1, prob1 = LpProblem.fromDataclass(data)
             x, y, z = (var1[name] for name in ["x", "y", "z"])
             pulpTestCheck(
                 prob1, self.solver, [const.LpStatusOptimal], {x: 3, y: -0.5, z: 7}
             )
             # we also test that we have not modified the dictionary when importing it
-            self.assertDictEqual(data, data_backup)
+            self.assertDictEqual(
+                dataclasses.asdict(data), dataclasses.asdict(data_backup)
+            )
 
         def test_export_dict_max(self):
             prob = LpProblem("test_export_dict_max", const.LpMaximize)
@@ -979,8 +1002,8 @@ class BaseSolverTest:
             prob += x + z >= 10, "c2"
             prob += -y + z == 7, "c3"
             prob += w >= 0, "c4"
-            data = prob.toDict()
-            var1, prob1 = LpProblem.fromDict(data)
+            data = prob.toDataclass()
+            var1, prob1 = LpProblem.fromDataclass(data)
             x, y, z, w = (var1[name] for name in ["x", "y", "z", "w"])
             pulpTestCheck(
                 prob1, self.solver, [const.LpStatusOptimal], {x: 4, y: 1, z: 8, w: 0}
@@ -1143,7 +1166,8 @@ class BaseSolverTest:
             prob += w >= 0, "c4"
             filename = name + ".mps"
             prob.writeMPS(filename)
-            _vars, prob2 = LpProblem.fromMPS(filename, sense=prob.sense)
+            variables, prob2 = LpProblem.fromMPS(filename, sense=prob.sense)
+            self.assertSequenceEqual(list(variables.keys()), ["w", "x", "y", "z"])
             _dict1 = getSortedDict(prob)
             _dict2 = getSortedDict(prob2)
             self.assertDictEqual(_dict1, _dict2)
@@ -1162,7 +1186,8 @@ class BaseSolverTest:
             prob += w >= 0, "c4"
             filename = name + ".mps"
             prob.writeMPS(filename)
-            _vars, prob2 = LpProblem.fromMPS(filename, sense=prob.sense)
+            variables, prob2 = LpProblem.fromMPS(filename, sense=prob.sense)
+            self.assertSequenceEqual(list(variables.keys()), ["w", "x", "y", "z"])
             _dict1 = getSortedDict(prob)
             _dict2 = getSortedDict(prob2)
             self.assertDictEqual(_dict1, _dict2)
@@ -1179,7 +1204,8 @@ class BaseSolverTest:
             prob += -y + z == 7.5, "c3"
             filename = name + ".mps"
             prob.writeMPS(filename)
-            _vars, prob2 = LpProblem.fromMPS(filename, sense=prob.sense)
+            variables, prob2 = LpProblem.fromMPS(filename, sense=prob.sense)
+            self.assertSequenceEqual(list(variables.keys()), ["x", "y", "z"])
             _dict1 = getSortedDict(prob)
             _dict2 = getSortedDict(prob2)
             self.assertDictEqual(_dict1, _dict2)
@@ -1195,38 +1221,44 @@ class BaseSolverTest:
             prob += c1 <= 0
             filename = name + ".mps"
             prob.writeMPS(filename)
-            _vars, prob2 = LpProblem.fromMPS(
+            variables, prob2 = LpProblem.fromMPS(
                 filename, sense=prob.sense, dropConsNames=True
             )
+            self.assertSequenceEqual(list(variables.keys()), ["c1", "c2", "dummy"])
             _dict1 = getSortedDict(prob, keyCons="constant")
             _dict2 = getSortedDict(prob2, keyCons="constant")
             self.assertDictEqual(_dict1, _dict2)
 
         def test_importMPS_RHS_fields56(self):
             """Import MPS file with RHS definitions in fields 5 & 6."""
-            with tempfile.NamedTemporaryFile(delete=False) as h:
-                h.write(str.encode(EXAMPLE_MPS_RHS56))
-            _, problem = LpProblem.fromMPS(h.name)
-            os.unlink(h.name)
+            with tempfile.NamedTemporaryFile("w+") as h:
+                print(EXAMPLE_MPS_RHS56, file=h, flush=True)
+                _, problem = LpProblem.fromMPS(h.name)
             self.assertEqual(problem.constraints["LIM2"].constant, -10)
 
         def test_importMPS_PL_bound(self):
             """Import MPS file with PL bound type."""
-            with tempfile.NamedTemporaryFile(delete=False) as h:
-                h.write(str.encode(EXAMPLE_MPS_PL_BOUNDS))
-            _, problem = LpProblem.fromMPS(h.name)
-            os.unlink(h.name)
+            with tempfile.NamedTemporaryFile("w+") as h:
+                print(EXAMPLE_MPS_PL_BOUNDS, file=h, flush=True)
+                variables, problem = LpProblem.fromMPS(h.name)
             self.assertIsInstance(problem, LpProblem)
+            mi_var = variables["YTWO"]
+            # 0 from PL
+            self.assertEqual(mi_var.lowBound, 0)
+            # 1 from UP
+            self.assertEqual(mi_var.upBound, 1)
 
-        def test_importMPF_MI_bound(self):
+        def test_importMPS_MI_bound(self):
             """Import MPS file with MI bound type."""
-            with tempfile.NamedTemporaryFile(delete=False) as h:
-                h.write(str.encode(EXAMPLE_MPS_MI_BOUNDS))
-            vars, problem = LpProblem.fromMPS(h.name)
-            os.unlink(h.name)
+            with tempfile.NamedTemporaryFile("w+") as h:
+                print(EXAMPLE_MPS_MI_BOUNDS, file=h, flush=True)
+                variables, problem = LpProblem.fromMPS(h.name)
             self.assertIsInstance(problem, LpProblem)
-            mi_var = vars["YTWO"]
+            mi_var = variables["YTWO"]
+            # None from MI
             self.assertEqual(mi_var.lowBound, None)
+            # 1 from UP
+            self.assertEqual(mi_var.upBound, 1)
 
         def test_unset_objective_value__is_valid(self):
             """Given a valid problem that does not converge,
@@ -1281,10 +1313,11 @@ class BaseSolverTest:
         def test_false_constraint(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
 
-            def add_const(prob):
-                prob += 0 - 3 == 0
+            with self.assertRaises(TypeError):
+                prob += 0 - 3 == 0  # pyright: ignore [reportUnnecessaryComparison]
 
-            self.assertRaises(TypeError, add_const, prob=prob)
+            with self.assertRaises(TypeError):
+                prob += False
 
         @gurobi_test
         def test_measuring_solving_time(self):
@@ -1319,6 +1352,7 @@ class BaseSolverTest:
                 msg=f"optimization time for solver {self.solver.name}",
             )
             self.assertIsNotNone(prob.objective)
+            assert prob.objective is not None
             self.assertIsNotNone(prob.objective.value())
             self.assertEqual(status, const.LpStatusOptimal)
             for v in prob.variables():
@@ -1369,13 +1403,13 @@ class BaseSolverTest:
 
             # explicit param creates a dict of type LpVariable
             assign_vars = LpVariable.dicts(name="test", indices=(customers, agents))
-            for k, v in assign_vars.items():
+            for _k, v in assign_vars.items():
                 for a, b in v.items():
                     self.assertIsInstance(b, LpVariable)
 
             # param by position creates a dict of type LpVariable
             assign_vars = LpVariable.dicts("test", (customers, agents))
-            for k, v in assign_vars.items():
+            for _k, v in assign_vars.items():
                 for a, b in v.items():
                     self.assertIsInstance(b, LpVariable)
 
@@ -1397,7 +1431,6 @@ class BaseSolverTest:
             """
             Test that 'indices' argument works
             """
-            prob = LpProblem(self._testMethodName, const.LpMinimize)
             customers = [1, 2, 3]
             agents = ["A", "B", "C"]
 
@@ -1682,16 +1715,16 @@ class BaseSolverTest:
             self.assertEqual(repr(c1_int), "2*x + 2*y + -10 <= 0")
 
             with self.assertRaises(TypeError):
-                c1 * x
+                c1 * x  # type: ignore
 
             with self.assertRaises(TypeError):
-                c2 * x
+                c2 * x  # type: ignore
 
             with self.assertRaises(TypeError):
-                c1 * (x + 1)
+                c1 * (x + 1)  # type: ignore
 
             with self.assertRaises(TypeError):
-                c2 * (x + 1)
+                c2 * (x + 1)  # type: ignore
 
         def test_constraint_div(self):
             """
@@ -1721,16 +1754,16 @@ class BaseSolverTest:
             self.assertEqual(repr(c1_const_expr), "0.5*x + 0.5*y + -2.5 <= 0")
 
             with self.assertRaises(TypeError):
-                c1 / x
+                c1 / x  # type: ignore
 
             with self.assertRaises(TypeError):
-                c2 / x
+                c2 / x  # type: ignore
 
             with self.assertRaises(TypeError):
-                c1 / (x + 1)
+                c1 / (x + 1)  # type: ignore
 
             with self.assertRaises(TypeError):
-                c2 / (x + 1)
+                c2 / (x + 1)  # type: ignore
 
         def test_regression_794(self):
             # See: https://github.com/coin-or/pulp/issues/794#issuecomment-2671682768
@@ -1775,7 +1808,7 @@ class PULP_CBC_CMDTest(BaseSolverTest.PuLPTest):
     solveInst = PULP_CBC_CMD
 
     @staticmethod
-    def read_command_line_from_log_file(logPath):
+    def read_command_line_from_log_file(logPath: str):
         """
         Read from log file the command line executed.
         """
@@ -1787,7 +1820,10 @@ class PULP_CBC_CMDTest(BaseSolverTest.PuLPTest):
 
     @staticmethod
     def extract_option_from_command_line(
-        command_line, option, prefix="-", grp_pattern="[a-zA-Z]+"
+        command_line: str,
+        option: str,
+        prefix: str = "-",
+        grp_pattern: str = "[a-zA-Z]+",
     ):
         """
         Extract option value from command line string.
@@ -2048,7 +2084,8 @@ class COPTTest(BaseSolverTest.PuLPTest):
     solveInst = COPT
 
 
-class SASTest:
+class SAS94Test(BaseSolverTest.PuLPTest):
+    solveInst = SAS94
 
     def test_sas_with_option(self):
         prob = LpProblem("test", LpMinimize)
@@ -2066,26 +2103,109 @@ class SASTest:
         )
 
 
-class SAS94Test(BaseSolverTest.PuLPTest, SASTest):
-    solveInst = SAS94
-
-
-class SASCASTest(BaseSolverTest.PuLPTest, SASTest):
+class SASCASTest(BaseSolverTest.PuLPTest):
     solveInst = SASCAS
+
+    def test_sas_with_option(self):
+        prob = LpProblem("test", LpMinimize)
+        X = LpVariable.dicts("x", [1, 2, 3], lowBound=0.0, cat="Integer")
+        prob += 2 * X[1] - 3 * X[2] - 4 * X[3], "obj"
+        prob += -2 * X[2] - 3 * X[3] >= -5, "R1"
+        prob += X[1] + X[2] + 2 * X[3] <= 4, "R2"
+        prob += X[1] + 2 * X[2] + 3 * X[3] <= 7, "R3"
+        self.solver.optionsDict["with"] = "lp"
+        pulpTestCheck(
+            prob,
+            self.solver,
+            [const.LpStatusOptimal],
+            {X[1]: 0.0, X[2]: 2.5, X[3]: 0.0},
+        )
+
+
+def pulpTestCheckSol(
+    prob: LpProblem, solver: LpSolver, sol: dict[LpVariable, float], eps: float
+):
+    for v, x in sol.items():
+        assert v.varValue is not None
+        if abs(v.varValue - x) > eps:
+            dumpTestProblem(prob)
+            raise PulpError(
+                "Tests failed for solver {}:\nvar {} == {} != {}".format(
+                    solver, v, v.varValue, x
+                )
+            )
+
+
+def pulpTestCheckReducedcosts(
+    prob: LpProblem, solver: LpSolver, reducedcosts: dict[LpVariable, float], eps: float
+):
+    for v, dj in reducedcosts.items():
+        assert v.dj is not None
+        if abs(v.dj - dj) > eps:
+            dumpTestProblem(prob)
+            raise PulpError(
+                "Tests failed for solver {}:\nTest failed: var.dj {} == {} != {}".format(
+                    solver, v, v.dj, dj
+                )
+            )
+
+
+def pulpTestCheckDuals(
+    prob: LpProblem, solver: LpSolver, duals: dict[str, float], eps: float
+):
+    for cname, p in duals.items():
+        c = prob.constraints[cname]
+        assert c.pi is not None
+        if abs(c.pi - p) > eps:
+            dumpTestProblem(prob)
+            raise PulpError(
+                "Tests failed for solver {}:\nconstraint.pi {} == {} != {}".format(
+                    solver, cname, c.pi, p
+                )
+            )
+
+
+def pulpTestCheckSlacks(
+    prob: LpProblem, solver: LpSolver, slacks: dict[str, float], eps: float
+):
+    for cname, slack in slacks.items():
+        c = prob.constraints[cname]
+        assert c.slack is not None
+        if abs(c.slack - slack) > eps:
+            dumpTestProblem(prob)
+            raise PulpError(
+                "Tests failed for solver {}:\nconstraint.slack {} == {} != {}".format(
+                    solver, cname, c.slack, slack
+                )
+            )
+
+
+def pulpTestCheckObjective(
+    prob: LpProblem, solver: LpSolver, objective: float, eps: float
+):
+    assert prob.objective is not None
+    z = prob.objective.value()
+    if z is None:
+        raise ValueError("objective value is None")
+    if abs(z - objective) > eps:
+        dumpTestProblem(prob)
+        raise PulpError(
+            f"Tests failed for solver {solver}:\nobjective {z} != {objective}"
+        )
 
 
 def pulpTestCheck(
-    prob,
-    solver,
-    okstatus,
-    sol=None,
-    reducedcosts=None,
-    duals=None,
-    slacks=None,
-    eps=10**-3,
-    status=None,
-    objective=None,
-    **kwargs,
+    prob: LpProblem,
+    solver: LpSolver,
+    okstatus: Sequence[int],
+    sol: dict[LpVariable, float] | None = None,
+    reducedcosts: dict[LpVariable, float] | None = None,
+    duals: dict[str, float] | None = None,
+    slacks: dict[str, float] | None = None,
+    eps: float = 10**-3,
+    status: int | None = None,
+    objective: float | None = None,
+    **kwargs: Any,
 ):
     if status is None:
         status = prob.solve(solver, **kwargs)
@@ -2101,56 +2221,64 @@ def pulpTestCheck(
             )
         )
     if sol is not None:
-        for v, x in sol.items():
-            if abs(v.varValue - x) > eps:
-                dumpTestProblem(prob)
-                raise PulpError(
-                    "Tests failed for solver {}:\nvar {} == {} != {}".format(
-                        solver, v, v.varValue, x
-                    )
-                )
-    if reducedcosts:
-        for v, dj in reducedcosts.items():
-            if abs(v.dj - dj) > eps:
-                dumpTestProblem(prob)
-                raise PulpError(
-                    "Tests failed for solver {}:\nTest failed: var.dj {} == {} != {}".format(
-                        solver, v, v.dj, dj
-                    )
-                )
-    if duals:
-        for cname, p in duals.items():
-            c = prob.constraints[cname]
-            if abs(c.pi - p) > eps:
-                dumpTestProblem(prob)
-                raise PulpError(
-                    "Tests failed for solver {}:\nconstraint.pi {} == {} != {}".format(
-                        solver, cname, c.pi, p
-                    )
-                )
-    if slacks:
-        for cname, slack in slacks.items():
-            c = prob.constraints[cname]
-            if abs(c.slack - slack) > eps:
-                dumpTestProblem(prob)
-                raise PulpError(
-                    "Tests failed for solver {}:\nconstraint.slack {} == {} != {}".format(
-                        solver, cname, c.slack, slack
-                    )
-                )
+        pulpTestCheckSol(prob, solver, sol, eps)
+    if reducedcosts is not None:
+        pulpTestCheckReducedcosts(prob, solver, reducedcosts, eps)
+    if duals is not None:
+        pulpTestCheckDuals(prob, solver, duals, eps)
+    if slacks is not None:
+        pulpTestCheckSlacks(prob, solver, slacks, eps)
     if objective is not None:
-        z = prob.objective.value()
-        if abs(z - objective) > eps:
-            dumpTestProblem(prob)
-            raise PulpError(
-                f"Tests failed for solver {solver}:\nobjective {z} != {objective}"
+        pulpTestCheckObjective(prob, solver, objective, eps)
+
+
+def pulpSequentialTestCheck(
+    prob: LpProblem,
+    solver: LpSolver,
+    okstatus: Sequence[list[int]],
+    sol: dict[LpVariable, float] | None = None,
+    reducedcosts: dict[LpVariable, float] | None = None,
+    duals: dict[str, float] | None = None,
+    slacks: dict[str, float] | None = None,
+    eps: float = 10**-3,
+    status: list[int] | None = None,
+    objective: float | None = None,
+):
+    if status is not None and status not in okstatus:
+        dumpTestProblem(prob)
+        raise PulpError(
+            "Tests failed for solver {}:\nstatus == {} not in {}\nstatus == {} not in {}".format(
+                solver,
+                status,
+                okstatus,
+                [const.LpStatus[one_status] for one_status in status],
+                [const.LpStatus[one_status] for s in okstatus for one_status in s],
             )
+        )
+    if sol is not None:
+        pulpTestCheckSol(prob, solver, sol, eps)
+    if reducedcosts is not None:
+        pulpTestCheckReducedcosts(prob, solver, reducedcosts, eps)
+    if duals is not None:
+        pulpTestCheckDuals(prob, solver, duals, eps)
+    if slacks is not None:
+        pulpTestCheckSlacks(prob, solver, slacks, eps)
+    if objective is not None:
+        pulpTestCheckObjective(prob, solver, objective, eps)
 
 
-def getSortedDict(prob, keyCons="name", keyVars="name"):
-    _dict = prob.toDict()
-    _dict["constraints"].sort(key=lambda v: v[keyCons])
-    _dict["variables"].sort(key=lambda v: v[keyVars])
+def getSortedDict(
+    prob: LpProblem, keyCons: str = "name", keyVars: str = "name"
+) -> dict[str, Any]:
+    def sort_with_none(v: dict[str, Any | None], key: str):
+        value = v[key]
+        if value is None:
+            return ""
+        return value
+
+    _dict = dataclasses.asdict(prob.toDataclass())
+    _dict["constraints"].sort(key=functools.partial(sort_with_none, key=keyCons))
+    _dict["variables"].sort(key=functools.partial(sort_with_none, key=keyVars))
     return _dict
 
 

@@ -3,8 +3,8 @@ import random
 from itertools import product
 
 
-def _bin_packing_instance(bins, seed=0):
-    packed_bins = [[] for _ in range(bins)]
+def _bin_packing_instance(bins: int, seed: int | float | str | bytes | bytearray = 0):
+    packed_bins: list[list[int]] = [[] for _ in range(bins)]
     bin_size = bins * 100
     random.seed(seed)
     for i in range(len(packed_bins)):
@@ -21,8 +21,10 @@ def _bin_packing_instance(bins, seed=0):
     return items, packing, bin_size
 
 
-def create_bin_packing_problem(bins, seed=0):
-    items, packing, bin_size = _bin_packing_instance(bins=bins, seed=seed)
+def create_bin_packing_problem(
+    bins: int, seed: int | float | str | bytes | bytearray = 0
+):
+    items, _packing, bin_size = _bin_packing_instance(bins=bins, seed=seed)
 
     prob = LpProblem("bin_packing", LpMinimize)
 

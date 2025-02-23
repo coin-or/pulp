@@ -1,5 +1,6 @@
 # PuLP : Python LP Modeler
 # Version 1.4.2
+from __future__ import annotations
 
 # Copyright (c) 2002-2005, Jean-Sebastien Roy (js@jeannot.org)
 # Modifications Copyright (c) 2007- Stuart Anthony Mitchell (s.mitchell@auckland.ac.nz)
@@ -24,10 +25,15 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."""
 
-from .core import LpSolver_CMD, LpSolver, subprocess, PulpSolverError, clock
+from .core import LpSolver_CMD, LpSolver, subprocess, PulpSolverError
 from .core import glpk_path, operating_system, log
 import os
+from time import monotonic as clock
 from .. import constants
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from pulp.pulp import LpProblem
 
 
 class GLPK_CMD(LpSolver_CMD):
@@ -37,12 +43,12 @@ class GLPK_CMD(LpSolver_CMD):
 
     def __init__(
         self,
-        path=None,
-        keepFiles=False,
-        mip=True,
-        msg=True,
-        options=None,
-        timeLimit=None,
+        path: str | None = None,
+        keepFiles: bool = False,
+        mip: bool = True,
+        msg: bool = True,
+        options: list[str] | None = None,
+        timeLimit: float | None = None,
     ):
         """
         :param bool mip: if False, assume LP even if integer variables
@@ -52,8 +58,7 @@ class GLPK_CMD(LpSolver_CMD):
         :param bool keepFiles: if True, files are saved in the current directory and not deleted after solving
         :param str path: path to the solver binary
         """
-        LpSolver_CMD.__init__(
-            self,
+        super().__init__(
             mip=mip,
             msg=msg,
             timeLimit=timeLimit,
@@ -62,14 +67,14 @@ class GLPK_CMD(LpSolver_CMD):
             keepFiles=keepFiles,
         )
 
-    def defaultPath(self):
+    def defaultPath(self) -> str:
         return self.executableExtension(glpk_path)
 
-    def available(self):
+    def available(self) -> bool:
         """True if the solver is available"""
-        return self.executable(self.path)
+        return self.executable(self.path) is not None
 
-    def actualSolve(self, lp):
+    def actualSolve(self, lp: LpProblem):
         """Solve a well formulated lp problem"""
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute " + self.path)
@@ -119,7 +124,7 @@ class GLPK_CMD(LpSolver_CMD):
         self.delete_tmp_files(tmpLp, tmpSol)
         return status
 
-    def readsol(self, filename):
+    def readsol(self, filename: str):
         """Read a GLPK solution file"""
         with open(filename) as f:
             f.readline()
@@ -200,14 +205,19 @@ class PYGLPK(LpSolver):
             """True if the solver is available"""
             return False
 
-        def actualSolve(self, lp, callback=None):
+        def actualSolve(self, lp: LpProblem, callback=None):
             """Solve a well formulated lp problem"""
             raise PulpSolverError("GLPK: Not Available")
 
     else:
 
         def __init__(
-            self, mip=True, msg=True, timeLimit=None, gapRel=None, **solverParams
+            self,
+            mip: bool = True,
+            msg: bool = True,
+            timeLimit: float | None = None,
+            gapRel: float | None = None,
+            **solverParams: Any,
         ):
             """
             Initializes the glpk solver.
@@ -218,11 +228,11 @@ class PYGLPK(LpSolver):
             @param gapRel: not handled
             @param solverParams: not handled
             """
-            LpSolver.__init__(self, mip, msg)
+            super().__init__(mip, msg)
             if not self.msg:
                 glpk.glp_term_out(glpk.GLP_OFF)
 
-        def findSolutionValues(self, lp):
+        def findSolutionValues(self, lp: LpProblem):
             prob = lp.solverModel
             if self.mip and self.hasMIPConstraints(lp.solverModel):
                 solutionStatus = glpk.glp_mip_status(prob)
@@ -369,7 +379,7 @@ class PYGLPK(LpSolver):
                 constraint.modified = False
             return solutionStatus
 
-        def actualResolve(self, lp, callback=None):
+        def actualResolve(self, lp: LpProblem, callback=None):
             """
             Solve a well formulated lp problem
 

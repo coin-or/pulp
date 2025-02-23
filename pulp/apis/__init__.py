@@ -12,7 +12,7 @@ from .copt_api import *
 from .sas_api import *
 from .core import *
 
-_all_solvers = [
+_all_solvers: list[type[LpSolver]] = [
     GLPK_CMD,
     PYGLPK,
     CPLEX_CMD,
@@ -95,7 +95,7 @@ def configSolvers():
     setConfigInformation(**configdict)
 
 
-def getSolver(solver, *args, **kwargs):
+def getSolver(solver: str, *args: Any, **kwargs: Any) -> LpSolver:
     """
     Instantiates a solver from its name
 
@@ -115,7 +115,7 @@ def getSolver(solver, *args, **kwargs):
         )
 
 
-def getSolverFromDict(data):
+def getSolverFromDict(data: dict[str, Any]) -> LpSolver:
     """
     Instantiates a solver from a dictionary with its data
 
@@ -132,7 +132,7 @@ def getSolverFromDict(data):
     return getSolver(solver, **data)
 
 
-def getSolverFromJson(filename):
+def getSolverFromJson(filename: str) -> LpSolver:
     """
     Instantiates a solver from a json file with its data
 
@@ -145,7 +145,7 @@ def getSolverFromJson(filename):
     return getSolverFromDict(data)
 
 
-def listSolvers(onlyAvailable=False):
+def listSolvers(onlyAvailable: bool = False) -> list[str]:
     """
     List the names of all the existing solvers in PuLP
 
@@ -153,7 +153,7 @@ def listSolvers(onlyAvailable=False):
     :return: list of solver names
     :rtype: list
     """
-    result = []
+    result: list[str] = []
     for s in _all_solvers:
         solver = s(msg=False)
         if (not onlyAvailable) or solver.available():

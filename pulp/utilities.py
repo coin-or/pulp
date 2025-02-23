@@ -5,10 +5,14 @@ import collections
 import itertools
 from itertools import combinations as combination
 from itertools import permutations as permutation
-from typing import TYPE_CHECKING
+from typing import TypeVar, TYPE_CHECKING, Any, Sequence, Callable, Mapping
+
+T = TypeVar("T")
+K = TypeVar("K")
+V = TypeVar("V")
 
 if TYPE_CHECKING:
-    from pulp.pulp import LpVariable, LpAffineExpression, LpConstraint, LpConstraintVar
+    from pulp.pulp import LptNumber, LptExpr
 
 
 def resource_clock():
@@ -17,24 +21,22 @@ def resource_clock():
     return resource.getrusage(resource.RUSAGE_CHILDREN).ru_utime
 
 
-def isNumber(x) -> bool:
+def isNumber(x: Any) -> bool:
     """Returns true if x is an int or a float"""
     return isinstance(x, (int, float))
 
 
-def value(
-    x: int | float | LpVariable | LpAffineExpression | LpConstraint | LpConstraintVar,
-) -> int | float | None:
+def value(x: LptExpr | None) -> LptNumber | None:
     """Returns the value of the variable/expression x, or x if it is a number"""
-    if isinstance(x, (int, float)):
+    if x is None:
+        return None
+    elif isinstance(x, (int, float)):
         return x
     else:
         return x.value()
 
 
-def valueOrDefault(
-    x: int | float | LpVariable | LpAffineExpression | LpConstraint,
-) -> int | float:
+def valueOrDefault(x: LptExpr) -> LptNumber:
     """Returns the value of the variable/expression x, or x if it is a number
     Variable without value (None) are affected a possible value (within their
     bounds)."""
@@ -106,19 +108,27 @@ def allcombinations(orgset, k):
     return itertools.chain(*[combination(orgset, i) for i in range(1, k + 1)])
 
 
-def makeDict(headers, array, default=None):
+def makeDict(
+    headers: Sequence[Sequence[K]],
+    array: Sequence[Sequence[V]],
+    default: V | None = None,
+) -> dict[K, dict[K, V]]:
     """
     makes a list into a dictionary with the headings given in headings
     headers is a list of header lists
     array is a list with the data
     """
-    result, defdict = __makeDict(headers, array, default)
+    result, _defdict = __makeDict(headers, array, default)
     return result
 
 
-def __makeDict(headers, array, default=None):
+def __makeDict(
+    headers: Sequence[Sequence[K]],
+    array: Sequence[Sequence[V]],
+    default: V | None = None,
+) -> tuple[dict[K, dict[K, V]], collections.defaultdict[K, dict[K, V]] | None]:
     # this is a recursive function so end the recursion as follows
-    result = {}
+    result: dict[K, V] = {}
     returndefaultvalue = None
     if len(headers) == 1:
         result.update(dict(zip(headers[0], array)))
@@ -135,7 +145,7 @@ def __makeDict(headers, array, default=None):
     return result, returndefaultvalue
 
 
-def splitDict(data):
+def splitDict(data: Mapping[K, Sequence[V]]) -> tuple[dict[K, V], ...]:
     """
     Split a dictionary with lists as the data, into smaller dictionaries
 
@@ -146,7 +156,7 @@ def splitDict(data):
     """
     # find the maximum number of items in the dictionary
     maxitems = max([len(values) for values in data.values()])
-    output = [dict() for _ in range(maxitems)]
+    output: list[dict[K, V]] = [{} for _ in range(maxitems)]
     for key, values in data.items():
         for i, val in enumerate(values):
             output[i][key] = val
@@ -154,7 +164,9 @@ def splitDict(data):
     return tuple(output)
 
 
-def read_table(data, coerce_type, transpose=False):
+def read_table(
+    data: str, coerce_type: Callable[[Any], T], transpose: bool = False
+) -> dict[tuple[str, str], T]:
     """
     Reads in data from a simple table and forces it to be a particular type
 
@@ -184,7 +196,7 @@ def read_table(data, coerce_type, transpose=False):
     """
     lines = data.splitlines()
     headings = lines[1].split()
-    result = {}
+    result: dict[tuple[str, str], T] = {}
     for row in lines[2:]:
         items = row.split()
         for i, item in enumerate(items[1:]):

@@ -8,7 +8,7 @@
 from pulp import *
 
 # Import math functions
-from math import *
+import math
 
 # A new LP problem
 prob = LpProblem("test2", LpMaximize)
@@ -16,15 +16,15 @@ prob = LpProblem("test2", LpMaximize)
 # Parameters
 # Size of the problem
 n = 15
-k = floor(log(n) / log(2))
+k = math.floor(math.log(n) / math.log(2))
 
 # A vector of n binary variables
-x = LpVariable.matrix("x", list(range(n)), 0, 1, LpInteger)
+x = LpVariable.matrix("x", list(range(n)), lowBound=0, upBound=1, cat=LpInteger)
 
 # A vector of weights
 a = [pow(2, k + n + 1) + pow(2, k + n + 1 - j) + 1 for j in range(1, n + 1)]
 # The maximum weight
-b = 0.5 * floor(sum(a))
+b = 0.5 * math.floor(sum(a))
 
 # The total weight
 weight = lpDot(a, x)

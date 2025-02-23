@@ -1,5 +1,6 @@
 # PuLP : Python LP Modeler
 # Version 1.4.2
+from __future__ import annotations
 
 # Copyright (c) 2002-2005, Jean-Sebastien Roy (js@jeannot.org)
 # Modifications Copyright (c) 2007- Stuart Anthony Mitchell (s.mitchell@auckland.ac.nz)
@@ -28,6 +29,10 @@ from .core import LpSolver_CMD, subprocess, PulpSolverError
 import os
 from .. import constants
 import warnings
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pulp.pulp import LpProblem
 
 
 class MIPCL_CMD(LpSolver_CMD):
@@ -37,12 +42,12 @@ class MIPCL_CMD(LpSolver_CMD):
 
     def __init__(
         self,
-        path=None,
-        keepFiles=False,
-        mip=True,
-        msg=True,
-        options=None,
-        timeLimit=None,
+        path: str | None = None,
+        keepFiles: bool = False,
+        mip: bool = True,
+        msg: bool = True,
+        options: list[str] | None = None,
+        timeLimit: float | None = None,
     ):
         """
         :param bool mip: if False, assume LP even if integer variables
@@ -52,8 +57,7 @@ class MIPCL_CMD(LpSolver_CMD):
         :param bool keepFiles: if True, files are saved in the current directory and not deleted after solving
         :param str path: path to the solver binary
         """
-        LpSolver_CMD.__init__(
-            self,
+        super().__init__(
             mip=mip,
             msg=msg,
             timeLimit=timeLimit,
@@ -65,14 +69,16 @@ class MIPCL_CMD(LpSolver_CMD):
     def defaultPath(self):
         return self.executableExtension("mps_mipcl")
 
-    def available(self):
+    def available(self) -> bool:
         """True if the solver is available"""
-        return self.executable(self.path)
+        return self.executable(self.path) is not None
 
-    def actualSolve(self, lp):
+    def actualSolve(self, lp: LpProblem):
         """Solve a well formulated lp problem"""
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute " + self.path)
+        if lp.objective is None:
+            raise TypeError("objective is None")
         tmpMps, tmpSol = self.create_tmp_files(lp.name, "mps", "sol")
         if lp.sense == constants.LpMaximize:
             # we swap the objectives
@@ -107,9 +113,12 @@ class MIPCL_CMD(LpSolver_CMD):
             pipe = open(os.devnull, "w")
 
         return_code = subprocess.call(cmd.split(), stdout=pipe, stderr=pipe)
+
         # We need to undo the objective swap before finishing
         if lp.sense == constants.LpMaximize:
+            assert lp.objective is not None
             lp += -lp.objective
+
         if return_code != 0:
             raise PulpSolverError("PuLP: Error while trying to execute " + self.path)
         if not os.path.exists(tmpSol):
@@ -121,17 +130,18 @@ class MIPCL_CMD(LpSolver_CMD):
         self.delete_tmp_files(tmpMps, tmpSol)
         lp.assignStatus(status, status_sol)
         if status not in [constants.LpStatusInfeasible, constants.LpStatusNotSolved]:
+            assert values is not None
             lp.assignVarsVals(values)
 
         return status
 
     @staticmethod
-    def readsol(filename):
+    def readsol(filename: str):
         """Read a MIPCL solution file"""
         with open(filename) as f:
             content = f.readlines()
         content = [l.strip() for l in content]
-        values = {}
+        values: dict[str, float] = {}
         if not len(content):
             return (
                 constants.LpStatusNotSolved,
@@ -141,7 +151,7 @@ class MIPCL_CMD(LpSolver_CMD):
         first_line = content[0]
         if first_line == "=infeas=":
             return constants.LpStatusInfeasible, values, constants.LpSolutionInfeasible
-        objective, value = first_line.split()
+        _objective, value = first_line.split()
         # this is a workaround.
         # Not sure if it always returns this limit when unbounded.
         if abs(float(value)) >= 9.999999995e10:

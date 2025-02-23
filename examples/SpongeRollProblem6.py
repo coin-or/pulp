@@ -27,7 +27,7 @@ while newPatterns:
 solution, varsdict = masterSolve(prob, relax=False)
 
 # Display Solution
-for i, j in list(varsdict.items()):
+for i, j in varsdict.items():
     print(i, "=", j)
 
 print("objective = ", solution)

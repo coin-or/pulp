@@ -1,5 +1,6 @@
 # PuLP : Python LP Modeler
 # Version 1.4.2
+from __future__ import annotations
 
 # Copyright (c) 2002-2005, Jean-Sebastien Roy (js@jeannot.org)
 # Modifications Copyright (c) 2007- Stuart Anthony Mitchell (s.mitchell@auckland.ac.nz)
@@ -26,17 +27,20 @@
 
 from .core import LpSolver, LpSolver_CMD, subprocess, PulpSolverError
 from .. import constants
-import warnings
 import sys
 import re
+from typing import TYPE_CHECKING, Callable, Any
+
+if TYPE_CHECKING:
+    from pulp.pulp import LpProblem, LpConstraint, LptNumber
 
 
-def _ismip(lp):
+def _ismip(lp: LpProblem) -> bool:
     """Check whether lp is a MIP.
 
     From an XPRESS point of view, a problem is also a MIP if it contains
     SOS constraints."""
-    return lp.isMIP() or len(lp.sos1) or len(lp.sos2)
+    return lp.isMIP() or len(lp.sos1) > 0 or len(lp.sos2) > 0
 
 
 class XPRESS(LpSolver_CMD):
@@ -47,18 +51,18 @@ class XPRESS(LpSolver_CMD):
 
     def __init__(
         self,
-        mip=True,
-        msg=True,
-        timeLimit=None,
-        gapRel=None,
+        mip: bool = True,
+        msg: bool = True,
+        timeLimit: float | None = None,
+        gapRel: float | None = None,
         options=None,
-        keepFiles=False,
-        path=None,
+        keepFiles: bool = False,
+        path: str | None = None,
         heurFreq=None,
         heurStra=None,
         coverCuts=None,
         preSolve=None,
-        warmStart=False,
+        warmStart: bool = False,
     ):
         """
         Initializes the Xpress solver.
@@ -76,8 +80,7 @@ class XPRESS(LpSolver_CMD):
                         https://www.fico.com/fico-xpress-optimization/docs/latest/solver/optimizer/HTML/chapter7.html
         :param bool warmStart: if True, then use current variable values as start
         """
-        LpSolver_CMD.__init__(
-            self,
+        super().__init__(
             gapRel=gapRel,
             mip=mip,
             msg=msg,
@@ -95,11 +98,11 @@ class XPRESS(LpSolver_CMD):
     def defaultPath(self):
         return self.executableExtension("optimizer")
 
-    def available(self):
+    def available(self) -> bool:
         """True if the solver is available"""
-        return self.executable(self.path)
+        return self.executable(self.path) is not None
 
-    def actualSolve(self, lp):
+    def actualSolve(self, lp: LpProblem):
         """Solve a well formulated lp problem"""
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute " + self.path)
@@ -108,11 +111,13 @@ class XPRESS(LpSolver_CMD):
         )
         variables = lp.writeLP(tmpLp, writeSOS=1, mip=self.mip)
         if self.optionsDict.get("warmStart", False):
-            start = [(v.name, v.value()) for v in variables if v.value() is not None]
+            start: list[tuple[str, LptNumber]] = [
+                (v.name, v.value()) for v in variables if v.value() is not None
+            ]
             self.writeslxsol(tmpStart, start)
         # Explicitly capture some attributes so that we can easily get
         # information about the solution.
-        attrNames = []
+        attrNames: list[str] = []
         if _ismip(lp) and self.mip:
             attrNames.extend(["mipobjval", "bestbound", "mipstatus"])
             statusmap = {
@@ -223,12 +228,12 @@ class XPRESS(LpSolver_CMD):
         return status
 
     @staticmethod
-    def readsol(filename, attrfile):
+    def readsol(filename: str, attrfile: str):
         """Read an XPRESS solution file"""
-        values = {}
-        redcost = {}
-        slacks = {}
-        duals = {}
+        values: dict[str, float] = {}
+        redcost: dict[str, float] = {}
+        slacks: dict[str, float] = {}
+        duals: dict[str, float] = {}
         with open(filename) as f:
             for lineno, _line in enumerate(f):
                 # The first 6 lines are status information
@@ -237,8 +242,8 @@ class XPRESS(LpSolver_CMD):
                 elif lineno == 6:
                     # Line with status information
                     _line = _line.split()
-                    rows = int(_line[2])
-                    cols = int(_line[5])
+                    _rows = int(_line[2])
+                    _cols = int(_line[5])
                 elif lineno < 10:
                     # Empty line, "Solution Statistics", objective direction
                     pass
@@ -265,7 +270,7 @@ class XPRESS(LpSolver_CMD):
                             slacks[name] = float(line[5])
                             duals[name] = float(line[6])
         # Read the attributes that we wrote explicitly
-        attrs = dict()
+        attrs: dict[str, int | float | str] = {}
         with open(attrfile) as f:
             for line in f:
                 fields = line.strip().split("=")
@@ -281,7 +286,7 @@ class XPRESS(LpSolver_CMD):
                     attrs[fields[0].strip()] = value
         return values, redcost, slacks, duals, attrs
 
-    def writeslxsol(self, name, *values):
+    def writeslxsol(self, name: str, *values: list[tuple[str, float]]):
         """
         Write a solution file in SLX format.
         The function can write multiple solutions to the same file, each
@@ -300,7 +305,7 @@ class XPRESS(LpSolver_CMD):
             slx.write("ENDATA\n")
 
     @staticmethod
-    def quote_path(path):
+    def quote_path(path: str) -> str:
         r"""
         Quotes a path for the Xpress optimizer console, by wrapping it in
         double quotes and escaping the following characters, which would
@@ -321,17 +326,17 @@ class XPRESS_PY(LpSolver):
 
     def __init__(
         self,
-        mip=True,
-        msg=True,
-        timeLimit=None,
-        gapRel=None,
+        mip: bool = True,
+        msg: bool = True,
+        timeLimit: float | None = None,
+        gapRel: float | None = None,
         heurFreq=None,
         heurStra=None,
         coverCuts=None,
         preSolve=None,
-        warmStart=None,
-        export=None,
-        options=None,
+        warmStart: bool=False,
+        export: str | None=None,
+        options: list[str] | None = None,
     ):
         """
         Initializes the Xpress solver.
@@ -360,8 +365,7 @@ class XPRESS_PY(LpSolver):
             #               solvers. You can always pass a positive timlimit
             #               via `options` to get that behavior.
             timeLimit = -abs(timeLimit)
-        LpSolver.__init__(
-            self,
+        super().__init__(
             gapRel=gapRel,
             mip=mip,
             msg=msg,
@@ -391,7 +395,9 @@ class XPRESS_PY(LpSolver):
                 self._available = False
         return self._available
 
-    def callSolver(self, lp, prepare=None):
+    def callSolver(
+        self, lp: LpProblem, prepare: Callable[[LpProblem], None] | None = None
+    ):
         """Perform the actual solve from actualSolve() or actualResolve().
 
         :param prepare:  a function that is called with `lp` as argument
@@ -423,7 +429,7 @@ class XPRESS_PY(LpSolver):
         except (xpress.ModelError, xpress.InterfaceError, xpress.SolverError) as err:
             raise PulpSolverError(str(err))
 
-    def findSolutionValues(self, lp):
+    def findSolutionValues(self, lp: LpProblem):
         try:
             model = lp.solverModel
             # Collect results
@@ -488,7 +494,9 @@ class XPRESS_PY(LpSolver):
         except (xpress.ModelError, xpress.InterfaceError, xpress.SolverError) as err:
             raise PulpSolverError(str(err))
 
-    def actualSolve(self, lp, prepare=None):
+    def actualSolve(
+        self, lp: LpProblem, prepare: Callable[[LpProblem], None] | None = None
+    ):
         """Solve a well formulated lp problem"""
         if not self.available():
             # Import again to get a more verbose error message
@@ -503,7 +511,7 @@ class XPRESS_PY(LpSolver):
         self.callSolver(lp, prepare)
         return self.findSolutionValues(lp)
 
-    def buildSolverModel(self, lp):
+    def buildSolverModel(self, lp: LpProblem):
         """
         Takes the pulp lp model and translates it into an xpress model
         """
@@ -585,11 +593,13 @@ class XPRESS_PY(LpSolver):
         except (xpress.ModelError, xpress.InterfaceError, xpress.SolverError) as err:
             raise PulpSolverError(str(err))
 
-    def actualResolve(self, lp, prepare=None):
+    def actualResolve(
+        self, lp: LpProblem, prepare: Callable[[LpProblem], None] | None = None
+    ):
         """Resolve a problem that was previously solved by actualSolve()."""
         try:
-            rhsind = list()
-            rhsval = list()
+            rhsind = []
+            rhsval = []
             for name in sorted(lp.constraints):
                 con = lp.constraints[name]
                 if not con.modified:
@@ -603,9 +613,9 @@ class XPRESS_PY(LpSolver):
             if len(rhsind) > 0:
                 lp.solverModel.chgrhs(rhsind, rhsval)
 
-            bndind = list()
-            bndtype = list()
-            bndval = list()
+            bndind = []
+            bndtype: list[str] = []
+            bndval = []
             for v in lp.variables():
                 if not v.modified:
                     continue
@@ -628,7 +638,7 @@ class XPRESS_PY(LpSolver):
             raise PulpSolverError(str(err))
 
     @staticmethod
-    def _reset(lp):
+    def _reset(lp: LpProblem):
         """Reset any XPRESS specific information in lp."""
         if hasattr(lp, "solverModel"):
             delattr(lp, "solverModel")
@@ -639,7 +649,7 @@ class XPRESS_PY(LpSolver):
             if hasattr(c, "_xprs"):
                 delattr(c, "_xprs")
 
-    def _extract(self, lp):
+    def _extract(self, lp: LpProblem):
         """Extract a given model to an XPRESS Python API instance.
 
         The function stores XPRESS specific information in the `solverModel` property
@@ -655,11 +665,11 @@ class XPRESS_PY(LpSolver):
             # Create variables. We first collect the info for all variables
             # and then create all of them in one shot. This is supposed to
             # be faster in case we have to create a lot of variables.
-            obj = list()
-            lb = list()
-            ub = list()
-            ctype = list()
-            names = list()
+            obj = []
+            lb = []
+            ub = []
+            ctype: list[str] = []
+            names: list[str] = []
             for v in lp.variables():
                 lb.append(-xpress.infinity if v.lowBound is None else v.lowBound)
                 ub.append(xpress.infinity if v.upBound is None else v.upBound)
@@ -679,7 +689,7 @@ class XPRESS_PY(LpSolver):
             # ordering of constraints.
             # Constraints are generated in blocks of 100 constraints to speed
             # up things a bit but still keep memory usage small.
-            cons = list()
+            cons: list[tuple[int, Any, LpConstraint]] = []
             for i, name in enumerate(sorted(lp.constraints)):
                 con = lp.constraints[name]
                 # Sort the variables by index to get deterministic
@@ -711,7 +721,7 @@ class XPRESS_PY(LpSolver):
                     con._xprs = (i, c)
 
             # SOS constraints
-            def addsos(m, sosdict, sostype):
+            def addsos(sosdict: dict[int, Any], sostype: int):
                 """Extract sos constraints from PuLP."""
                 soslist = []
                 # Sort by name to get deterministic ordering. Note that
@@ -725,10 +735,10 @@ class XPRESS_PY(LpSolver):
                         weights.append(val)
                     soslist.append(xpress.sos(indices, weights, sostype, str(name)))
                 if len(soslist):
-                    m.addSOS(soslist)
+                    model.addSOS(soslist)
 
-            addsos(model, lp.sos1, 1)
-            addsos(model, lp.sos2, 2)
+            addsos(lp.sos1, 1)
+            addsos(lp.sos2, 2)
 
             lp.solverModel = model
         except (xpress.ModelError, xpress.InterfaceError, xpress.SolverError) as err:
@@ -736,7 +746,7 @@ class XPRESS_PY(LpSolver):
             self._reset(lp)
             raise PulpSolverError(str(err))
 
-    def getAttribute(self, lp, which):
+    def getAttribute(self, lp: LpProblem, which):
         """Get an arbitrary attribute for the model that was previously
         solved using actualSolve()."""
         return lp.solverModel.getAttrib(which)

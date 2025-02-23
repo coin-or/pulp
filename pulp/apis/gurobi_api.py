@@ -1,5 +1,6 @@
 # PuLP : Python LP Modeler
 # Version 1.4.2
+from __future__ import annotations
 
 # Copyright (c) 2002-2005, Jean-Sebastien Roy (js@jeannot.org)
 # Modifications Copyright (c) 2007- Stuart Anthony Mitchell (s.mitchell@auckland.ac.nz)
@@ -25,15 +26,21 @@
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."""
 
 
-from .core import LpSolver_CMD, LpSolver, subprocess, PulpSolverError, clock, log
+from .core import LpSolver_CMD, LpSolver, subprocess, PulpSolverError, log
 from .core import gurobi_path
 import os
 import sys
+from time import monotonic as clock
 from .. import constants
 import warnings
+from typing import TYPE_CHECKING, cast, Any, Callable
 
-# to import the gurobipy name into the module scope
-gp = None
+if TYPE_CHECKING:
+    from pulp.pulp import LpProblem, LpVariable
+    import gurobipy as gp
+else:
+    # to import the gurobipy name into the module scope
+    gp = None
 
 
 class GUROBI(LpSolver):
@@ -59,7 +66,7 @@ class GUROBI(LpSolver):
             """True if the solver is available"""
             return False
 
-        def actualSolve(self, lp, callback=None):
+        def actualSolve(self, lp: LpProblem, callback: None = None) -> int:
             """Solve a well formulated lp problem"""
             raise PulpSolverError("GUROBI: Not Available")
 
@@ -67,16 +74,16 @@ class GUROBI(LpSolver):
 
         def __init__(
             self,
-            mip=True,
-            msg=True,
-            timeLimit=None,
-            gapRel=None,
-            warmStart=False,
-            logPath=None,
-            env=None,
-            envOptions=None,
-            manageEnv=False,
-            **solverParams,
+            mip: bool = True,
+            msg: bool = True,
+            timeLimit: float | None = None,
+            gapRel: float | None = None,
+            warmStart: bool = False,
+            logPath: str | None = None,
+            env: gp.Env | None = None,
+            envOptions: dict[str, Any] | None = None,
+            manageEnv: bool = False,
+            **solverParams: Any,
         ):
             """
             :param bool mip: if False, assume LP even if integer variables
@@ -146,8 +153,7 @@ class GUROBI(LpSolver):
             self.model = None
             self.init_gurobi = False  # whether env and model have been initialised
 
-            LpSolver.__init__(
-                self,
+            super().__init__(
                 mip=mip,
                 msg=msg,
                 timeLimit=timeLimit,
@@ -175,12 +181,15 @@ class GUROBI(LpSolver):
             """
             if not self.init_gurobi:
                 return
-            self.model.dispose()
-            if self.manage_env:
+            if self.model is not None:
+                self.model.dispose()
+                self.model = None
+            if self.manage_env and self.env is not None:
                 self.env.dispose()
+                self.env = None
 
-        def findSolutionValues(self, lp):
-            model = lp.solverModel
+        def findSolutionValues(self, lp: LpProblem):
+            model = cast(gp.Model, lp.solverModel)
             solutionStatus = model.Status
             GRB = gp.GRB
             # TODO: check status for Integer Feasible
@@ -229,7 +238,7 @@ class GUROBI(LpSolver):
                         constr.pi = value
             return status
 
-        def available(self):
+        def available(self) -> bool:
             """True if the solver is available"""
             try:
                 with gp.Env(params=self.env_options):
@@ -255,38 +264,48 @@ class GUROBI(LpSolver):
                 for param, value in self.solver_params.items():
                     self.model.setParam(param, value)
             except gp.GurobiError as e:
-                raise e
+                raise
 
-        def callSolver(self, lp, callback=None):
+        def callSolver(
+            self, lp: LpProblem, callback: Callable[[gp.Model, int], None] | None = None
+        ):
             """Solves the problem with gurobi"""
+            model = cast(gp.Model, lp.solverModel)
             # solve the problem
             self.solveTime = -clock()
-            lp.solverModel.optimize(callback=callback)
+            model.optimize(callback=callback)
             self.solveTime += clock()
 
-        def buildSolverModel(self, lp):
+        def buildSolverModel(self, lp: LpProblem):
             """
             Takes the pulp lp model and translates it into a gurobi model
             """
             log.debug("create the gurobi model")
             self.initGurobi()
+            assert self.model is not None
             self.model.ModelName = lp.name
             lp.solverModel = self.model
+            model = cast(gp.Model, lp.solverModel)
+
+            if lp.objective is None:
+                raise ValueError("objective is None")
+
             log.debug("set the sense of the problem")
             if lp.sense == constants.LpMaximize:
-                lp.solverModel.setAttr("ModelSense", -1)
+                model.setAttr("ModelSense", -1)
             if self.timeLimit:
-                lp.solverModel.setParam("TimeLimit", self.timeLimit)
+                model.setParam("TimeLimit", self.timeLimit)
+
             gapRel = self.optionsDict.get("gapRel")
             logPath = self.optionsDict.get("logPath")
             if gapRel:
-                lp.solverModel.setParam("MIPGap", gapRel)
+                model.setParam("MIPGap", gapRel)
             if logPath:
-                lp.solverModel.setParam("LogFile", logPath)
+                model.setParam("LogFile", logPath)
 
             log.debug("add the variables to the problem")
-            lp.solverModel.update()
-            nvars = lp.solverModel.NumVars
+            model.update()
+            nvars = model.NumVars
             for var in lp.variables():
                 lowBound = var.lowBound
                 if lowBound is None:
@@ -300,7 +319,7 @@ class GUROBI(LpSolver):
                     varType = gp.GRB.INTEGER
                 # only add variable once, ow new variable will be created.
                 if not hasattr(var, "solverVar") or nvars == 0:
-                    var.solverVar = lp.solverModel.addVar(
+                    var.solverVar = model.addVar(
                         lowBound, upBound, vtype=varType, obj=obj, name=var.name
                     )
             if self.optionsDict.get("warmStart", False):
@@ -310,7 +329,7 @@ class GUROBI(LpSolver):
                     if var.varValue is not None:
                         var.solverVar.start = var.varValue
 
-            lp.solverModel.update()
+            model.update()
             log.debug("add the Constraints to the problem")
             for name, constraint in lp.constraints.items():
                 # build the expression
@@ -318,22 +337,24 @@ class GUROBI(LpSolver):
                     list(constraint.values()), [v.solverVar for v in constraint.keys()]
                 )
                 if constraint.sense == constants.LpConstraintLE:
-                    constraint.solverConstraint = lp.solverModel.addConstr(
+                    constraint.solverConstraint = model.addConstr(
                         expr <= -constraint.constant, name=name
                     )
                 elif constraint.sense == constants.LpConstraintGE:
-                    constraint.solverConstraint = lp.solverModel.addConstr(
+                    constraint.solverConstraint = model.addConstr(
                         expr >= -constraint.constant, name=name
                     )
                 elif constraint.sense == constants.LpConstraintEQ:
-                    constraint.solverConstraint = lp.solverModel.addConstr(
+                    constraint.solverConstraint = model.addConstr(
                         expr == -constraint.constant, name=name
                     )
                 else:
                     raise PulpSolverError("Detected an invalid constraint type")
-            lp.solverModel.update()
+            model.update()
 
-        def actualSolve(self, lp, callback=None):
+        def actualSolve(
+            self, lp: LpProblem, callback: Callable[[gp.Model, int], None] | None = None
+        ) -> int:
             """
             Solve a well formulated lp problem
 
@@ -352,7 +373,9 @@ class GUROBI(LpSolver):
                 constraint.modified = False
             return solutionStatus
 
-        def actualResolve(self, lp, callback=None):
+        def actualResolve(
+            self, lp: LpProblem, callback: Callable[[gp.Model, int], None] | None = None
+        ):
             """
             Solve a well formulated lp problem
 
@@ -364,7 +387,8 @@ class GUROBI(LpSolver):
                     constraint.solverConstraint.setAttr(
                         gp.GRB.Attr.RHS, -constraint.constant
                     )
-            lp.solverModel.update()
+            model = cast(gp.Model, lp.solverModel)
+            model.update()
             self.callSolver(lp, callback=callback)
             # get the solution information
             solutionStatus = self.findSolutionValues(lp)
@@ -382,18 +406,18 @@ class GUROBI_CMD(LpSolver_CMD):
 
     def __init__(
         self,
-        mip=True,
-        msg=True,
-        timeLimit=None,
-        gapRel=None,
-        gapAbs=None,
-        options=None,
-        warmStart=False,
-        keepFiles=False,
-        path=None,
-        threads=None,
-        logPath=None,
-        mip_start=False,
+        mip: bool = True,
+        msg: bool = True,
+        timeLimit: float | None = None,
+        gapRel: float | None = None,
+        gapAbs: float | None = None,
+        options: list[str] | None = None,
+        warmStart: bool = False,
+        keepFiles: bool = False,
+        path: str | None = None,
+        threads: int | None = None,
+        logPath: str | None = None,
+        mip_start: bool = False,
     ):
         """
         :param bool mip: if False, assume LP even if integer variables
@@ -408,8 +432,7 @@ class GUROBI_CMD(LpSolver_CMD):
         :param str path: path to the solver binary
         :param str logPath: path to the log file
         """
-        LpSolver_CMD.__init__(
-            self,
+        super().__init__(
             gapRel=gapRel,
             mip=mip,
             msg=msg,
@@ -426,16 +449,16 @@ class GUROBI_CMD(LpSolver_CMD):
     def defaultPath(self):
         return self.executableExtension("gurobi_cl")
 
-    def available(self):
+    def available(self) -> bool:
         """True if the solver is available"""
-        if not self.executable(self.path):
+        if self.executable(self.path) is None:
             return False
         # we execute gurobi once to check the return code.
         # this is to test that the license is active
         result = subprocess.Popen(
             self.path, stdout=subprocess.PIPE, universal_newlines=True
         )
-        out, err = result.communicate()
+        out, _err = result.communicate()
         if result.returncode == 0:
             # normal execution
             return True
@@ -444,13 +467,13 @@ class GUROBI_CMD(LpSolver_CMD):
             warnings.warn(f"GUROBI error: {out}.")
         return False
 
-    def actualSolve(self, lp):
+    def actualSolve(self, lp: LpProblem) -> int:
         """Solve a well formulated lp problem"""
 
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute " + self.path)
         tmpLp, tmpSol, tmpMst = self.create_tmp_files(lp.name, "lp", "sol", "mst")
-        vs = lp.writeLP(tmpLp, writeSOS=1)
+        vs = lp.writeLP(tmpLp, writeSOS=True)
         try:
             os.remove(tmpSol)
         except:
@@ -491,6 +514,10 @@ class GUROBI_CMD(LpSolver_CMD):
             status, values, reducedCosts, shadowPrices, slacks = self.readsol(tmpSol)
         self.delete_tmp_files(tmpLp, tmpMst, tmpSol, "gurobi.log")
         if status != constants.LpStatusInfeasible:
+            assert values is not None
+            assert reducedCosts is not None
+            assert shadowPrices is not None
+            assert slacks is not None
             lp.assignVarsVals(values)
             lp.assignVarsDj(reducedCosts)
             lp.assignConsPi(shadowPrices)
@@ -498,7 +525,11 @@ class GUROBI_CMD(LpSolver_CMD):
         lp.assignStatus(status)
         return status
 
-    def readsol(self, filename):
+    def readsol(
+        self, filename: str
+    ) -> tuple[
+        int, dict[str, float], dict[str, float], dict[str, float], dict[str, float]
+    ]:
         """Read a Gurobi solution file"""
         with open(filename) as my_file:
             try:
@@ -511,25 +542,20 @@ class GUROBI_CMD(LpSolver_CMD):
             # TODO: check status for Integer Feasible
             status = constants.LpStatusOptimal
 
-            shadowPrices = {}
-            slacks = {}
-            shadowPrices = {}
-            slacks = {}
-            values = {}
-            reducedCosts = {}
+            shadowPrices: dict[str, float] = {}
+            slacks: dict[str, float] = {}
+            values: dict[str, float] = {}
+            reducedCosts: dict[str, float] = {}
             for line in my_file:
                 if line[0] != "#":  # skip comments
                     name, value = line.split()
                     values[name] = float(value)
         return status, values, reducedCosts, shadowPrices, slacks
 
-    def writesol(self, filename, vs):
+    def writesol(self, filename: str, vs: list[LpVariable]):
         """Writes a GUROBI solution file"""
-
         values = [(v.name, v.value()) for v in vs if v.value() is not None]
-        rows = []
-        for name, value in values:
-            rows.append(f"{name} {value}")
+        rows = [f"{name} {value}" for name, value in values]
         with open(filename, "w") as f:
             f.write("\n".join(rows))
         return True

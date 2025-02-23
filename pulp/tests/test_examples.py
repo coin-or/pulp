@@ -5,7 +5,7 @@ import shutil
 
 
 class Examples_DocsTests(unittest.TestCase):
-    def test_examples(self, examples_dir="../../examples"):
+    def test_examples(self, examples_dir: str = "../../examples"):
         import importlib
 
         this_file = os.path.realpath(__file__)

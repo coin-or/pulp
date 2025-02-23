@@ -1,5 +1,6 @@
 # PuLP : Python LP Modeler
 # Version 1.4.2
+from __future__ import annotations
 
 # Copyright (c) 2002-2005, Jean-Sebastien Roy (js@jeannot.org)
 # Modifications Copyright (c) 2007- Stuart Anthony Mitchell (s.mitchell@auckland.ac.nz)
@@ -24,13 +25,18 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."""
 
-from .core import LpSolver_CMD, LpSolver, subprocess, PulpSolverError, clock, log
+from .core import LpSolver_CMD, LpSolver, subprocess, PulpSolverError, log
 from .core import cbc_path, pulp_cbc_path, coinMP_path, devnull, operating_system
 import os
 from .. import constants
 from tempfile import mktemp
 import ctypes
 import warnings
+from time import monotonic as clock
+from typing import TYPE_CHECKING, Iterable
+
+if TYPE_CHECKING:
+    from pulp.pulp import LpProblem, LpVariable, Any
 
 
 class COIN_CMD(LpSolver_CMD):
@@ -45,22 +51,22 @@ class COIN_CMD(LpSolver_CMD):
 
     def __init__(
         self,
-        mip=True,
-        msg=True,
-        timeLimit=None,
-        gapRel=None,
-        gapAbs=None,
+        mip: bool = True,
+        msg: bool = True,
+        timeLimit: float | None = None,
+        gapRel: float | None = None,
+        gapAbs: float | None = None,
         presolve=None,
         cuts=None,
-        strong=None,
-        options=None,
-        warmStart=False,
-        keepFiles=False,
-        path=None,
-        threads=None,
-        logPath=None,
-        timeMode="elapsed",
-        maxNodes=None,
+        strong: int | None = None,
+        options: list[str] | None = None,
+        warmStart: bool = False,
+        keepFiles: bool = False,
+        path: str | None = None,
+        threads: int | None = None,
+        logPath: str | None = None,
+        timeMode: str = "elapsed",
+        maxNodes: int | None = None,
     ):
         """
         :param bool mip: if False, assume LP even if integer variables
@@ -81,8 +87,7 @@ class COIN_CMD(LpSolver_CMD):
         :param int maxNodes: max number of nodes during branching. Stops the solving when reached.
         """
 
-        LpSolver_CMD.__init__(
-            self,
+        super().__init__(
             gapRel=gapRel,
             mip=mip,
             msg=msg,
@@ -107,15 +112,15 @@ class COIN_CMD(LpSolver_CMD):
         aCopy.optionsDict = self.optionsDict
         return aCopy
 
-    def actualSolve(self, lp, **kwargs):
+    def actualSolve(self, lp: LpProblem, **kwargs: Any):
         """Solve a well formulated lp problem"""
         return self.solve_CBC(lp, **kwargs)
 
-    def available(self):
+    def available(self) -> bool:
         """True if the solver is available"""
-        return self.executable(self.path)
+        return self.executable(self.path) is not None
 
-    def solve_CBC(self, lp, use_mps=True):
+    def solve_CBC(self, lp: LpProblem, use_mps: bool = True):
         """Solve a MIP problem using CBC"""
         if not self.executable(self.path):
             raise PulpSolverError(
@@ -125,8 +130,8 @@ class COIN_CMD(LpSolver_CMD):
             lp.name, "lp", "mps", "sol", "mst"
         )
         if use_mps:
-            vs, variablesNames, constraintsNames, objectiveName = lp.writeMPS(
-                tmpMps, rename=1
+            vs, variablesNames, constraintsNames, _objectiveName = lp.writeMPS(
+                tmpMps, rename=True
             )
             cmds = " " + tmpMps + " "
             if lp.sense == constants.LpMaximize:
@@ -235,19 +240,25 @@ class COIN_CMD(LpSolver_CMD):
         ]
 
     def readsol_MPS(
-        self, filename, lp, vs, variablesNames, constraintsNames, objectiveName=None
+        self,
+        filename: str,
+        lp: LpProblem,
+        vs: Iterable[LpVariable],
+        variablesNames: dict[str, str],
+        constraintsNames: dict[str, str],
+        objectiveName: str | None = None,
     ):
         """
         Read a CBC solution file generated from an mps or lp file (possible different names)
         """
-        values = {v.name: 0 for v in vs}
+        values: dict[str, float] = {v.name: 0.0 for v in vs}
 
-        reverseVn = {v: k for k, v in variablesNames.items()}
-        reverseCn = {v: k for k, v in constraintsNames.items()}
+        reverseVn: dict[str, str] = {v: k for k, v in variablesNames.items()}
+        reverseCn: dict[str, str] = {v: k for k, v in constraintsNames.items()}
 
-        reducedCosts = {}
-        shadowPrices = {}
-        slacks = {}
+        reducedCosts: dict[str, float] = {}
+        shadowPrices: dict[str, float] = {}
+        slacks: dict[str, float] = {}
         status, sol_status = self.get_status(filename)
         with open(filename) as f:
             for l in f:
@@ -268,14 +279,20 @@ class COIN_CMD(LpSolver_CMD):
                     shadowPrices[reverseCn[vn]] = float(dj)
         return status, values, reducedCosts, shadowPrices, slacks, sol_status
 
-    def writesol(self, filename, lp, vs, variablesNames, constraintsNames):
+    def writesol(
+        self,
+        filename: str,
+        lp: LpProblem,
+        vs: Iterable[LpVariable],
+        variablesNames: dict[str, str],
+        constraintsNames: dict[str, str],
+    ):
         """
         Writes a CBC solution file generated from an mps / lp file (possible different names)
         returns True on success
         """
         values = {v.name: v.value() if v.value() is not None else 0 for v in vs}
-        value_lines = []
-        value_lines += [
+        value_lines = [
             (i, v, values[k], 0) for i, (k, v) in enumerate(variablesNames.items())
         ]
         lines = ["Stopped on time - objective value 0\n"]
@@ -286,7 +303,7 @@ class COIN_CMD(LpSolver_CMD):
 
         return True
 
-    def readsol_LP(self, filename, lp, vs):
+    def readsol_LP(self, filename: str, lp: LpProblem, vs: Iterable[LpVariable]):
         """
         Read a CBC solution file generated from an lp (good names)
         returns status, values, reducedCosts, shadowPrices, slacks, sol_status
@@ -295,7 +312,7 @@ class COIN_CMD(LpSolver_CMD):
         constraintsNames = {c: c for c in lp.constraints}
         return self.readsol_MPS(filename, lp, vs, variablesNames, constraintsNames)
 
-    def get_status(self, filename):
+    def get_status(self, filename: str) -> tuple[int, int]:
         cbcStatus = {
             "Optimal": constants.LpStatusOptimal,
             "Infeasible": constants.LpStatusInfeasible,
@@ -349,7 +366,7 @@ class PULP_CBC_CMD(COIN_CMD):
             """True if the solver is available"""
             return False
 
-        def actualSolve(self, lp, callback=None):
+        def actualSolve(self, lp: LpProblem, callback=None):
             """Solve a well formulated lp problem"""
             raise PulpSolverError(
                 "PULP_CBC_CMD: Not Available (check permissions on %s)"
@@ -360,28 +377,27 @@ class PULP_CBC_CMD(COIN_CMD):
 
         def __init__(
             self,
-            mip=True,
-            msg=True,
-            timeLimit=None,
-            gapRel=None,
-            gapAbs=None,
+            mip: bool = True,
+            msg: bool = True,
+            timeLimit: float | None = None,
+            gapRel: float | None = None,
+            gapAbs: float | None = None,
             presolve=None,
             cuts=None,
-            strong=None,
-            options=None,
-            warmStart=False,
-            keepFiles=False,
-            path=None,
-            threads=None,
-            logPath=None,
-            timeMode="elapsed",
-            maxNodes=None,
+            strong: int | None = None,
+            options: list[str] | None = None,
+            warmStart: bool = False,
+            keepFiles: bool = False,
+            path: str | None = None,
+            threads: int | None = None,
+            logPath: str | None = None,
+            timeMode: str = "elapsed",
+            maxNodes: int | None = None,
         ):
             if path is not None:
                 raise PulpSolverError("Use COIN_CMD if you want to set a path")
             # check that the file is executable
-            COIN_CMD.__init__(
-                self,
+            super().__init__(
                 path=self.pulp_cbc_path,
                 mip=mip,
                 msg=msg,
@@ -401,7 +417,7 @@ class PULP_CBC_CMD(COIN_CMD):
             )
 
 
-def COINMP_DLL_load_dll(path):
+def COINMP_DLL_load_dll(path: str):
     """
     function that loads the DLL useful for debugging installation problems
     """
@@ -431,11 +447,11 @@ class COINMP_DLL(LpSolver):
     except (ImportError, OSError):
 
         @classmethod
-        def available(cls):
+        def available(cls) -> bool:
             """True if the solver is available"""
             return False
 
-        def actualSolve(self, lp):
+        def actualSolve(self, lp: LpProblem) -> int:
             """Solve a well formulated lp problem"""
             raise PulpSolverError("COINMP_DLL: Not Available")
 
@@ -460,10 +476,10 @@ class COINMP_DLL(LpSolver):
             rounding=1,
             integerPresolve=1,
             strong=5,
-            *args,
-            **kwargs,
+            *args: Any,
+            **kwargs: Any,
         ):
-            LpSolver.__init__(self, *args, **kwargs)
+            super().__init__(*args, **kwargs)
             self.fracGap = None
             gapRel = self.optionsDict.get("gapRel")
             if gapRel is not None:
@@ -494,7 +510,7 @@ class COINMP_DLL(LpSolver):
             return aCopy
 
         @classmethod
-        def available(cls):
+        def available(cls) -> bool:
             """True if the solver is available"""
             return True
 
@@ -508,7 +524,7 @@ class COINMP_DLL(LpSolver):
             """
             return self.lib.CoinGetVersionStr()
 
-        def actualSolve(self, lp):
+        def actualSolve(self, lp: LpProblem) -> int:
             """Solve a well formulated lp problem"""
             # TODO alter so that msg parameter is handled correctly
             self.debug = 0
@@ -679,7 +695,7 @@ class YAPOSIB(LpSolver):
             """True if the solver is available"""
             return False
 
-        def actualSolve(self, lp, callback=None):
+        def actualSolve(self, lp: LpProblem, callback=None):
             """Solve a well formulated lp problem"""
             raise PulpSolverError("YAPOSIB: Not Available")
 
@@ -687,12 +703,12 @@ class YAPOSIB(LpSolver):
 
         def __init__(
             self,
-            mip=True,
-            msg=True,
-            timeLimit=None,
-            epgap=None,
-            solverName=None,
-            **solverParams,
+            mip: bool = True,
+            msg: bool = True,
+            timeLimit: None = None,
+            epgap: None = None,
+            solverName: str | None = None,
+            **solverParams: None,
         ):
             """
             Initializes the yaposib solver.
@@ -705,13 +721,13 @@ class YAPOSIB(LpSolver):
             @param epgap:        not supported
             @param solverParams: not supported
             """
-            LpSolver.__init__(self, mip, msg)
+            super().__init__(mip, msg)
             if solverName:
                 self.solverName = solverName
             else:
                 self.solverName = yaposib.available_solvers()[0]
 
-        def findSolutionValues(self, lp):
+        def findSolutionValues(self, lp: LpProblem):
             model = lp.solverModel
             solutionStatus = model.status
             yaposibLpStatus = {
@@ -742,10 +758,10 @@ class YAPOSIB(LpSolver):
             """True if the solver is available"""
             return True
 
-        def callSolver(self, lp, callback=None):
+        def callSolver(self, lp: LpProblem, callback: None = None):
             """Solves the problem with yaposib"""
             savestdout = None
-            if self.msg == 0:
+            if not self.msg:
                 # close stdout to get rid of messages
                 tempfile = open(mktemp(), "w")
                 savestdout = os.dup(1)
@@ -755,13 +771,13 @@ class YAPOSIB(LpSolver):
             self.solveTime = -clock()
             lp.solverModel.solve(self.mip)
             self.solveTime += clock()
-            if self.msg == 0:
+            if not self.msg:
                 # reopen stdout
                 os.close(1)
                 os.dup(savestdout)
                 os.close(savestdout)
 
-        def buildSolverModel(self, lp):
+        def buildSolverModel(self, lp: LpProblem):
             """
             Takes the pulp lp model and translates it into a yaposib model
             """
@@ -806,7 +822,7 @@ class YAPOSIB(LpSolver):
                 row.name = name
                 constraint.solverConstraint = row
 
-        def actualSolve(self, lp, callback=None):
+        def actualSolve(self, lp: LpProblem, callback: None = None):
             """
             Solve a well formulated lp problem
 
@@ -825,7 +841,7 @@ class YAPOSIB(LpSolver):
                 constraint.modified = False
             return solutionStatus
 
-        def actualResolve(self, lp, callback=None):
+        def actualResolve(self, lp: LpProblem, callback: None = None):
             """
             Solve a well formulated lp problem
 

@@ -53,3 +53,7 @@ class SparseTest(unittest.TestCase):
             [2, 1, 2],
             [9.876, 1.234, 5.678],
         )
+
+
+if __name__ == "__main__":
+    unittest.main()

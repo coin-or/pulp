@@ -32,7 +32,7 @@ import pulp
 # parameters
 products = ["wrenches", "pliers"]
 price = [130, 100]
-steel = [1.5, 1]
+steel = [1.5, 1.0]
 molding = [1, 1]
 assembly = [0.3, 0.5]
 capsteel = 27
