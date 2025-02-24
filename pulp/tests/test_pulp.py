@@ -247,12 +247,13 @@ class BaseSolverTest:
             elif self.solver.__class__ is GLPK_CMD:
                 # GLPK_CMD Does not report unbounded problems, correctly
                 pulpTestCheck(prob, self.solver, [const.LpStatusUndefined])
-            elif self.solver.__class__ in [GUROBI_CMD, SCIP_CMD, FSCIP_CMD, SCIP_PY]:
+            elif self.solver.__class__ in [GUROBI_CMD, SCIP_CMD, SCIP_PY]:
                 # GUROBI_CMD has a very simple interface
                 pulpTestCheck(prob, self.solver, [const.LpStatusNotSolved])
-            elif self.solver.__class__ in [CHOCO_CMD, HiGHS_CMD]:
+            elif self.solver.__class__ in [CHOCO_CMD, HiGHS_CMD, FSCIP_CMD]:
                 # choco bounds all variables. Would not return unbounded status
                 # highs_cmd is inconsistent
+                # FSCIP_CMD is inconsistent
                 pass
             else:
                 pulpTestCheck(prob, self.solver, [const.LpStatusUnbounded])
