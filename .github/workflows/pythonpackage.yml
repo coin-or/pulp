@@ -37,10 +37,10 @@ jobs:
           sudo apt-get install -qq glpk-utils
       - name: install xpress
         if: matrix.os != 'macOS-latest' && matrix.python-version != '3.12'
-        run: python -m pip install xpress
+        run: uv pip install xpress
       - name: Install other solvers, gurobi, highspy, coptpy, saspy, swat, SCIP_PY
         run: |
-          uv pip install gurobipy highspy "numpy<2" coptpy saspy swat pyscipopt
+          uv pip install gurobipy highspy "numpy<2" coptpy saspy swat pyscipopt .
       - name: Install highspy cmd
         if: matrix.os == 'ubuntu-latest'
         uses: supplypike/setup-bin@v4
