@@ -60,4 +60,4 @@ jobs:
           version: '9.2.1'
           command: "sudo dpkg -i $bin_name"
       - name: Test with pulptest
-        run: pulptest
+        run: uv run --no-project pulp/tests/run_tests.py
