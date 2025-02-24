@@ -52,12 +52,10 @@ jobs:
       - name: Install SCIP_CMD
         if: matrix.os == 'ubuntu-latest'
         uses: supplypike/setup-bin@v4
-        env:
-          bin_name: SCIPOptSuite-9.2.1-Linux-ubuntu24.deb
         with:
-          uri: 'https://www.scipopt.org/download/release/$bin_name'
-          name: '$bin_name'
+          uri: 'https://www.scipopt.org/download/release/SCIPOptSuite-9.2.1-Linux-ubuntu24.deb'
+          name: 'SCIPOptSuite-9.2.1-Linux-ubuntu24.deb'
           version: '9.2.1'
-          command: "sudo dpkg -i $bin_name"
+          command: "sudo dpkg -i SCIPOptSuite-9.2.1-Linux-ubuntu24.deb"
       - name: Test with pulptest
         run: uv run --no-project pulp/tests/run_tests.py
