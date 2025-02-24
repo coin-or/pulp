@@ -33,8 +33,8 @@ jobs:
       - name: install ubuntu-only solvers
         if: matrix.os == 'ubuntu-latest'
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -qq glpk-utils
+          sudo apt update -qq
+          sudo apt install -qq glpk-utils
       - name: install xpress
         if: matrix.os != 'macOS-latest' && matrix.python-version != '3.12'
         run: uv pip install xpress
@@ -56,6 +56,6 @@ jobs:
           uri: 'https://www.scipopt.org/download/release/SCIPOptSuite-9.2.1-Linux-ubuntu24.deb'
           name: 'SCIPOptSuite-9.2.1-Linux-ubuntu24.deb'
           version: '9.2.1'
-          command: "sudo dpkg -i SCIPOptSuite-9.2.1-Linux-ubuntu24.deb"
+          command: "sudo apt install -qq ./SCIPOptSuite-9.2.1-Linux-ubuntu24.deb"
       - name: Test with pulptest
         run: uv run --no-project pulp/tests/run_tests.py
