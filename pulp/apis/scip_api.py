@@ -200,9 +200,6 @@ class SCIP_CMD(LpSolver_CMD):
             )
             values = {}
 
-            if status in SCIP_CMD.NO_SOLUTION_STATUSES:
-                return status, values
-
             # Look for an objective value. If we can't find one, stop.
             try:
                 line = f.readline()
@@ -211,7 +208,8 @@ class SCIP_CMD(LpSolver_CMD):
                 assert len(comps) == 2
                 float(comps[1].strip())
             except Exception:
-                raise PulpSolverError(f"Can't get SCIP solver objective: {line!r}")
+                # we assume there was not solution found
+                return status, values
 
             # Parse the variable values.
             for line in f:
@@ -220,6 +218,9 @@ class SCIP_CMD(LpSolver_CMD):
                     values[comps[0]] = float(comps[1])
                 except:
                     raise PulpSolverError(f"Can't read SCIP solver output: {line!r}")
+
+            # if we have a solution, we should change status to Optimal by conventio
+            status = constants.LpStatusOptimal
 
             return status, values
 
