@@ -27,9 +27,7 @@ jobs:
       - name: Update pip, install dev deps
         run: uv pip install -r requirements-dev.txt
       - name: Code Quality
-        run: |
-          python -m pip install black
-          black pulp/ --check
+        run: black pulp/ --check
       - name: Type Check
         run: mypy ./
       - name: install ubuntu-only solvers
