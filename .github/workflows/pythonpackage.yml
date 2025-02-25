@@ -20,36 +20,27 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+      - name: Install uv and set the python version
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: ${{ matrix.python-version }}
       - name: Update pip, install dev deps
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements-dev.txt
+        run: uv pip install -r requirements-dev.txt
       - name: Code Quality
-        run: |
-          python -m pip install black
-          black pulp/ --check
+        run: black pulp/ --check
       - name: Type Check
-        run: |
-          mypy ./
-      - name: Install dependencies
-        run: |
-          python -m pip install .
-      - name: install glpk
+        run: mypy ./
+      - name: install ubuntu-only solvers
         if: matrix.os == 'ubuntu-latest'
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -qq glpk-utils
+          sudo apt update -qq
+          sudo apt install -qq glpk-utils
       - name: install xpress
         if: matrix.os != 'macOS-latest' && matrix.python-version != '3.12'
-        run: python -m pip install xpress
-      - name: Install gurobipy
+        run: uv pip install xpress
+      - name: Install other solvers, gurobi, highspy, coptpy, saspy, swat, SCIP_PY
         run: |
-          python -m pip install gurobipy
-      - name: Install highspy
-        if: matrix.python-version != '3.12'
-        # alternatively if: contains(fromJSON("['3.8', '3.9', '3.10', '3.11']"), matrix.python-version)
-        run: |
-          python -m pip install highspy "numpy<2"
+          uv pip install gurobipy highspy "numpy<2" coptpy saspy swat pyscipopt .
       - name: Install highspy cmd
         if: matrix.os == 'ubuntu-latest'
         uses: supplypike/setup-bin@v4
@@ -58,17 +49,13 @@ jobs:
           subPath: 'bin'
           name: 'highs'
           version: '1.7.1'
-      - name: Install coptpy
-        run: |
-          python -m pip install coptpy
-      - name: Install saspy
-        run: |
-          python -m pip install saspy
-      - name: Install swat
-        run: |
-          python -m pip install swat
-      - name: Install SCIP_PY
-        run: |
-          python -m pip install pyscipopt
+      - name: Install SCIP_CMD
+        if: matrix.os == 'ubuntu-latest'
+        uses: supplypike/setup-bin@v4
+        with:
+          uri: 'https://www.scipopt.org/download/release/SCIPOptSuite-9.2.1-Linux-ubuntu24.deb'
+          name: 'SCIPOptSuite-9.2.1-Linux-ubuntu24.deb'
+          version: '9.2.1'
+          command: "sudo apt install -qq ./SCIPOptSuite-9.2.1-Linux-ubuntu24.deb"
       - name: Test with pulptest
-        run: pulptest
+        run: uv run --no-project pulp/tests/run_tests.py
