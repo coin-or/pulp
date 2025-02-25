@@ -1061,9 +1061,8 @@ class LpConstraint:
         :param name: identifying string
         :param rhs: numerical value of constraint target
         """
-        self.expr = (
-            e if isinstance(e, LpAffineExpression) else LpAffineExpression(e, name=name)
-        )
+        self.expr = e if isinstance(e, LpAffineExpression) else LpAffineExpression(e)
+        self.name = name
         self.constant: float = self.expr.constant
         if rhs is not None:
             self.constant -= rhs
@@ -1265,12 +1264,15 @@ class LpConstraint:
     from_dict = fromDict
 
     @property
-    def name(self):
-        return self.expr.name
+    def name(self) -> str | None:
+        return self.__name
 
     @name.setter
-    def name(self, v):
-        self.expr.name = v
+    def name(self, name: str | None):
+        if name is not None:
+            self.__name = name.translate(LpAffineExpression.trans)
+        else:
+            self.__name = None
 
     def isAtomic(self):
         return len(self) == 1 and self.constant == 0 and next(iter(self.values())) == 1
