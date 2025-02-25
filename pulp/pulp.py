@@ -1264,12 +1264,15 @@ class LpConstraint:
     from_dict = fromDict
 
     @property
-    def name(self):
-        return self.expr.name
+    def name(self) -> str | None:
+        return self.__name
 
     @name.setter
-    def name(self, v):
-        self.expr.name = v
+    def name(self, name: str | None):
+        if name is not None:
+            self.__name = name.translate(LpAffineExpression.trans)
+        else:
+            self.__name = None
 
     def isAtomic(self):
         return len(self) == 1 and self.constant == 0 and next(iter(self.values())) == 1
@@ -1444,17 +1447,6 @@ class LpProblem:
 
         # locals
         self.lastUnused = 0
-
-    @property
-    def name(self) -> str | None:
-        return self.__name
-
-    @name.setter
-    def name(self, name: str | None):
-        if name is not None:
-            self.__name = name.translate(LpAffineExpression.trans)
-        else:
-            self.__name = None
 
     def __repr__(self):
         s = self.name + ":\n"
