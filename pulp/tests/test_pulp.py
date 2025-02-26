@@ -1775,6 +1775,23 @@ class BaseSolverTest:
                     self.assertEqual(str(rhs), f"s_{t-1} + x_{t} - {demands[t-1]}")
                     self.assertEqual(expr.constant, -rhs.constant)
 
+        def test_regression_805(self):
+            # See: https://github.com/coin-or/pulp/issues/805
+
+            e = LpAffineExpression(1)
+            self.assertIsNone(e.name)
+
+            c = LpConstraint(e, name="Test2")
+            self.assertEqual(c.name, "Test2")
+            self.assertIsNone(c.expr.name)
+
+            e = LpAffineExpression(1, name="Test1")
+            self.assertEqual(e.name, "Test1")
+
+            c = LpConstraint(e, name="Test2")
+            self.assertEqual(c.name, "Test2")
+            self.assertEqual(c.expr.name, "Test1")
+
 
 class PULP_CBC_CMDTest(BaseSolverTest.PuLPTest):
     solveInst = PULP_CBC_CMD
