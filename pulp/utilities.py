@@ -5,14 +5,14 @@ import collections
 import itertools
 from itertools import combinations as combination
 from itertools import permutations as permutation
-from typing import TypeVar, TYPE_CHECKING, Any, Sequence, Callable, Mapping
+from typing import TypeVar, TYPE_CHECKING, Any, Sequence, Callable, Mapping, overload
 
 T = TypeVar("T")
 K = TypeVar("K")
 V = TypeVar("V")
 
 if TYPE_CHECKING:
-    from pulp.pulp import LptNumber, LptExpr
+    from pulp.pulp import LptNumber, LptExpr, LpVariable, LpAffineExpression
 
 
 def resource_clock():
@@ -25,6 +25,17 @@ def isNumber(x: Any) -> bool:
     """Returns true if x is an int or a float"""
     return isinstance(x, (int, float))
 
+@overload
+def value(x: None) -> None: ...
+
+@overload
+def value(x: int) -> int: ...
+
+@overload
+def value(x: float) -> float: ...
+
+@overload
+def value(x: LpVariable | LpAffineExpression) -> LptNumber | None: ...
 
 def value(x: LptExpr | None) -> LptNumber | None:
     """Returns the value of the variable/expression x, or x if it is a number"""
