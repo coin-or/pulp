@@ -25,17 +25,22 @@ def isNumber(x: Any) -> bool:
     """Returns true if x is an int or a float"""
     return isinstance(x, (int, float))
 
+
 @overload
 def value(x: None) -> None: ...
+
 
 @overload
 def value(x: int) -> int: ...
 
+
 @overload
 def value(x: float) -> float: ...
 
+
 @overload
 def value(x: LpVariable | LpAffineExpression) -> LptNumber | None: ...
+
 
 def value(x: LptExpr | None) -> LptNumber | None:
     """Returns the value of the variable/expression x, or x if it is a number"""

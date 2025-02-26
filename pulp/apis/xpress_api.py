@@ -334,8 +334,8 @@ class XPRESS_PY(LpSolver):
         heurStra=None,
         coverCuts=None,
         preSolve=None,
-        warmStart: bool=False,
-        export: str | None=None,
+        warmStart: bool = False,
+        export: str | None = None,
         options: list[str] | None = None,
     ):
         """
