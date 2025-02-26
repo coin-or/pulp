@@ -10,10 +10,10 @@ from pulp import *
 # A list of all the roll lengths is created
 LenOpts = ["5", "7", "9"]
 
-rollData = {  # Length Demand SalePrice
-    "5": [150, 0.25],
-    "7": [200, 0.33],
-    "9": [300, 0.40],
+rollData: dict[str, tuple[int, float]] = {  # Length Demand SalePrice
+    "5": (150, 0.25),
+    "7": (200, 0.33),
+    "9": (300, 0.40),
 }
 
 # A list of all the patterns is created

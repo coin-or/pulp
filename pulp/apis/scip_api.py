@@ -1,5 +1,6 @@
 # PuLP : Python LP Modeler
 # Version 1.4.2
+from __future__ import annotations
 
 # Copyright (c) 2002-2005, Jean-Sebastien Roy (js@jeannot.org)
 # Modifications Copyright (c) 2007- Stuart Anthony Mitchell (s.mitchell@auckland.ac.nz)
@@ -33,7 +34,10 @@ from .core import LpSolver_CMD, LpSolver, subprocess, PulpSolverError
 from .core import scip_path, fscip_path
 from .. import constants
 
-from typing import Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Callable, Any, cast
+
+if TYPE_CHECKING:
+    from pulp.pulp import LpProblem
 
 
 class SCIP_CMD(LpSolver_CMD):
@@ -43,17 +47,17 @@ class SCIP_CMD(LpSolver_CMD):
 
     def __init__(
         self,
-        path=None,
-        mip=True,
-        keepFiles=False,
-        msg=True,
-        options=None,
-        timeLimit=None,
-        gapRel=None,
-        gapAbs=None,
-        maxNodes=None,
-        logPath=None,
-        threads=None,
+        path: str | None = None,
+        mip: bool = True,
+        keepFiles: bool = False,
+        msg: bool = True,
+        options: list[str] | None = None,
+        timeLimit: float | None = None,
+        gapRel: float | None = None,
+        gapAbs: float | None = None,
+        maxNodes: int | None = None,
+        logPath: str | None = None,
+        threads: int | None = None,
     ):
         """
         :param bool mip: if False, assume LP even if integer variables
@@ -68,8 +72,7 @@ class SCIP_CMD(LpSolver_CMD):
         :param int threads: sets the maximum number of threads
         :param str logPath: path to the log file
         """
-        LpSolver_CMD.__init__(
-            self,
+        super().__init__(
             mip=mip,
             msg=msg,
             options=options,
@@ -109,9 +112,9 @@ class SCIP_CMD(LpSolver_CMD):
     def defaultPath(self):
         return self.executableExtension(scip_path)
 
-    def available(self):
+    def available(self) -> bool:
         """True if the solver is available"""
-        return self.executable(self.path)
+        return self.executable(self.path) is not None
 
     def actualSolve(self, lp):
         """Solve a well formulated lp problem"""
@@ -121,7 +124,7 @@ class SCIP_CMD(LpSolver_CMD):
         tmpLp, tmpSol, tmpOptions = self.create_tmp_files(lp.name, "lp", "sol", "set")
         lp.writeLP(tmpLp)
 
-        file_options: List[str] = []
+        file_options: list[str] = []
         if self.timeLimit is not None:
             file_options.append(f"limits/time={self.timeLimit}")
         if "gapRel" in self.optionsDict:
@@ -137,7 +140,7 @@ class SCIP_CMD(LpSolver_CMD):
         if not self.mip:
             warnings.warn(f"{self.name} does not allow a problem to be relaxed")
 
-        command: List[str] = []
+        command: list[str] = []
         command.append(self.path)
         command.extend(["-s", tmpOptions])
         if not self.msg:
@@ -183,7 +186,7 @@ class SCIP_CMD(LpSolver_CMD):
         return status
 
     @staticmethod
-    def readsol(filename):
+    def readsol(filename: str):
         """Read a SCIP solution file"""
         with open(filename) as f:
             # First line must contain 'solution status: <something>'
@@ -292,7 +295,7 @@ class FSCIP_CMD(LpSolver_CMD):
         """True if the solver is available"""
         return self.executable(self.path)
 
-    def actualSolve(self, lp):
+    def actualSolve(self, lp: LpProblem):
         """Solve a well formulated lp problem"""
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute " + self.path)
@@ -302,7 +305,7 @@ class FSCIP_CMD(LpSolver_CMD):
         )
         lp.writeLP(tmpLp)
 
-        file_options: List[str] = []
+        file_options: list[str] = []
         if self.timeLimit is not None:
             file_options.append(f"limits/time={self.timeLimit}")
         if "gapRel" in self.optionsDict:
@@ -314,11 +317,11 @@ class FSCIP_CMD(LpSolver_CMD):
         if not self.mip:
             warnings.warn(f"{self.name} does not allow a problem to be relaxed")
 
-        file_parameters: List[str] = []
+        file_parameters: list[str] = []
         # disable presolving in the LoadCoordinator to make sure a solution file is always written
         file_parameters.append("NoPreprocessingInLC = TRUE")
 
-        command: List[str] = []
+        command: list[str] = []
         command.append(self.path)
         command.append(tmpParams)
         command.append(tmpLp)
@@ -378,14 +381,14 @@ class FSCIP_CMD(LpSolver_CMD):
         return status
 
     @staticmethod
-    def parse_status(string: str) -> Optional[int]:
+    def parse_status(string: str) -> int | None:
         for fscip_status, pulp_status in FSCIP_CMD.FSCIP_STATUSES.items():
             if fscip_status in string:
                 return pulp_status
         return None
 
     @staticmethod
-    def parse_objective(string: str) -> Optional[float]:
+    def parse_objective(string: str) -> float | None:
         fields = string.split(":")
         if len(fields) != 2:
             return None
@@ -403,7 +406,7 @@ class FSCIP_CMD(LpSolver_CMD):
         return objective
 
     @staticmethod
-    def parse_variable(string: str) -> Optional[Tuple[str, float]]:
+    def parse_variable(string: str) -> tuple[str, float] | None:
         fields = string.split()
         if len(fields) < 2:
             return None
@@ -417,7 +420,7 @@ class FSCIP_CMD(LpSolver_CMD):
         return name, value
 
     @staticmethod
-    def readsol(filename):
+    def readsol(filename: str):
         """Read a FSCIP solution file"""
         with open(filename) as file:
             # First line must contain a solution status
@@ -473,11 +476,11 @@ class SCIP_PY(LpSolver):
 
     except ImportError:
 
-        def available(self):
+        def available(self) -> bool:
             """True if the solver is available"""
             return False
 
-        def actualSolve(self, lp):
+        def actualSolve(self, lp: LpProblem):
             """Solve a well formulated lp problem"""
             raise PulpSolverError(f"The {self.name} solver is not available")
 
@@ -485,16 +488,16 @@ class SCIP_PY(LpSolver):
 
         def __init__(
             self,
-            mip=True,
-            msg=True,
-            options=None,
-            timeLimit=None,
-            gapRel=None,
-            gapAbs=None,
-            maxNodes=None,
-            logPath=None,
-            threads=None,
-            warmStart=False,
+            mip: bool = True,
+            msg: bool = True,
+            options: list[str] | None = None,
+            timeLimit: float | None = None,
+            gapRel: float | None = None,
+            gapAbs: float | None = None,
+            maxNodes: int | None = None,
+            logPath: float | None = None,
+            threads: int | None = None,
+            warmStart: bool = False,
         ):
             """
             :param bool mip: if False, assume LP even if integer variables
@@ -521,7 +524,7 @@ class SCIP_PY(LpSolver):
                 warmStart=warmStart,
             )
 
-        def findSolutionValues(self, lp):
+        def findSolutionValues(self, lp: LpProblem):
             lp.resolveOK = True
 
             solutionStatus = lp.solverModel.getStatus()
@@ -582,16 +585,16 @@ class SCIP_PY(LpSolver):
 
             return status
 
-        def available(self):
+        def available(self) -> bool:
             """True if the solver is available"""
             # if pyscipopt can be installed (and therefore imported) it has access to scip
             return True
 
-        def callSolver(self, lp):
+        def callSolver(self, lp: LpProblem):
             """Solves the problem with scip"""
             lp.solverModel.optimize()
 
-        def buildSolverModel(self, lp):
+        def buildSolverModel(self, lp: LpProblem):
             """
             Takes the pulp lp model and translates it into a scip model
             """
@@ -655,7 +658,7 @@ class SCIP_PY(LpSolver):
             ##################################################
             # add constraints
             ##################################################
-            sense_to_operator = {
+            sense_to_operator: dict[int, Callable[[Any, Any], bool]] = {
                 constants.LpConstraintLE: operator.le,
                 constants.LpConstraintGE: operator.ge,
                 constants.LpConstraintEQ: operator.eq,
@@ -683,7 +686,7 @@ class SCIP_PY(LpSolver):
                         lp.solverModel.setSolVal(s, var.solverVar, var.varValue)
                 lp.solverModel.addSol(s)
 
-        def actualSolve(self, lp):
+        def actualSolve(self, lp: LpProblem):
             """
             Solve a well formulated lp problem
 
@@ -699,7 +702,7 @@ class SCIP_PY(LpSolver):
                 constraint.modified = False
             return solutionStatus
 
-        def actualResolve(self, lp):
+        def actualResolve(self, lp: LpProblem):
             """
             Solve a well formulated lp problem
 

@@ -1,5 +1,6 @@
 # PuLP : Python LP Modeler
 # Version 1.4.2
+from __future__ import annotations
 
 # Copyright (c) 2002-2005, Jean-Sebastien Roy (js@jeannot.org)
 # Modifications Copyright (c) 2007- Stuart Anthony Mitchell (s.mitchell@auckland.ac.nz)
@@ -28,6 +29,10 @@ from .core import LpSolver_CMD, subprocess, PulpSolverError
 import os
 from .. import constants
 import warnings
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pulp.pulp import LpProblem
 
 
 class CHOCO_CMD(LpSolver_CMD):
@@ -37,12 +42,12 @@ class CHOCO_CMD(LpSolver_CMD):
 
     def __init__(
         self,
-        path=None,
-        keepFiles=False,
-        mip=True,
-        msg=True,
-        options=None,
-        timeLimit=None,
+        path: str | None = None,
+        keepFiles: bool = False,
+        mip: bool = True,
+        msg: bool = True,
+        options: list[str] | None = None,
+        timeLimit: float | None = None,
     ):
         """
         :param bool mip: if False, assume LP even if integer variables
@@ -52,8 +57,7 @@ class CHOCO_CMD(LpSolver_CMD):
         :param bool keepFiles: if True, files are saved in the current directory and not deleted after solving
         :param str path: path to the solver binary
         """
-        LpSolver_CMD.__init__(
-            self,
+        super().__init__(
             mip=mip,
             msg=msg,
             timeLimit=timeLimit,
@@ -65,12 +69,15 @@ class CHOCO_CMD(LpSolver_CMD):
     def defaultPath(self):
         return self.executableExtension("choco-parsers-with-dependencies.jar")
 
-    def available(self):
+    def available(self) -> bool:
         """True if the solver is available"""
         java_path = self.executableExtension("java")
-        return self.executable(self.path) and self.executable(java_path)
+        return (
+            self.executable(self.path) is not None
+            and self.executable(java_path) is not None
+        )
 
-    def actualSolve(self, lp):
+    def actualSolve(self, lp: LpProblem):
         """Solve a well formulated lp problem"""
         java_path = self.executableExtension("java")
         if not self.executable(java_path):
@@ -101,9 +108,8 @@ class CHOCO_CMD(LpSolver_CMD):
         # we always get the output to a file.
         # if not, we cannot read it afterwards
         # (we thus ignore the self.msg parameter)
-        pipe = open(tmpSol, "w")
-
-        return_code = subprocess.call(cmd, stdout=pipe, stderr=pipe, shell=True)
+        with open(tmpSol, "w") as pipe:
+            return_code = subprocess.call(cmd, stdout=pipe, stderr=pipe, shell=True)
 
         if return_code != 0:
             raise PulpSolverError("PuLP: Error while trying to execute " + self.path)
@@ -117,12 +123,13 @@ class CHOCO_CMD(LpSolver_CMD):
 
         lp.assignStatus(status, status_sol)
         if status not in [constants.LpStatusInfeasible, constants.LpStatusNotSolved]:
+            assert values is not None
             lp.assignVarsVals(values)
 
         return status
 
     @staticmethod
-    def readsol(filename):
+    def readsol(filename: str) -> tuple[int, dict[str, float], int]:
         """Read a Choco solution file"""
         # TODO: figure out the unbounded status in choco solver
         chocoStatus = {
@@ -141,11 +148,11 @@ class CHOCO_CMD(LpSolver_CMD):
 
         status = constants.LpStatusNotSolved
         sol_status = constants.LpSolutionNoSolutionFound
-        values = {}
+        values: dict[str, float] = {}
         with open(filename) as f:
             content = f.readlines()
         content = [l.strip() for l in content if l[:2] not in ["o ", "c "]]
-        if not len(content):
+        if not content:
             return status, values, sol_status
         if content[0][:2] == "s ":
             status_str = content[0][2:]

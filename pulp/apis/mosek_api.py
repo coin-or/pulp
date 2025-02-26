@@ -1,5 +1,6 @@
 # PuLP : Python LP Modeler
 # Version 1.4.2
+from __future__ import annotations
 
 # Copyright (c) 2002-2005, Jean-Sebastien Roy (js@jeannot.org)
 # Modifications Copyright (c) 2007- Stuart Anthony Mitchell (s.mitchell@auckland.ac.nz)
@@ -28,7 +29,10 @@ from .core import LpSolver, PulpSolverError
 from .. import constants
 import sys
 
-from typing import Optional
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from pulp.pulp import LpProblem
 
 
 class MOSEK(LpSolver):
@@ -42,11 +46,11 @@ class MOSEK(LpSolver):
         env = mosek.Env()
     except ImportError:
 
-        def available(self):
+        def available(self) -> bool:
             """True if Mosek is available."""
             return False
 
-        def actualSolve(self, lp, callback=None):
+        def actualSolve(self, lp: LpProblem, callback=None):
             """Solves a well-formulated lp problem."""
             raise PulpSolverError("MOSEK : Not Available")
 
@@ -54,11 +58,11 @@ class MOSEK(LpSolver):
 
         def __init__(
             self,
-            mip=True,
-            msg=True,
-            timeLimit: Optional[float] = None,
-            options: Optional[dict] = None,
-            task_file_name="",
+            mip: bool = True,
+            msg: bool = True,
+            timeLimit: float | None = None,
+            options: dict[str, str] | None = None,
+            task_file_name: str = "",
             sol_type=mosek.soltype.bas,
         ):
             """Initializes the Mosek solver.
@@ -104,16 +108,16 @@ class MOSEK(LpSolver):
                     )
                 self.options["MSK_DPAR_MIO_MAX_TIME"] = self.timeLimit
 
-        def available(self):
+        def available(self) -> bool:
             """True if Mosek is available."""
             return True
 
-        def setOutStream(self, text):
+        def setOutStream(self, text: str):
             """Sets the log-output stream."""
             sys.stdout.write(text)
             sys.stdout.flush()
 
-        def buildSolverModel(self, lp, inf=1e20):
+        def buildSolverModel(self, lp: LpProblem, inf: float = 1e20):
             """Translate the problem into a Mosek task object."""
             self.cons = lp.constraints
             self.numcons = len(self.cons)
@@ -204,7 +208,7 @@ class MOSEK(LpSolver):
             else:
                 self.task.putobjsense(mosek.objsense.minimize)
 
-        def findSolutionValues(self, lp):
+        def findSolutionValues(self, lp: LpProblem):
             """
             Read the solution values and status from the Mosek task object. Note: Since the status
             map from mosek.solsta to LpStatus is not exact, it is recommended that one enables the
@@ -286,7 +290,7 @@ class MOSEK(LpSolver):
                         )
                     )
 
-        def actualSolve(self, lp):
+        def actualSolve(self, lp: LpProblem) -> int:
             """
             Solve a well-formulated lp problem.
             """
@@ -310,7 +314,7 @@ class MOSEK(LpSolver):
                 con.modified = False
             return lp.status
 
-        def actualResolve(self, lp, inf=1e20, **kwargs):
+        def actualResolve(self, lp: LpProblem, inf: float = 1e20, **kwargs: Any):
             """
             Modify constraints and re-solve an lp. The Mosek task object created in the first solve is used.
             """

@@ -50,7 +50,7 @@ Arcs = [
     ("Chicago", "Gary"),
 ]
 
-arcData = {  #      ARC                Cost Min Max
+arcData: dict[tuple[str, str], list[float]] = {  #      ARC                Cost Min Max
     ("Youngstown", "Albany"): [0.5, 0, 1000],
     ("Youngstown", "Cincinatti"): [0.35, 0, 3000],
     ("Youngstown", "Kansas City"): [0.45, 1000, 5000],
@@ -72,7 +72,7 @@ arcData = {  #      ARC                Cost Min Max
 (costs, mins, maxs) = splitDict(arcData)
 
 # Creates the boundless Variables as Integers
-vars = LpVariable.dicts("Route", Arcs, None, None, LpInteger)
+vars = LpVariable.dicts("Route", Arcs, cat=LpInteger)
 
 # Creates the upper and lower bounds on the variables
 for a in Arcs:

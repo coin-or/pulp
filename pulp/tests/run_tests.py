@@ -4,7 +4,7 @@ import pulp
 from pulp.tests import test_examples, test_gurobipy_env, test_pulp, test_sparse
 
 
-def pulpTestAll(test_docs=False):
+def pulpTestAll(test_docs: bool = False):
     all_solvers = pulp.listSolvers(onlyAvailable=False)
     available = pulp.listSolvers(onlyAvailable=True)
     print(f"Available solvers: {available}")

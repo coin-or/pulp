@@ -9,7 +9,7 @@
 # IIASA, WP-94-021, April 1994 (revised October 1995).
 
 from pulp import *
-from random import *
+from random import randint
 
 C = 50
 B = 500  # Resources available for the two years
@@ -20,11 +20,11 @@ N = list(range(n))
 S = list(range(s))
 
 # First year costs
-c = [randint(0, C) for i in N]
+c = [randint(0, C) for _ in N]
 # First year resources
-d = [randint(0, C) for i in N]
+d = [randint(0, C) for _ in N]
 # a=debut, b=taille
-interval = [[(randint(0, C), randint(0, C)) for i in N] for j in S]
+interval = [[(randint(0, C), randint(0, C)) for _i in N] for _j in S]
 # Final earnings
 q = [[randint(ai, ai + bi) for ai, bi in ab] for ab in interval]
 # Second year resources

@@ -1,5 +1,6 @@
 # PuLP : Python LP Modeler
 # Version 1.4.2
+from __future__ import annotations
 
 # Copyright (c) 2002-2005, Jean-Sebastien Roy (js@jeannot.org)
 # Modifications Copyright (c) 2007- Stuart Anthony Mitchell (s.mitchell@auckland.ac.nz)
@@ -35,12 +36,9 @@ import platform
 import shutil
 import sys
 import ctypes
-
-
-from time import monotonic as clock
+from typing import Any, TYPE_CHECKING, Sequence
 
 import configparser
-from typing import Union
 
 Parser = configparser.ConfigParser
 
@@ -59,9 +57,12 @@ log = logging.getLogger(__name__)
 import subprocess
 
 devnull = subprocess.DEVNULL
-to_string = lambda _obj: str(_obj).encode()
 
 from uuid import uuid4
+
+if TYPE_CHECKING:
+    from pulp.pulp import LpProblem
+    from _typeshed import StrOrBytesPath
 
 
 class PulpSolverError(const.PulpError):
@@ -73,7 +74,7 @@ class PulpSolverError(const.PulpError):
 
 
 # import configuration information
-def initialize(filename, operating_system="linux", arch="64"):
+def initialize(filename: str, operating_system: str = "linux", arch: str = "64"):
     """reads the configuration file to initialise the module"""
     here = os.path.dirname(filename)
     config = Parser({"here": here, "os": operating_system, "arch": arch})
@@ -84,16 +85,7 @@ def initialize(filename, operating_system="linux", arch="64"):
     except configparser.Error:
         cplex_dll_path = "libcplex110.so"
     try:
-        try:
-            ilm_cplex_license = (
-                config.get("licenses", "ilm_cplex_license")
-                .decode("string-escape")
-                .replace('"', "")
-            )
-        except AttributeError:
-            ilm_cplex_license = config.get("licenses", "ilm_cplex_license").replace(
-                '"', ""
-            )
+        ilm_cplex_license = config.get("licenses", "ilm_cplex_license").replace('"', "")
     except configparser.Error:
         ilm_cplex_license = ""
     try:
@@ -149,7 +141,6 @@ def initialize(filename, operating_system="linux", arch="64"):
 
 
 # pick up the correct config file depending on operating system
-PULPCFGFILE = "pulp.cfg"
 is_64bits = sys.maxsize > 2**32
 if is_64bits:
     arch = "64"
@@ -157,16 +148,15 @@ if is_64bits:
         arch = "arm64"
 else:
     arch = "32"
-operating_system = None
 if sys.platform in ["win32", "cli"]:
     operating_system = "win"
-    PULPCFGFILE += ".win"
+    PULPCFGFILE = "pulp.cfg.win"
 elif sys.platform in ["darwin"]:
     operating_system = "osx"
-    PULPCFGFILE += ".osx"
+    PULPCFGFILE = "pulp.cfg.osx"
 else:
     operating_system = "linux"
-    PULPCFGFILE += ".linux"
+    PULPCFGFILE = "pulp.cfg.linux"
 
 DIRNAME = os.path.dirname(__file__)
 config_filename = os.path.normpath(os.path.join(DIRNAME, "..", PULPCFGFILE))
@@ -190,7 +180,13 @@ class LpSolver:
     name = "LpSolver"
 
     def __init__(
-        self, mip=True, msg=True, options=None, timeLimit=None, *args, **kwargs
+        self,
+        mip: bool = True,
+        msg: bool = True,
+        options: list[str] | None = None,
+        timeLimit: float | None = None,
+        *args: Any,
+        **kwargs: Any,
     ):
         """
         :param bool mip: if False, assume LP even if integer variables
@@ -212,15 +208,15 @@ class LpSolver:
         # gapRel, gapAbs, maxMemory, maxNodes, threads, logPath, timeMode
         self.optionsDict = {k: v for k, v in kwargs.items() if v is not None}
 
-    def available(self):
+    def available(self) -> bool:
         """True if the solver is available"""
-        raise NotImplementedError
+        raise NotImplementedError()
 
-    def actualSolve(self, lp):
+    def actualSolve(self, lp: LpProblem) -> int:
         """Solve a well formulated lp problem"""
-        raise NotImplementedError
+        raise NotImplementedError()
 
-    def actualResolve(self, lp, **kwargs):
+    def actualResolve(self, lp: LpProblem, **kwargs: Any):
         """
         uses existing problem information and solves the problem
         If it is not implemented in the solver
@@ -237,14 +233,19 @@ class LpSolver:
         aCopy.options = self.options
         return aCopy
 
-    def solve(self, lp):
+    def solve(self, lp: LpProblem):
         """Solve the problem lp"""
         # Always go through the solve method of LpProblem
         return lp.solve(self)
 
     # TODO: Not sure if this code should be here or in a child class
     def getCplexStyleArrays(
-        self, lp, senseDict=None, LpVarCategories=None, LpObjSenses=None, infBound=1e20
+        self,
+        lp: LpProblem,
+        senseDict: dict[int, str] | None = None,
+        LpVarCategories: dict[str, str] | None = None,
+        LpObjSenses: dict[int, int] | None = None,
+        infBound: float = 1e20,
     ):
         """returns the arrays suitable to pass to a cdll Cplex
         or other solvers that are similar
@@ -261,6 +262,8 @@ class LpSolver:
             LpVarCategories = {const.LpContinuous: "C", const.LpInteger: "I"}
         if LpObjSenses is None:
             LpObjSenses = {const.LpMaximize: -1, const.LpMinimize: 1}
+        if lp.objective is None:
+            raise const.PulpError("Objective has not been set")
 
         import ctypes
 
@@ -286,7 +289,7 @@ class LpSolver:
         upperBounds = NumVarDoubleArray()
         initValues = NumVarDoubleArray()
         for v in lp.variables():
-            colNames[self.v2n[v]] = to_string(v.name)
+            colNames[self.v2n[v]] = v.name.encode("utf-8")
             initValues[self.v2n[v]] = 0.0
             if v.lowBound != None:
                 lowerBounds[self.v2n[v]] = v.lowBound
@@ -305,15 +308,15 @@ class LpSolver:
         rangeValues = NumRowDoubleArray()
         rowNames = NumRowStrArray()
         rowType = NumRowCharArray()
-        self.c2n = {}
-        self.n2c = {}
+        self.c2n: dict[str, int] = {}
+        self.n2c: dict[int, str] = {}
         i = 0
         for c in lp.constraints:
             rhsValues[i] = -lp.constraints[c].constant
             # for ranged constraints a<= constraint >=b
             rangeValues[i] = 0.0
-            rowNames[i] = to_string(c)
-            rowType[i] = to_string(senseDict[lp.constraints[c].sense])
+            rowNames[i] = c.encode("utf-8")
+            rowType[i] = senseDict[lp.constraints[c].sense].encode("utf-8")
             self.c2n[c] = i
             self.n2c[i] = c
             i = i + 1
@@ -338,7 +341,7 @@ class LpSolver:
         columnType = NumVarCharArray()
         if lp.isMIP():
             for v in lp.variables():
-                columnType[self.v2n[v]] = to_string(LpVarCategories[v.cat])
+                columnType[self.v2n[v]] = LpVarCategories[v.cat].encode("utf-8")
         self.addedVars = numVars
         self.addedRows = numRows
         return (
@@ -386,7 +389,7 @@ class LpSolver:
 
     to_dict = toDict
 
-    def toJson(self, filename, *args, **kwargs):
+    def toJson(self, filename: str, *args: Any, **kwargs: Any):
         with open(filename, "w") as f:
             json.dump(self.toDict(), f, *args, **kwargs)
 
@@ -398,7 +401,13 @@ class LpSolver_CMD(LpSolver):
 
     name = "LpSolver_CMD"
 
-    def __init__(self, path=None, keepFiles=False, *args, **kwargs):
+    def __init__(
+        self,
+        path: str | None = None,
+        keepFiles: bool = False,
+        *args: Any,
+        **kwargs: Any,
+    ):
         """
 
         :param bool mip: if False, assume LP even if integer variables
@@ -410,7 +419,7 @@ class LpSolver_CMD(LpSolver):
         :param args: parameters to pass to :py:class:`LpSolver`
         :param kwargs: parameters to pass to :py:class:`LpSolver`
         """
-        LpSolver.__init__(self, *args, **kwargs)
+        super().__init__(*args, **kwargs)
         if path is None:
             self.path = self.defaultPath()
         else:
@@ -420,7 +429,6 @@ class LpSolver_CMD(LpSolver):
 
     def copy(self):
         """Make a copy of self"""
-
         aCopy = LpSolver.copy(self)
         aCopy.path = self.path
         aCopy.keepFiles = self.keepFiles
@@ -444,43 +452,43 @@ class LpSolver_CMD(LpSolver):
         elif not os.access(self.tmpDir, os.F_OK + os.W_OK):
             self.tmpDir = ""
 
-    def create_tmp_files(self, name, *args):
+    def create_tmp_files(self, name: str, *args: Any):
         if self.keepFiles:
             prefix = name
         else:
             prefix = os.path.join(self.tmpDir, uuid4().hex)
         return (f"{prefix}-pulp.{n}" for n in args)
 
-    def silent_remove(self, file: Union[str, bytes, os.PathLike]) -> None:
+    def silent_remove(self, file: StrOrBytesPath):
         try:
             os.remove(file)
         except FileNotFoundError:
             pass
 
-    def delete_tmp_files(self, *args):
+    def delete_tmp_files(self, *args: Any):
         if self.keepFiles:
             return
         for file in args:
             self.silent_remove(file)
 
-    def defaultPath(self):
-        raise NotImplementedError
+    def defaultPath(self) -> str:
+        raise NotImplementedError()
 
     @staticmethod
-    def executableExtension(name):
+    def executableExtension(name: str):
         if os.name != "nt":
             return name
         else:
             return name + ".exe"
 
     @staticmethod
-    def executable(command):
+    def executable(command: str) -> str | None:
         """Checks that the solver command is executable,
         And returns the actual path to it."""
         return shutil.which(command)
 
 
-def ctypesArrayFill(myList, type=ctypes.c_double):
+def ctypesArrayFill(myList: Sequence, type=ctypes.c_double) -> ctypes.Array:
     """
     Creates a c array with ctypes from a python list
     type is the type of the c array

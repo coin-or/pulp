@@ -1,5 +1,6 @@
 # PuLP : Python LP Modeler
 # Version 1.4.2
+from __future__ import annotations
 
 # Copyright (c) 2002-2005, Jean-Sebastien Roy (js@jeannot.org)
 # Modifications Copyright (c) 2007- Stuart Anthony Mitchell (s.mitchell@auckland.ac.nz)
@@ -24,16 +25,20 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."""
 
-from .core import LpSolver_CMD, LpSolver, PulpSolverError, log
+from .core import LpSolver_CMD, PulpSolverError, log
 from io import StringIO
 from contextlib import redirect_stdout
 import os
 import sys
+from typing import Any
 from .. import constants
 import warnings
-from typing import Union
+from typing import TYPE_CHECKING
 
 from uuid import uuid4
+
+if TYPE_CHECKING:
+    from pulp.pulp import LpProblem, LpVariable
 
 # The maximum length of the names of variables and constraints.
 MAX_NAME_LENGTH = 256
@@ -93,12 +98,12 @@ class SASsolver(LpSolver_CMD):
 
     def __init__(
         self,
-        mip=True,
-        msg=True,
-        warmStart=False,
-        keepFiles=False,
-        timeLimit=None,
-        **solverParams,
+        mip: bool = True,
+        msg: bool = True,
+        warmStart: bool = False,
+        keepFiles: bool = False,
+        timeLimit: float | None = None,
+        **solverParams: Any,
     ):
         """
         :param bool mip: if False, assume LP even if integer variables
@@ -107,8 +112,7 @@ class SASsolver(LpSolver_CMD):
         :param bool keepFiles: if False, the generated mps mst files will be removed
         :param solverParams: SAS proc OPTMILP or OPTLP parameters
         """
-        LpSolver_CMD.__init__(
-            self,
+        super().__init__(
             mip=mip,
             msg=msg,
             keepFiles=keepFiles,
@@ -117,10 +121,10 @@ class SASsolver(LpSolver_CMD):
             **solverParams,
         )
 
-    def _create_statement_str(self, statement):
+    def _create_statement_str(self, statement: str):
         """Helper function to create the strings for the statements of the proc OPTLP/OPTMILP code."""
         stmt = self.optionsDict.get(statement, None)
-        if stmt:
+        if stmt is not None:
             return (
                 statement.strip()
                 + " "
@@ -133,7 +137,7 @@ class SASsolver(LpSolver_CMD):
     def defaultPath(self):
         return os.path.abspath(os.getcwd())
 
-    def _write_sol(self, filename, vs):
+    def _write_sol(self, filename: str, vs: list[LpVariable]):
         """Writes a SAS solution file"""
         values = [(v.name, v.value()) for v in vs if v.value() is not None]
         with open(filename, "w") as f:
@@ -142,14 +146,14 @@ class SASsolver(LpSolver_CMD):
                 f.write(f"{name},{value}\n")
         return True
 
-    def _get_max_upload_len(self, fileName):
+    def _get_max_upload_len(self, fileName: str):
         maxLen = 0
         with open(fileName, "r") as f:
             for line in f.readlines():
                 maxLen = max(maxLen, max([len(word) for word in line.split(" ")]))
         return maxLen + 1
 
-    def _read_solution(self, lp, primal_out, dual_out, proc):
+    def _read_solution(self, lp: LpProblem, primal_out, dual_out, proc: str):
         status = SOLSTATUS_TO_STATUS[self._macro.get("SOLUTION_STATUS", "ERROR")]
         primal_out = primal_out.set_index("_VAR_", drop=True)
         values = primal_out["_VALUE_"].to_dict()
@@ -184,7 +188,7 @@ class SAS94(SASsolver):
             """True if SAS94 is available."""
             return False
 
-        def actualSolve(self, lp, callback=None):
+        def actualSolve(self, lp: LpProblem, callback=None):
             """Solves a well-formulated lp problem."""
             raise PulpSolverError("SAS94 : Not Available")
 
@@ -193,12 +197,12 @@ class SAS94(SASsolver):
 
         def __init__(
             self,
-            mip=True,
-            msg=True,
-            keepFiles=False,
-            warmStart=False,
-            timeLimit=None,
-            **solverParams,
+            mip: bool = True,
+            msg: bool = True,
+            keepFiles: bool = False,
+            warmStart: bool = False,
+            timeLimit: float | None = None,
+            **solverParams: Any,
         ):
             """
             :param bool mip: if False, assume LP even if integer variables
@@ -236,17 +240,15 @@ class SAS94(SASsolver):
                 pass
 
         def __del__(self):
-            if self.sas:
+            if self.sas is not None:
                 self.sas.endsas()
+                self.sas = None
 
-        def available(self):
+        def available(self) -> bool:
             """True if SAS94 is available."""
-            if self.sas:
-                return True
-            else:
-                return False
+            return self.sas is not None
 
-        def actualSolve(self, lp):
+        def actualSolve(self, lp: LpProblem):
             """Solve a well formulated lp problem"""
             log.debug("Running SAS")
 
@@ -456,12 +458,12 @@ class SAS94(SASsolver):
             if self.msg:
                 self._log = res["LOG"]
                 print(self._log)
-            self._macro = dict(
-                (key.strip(), value.strip())
+            self._macro = {
+                key.strip(): value.strip()
                 for key, value in (
                     pair.split("=") for pair in sas.symget("_OR" + proc + "_").split()
                 )
-            )
+            }
 
             # Check for error and raise exception
             if self._macro.get("STATUS", "ERROR") != "OK":
@@ -493,7 +495,7 @@ class SASCAS(SASsolver):
             """True if SASCAS is available."""
             return False
 
-        def actualSolve(self, lp, callback=None):
+        def actualSolve(self, lp: LpProblem, callback=None):
             """Solves a well-formulated lp problem."""
             raise PulpSolverError("SASCAS : Not Available")
 
@@ -501,12 +503,12 @@ class SASCAS(SASsolver):
 
         def __init__(
             self,
-            mip=True,
-            msg=True,
-            keepFiles=False,
-            warmStart=False,
-            timeLimit=None,
-            **solverParams,
+            mip: bool = True,
+            msg: bool = True,
+            keepFiles: bool = False,
+            warmStart: bool = False,
+            timeLimit: float | None = None,
+            **solverParams: Any,
         ):
             """
             :param bool mip: if False, assume LP even if integer variables
@@ -529,8 +531,7 @@ class SASCAS(SASsolver):
                 self._cas_options["port"] = os.getenv("CAS_PORT")
                 self._cas_options["authinfo"] = os.getenv("CAS_AUTHINFO")
 
-            SASsolver.__init__(
-                self,
+            super().__init__(
                 mip=mip,
                 msg=msg,
                 keepFiles=keepFiles,
@@ -551,13 +552,10 @@ class SASCAS(SASsolver):
             if self.cas:
                 self.cas.close()
 
-        def available(self):
-            if not self.cas:
-                return False
-            else:
-                return True
+        def available(self) -> bool:
+            return self.cas is not None
 
-        def actualSolve(self, lp):
+        def actualSolve(self, lp: LpProblem) -> int:
             """Solve a well formulated lp problem"""
             log.debug("Running SAS")
 
@@ -664,7 +662,7 @@ class SASCAS(SASsolver):
                                 {lp.name} via SASCAS."
                 )
 
-        def _get_output(self, lp, s, r, proc, postfix):
+        def _get_output(self, lp: LpProblem, s, r, proc, postfix):
             self._macro = {
                 "STATUS": r.get("status", "ERROR").upper(),
                 "SOLUTION_STATUS": r.get("solutionStatus", "ERROR").upper(),
@@ -731,7 +729,7 @@ class SASLogWriter:
         self._log = StringIO()
         self.stdout = sys.stdout
 
-    def write(self, message):
+    def write(self, message: str):
         # If the tee options is specified, write to both outputs.
         if self.tee:
             self.stdout.write(message)

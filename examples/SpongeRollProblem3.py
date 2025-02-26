@@ -5,7 +5,7 @@ Authors: Antony Phillips, Dr Stuart Mitchell    2007
 """
 
 
-def calculatePatterns(totalRollLength, lenOpts, head):
+def calculatePatterns(totalRollLength: int, lenOpts: list[int], head: list[int]):
     """
     Recursively calculates the list of options lists for a cutting stock problem. The input
     'tlist' is a pointer, and will be the output of the function call.
@@ -20,7 +20,7 @@ def calculatePatterns(totalRollLength, lenOpts, head):
     Authors: Bojan Blazevic, Dr Stuart Mitchell    2007
     """
     if lenOpts:
-        patterns = []
+        patterns: list[list[int]] = []
         # take the first option off lenOpts
         opt = lenOpts[0]
         for rep in range(int(totalRollLength / opt) + 1):
@@ -36,7 +36,7 @@ def calculatePatterns(totalRollLength, lenOpts, head):
     return patterns
 
 
-def makePatterns(totalRollLength, lenOpts):
+def makePatterns(totalRollLength: int, lenOpts: list[int]):
     """
     Makes the different cutting patterns for a cutting stock problem.
 
@@ -51,13 +51,12 @@ def makePatterns(totalRollLength, lenOpts):
     patterns = calculatePatterns(totalRollLength, lenOpts, [])
 
     # The list 'PatternNames' is created
-    PatternNames = []
-    for i in range(len(patterns)):
-        PatternNames += ["P" + str(i)]
+    PatternNames = [f"P{i}" for i in range(len(patterns))]
+
 
     # The amount of trim (unused material) for each pattern is calculated and added to the dictionary
     # 'trim', with the reference key of the pattern name.
-    trim = {}
+    trim: dict[str, int] = {}
     for name, pattern in zip(PatternNames, patterns):
         ssum = 0
         for rep, l in zip(pattern, lenOpts):
@@ -69,7 +68,7 @@ def makePatterns(totalRollLength, lenOpts):
     for name, pattern in zip(PatternNames, patterns):
         print(name + f"  = {pattern}")
 
-    return (PatternNames, patterns, trim)
+    return PatternNames, patterns, trim
 
 
 # Import PuLP modeler functions
@@ -87,7 +86,7 @@ trimValue = 0.04
 # A list of all the roll lengths is created
 LenOpts = ["5", "7", "9"]
 
-rollData = {  # Length Demand SalePrice
+rollData: dict[str, list[int | float]] = {  # Length Demand SalePrice
     "5": [150, 0.25],
     "7": [200, 0.33],
     "9": [300, 0.40],

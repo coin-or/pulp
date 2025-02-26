@@ -9,7 +9,7 @@ edited by Nathan Sudermann-Merx
 from pulp import *
 
 # All rows, columns and values within a Sudoku take values from 1 to 9
-VALS = ROWS = COLS = range(1, 10)
+VALS = ROWS = COLS = list(range(1, 10))
 
 # The boxes list is created, with the row and column index of each square in each box
 Boxes = [

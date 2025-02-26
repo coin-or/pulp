@@ -19,7 +19,7 @@ PuLP is part of the `COIN-OR project <https://www.coin-or.org/>`_.
 Installation
 ================
 
-PuLP requires Python 3.7 or newer.
+PuLP requires Python 3.9 or newer.
 
 The easiest way to install PuLP is with ``pip``. If ``pip`` is available on your system, type::
 

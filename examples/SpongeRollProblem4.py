@@ -5,7 +5,7 @@ Authors: Antony Phillips, Dr Stuart Mitchell    2007
 """
 
 
-def calculatePatterns(totalRollLength, lenOpts, head):
+def calculatePatterns(totalRollLength: int, lenOpts: list[int], head: list[int]):
     """
     Recursively calculates the list of options lists for a cutting stock problem. The input
     'tlist' is a pointer, and will be the output of the function call.
@@ -20,7 +20,7 @@ def calculatePatterns(totalRollLength, lenOpts, head):
     Authors: Bojan Blazevic, Dr Stuart Mitchell    2007
     """
     if lenOpts:
-        patterns = []
+        patterns: list[list[int]] = []
         # take the first option off lenOpts
         opt = lenOpts[0]
         for rep in range(int(totalRollLength / opt) + 1):
@@ -36,7 +36,7 @@ def calculatePatterns(totalRollLength, lenOpts, head):
     return patterns
 
 
-def makePatterns(totalRollLength, lenOpts):
+def makePatterns(totalRollLength: int, lenOpts: list[int]):
     """
     Makes the different cutting patterns for a cutting stock problem.
 
@@ -51,15 +51,13 @@ def makePatterns(totalRollLength, lenOpts):
     patternslist = calculatePatterns(totalRollLength, lenOpts, [])
 
     # The list 'PatternNames' is created
-    PatternNames = []
-    for i in range(len(patternslist)):
-        PatternNames += ["P" + str(i)]
+    PatternNames = [f"P{i}" for i in range(len(patternslist))]
 
     # Patterns = [0 for i in range(len(PatternNames))]
-    Patterns = []
-
-    for i, j in enumerate(PatternNames):
-        Patterns += [Pattern(j, patternslist[i])]
+    Patterns = [
+        Pattern(j, patternslist[i])
+        for i, j in enumerate(PatternNames)
+    ]
 
     # The different cutting lengths are printed, and the number of each roll of that length in each
     # pattern is printed below. This is so the user can see what each pattern contains.
@@ -80,7 +78,7 @@ class Pattern:
     totalRollLength = 20
     lenOpts = [5, 7, 9]
 
-    def __init__(self, name, lengths=None):
+    def __init__(self, name: str, lengths: list[int]):
         self.name = name
         self.lengthsdict = dict(zip(self.lenOpts, lengths))
 
@@ -96,7 +94,12 @@ class Pattern:
 # Import PuLP modeler functions
 from pulp import *
 
-rollData = {5: [150, 0.25], 7: [200, 0.33], 9: [300, 0.40]}  # Length Demand SalePrice
+# Length Demand SalePrice
+rollData: dict[int, tuple[int, float]] = {
+    5: (150, 0.25),
+    7: (200, 0.33),
+    9: (300, 0.40),
+}
 
 # The pattern names and the patterns are created as lists, and the associated trim with each pattern
 # is created as a dictionary. The inputs are the total roll length and the list (as integers) of

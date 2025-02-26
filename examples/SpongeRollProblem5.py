@@ -8,10 +8,10 @@ Authors: Antony Phillips,  Dr Stuart Mitchell  2008
 from .CG import *
 
 # The roll data is created
-rollData = {  # Length Demand SalePrice
-    "5": [150, 0.25],
-    "7": [200, 0.33],
-    "9": [300, 0.40],
+rollData: dict[str, tuple[int, float]] = {  # Length Demand SalePrice
+    "5": (150, 0.25),
+    "7": (200, 0.33),
+    "9": (300, 0.40),
 }
 
 # The boolean variable morePatterns is set to True to test for more patterns
@@ -21,23 +21,24 @@ morePatterns = True
 patternslist = [[4, 0, 0], [0, 2, 0], [0, 0, 2]]
 
 # The starting patterns are instantiated with the Pattern class
-Patterns = []
-for i in patternslist:
-    Patterns += [Pattern("P" + str(len(Patterns)), i)]
+patterns = [
+    Pattern(f"P{i}", li)
+    for i, li in enumerate(patternslist)
+]
 
 # This loop will be repeated until morePatterns is set to False
-while morePatterns == True:
+while morePatterns:
     # Solve the problem as a Relaxed LP
-    duals = masterSolve(Patterns, rollData)
+    duals = masterSolve(patterns, rollData)
 
     # Find another pattern
-    Patterns, morePatterns = subSolve(Patterns, duals)
+    patterns, morePatterns = subSolve(patterns, duals)
 
 # Re-solve as an Integer Problem
-solution, varsdict = masterSolve(Patterns, rollData, relax=False)
+solution, varsdict = masterSolve(patterns, rollData, relax=False)
 
 # Display Solution
-for i, j in list(varsdict.items()):
+for i, j in varsdict.items():
     print(i, "=", j)
 
 print("objective = ", solution)

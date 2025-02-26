@@ -10,7 +10,7 @@
 from pulp import *
 
 # Import random number generation functions
-from random import *
+from random import randint
 
 # A new LP problem
 prob = LpProblem("test5", LpMinimize)
@@ -35,7 +35,7 @@ w = LpVariable.matrix("w", list(range(m)), 0)
 prob += lpSum(s) + lpSum(w)
 
 # Constraints
-d = [[randint(0, D) for i in range(n)] for j in range(m)]
+d = [[randint(0, D) for _i in range(n)] for _j in range(m)]
 for j in range(m):
     prob += lpDot(d[j], x) + s[j] - w[j] == lpSum(d[j]) / 2
 

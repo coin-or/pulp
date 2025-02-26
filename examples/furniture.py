@@ -9,12 +9,12 @@ Chairs = ["A", "B"]
 costs = {"A": 100, "B": 150}
 Resources = ["Lathe", "Polisher"]
 capacity = {"Lathe": 40, "Polisher": 48}
-activity = [  # Chairs
+activity_list: list[list[int | float]] = [  # Chairs
     # A  B
     [1, 2],  # Lathe
     [3, 1.5],  # Polisher
 ]
-activity = makeDict([Resources, Chairs], activity)
+activity = makeDict([Resources, Chairs], activity_list)
 prob = LpProblem("Furniture Manufacturing Problem", LpMaximize)
 vars = LpVariable.dicts("Number of Chairs", Chairs, lowBound=0)
 # objective
