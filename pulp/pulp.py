@@ -137,7 +137,6 @@ from typing import (
     TypeAlias,
     overload,
     Union,
-    TypedDict,
     cast,
 )
 
@@ -177,19 +176,6 @@ LptVars: TypeAlias = "LpVariable"  # , "LpConstraintVar"]
 T = TypeVar("T")
 T2 = TypeVar("T2")
 T3 = TypeVar("T3")
-
-
-class LpConstraintCoefficientsDict(TypedDict):
-    name: str | None
-    value: LptNumber
-
-
-class LpConstraintDict(TypedDict):
-    sense: int
-    pi: float | None
-    constant: LptNumber
-    name: str | None
-    coefficients: list[LpConstraintCoefficientsDict]
 
 
 # To remove illegal characters from the names
