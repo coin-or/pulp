@@ -25,11 +25,12 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies with uv
-        run: uv sync
+        run: |
+          uv sync --dev
       - name: Code Quality
         run: black pulp/ --check
       - name: Type Check
-        run: mypy ./
+        run: uv run mypy ./
       - name: install ubuntu-only solvers
         if: matrix.os == 'ubuntu-latest'
         run: |
