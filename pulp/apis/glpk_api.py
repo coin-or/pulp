@@ -25,9 +25,11 @@
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."""
 
 from .core import LpSolver_CMD, LpSolver, subprocess, PulpSolverError, clock
-from .core import glpk_path, operating_system, log
+from .core import operating_system, log
 import os
 from .. import constants
+
+glpk_path = "glpsol"
 
 
 class GLPK_CMD(LpSolver_CMD):

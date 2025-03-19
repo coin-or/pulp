@@ -37,12 +37,29 @@ import sys
 import ctypes
 
 
+def get_operating_system():
+    if sys.platform in ["win32", "cli"]:
+        return "win"
+    if sys.platform in ["darwin"]:
+        return "osx"
+    return "linux"
+
+
+def get_arch():
+    is_64bits = sys.maxsize > 2**32
+    if is_64bits:
+        if platform.machine().lower() in ["aarch64", "arm64"]:
+            return "arm64"
+        return "i64"
+    return "i32"
+
+
+operating_system = get_operating_system()
+arch = get_arch()
+
 from time import monotonic as clock
 
-import configparser
 from typing import Union
-
-Parser = configparser.ConfigParser
 
 from .. import sparse
 from .. import constants as const

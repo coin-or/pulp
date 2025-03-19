@@ -147,7 +147,8 @@ class CPLEX_CMD(LpSolver_CMD):
             if k in self.optionsDict and self.optionsDict[k] is not None
         ]
 
-    def readsol(self, filename):
+    @staticmethod
+    def readsol(filename):
         """Read a CPLEX solution file"""
         # CPLEX solution codes: http://www-eio.upc.es/lceio/manuals/cplex-11/html/overviewcplex/statuscodes.html
         try:

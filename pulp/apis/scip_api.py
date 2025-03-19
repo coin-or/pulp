@@ -30,10 +30,13 @@ import sys
 import warnings
 
 from .core import LpSolver_CMD, LpSolver, subprocess, PulpSolverError
-from .core import scip_path, fscip_path
+
 from .. import constants
 
 from typing import Dict, List, Optional, Tuple
+
+scip_path = "scip"
+fscip_path = "fscip"
 
 
 class SCIP_CMD(LpSolver_CMD):

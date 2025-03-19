@@ -1467,7 +1467,7 @@ class BaseSolverTest:
             solution_file = StringIO(file_content)
 
             # This call to `readsol` would crash for this solution format #508
-            _, _, reducedCosts, shadowPrices, _, _ = CPLEX_CMD().readsol(solution_file)
+            _, _, reducedCosts, shadowPrices, _, _ = CPLEX_CMD.readsol(solution_file)
 
             # Because mipopt solutions have no `reducedCost` fields
             # it should be all None

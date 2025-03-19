@@ -12,7 +12,6 @@ from .core import (
     LpSolver,
     LpSolver_CMD,
     clock,
-    operating_system,
 )
 from ..constants import (
     LpStatusNotSolved,

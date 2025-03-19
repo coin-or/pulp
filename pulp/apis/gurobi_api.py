@@ -26,7 +26,6 @@
 
 
 from .core import LpSolver_CMD, LpSolver, subprocess, PulpSolverError, clock, log
-from .core import gurobi_path
 import os
 import sys
 from .. import constants
@@ -49,7 +48,6 @@ class GUROBI(LpSolver):
     env = None
 
     try:
-        sys.path.append(gurobi_path)
         # to import the name into the module scope
         global gp
         import gurobipy as gp

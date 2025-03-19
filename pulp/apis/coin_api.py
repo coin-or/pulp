@@ -25,12 +25,18 @@
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."""
 
 from .core import LpSolver_CMD, LpSolver, subprocess, PulpSolverError, clock, log
-from .core import cbc_path, pulp_cbc_path, coinMP_path, devnull, operating_system
+from .core import devnull, operating_system, arch
 import os
 from .. import constants
 from tempfile import mktemp
 import ctypes
 import warnings
+
+cbc_path = "cbc"
+coinMP_path = ["libCoinMP.so"]
+pulp_cbc_path = os.path.join(
+    os.path.dirname(__file__), f"../solverdir/cbc/{operating_system}/{arch}/cbc"
+)
 
 
 class COIN_CMD(LpSolver_CMD):
@@ -401,9 +407,10 @@ class PULP_CBC_CMD(COIN_CMD):
             )
 
 
-def COINMP_DLL_load_dll(path):
+def COINMP_DLL_load_dll(path: list[str]):
     """
     function that loads the DLL useful for debugging installation problems
+    path is a list of paths actually
     """
     if os.name == "nt":
         lib = ctypes.windll.LoadLibrary(str(path[-1]))
