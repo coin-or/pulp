@@ -521,6 +521,7 @@ class BaseSolverTest:
                 SCIP_CMD,
                 FSCIP_CMD,
                 SCIP_PY,
+                CYLP,
             ]:
                 # these solvers do not let the problem be relaxed
                 pulpTestCheck(
@@ -573,7 +574,7 @@ class BaseSolverTest:
                     self.solver,
                     [const.LpStatusInfeasible, const.LpStatusUndefined],
                 )
-            elif self.solver.__class__ in [COINMP_DLL]:
+            elif self.solver.__class__ in [COINMP_DLL, CYLP]:
                 # Currently there is an error in COINMP for problems where
                 # presolve eliminates too many variables
                 pulpTestCheck(prob, self.solver, [const.LpStatusOptimal])
@@ -2094,6 +2095,10 @@ class SAS94Test(BaseSolverTest.PuLPTest, SASTest):
 
 class SASCASTest(BaseSolverTest.PuLPTest, SASTest):
     solveInst = SASCAS
+
+
+class CyLPTest(BaseSolverTest.PuLPTest):
+    solveInst = CYLP
 
 
 def pulpTestCheck(

@@ -28,7 +28,7 @@ jobs:
         run: |
           uv sync --dev
       - name: Code Quality
-        run: black pulp/ --check
+        run: uv run black pulp/ --check
       - name: Type Check
         run: uv run mypy ./
       - name: install ubuntu-only solvers

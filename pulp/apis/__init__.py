@@ -13,6 +13,7 @@ from .sas_api import *
 from .core import *
 
 _all_solvers = [
+    CYLP,
     GLPK_CMD,
     PYGLPK,
     CPLEX_CMD,
