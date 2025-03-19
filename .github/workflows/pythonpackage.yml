@@ -24,8 +24,8 @@ jobs:
         uses: astral-sh/setup-uv@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Update pip, install dev deps
-        run: uv pip install -r requirements-dev.txt
+      - name: Install dependencies with uv
+        run: uv sync
       - name: Code Quality
         run: black pulp/ --check
       - name: Type Check
