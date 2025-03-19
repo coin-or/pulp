@@ -1,3 +1,29 @@
+[project]
+name = "PuLP"
+version = "3.0.2"
+description = "PuLP is an LP modeler written in python. PuLP can generate MPS or LP files and call GLPK, COIN CLP/CBC, CPLEX, and GUROBI to solve linear problems."
+authors = [
+    {name = 'J.S. Roy'},
+    {name = "S.A. Mitchell", email= "pulp@stuartmitchell.com"},
+    {name = "Franco Peschiera", email = "pchtsp@gmail.com"}
+]
+maintainers= [{name= "Franco Peschiera", email= "pchtsp@gmail.com"}]
+dependencies = []
+requires-python = ">=3.7"
+readme = "README.md"
+license = {text = "MIT"}
+classifiers=[
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Programming Language :: Python",
+    "Topic :: Scientific/Engineering :: Mathematics",
+]
+urls= {source= "https://github.com/coin-or/pulp", download="https://github.com/coin-or/pulp/archive/master.zip"}
+keywords=["Optimization", "Linear Programming", "Operations Research"]
+
 [tool.mypy]
 exclude = [
   "doc/",
@@ -12,6 +38,42 @@ exclude = [
   "setup.py",
   "venv/.*"
 ]
-follow_imports = "silent"
-strict = true
-check_untyped_defs = true
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[dependency-groups]
+dev = [
+    "black",
+    "mypy",
+    "pre-commit==2.12.0",
+    "sphinx",
+    "sphinx-rtd-theme",
+]
+
+[tool.setuptools]
+packages = [
+        "pulp",
+        "pulp.solverdir",
+        "pulp.solverdir.cbc.linux.i32",
+        "pulp.solverdir.cbc.linux.i64",
+        "pulp.solverdir.cbc.linux.arm64",
+        "pulp.solverdir.cbc.win.i32",
+        "pulp.solverdir.cbc.win.i64",
+        "pulp.solverdir.cbc.osx.i64",
+        "pulp.apis",
+        "pulp.tests"]
+# This is a workaround for https://github.com/astral-sh/uv/issues/9513
+license-files = []
+
+[tool.setuptools.package-data]
+"pulp.solverdir.cbc.linux.i32"= ["*", "*.*"]
+"pulp.solverdir.cbc.linux.i64"= ["*", "*.*"]
+"pulp.solverdir.cbc.linux.arm64"= ["*", "*.*"]
+"pulp.solverdir.cbc.win.i32"= ["*", "*.*"]
+"pulp.solverdir.cbc.win.i64"= ["*", "*.*"]
+"pulp.solverdir.cbc.osx.i64"= ["*", "*.*"]
+
+[project.scripts]
+pulptest = "pulp.tests.run_tests:pulpTestAll"
