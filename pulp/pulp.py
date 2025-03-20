@@ -665,13 +665,16 @@ class LpVariable(LpElement):
         return self.isConstant()
 
     def unfixValue(self):
-        if not hasattr(self, "_lowbound_original") or not hasattr(self, "_upbound_original"):
+        if not hasattr(self, "_lowbound_original") or not hasattr(
+            self, "_upbound_original"
+        ):
             raise RuntimeError("The value must first be fixed before it can be unfixed")
 
         self.bounds(self._lowbound_original, self._upbound_original)
 
         del self._lowbound_original
         del self._upbound_original
+
 
 class LpAffineExpression(_DICT_TYPE):
     """
