@@ -286,14 +286,14 @@ class LpVariable(LpElement):
         self, name, lowBound=None, upBound=None, cat=const.LpContinuous, e=None
     ):
         LpElement.__init__(self, name)
-        self._lowbound_original = self.lowBound = lowBound
-        self._upbound_original = self.upBound = upBound
+        self.lowBound = lowBound
+        self.upBound = upBound
         self.cat = cat
         self.varValue = None
         self.dj = None
         if cat == const.LpBinary:
-            self._lowbound_original = self.lowBound = 0
-            self._upbound_original = self.upBound = 1
+            self.lowBound = 0
+            self.upBound = 1
             self.cat = const.LpInteger
         # Code to add a variable to constraints for column based
         # modelling.
@@ -652,6 +652,8 @@ class LpVariable(LpElement):
         """
         val = self.varValue
         if val is not None:
+            self._lowbound_original = self.lowBound
+            self._upbound_original = self.upBound
             self.bounds(val, val)
 
     def isFixed(self):
@@ -663,8 +665,13 @@ class LpVariable(LpElement):
         return self.isConstant()
 
     def unfixValue(self):
+        if not hasattr(self, "_lowbound_original") or not hasattr(self, "_upbound_original"):
+            raise RuntimeError("The value must first be fixed before it can be unfixed")
+
         self.bounds(self._lowbound_original, self._upbound_original)
 
+        del self._lowbound_original
+        del self._upbound_original
 
 class LpAffineExpression(_DICT_TYPE):
     """

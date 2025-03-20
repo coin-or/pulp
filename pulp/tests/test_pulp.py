@@ -504,6 +504,39 @@ class BaseSolverTest:
             self.solver.optionsDict["warmStart"] = True
             pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], solution)
 
+            # Check values can be unfixed
+            for v in [x, y, z]:
+                v.unfixValue()
+
+            self.assertEqual(x.lowBound, 0)
+            self.assertEqual(x.upBound, 4)
+
+            self.assertEqual(y.lowBound, -1)
+            self.assertEqual(y.upBound, 1)
+
+            self.assertEqual(z.lowBound, 0)
+            self.assertEqual(z.upBound, None)
+
+            # Cannot unfix again
+            with self.assertRaises(RuntimeError):
+                x.unfixValue()
+            with self.assertRaises(RuntimeError):
+                y.unfixValue()
+            with self.assertRaises(RuntimeError):
+                z.unfixValue()
+
+        def test_unfix_value_error(self):
+            x = LpVariable("x", 0, 4)
+            y = LpVariable("y", -1, 1)
+            z = LpVariable("z", 0, None, const.LpInteger)
+
+            with self.assertRaises(RuntimeError):
+                x.unfixValue()
+            with self.assertRaises(RuntimeError):
+                y.unfixValue()
+            with self.assertRaises(RuntimeError):
+                z.unfixValue()
+
         def test_relaxed_mip(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
             x = LpVariable("x", 0, 4)
