@@ -925,7 +925,17 @@ class CYLP(LpSolver):
                 5: constants.LpStatusUndefined,
                 -1: constants.LpStatusUndefined,
             }
-            return my_map.get(my_status, constants.LpStatusUndefined)
+            sol_stats = lp.solverModel.status
+            print(sol_stats)
+            my_map_2 = {
+                "linear relaxation unbounded": constants.LpStatusInfeasible,
+                "relaxation infeasible": constants.LpStatusInfeasible,
+                "solution": constants.LpStatusOptimal,
+                "problem proven infeasible": constants.LpStatusInfeasible,
+                "relaxation abandoned": constants.LpStatusNotSolved,
+            }
+
+            return my_map_2.get(sol_stats, constants.LpStatusUndefined)
 
         def findSolutionValues(self, lp):
             my_vars = lp.variables()
@@ -952,12 +962,21 @@ class CYLP(LpSolver):
 
         def callSolver(self, lp):
             self.solveTime = -clock()
-            # cbc_model = my_model.getCbcModel()
-            status = lp.solverModel.solve()
-            # lp.solverModel.isRelaxationDualInfeasible()
+            if self.timeLimit:
+                lp.solverModel.maximumSeconds = self.timeLimit
+            if self.gapRel:
+                lp.solverModel.allowableFractionGap = self.gapRel
+            if self.gapAbs:
+                lp.solverModel.allowableGap = self.gapAbs
+            if self.threads:
+                lp.solverModel.numberThreads = self.threads
+
+            if max_nodes := self.optionsDict.get("maxNodes"):
+                lp.solverModel.maximumNodes = max_nodes
+
+            stop_status = lp.solverModel.solve()
             self.solveTime += clock()
-            print(status)
-            return status
+            return stop_status
 
         def buildSolverModel(self, lp):
 
@@ -965,25 +984,22 @@ class CYLP(LpSolver):
             tmpMps = f"{lp.name}-pulp.mps"
             lp.writeMPS(tmpMps)
             success = my_model.readMps(tmpMps)
-            if success < 0:
+            try:
+                os.remove(tmpMps)
+            except:
+                pass
+            if success != 0:
                 raise PulpSolverError("Error reading MPS file")
-
             cbc_model = my_model.getCbcModel()
-
             # my_model.initialSolve()
             # cbc_model.solve()
             # cbc_model.status
             # my_model.primalVariableSolution
             # my_model.variableNames
             # my_model.variables
-            my_model.writeMps("test.mps")
             # my_model.readMps("test.mps")
             # my_model.solution
             # my_model.status
             # my_model.getStatusCode()
             # my_model.getStatusString()
             lp.solverModel = cbc_model
-            try:
-                os.remove(tmpMps)
-            except:
-                pass

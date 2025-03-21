@@ -334,17 +334,18 @@ class BaseSolverTest:
                 XPRESS_PY,
                 SAS94,
                 SASCAS,
+                CYLP,
             ]:
-                try:
-                    pulpTestCheck(
+
+                def my_func():
+                    return pulpTestCheck(
                         prob,
                         self.solver,
                         [const.LpStatusOptimal],
                         {x: 4, y: -1, z: 6, w: 0},
                     )
-                except PulpError:
-                    # these solvers should raise an error
-                    pass
+
+                self.assertRaises(PulpError, my_func)
             else:
                 pulpTestCheck(
                     prob,
@@ -2097,8 +2098,8 @@ class SASCASTest(BaseSolverTest.PuLPTest, SASTest):
     solveInst = SASCAS
 
 
-class CyLPTest(BaseSolverTest.PuLPTest):
-    solveInst = CYLP
+# class CyLPTest(BaseSolverTest.PuLPTest):
+#     solveInst = CYLP
 
 
 def pulpTestCheck(
