@@ -180,7 +180,7 @@ class LpElement:
     expression = re.compile(f"[{re.escape(illegal_chars)}]")
     trans = maketrans(illegal_chars, "________")
 
-    def setName(self, name):
+    def setName(self, name: str | None):
         if name:
             if self.expression.match(name):
                 warnings.warn(
@@ -188,11 +188,13 @@ class LpElement:
                         name
                     )
                 )
-            self.__name = str(name).translate(self.trans)
+                self.__name = name.translate(self.trans)
+            else:
+                self.__name = name
         else:
             self.__name = None
 
-    def getName(self):
+    def getName(self) -> str | None:
         return self.__name
 
     name = property(fget=getName, fset=setName)
