@@ -30,7 +30,7 @@ jobs:
       - name: Code Quality
         run: uv run black pulp/ --check
       - name: Type Check
-        run: uv run mypy ./
+        run: uv run mypy --config-file pyproject.toml ./
       - name: install ubuntu-only solvers
         if: matrix.os == 'ubuntu-latest'
         run: |
