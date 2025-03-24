@@ -126,6 +126,8 @@
 </li>
         <li><a href="technical/solvers.html#pulp.apis.CPLEX_PY.actualSolve">(pulp.apis.CPLEX_PY method)</a>
 </li>
+        <li><a href="technical/solvers.html#pulp.apis.CYLP.actualSolve">(pulp.apis.CYLP method)</a>
+</li>
         <li><a href="technical/solvers.html#pulp.apis.FSCIP_CMD.actualSolve">(pulp.apis.FSCIP_CMD method)</a>
 </li>
         <li><a href="technical/solvers.html#pulp.apis.GLPK_CMD.actualSolve">(pulp.apis.GLPK_CMD method)</a>
@@ -161,6 +163,8 @@
         <li><a href="technical/solvers.html#pulp.apis.YAPOSIB.actualSolve">(pulp.apis.YAPOSIB method)</a>
 </li>
       </ul></li>
+      <li><a href="technical/constants.html#pulp.constants.PulpError.add_note">add_note() (pulp.constants.PulpError method)</a>
+</li>
       <li><a href="technical/pulp.html#pulp.LpAffineExpression.addInPlace">addInPlace() (pulp.LpAffineExpression method)</a>
 
       <ul>
@@ -205,6 +209,8 @@
         <li><a href="technical/solvers.html#pulp.apis.CPLEX_CMD.available">(pulp.apis.CPLEX_CMD method)</a>
 </li>
         <li><a href="technical/solvers.html#pulp.apis.CPLEX_PY.available">(pulp.apis.CPLEX_PY method)</a>
+</li>
+        <li><a href="technical/solvers.html#pulp.apis.CYLP.available">(pulp.apis.CYLP method)</a>
 </li>
         <li><a href="technical/solvers.html#pulp.apis.FSCIP_CMD.available">(pulp.apis.FSCIP_CMD method)</a>
 </li>
@@ -281,16 +287,14 @@
 </li>
       <li><a href="technical/pulp.html#pulp.combination">combination() (in module pulp)</a>
 </li>
-      <li><a href="technical/solvers.html#pulp.apis.configSolvers">configSolvers() (in module pulp.apis)</a>
-</li>
       <li><a href="technical/pulp.html#pulp.LpProblem.constraints">constraints (pulp.LpProblem attribute)</a>
 </li>
       <li><a href="technical/solvers.html#pulp.apis.COPT">COPT (class in pulp.apis)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="technical/solvers.html#pulp.apis.COPT_CMD">COPT_CMD (class in pulp.apis)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="technical/solvers.html#pulp.apis.COPT_DLL">COPT_DLL (class in pulp.apis)</a>
 </li>
       <li><a href="technical/solvers.html#pulp.apis.COPT_DLL_loadlib">COPT_DLL_loadlib() (in module pulp.apis)</a>
@@ -318,6 +322,8 @@
       <li><a href="technical/solvers.html#pulp.apis.LpSolver_CMD.create_tmp_files">create_tmp_files() (pulp.apis.LpSolver_CMD method)</a>
 </li>
       <li><a href="technical/solvers.html#pulp.apis.ctypesArrayFill">ctypesArrayFill() (in module pulp.apis)</a>
+</li>
+      <li><a href="technical/solvers.html#pulp.apis.CYLP">CYLP (class in pulp.apis)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -427,6 +433,12 @@
 <h2 id="G">G</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="technical/solvers.html#pulp.apis.get_arch">get_arch() (in module pulp.apis)</a>
+</li>
+      <li><a href="technical/solvers.html#pulp.apis.get_operating_system">get_operating_system() (in module pulp.apis)</a>
+</li>
+      <li><a href="technical/solvers.html#pulp.apis.LpSolver_CMD.get_pipe">get_pipe() (pulp.apis.LpSolver_CMD method)</a>
+</li>
       <li><a href="technical/solvers.html#pulp.apis.COIN_CMD.get_status">get_status() (pulp.apis.COIN_CMD method)</a>
 </li>
       <li><a href="technical/solvers.html#pulp.apis.XPRESS_PY.getAttribute">getAttribute() (pulp.apis.XPRESS_PY method)</a>
@@ -441,10 +453,10 @@
         <li><a href="technical/solvers.html#pulp.apis.GUROBI_CMD.getOptions">(pulp.apis.GUROBI_CMD method)</a>
 </li>
       </ul></li>
-      <li><a href="technical/solvers.html#pulp.apis.getSolver">getSolver() (in module pulp.apis)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="technical/solvers.html#pulp.apis.getSolver">getSolver() (in module pulp.apis)</a>
+</li>
       <li><a href="technical/solvers.html#pulp.apis.getSolverFromDict">getSolverFromDict() (in module pulp.apis)</a>
 </li>
       <li><a href="technical/solvers.html#pulp.apis.getSolverFromJson">getSolverFromJson() (in module pulp.apis)</a>
@@ -477,12 +489,10 @@
 <h2 id="I">I</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="technical/solvers.html#pulp.apis.initialize">initialize() (in module pulp.apis)</a>
+      <li><a href="technical/pulp.html#pulp.LpVariable.isFixed">isFixed() (pulp.LpVariable method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="technical/pulp.html#pulp.LpVariable.isFixed">isFixed() (pulp.LpVariable method)</a>
-</li>
       <li><a href="technical/pulp.html#pulp.FixedElasticSubProblem.isViolated">isViolated() (pulp.FixedElasticSubProblem method)</a>
 </li>
   </ul></td>
@@ -595,6 +605,8 @@
 </li>
         <li><a href="technical/solvers.html#pulp.apis.CPLEX_PY.name">(pulp.apis.CPLEX_PY attribute)</a>
 </li>
+        <li><a href="technical/solvers.html#pulp.apis.CYLP.name">(pulp.apis.CYLP attribute)</a>
+</li>
         <li><a href="technical/solvers.html#pulp.apis.FSCIP_CMD.name">(pulp.apis.FSCIP_CMD attribute)</a>
 </li>
         <li><a href="technical/solvers.html#pulp.apis.GLPK_CMD.name">(pulp.apis.GLPK_CMD attribute)</a>
@@ -666,8 +678,6 @@
 </li>
       <li><a href="technical/solvers.html#pulp.apis.FSCIP_CMD.parse_variable">parse_variable() (pulp.apis.FSCIP_CMD static method)</a>
 </li>
-      <li><a href="technical/solvers.html#pulp.apis.Parser">Parser (in module pulp.apis)</a>
-</li>
       <li><a href="technical/pulp.html#pulp.permutation">permutation() (in module pulp)</a>
 </li>
       <li>
@@ -728,7 +738,7 @@
       <ul>
         <li><a href="technical/solvers.html#pulp.apis.COPT_CMD.readsol">(pulp.apis.COPT_CMD method)</a>
 </li>
-        <li><a href="technical/solvers.html#pulp.apis.CPLEX_CMD.readsol">(pulp.apis.CPLEX_CMD method)</a>
+        <li><a href="technical/solvers.html#pulp.apis.CPLEX_CMD.readsol">(pulp.apis.CPLEX_CMD static method)</a>
 </li>
         <li><a href="technical/solvers.html#pulp.apis.FSCIP_CMD.readsol">(pulp.apis.FSCIP_CMD static method)</a>
 </li>
@@ -782,8 +792,6 @@
       <li><a href="technical/solvers.html#pulp.apis.StringIO.seek">seek() (pulp.apis.StringIO method)</a>
 </li>
       <li><a href="technical/solvers.html#pulp.apis.StringIO.seekable">seekable() (pulp.apis.StringIO method)</a>
-</li>
-      <li><a href="technical/solvers.html#pulp.apis.setConfigInformation">setConfigInformation() (in module pulp.apis)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
