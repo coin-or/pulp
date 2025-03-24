@@ -23,19 +23,13 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Code Quality
         run: uv run black pulp/ --check
-#      - name: Type Check
-#        run: uv run mypy --config-file pyproject.toml --show-traceback --verbose ./
+      - name: Type Check
+        run: uv run mypy --config-file pyproject.toml --show-traceback --verbose ./
       - name: install ubuntu-only solvers
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt update -qq
           sudo apt install -qq glpk-utils
-#      - name: install xpress
-#        if: matrix.os != 'macOS-latest' && matrix.python-version != '3.12'
-#        run: uv pip install xpress
-#      - name: Install other solvers, gurobi, highspy, coptpy, saspy, swat, SCIP_PY
-#        run: |
-#          uv pip install gurobipy highspy "numpy<2" coptpy saspy swat pyscipopt .
       - name: Install highspy cmd
         if: matrix.os == 'ubuntu-latest'
         uses: supplypike/setup-bin@v4
