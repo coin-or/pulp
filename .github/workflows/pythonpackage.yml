@@ -8,11 +8,8 @@ jobs:
     strategy:
       max-parallel: 21
       matrix:
-        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
+        python-version: ['3.9', '3.10', '3.11', '3.12']
         os: [ubuntu-latest, macOS-latest, windows-latest]
-        exclude:
-          - os: macOS-latest
-            python-version: '3.8'
 
     steps:
       - uses: actions/checkout@v4
@@ -24,23 +21,15 @@ jobs:
         uses: astral-sh/setup-uv@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Update pip, install dev deps
-        run: uv pip install -r requirements-dev.txt
       - name: Code Quality
-        run: black pulp/ --check
+        run: uv run black pulp/ --check
       - name: Type Check
-        run: mypy ./
+        run: uv run mypy ./
       - name: install ubuntu-only solvers
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt update -qq
           sudo apt install -qq glpk-utils
-      - name: install xpress
-        if: matrix.os != 'macOS-latest' && matrix.python-version != '3.12'
-        run: uv pip install xpress
-      - name: Install other solvers, gurobi, highspy, coptpy, saspy, swat, SCIP_PY
-        run: |
-          uv pip install gurobipy highspy "numpy<2" coptpy saspy swat pyscipopt .
       - name: Install highspy cmd
         if: matrix.os == 'ubuntu-latest'
         uses: supplypike/setup-bin@v4
@@ -58,4 +47,4 @@ jobs:
           version: '9.2.1'
           command: "sudo apt install -qq ./SCIPOptSuite-9.2.1-Linux-ubuntu24.deb"
       - name: Test with pulptest
-        run: uv run --no-project pulp/tests/run_tests.py
+        run: uv run --all-extras pulp/tests/run_tests.py

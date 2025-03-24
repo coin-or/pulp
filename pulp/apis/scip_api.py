@@ -30,10 +30,13 @@ import sys
 import warnings
 
 from .core import LpSolver_CMD, LpSolver, subprocess, PulpSolverError
-from .core import scip_path, fscip_path
+
 from .. import constants
 
 from typing import Dict, List, Optional, Tuple
+
+scip_path = "scip"
+fscip_path = "fscip"
 
 
 class SCIP_CMD(LpSolver_CMD):
@@ -167,7 +170,13 @@ class SCIP_CMD(LpSolver_CMD):
 
         with open(tmpOptions, "w") as options_file:
             options_file.write("\n".join(file_options))
-        subprocess.check_call(command, stdout=sys.stdout, stderr=sys.stderr)
+
+        pipe = self.get_pipe()
+        subprocess.check_call(command, stdout=pipe, stderr=pipe)
+
+        # Close the pipe now if we used it.
+        if pipe is not None:
+            pipe.close()
 
         if not os.path.exists(tmpSol):
             raise PulpSolverError("PuLP: Error while executing " + self.path)
@@ -358,11 +367,12 @@ class FSCIP_CMD(LpSolver_CMD):
             options_file.write("\n".join(file_options))
         with open(tmpParams, "w") as parameters_file:
             parameters_file.write("\n".join(file_parameters))
-        subprocess.check_call(
-            command,
-            stdout=sys.stdout if self.msg else subprocess.DEVNULL,
-            stderr=sys.stderr if self.msg else subprocess.DEVNULL,
-        )
+
+        pipe = self.get_pipe()
+        subprocess.check_call(command, stdout=pipe, stderr=pipe)
+
+        if pipe is not None:
+            pipe.close()
 
         if not os.path.exists(tmpSol):
             raise PulpSolverError("PuLP: Error while executing " + self.path)

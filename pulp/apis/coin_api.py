@@ -23,14 +23,30 @@
 # CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."""
-
+from __future__ import annotations
 from .core import LpSolver_CMD, LpSolver, subprocess, PulpSolverError, clock, log
-from .core import cbc_path, pulp_cbc_path, coinMP_path, devnull, operating_system
+from .core import devnull, operating_system, arch
 import os
 from .. import constants
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .. import LpProblem
 from tempfile import mktemp
 import ctypes
 import warnings
+
+cbc_path = "cbc"
+if operating_system == "win":
+    cbc_path += ".exe"
+
+coinMP_path = ["libCoinMP.so"]
+# workaround for (https://github.com/coin-or/pulp/issues/802)
+if operating_system == "osx":
+    arch = "i64"
+pulp_cbc_path = os.path.join(
+    os.path.dirname(__file__), f"../solverdir/cbc/{operating_system}/{arch}/{cbc_path}"
+)
 
 
 class COIN_CMD(LpSolver_CMD):
@@ -107,7 +123,7 @@ class COIN_CMD(LpSolver_CMD):
         aCopy.optionsDict = self.optionsDict
         return aCopy
 
-    def actualSolve(self, lp, **kwargs):
+    def actualSolve(self, lp: LpProblem, **kwargs):
         """Solve a well formulated lp problem"""
         return self.solve_CBC(lp, **kwargs)
 
@@ -115,7 +131,7 @@ class COIN_CMD(LpSolver_CMD):
         """True if the solver is available"""
         return self.executable(self.path)
 
-    def solve_CBC(self, lp, use_mps=True):
+    def solve_CBC(self, lp: LpProblem, use_mps=True):
         """Solve a MIP problem using CBC"""
         if not self.executable(self.path):
             raise PulpSolverError(
@@ -165,10 +181,6 @@ class COIN_CMD(LpSolver_CMD):
             cmds += "-initialSolve "
         cmds += "-printingOptions all "
         cmds += "-solution " + tmpSol + " "
-        if self.msg:
-            pipe = None
-        else:
-            pipe = open(os.devnull, "w")
         logPath = self.optionsDict.get("logPath")
         if logPath:
             if self.msg:
@@ -176,6 +188,8 @@ class COIN_CMD(LpSolver_CMD):
                     "`logPath` argument replaces `msg=1`. The output will be redirected to the log file."
                 )
             pipe = open(self.optionsDict["logPath"], "w")
+        else:
+            pipe = self.get_pipe()
         log.debug(self.path + cmds)
         args = []
         args.append(self.path)
@@ -200,6 +214,7 @@ class COIN_CMD(LpSolver_CMD):
             pipe.close()
         except:
             pass
+
         if not os.path.exists(tmpSol):
             raise PulpSolverError("Pulp: Error while executing " + self.path)
         (
@@ -401,9 +416,10 @@ class PULP_CBC_CMD(COIN_CMD):
             )
 
 
-def COINMP_DLL_load_dll(path):
+def COINMP_DLL_load_dll(path: list[str]):
     """
     function that loads the DLL useful for debugging installation problems
+    path is a list of paths actually
     """
     if os.name == "nt":
         lib = ctypes.windll.LoadLibrary(str(path[-1]))
@@ -853,3 +869,142 @@ class YAPOSIB(LpSolver):
             for constraint in lp.constraints.values():
                 constraint.modified = False
             return solutionStatus
+
+
+cy = None
+
+
+class CYLP(LpSolver):
+    # https://github.com/coin-or/CyLP
+    name = "CyLP"
+    try:
+        global cy
+        from cylp import cy
+    except:
+
+        def available(self):
+            """True if the solver is available"""
+            return False
+
+        def actualSolve(self, lp, callback=None):
+            """Solve a well formulated lp problem"""
+            raise PulpSolverError("CyLP: Not Available")
+
+    else:
+
+        def __init__(
+            self,
+            mip=True,
+            msg=True,
+            gapAbs=None,
+            gapRel=None,
+            threads=None,
+            timeLimit=None,
+            **solverParams,
+        ):
+            """
+            :param bool mip: if False, assume LP even if integer variables
+            :param bool msg: if False, no log is shown
+            :param float gapRel: relative gap tolerance for the solver to stop (in fraction)
+            :param float gapAbs: absolute gap tolerance for the solver to stop
+            :param int threads: sets the maximum number of threads
+            :param float timeLimit: maximum time for solver (in seconds)
+            :param dict solverParams: list of named options to pass directly to the HiGHS solver
+            """
+            super().__init__(mip=mip, msg=msg, timeLimit=timeLimit, **solverParams)
+            self.gapAbs = gapAbs
+            self.gapRel = gapRel
+            self.threads = threads
+
+        def actualSolve(self, lp, **kwargs):
+            self.buildSolverModel(lp)
+            my_status = self.callSolver(lp)
+            # get the solution information
+            self.findSolutionValues(lp)
+
+            my_map = {
+                0: constants.LpStatusOptimal,
+                1: constants.LpStatusInfeasible,
+                2: constants.LpStatusInfeasible,
+                4: constants.LpStatusNotSolved,
+                5: constants.LpStatusUndefined,
+                -1: constants.LpStatusUndefined,
+            }
+            sol_stats = lp.solverModel.status
+            print(sol_stats)
+            my_map_2 = {
+                "linear relaxation unbounded": constants.LpStatusInfeasible,
+                "relaxation infeasible": constants.LpStatusInfeasible,
+                "solution": constants.LpStatusOptimal,
+                "problem proven infeasible": constants.LpStatusInfeasible,
+                "relaxation abandoned": constants.LpStatusNotSolved,
+            }
+
+            return my_map_2.get(sol_stats, constants.LpStatusUndefined)
+
+        def findSolutionValues(self, lp):
+            my_vars = lp.variables()
+            my_values = lp.solverModel.primalVariableSolution
+            for var, value in zip(my_vars, my_values):
+                var.varValue = value
+            # status = lp.solverModel.getStatusCode()
+            # -1 - unknown e.g. before solve or if postSolve says not optimal
+
+            # 0 - optimal
+            # 1 - primal infeasible
+            # 2 - dual infeasible
+            # 3 - stopped on iterations or time
+            # 4 - stopped due to errors
+            # 5 - stopped by event handler (virtual int ClpEventHandler::event())
+            # lp.solverModel.primalVariableSolution
+            # variables
+            # solution
+            # reducedCosts
+            pass
+
+        def available(self):
+            return True
+
+        def callSolver(self, lp):
+            self.solveTime = -clock()
+            if self.timeLimit:
+                lp.solverModel.maximumSeconds = self.timeLimit
+            if self.gapRel:
+                lp.solverModel.allowableFractionGap = self.gapRel
+            if self.gapAbs:
+                lp.solverModel.allowableGap = self.gapAbs
+            if self.threads:
+                lp.solverModel.numberThreads = self.threads
+
+            if max_nodes := self.optionsDict.get("maxNodes"):
+                lp.solverModel.maximumNodes = max_nodes
+
+            stop_status = lp.solverModel.solve()
+            self.solveTime += clock()
+            return stop_status
+
+        def buildSolverModel(self, lp):
+
+            my_model = cy.CyClpSimplex()
+            tmpMps = f"{lp.name}-pulp.mps"
+            lp.writeMPS(tmpMps)
+            success = my_model.readMps(tmpMps)
+            try:
+                os.remove(tmpMps)
+            except:
+                pass
+            if success != 0:
+                raise PulpSolverError("Error reading MPS file")
+            cbc_model = my_model.getCbcModel()
+            # my_model.initialSolve()
+            # cbc_model.solve()
+            # cbc_model.status
+            # my_model.primalVariableSolution
+            # my_model.variableNames
+            # my_model.variables
+            # my_model.readMps("test.mps")
+            # my_model.solution
+            # my_model.status
+            # my_model.getStatusCode()
+            # my_model.getStatusString()
+            lp.solverModel = cbc_model

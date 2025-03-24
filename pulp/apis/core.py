@@ -37,12 +37,29 @@ import sys
 import ctypes
 
 
+def get_operating_system():
+    if sys.platform in ["win32", "cli"]:
+        return "win"
+    if sys.platform in ["darwin"]:
+        return "osx"
+    return "linux"
+
+
+def get_arch():
+    is_64bits = sys.maxsize > 2**32
+    if is_64bits:
+        if platform.machine().lower() in ["aarch64", "arm64"]:
+            return "arm64"
+        return "i64"
+    return "i32"
+
+
+operating_system = get_operating_system()
+arch = get_arch()
+
 from time import monotonic as clock
 
-import configparser
 from typing import Union
-
-Parser = configparser.ConfigParser
 
 from .. import sparse
 from .. import constants as const
@@ -70,118 +87,6 @@ class PulpSolverError(const.PulpError):
     """
 
     pass
-
-
-# import configuration information
-def initialize(filename, operating_system="linux", arch="64"):
-    """reads the configuration file to initialise the module"""
-    here = os.path.dirname(filename)
-    config = Parser({"here": here, "os": operating_system, "arch": arch})
-    config.read(filename)
-
-    try:
-        cplex_dll_path = config.get("locations", "CplexPath")
-    except configparser.Error:
-        cplex_dll_path = "libcplex110.so"
-    try:
-        try:
-            ilm_cplex_license = (
-                config.get("licenses", "ilm_cplex_license")
-                .decode("string-escape")
-                .replace('"', "")
-            )
-        except AttributeError:
-            ilm_cplex_license = config.get("licenses", "ilm_cplex_license").replace(
-                '"', ""
-            )
-    except configparser.Error:
-        ilm_cplex_license = ""
-    try:
-        ilm_cplex_license_signature = config.getint(
-            "licenses", "ilm_cplex_license_signature"
-        )
-    except configparser.Error:
-        ilm_cplex_license_signature = 0
-    try:
-        coinMP_path = config.get("locations", "CoinMPPath").split(", ")
-    except configparser.Error:
-        coinMP_path = ["libCoinMP.so"]
-    try:
-        gurobi_path = config.get("locations", "GurobiPath")
-    except configparser.Error:
-        gurobi_path = "/opt/gurobi201/linux32/lib/python2.5"
-    try:
-        cbc_path = config.get("locations", "CbcPath")
-    except configparser.Error:
-        cbc_path = "cbc"
-    try:
-        glpk_path = config.get("locations", "GlpkPath")
-    except configparser.Error:
-        glpk_path = "glpsol"
-    try:
-        pulp_cbc_path = config.get("locations", "PulpCbcPath")
-    except configparser.Error:
-        pulp_cbc_path = "cbc"
-    try:
-        scip_path = config.get("locations", "ScipPath")
-    except configparser.Error:
-        scip_path = "scip"
-    try:
-        fscip_path = config.get("locations", "FscipPath")
-    except configparser.Error:
-        fscip_path = "fscip"
-    for i, path in enumerate(coinMP_path):
-        if not os.path.dirname(path):
-            # if no pathname is supplied assume the file is in the same directory
-            coinMP_path[i] = os.path.join(os.path.dirname(config_filename), path)
-    return (
-        cplex_dll_path,
-        ilm_cplex_license,
-        ilm_cplex_license_signature,
-        coinMP_path,
-        gurobi_path,
-        cbc_path,
-        glpk_path,
-        pulp_cbc_path,
-        scip_path,
-        fscip_path,
-    )
-
-
-# pick up the correct config file depending on operating system
-PULPCFGFILE = "pulp.cfg"
-is_64bits = sys.maxsize > 2**32
-if is_64bits:
-    arch = "64"
-    if platform.machine().lower() in ["aarch64", "arm64"]:
-        arch = "arm64"
-else:
-    arch = "32"
-operating_system = None
-if sys.platform in ["win32", "cli"]:
-    operating_system = "win"
-    PULPCFGFILE += ".win"
-elif sys.platform in ["darwin"]:
-    operating_system = "osx"
-    PULPCFGFILE += ".osx"
-else:
-    operating_system = "linux"
-    PULPCFGFILE += ".linux"
-
-DIRNAME = os.path.dirname(__file__)
-config_filename = os.path.normpath(os.path.join(DIRNAME, "..", PULPCFGFILE))
-(
-    cplex_dll_path,
-    ilm_cplex_license,
-    ilm_cplex_license_signature,
-    coinMP_path,
-    gurobi_path,
-    cbc_path,
-    glpk_path,
-    pulp_cbc_path,
-    scip_path,
-    fscip_path,
-) = initialize(config_filename, operating_system, arch)
 
 
 class LpSolver:
@@ -478,6 +383,11 @@ class LpSolver_CMD(LpSolver):
         """Checks that the solver command is executable,
         And returns the actual path to it."""
         return shutil.which(command)
+
+    def get_pipe(self):
+        if self.msg:
+            return None
+        return open(os.devnull, "w")
 
 
 def ctypesArrayFill(myList, type=ctypes.c_double):
