@@ -1,6 +1,6 @@
 """
- The Furniture problem from EngSci391 for the PuLP Modeller
- Author: Dr Stuart Mitchell    2007
+The Furniture problem from EngSci391 for the PuLP Modeller
+Author: Dr Stuart Mitchell    2007
 """
 
 from pulp import *

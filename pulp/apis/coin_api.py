@@ -37,9 +37,12 @@ import ctypes
 import warnings
 
 cbc_path = "cbc"
+if operating_system == "win":
+    cbc_path += ".exe"
+
 coinMP_path = ["libCoinMP.so"]
 pulp_cbc_path = os.path.join(
-    os.path.dirname(__file__), f"../solverdir/cbc/{operating_system}/{arch}/cbc"
+    os.path.dirname(__file__), f"../solverdir/cbc/{operating_system}/{arch}/{cbc_path}"
 )
 
 

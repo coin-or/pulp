@@ -1798,7 +1798,7 @@ public-py = [
     { name = "gurobipy", version = "12.0.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.9'" },
     { name = "saspy" },
     { name = "swat" },
-    { name = "xpress", marker = "sys_platform != 'darwin'" },
+    { name = "xpress" },
 ]
 
 [package.dev-dependencies]
@@ -1828,7 +1828,7 @@ requires-dist = [
     { name = "pyscipopt", marker = "extra == 'open-py'" },
     { name = "saspy", marker = "extra == 'public-py'" },
     { name = "swat", marker = "extra == 'public-py'" },
-    { name = "xpress", marker = "sys_platform != 'darwin' and extra == 'public-py'" },
+    { name = "xpress", marker = "extra == 'public-py'" },
 ]
 provides-extras = ["open-py", "public-py"]
 
@@ -3044,18 +3044,28 @@ dependencies = [
     { name = "xpresslibs" },
 ]
 wheels = [
+    { url = "https://files.pythonhosted.org/packages/0e/3a/64185f7d1584d4ea6aac68d8e7b5561829bb090aa22fa4090150550029ca/xpress-9.5.4-cp310-cp310-macosx_10_13_x86_64.whl", hash = "sha256:1e2b489d586a8040ddfc1b87b17954eeadbf111b3e5de7a39f06f7c0b9fb4b48", size = 2359750 },
+    { url = "https://files.pythonhosted.org/packages/c1/aa/9110d1dc7640259c38d93d7e6b4f318313f8912162a46922a011b776d6db/xpress-9.5.4-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:ae885352a1b2fdfba2eb644499e8af68018805b8867fd110cff0e375dfdabb79", size = 2313236 },
     { url = "https://files.pythonhosted.org/packages/bf/47/7ca83be68a01b0cafe717c4cd18da63066aa8948bdb42785ccb3b32bda8e/xpress-9.5.4-cp310-cp310-manylinux1_x86_64.whl", hash = "sha256:9ab7e955211b01da85dea056d9f68b2b12f29ab1043c6e7946481ec465246e8d", size = 2365502 },
     { url = "https://files.pythonhosted.org/packages/3a/ce/d2776002a3e505647762bba9e4cb81093e546716a9dce4bab925025d8897/xpress-9.5.4-cp310-cp310-manylinux2014_aarch64.whl", hash = "sha256:1baa4e969e4145983f51dac8c086fe729abde40d664093a6976d6157683dfa2c", size = 2336849 },
     { url = "https://files.pythonhosted.org/packages/d4/6a/943a3cdb31cf96248ac78a73c89af20dfa8218e3d1e5f9eb7a273a20d128/xpress-9.5.4-cp310-cp310-win_amd64.whl", hash = "sha256:3271cab544879c3e75be0845f91653544fd9b6f9efe0e5266b30f417d48fbc3b", size = 2258956 },
+    { url = "https://files.pythonhosted.org/packages/ec/f4/02026ea34a825f0ee7cabbb026aafe96028f5ebbb05b7af25ed4c3d78f39/xpress-9.5.4-cp311-cp311-macosx_10_13_x86_64.whl", hash = "sha256:9e9d20eeb9a684fde603e2e579b4fff9d782aafd27277fb477901af8f838bbe8", size = 2359778 },
+    { url = "https://files.pythonhosted.org/packages/42/2d/7b11bc612a1304d51ce5c6340a6742201a35185c639af7679e4de9803917/xpress-9.5.4-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:051a5b647483f1f469ea2f2b779473d5ce942dbf971d4a0f39430834e8c4f663", size = 2313227 },
     { url = "https://files.pythonhosted.org/packages/fd/3b/f638bfd11d5b7094e312b3637d7e0e206246f0f98e8832cae22b6e05a0b1/xpress-9.5.4-cp311-cp311-manylinux1_x86_64.whl", hash = "sha256:c57e280ee0a1003b045ad9d17096cbf876a1a888866aec5a484d3b7b6cee5c14", size = 2365753 },
     { url = "https://files.pythonhosted.org/packages/c1/71/688836d02f6d3477e72cee36bd62a2150365465927a1522b7f5311075b12/xpress-9.5.4-cp311-cp311-manylinux2014_aarch64.whl", hash = "sha256:1e3ae4b8173ed0f96e5c7487846c1a03c00a810d98986e6b98721d59f32b6197", size = 2336993 },
     { url = "https://files.pythonhosted.org/packages/64/3e/2f8f5222918722900c3c95d95a1ac1ec7b5fea13c153557961641e231d68/xpress-9.5.4-cp311-cp311-win_amd64.whl", hash = "sha256:e6e272602766061ab6d63b82efe8798a2dd5b4fdfb2de1116ef9c1a0c026adb1", size = 2259352 },
+    { url = "https://files.pythonhosted.org/packages/33/18/a4d236e2eaa9b7e7b80d399e76b4776fdd3d1527a04febf450b65c8c023a/xpress-9.5.4-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:e3f0ccb26aa84944743141a7b6f5b7a375474ef7861762aa49546a8f25e47762", size = 2361492 },
+    { url = "https://files.pythonhosted.org/packages/ce/8e/659b3c0eb24788fd959000ff4bd7642e076b5f6e0d525742c3a5f14560e9/xpress-9.5.4-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:68869648ff795cc77d1891fa53eaacb2a4fef2de7b4f3bfa255dc396cbfa3f4a", size = 2313417 },
     { url = "https://files.pythonhosted.org/packages/f6/af/120af3af8b76b8ec0c4454427681a06c5d9514fe641da201c9d2528c1bbd/xpress-9.5.4-cp312-cp312-manylinux1_x86_64.whl", hash = "sha256:c8a072ec14373a2fb9d66f62b2395aadcb935327de69ca22d8048b7f7495aee1", size = 2368779 },
     { url = "https://files.pythonhosted.org/packages/1c/c9/cc0a93a5e502b0cc54cec162431f9d41495c4a5112adaac7637aa0989845/xpress-9.5.4-cp312-cp312-manylinux2014_aarch64.whl", hash = "sha256:63b967d61110bf5f6e8d40a19cb81b0feb1d31ae386a8bda08f300f46f20c579", size = 2342546 },
     { url = "https://files.pythonhosted.org/packages/27/ce/fdf45a7294acc4bdceb395f831499b247fc3fd43a758d38168dcadcd7bc5/xpress-9.5.4-cp312-cp312-win_amd64.whl", hash = "sha256:6e235c4a3b2c3e02ad7f6a7f704fab14434c4b00c2fec74f92b379d085d2da24", size = 2261386 },
+    { url = "https://files.pythonhosted.org/packages/d3/83/b0b2cb23bae308e941ad8b55da64be7ec197c9dd80ba6ec3c455a53ba487/xpress-9.5.4-cp38-cp38-macosx_10_13_x86_64.whl", hash = "sha256:0ceeebb754bf490fab7f2728baa9c9119ac89c6cecfd6633df3239cb53ffc288", size = 2360049 },
+    { url = "https://files.pythonhosted.org/packages/7a/a4/21c44fccc4a216815c61f6b8578a835bc0eafa8edb518be5a6cb09cec162/xpress-9.5.4-cp38-cp38-macosx_11_0_arm64.whl", hash = "sha256:4df04dc8c04834894ddfcb30bb959dc670207a4baa4b72fec104a548954a8f97", size = 2313407 },
     { url = "https://files.pythonhosted.org/packages/c7/61/9e015e4e08d56446ce71b08cf32201ab15ada8f089b83fb6a6f5f6a17365/xpress-9.5.4-cp38-cp38-manylinux1_x86_64.whl", hash = "sha256:7094469d5ccf2cd27bda4e122439f24ae3f44cb31b9256c6697d0a0520743e6f", size = 2365501 },
     { url = "https://files.pythonhosted.org/packages/fc/49/b8fd3fbe63e1e55ac86d3101ddf8e787db422ecc8ad4178ed0c64b0ae6cd/xpress-9.5.4-cp38-cp38-manylinux2014_aarch64.whl", hash = "sha256:afc1f9eabe4c65781f136b651af77f77816eae938f33c73bc230ca44d9750ba8", size = 2337520 },
     { url = "https://files.pythonhosted.org/packages/3c/31/055d910162c445b18cbda342b82c9a2d98ed71d6381d394c3f6fb2709620/xpress-9.5.4-cp38-cp38-win_amd64.whl", hash = "sha256:75af3d8e2579f9db04cbe9da4430fac491d1bc70c6e66c8f0afecd3367ed6db0", size = 2258526 },
+    { url = "https://files.pythonhosted.org/packages/2b/1e/70c3166d0ffc5331b52a07aa6dc5e28a79196d846312df7572a0aa3578a2/xpress-9.5.4-cp39-cp39-macosx_10_13_x86_64.whl", hash = "sha256:d821b08824ee49652f5bab104fe02b142b61b70bf8ac47f444351b699e185318", size = 2359605 },
+    { url = "https://files.pythonhosted.org/packages/15/e0/5b7a4b943340022cb8f8a277d62a1a587a5575ecf2d0c77d761da119ccdd/xpress-9.5.4-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:bf2c05c454ab2efe7ea91f24344f48c4a90d6280a85553a6e9de60266f536877", size = 2313178 },
     { url = "https://files.pythonhosted.org/packages/9e/03/b0d0612f661b3cb99cfb80b8a9063e73c9c1916da9246122776864e8e111/xpress-9.5.4-cp39-cp39-manylinux1_x86_64.whl", hash = "sha256:6cbe5a58ea0393203183aab0dadd2fa84447f2e9f121dc92ff726afe074ac816", size = 2365653 },
     { url = "https://files.pythonhosted.org/packages/8e/26/c6b65476ffe7dc1a50fd30c6be0d764a5b00f0c3b144fd9716ffb9c17f24/xpress-9.5.4-cp39-cp39-manylinux2014_aarch64.whl", hash = "sha256:6f38164c71c42fd1e551d3d5ee13bb3d9b77af275bcf9d2672d9b42e92505f5d", size = 2337315 },
     { url = "https://files.pythonhosted.org/packages/0d/94/c4553afadd27675a116b9321aeb13eed79beb7b44c9ea41ea5b3a3437d7e/xpress-9.5.4-cp39-cp39-win_amd64.whl", hash = "sha256:99a6a1af65b35c1b9456909178348c83357716f8686edafe276674255723ac71", size = 2258590 },
@@ -3066,6 +3076,8 @@ name = "xpresslibs"
 version = "9.5.4"
 source = { registry = "https://pypi.org/simple" }
 wheels = [
+    { url = "https://files.pythonhosted.org/packages/97/65/d6cbb611484f809678d7972ebb5d7755028c61cd42279fde11b27726c790/xpresslibs-9.5.4-cp38-abi3-macosx_10_13_x86_64.whl", hash = "sha256:04ab432644572c4bb55801daffa0f6cc1c7372a6894e264ea9ef6217234847a7", size = 44151044 },
+    { url = "https://files.pythonhosted.org/packages/47/f7/c6f177b24eca01c0ea0f52ceac85fa658119579e48969853b89046f1c93c/xpresslibs-9.5.4-cp38-abi3-macosx_11_0_arm64.whl", hash = "sha256:79e699ab3eba8bf2d54187b18a210107e934bd8d73b490a116b15ff040861229", size = 11624859 },
     { url = "https://files.pythonhosted.org/packages/3a/5f/623f25b393fe3ce85a10298d235b6e74728704d4e21e6173da364bc1fa73/xpresslibs-9.5.4-cp38-abi3-manylinux1_x86_64.whl", hash = "sha256:86d4324d97490d65f7380c43727f77476bbbfe75749bd97fcb95b2a5e81f3ae2", size = 56977127 },
     { url = "https://files.pythonhosted.org/packages/e3/b6/28b0038609b0b5196f49a8de30a3c5fb386af7fe8b44889cb3e3b37bd569/xpresslibs-9.5.4-cp38-abi3-manylinux2014_aarch64.whl", hash = "sha256:eb09abb97d8abd9d90f260f337cf56f8b9706df2e021159f98d029cf5548bf4d", size = 15644343 },
     { url = "https://files.pythonhosted.org/packages/fb/b1/dc5f53f1384ff5cf52ce07288f9ffbd34952b0fe54cace482e07eacf3fda/xpresslibs-9.5.4-cp38-abi3-win_amd64.whl", hash = "sha256:f6573264f515617ac5f2da12d73dd104e0d370eaf63372b6bf01f46291277dbb", size = 45914808 },
