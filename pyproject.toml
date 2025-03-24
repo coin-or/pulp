@@ -92,7 +92,4 @@ exclude = '/(\.eggs|\.git|\.hg|\.mypy_cache|\.tox|\.venv|_build|buck-out|build|d
 
 [project.optional-dependencies]
 open_py = ["cylp", "highspy", "pyscipopt"]
-public_py = ["gurobipy", "coptpy",
-    'xpress',
-#    'xpress; sys_platform != "darwin"',
-    "saspy", "swat"]
+public_py = ["gurobipy", "coptpy", 'xpress']

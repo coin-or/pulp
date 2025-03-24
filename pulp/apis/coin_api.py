@@ -41,6 +41,9 @@ if operating_system == "win":
     cbc_path += ".exe"
 
 coinMP_path = ["libCoinMP.so"]
+# workaround for (https://github.com/coin-or/pulp/issues/802)
+if operating_system == "osx":
+    arch = "i64"
 pulp_cbc_path = os.path.join(
     os.path.dirname(__file__), f"../solverdir/cbc/{operating_system}/{arch}/{cbc_path}"
 )
