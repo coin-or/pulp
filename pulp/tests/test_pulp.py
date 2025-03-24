@@ -326,8 +326,6 @@ class BaseSolverTest:
                 MOSEK,
                 SCIP_CMD,
                 FSCIP_CMD,
-                SCIP_PY,
-                HiGHS,
                 HiGHS_CMD,
                 XPRESS,
                 XPRESS_CMD,

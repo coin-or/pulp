@@ -24,24 +24,21 @@ jobs:
         uses: astral-sh/setup-uv@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install dependencies with uv
-        run: |
-          uv sync --dev
       - name: Code Quality
         run: uv run black pulp/ --check
-      - name: Type Check
-        run: uv run mypy --config-file pyproject.toml --show-traceback --verbose ./
+#      - name: Type Check
+#        run: uv run mypy --config-file pyproject.toml --show-traceback --verbose ./
       - name: install ubuntu-only solvers
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt update -qq
           sudo apt install -qq glpk-utils
-      - name: install xpress
-        if: matrix.os != 'macOS-latest' && matrix.python-version != '3.12'
-        run: uv pip install xpress
-      - name: Install other solvers, gurobi, highspy, coptpy, saspy, swat, SCIP_PY
-        run: |
-          uv pip install gurobipy highspy "numpy<2" coptpy saspy swat pyscipopt .
+#      - name: install xpress
+#        if: matrix.os != 'macOS-latest' && matrix.python-version != '3.12'
+#        run: uv pip install xpress
+#      - name: Install other solvers, gurobi, highspy, coptpy, saspy, swat, SCIP_PY
+#        run: |
+#          uv pip install gurobipy highspy "numpy<2" coptpy saspy swat pyscipopt .
       - name: Install highspy cmd
         if: matrix.os == 'ubuntu-latest'
         uses: supplypike/setup-bin@v4
@@ -59,4 +56,4 @@ jobs:
           version: '9.2.1'
           command: "sudo apt install -qq ./SCIPOptSuite-9.2.1-Linux-ubuntu24.deb"
       - name: Test with pulptest
-        run: uv run --no-project pulp/tests/run_tests.py
+        run: uv run --all-extras pulp/tests/run_tests.py

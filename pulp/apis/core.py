@@ -384,6 +384,11 @@ class LpSolver_CMD(LpSolver):
         And returns the actual path to it."""
         return shutil.which(command)
 
+    def get_pipe(self):
+        if self.msg:
+            return None
+        return open(os.devnull, "w")
+
 
 def ctypesArrayFill(myList, type=ctypes.c_double):
     """

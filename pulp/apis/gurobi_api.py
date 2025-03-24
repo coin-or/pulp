@@ -471,10 +471,7 @@ class GUROBI_CMD(LpSolver_CMD):
             if not self.mip:
                 warnings.warn("GUROBI_CMD does not allow a problem to be relaxed")
         cmd += f" {tmpLp}"
-        if self.msg:
-            pipe = None
-        else:
-            pipe = open(os.devnull, "w")
+        pipe = self.get_pipe()
 
         return_code = subprocess.call(cmd.split(), stdout=pipe, stderr=pipe)
 

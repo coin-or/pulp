@@ -175,10 +175,6 @@ class COIN_CMD(LpSolver_CMD):
             cmds += "-initialSolve "
         cmds += "-printingOptions all "
         cmds += "-solution " + tmpSol + " "
-        if self.msg:
-            pipe = None
-        else:
-            pipe = open(os.devnull, "w")
         logPath = self.optionsDict.get("logPath")
         if logPath:
             if self.msg:
@@ -186,6 +182,8 @@ class COIN_CMD(LpSolver_CMD):
                     "`logPath` argument replaces `msg=1`. The output will be redirected to the log file."
                 )
             pipe = open(self.optionsDict["logPath"], "w")
+        else:
+            pipe = self.get_pipe()
         log.debug(self.path + cmds)
         args = []
         args.append(self.path)
@@ -210,6 +208,7 @@ class COIN_CMD(LpSolver_CMD):
             pipe.close()
         except:
             pass
+
         if not os.path.exists(tmpSol):
             raise PulpSolverError("Pulp: Error while executing " + self.path)
         (
