@@ -1844,7 +1844,7 @@ class BaseSolverTest:
             include_extra = LpVariable("include_extra1", cat=LpBinary)
 
             expression = LpAffineExpression()
-            expression += x * m1 + include_extra*extra - y
+            expression += x * m1 + include_extra * extra - y
             self.assertEqual(str(expression), "5*include_extra1 + 3*x - y")
 
             with self.assertRaises(TypeError):
@@ -1857,6 +1857,7 @@ class BaseSolverTest:
 
             second_expression_2 = x * m2 - 6 - y
             self.assertEqual(str(second_expression_2), "8.1*x - y - 6.0")
+
 
 class PULP_CBC_CMDTest(BaseSolverTest.PuLPTest):
     solveInst = PULP_CBC_CMD
