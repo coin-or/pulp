@@ -107,7 +107,7 @@ def getSolverFromJson(filename: str) -> LpSolver:
     return getSolverFromDict(data)
 
 
-def listSolvers(onlyAvailable=False):
+def listSolvers(onlyAvailable: bool = False) -> List[str]:
     """
     List the names of all the existing solvers in PuLP
 
