@@ -24,8 +24,8 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."""
 from __future__ import annotations
-from .core import LpSolver_CMD, LpSolver, subprocess, PulpSolverError, clock, log  # type: ignore[attr-defined]
-from .core import devnull, operating_system, arch  # type: ignore[attr-defined]
+from .core import LpSolver_CMD, LpSolver, subprocess, PulpSolverError, clock, log
+from .core import devnull, operating_system, arch
 import os
 from .. import constants
 from typing import TYPE_CHECKING
@@ -196,8 +196,8 @@ class COIN_CMD(LpSolver_CMD):
         args.extend(cmds[1:].split())
         if not self.msg and operating_system == "win":
             # Prevent flashing windows if used from a GUI application
-            startupinfo = subprocess.STARTUPINFO()
-            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            startupinfo = subprocess.STARTUPINFO()  # type: ignore[attr-defined]
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW  # type: ignore[attr-defined]
             cbc = subprocess.Popen(
                 args, stdout=pipe, stderr=pipe, stdin=devnull, startupinfo=startupinfo
             )

@@ -1,4 +1,3 @@
-# type: ignore
 # PuLP : Python LP Modeler
 # Version 1.4.2
 
@@ -196,7 +195,7 @@ class PYGLPK(LpSolver):
     try:
         # import the model into the global scope
         global glpk
-        import glpk.glpkpi as glpk
+        import glpk.glpkpi as glpk  # type: ignore[import-not-found]
     except:
 
         def available(self):

@@ -1,4 +1,3 @@
-# type: ignore
 # PuLP : Python LP Modeler
 # Version 1.4.2
 
@@ -68,7 +67,7 @@ from .. import constants as const
 import logging
 
 try:
-    import ujson as json
+    import ujson as json  # type: ignore[import-untyped]
 except ImportError:
     import json
 

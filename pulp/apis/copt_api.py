@@ -1,4 +1,3 @@
-# type: ignore
 import os
 import sys
 import ctypes
@@ -858,7 +857,7 @@ class COPT(LpSolver):
 
     try:
         global coptpy
-        import coptpy
+        import coptpy  # type: ignore[import-not-found]
     except:
 
         def available(self):

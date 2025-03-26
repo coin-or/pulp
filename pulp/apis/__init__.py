@@ -13,9 +13,9 @@ from .sas_api import *
 from .core import *
 
 
-from typing import Dict, Union
+from typing import Dict, Union, Optional, Type
 
-_all_solvers = [
+_all_solvers: List[Type[LpSolver]] = [
     CYLP,
     GLPK_CMD,
     PYGLPK,
@@ -46,6 +46,7 @@ _all_solvers = [
 
 import json
 
+LpSolverDefault: Optional[Union[PULP_CBC_CMD, GLPK_CMD, COIN_CMD]] = None
 # Default solver selection
 if PULP_CBC_CMD().available():
     LpSolverDefault = PULP_CBC_CMD()
@@ -53,11 +54,9 @@ elif GLPK_CMD().available():
     LpSolverDefault = GLPK_CMD()
 elif COIN_CMD().available():
     LpSolverDefault = COIN_CMD()
-else:
-    LpSolverDefault = None
 
 
-def getSolver(solver: str, *args, **kwargs) -> PULP_CBC_CMD:
+def getSolver(solver: str, *args, **kwargs) -> Type[LpSolver]:
     """
     Instantiates a solver from its name
 

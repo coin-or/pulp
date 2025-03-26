@@ -1,4 +1,3 @@
-# type: ignore
 # PuLP : Python LP Modeler
 # Version 1.4.2
 
@@ -55,7 +54,7 @@ class GUROBI(LpSolver):
     try:
         # to import the name into the module scope
         global gp
-        import gurobipy as gp
+        import gurobipy as gp  # type: ignore[import-not-found]
     except:  # FIXME: Bug because gurobi returns
         #  a gurobi exception on failed imports
         def available(self):

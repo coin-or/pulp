@@ -1,4 +1,3 @@
-# type: ignore
 # PuLP : Python LP Modeler
 # Version 1.4.2
 
@@ -177,7 +176,7 @@ class SAS94(SASsolver):
 
     try:
         global saspy
-        import saspy
+        import saspy  # type: ignore[import-not-found]
 
     except:
 
@@ -190,7 +189,7 @@ class SAS94(SASsolver):
             raise PulpSolverError("SAS94 : Not Available")
 
     else:
-        saspy.logger.setLevel(log.level)
+        saspy.logger.setLevel(log.level)  # type: ignore[name-defined]
 
         def __init__(
             self,
@@ -247,7 +246,7 @@ class SAS94(SASsolver):
             else:
                 return False
 
-        def actualSolve(self, lp):
+        def actualSolve(self, lp):  # type: ignore[misc]
             """Solve a well formulated lp problem"""
             log.debug("Running SAS")
 
@@ -486,7 +485,7 @@ class SASCAS(SASsolver):
 
     try:
         global swat
-        import swat
+        import swat  # type: ignore[import-not-found]
 
     except ImportError:
 
@@ -558,7 +557,7 @@ class SASCAS(SASsolver):
             else:
                 return True
 
-        def actualSolve(self, lp):
+        def actualSolve(self, lp):  # type: ignore[misc]
             """Solve a well formulated lp problem"""
             log.debug("Running SAS")
 

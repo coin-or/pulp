@@ -1,4 +1,3 @@
-# type: ignore
 # PuLP : Python LP Modeler
 # Version 2.4.1
 from math import inf
@@ -105,7 +104,7 @@ class HiGHS_CMD(LpSolver_CMD):
         )
         lp.writeMPS(tmpMps, with_objsense=True)
 
-        file_options: List[str] = []
+        file_options: List[str] = []  # type: ignore[annotation-unchecked]
         file_options.append(f"solution_file={tmpSol}")
         file_options.append("write_solution_to_file=true")
         file_options.append(f"write_solution_style={HiGHS_CMD.SOLUTION_STYLE}")
@@ -123,7 +122,7 @@ class HiGHS_CMD(LpSolver_CMD):
             highs_log_file = tmpLog
         file_options.append(f"log_file={highs_log_file}")
 
-        command: List[str] = []
+        command: List[str] = []  # type: ignore[annotation-unchecked]
         command.append(self.path)
         command.append(tmpMps)
         command.append(f"--options_file={tmpOptions}")
@@ -278,7 +277,7 @@ class HiGHS(LpSolver):
 
     try:
         global highspy
-        import highspy
+        import highspy  # type: ignore[import-not-found]
     except:
 
         def available(self):
@@ -514,7 +513,7 @@ class HiGHS(LpSolver):
             else:
                 return status_dict[status]
 
-        def actualSolve(self, lp):
+        def actualSolve(self, lp):  # type: ignore[misc]
             self.createAndConfigureSolver(lp)
             self.buildSolverModel(lp)
             self.callSolver(lp)
