@@ -1,6 +1,12 @@
 # PuLP : Python LP Modeler
 # Version 2.4.1
+import os
+import subprocess
 from math import inf
+from typing import List
+
+from .. import constants
+from .core import LpSolver, LpSolver_CMD, PulpSolverError
 
 # Copyright (c) 2002-2005, Jean-Sebastien Roy (js@jeannot.org)
 # Modifications Copyright (c) 2007- Stuart Anthony Mitchell (s.mitchell@auckland.ac.nz)
@@ -29,12 +35,7 @@ from math import inf
 # Users would need to install HiGHS on their machine and provide the path to the executable. Please look at this thread: https://github.com/ERGO-Code/HiGHS/issues/527#issuecomment-894852288
 # More instructions on: https://www.highs.dev
 
-from typing import List
 
-from .core import LpSolver, LpSolver_CMD, PulpSolverError
-import subprocess
-import os
-from .. import constants
 
 
 class HiGHS_CMD(LpSolver_CMD):

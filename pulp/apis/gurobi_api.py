@@ -25,14 +25,18 @@
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."""
 
 from __future__ import annotations
-from .core import LpSolver_CMD, LpSolver, subprocess, PulpSolverError, clock, log
+
 import os
 import sys
-from .. import constants
 from typing import TYPE_CHECKING
+
+from .. import constants
+from .core import (LpSolver, LpSolver_CMD, PulpSolverError, clock, log,
+                   subprocess)
 
 if TYPE_CHECKING:
     from .. import LpProblem
+
 import warnings
 
 # to import the gurobipy name into the module scope

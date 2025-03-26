@@ -1,29 +1,16 @@
-import os
-import sys
 import ctypes
+import os
 import subprocess
+import sys
 import warnings
-
 from uuid import uuid4
-from .core import (
-    sparse,
-    ctypesArrayFill,
-    PulpSolverError,
-    LpSolver,
-    LpSolver_CMD,
-    clock,
-)
-from ..constants import (
-    LpStatusNotSolved,
-    LpStatusOptimal,
-    LpStatusInfeasible,
-    LpStatusUnbounded,
-    LpStatusUndefined,
-)
-from ..constants import LpContinuous, LpBinary, LpInteger
-from ..constants import LpConstraintEQ, LpConstraintLE, LpConstraintGE
-from ..constants import LpMinimize, LpMaximize
 
+from ..constants import (LpBinary, LpConstraintEQ, LpConstraintGE,
+                         LpConstraintLE, LpContinuous, LpInteger, LpMaximize,
+                         LpMinimize, LpStatusInfeasible, LpStatusNotSolved,
+                         LpStatusOptimal, LpStatusUnbounded, LpStatusUndefined)
+from .core import (LpSolver, LpSolver_CMD, PulpSolverError, clock,
+                   ctypesArrayFill, sparse)
 
 # COPT string convention
 if sys.version_info >= (3, 0):

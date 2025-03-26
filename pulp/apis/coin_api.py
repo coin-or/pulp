@@ -24,17 +24,20 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."""
 from __future__ import annotations
-from .core import LpSolver_CMD, LpSolver, subprocess, PulpSolverError, clock, log
-from .core import devnull, operating_system, arch
+
 import os
-from .. import constants
 from typing import TYPE_CHECKING
+
+from .. import constants
+from .core import (LpSolver, LpSolver_CMD, PulpSolverError, arch, clock,
+                   devnull, log, operating_system, subprocess)
 
 if TYPE_CHECKING:
     from .. import LpProblem
-from tempfile import mktemp
+
 import ctypes
 import warnings
+from tempfile import mktemp
 
 cbc_path = "cbc"
 if operating_system == "win":

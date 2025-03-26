@@ -24,10 +24,11 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."""
 
-from .core import LpSolver, LpSolver_CMD, subprocess, PulpSolverError
-from .. import constants
-import sys
 import re
+import sys
+
+from .. import constants
+from .core import LpSolver, LpSolver_CMD, PulpSolverError, subprocess
 
 
 def _ismip(lp):

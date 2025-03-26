@@ -24,16 +24,16 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."""
 
-from .core import LpSolver_CMD, LpSolver, PulpSolverError, log
-from io import StringIO
-from contextlib import redirect_stdout
 import os
 import sys
-from .. import constants
 import warnings
+from contextlib import redirect_stdout
+from io import StringIO
 from typing import Union
-
 from uuid import uuid4
+
+from .. import constants
+from .core import LpSolver, LpSolver_CMD, PulpSolverError, log
 
 # The maximum length of the names of variables and constraints.
 MAX_NAME_LENGTH = 256

@@ -28,12 +28,10 @@ import operator
 import os
 import sys
 import warnings
-
-from .core import LpSolver_CMD, LpSolver, subprocess, PulpSolverError
+from typing import Dict, List, Optional, Tuple
 
 from .. import constants
-
-from typing import Dict, List, Optional, Tuple
+from .core import LpSolver, LpSolver_CMD, PulpSolverError, subprocess
 
 scip_path = "scip"
 fscip_path = "fscip"

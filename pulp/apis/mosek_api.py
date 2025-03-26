@@ -24,11 +24,11 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."""
 
-from .core import LpSolver, PulpSolverError
-from .. import constants
 import sys
-
 from typing import Optional
+
+from .. import constants
+from .core import LpSolver, PulpSolverError
 
 
 class MOSEK(LpSolver):

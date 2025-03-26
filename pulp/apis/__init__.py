@@ -1,19 +1,18 @@
-from .coin_api import *
-from .cplex_api import *
-from .gurobi_api import *
-from .glpk_api import *
+from typing import Dict, Optional, Type, Union
+
 from .choco_api import *
+from .coin_api import *
+from .copt_api import *
+from .core import *
+from .cplex_api import *
+from .glpk_api import *
+from .gurobi_api import *
+from .highs_api import *
 from .mipcl_api import *
 from .mosek_api import *
+from .sas_api import *
 from .scip_api import *
 from .xpress_api import *
-from .highs_api import *
-from .copt_api import *
-from .sas_api import *
-from .core import *
-
-
-from typing import Dict, Union, Optional, Type
 
 _all_solvers: List[Type[LpSolver]] = [
     CYLP,

@@ -24,10 +24,11 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."""
 
-from .core import LpSolver_CMD, LpSolver, subprocess, PulpSolverError, clock
-from .core import operating_system, log
 import os
+
 from .. import constants
+from .core import (LpSolver, LpSolver_CMD, PulpSolverError, clock, log,
+                   operating_system, subprocess)
 
 glpk_path = "glpsol"
 
