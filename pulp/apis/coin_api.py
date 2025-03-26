@@ -208,8 +208,8 @@ class COIN_CMD(LpSolver_CMD):
         args.extend(cmds[1:].split())
         if not self.msg and operating_system == "win":
             # Prevent flashing windows if used from a GUI application
-            startupinfo = subprocess.STARTUPINFO()  # type: ignore[attr-defined]
-            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW  # type: ignore[attr-defined]
+            startupinfo = subprocess.STARTUPINFO()  # type: ignore[attr-defined,unused-ignore]
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW  # type: ignore[attr-defined,unused-ignore]
             cbc = subprocess.Popen(
                 args, stdout=pipe, stderr=pipe, stdin=devnull, startupinfo=startupinfo
             )
@@ -434,14 +434,14 @@ def COINMP_DLL_load_dll(path: list[str]):
     path is a list of paths actually
     """
     if os.name == "nt":
-        lib = ctypes.windll.LoadLibrary(str(path[-1]))  # type: ignore[attr-defined]
+        lib = ctypes.windll.LoadLibrary(str(path[-1]))  # type: ignore[attr-defined,unused-ignore]
     else:
         # linux hack to get working
         mode = ctypes.RTLD_GLOBAL
         for libpath in path[:-1]:
             # RTLD_LAZY = 0x00001
             ctypes.CDLL(libpath, mode=mode)
-        lib = ctypes.CDLL(path[-1], mode=mode)
+        lib = ctypes.CDLL(path[-1], mode=mode)  # type-ignore[assignment,unused-ignore]
     return lib
 
 
