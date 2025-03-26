@@ -29,8 +29,17 @@ import os
 from typing import TYPE_CHECKING
 
 from .. import constants
-from .core import (LpSolver, LpSolver_CMD, PulpSolverError, arch, clock,
-                   devnull, log, operating_system, subprocess)
+from .core import (
+    LpSolver,
+    LpSolver_CMD,
+    PulpSolverError,
+    arch,
+    clock,
+    devnull,
+    log,
+    operating_system,
+    subprocess,
+)
 
 if TYPE_CHECKING:
     from .. import LpProblem

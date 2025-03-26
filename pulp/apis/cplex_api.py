@@ -2,8 +2,7 @@ import os
 import warnings
 
 from .. import constants
-from .core import (LpSolver, LpSolver_CMD, PulpSolverError, clock, log,
-                   subprocess)
+from .core import LpSolver, LpSolver_CMD, PulpSolverError, clock, log, subprocess
 
 
 class CPLEX_CMD(LpSolver_CMD):

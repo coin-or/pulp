@@ -36,8 +36,6 @@ from .core import LpSolver, LpSolver_CMD, PulpSolverError
 # More instructions on: https://www.highs.dev
 
 
-
-
 class HiGHS_CMD(LpSolver_CMD):
     """The HiGHS_CMD solver"""
 

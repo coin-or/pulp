@@ -5,12 +5,29 @@ import sys
 import warnings
 from uuid import uuid4
 
-from ..constants import (LpBinary, LpConstraintEQ, LpConstraintGE,
-                         LpConstraintLE, LpContinuous, LpInteger, LpMaximize,
-                         LpMinimize, LpStatusInfeasible, LpStatusNotSolved,
-                         LpStatusOptimal, LpStatusUnbounded, LpStatusUndefined)
-from .core import (LpSolver, LpSolver_CMD, PulpSolverError, clock,
-                   ctypesArrayFill, sparse)
+from ..constants import (
+    LpBinary,
+    LpConstraintEQ,
+    LpConstraintGE,
+    LpConstraintLE,
+    LpContinuous,
+    LpInteger,
+    LpMaximize,
+    LpMinimize,
+    LpStatusInfeasible,
+    LpStatusNotSolved,
+    LpStatusOptimal,
+    LpStatusUnbounded,
+    LpStatusUndefined,
+)
+from .core import (
+    LpSolver,
+    LpSolver_CMD,
+    PulpSolverError,
+    clock,
+    ctypesArrayFill,
+    sparse,
+)
 
 # COPT string convention
 if sys.version_info >= (3, 0):

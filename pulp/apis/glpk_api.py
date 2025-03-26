@@ -27,8 +27,15 @@
 import os
 
 from .. import constants
-from .core import (LpSolver, LpSolver_CMD, PulpSolverError, clock, log,
-                   operating_system, subprocess)
+from .core import (
+    LpSolver,
+    LpSolver_CMD,
+    PulpSolverError,
+    clock,
+    log,
+    operating_system,
+    subprocess,
+)
 
 glpk_path = "glpsol"
 
