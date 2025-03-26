@@ -11,7 +11,8 @@ from .highs_api import *
 from .copt_api import *
 from .sas_api import *
 from .core import *
-from pulp.apis.coin_api import PULP_CBC_CMD
+
+
 from typing import Dict, Union
 
 _all_solvers = [
@@ -90,6 +91,7 @@ def getSolverFromDict(data: Dict[str, Union[str, bool, float, int]]) -> PULP_CBC
     solver = data.pop("solver", None)
     if solver is None:
         raise PulpSolverError("The json file has no solver attribute.")
+    assert isinstance(solver, str)
     return getSolver(solver, **data)
 
 

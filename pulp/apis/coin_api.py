@@ -1,4 +1,3 @@
-# type: ignore
 # PuLP : Python LP Modeler
 # Version 1.4.2
 
@@ -25,8 +24,8 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."""
 from __future__ import annotations
-from .core import LpSolver_CMD, LpSolver, subprocess, PulpSolverError, clock, log
-from .core import devnull, operating_system, arch
+from .core import LpSolver_CMD, LpSolver, subprocess, PulpSolverError, clock, log  # type: ignore[attr-defined]
+from .core import devnull, operating_system, arch  # type: ignore[attr-defined]
 import os
 from .. import constants
 from typing import TYPE_CHECKING
@@ -423,7 +422,7 @@ def COINMP_DLL_load_dll(path: list[str]):
     path is a list of paths actually
     """
     if os.name == "nt":
-        lib = ctypes.windll.LoadLibrary(str(path[-1]))
+        lib = ctypes.windll.LoadLibrary(str(path[-1]))  # type: ignore[attr-defined]
     else:
         # linux hack to get working
         mode = ctypes.RTLD_GLOBAL
@@ -669,7 +668,7 @@ class COINMP_DLL(LpSolver):
 
 
 if COINMP_DLL.available():
-    COIN = COINMP_DLL
+    COIN = COINMP_DLL  # type: ignore[assignment,misc]
 
 yaposib = None
 
@@ -689,7 +688,7 @@ class YAPOSIB(LpSolver):
     try:
         # import the model into the global scope
         global yaposib
-        import yaposib
+        import yaposib  # type: ignore[import-not-found]
     except ImportError:
 
         def available(self):
@@ -880,7 +879,7 @@ class CYLP(LpSolver):
     name = "CyLP"
     try:
         global cy
-        from cylp import cy
+        from cylp import cy  # type: ignore[import-not-found]
     except:
 
         def available(self):
@@ -917,7 +916,7 @@ class CYLP(LpSolver):
             self.gapRel = gapRel
             self.threads = threads
 
-        def actualSolve(self, lp, **kwargs):
+        def actualSolve(self, lp, **kwargs):  # type: ignore[misc]
             self.buildSolverModel(lp)
             my_status = self.callSolver(lp)
             # get the solution information
