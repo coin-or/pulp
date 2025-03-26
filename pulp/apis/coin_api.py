@@ -441,7 +441,7 @@ def COINMP_DLL_load_dll(path: list[str]):
         for libpath in path[:-1]:
             # RTLD_LAZY = 0x00001
             ctypes.CDLL(libpath, mode=mode)
-        lib = ctypes.CDLL(path[-1], mode=mode)  # type-ignore[assignment,unused-ignore]
+        lib = ctypes.CDLL(path[-1], mode=mode)  # type: ignore[assignment,unused-ignore]
     return lib
 
 
