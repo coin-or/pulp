@@ -118,9 +118,9 @@ class GLPK_CMD(LpSolver_CMD):
 
         status, values = self.readsol(tmpOut, tmpSol)
 
-        vars = dict([(var.name,var) for var in lp.variables()])
-        for name,value in values.items():
-            if name not in vars: # __dummy
+        vars = dict([(var.name, var) for var in lp.variables()])
+        for name, value in values.items():
+            if name not in vars:  # __dummy
                 continue
             var = vars[name]
             if var.cat == constants.LpInteger and self.mip:
@@ -188,25 +188,26 @@ class GLPK_CMD(LpSolver_CMD):
             while True:
                 ln = f.readline()
                 elems = ln.split()
-                if elems[0] == 'c':
+                if elems[0] == "c":
                     continue
-                if elems[0] == 'e':
+                if elems[0] == "e":
                     break
-                if elems[0] == 'j':
+                if elems[0] == "j":
                     values.append(elems[vpos])
-                if elems[0] == 's':
-                    status2 = {'o': constants.LpStatusOptimal,
-                               'f': constants.LpStatusOptimal,
-                               'n': constants.LpStatusInfeasible,
-                               'u': constants.LpStatusUndefined
-                               }[elems[4]]
-                    vpos = {'mip': 2, 'bas': 3, 'ipt': 2}[elems[1]]
+                if elems[0] == "s":
+                    status2 = {
+                        "o": constants.LpStatusOptimal,
+                        "f": constants.LpStatusOptimal,
+                        "n": constants.LpStatusInfeasible,
+                        "u": constants.LpStatusUndefined,
+                    }[elems[4]]
+                    vpos = {"mip": 2, "bas": 3, "ipt": 2}[elems[1]]
 
             values = dict(zip(names, values))
 
             assert status == status2
 
-            return status,values
+            return status, values
 
 
 GLPK = GLPK_CMD

@@ -2026,11 +2026,11 @@ class GLPK_CMDTest(BaseSolverTest.PuLPTest):
         # see pulp.py asCplexLpVariable / asCplexLpConstraint methods
         ub = 999999999999
 
-        assert int(format(ub, '.12g')) == ub
-        assert float(format(ub+2, '.12g')) != float(ub+2)
+        assert int(format(ub, ".12g")) == ub
+        assert float(format(ub + 2, ".12g")) != float(ub + 2)
 
-        model = LpProblem('mip-814', LpMaximize)
-        Q = LpVariable('Q', cat='Integer', lowBound=0, upBound=ub)
+        model = LpProblem("mip-814", LpMaximize)
+        Q = LpVariable("Q", cat="Integer", lowBound=0, upBound=ub)
         model += Q
         model += Q >= 0
         model.solve(self.solver)
@@ -2041,15 +2041,15 @@ class GLPK_CMDTest(BaseSolverTest.PuLPTest):
         Test there is no rounding issue for LP (simplex method) problems as described in #814
         """
         ub = 999999999999.0
-        assert float(format(ub, '.12g')) == ub
-        assert float(format(ub+0.1, '.12g')) != ub+0.1
+        assert float(format(ub, ".12g")) == ub
+        assert float(format(ub + 0.1, ".12g")) != ub + 0.1
 
-        for simplex in ['primal', 'dual']:
-            model = LpProblem(f'lp-814-{simplex}', LpMaximize)
-            Q = LpVariable('Q', lowBound=0, upBound=ub)
+        for simplex in ["primal", "dual"]:
+            model = LpProblem(f"lp-814-{simplex}", LpMaximize)
+            Q = LpVariable("Q", lowBound=0, upBound=ub)
             model += Q
             model += Q >= 0
-            self.solver.options.append('--'+simplex)
+            self.solver.options.append("--" + simplex)
             model.solve(self.solver)
             self.solver.options = self.solver.options[:-1]
             assert Q.value() == ub
@@ -2061,14 +2061,14 @@ class GLPK_CMDTest(BaseSolverTest.PuLPTest):
         # this one is limited by GLPK int pt feasibility, not formatting
         ub = 12345678999.0
 
-        model = LpProblem('ipt-814', LpMaximize)
-        Q = LpVariable('Q', lowBound=0, upBound=ub)
+        model = LpProblem("ipt-814", LpMaximize)
+        Q = LpVariable("Q", lowBound=0, upBound=ub)
         model += Q
         model += Q >= 0
-        self.solver.options.append('--interior')
+        self.solver.options.append("--interior")
         model.solve(self.solver)
         self.solver.options = self.solver.options[:-1]
-        assert abs(Q.value() - ub)/ub < 1e-9
+        assert abs(Q.value() - ub) / ub < 1e-9
 
 
 class GUROBITest(BaseSolverTest.PuLPTest):
