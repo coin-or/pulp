@@ -56,7 +56,7 @@ elif COIN_CMD().available():
     LpSolverDefault = COIN_CMD()
 
 
-def getSolver(solver: str, *args, **kwargs) -> Type[LpSolver]:
+def getSolver(solver: str, *args, **kwargs) -> LpSolver:
     """
     Instantiates a solver from its name
 
@@ -76,7 +76,7 @@ def getSolver(solver: str, *args, **kwargs) -> Type[LpSolver]:
         )
 
 
-def getSolverFromDict(data: Dict[str, Union[str, bool, float, int]]) -> PULP_CBC_CMD:
+def getSolverFromDict(data: Dict[str, Union[str, bool, float, int]]) -> LpSolver:
     """
     Instantiates a solver from a dictionary with its data
 
@@ -94,7 +94,7 @@ def getSolverFromDict(data: Dict[str, Union[str, bool, float, int]]) -> PULP_CBC
     return getSolver(solver, **data)
 
 
-def getSolverFromJson(filename: str) -> PULP_CBC_CMD:
+def getSolverFromJson(filename: str) -> LpSolver:
     """
     Instantiates a solver from a json file with its data
 
