@@ -1,3 +1,4 @@
+# type: ignore
 # PuLP : Python LP Modeler
 # Version 1.4.2
 

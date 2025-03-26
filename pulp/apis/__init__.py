@@ -11,6 +11,8 @@ from .highs_api import *
 from .copt_api import *
 from .sas_api import *
 from .core import *
+from pulp.apis.coin_api import PULP_CBC_CMD
+from typing import Dict, Union
 
 _all_solvers = [
     CYLP,
@@ -54,7 +56,7 @@ else:
     LpSolverDefault = None
 
 
-def getSolver(solver, *args, **kwargs):
+def getSolver(solver: str, *args, **kwargs) -> PULP_CBC_CMD:
     """
     Instantiates a solver from its name
 
@@ -74,7 +76,7 @@ def getSolver(solver, *args, **kwargs):
         )
 
 
-def getSolverFromDict(data):
+def getSolverFromDict(data: Dict[str, Union[str, bool, float, int]]) -> PULP_CBC_CMD:
     """
     Instantiates a solver from a dictionary with its data
 
@@ -91,7 +93,7 @@ def getSolverFromDict(data):
     return getSolver(solver, **data)
 
 
-def getSolverFromJson(filename):
+def getSolverFromJson(filename: str) -> PULP_CBC_CMD:
     """
     Instantiates a solver from a json file with its data
 

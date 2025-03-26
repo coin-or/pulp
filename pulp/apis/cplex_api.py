@@ -1,3 +1,4 @@
+# type: ignore
 from .core import LpSolver_CMD, LpSolver, subprocess, PulpSolverError, clock, log
 from .. import constants
 import os

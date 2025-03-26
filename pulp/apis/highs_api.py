@@ -1,3 +1,4 @@
+# type: ignore
 # PuLP : Python LP Modeler
 # Version 2.4.1
 from math import inf
