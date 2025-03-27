@@ -37,5 +37,5 @@ from .utilities import *
 from .constants import *
 from .tests import pulpTestAll
 
-__doc__ = pulp.__doc__
+__doc__ = pulp.__doc__  # type: ignore[name-defined]
 __version__ = VERSION
