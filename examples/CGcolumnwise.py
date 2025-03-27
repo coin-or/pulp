@@ -4,10 +4,11 @@ Columnwise Column Generation Functions
 Authors: Antony Phillips,  Dr Stuart Mitchell  2008
 """
 
+from typing import Any, Dict, List, Optional, Tuple, Union
+
 # Import PuLP modeler functions
 from pulp import *
 from pulp.pulp import LpConstraintVar, LpProblem
-from typing import Any, Dict, List, Optional, Tuple, Union
 
 
 class Pattern:
@@ -21,7 +22,7 @@ class Pattern:
     lenOpts = ["5", "7", "9"]
     numPatterns = 0
 
-    def __init__(self, name: str, lengths: Optional[List[int]]=None) -> None:
+    def __init__(self, name: str, lengths: Optional[List[int]] = None) -> None:
         self.name = name
         self.lengthsdict = dict(zip(self.lenOpts, lengths))
         Pattern.numPatterns += 1
@@ -73,7 +74,11 @@ def createMaster() -> Tuple[LpProblem, LpConstraintVar, Dict[str, LpConstraintVa
     return prob, obj, constraints
 
 
-def addPatterns(obj: LpConstraintVar, constraints: Dict[str, LpConstraintVar], newPatterns: List[List[int]]) -> None:
+def addPatterns(
+    obj: LpConstraintVar,
+    constraints: Dict[str, LpConstraintVar],
+    newPatterns: List[List[int]],
+) -> None:
     # A list called Patterns is created to contain all the Pattern class
     # objects created in this function call
     Patterns = []
@@ -107,7 +112,9 @@ def addPatterns(obj: LpConstraintVar, constraints: Dict[str, LpConstraintVar], n
         ]
 
 
-def masterSolve(prob: LpProblem, relax: bool=True) -> Union[Tuple[float, Dict[str, int]], Dict[str, float]]:
+def masterSolve(
+    prob: LpProblem, relax: bool = True
+) -> Union[Tuple[float, Dict[str, int]], Dict[str, float]]:
     # Unrelaxes the Integer Constraint
     if not relax:
         for v in prob.variables():

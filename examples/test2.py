@@ -4,11 +4,11 @@
 # This example is a PuLP rendition of the todd.mod problem included in the GLPK
 # 4.4 distribution. It's a hard knapsack problem.
 
-# Import PuLP modeler functions
-from pulp import *
-
 # Import math functions
 from math import *
+
+# Import PuLP modeler functions
+from pulp import *
 
 # A new LP problem
 prob = LpProblem("test2", LpMaximize)

@@ -3,6 +3,7 @@ The Full Sponge Roll Problem using Classes for the PuLP Modeller
 
 Authors: Antony Phillips, Dr Stuart Mitchell    2007
 """
+
 from typing import List, Optional
 
 
@@ -81,7 +82,7 @@ class Pattern:
     totalRollLength = 20
     lenOpts = [5, 7, 9]
 
-    def __init__(self, name: str, lengths: Optional[List[int]]=None) -> None:
+    def __init__(self, name: str, lengths: Optional[List[int]] = None) -> None:
         self.name = name
         self.lengthsdict = dict(zip(self.lenOpts, lengths))
 

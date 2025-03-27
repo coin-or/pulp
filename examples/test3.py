@@ -8,8 +8,9 @@
 # The thermal units have a proportional cost and a startup cost.
 # The hydro unit has an initial storage.
 
-from pulp import *
 from math import *
+
+from pulp import *
 
 prob = LpProblem("test3", LpMinimize)
 
