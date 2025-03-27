@@ -3,9 +3,10 @@ The Full Sponge Roll Problem for the PuLP Modeller
 
 Authors: Antony Phillips, Dr Stuart Mitchell    2007
 """
+from typing import Any, Dict, List, Tuple, Union
 
 
-def calculatePatterns(totalRollLength, lenOpts, head):
+def calculatePatterns(totalRollLength: int, lenOpts: List[Union[Any, int]], head: List[Union[Any, int]]) -> List[List[int]]:
     """
     Recursively calculates the list of options lists for a cutting stock problem. The input
     'tlist' is a pointer, and will be the output of the function call.
@@ -36,7 +37,7 @@ def calculatePatterns(totalRollLength, lenOpts, head):
     return patterns
 
 
-def makePatterns(totalRollLength, lenOpts):
+def makePatterns(totalRollLength: int, lenOpts: List[int]) -> Tuple[List[str], List[List[int]], Dict[str, int]]:
     """
     Makes the different cutting patterns for a cutting stock problem.
 

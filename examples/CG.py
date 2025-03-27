@@ -6,6 +6,7 @@ Authors: Antony Phillips,  Dr Stuart Mitchell  2008
 
 # Import PuLP modeler functions
 from pulp import *
+from typing import Dict, List, Optional, Tuple, Union
 
 
 class Pattern:
@@ -18,20 +19,20 @@ class Pattern:
     totalRollLength = 20
     lenOpts = ["5", "7", "9"]
 
-    def __init__(self, name, lengths=None):
+    def __init__(self, name: str, lengths: Optional[List[int]]=None) -> None:
         self.name = name
         self.lengthsdict = dict(zip(self.lenOpts, lengths))
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
-    def trim(self):
+    def trim(self) -> int:
         return Pattern.totalRollLength - sum(
             [int(i) * int(self.lengthsdict[i]) for i in self.lengthsdict]
         )
 
 
-def masterSolve(Patterns, rollData, relax=True):
+def masterSolve(Patterns: List[Pattern], rollData: Dict[str, List[Union[float, int]]], relax: bool=True) -> Union[Dict[str, float], Tuple[float, Dict[str, int]]]:
     # The rollData is made into separate dictionaries
     (rollDemand, surplusPrice) = splitDict(rollData)
 
@@ -91,7 +92,7 @@ def masterSolve(Patterns, rollData, relax=True):
         return value(prob.objective), varsdict
 
 
-def subSolve(Patterns, duals):
+def subSolve(Patterns: List[Pattern], duals: Dict[str, float]) -> Tuple[List[Pattern], bool]:
     # The variable 'prob' is created
     prob = LpProblem("SubProb", LpMinimize)
 
