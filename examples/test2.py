@@ -8,7 +8,17 @@
 from math import *
 
 # Import PuLP modeler functions
-from pulp import *
+from pulp import (
+    LpInteger,
+    LpMaximize,
+    LpMinimize,
+    LpProblem,
+    LpStatus,
+    LpVariable,
+    lpDot,
+    lpSum,
+    value,
+)
 
 # A new LP problem
 prob = LpProblem("test2", LpMaximize)

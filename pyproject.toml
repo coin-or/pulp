@@ -30,7 +30,6 @@ exclude = [
     "pulp/mps_lp.py",
     "pulp/solverdir/",
     "pulp/tests/",
-    "pulp/utilities.py",
     ".venv/.*",
     "build/",
 ]
