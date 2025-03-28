@@ -68,10 +68,10 @@ for b in Bars:
 
 # The problem data is written to an .lp file
 prob.writeLP("BeerDistributionProblem.lp")
-for demand in range(500, 601, 10):
+for demand_value in range(500, 601, 10):
     # reoptimise the problem by increasing demand at bar '1'
     # note the constant is stored as the LHS constant not the RHS of the constraint
-    bar_demand_constraint["1"].constant = -demand
+    bar_demand_constraint["1"].constant = -demand_value
     # or alternatively,
     # prob.constraints["Sum_of_Products_into_Bar_1"].constant = - demand
 

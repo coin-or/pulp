@@ -66,8 +66,8 @@ def makePatterns(totalRollLength: int, lenOpts: List[int]) -> List[Pattern]:
     # The different cutting lengths are printed, and the number of each roll of that length in each
     # pattern is printed below. This is so the user can see what each pattern contains.
     print(f"Lens: {lenOpts}")
-    for i in Patterns:
-        print(i, " = %s" % [i.lengthsdict[j] for j in lenOpts])
+    for p in Patterns:
+        print(p, " = %s" % [p.lengthsdict[j] for j in lenOpts])
 
     return Patterns
 
@@ -82,7 +82,7 @@ class Pattern:
     totalRollLength = 20
     lenOpts = [5, 7, 9]
 
-    def __init__(self, name: str, lengths: Optional[List[int]] = None) -> None:
+    def __init__(self, name: str, lengths: List[int]) -> None:
         self.name = name
         self.lengthsdict = dict(zip(self.lenOpts, lengths))
 

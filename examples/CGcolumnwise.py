@@ -22,7 +22,7 @@ class Pattern:
     lenOpts = ["5", "7", "9"]
     numPatterns = 0
 
-    def __init__(self, name: str, lengths: Optional[List[int]] = None) -> None:
+    def __init__(self, name: str, lengths: List[int]) -> None:
         self.name = name
         self.lengthsdict = dict(zip(self.lenOpts, lengths))
         Pattern.numPatterns += 1
@@ -89,7 +89,7 @@ def addPatterns(
         for j, k in zip(i, Pattern.lenOpts):
             lsum += j * int(k)
         if lsum > Pattern.totalRollLength:
-            raise ("Length Options too large for Roll")
+            raise Exception("Length Options too large for Roll")
 
         # The number of rolls of each length in each new pattern is printed
         print("P" + str(Pattern.numPatterns), "=", i)
@@ -99,15 +99,15 @@ def addPatterns(
 
     # The pattern variables are created
     pattVars = []
-    for i in Patterns:
+    for p in Patterns:
         pattVars += [
             LpVariable(
-                "Pattern " + i.name,
+                "Pattern " + p.name,
                 0,
                 None,
                 LpContinuous,
-                (i.cost - Pattern.trimValue * i.trim()) * obj
-                + lpSum([constraints[l] * i.lengthsdict[l] for l in Pattern.lenOpts]),
+                (p.cost - Pattern.trimValue * p.trim()) * obj
+                + lpSum([constraints[l] * p.lengthsdict[l] for l in Pattern.lenOpts]),
             )
         ]
 

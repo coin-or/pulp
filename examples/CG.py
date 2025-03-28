@@ -20,7 +20,7 @@ class Pattern:
     totalRollLength = 20
     lenOpts = ["5", "7", "9"]
 
-    def __init__(self, name: str, lengths: Optional[List[int]] = None) -> None:
+    def __init__(self, name: str, lengths: List[int]) -> None:
         self.name = name
         self.lengthsdict = dict(zip(self.lenOpts, lengths))
 
@@ -91,8 +91,8 @@ def masterSolve(
             varsdict[v.name] = v.varValue
 
         # The number of rolls of each length in each pattern is printed
-        for i in Patterns:
-            print(i, " = %s" % [i.lengthsdict[j] for j in Pattern.lenOpts])
+        for p in Patterns:
+            print(p, " = %s" % [p.lengthsdict[j] for j in Pattern.lenOpts])
 
         return value(prob.objective), varsdict
 
