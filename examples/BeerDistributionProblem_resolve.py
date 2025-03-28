@@ -34,7 +34,7 @@ costs = [  # Bars
 ]
 
 # The cost data is made into a dictionary
-costs = makeDict([Warehouses, Bars], costs, 0)
+costs_dict = makeDict([Warehouses, Bars], costs, 0)
 
 # Creates the 'prob' variable to contain the problem data
 prob = LpProblem("Beer Distribution Problem", LpMinimize)
@@ -47,7 +47,7 @@ vars = LpVariable.dicts("Route", (Warehouses, Bars), 0, None, LpInteger)
 
 # The objective function is added to 'prob' first
 prob += (
-    lpSum([vars[w][b] * costs[w][b] for (w, b) in Routes]),
+    lpSum([vars[w][b] * costs_dict[w][b] for (w, b) in Routes]),
     "Sum_of_Transporting_Costs",
 )
 

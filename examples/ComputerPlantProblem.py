@@ -46,7 +46,7 @@ Routes = [(p, s) for p in Plants for s in Stores]
 (supply, fixedCost) = splitDict(supplyData)
 
 # The cost data is made into a dictionary
-costs = makeDict([Plants, Stores], costs, 0)
+costs_dict = makeDict([Plants, Stores], costs, 0)
 
 # Creates the problem variables of the Flow on the Arcs
 flow = LpVariable.dicts("Route", (Plants, Stores), 0, None, LpInteger)
@@ -59,7 +59,7 @@ prob = LpProblem("Computer Plant Problem", LpMinimize)
 
 # The objective function is added to prob - The sum of the transportation costs and the building fixed costs
 prob += (
-    lpSum([flow[p][s] * costs[p][s] for (p, s) in Routes])
+    lpSum([flow[p][s] * costs_dict[p][s] for (p, s) in Routes])
     + lpSum([fixedCost[p] * build[p] for p in Plants]),
     "Total Costs",
 )

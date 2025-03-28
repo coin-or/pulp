@@ -111,7 +111,7 @@ rollData = {  # Length Demand SalePrice
 
 # The pattern data  is made into a dictionary so it can be called by patterns["7"]["P3"] for example.
 # This will return the number of rolls of length "7" in pattern "P3"
-patterns = makeDict([PatternNames, LenOpts], patterns, 0)
+patterns_dict = makeDict([PatternNames, LenOpts], patterns, 0)
 
 # The variable 'prob' is created
 prob = LpProblem("Cutting Stock Problem", LpMinimize)
@@ -133,7 +133,8 @@ prob += (
 # The demand minimum constraint is entered
 for j in LenOpts:
     prob += (
-        lpSum([pattVars[i] * patterns[i][j] for i in PatternNames]) - surplusVars[j]
+        lpSum([pattVars[i] * patterns_dict[i][j] for i in PatternNames])
+        - surplusVars[j]
         >= rollDemand[j],
         f"Ensuring enough {j} cm rolls",
     )
