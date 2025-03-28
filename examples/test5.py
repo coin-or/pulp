@@ -6,11 +6,11 @@
 
 # With m>=4, these problems are often *very* difficult.
 
-# Import PuLP modeler functions
-from pulp import *
-
 # Import random number generation functions
 from random import *
+
+# Import PuLP modeler functions
+from pulp import *
 
 # A new LP problem
 prob = LpProblem("test5", LpMinimize)

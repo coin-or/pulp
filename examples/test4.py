@@ -8,8 +8,9 @@
 # Vladimir I. Norkin, Yuri M. Ermoliev, Andrzej Ruszczynski
 # IIASA, WP-94-021, April 1994 (revised October 1995).
 
-from pulp import *
 from random import *
+
+from pulp import *
 
 C = 50
 B = 500  # Resources available for the two years

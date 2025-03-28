@@ -23,7 +23,7 @@ patterns = [[0, 2, 2], [1, 1, 0], [1, 0, 1]]  # A B C  # 5  # 7  # 9
 cost = 1
 
 # The pattern data is made into a dictionary
-patterns = makeDict([LenOpts, PatternNames], patterns, 0)
+patterns_dict = makeDict([LenOpts, PatternNames], patterns, 0)
 
 # The problem variables of the number of each pattern to make are created
 vars = LpVariable.dicts("Patt", PatternNames, 0, None, LpInteger)
@@ -37,7 +37,7 @@ prob += lpSum([vars[i] * cost for i in PatternNames]), "Production Cost"
 # The demand minimum constraint is entered
 for i in LenOpts:
     prob += (
-        lpSum([vars[j] * patterns[i][j] for j in PatternNames]) >= rollDemand[i],
+        lpSum([vars[j] * patterns_dict[i][j] for j in PatternNames]) >= rollDemand[i],
         f"Ensuring enough {i} cm rolls",
     )
 

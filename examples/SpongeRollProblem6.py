@@ -21,10 +21,13 @@ while newPatterns:
     duals = masterSolve(prob)
     # The sub problem is solved and a new pattern will be returned if there is one
     # which can reduce the master objective function
+    assert isinstance(duals, dict)
     newPatterns = subSolve(duals)
 
 # The master problem is solved with Integer Constraints not relaxed
 solution, varsdict = masterSolve(prob, relax=False)
+
+assert isinstance(varsdict, dict)
 
 # Display Solution
 for i, j in list(varsdict.items()):

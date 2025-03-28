@@ -4,6 +4,8 @@ A set partitioning model of a wedding seating problem
 Authors: Stuart Mitchell 2009
 """
 
+from typing import Tuple, Union
+
 import pulp
 
 max_tables = 5
@@ -11,7 +13,11 @@ max_table_size = 4
 guests = "A B C D E F G I J K L M N O P Q R".split()
 
 
-def happiness(table):
+def happiness(
+    table: Union[
+        Tuple[str, str], Tuple[str, str, str, str], Tuple[str], Tuple[str, str, str]
+    ],
+) -> int:
     """
     Find the happiness of the table
     - by calculating the maximum distance between the letters
