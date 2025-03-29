@@ -41,5 +41,3 @@ for i, j in list(varsdict.items()):
     print(i, "=", j)
 
 print("objective = ", solution)
-
-assert False
