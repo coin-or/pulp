@@ -295,7 +295,7 @@ this is the defined default.</p>
 <span class="p">]</span>
 
 <span class="c1"># The cost data is made into a dictionary</span>
-<span class="n">costs</span> <span class="o">=</span> <span class="n">makeDict</span><span class="p">([</span><span class="n">Warehouses</span><span class="p">,</span> <span class="n">Bars</span><span class="p">],</span> <span class="n">costs</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">costs_dict</span> <span class="o">=</span> <span class="n">makeDict</span><span class="p">([</span><span class="n">Warehouses</span><span class="p">,</span> <span class="n">Bars</span><span class="p">],</span> <span class="n">costs</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The <cite>prob</cite> variable is created using the <cite>LpProblem</cite> function, with the usual
@@ -325,7 +325,7 @@ in Routes</cite> will cycle through all the combinations/arcs. Note that <cite>i
 could have been used, but <cite>w</cite> and <cite>b</cite> are more meaningful.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># The objective function is added to &#39;prob&#39; first</span>
 <span class="n">prob</span> <span class="o">+=</span> <span class="p">(</span>
-    <span class="n">lpSum</span><span class="p">([</span><span class="nb">vars</span><span class="p">[</span><span class="n">w</span><span class="p">][</span><span class="n">b</span><span class="p">]</span> <span class="o">*</span> <span class="n">costs</span><span class="p">[</span><span class="n">w</span><span class="p">][</span><span class="n">b</span><span class="p">]</span> <span class="k">for</span> <span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="ow">in</span> <span class="n">Routes</span><span class="p">]),</span>
+    <span class="n">lpSum</span><span class="p">([</span><span class="nb">vars</span><span class="p">[</span><span class="n">w</span><span class="p">][</span><span class="n">b</span><span class="p">]</span> <span class="o">*</span> <span class="n">costs_dict</span><span class="p">[</span><span class="n">w</span><span class="p">][</span><span class="n">b</span><span class="p">]</span> <span class="k">for</span> <span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="ow">in</span> <span class="n">Routes</span><span class="p">]),</span>
     <span class="s2">&quot;Sum_of_Transporting_Costs&quot;</span><span class="p">,</span>
 <span class="p">)</span>
 </pre></div>

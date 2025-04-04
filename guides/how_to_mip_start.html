@@ -147,6 +147,8 @@
 <span class="sd">Authors: Stuart Mitchell 2009, Franco Peschiera 2019</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+
 <span class="kn">import</span><span class="w"> </span><span class="nn">pulp</span>
 
 <span class="n">max_tables</span> <span class="o">=</span> <span class="mi">5</span>
@@ -154,7 +156,11 @@
 <span class="n">guests</span> <span class="o">=</span> <span class="s2">&quot;A B C D E F G I J K L M N O P Q R&quot;</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">happiness</span><span class="p">(</span><span class="n">table</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">happiness</span><span class="p">(</span>
+    <span class="n">table</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span>
+        <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
+    <span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Find the happiness of the table</span>
 <span class="sd">    - by calculating the maximum distance between the letters</span>
