@@ -141,11 +141,6 @@ import logging
 
 log = logging.getLogger(__name__)
 
-try:  # allow Python 2/3 compatibility
-    maketrans = str.maketrans
-except AttributeError:
-    from string import maketrans  # type: ignore[attr-defined,no-redef]
-
 try:
     import ujson as json  # type: ignore[import-untyped]
 except ImportError:
@@ -160,7 +155,7 @@ class LpElement:
     # To remove illegal characters from the names
     illegal_chars = "-+[] ->/"
     expression = re.compile(f"[{re.escape(illegal_chars)}]")
-    trans = maketrans(illegal_chars, "________")
+    trans = str.maketrans(illegal_chars, "________")
 
     def setName(self, name):
         if name:
@@ -672,7 +667,7 @@ class LpAffineExpression(dict):
     """
 
     # to remove illegal characters from the names
-    trans = maketrans("-+[] ", "_____")
+    trans = str.maketrans("-+[] ", "_____")
 
     @property
     def name(self) -> str | None:
