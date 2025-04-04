@@ -128,7 +128,7 @@ import sys
 import warnings
 import math
 from time import time
-from typing import Any, Literal
+from typing import Any, Literal, TypeAlias, Union
 
 from .apis import LpSolverDefault, PULP_CBC_CMD
 from .apis.core import clock
@@ -140,6 +140,12 @@ from collections.abc import Iterable
 import logging
 
 log = logging.getLogger(__name__)
+
+LptNumber: TypeAlias = int | float
+LptItem: TypeAlias = Union[LptNumber, "LpVariable"]
+LptExpr: TypeAlias = Union[LptItem, "LpAffineExpression"]
+LptConstExpr: TypeAlias = Union[LptNumber, "LpAffineExpression"]
+LptExprConstraint: TypeAlias = Union[LptExpr, "LpConstraint"]
 
 try:  # allow Python 2/3 compatibility
     maketrans = str.maketrans
