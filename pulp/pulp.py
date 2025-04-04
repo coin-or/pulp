@@ -141,7 +141,7 @@ import logging
 
 log = logging.getLogger(__name__)
 
-LptNumber: TypeAlias = int | float
+LptNumber: TypeAlias = Union[int, float]
 LptItem: TypeAlias = Union[LptNumber, "LpVariable"]
 LptExpr: TypeAlias = Union[LptItem, "LpAffineExpression"]
 LptConstExpr: TypeAlias = Union[LptNumber, "LpAffineExpression"]
