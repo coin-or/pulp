@@ -35,7 +35,7 @@ trimValue = 0.04
 (rollDemand, surplusPrice) = splitDict(rollData)
 
 # The pattern data is made into a dictionary
-patterns = makeDict([LenOpts, PatternNames], patterns, 0)
+patterns_dict = makeDict([LenOpts, PatternNames], patterns, 0)
 
 # The problem variables of the number of each pattern to make are created
 pattVars = LpVariable.dicts("Patt", PatternNames, 0, None, LpInteger)
@@ -58,7 +58,8 @@ prob += (
 # The demand minimum constraint is entered
 for i in LenOpts:
     prob += (
-        lpSum([pattVars[j] * patterns[i][j] for j in PatternNames]) - surplusVars[i]
+        lpSum([pattVars[j] * patterns_dict[i][j] for j in PatternNames])
+        - surplusVars[i]
         >= rollDemand[i],
         f"Ensuring enough {i} cm rolls",
     )

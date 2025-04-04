@@ -21,7 +21,7 @@ morePatterns = True
 patternslist = [[4, 0, 0], [0, 2, 0], [0, 0, 2]]
 
 # The starting patterns are instantiated with the Pattern class
-Patterns = []
+Patterns: List[Pattern] = []
 for i in patternslist:
     Patterns += [Pattern("P" + str(len(Patterns)), i)]
 
@@ -29,15 +29,17 @@ for i in patternslist:
 while morePatterns == True:
     # Solve the problem as a Relaxed LP
     duals = masterSolve(Patterns, rollData)
+    assert isinstance(duals, dict)
 
     # Find another pattern
     Patterns, morePatterns = subSolve(Patterns, duals)
 
 # Re-solve as an Integer Problem
 solution, varsdict = masterSolve(Patterns, rollData, relax=False)
+assert isinstance(varsdict, dict)
 
 # Display Solution
-for i, j in list(varsdict.items()):
-    print(i, "=", j)
+for var, j in list(varsdict.items()):
+    print(var, "=", j)
 
 print("objective = ", solution)

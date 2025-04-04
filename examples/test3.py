@@ -8,8 +8,9 @@
 # The thermal units have a proportional cost and a startup cost.
 # The hydro unit has an initial storage.
 
-from pulp import *
 from math import *
+
+from pulp import LpInteger, LpMinimize, LpProblem, LpVariable, lpSum, value
 
 prob = LpProblem("test3", LpMinimize)
 
@@ -103,6 +104,7 @@ prob += ctp + cts
 # Solve the problem
 prob.solve()
 
+assert prob.objective is not None
 print("Minimum total cost:", prob.objective.value())
 
 # Print the results
