@@ -25,29 +25,35 @@ First we use :func:`~pulp.allcombinations` to generate a list of all
 possible table seatings.
 
 .. literalinclude:: ../../../examples/wedding.py
-    :lines: 22-23
+    :start-after: # BEGIN possible_tables
+    :end-before: # END possible_tables
 
 Then we create a binary variable that will be 1 if the table will be in the solution, or zero otherwise.
 
 .. literalinclude:: ../../../examples/wedding.py
-    :lines: 25-28
+    :start-after: # BEGIN define_x
+    :end-before: # END define_x
 
 We create the :class:`~pulp.LpProblem` and then make the objective function. Note that
 happiness function used in this script would be difficult to model in any other way.
 
 .. literalinclude:: ../../../examples/wedding.py
-    :lines: 30-32
+    :start-after: # BEGIN class_and_obj_fn
+    :end-before: # END class_and_obj_fn
+
 
 We specify the total number of tables allowed in the solution.
 
 .. literalinclude:: ../../../examples/wedding.py
-    :lines: 34-38
+    :start-after: # BEGIN total_table_constraint
+    :end-before: # END total_table_constraint
 
 This set of constraints defines the set partitioning problem by guaranteeing that a guest is allocated to
 exactly one table.
 
 .. literalinclude:: ../../../examples/wedding.py
-    :lines: 40-45
+    :start-after: # BEGIN exactly_one_table_constraint
+    :end-before: # END exactly_one_table_constraint
     
 The full file can be found here :download:`wedding.py <../../../examples/wedding.py>`
 
