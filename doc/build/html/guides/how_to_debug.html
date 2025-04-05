@@ -1,0 +1,203 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How to debug most errors during solving &mdash; PuLP 3.0.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=3f474186"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Developer Guides" href="../develop/index.html" />
+    <link rel="prev" title="How to import and export models in PuLP" href="how_to_export_models.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            PuLP
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../main/index.html">Main Topics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CaseStudies/index.html">Case Studies</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">User Guides</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="how_to_configure_solvers.html">How to configure a solver in PuLP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how_to_mip_start.html">How to warm-start a solver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how_to_elastic_constraints.html">Elastic Constraints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how_to_export_models.html">How to import and export models in PuLP</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">How to debug most errors during solving</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#giving-feedback-and-asking-for-help">Giving feedback and asking for help</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#error-while-trying-to-execute-cbc-exe">Error while trying to execute cbc.exe</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#infeasible-problems">Infeasible problems</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#jupyter-notebooks-anaconda-conda-issues">Jupyter notebooks / anaconda / conda issues</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../develop/index.html">Developer Guides</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../technical/index.html">PuLP Internal Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../plugins/index.html">Plugins</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PuLP</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">User Guides</a></li>
+      <li class="breadcrumb-item active">How to debug most errors during solving</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/guides/how_to_debug.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="how-to-debug-most-errors-during-solving">
+<h1>How to debug most errors during solving<a class="headerlink" href="#how-to-debug-most-errors-during-solving" title="Link to this heading"></a></h1>
+<p>Here I will put all the main questions and advice from years of solving and helping other solve problems with PuLP. Additional answers can be added via a PR.</p>
+<section id="giving-feedback-and-asking-for-help">
+<h2>Giving feedback and asking for help<a class="headerlink" href="#giving-feedback-and-asking-for-help" title="Link to this heading"></a></h2>
+<p>The two ways one can ask for help or report a problem are:</p>
+<ol class="arabic simple">
+<li><p>The PuLP Github Discussions page: <a class="reference external" href="https://github.com/coin-or/pulp/discussions">https://github.com/coin-or/pulp/discussions</a></p></li>
+<li><p>Stack Overflow <cite>pulp</cite> tag: <a class="reference external" href="https://stackoverflow.com/questions/tagged/pulp">https://stackoverflow.com/questions/tagged/pulp</a></p></li>
+</ol>
+<p>Of course, the questions /problems (and their answers/ solutions) already in these sites can (and often do) include sufficient information to solve or understand the issue. So a good look at old questions and issues is highly recommended.</p>
+<p>Several things need to be taken into account while asking for help, some of them are common to any project, other are particular to PuLP.
+General pointers (that are nonetheless, very important):</p>
+<ol class="arabic simple">
+<li><p>Always submit a minimum reproducible example (<a class="reference external" href="https://stackoverflow.com/help/minimal-reproducible-example">how to here</a>).</p></li>
+<li><p>Check <a class="reference external" href="https://www.youtube.com/watch?v=Qbr4Vnsi2xY">this video</a> on how to ask questions. Although aimed to another programming language, the message and recommendations are very good.</p></li>
+</ol>
+<p>Now, specifically to PuLP:</p>
+<ol class="arabic simple">
+<li><p>Pass the <cite>msg=1</cite> argument to the solver, i.e., <cite>prob.solve(PULP_CBC_CMD(msg=1))</cite>. This will give you more information on the error. Share this information when asking for help.</p></li>
+<li><p>If possible, share an export version of the model. Check <a class="reference external" href="https://coin-or.github.io/pulp/guides/how_to_export_models.html">here</a> how to export one.</p></li>
+<li><p>Alternatively, share a <cite>mps</cite> version of your model. To produce one, use <a class="reference internal" href="../technical/pulp.html#pulp.LpProblem.writeMPS" title="pulp.LpProblem.writeMPS"><code class="xref py py-meth docutils literal notranslate"><span class="pre">writeMPS()</span></code></a>.</p></li>
+</ol>
+<p>Other information that is also useful:</p>
+<ol class="arabic simple">
+<li><p>Version of <cite>pulp</cite>.</p></li>
+<li><p>How did you install <cite>pulp</cite> (via pypi, or from github).</p></li>
+<li><p>What operating system was used.</p></li>
+<li><p>The version of the solver being used (e.g., CPLEX 12.8).</p></li>
+</ol>
+</section>
+<section id="error-while-trying-to-execute-cbc-exe">
+<h2>Error while trying to execute cbc.exe<a class="headerlink" href="#error-while-trying-to-execute-cbc-exe" title="Link to this heading"></a></h2>
+<p>The complete message is usually something like <cite>pulp.solvers.PulpSolverError: Pulp: Error while trying to execute PATH_TO_CBC/cbc.exe</cite>.</p>
+<p>The default solver is CBC and is run via the command line.</p>
+<ol class="arabic simple">
+<li><p>First of all, pass the <cite>msg=1</cite> argument to the solver, to get more information.</p></li>
+<li><p><strong>Check the precision of the numbers</strong>. If you have very big numbers (with a high precision), this generally causes problems with solvers. For example, never use a parameter that is <cite>100000000000</cite> inside your problem. Specially if you then have another one that has <cite>1200.09123642123</cite>. If you do not need decimals, round your values when building the model.</p></li>
+<li><p><strong>Duplicated variables / constraints</strong>. If you have variables that have the same coefficients in <em>all</em> constraints and in the objective function, this is an issue. Also, if you have two constraints that have exactly the same variables and coefficients.</p></li>
+<li><p><strong>Memory issues</strong>. Sometimes your pc runs out of memory. Check if this is the case.</p></li>
+<li><p><strong>python32 vs python64</strong>. Sometimes you’re using the 32-bit version of python, even if your pc is 64-bit. Try to always use the 64-bit if possible, since it handles more memory.</p></li>
+<li><p><strong>Generate an mps file with PuLP</strong> and pass it to the cbc.exe executable directly like so.</p></li>
+<li><p><strong>Anaconda/ conda/ jupyter notebooks</strong> see below.</p></li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cbc</span><span class="o">.</span><span class="n">exe</span> <span class="n">mpsfile</span><span class="o">.</span><span class="n">mps</span>
+</pre></div>
+</div>
+<p>And see what message you get.</p>
+<ol class="arabic simple" start="7">
+<li><p>Finally, sometimes you may want to try PuLP with a more recent version of CBC. To do this, download the CBC binary and pass the path to it to PuLP.</p></li>
+</ol>
+</section>
+<section id="infeasible-problems">
+<h2>Infeasible problems<a class="headerlink" href="#infeasible-problems" title="Link to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p>Add slack variables. As described <a class="reference external" href="https://stackoverflow.com/a/62771338/6508131">in this SO post</a>.</p></li>
+<li><p>Take out constraints and see if the problem becomes feasible.</p></li>
+<li><p>Generate lp file <a class="reference internal" href="../technical/pulp.html#pulp.LpProblem.writeLP" title="pulp.LpProblem.writeLP"><code class="xref py py-meth docutils literal notranslate"><span class="pre">writeLP()</span></code></a> for the problem and open it with a text editor to see if the constraints are correctly built.</p></li>
+<li><p>Check the solver logs to additional message from the solver regarding the constraint or variable involved. The log can be seen by giving <cite>msg=</cite> as argument or exported with the <cite>logPath</cite> argument in some cases.</p></li>
+</ol>
+</section>
+<section id="jupyter-notebooks-anaconda-conda-issues">
+<h2>Jupyter notebooks / anaconda / conda issues<a class="headerlink" href="#jupyter-notebooks-anaconda-conda-issues" title="Link to this heading"></a></h2>
+<p>There have been several issues of the default solver (CBC) not working with an error like:</p>
+<p><cite>pulp.solvers.PulpSolverError: Pulp: Error while trying to execute PATH_TO_CBC/cbc.exe</cite></p>
+<p>or</p>
+<p><cite>Pulp: Error while trying to execute, use msg=True for more details</cite>.</p>
+<p>This could be caused by a combination of the following:</p>
+<ul class="simple">
+<li><p>the conda / anaconda installation of PuLP is not supported and thus may bring its own problems. Try installing pulp as documented in the documentation.</p></li>
+<li><p>Apparently Jupyter notebooks sometimes run in user sessions that do not have access to the PuLP installation folder. This makes it impossible to access the default solver binary. To fix this, try installing pulp in the user’s directory or giving sufficient permissions to the jupyter notebook when launching it.</p></li>
+</ul>
+<p>Examples of these situations, some fixed are:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/coin-or/pulp/issues/410">https://github.com/coin-or/pulp/issues/410</a></p></li>
+<li><p><a class="reference external" href="https://github.com/coin-or/pulp/discussions/384">https://github.com/coin-or/pulp/discussions/384</a></p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="how_to_export_models.html" class="btn btn-neutral float-left" title="How to import and export models in PuLP" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../develop/index.html" class="btn btn-neutral float-right" title="Developer Guides" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2009-, pulp documentation team..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

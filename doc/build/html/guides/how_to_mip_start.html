@@ -1,0 +1,249 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How to warm-start a solver &mdash; PuLP 3.0.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=3f474186"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Elastic Constraints" href="how_to_elastic_constraints.html" />
+    <link rel="prev" title="How to configure a solver in PuLP" href="how_to_configure_solvers.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            PuLP
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../main/index.html">Main Topics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CaseStudies/index.html">Case Studies</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">User Guides</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="how_to_configure_solvers.html">How to configure a solver in PuLP</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">How to warm-start a solver</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#supported-solver-apis">Supported solver APIs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#example-problem">Example problem</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#filling-a-variable-with-a-value">Filling a variable with a value</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#activating-mip-start">Activating MIP start</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fixing-a-variable">Fixing a variable</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#whole-example">Whole Example</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="how_to_elastic_constraints.html">Elastic Constraints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how_to_export_models.html">How to import and export models in PuLP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how_to_debug.html">How to debug most errors during solving</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../develop/index.html">Developer Guides</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../technical/index.html">PuLP Internal Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../plugins/index.html">Plugins</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PuLP</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">User Guides</a></li>
+      <li class="breadcrumb-item active">How to warm-start a solver</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/guides/how_to_mip_start.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="how-to-warm-start-a-solver">
+<h1>How to warm-start a solver<a class="headerlink" href="#how-to-warm-start-a-solver" title="Link to this heading"></a></h1>
+<p>Many solvers permit the possibility of giving a valid (or parcially valid in some cases) solution so the solver can start from that solution. This can lead to performance gains.</p>
+<section id="supported-solver-apis">
+<h2>Supported solver APIs<a class="headerlink" href="#supported-solver-apis" title="Link to this heading"></a></h2>
+<p>The present solver APIs that work with PuLP warm-start are the following: <code class="docutils literal notranslate"><span class="pre">CPLEX_CMD</span></code>, <code class="docutils literal notranslate"><span class="pre">GUROBI_CMD</span></code>, <code class="docutils literal notranslate"><span class="pre">PULP_CBC_CMD</span></code>, <code class="docutils literal notranslate"><span class="pre">CBC_CMD</span></code>, <code class="docutils literal notranslate"><span class="pre">CPLEX_PY</span></code>, <code class="docutils literal notranslate"><span class="pre">GUROBI</span></code>, <code class="docutils literal notranslate"><span class="pre">XPRESS</span></code>, <code class="docutils literal notranslate"><span class="pre">XPRESS_PY</span></code>.</p>
+</section>
+<section id="example-problem">
+<h2>Example problem<a class="headerlink" href="#example-problem" title="Link to this heading"></a></h2>
+<p>We will use as example the model in <a class="reference internal" href="../CaseStudies/a_set_partitioning_problem.html#set-partitioning-problem"><span class="std std-ref">A Set Partitioning Problem</span></a>. At the end is the complete modified code.</p>
+</section>
+<section id="filling-a-variable-with-a-value">
+<h2>Filling a variable with a value<a class="headerlink" href="#filling-a-variable-with-a-value" title="Link to this heading"></a></h2>
+<p>If a model has been previously solved, each variable has already a value. To check the value of a variable we can do it via the <code class="docutils literal notranslate"><span class="pre">value</span></code> method of the variable.</p>
+<p>In our example, if we solve the problem, we could just do the following afterwards:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">x</span><span class="p">[(</span><span class="s1">&#39;O&#39;</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="s1">&#39;Q&#39;</span><span class="p">,</span> <span class="s1">&#39;R&#39;</span><span class="p">)]</span><span class="o">.</span><span class="n">value</span><span class="p">()</span> <span class="c1"># 1.0</span>
+<span class="n">x</span><span class="p">[(</span><span class="s1">&#39;K&#39;</span><span class="p">,</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span> <span class="s1">&#39;O&#39;</span><span class="p">,</span> <span class="s1">&#39;R&#39;</span><span class="p">)]</span><span class="o">.</span><span class="n">value</span><span class="p">()</span> <span class="c1"># 0.0</span>
+</pre></div>
+</div>
+<p>If we have not yet solved the model, we can use the <code class="docutils literal notranslate"><span class="pre">setInitialValue</span></code> method to assign a value to the variable.</p>
+<p>In our example, if we want to get those two same values, we would do the following:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">x</span><span class="p">[(</span><span class="s1">&#39;O&#39;</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="s1">&#39;Q&#39;</span><span class="p">,</span> <span class="s1">&#39;R&#39;</span><span class="p">)]</span><span class="o">.</span><span class="n">setInitialValue</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">x</span><span class="p">[(</span><span class="s1">&#39;K&#39;</span><span class="p">,</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span> <span class="s1">&#39;O&#39;</span><span class="p">,</span> <span class="s1">&#39;R&#39;</span><span class="p">)]</span><span class="o">.</span><span class="n">setInitialValue</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="activating-mip-start">
+<h2>Activating MIP start<a class="headerlink" href="#activating-mip-start" title="Link to this heading"></a></h2>
+<p>Once we have assigned values to all variables and we want to run a model while reusing those values, we just need to pass the <code class="docutils literal notranslate"><span class="pre">warmStart=True</span></code> argument to the solver when initiating it.</p>
+<p>For example, using the default PuLP solver we would do:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">seating_model</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">pulp</span><span class="o">.</span><span class="n">PULP_CBC_CMD</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">warmStart</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>I usually turn <code class="docutils literal notranslate"><span class="pre">msg=True</span></code> so I can see the messages from the solver confirming it loaded the solution correctly.</p>
+</section>
+<section id="fixing-a-variable">
+<h2>Fixing a variable<a class="headerlink" href="#fixing-a-variable" title="Link to this heading"></a></h2>
+<p>Assigning values to variables also permits fixing those variables to that value. In order to do that, we use the <code class="docutils literal notranslate"><span class="pre">fixValue</span></code> method of the variable.</p>
+<p>For our example, if we know some variable needs to be 1, we can do:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">_variable</span> <span class="o">=</span> <span class="n">x</span><span class="p">[(</span><span class="s1">&#39;O&#39;</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="s1">&#39;Q&#39;</span><span class="p">,</span> <span class="s1">&#39;R&#39;</span><span class="p">)]</span>
+<span class="n">_variable</span><span class="o">.</span><span class="n">setInitialValue</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">_variable</span><span class="o">.</span><span class="n">fixValue</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>This implies setting the lower bound and the upperbound to the value of the variable.</p>
+</section>
+<section id="whole-example">
+<h2>Whole Example<a class="headerlink" href="#whole-example" title="Link to this heading"></a></h2>
+<p>If you want to see the complete code of the warm start version of the example, <a class="reference download internal" download="" href="../_downloads/4de01d450895a988bf8d1ae0c3407a00/wedding_initial.py"><code class="xref download docutils literal notranslate"><span class="pre">click</span> <span class="pre">here</span></code></a> or see below.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">A set partitioning model of a wedding seating problem</span>
+<span class="sd">Adaptation where an initial solution is given to solvers: CPLEX_CMD, GUROBI_CMD, PULP_CBC_CMD</span>
+
+<span class="sd">Authors: Stuart Mitchell 2009, Franco Peschiera 2019</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">pulp</span>
+
+<span class="n">max_tables</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="n">max_table_size</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="n">guests</span> <span class="o">=</span> <span class="s2">&quot;A B C D E F G I J K L M N O P Q R&quot;</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">happiness</span><span class="p">(</span><span class="n">table</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Find the happiness of the table</span>
+<span class="sd">    - by calculating the maximum distance between the letters</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">ord</span><span class="p">(</span><span class="n">table</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">-</span> <span class="nb">ord</span><span class="p">(</span><span class="n">table</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+
+
+<span class="c1"># create list of all possible tables</span>
+<span class="n">possible_tables</span> <span class="o">=</span> <span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">pulp</span><span class="o">.</span><span class="n">allcombinations</span><span class="p">(</span><span class="n">guests</span><span class="p">,</span> <span class="n">max_table_size</span><span class="p">)]</span>
+
+<span class="c1"># create a binary variable to state that a table setting is used</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpVariable</span><span class="o">.</span><span class="n">dicts</span><span class="p">(</span>
+    <span class="s2">&quot;table&quot;</span><span class="p">,</span> <span class="n">possible_tables</span><span class="p">,</span> <span class="n">lowBound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upBound</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">cat</span><span class="o">=</span><span class="n">pulp</span><span class="o">.</span><span class="n">LpInteger</span>
+<span class="p">)</span>
+
+<span class="n">seating_model</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;Wedding Seating Model&quot;</span><span class="p">,</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
+
+<span class="n">seating_model</span> <span class="o">+=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">lpSum</span><span class="p">([</span><span class="n">happiness</span><span class="p">(</span><span class="n">table</span><span class="p">)</span> <span class="o">*</span> <span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span><span class="p">])</span>
+
+<span class="c1"># specify the maximum number of tables</span>
+<span class="n">seating_model</span> <span class="o">+=</span> <span class="p">(</span>
+    <span class="n">pulp</span><span class="o">.</span><span class="n">lpSum</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span><span class="p">])</span> <span class="o">&lt;=</span> <span class="n">max_tables</span><span class="p">,</span>
+    <span class="s2">&quot;Maximum_number_of_tables&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># A guest must seated at one and only one table</span>
+<span class="k">for</span> <span class="n">guest</span> <span class="ow">in</span> <span class="n">guests</span><span class="p">:</span>
+    <span class="n">seating_model</span> <span class="o">+=</span> <span class="p">(</span>
+        <span class="n">pulp</span><span class="o">.</span><span class="n">lpSum</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span> <span class="k">if</span> <span class="n">guest</span> <span class="ow">in</span> <span class="n">table</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">&quot;Must_seat_</span><span class="si">{</span><span class="n">guest</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+<span class="c1"># I&#39;ve taken the optimal solution from a previous solving. x is the variable dictionary.</span>
+<span class="n">solution</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="p">(</span><span class="s2">&quot;M&quot;</span><span class="p">,</span> <span class="s2">&quot;N&quot;</span><span class="p">):</span> <span class="mf">1.0</span><span class="p">,</span>
+    <span class="p">(</span><span class="s2">&quot;E&quot;</span><span class="p">,</span> <span class="s2">&quot;F&quot;</span><span class="p">,</span> <span class="s2">&quot;G&quot;</span><span class="p">):</span> <span class="mf">1.0</span><span class="p">,</span>
+    <span class="p">(</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="s2">&quot;B&quot;</span><span class="p">,</span> <span class="s2">&quot;C&quot;</span><span class="p">,</span> <span class="s2">&quot;D&quot;</span><span class="p">):</span> <span class="mf">1.0</span><span class="p">,</span>
+    <span class="p">(</span><span class="s2">&quot;I&quot;</span><span class="p">,</span> <span class="s2">&quot;J&quot;</span><span class="p">,</span> <span class="s2">&quot;K&quot;</span><span class="p">,</span> <span class="s2">&quot;L&quot;</span><span class="p">):</span> <span class="mf">1.0</span><span class="p">,</span>
+    <span class="p">(</span><span class="s2">&quot;O&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;Q&quot;</span><span class="p">,</span> <span class="s2">&quot;R&quot;</span><span class="p">):</span> <span class="mf">1.0</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">solution</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="n">x</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">setInitialValue</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+
+<span class="n">solver</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">PULP_CBC_CMD</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">warmStart</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="c1"># solver = pulp.CPLEX_CMD(msg=True, warmStart=True)</span>
+<span class="c1"># solver = pulp.GUROBI_CMD(msg=True, warmStart=True)</span>
+<span class="c1"># solver = pulp.CPLEX_PY(msg=True, warmStart=True)</span>
+<span class="c1"># solver = pulp.GUROBI(msg=True, warmStart=True)</span>
+<span class="n">seating_model</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="p">)</span>
+
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The chosen tables are out of a total of </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">possible_tables</span><span class="p">)</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">()</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="how_to_configure_solvers.html" class="btn btn-neutral float-left" title="How to configure a solver in PuLP" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="how_to_elastic_constraints.html" class="btn btn-neutral float-right" title="Elastic Constraints" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2009-, pulp documentation team..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
