@@ -103,7 +103,7 @@ class BaseSolverTest:
                 self.skipTest(f"solver {self.solveInst.name} not available")
 
         def tearDown(self):
-            for ext in ["mst", "log", "lp", "mps", "sol"]:
+            for ext in ["mst", "log", "lp", "mps", "sol", "out"]:
                 filename = f"{self._testMethodName}.{ext}"
                 try:
                     os.remove(filename)
@@ -327,25 +327,24 @@ class BaseSolverTest:
                 MOSEK,
                 SCIP_CMD,
                 FSCIP_CMD,
-                SCIP_PY,
-                HiGHS,
                 HiGHS_CMD,
                 XPRESS,
                 XPRESS_CMD,
                 XPRESS_PY,
                 SAS94,
                 SASCAS,
+                CYLP,
             ]:
-                try:
-                    pulpTestCheck(
+
+                def my_func():
+                    return pulpTestCheck(
                         prob,
                         self.solver,
                         [const.LpStatusOptimal],
                         {x: 4, y: -1, z: 6, w: 0},
                     )
-                except PulpError:
-                    # these solvers should raise an error
-                    pass
+
+                self.assertRaises(PulpError, my_func)
             else:
                 pulpTestCheck(
                     prob,
@@ -522,6 +521,7 @@ class BaseSolverTest:
                 SCIP_CMD,
                 FSCIP_CMD,
                 SCIP_PY,
+                CYLP,
             ]:
                 # these solvers do not let the problem be relaxed
                 pulpTestCheck(
@@ -574,7 +574,7 @@ class BaseSolverTest:
                     self.solver,
                     [const.LpStatusInfeasible, const.LpStatusUndefined],
                 )
-            elif self.solver.__class__ in [COINMP_DLL]:
+            elif self.solver.__class__ in [COINMP_DLL, CYLP]:
                 # Currently there is an error in COINMP for problems where
                 # presolve eliminates too many variables
                 pulpTestCheck(prob, self.solver, [const.LpStatusOptimal])
@@ -1468,7 +1468,7 @@ class BaseSolverTest:
             solution_file = StringIO(file_content)
 
             # This call to `readsol` would crash for this solution format #508
-            _, _, reducedCosts, shadowPrices, _, _ = CPLEX_CMD().readsol(solution_file)
+            _, _, reducedCosts, shadowPrices, _, _ = CPLEX_CMD.readsol(solution_file)
 
             # Because mipopt solutions have no `reducedCost` fields
             # it should be all None
@@ -1737,6 +1737,17 @@ class BaseSolverTest:
 
             with self.assertRaises(TypeError):
                 c2 / (x + 1)
+
+        def test_variable_div(self):
+            """
+            __div__ operator on LpVariable
+            """
+            x = LpVariable("x")
+            x_div = x / 2
+            self.assertIsInstance(x_div, LpAffineExpression)
+            self.assertEqual(x_div[x], 0.5)
+
+            self.assertEqual(str(x_div), "0.5*x")
 
         def test_regression_794(self):
             # See: https://github.com/coin-or/pulp/issues/794#issuecomment-2671682768
@@ -2043,6 +2054,59 @@ class COINMP_DLLTest(BaseSolverTest.PuLPTest):
 class GLPK_CMDTest(BaseSolverTest.PuLPTest):
     solveInst = GLPK_CMD
 
+    def test_issue814_rounding_mip(self):
+        """
+        Test there is no rounding issue for MIP problems as described in #814
+        """
+
+        # bounds and constraints are formatted as .12g
+        # see pulp.py asCplexLpVariable / asCplexLpConstraint methods
+        ub = 999999999999
+
+        assert int(format(ub, ".12g")) == ub
+        assert float(format(ub + 2, ".12g")) != float(ub + 2)
+
+        model = LpProblem("mip-814", LpMaximize)
+        Q = LpVariable("Q", cat="Integer", lowBound=0, upBound=ub)
+        model += Q
+        model += Q >= 0
+        model.solve(self.solver)
+        assert Q.value() == ub
+
+    def test_issue814_rounding_lp(self):
+        """
+        Test there is no rounding issue for LP (simplex method) problems as described in #814
+        """
+        ub = 999999999999.0
+        assert float(format(ub, ".12g")) == ub
+        assert float(format(ub + 0.1, ".12g")) != ub + 0.1
+
+        for simplex in ["primal", "dual"]:
+            model = LpProblem(f"lp-814-{simplex}", LpMaximize)
+            Q = LpVariable("Q", lowBound=0, upBound=ub)
+            model += Q
+            model += Q >= 0
+            self.solver.options.append("--" + simplex)
+            model.solve(self.solver)
+            self.solver.options = self.solver.options[:-1]
+            assert Q.value() == ub
+
+    def test_issue814_rounding_ipt(self):
+        """
+        Test there is no rounding issue for LP (interior point method) problems as described in #814
+        """
+        # this one is limited by GLPK int pt feasibility, not formatting
+        ub = 12345678999.0
+
+        model = LpProblem("ipt-814", LpMaximize)
+        Q = LpVariable("Q", lowBound=0, upBound=ub)
+        model += Q
+        model += Q >= 0
+        self.solver.options.append("--interior")
+        model.solve(self.solver)
+        self.solver.options = self.solver.options[:-1]
+        assert abs(Q.value() - ub) / ub < 1e-9
+
     def test_decimal_815(self):
         # See: https://github.com/coin-or/pulp/issues/815
         # Will not run on other solvers due to how results are updated
@@ -2083,7 +2147,6 @@ class GLPK_CMDTest(BaseSolverTest.PuLPTest):
             [const.LpStatusOptimal],
             {x: 2.15686, y: 11.4706},
         )
-
 
 class GUROBITest(BaseSolverTest.PuLPTest):
     solveInst = GUROBI
@@ -2161,6 +2224,10 @@ class SAS94Test(BaseSolverTest.PuLPTest, SASTest):
 
 class SASCASTest(BaseSolverTest.PuLPTest, SASTest):
     solveInst = SASCAS
+
+
+# class CyLPTest(BaseSolverTest.PuLPTest):
+#     solveInst = CYLP
 
 
 def pulpTestCheck(

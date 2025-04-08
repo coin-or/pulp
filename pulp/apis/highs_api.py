@@ -1,6 +1,12 @@
 # PuLP : Python LP Modeler
 # Version 2.4.1
+import os
+import subprocess
 from math import inf
+from typing import List
+
+from .. import constants
+from .core import LpSolver, LpSolver_CMD, PulpSolverError
 
 # Copyright (c) 2002-2005, Jean-Sebastien Roy (js@jeannot.org)
 # Modifications Copyright (c) 2007- Stuart Anthony Mitchell (s.mitchell@auckland.ac.nz)
@@ -28,13 +34,6 @@ from math import inf
 # Modified by Sam Mathew (@samiit on Github)
 # Users would need to install HiGHS on their machine and provide the path to the executable. Please look at this thread: https://github.com/ERGO-Code/HiGHS/issues/527#issuecomment-894852288
 # More instructions on: https://www.highs.dev
-
-from typing import List
-
-from .core import LpSolver, LpSolver_CMD, PulpSolverError
-import subprocess
-import os
-from .. import constants
 
 
 class HiGHS_CMD(LpSolver_CMD):
@@ -104,7 +103,7 @@ class HiGHS_CMD(LpSolver_CMD):
         )
         lp.writeMPS(tmpMps, with_objsense=True)
 
-        file_options: List[str] = []
+        file_options: List[str] = []  # type: ignore[annotation-unchecked]
         file_options.append(f"solution_file={tmpSol}")
         file_options.append("write_solution_to_file=true")
         file_options.append(f"write_solution_style={HiGHS_CMD.SOLUTION_STYLE}")
@@ -122,7 +121,7 @@ class HiGHS_CMD(LpSolver_CMD):
             highs_log_file = tmpLog
         file_options.append(f"log_file={highs_log_file}")
 
-        command: List[str] = []
+        command: List[str] = []  # type: ignore[annotation-unchecked]
         command.append(self.path)
         command.append(tmpMps)
         command.append(f"--options_file={tmpOptions}")
@@ -150,20 +149,23 @@ class HiGHS_CMD(LpSolver_CMD):
 
         with open(tmpOptions, "w") as options_file:
             options_file.write("\n".join(file_options))
-        # print(command)
-        process = subprocess.Popen(command, stdout=None, stderr=None)
+
+        pipe = self.get_pipe()
+
+        process = subprocess.Popen(command, stdout=pipe, stderr=pipe)
 
         # HiGHS return code semantics (see: https://github.com/ERGO-Code/HiGHS/issues/527#issuecomment-946575028)
         # - -1: error
         # -  0: success
         # -  1: warning
-        # process = subprocess.run(command, stdout=sys.stdout, stderr=sys.stderr)
+
         if process.wait() == -1:
             raise PulpSolverError(
                 "Pulp: Error while executing HiGHS, use msg=True for more details"
                 + self.path
             )
-
+        if pipe is not None:
+            pipe.close()
         with open(highs_log_file, "r") as log_file:
             lines = log_file.readlines()
         lines = [line.strip().split() for line in lines]
@@ -274,7 +276,7 @@ class HiGHS(LpSolver):
 
     try:
         global highspy
-        import highspy
+        import highspy  # type: ignore[import-not-found]
     except:
 
         def available(self):
@@ -510,7 +512,7 @@ class HiGHS(LpSolver):
             else:
                 return status_dict[status]
 
-        def actualSolve(self, lp):
+        def actualSolve(self, lp):  # type: ignore[misc]
             self.createAndConfigureSolver(lp)
             self.buildSolverModel(lp)
             self.callSolver(lp)

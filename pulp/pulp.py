@@ -141,31 +141,8 @@ import logging
 
 log = logging.getLogger(__name__)
 
-try:  # allow Python 2/3 compatibility
-    maketrans = str.maketrans
-except AttributeError:
-    from string import maketrans
-
-_DICT_TYPE = dict
-
-if sys.platform not in ["cli"]:
-    # iron python does not like an OrderedDict
-    try:
-        from odict import OrderedDict
-
-        _DICT_TYPE = OrderedDict
-    except ImportError:
-        pass
-    try:
-        # python 2.7 or 3.1
-        from collections import OrderedDict
-
-        _DICT_TYPE = OrderedDict
-    except ImportError:
-        pass
-
 try:
-    import ujson as json
+    import ujson as json  # type: ignore[import-untyped]
 except ImportError:
     import json
 
@@ -178,7 +155,7 @@ class LpElement:
     # To remove illegal characters from the names
     illegal_chars = "-+[] ->/"
     expression = re.compile(f"[{re.escape(illegal_chars)}]")
-    trans = maketrans(illegal_chars, "________")
+    trans = str.maketrans(illegal_chars, "________")
 
     def setName(self, name):
         if name:
@@ -240,11 +217,8 @@ class LpElement:
     def __rmul__(self, other):
         return LpAffineExpression(self) * other
 
-    def __div__(self, other):
+    def __truediv__(self, other):
         return LpAffineExpression(self) / other
-
-    def __rdiv__(self, other):
-        raise TypeError("Expressions cannot be divided by a variable")
 
     def __le__(self, other):
         return LpAffineExpression(self) <= other
@@ -666,7 +640,7 @@ class LpVariable(LpElement):
         self.bounds(self._lowbound_original, self._upbound_original)
 
 
-class LpAffineExpression(_DICT_TYPE):
+class LpAffineExpression(dict):
     """
     A linear combination of :class:`LpVariables<LpVariable>`.
     Can be initialised with the following:
@@ -690,7 +664,7 @@ class LpAffineExpression(_DICT_TYPE):
     """
 
     # to remove illegal characters from the names
-    trans = maketrans("-+[] ", "_____")
+    trans = str.maketrans("-+[] ", "_____")
 
     @property
     def name(self) -> str | None:
@@ -701,7 +675,7 @@ class LpAffineExpression(_DICT_TYPE):
         if name:
             self.__name = str(name).translate(self.trans)
         else:
-            self.__name = None
+            self.__name = None  # type: ignore[assignment]
 
     def __init__(self, e=None, constant: float = 0.0, name: str | None = None):
         self.name = name
@@ -710,7 +684,7 @@ class LpAffineExpression(_DICT_TYPE):
             e = {}
         if isinstance(e, (LpAffineExpression, LpConstraint)):
             # Will not copy the name
-            self.constant = e.constant
+            self.constant = e.constant  # type: ignore[has-type]
             super().__init__(e.items())
         elif isinstance(e, dict):
             self.constant = constant
@@ -983,7 +957,7 @@ class LpAffineExpression(_DICT_TYPE):
     def __rmul__(self, other):
         return self * other
 
-    def __div__(self, other):
+    def __truediv__(self, other):
         if isinstance(other, (LpAffineExpression, LpConstraint)) or isinstance(
             other, LpVariable
         ):
@@ -1000,26 +974,6 @@ class LpAffineExpression(_DICT_TYPE):
             e[v] = x / other
         return e
 
-    def __truediv__(self, other):
-        return self.__div__(other)
-
-    def __rdiv__(self, other):
-        e = self.emptyCopy()
-        if len(self):
-            raise TypeError(
-                "Expressions cannot be divided by a non-constant expression"
-            )
-        c = self.constant
-        if isinstance(other, (LpAffineExpression, LpConstraint)):
-            e.constant = other.constant / c
-            for v, x in other.items():
-                e[v] = x / c
-        elif not math.isfinite(other):
-            raise const.PulpError("Cannot divide variables with NaN/inf values")
-        else:
-            e.constant = other / c
-        return e
-
     def __le__(self, other) -> LpConstraint:
         if isinstance(other, (int, float)):
             return LpConstraint(self, const.LpConstraintLE, rhs=other)
@@ -1032,7 +986,7 @@ class LpAffineExpression(_DICT_TYPE):
         else:
             return LpConstraint(self - other, const.LpConstraintGE)
 
-    def __eq__(self, other) -> LpConstraint:
+    def __eq__(self, other) -> LpConstraint:  # type: ignore[override]
         if isinstance(other, (int, float)):
             return LpConstraint(self, const.LpConstraintEQ, rhs=other)
         else:
@@ -1063,7 +1017,7 @@ class LpConstraint:
         """
         self.expr = e if isinstance(e, LpAffineExpression) else LpAffineExpression(e)
         self.name = name
-        self.constant: float = self.expr.constant
+        self.constant: float = self.expr.constant  # type: ignore[annotation-unchecked]
         if rhs is not None:
             self.constant -= rhs
         self.sense = sense
@@ -1218,7 +1172,7 @@ class LpConstraint:
     def valid(self, eps: float = 0) -> bool:
         val = self.value()
         if self.sense == const.LpConstraintEQ:
-            return abs(val) <= eps
+            return abs(val) <= eps  # type: ignore[arg-type]
         else:
             return val * self.sense >= -eps
 
@@ -1272,7 +1226,7 @@ class LpConstraint:
         if name is not None:
             self.__name = name.translate(LpAffineExpression.trans)
         else:
-            self.__name = None
+            self.__name = None  # type: ignore[assignment]
 
     def isAtomic(self):
         return len(self) == 1 and self.constant == 0 and next(iter(self.values())) == 1
@@ -1423,8 +1377,8 @@ class LpProblem:
         if " " in name:
             warnings.warn("Spaces are not permitted in the name. Converted to '_'")
             name = name.replace(" ", "_")
-        self.objective: None | LpAffineExpression = None
-        self.constraints: dict[str, LpConstraint] = _DICT_TYPE()
+        self.objective: None | LpAffineExpression = None  # type: ignore[annotation-unchecked]
+        self.constraints: dict[str, LpConstraint] = {}  # type: ignore[annotation-unchecked]
         self.name = name
         self.sense = sense
         self.sos1 = {}
@@ -1437,8 +1391,8 @@ class LpProblem:
         self.modifiedVariables = []
         self.modifiedConstraints = []
         self.resolveOK = False
-        self._variables: list[LpVariable] = []
-        self._variable_ids: dict[int, LpVariable] = (
+        self._variables: list[LpVariable] = []  # type: ignore[annotation-unchecked]
+        self._variable_ids: dict[int, LpVariable] = (  # type: ignore[annotation-unchecked]
             {}
         )  # old school using dict.keys() for a set
         self.dummyVar = None
@@ -1492,7 +1446,7 @@ class LpProblem:
         lpcopy = LpProblem(name=self.name, sense=self.sense)
         if self.objective is not None:
             lpcopy.objective = self.objective.copy()
-        lpcopy.constraints = _DICT_TYPE[str, LpConstraint]()
+        lpcopy.constraints = {}
         for k, v in self.constraints.items():
             lpcopy.constraints[k] = v.copy()
         lpcopy.sos1 = self.sos1.copy()
@@ -1828,7 +1782,7 @@ class LpProblem:
                     raise ValueError("Objective not set by provided problem")
                 self.objective += other.objective
         else:
-            for c in other:
+            for c in other:  # type: ignore[assignment]
                 if isinstance(c, tuple):
                     name = c[0]
                     c = c[1]

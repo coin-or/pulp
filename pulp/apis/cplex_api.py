@@ -1,7 +1,8 @@
-from .core import LpSolver_CMD, LpSolver, subprocess, PulpSolverError, clock, log
-from .. import constants
 import os
 import warnings
+
+from .. import constants
+from .core import LpSolver, LpSolver_CMD, PulpSolverError, clock, log, subprocess
 
 
 class CPLEX_CMD(LpSolver_CMD):
@@ -147,13 +148,14 @@ class CPLEX_CMD(LpSolver_CMD):
             if k in self.optionsDict and self.optionsDict[k] is not None
         ]
 
-    def readsol(self, filename):
+    @staticmethod
+    def readsol(filename):
         """Read a CPLEX solution file"""
         # CPLEX solution codes: http://www-eio.upc.es/lceio/manuals/cplex-11/html/overviewcplex/statuscodes.html
         try:
             import xml.etree.ElementTree as et
         except ImportError:
-            import elementtree.ElementTree as et
+            import elementtree.ElementTree as et  # type: ignore[import-not-found]
         solutionXML = et.parse(filename).getroot()
         solutionheader = solutionXML.find("header")
         statusString = solutionheader.get("solutionStatusString")
@@ -250,7 +252,7 @@ class CPLEX_PY(LpSolver):
     name = "CPLEX_PY"
     try:
         global cplex
-        import cplex
+        import cplex  # type: ignore[import-not-found]
     except Exception as e:
         err = e
         """The CPLEX LP/MIP solver from python. Something went wrong!!!!"""
@@ -300,7 +302,7 @@ class CPLEX_PY(LpSolver):
             """True if the solver is available"""
             return True
 
-        def actualSolve(self, lp, callback=None):
+        def actualSolve(self, lp, callback=None):  # type: ignore[misc]
             """
             Solve a well formulated lp problem
 

@@ -24,10 +24,20 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."""
 
-from .core import LpSolver_CMD, LpSolver, subprocess, PulpSolverError, clock
-from .core import glpk_path, operating_system, log
 import os
+
 from .. import constants
+from .core import (
+    LpSolver,
+    LpSolver_CMD,
+    PulpSolverError,
+    clock,
+    log,
+    operating_system,
+    subprocess,
+)
+
+glpk_path = "glpsol"
 
 
 class GLPK_CMD(LpSolver_CMD):
@@ -73,9 +83,9 @@ class GLPK_CMD(LpSolver_CMD):
         """Solve a well formulated lp problem"""
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute " + self.path)
-        tmpLp, tmpSol = self.create_tmp_files(lp.name, "lp", "sol")
+        tmpLp, tmpOut, tmpSol = self.create_tmp_files(lp.name, "lp", "out", "sol")
         lp.writeLP(tmpLp, writeSOS=0)
-        proc = ["glpsol", "--cpxlp", tmpLp, "-o", tmpSol]
+        proc = ["glpsol", "--cpxlp", tmpLp, "-o", tmpOut, "-w", tmpSol]
         if self.timeLimit:
             proc.extend(["--tmlim", str(self.timeLimit)])
         if not self.mip:
@@ -113,15 +123,29 @@ class GLPK_CMD(LpSolver_CMD):
 
         if not os.path.exists(tmpSol):
             raise PulpSolverError("PuLP: Error while executing " + self.path)
-        status, values = self.readsol(tmpSol)
+
+        status, values = self.readsol(tmpOut, tmpSol)
+
+        vars = dict([(var.name, var) for var in lp.variables()])
+        for name, value in values.items():
+            if name not in vars:  # __dummy
+                continue
+            var = vars[name]
+            if var.cat == constants.LpInteger and self.mip:
+                values[name] = int(value)
+            else:
+                values[name] = float(value)
+
         lp.assignVarsVals(values)
         lp.assignStatus(status)
         self.delete_tmp_files(tmpLp, tmpSol)
         return status
 
-    def readsol(self, filename):
-        """Read a GLPK solution file"""
-        with open(filename) as f:
+    def readsol(self, outFile, solFile):
+        """Read GLPK solution files"""
+
+        # first determine status and column names
+        with open(outFile) as f:
             f.readline()
             rows = int(f.readline().split()[1])
             cols = int(f.readline().split()[1])
@@ -146,7 +170,7 @@ class GLPK_CMD(LpSolver_CMD):
                 "INTEGER UNDEFINED",
                 "INTEGER EMPTY",
             ]
-            values = {}
+            names = []
             for i in range(4):
                 f.readline()
             for i in range(rows):
@@ -159,16 +183,39 @@ class GLPK_CMD(LpSolver_CMD):
                 line = f.readline().split()
                 name = line[1]
                 if len(line) == 2:
-                    line = [0, 0] + f.readline().split()
-                if isInteger:
-                    if line[2] == "*":
-                        value = int(float(line[3]))
-                    else:
-                        value = float(line[2])
-                else:
-                    value = float(line[3])
-                values[name] = value
-        return status, values
+                    f.readline()
+                names.append(name)
+
+        # now actually read column values
+        with open(solFile) as f:
+
+            values = []
+            status2 = constants.LpStatusUndefined
+            vpos = 2
+
+            while True:
+                ln = f.readline()
+                elems = ln.split()
+                if elems[0] == "c":
+                    continue
+                if elems[0] == "e":
+                    break
+                if elems[0] == "j":
+                    values.append(elems[vpos])
+                if elems[0] == "s":
+                    status2 = {
+                        "o": constants.LpStatusOptimal,
+                        "f": constants.LpStatusOptimal,
+                        "n": constants.LpStatusInfeasible,
+                        "u": constants.LpStatusUndefined,
+                    }[elems[4]]
+                    vpos = {"mip": 2, "bas": 3, "ipt": 2}[elems[1]]
+
+            values = dict(zip(names, values))
+
+            assert status == status2
+
+            return status, values
 
 
 GLPK = GLPK_CMD
@@ -193,7 +240,7 @@ class PYGLPK(LpSolver):
     try:
         # import the model into the global scope
         global glpk
-        import glpk.glpkpi as glpk
+        import glpk.glpkpi as glpk  # type: ignore[import-not-found]
     except:
 
         def available(self):

@@ -1,30 +1,33 @@
-import os
-import sys
 import ctypes
+import os
 import subprocess
+import sys
 import warnings
-
 from uuid import uuid4
-from .core import (
-    sparse,
-    ctypesArrayFill,
-    PulpSolverError,
-    LpSolver,
-    LpSolver_CMD,
-    clock,
-    operating_system,
-)
+
 from ..constants import (
+    LpBinary,
+    LpConstraintEQ,
+    LpConstraintGE,
+    LpConstraintLE,
+    LpContinuous,
+    LpInteger,
+    LpMaximize,
+    LpMinimize,
+    LpStatusInfeasible,
     LpStatusNotSolved,
     LpStatusOptimal,
-    LpStatusInfeasible,
     LpStatusUnbounded,
     LpStatusUndefined,
 )
-from ..constants import LpContinuous, LpBinary, LpInteger
-from ..constants import LpConstraintEQ, LpConstraintLE, LpConstraintGE
-from ..constants import LpMinimize, LpMaximize
-
+from .core import (
+    LpSolver,
+    LpSolver_CMD,
+    PulpSolverError,
+    clock,
+    ctypesArrayFill,
+    sparse,
+)
 
 # COPT string convention
 if sys.version_info >= (3, 0):
@@ -858,7 +861,7 @@ class COPT(LpSolver):
 
     try:
         global coptpy
-        import coptpy
+        import coptpy  # type: ignore[import-not-found]
     except:
 
         def available(self):

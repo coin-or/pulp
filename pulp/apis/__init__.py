@@ -1,18 +1,21 @@
-from .coin_api import *
-from .cplex_api import *
-from .gurobi_api import *
-from .glpk_api import *
+from typing import Dict, Optional, Type, Union
+
 from .choco_api import *
+from .coin_api import *
+from .copt_api import *
+from .core import *
+from .cplex_api import *
+from .glpk_api import *
+from .gurobi_api import *
+from .highs_api import *
 from .mipcl_api import *
 from .mosek_api import *
+from .sas_api import *
 from .scip_api import *
 from .xpress_api import *
-from .highs_api import *
-from .copt_api import *
-from .sas_api import *
-from .core import *
 
-_all_solvers = [
+_all_solvers: List[Type[LpSolver]] = [
+    CYLP,
     GLPK_CMD,
     PYGLPK,
     CPLEX_CMD,
@@ -42,6 +45,7 @@ _all_solvers = [
 
 import json
 
+LpSolverDefault: Optional[Union[PULP_CBC_CMD, GLPK_CMD, COIN_CMD]] = None
 # Default solver selection
 if PULP_CBC_CMD().available():
     LpSolverDefault = PULP_CBC_CMD()
@@ -49,53 +53,9 @@ elif GLPK_CMD().available():
     LpSolverDefault = GLPK_CMD()
 elif COIN_CMD().available():
     LpSolverDefault = COIN_CMD()
-else:
-    LpSolverDefault = None
 
 
-def setConfigInformation(**keywords):
-    """
-    set the data in the configuration file
-    at the moment will only edit things in [locations]
-    the keyword value pairs come from the keywords dictionary
-    """
-    # TODO: extend if we ever add another section in the config file
-    # read the old configuration
-    config = Parser()
-    config.read(config_filename)
-    # set the new keys
-    for key, val in keywords.items():
-        config.set("locations", key, val)
-    # write the new configuration
-    fp = open(config_filename, "w")
-    config.write(fp)
-    fp.close()
-
-
-def configSolvers():
-    """
-    Configure the path the the solvers on the command line
-
-    Designed to configure the file locations of the solvers from the
-    command line after installation
-    """
-    configlist = [
-        (cplex_dll_path, "cplexpath", "CPLEX: "),
-        (coinMP_path, "coinmppath", "CoinMP dll (windows only): "),
-    ]
-    print(
-        "Please type the full path including filename and extension \n"
-        + "for each solver available"
-    )
-    configdict = {}
-    for default, key, msg in configlist:
-        value = input(msg + "[" + str(default) + "]")
-        if value:
-            configdict[key] = value
-    setConfigInformation(**configdict)
-
-
-def getSolver(solver, *args, **kwargs):
+def getSolver(solver: str, *args, **kwargs) -> LpSolver:
     """
     Instantiates a solver from its name
 
@@ -115,7 +75,7 @@ def getSolver(solver, *args, **kwargs):
         )
 
 
-def getSolverFromDict(data):
+def getSolverFromDict(data: Dict[str, Union[str, bool, float, int]]) -> LpSolver:
     """
     Instantiates a solver from a dictionary with its data
 
@@ -129,10 +89,11 @@ def getSolverFromDict(data):
     solver = data.pop("solver", None)
     if solver is None:
         raise PulpSolverError("The json file has no solver attribute.")
+    assert isinstance(solver, str)
     return getSolver(solver, **data)
 
 
-def getSolverFromJson(filename):
+def getSolverFromJson(filename: str) -> LpSolver:
     """
     Instantiates a solver from a json file with its data
 
@@ -145,7 +106,7 @@ def getSolverFromJson(filename):
     return getSolverFromDict(data)
 
 
-def listSolvers(onlyAvailable=False):
+def listSolvers(onlyAvailable: bool = False) -> List[str]:
     """
     List the names of all the existing solvers in PuLP
 

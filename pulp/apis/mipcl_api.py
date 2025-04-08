@@ -24,10 +24,11 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."""
 
-from .core import LpSolver_CMD, subprocess, PulpSolverError
 import os
-from .. import constants
 import warnings
+
+from .. import constants
+from .core import LpSolver_CMD, PulpSolverError, subprocess
 
 
 class MIPCL_CMD(LpSolver_CMD):

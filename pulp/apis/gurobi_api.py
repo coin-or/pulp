@@ -24,12 +24,18 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."""
 
+from __future__ import annotations
 
-from .core import LpSolver_CMD, LpSolver, subprocess, PulpSolverError, clock, log
-from .core import gurobi_path
 import os
 import sys
+from typing import TYPE_CHECKING
+
 from .. import constants
+from .core import LpSolver, LpSolver_CMD, PulpSolverError, clock, log, subprocess
+
+if TYPE_CHECKING:
+    from .. import LpProblem
+
 import warnings
 
 # to import the gurobipy name into the module scope
@@ -49,10 +55,9 @@ class GUROBI(LpSolver):
     env = None
 
     try:
-        sys.path.append(gurobi_path)
         # to import the name into the module scope
         global gp
-        import gurobipy as gp
+        import gurobipy as gp  # type: ignore[import-not-found]
     except:  # FIXME: Bug because gurobi returns
         #  a gurobi exception on failed imports
         def available(self):
@@ -469,10 +474,7 @@ class GUROBI_CMD(LpSolver_CMD):
             if not self.mip:
                 warnings.warn("GUROBI_CMD does not allow a problem to be relaxed")
         cmd += f" {tmpLp}"
-        if self.msg:
-            pipe = None
-        else:
-            pipe = open(os.devnull, "w")
+        pipe = self.get_pipe()
 
         return_code = subprocess.call(cmd.split(), stdout=pipe, stderr=pipe)
 

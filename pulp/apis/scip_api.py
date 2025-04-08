@@ -28,12 +28,13 @@ import operator
 import os
 import sys
 import warnings
-
-from .core import LpSolver_CMD, LpSolver, subprocess, PulpSolverError
-from .core import scip_path, fscip_path
-from .. import constants
-
 from typing import Dict, List, Optional, Tuple
+
+from .. import constants
+from .core import LpSolver, LpSolver_CMD, PulpSolverError, subprocess
+
+scip_path = "scip"
+fscip_path = "fscip"
 
 
 class SCIP_CMD(LpSolver_CMD):
@@ -121,7 +122,7 @@ class SCIP_CMD(LpSolver_CMD):
         tmpLp, tmpSol, tmpOptions = self.create_tmp_files(lp.name, "lp", "sol", "set")
         lp.writeLP(tmpLp)
 
-        file_options: List[str] = []
+        file_options: List[str] = []  # type: ignore[annotation-unchecked]
         if self.timeLimit is not None:
             file_options.append(f"limits/time={self.timeLimit}")
         if "gapRel" in self.optionsDict:
@@ -137,7 +138,7 @@ class SCIP_CMD(LpSolver_CMD):
         if not self.mip:
             warnings.warn(f"{self.name} does not allow a problem to be relaxed")
 
-        command: List[str] = []
+        command: List[str] = []  # type: ignore[annotation-unchecked]
         command.append(self.path)
         command.extend(["-s", tmpOptions])
         if not self.msg:
@@ -167,7 +168,13 @@ class SCIP_CMD(LpSolver_CMD):
 
         with open(tmpOptions, "w") as options_file:
             options_file.write("\n".join(file_options))
-        subprocess.check_call(command, stdout=sys.stdout, stderr=sys.stderr)
+
+        pipe = self.get_pipe()
+        subprocess.check_call(command, stdout=pipe, stderr=pipe)
+
+        # Close the pipe now if we used it.
+        if pipe is not None:
+            pipe.close()
 
         if not os.path.exists(tmpSol):
             raise PulpSolverError("PuLP: Error while executing " + self.path)
@@ -302,7 +309,7 @@ class FSCIP_CMD(LpSolver_CMD):
         )
         lp.writeLP(tmpLp)
 
-        file_options: List[str] = []
+        file_options: List[str] = []  # type: ignore[annotation-unchecked]
         if self.timeLimit is not None:
             file_options.append(f"limits/time={self.timeLimit}")
         if "gapRel" in self.optionsDict:
@@ -314,11 +321,11 @@ class FSCIP_CMD(LpSolver_CMD):
         if not self.mip:
             warnings.warn(f"{self.name} does not allow a problem to be relaxed")
 
-        file_parameters: List[str] = []
+        file_parameters: List[str] = []  # type: ignore[annotation-unchecked]
         # disable presolving in the LoadCoordinator to make sure a solution file is always written
         file_parameters.append("NoPreprocessingInLC = TRUE")
 
-        command: List[str] = []
+        command: List[str] = []  # type: ignore[annotation-unchecked]
         command.append(self.path)
         command.append(tmpParams)
         command.append(tmpLp)
@@ -358,11 +365,12 @@ class FSCIP_CMD(LpSolver_CMD):
             options_file.write("\n".join(file_options))
         with open(tmpParams, "w") as parameters_file:
             parameters_file.write("\n".join(file_parameters))
-        subprocess.check_call(
-            command,
-            stdout=sys.stdout if self.msg else subprocess.DEVNULL,
-            stderr=sys.stderr if self.msg else subprocess.DEVNULL,
-        )
+
+        pipe = self.get_pipe()
+        subprocess.check_call(command, stdout=pipe, stderr=pipe)
+
+        if pipe is not None:
+            pipe.close()
 
         if not os.path.exists(tmpSol):
             raise PulpSolverError("PuLP: Error while executing " + self.path)
@@ -396,11 +404,11 @@ class FSCIP_CMD(LpSolver_CMD):
 
         objective = objective.strip()
         try:
-            objective = float(objective)
+            objective = float(objective)  # type: ignore[assignment]
         except ValueError:
             return None
 
-        return objective
+        return objective  # type: ignore[return-value]
 
     @staticmethod
     def parse_variable(string: str) -> Optional[Tuple[str, float]]:
@@ -410,11 +418,11 @@ class FSCIP_CMD(LpSolver_CMD):
 
         name, value = fields[:2]
         try:
-            value = float(value)
+            value = float(value)  # type: ignore[assignment]
         except ValueError:
             return None
 
-        return name, value
+        return name, value  # type: ignore[return-value]
 
     @staticmethod
     def readsol(filename):
@@ -438,7 +446,7 @@ class FSCIP_CMD(LpSolver_CMD):
                 )
 
             # Parse the variable values.
-            variables: Dict[str, float] = {}
+            variables: Dict[str, float] = {}  # type: ignore[annotation-unchecked]
             for variable_line in file:
                 variable = FSCIP_CMD.parse_variable(variable_line)
                 if variable is None:
@@ -469,7 +477,7 @@ class SCIP_PY(LpSolver):
 
     try:
         global scip
-        import pyscipopt as scip
+        import pyscipopt as scip  # type: ignore[import-not-found]
 
     except ImportError:
 
