@@ -2148,6 +2148,7 @@ class GLPK_CMDTest(BaseSolverTest.PuLPTest):
             {x: 2.15686, y: 11.4706},
         )
 
+
 class GUROBITest(BaseSolverTest.PuLPTest):
     solveInst = GUROBI
 
