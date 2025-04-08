@@ -1737,6 +1737,17 @@ class BaseSolverTest:
             with self.assertRaises(TypeError):
                 c2 / (x + 1)
 
+        def test_variable_div(self):
+            """
+            __div__ operator on LpVariable
+            """
+            x = LpVariable("x")
+            x_div = x / 2
+            self.assertIsInstance(x_div, LpAffineExpression)
+            self.assertEqual(x_div[x], 0.5)
+
+            self.assertEqual(str(x_div), "0.5*x")
+
         def test_regression_794(self):
             # See: https://github.com/coin-or/pulp/issues/794#issuecomment-2671682768
 

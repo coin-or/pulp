@@ -217,11 +217,8 @@ class LpElement:
     def __rmul__(self, other):
         return LpAffineExpression(self) * other
 
-    def __div__(self, other):
+    def __truediv__(self, other):
         return LpAffineExpression(self) / other
-
-    def __rdiv__(self, other):
-        raise TypeError("Expressions cannot be divided by a variable")
 
     def __le__(self, other):
         return LpAffineExpression(self) <= other
@@ -960,7 +957,7 @@ class LpAffineExpression(dict):
     def __rmul__(self, other):
         return self * other
 
-    def __div__(self, other):
+    def __truediv__(self, other):
         if isinstance(other, (LpAffineExpression, LpConstraint)) or isinstance(
             other, LpVariable
         ):
@@ -975,26 +972,6 @@ class LpAffineExpression(dict):
         e.constant = self.constant / other
         for v, x in self.items():
             e[v] = x / other
-        return e
-
-    def __truediv__(self, other):
-        return self.__div__(other)
-
-    def __rdiv__(self, other):
-        e = self.emptyCopy()
-        if len(self):
-            raise TypeError(
-                "Expressions cannot be divided by a non-constant expression"
-            )
-        c = self.constant
-        if isinstance(other, (LpAffineExpression, LpConstraint)):
-            e.constant = other.constant / c
-            for v, x in other.items():
-                e[v] = x / c
-        elif not math.isfinite(other):
-            raise const.PulpError("Cannot divide variables with NaN/inf values")
-        else:
-            e.constant = other / c
         return e
 
     def __le__(self, other) -> LpConstraint:
