@@ -147,29 +147,6 @@ LptExpr: TypeAlias = Union[LptItem, "LpAffineExpression"]
 LptConstExpr: TypeAlias = Union[LptNumber, "LpAffineExpression"]
 LptExprConstraint: TypeAlias = Union[LptExpr, "LpConstraint"]
 
-try:  # allow Python 2/3 compatibility
-    maketrans = str.maketrans
-except AttributeError:
-    from string import maketrans  # type: ignore[attr-defined,no-redef]
-
-_DICT_TYPE = dict
-
-if sys.platform not in ["cli"]:
-    # iron python does not like an OrderedDict
-    try:
-        from odict import OrderedDict  # type: ignore[import-not-found]
-
-        _DICT_TYPE = OrderedDict  # type: ignore[misc]
-    except ImportError:
-        pass
-    try:
-        # python 2.7 or 3.1
-        from collections import OrderedDict
-
-        _DICT_TYPE = OrderedDict  # type: ignore[misc]
-    except ImportError:
-        pass
-
 try:
     import ujson as json  # type: ignore[import-untyped]
 except ImportError:
@@ -184,7 +161,7 @@ class LpElement:
     # To remove illegal characters from the names
     illegal_chars = "-+[] ->/"
     expression = re.compile(f"[{re.escape(illegal_chars)}]")
-    trans = maketrans(illegal_chars, "________")
+    trans = str.maketrans(illegal_chars, "________")
 
     def setName(self, name):
         if name:
@@ -672,7 +649,7 @@ class LpVariable(LpElement):
         self.bounds(self._lowbound_original, self._upbound_original)
 
 
-class LpAffineExpression(_DICT_TYPE):
+class LpAffineExpression(dict):
     """
     A linear combination of :class:`LpVariables<LpVariable>`.
     Can be initialised with the following:
@@ -696,7 +673,7 @@ class LpAffineExpression(_DICT_TYPE):
     """
 
     # to remove illegal characters from the names
-    trans = maketrans("-+[] ", "_____")
+    trans = str.maketrans("-+[] ", "_____")
 
     @property
     def name(self) -> str | None:
@@ -1430,7 +1407,7 @@ class LpProblem:
             warnings.warn("Spaces are not permitted in the name. Converted to '_'")
             name = name.replace(" ", "_")
         self.objective: None | LpAffineExpression = None  # type: ignore[annotation-unchecked]
-        self.constraints: dict[str, LpConstraint] = _DICT_TYPE()  # type: ignore[annotation-unchecked]
+        self.constraints: dict[str, LpConstraint] = {}  # type: ignore[annotation-unchecked]
         self.name = name
         self.sense = sense
         self.sos1 = {}
@@ -1498,7 +1475,7 @@ class LpProblem:
         lpcopy = LpProblem(name=self.name, sense=self.sense)
         if self.objective is not None:
             lpcopy.objective = self.objective.copy()
-        lpcopy.constraints = _DICT_TYPE[str, LpConstraint]()
+        lpcopy.constraints = {}
         for k, v in self.constraints.items():
             lpcopy.constraints[k] = v.copy()
         lpcopy.sos1 = self.sos1.copy()
