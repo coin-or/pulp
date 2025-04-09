@@ -1,3 +1,4 @@
+# BEGIN docstring_imports
 """
 The Full Whiskas Model Python Formulation for the PuLP Modeller
 
@@ -7,6 +8,9 @@ Authors: Antony Phillips, Dr Stuart Mitchell  2007
 # Import PuLP modeler functions
 from pulp import *
 
+# END docstring_imports
+
+# BEGIN problem_data
 # Creates a list of the Ingredients
 Ingredients = ["CHICKEN", "BEEF", "MUTTON", "RICE", "WHEAT", "GEL"]
 
@@ -59,19 +63,27 @@ saltPercent = {
     "WHEAT": 0.008,
     "GEL": 0.000,
 }
+# END problem_data
 
+# BEGIN define_prob
 # Create the 'prob' variable to contain the problem data
 prob = LpProblem("The Whiskas Problem", LpMinimize)
+# END define_prob
 
+# BEGIN ingredient_vars
 # A dictionary called 'ingredient_vars' is created to contain the referenced Variables
 ingredient_vars = LpVariable.dicts("Ingr", Ingredients, 0)
+# END ingredient_vars
 
+# BEGIN obj_function
 # The objective function is added to 'prob' first
 prob += (
     lpSum([costs[i] * ingredient_vars[i] for i in Ingredients]),
     "Total Cost of Ingredients per can",
 )
+# END obj_function
 
+# BEGIN constraints
 # The five constraints are added to 'prob'
 prob += lpSum([ingredient_vars[i] for i in Ingredients]) == 100, "PercentagesSum"
 prob += (
@@ -90,6 +102,7 @@ prob += (
     lpSum([saltPercent[i] * ingredient_vars[i] for i in Ingredients]) <= 0.4,
     "SaltRequirement",
 )
+# END constraints
 
 # The problem data is written to an .lp file
 prob.writeLP("WhiskasModel2.lp")

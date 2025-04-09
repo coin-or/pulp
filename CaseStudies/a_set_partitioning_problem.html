@@ -103,40 +103,40 @@ expressions (like happiness) and still allow this problem to be solved
 using Linear Programming.</p>
 <p>First we use <a class="reference internal" href="../technical/pulp.html#pulp.allcombinations" title="pulp.allcombinations"><code class="xref py py-func docutils literal notranslate"><span class="pre">allcombinations()</span></code></a> to generate a list of all
 possible table seatings.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    <span class="n">Find</span> <span class="n">the</span> <span class="n">happiness</span> <span class="n">of</span> <span class="n">the</span> <span class="n">table</span>
-    <span class="o">-</span> <span class="n">by</span> <span class="n">calculating</span> <span class="n">the</span> <span class="n">maximum</span> <span class="n">distance</span> <span class="n">between</span> <span class="n">the</span> <span class="n">letters</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># create list of all possible tables</span>
+<span class="n">possible_tables</span> <span class="o">=</span> <span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">pulp</span><span class="o">.</span><span class="n">allcombinations</span><span class="p">(</span><span class="n">guests</span><span class="p">,</span> <span class="n">max_table_size</span><span class="p">)]</span>
 </pre></div>
 </div>
 <p>Then we create a binary variable that will be 1 if the table will be in the solution, or zero otherwise.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    <span class="k">return</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">ord</span><span class="p">(</span><span class="n">table</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">-</span> <span class="nb">ord</span><span class="p">(</span><span class="n">table</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
-
-
-<span class="c1"># create list of all possible tables</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># create a binary variable to state that a table setting is used</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpVariable</span><span class="o">.</span><span class="n">dicts</span><span class="p">(</span>
+    <span class="s2">&quot;table&quot;</span><span class="p">,</span> <span class="n">possible_tables</span><span class="p">,</span> <span class="n">lowBound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upBound</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">cat</span><span class="o">=</span><span class="n">pulp</span><span class="o">.</span><span class="n">LpInteger</span>
+<span class="p">)</span>
 </pre></div>
 </div>
 <p>We create the <a class="reference internal" href="../technical/pulp.html#pulp.LpProblem" title="pulp.LpProblem"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpProblem</span></code></a> and then make the objective function. Note that
 happiness function used in this script would be difficult to model in any other way.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
-<span class="c1"># create a binary variable to state that a table setting is used</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpVariable</span><span class="o">.</span><span class="n">dicts</span><span class="p">(</span>
-</pre></div>
-</div>
-<p>We specify the total number of tables allowed in the solution.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">)</span>
-
-<span class="n">seating_model</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;Wedding Seating Model&quot;</span><span class="p">,</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">seating_model</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;Wedding Seating Model&quot;</span><span class="p">,</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
 
 <span class="n">seating_model</span> <span class="o">+=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">lpSum</span><span class="p">([</span><span class="n">happiness</span><span class="p">(</span><span class="n">table</span><span class="p">)</span> <span class="o">*</span> <span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span><span class="p">])</span>
 </pre></div>
 </div>
-<p>This set of constraints defines the set partitioning problem by guaranteeing that a guest is allocated to
-exactly one table.</p>
+<p>We specify the total number of tables allowed in the solution.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># specify the maximum number of tables</span>
 <span class="n">seating_model</span> <span class="o">+=</span> <span class="p">(</span>
     <span class="n">pulp</span><span class="o">.</span><span class="n">lpSum</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span><span class="p">])</span> <span class="o">&lt;=</span> <span class="n">max_tables</span><span class="p">,</span>
     <span class="s2">&quot;Maximum_number_of_tables&quot;</span><span class="p">,</span>
 <span class="p">)</span>
-
+</pre></div>
+</div>
+<p>This set of constraints defines the set partitioning problem by guaranteeing that a guest is allocated to
+exactly one table.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># A guest must seated at one and only one table</span>
+<span class="k">for</span> <span class="n">guest</span> <span class="ow">in</span> <span class="n">guests</span><span class="p">:</span>
+    <span class="n">seating_model</span> <span class="o">+=</span> <span class="p">(</span>
+        <span class="n">pulp</span><span class="o">.</span><span class="n">lpSum</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span> <span class="k">if</span> <span class="n">guest</span> <span class="ow">in</span> <span class="n">table</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">&quot;Must_seat_</span><span class="si">{</span><span class="n">guest</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
 </pre></div>
 </div>
 <p>The full file can be found here <a class="reference download internal" download="" href="../_downloads/787573ec11bb10ad2cd6781b0d2601ef/wedding.py"><code class="xref download docutils literal notranslate"><span class="pre">wedding.py</span></code></a></p>
@@ -167,30 +167,40 @@ exactly one table.</p>
     <span class="k">return</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">ord</span><span class="p">(</span><span class="n">table</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">-</span> <span class="nb">ord</span><span class="p">(</span><span class="n">table</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
 
 
+<span class="c1"># BEGIN possible_tables</span>
 <span class="c1"># create list of all possible tables</span>
 <span class="n">possible_tables</span> <span class="o">=</span> <span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">pulp</span><span class="o">.</span><span class="n">allcombinations</span><span class="p">(</span><span class="n">guests</span><span class="p">,</span> <span class="n">max_table_size</span><span class="p">)]</span>
+<span class="c1"># END possible_tables</span>
 
+<span class="c1"># BEGIN define_x</span>
 <span class="c1"># create a binary variable to state that a table setting is used</span>
 <span class="n">x</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpVariable</span><span class="o">.</span><span class="n">dicts</span><span class="p">(</span>
     <span class="s2">&quot;table&quot;</span><span class="p">,</span> <span class="n">possible_tables</span><span class="p">,</span> <span class="n">lowBound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upBound</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">cat</span><span class="o">=</span><span class="n">pulp</span><span class="o">.</span><span class="n">LpInteger</span>
 <span class="p">)</span>
+<span class="c1"># END define_x</span>
 
+<span class="c1"># BEGIN class_and_obj_fn</span>
 <span class="n">seating_model</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;Wedding Seating Model&quot;</span><span class="p">,</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
 
 <span class="n">seating_model</span> <span class="o">+=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">lpSum</span><span class="p">([</span><span class="n">happiness</span><span class="p">(</span><span class="n">table</span><span class="p">)</span> <span class="o">*</span> <span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span><span class="p">])</span>
+<span class="c1"># END class_and_obj_fn</span>
 
+<span class="c1"># BEGIN total_table_constraint</span>
 <span class="c1"># specify the maximum number of tables</span>
 <span class="n">seating_model</span> <span class="o">+=</span> <span class="p">(</span>
     <span class="n">pulp</span><span class="o">.</span><span class="n">lpSum</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span><span class="p">])</span> <span class="o">&lt;=</span> <span class="n">max_tables</span><span class="p">,</span>
     <span class="s2">&quot;Maximum_number_of_tables&quot;</span><span class="p">,</span>
 <span class="p">)</span>
+<span class="c1"># END total_table_constraint</span>
 
+<span class="c1"># BEGIN exactly_one_table_constraint</span>
 <span class="c1"># A guest must seated at one and only one table</span>
 <span class="k">for</span> <span class="n">guest</span> <span class="ow">in</span> <span class="n">guests</span><span class="p">:</span>
     <span class="n">seating_model</span> <span class="o">+=</span> <span class="p">(</span>
         <span class="n">pulp</span><span class="o">.</span><span class="n">lpSum</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span> <span class="k">if</span> <span class="n">guest</span> <span class="ow">in</span> <span class="n">table</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span>
         <span class="sa">f</span><span class="s2">&quot;Must_seat_</span><span class="si">{</span><span class="n">guest</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
     <span class="p">)</span>
+<span class="c1"># END exactly_one_table_constraint</span>
 
 <span class="n">seating_model</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
 

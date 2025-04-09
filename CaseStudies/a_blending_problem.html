@@ -213,6 +213,7 @@ for this example is found in <a class="reference download internal" download="" 
 <p>Then you will import PuLP’s functions for use in your code:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import PuLP modeler functions</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pulp</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+
 </pre></div>
 </div>
 <p>A variable called <code class="docutils literal notranslate"><span class="pre">prob</span></code> (although its name is not important) is
@@ -290,8 +291,8 @@ seen frequently in Object Oriented software (such as this):</p>
 <span class="n">prob</span><span class="o">.</span><span class="n">writeLP</span><span class="p">(</span><span class="s2">&quot;WhiskasModel.lp&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>The LP is solved using the solver that PuLP chooses. The input
-brackets after <a class="reference internal" href="../technical/pulp.html#pulp.LpProblem.solve" title="pulp.LpProblem.solve"><code class="xref py py-meth docutils literal notranslate"><span class="pre">solve()</span></code></a> are left empty in this case, however they can be
+<p>The LP is solved using the solver that PuLP chooses. The input brackets after
+<a class="reference internal" href="../technical/pulp.html#pulp.LpProblem.solve" title="pulp.LpProblem.solve"><code class="xref py py-meth docutils literal notranslate"><span class="pre">solve()</span></code></a> are left empty in this case, however they can be
 used to specify which solver to use (e.g <code class="docutils literal notranslate"><span class="pre">prob.solve(CPLEX())</span></code> ):</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># The problem is solved using PuLP&#39;s choice of Solver</span>
 <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
@@ -410,11 +411,12 @@ purpose, and the author name and date. Importing of the PuLP functions is also d
 
 <span class="c1"># Import PuLP modeler functions</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pulp</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+
 </pre></div>
 </div>
 <p>Next, before the <code class="docutils literal notranslate"><span class="pre">prob</span></code> variable or type of problem are defined,
 the key problem data is entered into dictionaries. This includes the
-list of Ingredients, followed by the cost of each Ingredient, and it’s
+list of Ingredients, followed by the cost of each Ingredient, and its
 percentage of each of the four nutrients. These values are clearly laid
 out and could easily be changed by someone with little knowledge of
 programming. The ingredients are the reference keys, with the numbers as
