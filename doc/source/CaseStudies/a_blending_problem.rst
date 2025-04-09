@@ -90,12 +90,14 @@ for this example is found in :download:`WhiskasModel1.py <../../../examples/Whis
 The start of the your file should then be headed with a short commenting section outlining the purpose of the program. For example:
 
 .. literalinclude:: ../../../examples/WhiskasModel1.py
-    :lines: 1-5
+    :start-after: # BEGIN file_docstring
+    :end-before: # END file_docstring
    
 Then you will import PuLP's functions for use in your code:
 
 .. literalinclude:: ../../../examples/WhiskasModel1.py
-    :lines: 7-8
+    :start-after: # BEGIN import_pulp
+    :end-before: # END import_pulp
 
 A variable called ``prob`` (although its name is not important) is
 created using the :class:`~pulp.LpProblem` function. It has two parameters, the first
@@ -104,7 +106,8 @@ parameter being either ``LpMinimize`` or ``LpMaximize`` depending on the
 type of LP you are trying to solve:
 
 .. literalinclude:: ../../../examples/WhiskasModel1.py
-    :lines: 10-11
+    :start-after: # BEGIN define_prob
+    :end-before: # END define_prob
 
 The problem variables ``x1`` and ``x2`` are created using the
 :class:`~pulp.LpVariable` class. It has four parameters, the first is the
@@ -132,7 +135,8 @@ or::
 To explicitly create the two variables needed for this problem:
 
 .. literalinclude:: ../../../examples/WhiskasModel1.py
-    :lines: 13-15
+    :start-after: # BEGIN chicken_beef_vars
+    :end-before: # END chicken_beef_vars
 
 The variable ``prob`` now begins collecting problem data with the
 ``+=`` operator. The objective function is logically entered first, with
@@ -140,7 +144,8 @@ an important comma ``,`` at the end of the statement and a short string
 explaining what this objective function is:
 
 .. literalinclude:: ../../../examples/WhiskasModel1.py
-    :lines: 17-18
+    :start-after: # BEGIN obj_func
+    :end-before: # END obj_func
    
 The constraints are now entered (Note: any "non-negative"
 constraints were already included when defining the variables). This is
@@ -150,7 +155,8 @@ comma at the end of the constraint equation and a brief description of
 the cause of that constraint:
 
 .. literalinclude:: ../../../examples/WhiskasModel1.py
-    :lines: 20-25
+    :start-after: # BEGIN constraints
+    :end-before: # END constraints
 
 Now that all the problem data is entered, the :meth:`~pulp.LpProblem.writeLP` function
 can be used to copy this information into a .lp file into the directory
@@ -166,14 +172,16 @@ seen frequently in Object Oriented software (such as this):
 
 
 .. literalinclude:: ../../../examples/WhiskasModel1.py
-    :lines: 27-28
+    :start-after: # BEGIN lp_file
+    :end-before: # END lp_file
 
-The LP is solved using the solver that PuLP chooses. The input
-brackets after :meth:`~pulp.LpProblem.solve` are left empty in this case, however they can be
+The LP is solved using the solver that PuLP chooses. The input brackets after
+:meth:`~pulp.LpProblem.solve` are left empty in this case, however they can be
 used to specify which solver to use (e.g ``prob.solve(CPLEX())`` ):
 
 .. literalinclude:: ../../../examples/WhiskasModel1.py
-    :lines: 30-31
+    :start-after: # BEGIN prob_solve
+    :end-before: # END prob_solve
 
 Now the results of the solver call can be displayed as output to
 us. Firstly, we request the status of the solution, which can be one of
@@ -184,13 +192,15 @@ to its significant text meaning using the
 :attr:`~pulp.constants.LpStatus` is a dictionary(:obj:`dict`), its input must be in square brackets:
 
 .. literalinclude:: ../../../examples/WhiskasModel1.py
-    :lines: 33-34
+    :start-after: # BEGIN print_status
+    :end-before: # END print_status
 
 The variables and their resolved optimum values can now be printed
 to the screen. 
 
 .. literalinclude:: ../../../examples/WhiskasModel1.py
-    :lines: 36-38
+    :start-after: # BEGIN print_var_value
+    :end-before: # END print_var_value
 
 The ``for`` loop makes ``variable`` cycle through all
 the problem variable names (in this case just ``ChickenPercent`` and
@@ -207,7 +217,8 @@ format to be displayed. :attr:`~pulp.LpProblem.objective` is an attribute of the
 ``prob``:
 
 .. literalinclude:: ../../../examples/WhiskasModel1.py
-    :lines: 40-41
+    :start-after: # BEGIN print_obj
+    :end-before: # END print_obj
 
 Running this file should then produce the output to show that 
 Chicken will make up 33.33%, Beef will make up 66.67% and the 
