@@ -15,11 +15,15 @@ def check_dummy_env():
 
 
 def is_single_use_license() -> bool:
-    # TODO: better implementation of this function.
-    #
-    # I don't have a single-use license so can't write this function with
-    # confidence. CI is not using a single-use license, so CI should pass with
-    # this stub implementation.
+    try:
+        with gp.Env() as env1:
+            with gp.Env() as env2:
+                pass
+    except gp.GurobiError as ge:
+        if ge.errno == gp.GRB.Error.NO_LICENSE:
+            print("single use license")
+            print(f"Error code {ge.errno}: {ge}")
+            return True
     return False
 
 
