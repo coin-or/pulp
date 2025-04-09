@@ -8,15 +8,17 @@ import re
 import tempfile
 import unittest
 from decimal import Decimal
+from typing import Union
+
 
 from pulp import (
+    FixedElasticSubProblem,
     LpAffineExpression,
     LpConstraint,
     LpConstraintVar,
     LpFractionConstraint,
     LpProblem,
     LpVariable,
-    FixedElasticSubProblem,
 )
 from pulp import constants as const
 from pulp import lpSum
@@ -1762,7 +1764,7 @@ class BaseSolverTest:
                 variable = LpVariable(f"x_{t}", cat="Integer", lowBound=0)
                 supply.append(variable)
 
-            stock: list[LpVariable | int] = [initial_stock]  # stock[t] = s_t
+            stock: list[Union[LpVariable, int]] = [initial_stock]  # stock[t] = s_t
             for t in range(1, max_periods + 1):
                 variable = LpVariable(f"s_{t}", cat="Integer", lowBound=0)
                 stock.append(variable)
