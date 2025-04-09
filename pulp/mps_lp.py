@@ -397,8 +397,6 @@ def writeLP(
     mip: bool = True,
     max_length: int = 100,
 ):
-    if lp.objective is None:
-        raise ValueError("objective is None")
     f = open(filename, "w")
     f.write("\\* " + lp.name + " *\\\n")
     if lp.sense == 1:
@@ -406,6 +404,7 @@ def writeLP(
     else:
         f.write("Maximize\n")
     wasNone, objectiveDummyVar = lp.fixObjective()
+    assert lp.objective is not None
     objName = lp.objective.name
     if not objName:
         objName = "OBJ"
