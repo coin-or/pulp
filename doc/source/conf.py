@@ -11,6 +11,7 @@
 # serve to show the default.
 
 import sys, os
+from typing import Any
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -79,12 +80,12 @@ version = ".".join(release.split(".")[:2])
 
 # List of directories, relative to source directory, that shouldn't be searched
 # for source files.
-exclude_trees = []
+exclude_trees: list[None] = []
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = []
+exclude_patterns: list[None] = []
 
 # The reST default role (used for this markup: `text`) to use for all documents.
 # default_role = None
@@ -111,7 +112,7 @@ pygments_style = "sphinx"
 
 # The theme to use for HTML and HTML Help pages.  Major themes that come with
 # Sphinx are currently 'default' and 'sphinxdoc'.
-import sphinx_rtd_theme
+import sphinx_rtd_theme  # type: ignore[import-untyped]
 
 html_theme = "sphinx_rtd_theme"
 
@@ -119,7 +120,7 @@ html_theme = "sphinx_rtd_theme"
 # further.  For a list of options available for each theme, see the
 # documentation.
 # html_theme_options = {}
-html_theme_options = {
+html_theme_options: dict[str, Any] = {
     # 'fixed_sidebar': True,
     # 'stickysidebar': True,
     # 'github_banner': True,
