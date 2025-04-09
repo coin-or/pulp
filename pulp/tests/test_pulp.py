@@ -7,6 +7,7 @@ import os
 import re
 import tempfile
 import unittest
+from decimal import Decimal
 
 from pulp import (
     LpAffineExpression,
@@ -1803,6 +1804,31 @@ class BaseSolverTest:
             self.assertEqual(c.name, "Test2")
             self.assertEqual(c.expr.name, "Test1")
 
+        def test_decimal_815_addinplace(self):
+            # See: https://github.com/coin-or/pulp/issues/815
+            m1 = 3
+            m2 = Decimal("8.1")
+            extra = 5
+
+            x = LpVariable("x", lowBound=0, upBound=50, cat=LpContinuous)
+            y = LpVariable("y", lowBound=0, upBound=Decimal("32.24"), cat=LpContinuous)
+            include_extra = LpVariable("include_extra1", cat=LpBinary)
+
+            expression = LpAffineExpression()
+            expression += x * m1 + include_extra * extra - y
+            self.assertEqual(str(expression), "5*include_extra1 + 3*x - y")
+
+            with self.assertRaises(TypeError):
+                second_expression = LpAffineExpression()
+                second_expression += x * m2 - 6 - y
+
+            second_expression = LpAffineExpression(constant=Decimal("0"))
+            second_expression += x * m2 - 6 - y
+            self.assertEqual(str(second_expression), "8.1*x - y - 6.0")
+
+            second_expression_2 = x * m2 - 6 - y
+            self.assertEqual(str(second_expression_2), "8.1*x - y - 6.0")
+
 
 class PULP_CBC_CMDTest(BaseSolverTest.PuLPTest):
     solveInst = PULP_CBC_CMD
@@ -2080,6 +2106,47 @@ class GLPK_CMDTest(BaseSolverTest.PuLPTest):
         model.solve(self.solver)
         self.solver.options = self.solver.options[:-1]
         assert abs(Q.value() - ub) / ub < 1e-9
+
+    def test_decimal_815(self):
+        # See: https://github.com/coin-or/pulp/issues/815
+        # Will not run on other solvers due to how results are updated
+        m1 = 3
+        m2 = Decimal("8.1")
+        extra = 5
+
+        x = LpVariable("x", lowBound=0, upBound=50, cat=LpContinuous)
+        y = LpVariable("y", lowBound=0, upBound=Decimal("32.24"), cat=LpContinuous)
+        include_extra = LpVariable("include_extra1", cat=LpBinary)
+
+        prob = LpProblem("graph", LpMaximize)
+
+        prob += y
+
+        # y = 3x + 5 | y = 3x
+        e1 = x * m1 + include_extra * extra - y
+        c1 = e1 == 0
+        prob += c1
+
+        # y = 8.1x - 6
+        e2 = x * m2 - 6 - y
+        c2 = e2 == 0
+        prob += c2
+
+        # This generates two possible systems of equations,
+        # y = 3x + 5
+        # y = 8.1x - 6
+        # this intersects at ~(11/5, 58/5)
+
+        # OR
+        # y = 3x
+        # y = 8.1x-6
+        # this intersects at ~(6/5, 18/5)
+        pulpTestCheck(
+            prob,
+            self.solver,
+            [const.LpStatusOptimal],
+            {x: 2.15686, y: 11.4706},
+        )
 
 
 class GUROBITest(BaseSolverTest.PuLPTest):
