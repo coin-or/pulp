@@ -138,6 +138,8 @@ from . import mps_lp as mpslp
 
 from collections.abc import Iterable
 import logging
+import dataclasses
+import dacite
 
 log = logging.getLogger(__name__)
 
@@ -274,14 +276,14 @@ class LpVariable(LpElement):
         if e:
             self.add_expression(e)
 
-    def toDict(self):
+    def toDataclass(self) -> mpslp.MPSVariable:
         """
-        Exports a variable into a dictionary with its relevant information
+        Exports a variable into a dataclass with its relevant information
 
-        :return: a dictionary with the variable information
-        :rtype: dict
+        :return: a :py:class:`mpslp.MPSVariable` with the variable information
+        :rtype: :mpslp.MPSVariable
         """
-        return dict(
+        return mpslp.MPSVariable(
             lowBound=self.lowBound,
             upBound=self.upBound,
             cat=self.cat,
@@ -290,25 +292,26 @@ class LpVariable(LpElement):
             name=self.name,
         )
 
-    to_dict = toDict
-
     @classmethod
-    def fromDict(cls, dj=None, varValue=None, **kwargs):
+    def fromDataclass(cls, mps: mpslp.MPSVariable):
         """
-        Initializes a variable object from information that comes from a dictionary (kwargs)
+        Initializes a variable object from information that comes from a dataclass
 
-        :param dj: shadow price of the variable
-        :param float varValue: the value to set the variable
-        :param kwargs: arguments to initialize the variable
+        :param mps: a :py:class:`mpslp.MPSVariable` with the variable information
         :return: a :py:class:`LpVariable`
         :rtype: :LpVariable
         """
-        var = cls(**kwargs)
-        var.dj = dj
-        var.varValue = varValue
+        var = cls(
+            name=mps.name, lowBound=mps.lowBound, upBound=mps.upBound, cat=mps.cat
+        )
+        var.dj = mps.dj
+        var.varValue = mps.varValue
         return var
 
-    from_dict = fromDict
+    def toDict(self) -> dict[str, Any]:
+        return dataclasses.asdict(self.toDataclass())
+
+    to_dict = toDict
 
     def add_expression(self, e):
         self.expression = e
@@ -992,17 +995,15 @@ class LpAffineExpression(dict):
         else:
             return LpConstraint(self - other, const.LpConstraintEQ)
 
-    def toDict(self):
+    def toDataclass(self) -> list[mpslp.MPSCoefficient]:
         """
-        exports the :py:class:`LpAffineExpression` into a list of dictionaries with the coefficients
+        exports the :py:class:`LpAffineExpression` into a list of dataclasses with the coefficients
         it does not export the constant
 
-        :return: list of dictionaries with the coefficients
+        :return: list of :py:class:`mpslp.MPSCoefficient` with the coefficients
         :rtype: list
         """
-        return [dict(name=k.name, value=v) for k, v in self.items()]
-
-    to_dict = toDict
+        return [mpslp.MPSCoefficient(name=k.name, value=v) for k, v in self.items()]
 
 
 class LpConstraint:
@@ -1184,38 +1185,44 @@ class LpConstraint:
         """
         return FixedElasticSubProblem(self, *args, **kwargs)
 
-    def toDict(self):
+    def toDataclass(self) -> mpslp.MPSConstraint:
         """
-        exports constraint information into a dictionary
+        Exports constraint information into a :py:class:`mpslp.MPSConstraint` dataclass
 
-        :return: dictionary with all the constraint information
+        :return: :py:class:`mpslp.MPSConstraint` with all the constraint information
         """
-        return dict(
+        return mpslp.MPSConstraint(
             sense=self.sense,
             pi=self.pi,
             constant=self.constant,
             name=self.name,
-            coefficients=self.expr.toDict(),
+            coefficients=self.expr.toDataclass(),
         )
 
     @classmethod
-    def fromDict(cls, _dict):
+    def fromDataclass(
+        cls, mps: mpslp.MPSConstraint, variables: dict[str, LpVariable]
+    ) -> LpConstraint:
         """
-        Initializes a constraint object from a dictionary with necessary information
+        Initializes a constraint object from a :py:class:`mpslp.MPSConstraint` dataclass and variables
 
-        :param dict _dict: dictionary with data
+        :param mps: :py:class:`mpslp.MPSConstraint` containing constraint information
+        :param variables: dictionary of the variables
         :return: a new :py:class:`LpConstraint`
         """
         const = cls(
-            e=_dict["coefficients"],
-            rhs=-_dict["constant"],
-            name=_dict["name"],
-            sense=_dict["sense"],
+            e=LpAffineExpression(
+                {
+                    variables[coefficient.name]: coefficient.value
+                    for coefficient in mps.coefficients
+                }
+            ),
+            sense=mps.sense,
+            name=mps.name,
+            rhs=-mps.constant,
         )
-        const.pi = _dict["pi"]
+        const.pi = mps.pi
         return const
-
-    from_dict = fromDict
 
     @property
     def name(self) -> str | None:
@@ -1453,14 +1460,14 @@ class LpProblem:
         lpcopy.sos2 = self.sos2.copy()
         return lpcopy
 
-    def toDict(self):
+    def toDataclass(self) -> mpslp.MPS:
         """
-        creates a dictionary from the model with as much data as possible.
+        Creates a :py:class:`mpslp.MPS` from the model with as much data as possible.
         It replaces variables by variable names.
         So it requires to have unique names for variables.
 
-        :return: dictionary with model data
-        :rtype: dict
+        :return: :py:class:`mpslp.MPS` with model data
+        :rtype: mpslp.MPS
         """
         try:
             self.checkDuplicateVars()
@@ -1471,13 +1478,13 @@ class LpProblem:
         self.fixObjective()
         assert self.objective is not None
         variables = self.variables()
-        return dict(
-            objective=dict(
-                name=self.objective.name, coefficients=self.objective.toDict()
+        return mpslp.MPS(
+            objective=mpslp.MPSObjective(
+                name=self.objective.name, coefficients=self.objective.toDataclass()
             ),
-            constraints=[v.toDict() for v in self.constraints.values()],
-            variables=[v.toDict() for v in variables],
-            parameters=dict(
+            constraints=[v.toDataclass() for v in self.constraints.values()],
+            variables=[v.toDataclass() for v in variables],
+            parameters=mpslp.MPSParameters(
                 name=self.name,
                 sense=self.sense,
                 status=self.status,
@@ -1487,57 +1494,49 @@ class LpProblem:
             sos2=list(self.sos2.values()),
         )
 
-    to_dict = toDict
-
     @classmethod
-    def fromDict(cls, _dict):
+    def fromDataclass(cls, mps: mpslp.MPS) -> tuple[dict[str, LpVariable], LpProblem]:
         """
-        Takes a dictionary with all necessary information to build a model.
+        Takes a :py:class:`mpslp.MPS` with all necessary information to build a model.
         And returns a dictionary of variables and a problem object
 
-        :param _dict: dictionary with the model stored
+        :param mps: :py:class:`mpslp.MPS` with the model stored
         :return: a tuple with a dictionary of variables and a :py:class:`LpProblem`
         """
 
         # we instantiate the problem
-        params = _dict["parameters"]
-        pb_params = {"name", "sense"}
-        args = {k: params[k] for k in pb_params}
-        pb = cls(**args)
-        pb.status = params["status"]
-        pb.sol_status = params["sol_status"]
+        pb = cls(name=mps.parameters.name, sense=mps.parameters.sense)
+        pb.status = mps.parameters.status
+        pb.sol_status = mps.parameters.sol_status
 
         # recreate the variables.
-        var = {v["name"]: LpVariable.fromDict(**v) for v in _dict["variables"]}
+        var: dict[str, LpVariable] = {
+            v.name: LpVariable.fromDataclass(v) for v in mps.variables
+        }
 
         # objective function.
         # we change the names for the objects:
-        obj_e = {var[v["name"]]: v["value"] for v in _dict["objective"]["coefficients"]}
-        pb += LpAffineExpression(e=obj_e, name=_dict["objective"]["name"])
+        obj_e = {var[v.name]: v.value for v in mps.objective.coefficients}
+        pb += LpAffineExpression(e=obj_e, name=mps.objective.name)
 
         # constraints
-        # we change the names for the objects:
-        def edit_const(const):
-            const = dict(const)
-            const["coefficients"] = {
-                var[v["name"]]: v["value"] for v in const["coefficients"]
-            }
-            return const
-
-        constraints = [edit_const(v) for v in _dict["constraints"]]
-        for c in constraints:
-            pb += LpConstraint.fromDict(c)
+        for c in mps.constraints:
+            pb += LpConstraint.fromDataclass(c, var)
 
         # last, parameters, other options
-        list_to_dict = lambda v: {k: v for k, v in enumerate(v)}
-        pb.sos1 = list_to_dict(_dict["sos1"])
-        pb.sos2 = list_to_dict(_dict["sos2"])
+        pb.sos1 = dict(enumerate(mps.sos1))
+        pb.sos2 = dict(enumerate(mps.sos2))
 
         return var, pb
 
-    from_dict = fromDict
+    def toDict(self):
+        return dataclasses.asdict(self.toDataclass())
 
-    def toJson(self, filename, *args, **kwargs):
+    @classmethod
+    def fromDict(cls, data: dict[Any, Any]):
+        return cls.fromDataclass(dacite.from_dict(mpslp.MPS, data))
+
+    def toJson(self, filename: str, *args: Any, **kwargs: Any):
         """
         Creates a json file from the LpProblem information
 
@@ -1552,9 +1551,9 @@ class LpProblem:
     to_json = toJson
 
     @classmethod
-    def fromJson(cls, filename):
+    def fromJson(cls, filename: str) -> tuple[dict[str, LpVariable], LpProblem]:
         """
-        Creates a new Lp Problem from a json file with information
+        Creates a new LpProblem from a json file with information
 
         :param str filename: json file name
         :return: a tuple with a dictionary of variables and an LpProblem
@@ -1567,9 +1566,11 @@ class LpProblem:
     from_json = fromJson
 
     @classmethod
-    def fromMPS(cls, filename, sense=const.LpMinimize, **kwargs):
-        data = mpslp.readMPS(filename, sense=sense, **kwargs)
-        return cls.fromDict(data)
+    def fromMPS(
+        cls, filename: str, sense: int = const.LpMinimize, dropConsNames: bool = False
+    ):
+        data = mpslp.readMPS(filename, sense=sense, dropConsNames=dropConsNames)
+        return cls.fromDataclass(data)
 
     def normalisedNames(self):
         constraintsNames = {k: "C%07d" % i for i, k in enumerate(self.constraints)}

@@ -4,9 +4,15 @@
 
 """
 
+from __future__ import annotations
+
 import re
+from typing import TYPE_CHECKING, Any, Union
 
 from . import constants as const
+
+if TYPE_CHECKING:
+    from pulp.pulp import LpProblem, LpVariable, LpAffineExpression
 
 CORE_FILE_ROW_MODE = "ROWS"
 CORE_FILE_COL_MODE = "COLUMNS"
@@ -20,15 +26,62 @@ CORE_FILE_RHS_MODE_NO_NAME = "RHS_NO_NAME"
 
 ROW_MODE_OBJ = "N"
 
-BOUNDS_EQUIV = dict(LO="lowBound", UP="upBound")
-
 ROW_EQUIV = {v: k for k, v in const.LpConstraintTypeToMps.items()}
 COL_EQUIV = {1: "Integer", 0: "Continuous"}
-ROW_DEFAULT = dict(pi=None, constant=0)
-COL_DEFAULT = dict(lowBound=0, upBound=None, varValue=None, dj=None)
+
+from dataclasses import dataclass
 
 
-def readMPS(path, sense, dropConsNames=False):
+@dataclass
+class MPSParameters:
+    name: str
+    sense: int
+    status: int
+    sol_status: int
+
+
+@dataclass
+class MPSCoefficient:
+    name: str
+    value: float
+
+
+@dataclass
+class MPSObjective:
+    name: str | None
+    coefficients: list[MPSCoefficient]
+
+
+@dataclass
+class MPSVariable:
+    name: str
+    cat: str
+    lowBound: float | None = 0
+    upBound: float | None = None
+    varValue: float | None = None
+    dj: float | None = None
+
+
+@dataclass
+class MPSConstraint:
+    name: str | None
+    sense: int
+    coefficients: list[MPSCoefficient]
+    pi: float | None = None
+    constant: float = 0
+
+
+@dataclass
+class MPS:
+    parameters: MPSParameters
+    objective: MPSObjective
+    variables: list[MPSVariable]
+    constraints: list[MPSConstraint]
+    sos1: list[Any]
+    sos2: list[Any]
+
+
+def readMPS(path: str, sense: int, dropConsNames: bool = False) -> MPS:
     """
     adapted from Julian Märte (https://github.com/pchtsp/pysmps)
     returns a dictionary with the contents of the model.
@@ -41,16 +94,16 @@ def readMPS(path, sense, dropConsNames=False):
     """
 
     mode = ""
-    parameters = dict(name="", sense=sense, status=0, sol_status=0)
-    variable_info = {}
-    constraints = {}
-    objective = dict(name="", coefficients=[])
-    sos1 = []
-    sos2 = []
+    parameters = MPSParameters(name="", sense=sense, status=0, sol_status=0)
+    variable_info: dict[str, MPSVariable] = {}
+    constraints: dict[str, MPSConstraint] = {}
+    objective = MPSObjective(name="", coefficients=[])
+    sos1: list[Any] = []
+    sos2: list[Any] = []
     # TODO: maybe take out rhs_names and bnd_names? not sure if they're useful
-    rhs_names = []
-    bnd_names = []
-    integral_marker = False
+    rhs_names: list[str] = []
+    bnd_names: list[str] = []
+    integral_marker: bool = False
 
     with open(path) as reader:
         for line in reader:
@@ -64,9 +117,9 @@ def readMPS(path, sense, dropConsNames=False):
                 continue
             if line[0] == "NAME":
                 if len(line) > 1:
-                    parameters["name"] = line[1]
+                    parameters.name = line[1]
                 else:
-                    parameters["name"] = ""
+                    parameters.name = ""
                 continue
 
             # here we get the mode
@@ -90,13 +143,10 @@ def readMPS(path, sense, dropConsNames=False):
                 row_type = line[0]
                 row_name = line[1]
                 if row_type == ROW_MODE_OBJ:
-                    objective["name"] = row_name
+                    objective.name = row_name
                 else:
-                    constraints[row_name] = dict(
-                        sense=ROW_EQUIV[row_type],
-                        name=row_name,
-                        coefficients=[],
-                        **ROW_DEFAULT,
+                    constraints[row_name] = MPSConstraint(
+                        name=row_name, sense=ROW_EQUIV[row_type], coefficients=[]
                     )
             elif mode == CORE_FILE_COL_MODE:
                 var_name = line[0]
@@ -107,25 +157,25 @@ def readMPS(path, sense, dropConsNames=False):
                         integral_marker = False
                     continue
                 if var_name not in variable_info:
-                    variable_info[var_name] = dict(
-                        cat=COL_EQUIV[integral_marker], name=var_name, **COL_DEFAULT
+                    variable_info[var_name] = MPSVariable(
+                        cat=COL_EQUIV[integral_marker], name=var_name
                     )
                 j = 1
                 while j < len(line) - 1:
-                    if line[j] == objective["name"]:
+                    if line[j] == objective.name:
                         # we store the variable objective coefficient
-                        objective["coefficients"].append(
-                            dict(name=var_name, value=float(line[j + 1]))
+                        objective.coefficients.append(
+                            MPSCoefficient(name=var_name, value=float(line[j + 1]))
                         )
                     else:
                         # we store the variable coefficient
-                        constraints[line[j]]["coefficients"].append(
-                            dict(name=var_name, value=float(line[j + 1]))
+                        constraints[line[j]].coefficients.append(
+                            MPSCoefficient(name=var_name, value=float(line[j + 1]))
                         )
                     j = j + 2
             elif mode == CORE_FILE_RHS_MODE_NAME_GIVEN:
                 if line[0] != rhs_names[-1]:
-                    raise Exception(
+                    raise const.PulpError(
                         "Other RHS name was given even though name was set after RHS tag."
                     )
                 readMPSSetRhs(line, constraints)
@@ -135,7 +185,7 @@ def readMPS(path, sense, dropConsNames=False):
                     rhs_names.append(line[0])
             elif mode == CORE_FILE_BOUNDS_MODE_NAME_GIVEN:
                 if line[1] != bnd_names[-1]:
-                    raise Exception(
+                    raise const.PulpError(
                         "Other BOUNDS name was given even though name was set after BOUNDS tag."
                     )
                 readMPSSetBounds(line, variable_info)
@@ -143,81 +193,84 @@ def readMPS(path, sense, dropConsNames=False):
                 readMPSSetBounds(line, variable_info)
                 if line[1] not in bnd_names:
                     bnd_names.append(line[1])
-    constraints = list(constraints.values())
+    constraints_list = list(constraints.values())
     if dropConsNames:
-        for c in constraints:
-            c["name"] = None
-        objective["name"] = None
-    variable_info = list(variable_info.values())
-    return dict(
+        for c in constraints_list:
+            c.name = None
+        objective.name = None
+    variable_info_list = list(variable_info.values())
+    return MPS(
         parameters=parameters,
         objective=objective,
-        variables=variable_info,
-        constraints=constraints,
+        variables=variable_info_list,
+        constraints=constraints_list,
         sos1=sos1,
         sos2=sos2,
     )
 
 
-def readMPSSetBounds(line, variable_dict):
+def readMPSSetBounds(line: list[str], variable_dict: dict[str, MPSVariable]):
     bound = line[0]
     var_name = line[2]
 
-    def set_one_bound(bound_type, value):
-        variable_dict[var_name][BOUNDS_EQUIV[bound_type]] = value
-
-    def set_both_bounds(value_low, value_up):
-        set_one_bound("LO", value_low)
-        set_one_bound("UP", value_up)
-
     if bound == "FR":
-        set_both_bounds(None, None)
-        return
+        variable_dict[var_name].lowBound = None
+        variable_dict[var_name].upBound = None
     elif bound == "BV":
-        set_both_bounds(0, 1)
-        return
+        variable_dict[var_name].lowBound = 0
+        variable_dict[var_name].upBound = 1
     elif bound == "PL":
-        # bounds equal to defaults
-        return
+        variable_dict[var_name].lowBound = 0
+        variable_dict[var_name].upBound = None
     elif bound == "MI":
-        set_one_bound("LO", None)
-        return
+        variable_dict[var_name].lowBound = None
+        variable_dict[var_name].upBound = 0
+    else:
+        value = float(line[3])
+        if bound == "LO":
+            variable_dict[var_name].lowBound = value
+        elif bound == "UP":
+            variable_dict[var_name].upBound = value
+        elif bound == "FX":
+            variable_dict[var_name].lowBound = value
+            variable_dict[var_name].upBound = value
+        else:
+            raise const.PulpError(f"Unknown bound {bound}")
 
-    value = float(line[3])
-    if bound in ["LO", "UP"]:
-        set_one_bound(bound, value)
-    elif bound == "FX":
-        set_both_bounds(value, value)
-    return
 
-
-def readMPSSetRhs(line, constraintsDict):
-    constraintsDict[line[1]]["constant"] = -float(line[2])
+def readMPSSetRhs(line: list[str], constraintsDict: dict[str, MPSConstraint]):
+    constraintsDict[line[1]].constant = -float(line[2])
     if len(line) == 5:  # read fields 5, 6
-        constraintsDict[line[3]]["constant"] = -float(line[4])
-    return
+        constraintsDict[line[3]].constant = -float(line[4])
 
 
 def writeMPS(
-    LpProblem, filename, mpsSense=0, rename=0, mip=1, with_objsense: bool = False
+    lp: LpProblem,
+    filename: str,
+    mpsSense: int = 0,
+    rename: bool = False,
+    mip: bool = True,
+    with_objsense: bool = False,
 ):
-    wasNone, dummyVar = LpProblem.fixObjective()
+    wasNone, dummyVar = lp.fixObjective()
     if mpsSense == 0:
-        mpsSense = LpProblem.sense
-    cobj = LpProblem.objective
-    if mpsSense != LpProblem.sense:
+        mpsSense = lp.sense
+    cobj = lp.objective
+    if cobj is None:
+        raise ValueError("objective is None")
+    if mpsSense != lp.sense:
         n = cobj.name
         cobj = -cobj
         cobj.name = n
     if rename:
-        constrNames, varNames, cobj.name = LpProblem.normalisedNames()
+        constrNames, varNames, cobj.name = lp.normalisedNames()
         # No need to call self.variables() again, we have just filled self._variables:
-        vs = LpProblem._variables
+        vs = lp._variables  # type: ignore
     else:
-        vs = LpProblem.variables()
+        vs = lp.variables()
         varNames = {v.name: v.name for v in vs}
-        constrNames = {c: c for c in LpProblem.constraints}
-    model_name = LpProblem.name
+        constrNames = {c: c for c in lp.constraints}
+    model_name = lp.name
     if rename:
         model_name = "MODEL"
     objName = cobj.name
@@ -227,18 +280,18 @@ def writeMPS(
     # constraints
     row_lines = [
         " " + const.LpConstraintTypeToMps[c.sense] + "  " + constrNames[k] + "\n"
-        for k, c in LpProblem.constraints.items()
+        for k, c in lp.constraints.items()
     ]
     # Creation of a dict of dict:
     # coefs[variable_name][constraint_name] = coefficient
-    coefs = {varNames[v.name]: {} for v in vs}
-    for k, c in LpProblem.constraints.items():
+    coefs: dict[str, dict[str, Union[int, float]]] = {varNames[v.name]: {} for v in vs}
+    for k, c in lp.constraints.items():
         k = constrNames[k]
         for v, value in c.items():
             coefs[varNames[v.name]][k] = value
 
     # matrix
-    columns_lines = []
+    columns_lines: list[str] = []
     for v in vs:
         name = varNames[v.name]
         columns_lines.extend(
@@ -249,10 +302,10 @@ def writeMPS(
     rhs_lines = [
         "    RHS       %-8s  % .12e\n"
         % (constrNames[k], -c.constant if c.constant != 0 else 0)
-        for k, c in LpProblem.constraints.items()
+        for k, c in lp.constraints.items()
     ]
     # bounds
-    bound_lines = []
+    bound_lines: list[str] = []
     for v in vs:
         bound_lines.extend(writeMPSBoundLines(varNames[v.name], v, mip))
 
@@ -273,16 +326,23 @@ def writeMPS(
         f.write("BOUNDS\n")
         f.write("".join(bound_lines))
         f.write("ENDATA\n")
-    LpProblem.restoreObjective(wasNone, dummyVar)
+    lp.restoreObjective(wasNone, dummyVar)
     # returns the variables, in writing order
-    if rename == 0:
+    if not rename:
         return vs
     else:
         return vs, varNames, constrNames, cobj.name
 
 
-def writeMPSColumnLines(cv, variable, mip, name, cobj, objName):
-    columns_lines = []
+def writeMPSColumnLines(
+    cv: dict[str, Union[int, float]],
+    variable: LpVariable,
+    mip: bool,
+    name: str,
+    cobj: LpAffineExpression,
+    objName: str,
+) -> list[str]:
+    columns_lines: list[str] = []
     if mip and variable.cat == const.LpInteger:
         columns_lines.append("    MARK      'MARKER'                 'INTORG'\n")
     # Most of the work is done here
@@ -299,7 +359,7 @@ def writeMPSColumnLines(cv, variable, mip, name, cobj, objName):
     return columns_lines
 
 
-def writeMPSBoundLines(name, variable, mip):
+def writeMPSBoundLines(name: str, variable: LpVariable, mip: bool) -> list[str]:
     if variable.lowBound is not None and variable.lowBound == variable.upBound:
         return [" FX BND       %-8s  % .12e\n" % (name, variable.lowBound)]
     elif (
@@ -309,7 +369,7 @@ def writeMPSBoundLines(name, variable, mip):
         and variable.cat == const.LpInteger
     ):
         return [" BV BND       %-8s\n" % name]
-    bound_lines = []
+    bound_lines: list[str] = []
     if variable.lowBound is not None:
         # In MPS files, variables with no bounds (i.e. >= 0)
         # are assumed BV by COIN and CPLEX.
@@ -330,29 +390,35 @@ def writeMPSBoundLines(name, variable, mip):
     return bound_lines
 
 
-def writeLP(LpProblem, filename, writeSOS=1, mip=1, max_length=100):
+def writeLP(
+    lp: LpProblem,
+    filename: str,
+    writeSOS: bool = True,
+    mip: bool = True,
+    max_length: int = 100,
+):
+    if lp.objective is None:
+        raise ValueError("objective is None")
     f = open(filename, "w")
-    f.write("\\* " + LpProblem.name + " *\\\n")
-    if LpProblem.sense == 1:
+    f.write("\\* " + lp.name + " *\\\n")
+    if lp.sense == 1:
         f.write("Minimize\n")
     else:
         f.write("Maximize\n")
-    wasNone, objectiveDummyVar = LpProblem.fixObjective()
-    objName = LpProblem.objective.name
+    wasNone, objectiveDummyVar = lp.fixObjective()
+    objName = lp.objective.name
     if not objName:
         objName = "OBJ"
-    f.write(
-        LpProblem.objective.asCplexLpAffineExpression(objName, include_constant=False)
-    )
+    f.write(lp.objective.asCplexLpAffineExpression(objName, include_constant=False))
     f.write("Subject To\n")
-    ks = list(LpProblem.constraints.keys())
+    ks = list(lp.constraints.keys())
     ks.sort()
     dummyWritten = False
     for k in ks:
-        constraint = LpProblem.constraints[k]
+        constraint = lp.constraints[k]
         if not list(constraint.keys()):
             # empty constraint add the dummyVar
-            dummyVar = LpProblem.get_dummyVar()
+            dummyVar = lp.get_dummyVar()
             constraint += dummyVar
             # set this dummyvar to zero so infeasible problems are not made feasible
             if not dummyWritten:
@@ -360,10 +426,10 @@ def writeLP(LpProblem, filename, writeSOS=1, mip=1, max_length=100):
                 dummyWritten = True
         f.write(constraint.asCplexLpConstraint(k))
     # check if any names are longer than 100 characters
-    LpProblem.checkLengthVars(max_length)
-    vs = LpProblem.variables()
+    lp.checkLengthVars(max_length)
+    vs = lp.variables()
     # check for repeated names
-    LpProblem.checkDuplicateVars()
+    lp.checkDuplicateVars()
     # Bounds on non-"positive" variables
     # Note: XPRESS and CPLEX do not interpret integer variables without
     # explicit bounds
@@ -393,19 +459,19 @@ def writeLP(LpProblem, filename, writeSOS=1, mip=1, max_length=100):
             for v in vg:
                 f.write(f"{v.name}\n")
     # Special Ordered Sets
-    if writeSOS and (LpProblem.sos1 or LpProblem.sos2):
+    if writeSOS and (lp.sos1 or lp.sos2):
         f.write("SOS\n")
-        if LpProblem.sos1:
-            for sos in LpProblem.sos1.values():
+        if lp.sos1:
+            for sos in lp.sos1.values():
                 f.write("S1:: \n")
                 for v, val in sos.items():
                     f.write(f" {v.name}: {val:.12g}\n")
-        if LpProblem.sos2:
-            for sos in LpProblem.sos2.values():
+        if lp.sos2:
+            for sos in lp.sos2.values():
                 f.write("S2:: \n")
                 for v, val in sos.items():
                     f.write(f" {v.name}: {val:.12g}\n")
     f.write("End\n")
     f.close()
-    LpProblem.restoreObjective(wasNone, objectiveDummyVar)
+    lp.restoreObjective(wasNone, objectiveDummyVar)
     return vs
