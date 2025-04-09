@@ -231,7 +231,7 @@ def writeMPS(
     ]
     # Creation of a dict of dict:
     # coefs[variable_name][constraint_name] = coefficient
-    coefs = {varNames[v.name]: {} for v in vs}
+    coefs: dict[str, dict] = {varNames[v.name]: {} for v in vs}
     for k, c in LpProblem.constraints.items():
         k = constrNames[k]
         for v, value in c.items():
