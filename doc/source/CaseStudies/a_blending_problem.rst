@@ -302,24 +302,27 @@ As with last time, it is advisable to head your file with commenting on its
 purpose, and the author name and date. Importing of the PuLP functions is also done in the same way:
 
 .. literalinclude:: ../../../examples/WhiskasModel2.py
-    :lines: 1-8
+    :start-after: # BEGIN docstring_imports
+    :end-before: # END docstring_imports
 
 Next, before the ``prob`` variable or type of problem are defined,
 the key problem data is entered into dictionaries. This includes the
-list of Ingredients, followed by the cost of each Ingredient, and it's
+list of Ingredients, followed by the cost of each Ingredient, and its
 percentage of each of the four nutrients. These values are clearly laid
 out and could easily be changed by someone with little knowledge of
 programming. The ingredients are the reference keys, with the numbers as
 the data.
 
 .. literalinclude:: ../../../examples/WhiskasModel2.py
-    :lines: 10-61
+    :start-after: # BEGIN problem_data
+    :end-before: # END problem_data
 
 The ``prob`` variable is created to contain the formulation, and the
 usual parameters are passed into :class:`~pulp.LpProblem`.
 
 .. literalinclude:: ../../../examples/WhiskasModel2.py
-    :lines: 63-64
+    :start-after: # BEGIN define_prob
+    :end-before: # END define_prob
 
 A dictionary called ``ingredient_vars`` is created which contains
 the LP variables, with their defined lower bound of zero. The reference
@@ -327,7 +330,8 @@ keys to the dictionary are the Ingredient names, and the data is
 ``Ingr_IngredientName``. (e.g. MUTTON: Ingr_MUTTON)
 
 .. literalinclude:: ../../../examples/WhiskasModel2.py
-    :lines: 66-67
+    :start-after: # BEGIN ingredient_vars
+    :end-before: # END ingredient_vars
    
 Since ``costs`` and ``ingredient_vars`` are now dictionaries with the
 reference keys as the Ingredient names, the data can be simply extracted
@@ -336,12 +340,14 @@ elements of the resulting list. Thus the objective function is simply
 entered and assigned a name:
 
 .. literalinclude:: ../../../examples/WhiskasModel2.py
-    :lines: 69-73
+    :start-after: # BEGIN obj_function
+    :end-before: # END obj_function
     
 Further list comprehensions are used to define the other 5 constraints, which are also each given names describing them.
 
 .. literalinclude:: ../../../examples/WhiskasModel2.py
-    :lines: 75-92
+    :start-after: # BEGIN constraints
+    :end-before: # END constraints
  
 Following this, the :meth:`~pulp.LpProblem.writeLP` line etc follow exactly the same as
 in the simplified example.
