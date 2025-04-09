@@ -3,7 +3,7 @@ import unittest
 from pulp import GUROBI, LpProblem, LpVariable, const
 
 try:
-    import gurobipy as gp
+    import gurobipy as gp  # type: ignore[import-not-found]
     from gurobipy import GRB
 except ImportError:
     gp = None
@@ -40,7 +40,6 @@ class GurobiEnvTests(unittest.TestCase):
             solver.close()
         check_dummy_env()
 
-    @unittest.SkipTest
     def test_gp_env_no_close(self):
         # Not closing results in an error for a single use license.
         with gp.Env(params=self.env_options) as env:
@@ -64,7 +63,6 @@ class GurobiEnvTests(unittest.TestCase):
 
         check_dummy_env()
 
-    @unittest.SkipTest
     def test_backward_compatibility(self):
         """
         Backward compatibility check as previously the environment was not being
@@ -101,7 +99,6 @@ class GurobiEnvTests(unittest.TestCase):
         solver2.close()
         check_dummy_env()
 
-    @unittest.SkipTest
     def test_leak(self):
         """
         Check that we cannot initialise environments after a memory leak. On a

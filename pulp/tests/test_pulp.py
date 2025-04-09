@@ -26,7 +26,7 @@ from pulp.tests.bin_packing_problem import create_bin_packing_problem
 from pulp.utilities import makeDict
 
 try:
-    import gurobipy as gp
+    import gurobipy as gp  # type: ignore[import-not-found,no-redef]
 except ImportError:
     gp = None
 
@@ -807,7 +807,7 @@ class BaseSolverTest:
                 prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: -1.0}
             )
 
-        def test_elastic_constraints_penalty_unbounded(self):
+        def test_elastic_constraints_penalty_unbounded(self) -> None:
             """
             Test the ability to use Elastic constraints (penalty unbounded)
             """
@@ -1522,7 +1522,7 @@ class BaseSolverTest:
             x = LpVariable("x")
             self.assertRaises(PulpError, lambda: x * a)
 
-        def test_constraint_copy(self):
+        def test_constraint_copy(self) -> None:
             """
             LpConstraint.copy()
             """
@@ -1545,7 +1545,7 @@ class BaseSolverTest:
             self.assertEqual(str(c), str(c2))
             self.assertEqual(repr(c), repr(c2))
 
-        def test_constraint_add(self):
+        def test_constraint_add(self) -> None:
             """
             __add__ operator on LpConstraint
             """
@@ -1574,7 +1574,7 @@ class BaseSolverTest:
             self.assertEqual(str(c1_variable), str(2 * x + y <= 5))
             self.assertEqual(repr(c1_variable), repr(2 * x + y <= 5))
 
-            expr: LpAffineExpression = x + 1
+            expr = x + 1
             self.assertIsInstance(expr, LpAffineExpression)
             self.assertEqual(expr.constant, 1)
             self.assertEqual(str(expr), "x + 1")
@@ -1592,15 +1592,15 @@ class BaseSolverTest:
             self.assertEqual(str(c1_constraint), str(2 * x + y <= 6))
             self.assertEqual(repr(c1_constraint), repr(2 * x + y <= 6))
 
-            constraint: LpConstraint = x + 1 <= 2
+            constraint = x + 1 <= 2
             self.assertIsInstance(constraint, LpConstraint)
             self.assertEqual(constraint.constant, -1)
             self.assertEqual(constraint.expr.constant, 1)
-            c1_constraint: LpConstraint = c1 + constraint
+            c1_constraint = c1 + constraint
             self.assertEqual(str(c1_constraint), str(2 * x + y <= 6))
             self.assertEqual(repr(c1_constraint), repr(2 * x + y <= 6))
 
-        def test_constraint_neg(self):
+        def test_constraint_neg(self) -> None:
             """
             __neg__ operator on LpConstraint
             """
@@ -1617,7 +1617,7 @@ class BaseSolverTest:
             self.assertEqual(str(c1_neg), str(-x + -y <= -5))
             self.assertEqual(repr(c1_neg), repr(-x + -y <= -5))
 
-        def test_constraint_sub(self):
+        def test_constraint_sub(self) -> None:
             """
             __sub__ operator on LpConstraint
             """
@@ -1654,13 +1654,13 @@ class BaseSolverTest:
             self.assertEqual(str(c1_constraint), "0*x + y <= 4")
             self.assertEqual(repr(c1_constraint), "0*x + 1*y + -4 <= 0")
 
-            constraint: LpConstraint = x + 1 <= 2
+            constraint = x + 1 <= 2
             self.assertIsInstance(constraint, LpConstraint)
-            c1_constraint: LpConstraint = c1 - constraint
+            c1_constraint = c1 - constraint
             self.assertEqual(str(c1_constraint), "0*x + y <= 4")
             self.assertEqual(repr(c1_constraint), "0*x + 1*y + -4 <= 0")
 
-        def test_constraint_mul(self):
+        def test_constraint_mul(self) -> None:
             """
             __mul__ operator on LpConstraint
             """
@@ -1699,7 +1699,7 @@ class BaseSolverTest:
             with self.assertRaises(TypeError):
                 c2 * (x + 1)
 
-        def test_constraint_div(self):
+        def test_constraint_div(self) -> None:
             """
             __div__ operator on LpConstraint
             """
@@ -1749,7 +1749,7 @@ class BaseSolverTest:
 
             self.assertEqual(str(x_div), "0.5*x")
 
-        def test_regression_794(self):
+        def test_regression_794(self) -> None:
             # See: https://github.com/coin-or/pulp/issues/794#issuecomment-2671682768
 
             initial_stock = 8  # s_0
@@ -1831,7 +1831,7 @@ class BaseSolverTest:
 
 
 class PULP_CBC_CMDTest(BaseSolverTest.PuLPTest):
-    solveInst = PULP_CBC_CMD
+    solveInst = PULP_CBC_CMD  # type: ignore[assignment]
 
     @staticmethod
     def read_command_line_from_log_file(logPath):
@@ -2028,31 +2028,31 @@ class PULP_CBC_CMDTest(BaseSolverTest.PuLPTest):
 
 
 class CPLEX_CMDTest(BaseSolverTest.PuLPTest):
-    solveInst = CPLEX_CMD
+    solveInst = CPLEX_CMD  # type: ignore[assignment]
 
 
 class CPLEX_PYTest(BaseSolverTest.PuLPTest):
-    solveInst = CPLEX_CMD
+    solveInst = CPLEX_CMD  # type: ignore[assignment]
 
 
 class XPRESS_CMDTest(BaseSolverTest.PuLPTest):
-    solveInst = XPRESS_CMD
+    solveInst = XPRESS_CMD  # type: ignore[assignment]
 
 
 class XPRESS_PyTest(BaseSolverTest.PuLPTest):
-    solveInst = XPRESS_PY
+    solveInst = XPRESS_PY  # type: ignore[assignment]
 
 
 class COIN_CMDTest(BaseSolverTest.PuLPTest):
-    solveInst = COIN_CMD
+    solveInst = COIN_CMD  # type: ignore[assignment]
 
 
 class COINMP_DLLTest(BaseSolverTest.PuLPTest):
-    solveInst = COINMP_DLL
+    solveInst = COINMP_DLL  # type: ignore[assignment]
 
 
 class GLPK_CMDTest(BaseSolverTest.PuLPTest):
-    solveInst = GLPK_CMD
+    solveInst = GLPK_CMD  # type: ignore[assignment]
 
     def test_issue814_rounding_mip(self):
         """
@@ -2150,55 +2150,55 @@ class GLPK_CMDTest(BaseSolverTest.PuLPTest):
 
 
 class GUROBITest(BaseSolverTest.PuLPTest):
-    solveInst = GUROBI
+    solveInst = GUROBI  # type: ignore[assignment]
 
 
 class GUROBI_CMDTest(BaseSolverTest.PuLPTest):
-    solveInst = GUROBI_CMD
+    solveInst = GUROBI_CMD  # type: ignore[assignment]
 
 
 class PYGLPKTest(BaseSolverTest.PuLPTest):
-    solveInst = PYGLPK
+    solveInst = PYGLPK  # type: ignore[assignment]
 
 
 class YAPOSIBTest(BaseSolverTest.PuLPTest):
-    solveInst = YAPOSIB
+    solveInst = YAPOSIB  # type: ignore[assignment]
 
 
 class CHOCO_CMDTest(BaseSolverTest.PuLPTest):
-    solveInst = CHOCO_CMD
+    solveInst = CHOCO_CMD  # type: ignore[assignment]
 
 
 class MIPCL_CMDTest(BaseSolverTest.PuLPTest):
-    solveInst = MIPCL_CMD
+    solveInst = MIPCL_CMD  # type: ignore[assignment]
 
 
 class MOSEKTest(BaseSolverTest.PuLPTest):
-    solveInst = MOSEK
+    solveInst = MOSEK  # type: ignore[assignment]
 
 
 class SCIP_CMDTest(BaseSolverTest.PuLPTest):
-    solveInst = SCIP_CMD
+    solveInst = SCIP_CMD  # type: ignore[assignment]
 
 
 class FSCIP_CMDTest(BaseSolverTest.PuLPTest):
-    solveInst = FSCIP_CMD
+    solveInst = FSCIP_CMD  # type: ignore[assignment]
 
 
 class SCIP_PYTest(BaseSolverTest.PuLPTest):
-    solveInst = SCIP_PY
+    solveInst = SCIP_PY  # type: ignore[assignment]
 
 
 class HiGHS_PYTest(BaseSolverTest.PuLPTest):
-    solveInst = HiGHS
+    solveInst = HiGHS  # type: ignore[assignment]
 
 
 class HiGHS_CMDTest(BaseSolverTest.PuLPTest):
-    solveInst = HiGHS_CMD
+    solveInst = HiGHS_CMD  # type: ignore[assignment]
 
 
 class COPTTest(BaseSolverTest.PuLPTest):
-    solveInst = COPT
+    solveInst = COPT  # type: ignore[assignment]
 
 
 class SASTest:
@@ -2220,11 +2220,11 @@ class SASTest:
 
 
 class SAS94Test(BaseSolverTest.PuLPTest, SASTest):
-    solveInst = SAS94
+    solveInst = SAS94  # type: ignore[assignment]
 
 
 class SASCASTest(BaseSolverTest.PuLPTest, SASTest):
-    solveInst = SASCAS
+    solveInst = SASCAS  # type: ignore[assignment]
 
 
 # class CyLPTest(BaseSolverTest.PuLPTest):

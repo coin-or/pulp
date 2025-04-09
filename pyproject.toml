@@ -28,7 +28,6 @@ keywords=["Optimization", "Linear Programming", "Operations Research"]
 exclude = [
     "doc/",
     "pulp/solverdir/",
-    "pulp/tests/",
     ".venv/.*",
     "build/",
 ]
