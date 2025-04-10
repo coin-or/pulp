@@ -41,10 +41,13 @@ class MPSParameters:
 
     @classmethod
     def fromDict(cls, data: dict[str, Any]) -> MPSParameters:
-        return cls(str(data["name"]),
-                   int(data["sense"]),
-                   int(data["status"]),
-                   int(data["sol_status"]))
+        return cls(
+            str(data["name"]),
+            int(data["sense"]),
+            int(data["status"]),
+            int(data["sol_status"]),
+        )
+
 
 @dataclass
 class MPSCoefficient:
@@ -53,8 +56,7 @@ class MPSCoefficient:
 
     @classmethod
     def fromDict(cls, data: dict[str, Any]) -> MPSCoefficient:
-        return cls(data["name"],
-                   float(data["value"]))
+        return cls(data["name"], float(data["value"]))
 
 
 @dataclass
@@ -64,8 +66,10 @@ class MPSObjective:
 
     @classmethod
     def fromDict(cls, data: dict[str, Any]) -> MPSObjective:
-        return cls(data["name"],
-                   [MPSCoefficient.fromDict(d) for d in data["coefficients"]])
+        return cls(
+            data["name"], [MPSCoefficient.fromDict(d) for d in data["coefficients"]]
+        )
+
 
 @dataclass
 class MPSVariable:
@@ -78,12 +82,15 @@ class MPSVariable:
 
     @classmethod
     def fromDict(cls, data: dict[str, Any]) -> MPSVariable:
-        return cls(data["name"],
-                   data["cat"],
-                   data.get("lowBound", 0),
-                   data.get("upBound", None),
-                   data.get("varValue", None),
-                   data.get("dj", None))
+        return cls(
+            data["name"],
+            data["cat"],
+            data.get("lowBound", 0),
+            data.get("upBound", None),
+            data.get("varValue", None),
+            data.get("dj", None),
+        )
+
 
 @dataclass
 class MPSConstraint:
@@ -95,11 +102,14 @@ class MPSConstraint:
 
     @classmethod
     def fromDict(cls, data: dict[str, Any]) -> MPSConstraint:
-        return cls(data.get("name", None),
-                   data["sense"],
-                   [MPSCoefficient.fromDict(d) for d in data["coefficients"]],
-                   data.get("pi", None),
-                   data.get("constant", 0))
+        return cls(
+            data.get("name", None),
+            data["sense"],
+            [MPSCoefficient.fromDict(d) for d in data["coefficients"]],
+            data.get("pi", None),
+            data.get("constant", 0),
+        )
+
 
 @dataclass
 class MPS:
@@ -112,12 +122,14 @@ class MPS:
 
     @classmethod
     def fromDict(cls, data: dict[str, Any]) -> MPS:
-        return cls(MPSParameters.fromDict(data["parameters"]),
-                   MPSObjective.fromDict(data["objective"]),
-                   [MPSVariable.fromDict(d) for d in data["variables"]],
-                   [MPSConstraint.fromDict(d) for d in data["constraints"]],
-                   data["sos1"],
-                   data["sos2"])
+        return cls(
+            MPSParameters.fromDict(data["parameters"]),
+            MPSObjective.fromDict(data["objective"]),
+            [MPSVariable.fromDict(d) for d in data["variables"]],
+            [MPSConstraint.fromDict(d) for d in data["constraints"]],
+            data["sos1"],
+            data["sos2"],
+        )
 
 
 def readMPS(path: str, sense: int, dropConsNames: bool = False) -> MPS:
