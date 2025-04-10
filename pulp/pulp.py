@@ -139,7 +139,6 @@ from . import mps_lp as mpslp
 from collections.abc import Iterable
 import logging
 import dataclasses
-import dacite
 
 log = logging.getLogger(__name__)
 
@@ -1534,7 +1533,7 @@ class LpProblem:
 
     @classmethod
     def fromDict(cls, data: dict[Any, Any]):
-        return cls.fromDataclass(dacite.from_dict(mpslp.MPS, data))
+        return cls.fromDataclass(mpslp.MPS.fromDict(data))
 
     def toJson(self, filename: str, *args: Any, **kwargs: Any):
         """

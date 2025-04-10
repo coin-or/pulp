@@ -8,9 +8,7 @@ authors = [
     {name = "Franco Peschiera", email = "pchtsp@gmail.com"}
 ]
 maintainers= [{name= "Franco Peschiera", email= "pchtsp@gmail.com"}]
-dependencies = [
-    "dacite"
-]
+dependencies = []
 requires-python = ">=3.7"
 readme = "README.md"
 license = {text = "MIT"}
