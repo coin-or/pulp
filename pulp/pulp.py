@@ -308,9 +308,56 @@ class LpVariable(LpElement):
         return var
 
     def toDict(self) -> dict[str, Any]:
+        """
+        Exports a variable into a dict with its relevant information.
+
+        :return: a :py:class:`dict` with the variable information
+        :rtype: :dict
+        """
         return dataclasses.asdict(self.toDataclass())
 
-    to_dict = toDict
+    def to_dict(self) -> dict[str, Any]:
+        """
+        Exports a variable into a dict with its relevant information.
+
+        This method is deprecated and :py:class:`LpVariable.toDict` should be used instead.
+
+        :return: a :py:class:`dict` with the variable information
+        :rtype: :dict
+        """
+        warnings.warn(
+            "LpVariable.to_dict is deprecated, use LpVariable.toDict instead",
+            category=DeprecationWarning,
+        )
+        return self.toDict()
+
+    @classmethod
+    def fromDict(cls, data: dict[str, Any]):
+        """
+        Initializes a variable object from information that comes from a dict.
+
+        :param data: a dict with the variable information
+        :return: a :py:class:`LpVariable`
+        :rtype: :LpVariable
+        """
+        return cls.fromDataclass(mpslp.MPSVariable.fromDict(data))
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]):
+        """
+        Initializes a variable object from information that comes from a dict.
+
+        This method is deprecated and :py:class:`LpVariable.fromDict` should be used instead.
+
+        :param data: a dict with the variable information
+        :return: a :py:class:`LpVariable`
+        :rtype: :LpVariable
+        """
+        warnings.warn(
+            "LpVariable.from_dict is deprecated, use LpVariable.fromDict instead",
+            category=DeprecationWarning,
+        )
+        return cls.fromDataclass(mpslp.MPSVariable.fromDict(data))
 
     def add_expression(self, e):
         self.expression = e
@@ -1004,6 +1051,30 @@ class LpAffineExpression(dict):
         """
         return [mpslp.MPSCoefficient(name=k.name, value=v) for k, v in self.items()]
 
+    def toDict(self) -> list[dict[str, Any]]:
+        """
+        exports the :py:class:`LpAffineExpression` into a list of dictionaries with the coefficients
+        it does not export the constant
+
+        :return: list of dictionaries with the coefficients
+        :rtype: list
+        """
+        return [{"name": k.name, "value": v} for k, v in self.items()]
+
+    def to_dict(self) -> list[dict[str, Any]]:
+        """
+        exports the :py:class:`LpAffineExpression` into a list of dictionaries with the coefficients
+        it does not export the constant
+
+        :return: list of dictionaries with the coefficients
+        :rtype: list
+        """
+        warnings.warn(
+            "LpAffineExpression.to_dict is deprecated, use LpAffineExpression.toDataclass instead",
+            category=DeprecationWarning,
+        )
+        return self.toDict()
+
 
 class LpConstraint:
     """An LP constraint"""
@@ -1531,9 +1602,24 @@ class LpProblem:
     def toDict(self):
         return dataclasses.asdict(self.toDataclass())
 
+    def to_dict(self):
+        warnings.warn(
+            "LpProblem.to_dict is deprecated, use LpProblem.toDict instead",
+            category=DeprecationWarning,
+        )
+        return self.toDict()
+
     @classmethod
     def fromDict(cls, data: dict[Any, Any]):
         return cls.fromDataclass(mpslp.MPS.fromDict(data))
+
+    @classmethod
+    def from_dict(cls, data: dict[Any, Any]):
+        warnings.warn(
+            "LpProblem.from_dict is deprecated, use LpProblem.fromDict instead",
+            category=DeprecationWarning,
+        )
+        return cls.fromDict(data)
 
     def toJson(self, filename: str, *args: Any, **kwargs: Any):
         """
@@ -1547,7 +1633,12 @@ class LpProblem:
         with open(filename, "w") as f:
             json.dump(self.toDict(), f, *args, **kwargs)
 
-    to_json = toJson
+    def to_json(self, filename: str, *args: Any, **kwargs: Any):
+        warnings.warn(
+            "LpProblem.to_json is deprecated, use LpProblem.toJson instead",
+            category=DeprecationWarning,
+        )
+        return self.toJson(filename, *args, **kwargs)
 
     @classmethod
     def fromJson(cls, filename: str) -> tuple[dict[str, LpVariable], LpProblem]:
@@ -1562,7 +1653,13 @@ class LpProblem:
             data = json.load(f)
         return cls.fromDict(data)
 
-    from_json = fromJson
+    @classmethod
+    def from_json(cls, filename: str):
+        warnings.warn(
+            "LpProblem.from_json is deprecated, use LpProblem.fromJson instead",
+            category=DeprecationWarning,
+        )
+        return cls.fromJson(filename)
 
     @classmethod
     def fromMPS(
