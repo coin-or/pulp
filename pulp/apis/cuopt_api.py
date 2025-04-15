@@ -340,7 +340,7 @@ class CUOPT(LpSolver):
             return True
 
         def callSolver(self, lp, callback=None):
-            """Solves the problem with COPT"""
+            """Solves the problem with CUOPT"""
             self.solveTime = -clock()
             ## Add callback
             """if callback is not None:
@@ -439,7 +439,6 @@ class CUOPT(LpSolver):
             lp.solverModel.set_row_types(np.array(sense))
 
             lp.solverModel.set_objective_coefficients(np.array(obj_coeff))
-
 
         def actualSolve(self, lp, callback=None):
             """
