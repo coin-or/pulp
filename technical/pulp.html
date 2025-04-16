@@ -281,7 +281,7 @@ constraints, variables) of the defined Lp problem to a file.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.LpProblem.toJson">
-<span class="sig-name descname"><span class="pre">toJson</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpProblem.toJson" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">toJson</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpProblem.toJson" title="Link to this definition"></a></dt>
 <dd><p>Creates a json file from the LpProblem information</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -299,8 +299,8 @@ constraints, variables) of the defined Lp problem to a file.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.LpProblem.fromJson">
-<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">fromJson</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpProblem.fromJson" title="Link to this definition"></a></dt>
-<dd><p>Creates a new Lp Problem from a json file with information</p>
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">fromJson</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#pulp.LpVariable" title="pulp.pulp.LpVariable"><span class="pre">LpVariable</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#pulp.LpProblem" title="pulp.pulp.LpProblem"><span class="pre">LpProblem</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#pulp.LpProblem.fromJson" title="Link to this definition"></a></dt>
+<dd><p>Creates a new LpProblem from a json file with information</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – json file name</p>
@@ -398,16 +398,29 @@ Continuous(default)</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="pulp.LpVariable.fromDict">
-<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">fromDict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dj</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">varValue</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable.fromDict" title="Link to this definition"></a></dt>
-<dd><p>Initializes a variable object from information that comes from a dictionary (kwargs)</p>
+<dt class="sig sig-object py" id="pulp.LpVariable.fromDataclass">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">fromDataclass</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">MPSVariable</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable.fromDataclass" title="Link to this definition"></a></dt>
+<dd><p>Initializes a variable object from information that comes from a dataclass</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>dj</strong> – shadow price of the variable</p></li>
-<li><p><strong>varValue</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>) – the value to set the variable</p></li>
-<li><p><strong>kwargs</strong> – arguments to initialize the variable</p></li>
-</ul>
+<dd class="field-odd"><p><strong>mps</strong> – a <code class="xref py py-class docutils literal notranslate"><span class="pre">mpslp.MPSVariable</span></code> with the variable information</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>a <a class="reference internal" href="#pulp.LpVariable" title="pulp.LpVariable"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpVariable</span></code></a></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>:LpVariable</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulp.LpVariable.fromDict">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">fromDict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable.fromDict" title="Link to this definition"></a></dt>
+<dd><p>Initializes a variable object from information that comes from a dict.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> – a dict with the variable information</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>a <a class="reference internal" href="#pulp.LpVariable" title="pulp.LpVariable"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpVariable</span></code></a></p>
@@ -420,15 +433,12 @@ Continuous(default)</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.LpVariable.from_dict">
-<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dj</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">varValue</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable.from_dict" title="Link to this definition"></a></dt>
-<dd><p>Initializes a variable object from information that comes from a dictionary (kwargs)</p>
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable.from_dict" title="Link to this definition"></a></dt>
+<dd><p>Initializes a variable object from information that comes from a dict.</p>
+<p>This method is deprecated and <a class="reference internal" href="#pulp.LpVariable.fromDict" title="pulp.LpVariable.fromDict"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpVariable.fromDict</span></code></a> should be used instead.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>dj</strong> – shadow price of the variable</p></li>
-<li><p><strong>varValue</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>) – the value to set the variable</p></li>
-<li><p><strong>kwargs</strong> – arguments to initialize the variable</p></li>
-</ul>
+<dd class="field-odd"><p><strong>data</strong> – a dict with the variable information</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>a <a class="reference internal" href="#pulp.LpVariable" title="pulp.LpVariable"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpVariable</span></code></a></p>
@@ -474,29 +484,44 @@ May be used for warmStart a solver, if supported by the solver</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="pulp.LpVariable.toDict">
-<span class="sig-name descname"><span class="pre">toDict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable.toDict" title="Link to this definition"></a></dt>
-<dd><p>Exports a variable into a dictionary with its relevant information</p>
+<dt class="sig sig-object py" id="pulp.LpVariable.toDataclass">
+<span class="sig-name descname"><span class="pre">toDataclass</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">MPSVariable</span></span></span><a class="headerlink" href="#pulp.LpVariable.toDataclass" title="Link to this definition"></a></dt>
+<dd><p>Exports a variable into a dataclass with its relevant information</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>a dictionary with the variable information</p>
+<dd class="field-odd"><p>a <code class="xref py py-class docutils literal notranslate"><span class="pre">mpslp.MPSVariable</span></code> with the variable information</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)">dict</a></p>
+<dd class="field-even"><p>:mpslp.MPSVariable</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulp.LpVariable.toDict">
+<span class="sig-name descname"><span class="pre">toDict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#pulp.LpVariable.toDict" title="Link to this definition"></a></dt>
+<dd><p>Exports a variable into a dict with its relevant information.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>a <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a> with the variable information</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>:dict</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.LpVariable.to_dict">
-<span class="sig-name descname"><span class="pre">to_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpVariable.to_dict" title="Link to this definition"></a></dt>
-<dd><p>Exports a variable into a dictionary with its relevant information</p>
+<span class="sig-name descname"><span class="pre">to_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#pulp.LpVariable.to_dict" title="Link to this definition"></a></dt>
+<dd><p>Exports a variable into a dict with its relevant information.</p>
+<p>This method is deprecated and <a class="reference internal" href="#pulp.LpVariable.toDict" title="pulp.LpVariable.toDict"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpVariable.toDict</span></code></a> should be used instead.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>a dictionary with the variable information</p>
+<dd class="field-odd"><p>a <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a> with the variable information</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)">dict</a></p>
+<dd class="field-even"><p>:dict</p>
 </dd>
 </dl>
 </dd></dl>
@@ -580,8 +605,23 @@ if we subtract other =&gt; -1</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="pulp.LpAffineExpression.toDataclass">
+<span class="sig-name descname"><span class="pre">toDataclass</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><span class="pre">MPSCoefficient</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#pulp.LpAffineExpression.toDataclass" title="Link to this definition"></a></dt>
+<dd><p>exports the <a class="reference internal" href="#pulp.LpAffineExpression" title="pulp.LpAffineExpression"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpAffineExpression</span></code></a> into a list of dataclasses with the coefficients
+it does not export the constant</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of <code class="xref py py-class docutils literal notranslate"><span class="pre">mpslp.MPSCoefficient</span></code> with the coefficients</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)">list</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="pulp.LpAffineExpression.toDict">
-<span class="sig-name descname"><span class="pre">toDict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpAffineExpression.toDict" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">toDict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#pulp.LpAffineExpression.toDict" title="Link to this definition"></a></dt>
 <dd><p>exports the <a class="reference internal" href="#pulp.LpAffineExpression" title="pulp.LpAffineExpression"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpAffineExpression</span></code></a> into a list of dictionaries with the coefficients
 it does not export the constant</p>
 <dl class="field-list simple">
@@ -596,7 +636,7 @@ it does not export the constant</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.LpAffineExpression.to_dict">
-<span class="sig-name descname"><span class="pre">to_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpAffineExpression.to_dict" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">to_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#pulp.LpAffineExpression.to_dict" title="Link to this definition"></a></dt>
 <dd><p>exports the <a class="reference internal" href="#pulp.LpAffineExpression" title="pulp.LpAffineExpression"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpAffineExpression</span></code></a> into a list of dictionaries with the coefficients
 it does not export the constant</p>
 <dl class="field-list simple">
@@ -678,26 +718,15 @@ if we subtract other =&gt; -1</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="pulp.LpConstraint.fromDict">
-<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">fromDict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpConstraint.fromDict" title="Link to this definition"></a></dt>
-<dd><p>Initializes a constraint object from a dictionary with necessary information</p>
+<dt class="sig sig-object py" id="pulp.LpConstraint.fromDataclass">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">fromDataclass</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">MPSConstraint</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variables</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#pulp.LpVariable" title="pulp.pulp.LpVariable"><span class="pre">LpVariable</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pulp.LpConstraint" title="pulp.pulp.LpConstraint"><span class="pre">LpConstraint</span></a></span></span><a class="headerlink" href="#pulp.LpConstraint.fromDataclass" title="Link to this definition"></a></dt>
+<dd><p>Initializes a constraint object from a <code class="xref py py-class docutils literal notranslate"><span class="pre">mpslp.MPSConstraint</span></code> dataclass and variables</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>_dict</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a>) – dictionary with data</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>a new <a class="reference internal" href="#pulp.LpConstraint" title="pulp.LpConstraint"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpConstraint</span></code></a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="pulp.LpConstraint.from_dict">
-<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpConstraint.from_dict" title="Link to this definition"></a></dt>
-<dd><p>Initializes a constraint object from a dictionary with necessary information</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>_dict</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a>) – dictionary with data</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mps</strong> – <code class="xref py py-class docutils literal notranslate"><span class="pre">mpslp.MPSConstraint</span></code> containing constraint information</p></li>
+<li><p><strong>variables</strong> – dictionary of the variables</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>a new <a class="reference internal" href="#pulp.LpConstraint" title="pulp.LpConstraint"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpConstraint</span></code></a></p>
@@ -713,12 +742,12 @@ if we subtract other =&gt; -1</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="pulp.LpConstraint.toDict">
-<span class="sig-name descname"><span class="pre">toDict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpConstraint.toDict" title="Link to this definition"></a></dt>
-<dd><p>exports constraint information into a dictionary</p>
+<dt class="sig sig-object py" id="pulp.LpConstraint.toDataclass">
+<span class="sig-name descname"><span class="pre">toDataclass</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">MPSConstraint</span></span></span><a class="headerlink" href="#pulp.LpConstraint.toDataclass" title="Link to this definition"></a></dt>
+<dd><p>Exports constraint information into a <code class="xref py py-class docutils literal notranslate"><span class="pre">mpslp.MPSConstraint</span></code> dataclass</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>dictionary with all the constraint information</p>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">mpslp.MPSConstraint</span></code> with all the constraint information</p>
 </dd>
 </dl>
 </dd></dl>
