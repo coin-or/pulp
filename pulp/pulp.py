@@ -1070,7 +1070,7 @@ class LpAffineExpression(dict):
         :rtype: list
         """
         warnings.warn(
-            "LpAffineExpression.to_dict is deprecated, use LpAffineExpression.toDataclass instead",
+            "LpAffineExpression.to_dict is deprecated, use LpAffineExpression.toDict instead",
             category=DeprecationWarning,
         )
         return self.toDict()
