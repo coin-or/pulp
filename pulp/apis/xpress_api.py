@@ -431,7 +431,7 @@ class XPRESS_PY(LpSolver):
                 # Solved as MIP
                 x, slacks, duals, djs = [], [], None, None
                 try:
-                    model.getmipsol(x, slacks)
+                    model.getSolution(x, slacks)
                 except:
                     x, slacks = None, None
                 statusmap = {
@@ -690,11 +690,11 @@ class XPRESS_PY(LpSolver):
                 )
                 rhs = -con.constant
                 if con.sense == constants.LpConstraintLE:
-                    c = xpress.constraint(body=lhs, sense=xpress.leq, rhs=rhs)
+                    c = xpress.constraint(body=lhs, type=xpress.leq, rhs=rhs)
                 elif con.sense == constants.LpConstraintGE:
-                    c = xpress.constraint(body=lhs, sense=xpress.geq, rhs=rhs)
+                    c = xpress.constraint(body=lhs, type=xpress.geq, rhs=rhs)
                 elif con.sense == constants.LpConstraintEQ:
-                    c = xpress.constraint(body=lhs, sense=xpress.eq, rhs=rhs)
+                    c = xpress.constraint(body=lhs, type=xpress.eq, rhs=rhs)
                 else:
                     raise PulpSolverError(
                         "Unsupprted constraint type " + str(con.sense)
