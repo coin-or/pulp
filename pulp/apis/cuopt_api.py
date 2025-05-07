@@ -5,8 +5,6 @@ import sys
 import warnings
 from uuid import uuid4
 import numpy as np
-from cuopt.utilities import setup
-
 from ..constants import (
     LpBinary,
     LpConstraintEQ,
@@ -45,171 +43,36 @@ sense_conv = {LpConstraintLE: "L",
               LpConstraintEQ: "E",
              }
 
-class CUOPT_CMD(LpSolver_CMD):
-    """
-    The CUOPT command-line solver
-    """
+def process_constraint(args):
+    local_data = []
+    local_vars = []
+    local_sense = []
+    local_rhs = []
+    for constraints in args:
+        name, constraint = constraints
+        local_data.extend(list(constraint.values()))
+        local_vars.extend(list(constraint.keys()))
+        local_sense.append(sense_conv[constraint.sense])
+        local_rhs.append(-constraint.constant)
+    return local_data, local_vars, local_sense, local_rhs
 
-    name = "CUOPT_CMD"
 
-    def __init__(
-        self,
-        path=None,
-        keepFiles=0,
-        mip=True,
-        msg=True,
-        mip_start=False,
-        warmStart=False,
-        logfile=None,
-        **params,
-    ):
-        """
-        Initialize command-line solver
-        """
-        LpSolver_CMD.__init__(self, path, keepFiles, mip, msg, [])
-
-        self.mipstart = warmStart
-        self.logfile = logfile
-        self.solverparams = params
-
-    def defaultPath(self):
-        """
-        The default path of 'copt_cmd'
-        """
-        pass
-        #return self.executableExtension("copt_cmd")
-
-    def available(self):
-        """
-        True if 'copt_cmd' is available
-        """
-        pass
-        #return self.executable(self.path)
-
-    def actualSolve(self, lp):
-        """
-        Solve a well formulated LP problem
-
-        This function borrowed implementation of CPLEX_CMD.actualSolve and
-        GUROBI_CMD.actualSolve, with some modifications.
-        """
-        pass
-        """if not self.available():
-            raise PulpSolverError("COPT_PULP: Failed to execute '{}'".format(self.path))
-
-        if not self.keepFiles:
-            uuid = uuid4().hex
-            tmpLp = os.path.join(self.tmpDir, "{}-pulp.lp".format(uuid))
-            tmpSol = os.path.join(self.tmpDir, "{}-pulp.sol".format(uuid))
-            tmpMst = os.path.join(self.tmpDir, "{}-pulp.mst".format(uuid))
-        else:
-            # Replace space with underscore to make filepath better
-            tmpName = lp.name
-            tmpName = tmpName.replace(" ", "_")
-
-            tmpLp = tmpName + "-pulp.lp"
-            tmpSol = tmpName + "-pulp.sol"
-            tmpMst = tmpName + "-pulp.mst"
-
-        lpvars = lp.writeLP(tmpLp, writeSOS=1)
-
-        # Generate solving commands
-        solvecmds = self.path
-        solvecmds += " -c "
-        solvecmds += '"read ' + tmpLp + ";"
-
-        if lp.isMIP() and self.mipstart:
-            self.writemst(tmpMst, lpvars)
-            solvecmds += "read " + tmpMst + ";"
-
-        if self.logfile is not None:
-            solvecmds += "set logfile {};".format(self.logfile)
-
-        if self.solverparams is not None:
-            for parname, parval in self.solverparams.items():
-                solvecmds += "set {0} {1};".format(parname, parval)
-
-        if lp.isMIP() and not self.mip:
-            solvecmds += "optimizelp;"
-        else:
-            solvecmds += "optimize;"
-
-        solvecmds += "write " + tmpSol + ";"
-        solvecmds += 'exit"'
-
-        try:
-            os.remove(tmpSol)
-        except:
-            pass
-
-        if self.msg:
-            msgpipe = None
-        else:
-            msgpipe = open(os.devnull, "w")
-
-        rc = subprocess.call(solvecmds, shell=True, stdout=msgpipe, stderr=msgpipe)
-
-        if msgpipe is not None:
-            msgpipe.close()
-
-        # Get and analyze result
-        if rc != 0:
-            raise PulpSolverError("COPT_PULP: Failed to execute '{}'".format(self.path))
-
-        if not os.path.exists(tmpSol):
-            status = LpStatusNotSolved
-        else:
-            status, values = self.readsol(tmpSol)
-
-        if not self.keepFiles:
-            for oldfile in [tmpLp, tmpSol, tmpMst]:
-                try:
-                    os.remove(oldfile)
-                except:
-                    pass
-
-        if status == LpStatusOptimal:
-            lp.assignVarsVals(values)
-
-        # lp.assignStatus(status)
-        lp.status = status
-
-        return status"""
-
-    def readsol(self, filename):
-        """
-        Read COPT solution file
-        """
-        pass
-        """with open(filename) as solfile:
-            try:
-                next(solfile)
-            except StopIteration:
-                warnings.warn("COPT_PULP: No solution was returned")
-                return LpStatusNotSolved, {}
-
-            # TODO: No information about status, assumed to be optimal
-            status = LpStatusOptimal
-
-            values = {}
-            for line in solfile:
-                if line[0] != "#":
-                    varname, varval = line.split()
-                    values[varname] = float(varval)
-        return status, values"""
-
-    def writemst(self, filename, lpvars):
-        """
-        Write COPT MIP start file
-        """
-        """mstvals = [(v.name, v.value()) for v in lpvars if v.value() is not None]
-        mstline = []
-        for varname, varval in mstvals:
-            mstline.append("{0} {1}".format(varname, varval))
-
-        with open(filename, "w") as mstfile:
-            mstfile.write("\n".join(mstline))"""
-        return True
+def process_variables(var):
+    #obj_coeff = lp.objective.get(var, 0.0))
+    lowBound = var.lowBound
+    if lowBound is None:
+        lowBound = -np.inf
+    upBound = var.upBound
+    if upBound is None:
+        upBound = np.inf
+    varType = "C"
+    if var.cat == LpInteger and self.mip:
+        varType = "I"
+    if var.cat == LpBinary and self.mip:
+        varType = "I"
+        lowBound = 0
+        upBound  = 1
+    return lowBound, upBound, varType, var.name
 
 
 class CUOPT(LpSolver):
@@ -268,6 +131,7 @@ class CUOPT(LpSolver):
             self.settings = solver_settings.SolverSettings()
             self.solver = solver
             self.solution = None
+            self.var_list = None
             self.solver_params = solverParams
 
             ## TODO: Disable logging if self.msg = False
@@ -275,17 +139,18 @@ class CUOPT(LpSolver):
                 if key == "optimality_tolerance":
                     self.settings.set_optimality_tolerance(value)
 
+
         def findSolutionValues(self, lp):
             model = lp.solverModel
             solution = self.solution
-            print(solution)
             solutionStatus = solution.get_termination_reason()
+            print("CUOPT status=", solutionStatus)
 
             CuoptLpStatus = {
                 0: LpStatusNotSolved,
                 1: LpStatusOptimal,
                 2: LpStatusInfeasible,
-                3: LpStatusInfeasible,
+                3: LpStatusUnbounded,
                 4: LpStatusNotSolved,
                 5: LpStatusNotSolved,
                 6: LpStatusNotSolved, # Primal Feasible?
@@ -306,7 +171,7 @@ class CUOPT(LpSolver):
             for var in lp._variables:
                 var.isModified = False
 
-            if solution.get_problem_category() is 0:
+            if solution.get_problem_category() == 0:
                 status = CuoptLpStatus.get(solutionStatus, LpStatusUndefined)
             else:
                 status = CuoptMipStatus.get(solutionStatus, LpStatusUndefined)
@@ -320,10 +185,6 @@ class CUOPT(LpSolver):
 
             if not solution.get_problem_category():
                 # TODO: Compute Slack
-                """slacks = model.getInfo("Slack", model.getConstrs())
-                for constr, value in zip(lp.constraints.values(), slacks):
-                    constr.slack = value
-                """
 
                 redcosts = solution.get_lp_stats()["reduced_cost"]
                 for var, value in zip(lp._variables, redcosts):
@@ -342,14 +203,8 @@ class CUOPT(LpSolver):
         def callSolver(self, lp, callback=None):
             """Solves the problem with CUOPT"""
             self.solveTime = -clock()
-            ## Add callback
-            """if callback is not None:
-                lp.solverModel.setCallback(
-                    callback,
-                    coptpy.COPT.CBCONTEXT_MIPRELAX | coptpy.COPT.CBCONTEXT_MIPSOL,
-                )"""
+            # TODO: Add callback
             log_file = self.optionsDict.get("logPath") or ""
-            setup()
 
             self.settings.set_infeasibility_detection(True)
             self.solution = self.solver.Solve(lp.solverModel, self.settings, log_file)
@@ -373,9 +228,10 @@ class CUOPT(LpSolver):
 
             var_lb, var_ub, var_type, var_name = [], [], [], []
             obj_coeff = []
+            var_dict = {}
 
-            for var in lp.variables():
-                obj_coeff.append(lp.objective.get(var) or 0)
+            for i, var in enumerate(lp.variables()):
+                obj_coeff.append(lp.objective.get(var, 0.0))
                 lowBound = var.lowBound
                 if lowBound is None:
                     lowBound = -np.inf
@@ -393,6 +249,7 @@ class CUOPT(LpSolver):
                 var_ub.append(upBound)
                 var_type.append(varType)
                 var_name.append(var.name)
+                var_dict[var.name] = i
                 var.solverVar = {var.name: {"lb": var_lb, "ub": var_ub, "type": var_type}}
 
             lp.solverModel.set_variable_lower_bounds(np.array(var_lb))
@@ -409,22 +266,17 @@ class CUOPT(LpSolver):
                         var_warmstart = None
                         break
 
-            if var_warmstart:
-                lp.solverModel.set_initial_primal_solution(np.array(var_warmstart))
+            #if var_warmstart:
+            #    print("Setting variable warmstart: ", var_warmstart)
+            #    lp.solverModel.set_initial_primal_solution(np.array(var_warmstart))
 
-            var_list = lp.variables()
             rhs, sense  = [], []
             matrix_data, matrix_indices, matrix_indptr = [], [], [0]
 
             for name, constraint in lp.constraints.items():
                 row_coeffs = []
-                for i, x in enumerate(var_list):
-                    con_coeff = constraint.get(x, 0)
-                    row_coeffs.append(con_coeff)
-                    if con_coeff:
-                        row_coeffs.append(con_coeff)
-                        matrix_data.append(con_coeff)
-                        matrix_indices.append(i)
+                matrix_data.extend(list(constraint.values()))
+                matrix_indices.extend([var_dict[v.name] for v in constraint.keys()])
                 matrix_indptr.append(len(matrix_data))
                 try:
                     c_sense = sense_conv[constraint.sense]
@@ -432,7 +284,7 @@ class CUOPT(LpSolver):
                     raise PulpSolverError("Detected an invalid constraint type")
                 rhs.append(-constraint.constant)
                 sense.append(c_sense)
-                constraint.solverConstraint = {name: {"bound": -constraint.constant, "sense": c_sense, "coefficients": row_coeffs}}
+                #constraint.solverConstraint = {name: {"bound": -constraint.constant, "sense": c_sense, "coefficients": row_coeffs}}
 
             lp.solverModel.set_csr_constraint_matrix(np.array(matrix_data), np.array(matrix_indices), np.array(matrix_indptr))
             lp.solverModel.set_constraint_bounds(np.array(rhs))
