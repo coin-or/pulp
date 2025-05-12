@@ -3,7 +3,7 @@ import unittest
 from pulp import GUROBI, LpProblem, LpVariable, const
 
 try:
-    import gurobipy as gp
+    import gurobipy as gp  # type: ignore[import-not-found]
     from gurobipy import GRB
 except ImportError:
     gp = None
@@ -12,6 +12,19 @@ except ImportError:
 def check_dummy_env():
     with gp.Env(params={"OutputFlag": 0}):
         pass
+
+
+def is_single_use_license() -> bool:
+    try:
+        with gp.Env() as env1:
+            with gp.Env() as env2:
+                pass
+    except gp.GurobiError as ge:
+        if ge.errno == gp.GRB.Error.NO_LICENSE:
+            print("single use license")
+            print(f"Error code {ge.errno}: {ge}")
+            return True
+    return False
 
 
 def generate_lp() -> LpProblem:
@@ -40,7 +53,10 @@ class GurobiEnvTests(unittest.TestCase):
             solver.close()
         check_dummy_env()
 
-    @unittest.SkipTest
+    @unittest.skipUnless(
+        is_single_use_license(),
+        "this test is only expected to pass with a single-use license",
+    )
     def test_gp_env_no_close(self):
         # Not closing results in an error for a single use license.
         with gp.Env(params=self.env_options) as env:
@@ -64,7 +80,10 @@ class GurobiEnvTests(unittest.TestCase):
 
         check_dummy_env()
 
-    @unittest.SkipTest
+    @unittest.skipUnless(
+        is_single_use_license(),
+        "this test is only expected to pass with a single-use license",
+    )
     def test_backward_compatibility(self):
         """
         Backward compatibility check as previously the environment was not being
@@ -101,7 +120,10 @@ class GurobiEnvTests(unittest.TestCase):
         solver2.close()
         check_dummy_env()
 
-    @unittest.SkipTest
+    @unittest.skipUnless(
+        is_single_use_license(),
+        "this test is only expected to pass with a single-use license",
+    )
     def test_leak(self):
         """
         Check that we cannot initialise environments after a memory leak. On a
