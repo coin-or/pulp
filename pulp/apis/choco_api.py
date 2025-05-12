@@ -91,7 +91,7 @@ class CHOCO_CMD(LpSolver_CMD):
             pass
         cmd = java_path + ' -cp "' + self.path + '" org.chocosolver.parser.mps.ChocoMPS'
         if self.timeLimit is not None:
-            cmd += f" -tl {self.timeLimit}" * 1000
+            cmd += f" -limit [-{self.timeLimit}s]"
         cmd += " " + " ".join([f"{key} {value}" for key, value in self.options])
         cmd += f" {tmpMps}"
         if lp.sense == constants.LpMaximize:
