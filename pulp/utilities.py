@@ -3,6 +3,10 @@ import collections
 import itertools
 from itertools import combinations as combination
 from itertools import permutations as permutation
+from typing import Any, overload, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pulp.pulp import LptNumber, LptExpr
 
 
 def resource_clock():
@@ -16,19 +20,33 @@ def isNumber(x):
     return isinstance(x, (int, float))
 
 
-def value(x):
+@overload
+def value(x: None) -> None: ...
+
+
+@overload
+def value(x: int) -> int: ...
+
+
+@overload
+def value(x: float) -> float: ...
+
+
+def value(x: LptExpr | None) -> LptNumber | None:
     """Returns the value of the variable/expression x, or x if it is a number"""
-    if isNumber(x):
+    if x is None:
+        return None
+    elif isinstance(x, (int, float)):
         return x
     else:
         return x.value()
 
 
-def valueOrDefault(x):
+def valueOrDefault(x: LptExpr) -> LptNumber:
     """Returns the value of the variable/expression x, or x if it is a number
     Variable without value (None) are affected a possible value (within their
     bounds)."""
-    if isNumber(x):
+    if isinstance(x, (int, float)):
         return x
     else:
         return x.valueOrDefault()
