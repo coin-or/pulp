@@ -861,7 +861,7 @@ class COPT(LpSolver):
 
     try:
         global coptpy
-        import coptpy  # type: ignore[import-not-found]
+        import coptpy  # type: ignore[import-not-found, import-untyped, unused-ignore]
     except:
 
         def available(self):

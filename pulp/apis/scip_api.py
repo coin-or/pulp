@@ -477,7 +477,7 @@ class SCIP_PY(LpSolver):
 
     try:
         global scip
-        import pyscipopt as scip  # type: ignore[import-not-found]
+        import pyscipopt as scip  # type: ignore[import-not-found, import-untyped, unused-ignore]
 
     except ImportError:
 

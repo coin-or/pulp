@@ -891,7 +891,7 @@ class CYLP(LpSolver):
     name = "CyLP"
     try:
         global cy
-        from cylp import cy  # type: ignore[import-not-found]
+        from cylp import cy  # type: ignore[import-not-found, import-untyped, unused-ignore]
     except:
 
         def available(self):

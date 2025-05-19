@@ -68,13 +68,23 @@ Applying the black linter / formatter
 -----------------------------------------------------
 
 We use `the black formatter <https://black.readthedocs.io/en/stable/>`_. Before sending your changes, be sure to execute the black package to style the resulting files.
-The quickest way to do this is to run:
+The quickest way to do this is to run::
 
     python -m black pulp
 
 And it will do the changes directly on the files.
 
 The easiest way is to integrate it inside your IDE so it runs every time you save a file. Learn how to do that `in the black integration docs <https://black.readthedocs.io/en/stable/integrations/editors.html>`_.
+
+Checking types with mypy
+-------------------------------------
+
+We use `the mypy type checker <https://mypy.readthedocs.io/en/stable/index.html>`_. Before sending your changes, be sure to execute the mypy package to check the types.
+The quickest way to do this is to run::
+
+    python -m mypy ./
+
+Fix all the errors you see before pushing the changes.
 
 Building the documentation
 ----------------------------
