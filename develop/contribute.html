@@ -54,6 +54,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#running-tests">Running tests</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#creating-a-test">Creating a test</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#applying-the-black-linter-formatter">Applying the black linter / formatter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#checking-types-with-mypy">Checking types with mypy</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#building-the-documentation">Building the documentation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#making-a-pull-request">Making a Pull Request</a></li>
 </ul>
@@ -149,11 +150,20 @@ We will use plain git through the command line but feel free to use the git clie
 <h2>Applying the black linter / formatter<a class="headerlink" href="#applying-the-black-linter-formatter" title="Link to this heading"></a></h2>
 <p>We use <a class="reference external" href="https://black.readthedocs.io/en/stable/">the black formatter</a>. Before sending your changes, be sure to execute the black package to style the resulting files.
 The quickest way to do this is to run:</p>
-<blockquote>
-<div><p>python -m black pulp</p>
-</div></blockquote>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">black</span> <span class="n">pulp</span>
+</pre></div>
+</div>
 <p>And it will do the changes directly on the files.</p>
 <p>The easiest way is to integrate it inside your IDE so it runs every time you save a file. Learn how to do that <a class="reference external" href="https://black.readthedocs.io/en/stable/integrations/editors.html">in the black integration docs</a>.</p>
+</section>
+<section id="checking-types-with-mypy">
+<h2>Checking types with mypy<a class="headerlink" href="#checking-types-with-mypy" title="Link to this heading"></a></h2>
+<p>We use <a class="reference external" href="https://mypy.readthedocs.io/en/stable/index.html">the mypy type checker</a>. Before sending your changes, be sure to execute the mypy package to check the types.
+The quickest way to do this is to run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">mypy</span> <span class="o">./</span>
+</pre></div>
+</div>
+<p>Fix all the errors you see before pushing the changes.</p>
 </section>
 <section id="building-the-documentation">
 <h2>Building the documentation<a class="headerlink" href="#building-the-documentation" title="Link to this heading"></a></h2>
