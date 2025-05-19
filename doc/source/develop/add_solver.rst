@@ -92,13 +92,13 @@ Takes an :py:class:`pulp.pulp.LpProblem` as argument, solves it, stores the solu
             os.remove(tmpSol)
         except:
             pass
-        cmd = self.path
-        cmd += " %s" % tmpMps
-        cmd += " -solfile %s" % tmpSol
+        cmd = [self.path]
+        cmd.append(tmpMps)
+        cmd.extend(["-solfile", tmpSol])
         if self.timeLimit is not None:
-            cmd += " -time %s" % self.timeLimit
+            cmd.extend(["-time", f"{self.timeLimit}"])
         for option in self.options:
-            cmd += " " + option
+            cmd.append(option)
         if lp.isMIP():
             if not self.mip:
                 warnings.warn("MIPCL_CMD cannot solve the relaxation of a problem")
@@ -107,7 +107,7 @@ Takes an :py:class:`pulp.pulp.LpProblem` as argument, solves it, stores the solu
         else:
             pipe = open(os.devnull, "w")
 
-        return_code = subprocess.call(cmd.split(), stdout=pipe, stderr=pipe)
+        return_code = subprocess.call(cmd, stdout=pipe, stderr=pipe)
         # We need to undo the objective swap before finishing
         if lp.sense == constants.LpMaximize:
             lp += -lp.objective

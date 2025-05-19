@@ -89,13 +89,13 @@ class CHOCO_CMD(LpSolver_CMD):
             os.remove(tmpSol)
         except:
             pass
-        cmd = java_path + ' -cp "' + self.path + '" org.chocosolver.parser.mps.ChocoMPS'
+        cmd = [java_path, '-cp', self.path, 'org.chocosolver.parser.mps.ChocoMPS']
         if self.timeLimit is not None:
-            cmd += f" -limit [-{self.timeLimit}s]"
-        cmd += " " + " ".join([f"{key} {value}" for key, value in self.options])
-        cmd += f" {tmpMps}"
+            cmd.extend(["-limit",  f"[-{self.timeLimit}s]"])
+        cmd.extend([key_or_value for key_value in self.options for key_or_value in key_value])
+        cmd.append(tmpMps)
         if lp.sense == constants.LpMaximize:
-            cmd += " -max"
+            cmd.append("-max")
         if lp.isMIP():
             if not self.mip:
                 warnings.warn("CHOCO_CMD cannot solve the relaxation of a problem")
