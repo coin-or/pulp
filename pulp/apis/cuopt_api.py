@@ -120,9 +120,6 @@ class CUOPT(LpSolver):
                 4: LpStatusUnbounded,
             }
 
-            if self.msg:
-                print("CUOPT status=", solutionStatus)
-
             lp.resolveOK = True
             for var in lp._variables:
                 var.isModified = False
