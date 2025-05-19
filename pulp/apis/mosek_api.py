@@ -24,11 +24,11 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."""
 
-from .core import LpSolver, PulpSolverError
-from .. import constants
 import sys
-
 from typing import Optional
+
+from .. import constants
+from .core import LpSolver, PulpSolverError
 
 
 class MOSEK(LpSolver):
@@ -37,9 +37,9 @@ class MOSEK(LpSolver):
     name = "MOSEK"
     try:
         global mosek
-        import mosek
+        import mosek  # type: ignore[import-not-found]
 
-        env = mosek.Env()
+        env = mosek.Env()  # type: ignore[name-defined]
     except ImportError:
 
         def available(self):
@@ -59,7 +59,7 @@ class MOSEK(LpSolver):
             timeLimit: Optional[float] = None,
             options: Optional[dict] = None,
             task_file_name="",
-            sol_type=mosek.soltype.bas,
+            sol_type=mosek.soltype.bas,  # type: ignore[name-defined]
         ):
             """Initializes the Mosek solver.
 
@@ -97,7 +97,7 @@ class MOSEK(LpSolver):
                 options = {}
             self.options = options
             if self.timeLimit is not None:
-                timeLimit_keys = {"MSK_DPAR_MIO_MAX_TIME", mosek.dparam.mio_max_time}
+                timeLimit_keys = {"MSK_DPAR_MIO_MAX_TIME", mosek.dparam.mio_max_time}  # type: ignore[name-defined]
                 if not timeLimit_keys.isdisjoint(self.options.keys()):
                     raise ValueError(
                         "timeLimit parameter has been provided trough `timeLimit` and `options`."
@@ -286,7 +286,7 @@ class MOSEK(LpSolver):
                         )
                     )
 
-        def actualSolve(self, lp):
+        def actualSolve(self, lp):  # type: ignore[misc]
             """
             Solve a well-formulated lp problem.
             """

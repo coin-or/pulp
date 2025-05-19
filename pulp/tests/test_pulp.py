@@ -7,6 +7,7 @@ import os
 import re
 import tempfile
 import unittest
+from decimal import Decimal
 
 from pulp import (
     LpAffineExpression,
@@ -102,7 +103,7 @@ class BaseSolverTest:
                 self.skipTest(f"solver {self.solveInst.name} not available")
 
         def tearDown(self):
-            for ext in ["mst", "log", "lp", "mps", "sol"]:
+            for ext in ["mst", "log", "lp", "mps", "sol", "out"]:
                 filename = f"{self._testMethodName}.{ext}"
                 try:
                     os.remove(filename)
@@ -1737,6 +1738,17 @@ class BaseSolverTest:
             with self.assertRaises(TypeError):
                 c2 / (x + 1)
 
+        def test_variable_div(self):
+            """
+            __div__ operator on LpVariable
+            """
+            x = LpVariable("x")
+            x_div = x / 2
+            self.assertIsInstance(x_div, LpAffineExpression)
+            self.assertEqual(x_div[x], 0.5)
+
+            self.assertEqual(str(x_div), "0.5*x")
+
         def test_regression_794(self):
             # See: https://github.com/coin-or/pulp/issues/794#issuecomment-2671682768
 
@@ -1791,6 +1803,31 @@ class BaseSolverTest:
             c = LpConstraint(e, name="Test2")
             self.assertEqual(c.name, "Test2")
             self.assertEqual(c.expr.name, "Test1")
+
+        def test_decimal_815_addinplace(self):
+            # See: https://github.com/coin-or/pulp/issues/815
+            m1 = 3
+            m2 = Decimal("8.1")
+            extra = 5
+
+            x = LpVariable("x", lowBound=0, upBound=50, cat=LpContinuous)
+            y = LpVariable("y", lowBound=0, upBound=Decimal("32.24"), cat=LpContinuous)
+            include_extra = LpVariable("include_extra1", cat=LpBinary)
+
+            expression = LpAffineExpression()
+            expression += x * m1 + include_extra * extra - y
+            self.assertEqual(str(expression), "5*include_extra1 + 3*x - y")
+
+            with self.assertRaises(TypeError):
+                second_expression = LpAffineExpression()
+                second_expression += x * m2 - 6 - y
+
+            second_expression = LpAffineExpression(constant=Decimal("0"))
+            second_expression += x * m2 - 6 - y
+            self.assertEqual(str(second_expression), "8.1*x - y - 6.0")
+
+            second_expression_2 = x * m2 - 6 - y
+            self.assertEqual(str(second_expression_2), "8.1*x - y - 6.0")
 
 
 class PULP_CBC_CMDTest(BaseSolverTest.PuLPTest):
@@ -2016,6 +2053,100 @@ class COINMP_DLLTest(BaseSolverTest.PuLPTest):
 
 class GLPK_CMDTest(BaseSolverTest.PuLPTest):
     solveInst = GLPK_CMD
+
+    def test_issue814_rounding_mip(self):
+        """
+        Test there is no rounding issue for MIP problems as described in #814
+        """
+
+        # bounds and constraints are formatted as .12g
+        # see pulp.py asCplexLpVariable / asCplexLpConstraint methods
+        ub = 999999999999
+
+        assert int(format(ub, ".12g")) == ub
+        assert float(format(ub + 2, ".12g")) != float(ub + 2)
+
+        model = LpProblem("mip-814", LpMaximize)
+        Q = LpVariable("Q", cat="Integer", lowBound=0, upBound=ub)
+        model += Q
+        model += Q >= 0
+        model.solve(self.solver)
+        assert Q.value() == ub
+
+    def test_issue814_rounding_lp(self):
+        """
+        Test there is no rounding issue for LP (simplex method) problems as described in #814
+        """
+        ub = 999999999999.0
+        assert float(format(ub, ".12g")) == ub
+        assert float(format(ub + 0.1, ".12g")) != ub + 0.1
+
+        for simplex in ["primal", "dual"]:
+            model = LpProblem(f"lp-814-{simplex}", LpMaximize)
+            Q = LpVariable("Q", lowBound=0, upBound=ub)
+            model += Q
+            model += Q >= 0
+            self.solver.options.append("--" + simplex)
+            model.solve(self.solver)
+            self.solver.options = self.solver.options[:-1]
+            assert Q.value() == ub
+
+    def test_issue814_rounding_ipt(self):
+        """
+        Test there is no rounding issue for LP (interior point method) problems as described in #814
+        """
+        # this one is limited by GLPK int pt feasibility, not formatting
+        ub = 12345678999.0
+
+        model = LpProblem("ipt-814", LpMaximize)
+        Q = LpVariable("Q", lowBound=0, upBound=ub)
+        model += Q
+        model += Q >= 0
+        self.solver.options.append("--interior")
+        model.solve(self.solver)
+        self.solver.options = self.solver.options[:-1]
+        assert abs(Q.value() - ub) / ub < 1e-9
+
+    def test_decimal_815(self):
+        # See: https://github.com/coin-or/pulp/issues/815
+        # Will not run on other solvers due to how results are updated
+        m1 = 3
+        m2 = Decimal("8.1")
+        extra = 5
+
+        x = LpVariable("x", lowBound=0, upBound=50, cat=LpContinuous)
+        y = LpVariable("y", lowBound=0, upBound=Decimal("32.24"), cat=LpContinuous)
+        include_extra = LpVariable("include_extra1", cat=LpBinary)
+
+        prob = LpProblem("graph", LpMaximize)
+
+        prob += y
+
+        # y = 3x + 5 | y = 3x
+        e1 = x * m1 + include_extra * extra - y
+        c1 = e1 == 0
+        prob += c1
+
+        # y = 8.1x - 6
+        e2 = x * m2 - 6 - y
+        c2 = e2 == 0
+        prob += c2
+
+        # This generates two possible systems of equations,
+        # y = 3x + 5
+        # y = 8.1x - 6
+        # this intersects at ~(11/5, 58/5)
+
+        # OR
+        # y = 3x
+        # y = 8.1x-6
+        # this intersects at ~(6/5, 18/5)
+        pulpTestCheck(
+            prob,
+            self.solver,
+            [const.LpStatusOptimal],
+            {x: 2.15686, y: 11.4706},
+        )
 
 
 class GUROBITest(BaseSolverTest.PuLPTest):

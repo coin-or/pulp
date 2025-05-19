@@ -14,14 +14,14 @@ activity = [  # Chairs
     [1, 2],  # Lathe
     [3, 1.5],  # Polisher
 ]
-activity = makeDict([Resources, Chairs], activity)
+activity_dict = makeDict([Resources, Chairs], activity)
 prob = LpProblem("Furniture Manufacturing Problem", LpMaximize)
 vars = LpVariable.dicts("Number of Chairs", Chairs, lowBound=0)
 # objective
 prob += lpSum([costs[c] * vars[c] for c in Chairs])
 for r in Resources:
     prob += (
-        lpSum([activity[r][c] * vars[c] for c in Chairs]) <= capacity[r],
+        lpSum([activity_dict[r][c] * vars[c] for c in Chairs]) <= capacity[r],
         f"capacity_of_{r}",
     )
 prob.writeLP("furniture.lp")

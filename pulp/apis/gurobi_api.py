@@ -25,14 +25,17 @@
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."""
 
 from __future__ import annotations
-from .core import LpSolver_CMD, LpSolver, subprocess, PulpSolverError, clock, log
+
 import os
 import sys
-from .. import constants
 from typing import TYPE_CHECKING
+
+from .. import constants
+from .core import LpSolver, LpSolver_CMD, PulpSolverError, clock, log, subprocess
 
 if TYPE_CHECKING:
     from .. import LpProblem
+
 import warnings
 
 # to import the gurobipy name into the module scope
@@ -54,7 +57,7 @@ class GUROBI(LpSolver):
     try:
         # to import the name into the module scope
         global gp
-        import gurobipy as gp
+        import gurobipy as gp  # type: ignore[import-not-found]
     except:  # FIXME: Bug because gurobi returns
         #  a gurobi exception on failed imports
         def available(self):

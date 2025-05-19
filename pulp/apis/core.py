@@ -30,11 +30,11 @@ Note that the solvers that require a compiled extension may not work in
 the current version
 """
 
+import ctypes
 import os
 import platform
 import shutil
 import sys
-import ctypes
 
 
 def get_operating_system():
@@ -57,17 +57,15 @@ def get_arch():
 operating_system = get_operating_system()
 arch = get_arch()
 
+import logging
 from time import monotonic as clock
-
 from typing import Union
 
-from .. import sparse
 from .. import constants as const
-
-import logging
+from .. import sparse
 
 try:
-    import ujson as json
+    import ujson as json  # type: ignore[import-untyped]
 except ImportError:
     import json
 

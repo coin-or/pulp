@@ -18,7 +18,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install uv and set the python version
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v6
         with:
           python-version: ${{ matrix.python-version }}
       - name: Code Quality
@@ -47,4 +47,6 @@ jobs:
           version: '9.2.1'
           command: "sudo apt install -qq ./SCIPOptSuite-9.2.1-Linux-ubuntu24.deb"
       - name: Test with pulptest
+        env:
+          PYTHONPATH: .
         run: uv run --all-extras pulp/tests/run_tests.py

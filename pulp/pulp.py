@@ -138,34 +138,12 @@ from . import mps_lp as mpslp
 
 from collections.abc import Iterable
 import logging
+import dataclasses
 
 log = logging.getLogger(__name__)
 
-try:  # allow Python 2/3 compatibility
-    maketrans = str.maketrans
-except AttributeError:
-    from string import maketrans
-
-_DICT_TYPE = dict
-
-if sys.platform not in ["cli"]:
-    # iron python does not like an OrderedDict
-    try:
-        from odict import OrderedDict
-
-        _DICT_TYPE = OrderedDict
-    except ImportError:
-        pass
-    try:
-        # python 2.7 or 3.1
-        from collections import OrderedDict
-
-        _DICT_TYPE = OrderedDict
-    except ImportError:
-        pass
-
 try:
-    import ujson as json
+    import ujson as json  # type: ignore[import-untyped]
 except ImportError:
     import json
 
@@ -178,7 +156,7 @@ class LpElement:
     # To remove illegal characters from the names
     illegal_chars = "-+[] ->/"
     expression = re.compile(f"[{re.escape(illegal_chars)}]")
-    trans = maketrans(illegal_chars, "________")
+    trans = str.maketrans(illegal_chars, "________")
 
     def setName(self, name):
         if name:
@@ -240,11 +218,8 @@ class LpElement:
     def __rmul__(self, other):
         return LpAffineExpression(self) * other
 
-    def __div__(self, other):
+    def __truediv__(self, other):
         return LpAffineExpression(self) / other
-
-    def __rdiv__(self, other):
-        raise TypeError("Expressions cannot be divided by a variable")
 
     def __le__(self, other):
         return LpAffineExpression(self) <= other
@@ -300,14 +275,14 @@ class LpVariable(LpElement):
         if e:
             self.add_expression(e)
 
-    def toDict(self):
+    def toDataclass(self) -> mpslp.MPSVariable:
         """
-        Exports a variable into a dictionary with its relevant information
+        Exports a variable into a dataclass with its relevant information
 
-        :return: a dictionary with the variable information
-        :rtype: dict
+        :return: a :py:class:`mpslp.MPSVariable` with the variable information
+        :rtype: :mpslp.MPSVariable
         """
-        return dict(
+        return mpslp.MPSVariable(
             lowBound=self.lowBound,
             upBound=self.upBound,
             cat=self.cat,
@@ -316,25 +291,73 @@ class LpVariable(LpElement):
             name=self.name,
         )
 
-    to_dict = toDict
-
     @classmethod
-    def fromDict(cls, dj=None, varValue=None, **kwargs):
+    def fromDataclass(cls, mps: mpslp.MPSVariable):
         """
-        Initializes a variable object from information that comes from a dictionary (kwargs)
+        Initializes a variable object from information that comes from a dataclass
 
-        :param dj: shadow price of the variable
-        :param float varValue: the value to set the variable
-        :param kwargs: arguments to initialize the variable
+        :param mps: a :py:class:`mpslp.MPSVariable` with the variable information
         :return: a :py:class:`LpVariable`
         :rtype: :LpVariable
         """
-        var = cls(**kwargs)
-        var.dj = dj
-        var.varValue = varValue
+        var = cls(
+            name=mps.name, lowBound=mps.lowBound, upBound=mps.upBound, cat=mps.cat
+        )
+        var.dj = mps.dj
+        var.varValue = mps.varValue
         return var
 
-    from_dict = fromDict
+    def toDict(self) -> dict[str, Any]:
+        """
+        Exports a variable into a dict with its relevant information.
+
+        :return: a :py:class:`dict` with the variable information
+        :rtype: :dict
+        """
+        return dataclasses.asdict(self.toDataclass())
+
+    def to_dict(self) -> dict[str, Any]:
+        """
+        Exports a variable into a dict with its relevant information.
+
+        This method is deprecated and :py:class:`LpVariable.toDict` should be used instead.
+
+        :return: a :py:class:`dict` with the variable information
+        :rtype: :dict
+        """
+        warnings.warn(
+            "LpVariable.to_dict is deprecated, use LpVariable.toDict instead",
+            category=DeprecationWarning,
+        )
+        return self.toDict()
+
+    @classmethod
+    def fromDict(cls, data: dict[str, Any]):
+        """
+        Initializes a variable object from information that comes from a dict.
+
+        :param data: a dict with the variable information
+        :return: a :py:class:`LpVariable`
+        :rtype: :LpVariable
+        """
+        return cls.fromDataclass(mpslp.MPSVariable.fromDict(data))
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]):
+        """
+        Initializes a variable object from information that comes from a dict.
+
+        This method is deprecated and :py:class:`LpVariable.fromDict` should be used instead.
+
+        :param data: a dict with the variable information
+        :return: a :py:class:`LpVariable`
+        :rtype: :LpVariable
+        """
+        warnings.warn(
+            "LpVariable.from_dict is deprecated, use LpVariable.fromDict instead",
+            category=DeprecationWarning,
+        )
+        return cls.fromDataclass(mpslp.MPSVariable.fromDict(data))
 
     def add_expression(self, e):
         self.expression = e
@@ -666,7 +689,7 @@ class LpVariable(LpElement):
         self.bounds(self._lowbound_original, self._upbound_original)
 
 
-class LpAffineExpression(_DICT_TYPE):
+class LpAffineExpression(dict):
     """
     A linear combination of :class:`LpVariables<LpVariable>`.
     Can be initialised with the following:
@@ -690,7 +713,7 @@ class LpAffineExpression(_DICT_TYPE):
     """
 
     # to remove illegal characters from the names
-    trans = maketrans("-+[] ", "_____")
+    trans = str.maketrans("-+[] ", "_____")
 
     @property
     def name(self) -> str | None:
@@ -701,7 +724,7 @@ class LpAffineExpression(_DICT_TYPE):
         if name:
             self.__name = str(name).translate(self.trans)
         else:
-            self.__name = None
+            self.__name = None  # type: ignore[assignment]
 
     def __init__(self, e=None, constant: float = 0.0, name: str | None = None):
         self.name = name
@@ -710,7 +733,7 @@ class LpAffineExpression(_DICT_TYPE):
             e = {}
         if isinstance(e, (LpAffineExpression, LpConstraint)):
             # Will not copy the name
-            self.constant = e.constant
+            self.constant = e.constant  # type: ignore[has-type]
             super().__init__(e.items())
         elif isinstance(e, dict):
             self.constant = constant
@@ -983,7 +1006,7 @@ class LpAffineExpression(_DICT_TYPE):
     def __rmul__(self, other):
         return self * other
 
-    def __div__(self, other):
+    def __truediv__(self, other):
         if isinstance(other, (LpAffineExpression, LpConstraint)) or isinstance(
             other, LpVariable
         ):
@@ -1000,26 +1023,6 @@ class LpAffineExpression(_DICT_TYPE):
             e[v] = x / other
         return e
 
-    def __truediv__(self, other):
-        return self.__div__(other)
-
-    def __rdiv__(self, other):
-        e = self.emptyCopy()
-        if len(self):
-            raise TypeError(
-                "Expressions cannot be divided by a non-constant expression"
-            )
-        c = self.constant
-        if isinstance(other, (LpAffineExpression, LpConstraint)):
-            e.constant = other.constant / c
-            for v, x in other.items():
-                e[v] = x / c
-        elif not math.isfinite(other):
-            raise const.PulpError("Cannot divide variables with NaN/inf values")
-        else:
-            e.constant = other / c
-        return e
-
     def __le__(self, other) -> LpConstraint:
         if isinstance(other, (int, float)):
             return LpConstraint(self, const.LpConstraintLE, rhs=other)
@@ -1032,13 +1035,23 @@ class LpAffineExpression(_DICT_TYPE):
         else:
             return LpConstraint(self - other, const.LpConstraintGE)
 
-    def __eq__(self, other) -> LpConstraint:
+    def __eq__(self, other) -> LpConstraint:  # type: ignore[override]
         if isinstance(other, (int, float)):
             return LpConstraint(self, const.LpConstraintEQ, rhs=other)
         else:
             return LpConstraint(self - other, const.LpConstraintEQ)
 
-    def toDict(self):
+    def toDataclass(self) -> list[mpslp.MPSCoefficient]:
+        """
+        exports the :py:class:`LpAffineExpression` into a list of dataclasses with the coefficients
+        it does not export the constant
+
+        :return: list of :py:class:`mpslp.MPSCoefficient` with the coefficients
+        :rtype: list
+        """
+        return [mpslp.MPSCoefficient(name=k.name, value=v) for k, v in self.items()]
+
+    def toDict(self) -> list[dict[str, Any]]:
         """
         exports the :py:class:`LpAffineExpression` into a list of dictionaries with the coefficients
         it does not export the constant
@@ -1046,9 +1059,21 @@ class LpAffineExpression(_DICT_TYPE):
         :return: list of dictionaries with the coefficients
         :rtype: list
         """
-        return [dict(name=k.name, value=v) for k, v in self.items()]
+        return [{"name": k.name, "value": v} for k, v in self.items()]
 
-    to_dict = toDict
+    def to_dict(self) -> list[dict[str, Any]]:
+        """
+        exports the :py:class:`LpAffineExpression` into a list of dictionaries with the coefficients
+        it does not export the constant
+
+        :return: list of dictionaries with the coefficients
+        :rtype: list
+        """
+        warnings.warn(
+            "LpAffineExpression.to_dict is deprecated, use LpAffineExpression.toDict instead",
+            category=DeprecationWarning,
+        )
+        return self.toDict()
 
 
 class LpConstraint:
@@ -1063,7 +1088,7 @@ class LpConstraint:
         """
         self.expr = e if isinstance(e, LpAffineExpression) else LpAffineExpression(e)
         self.name = name
-        self.constant: float = self.expr.constant
+        self.constant: float = self.expr.constant  # type: ignore[annotation-unchecked]
         if rhs is not None:
             self.constant -= rhs
         self.sense = sense
@@ -1218,7 +1243,7 @@ class LpConstraint:
     def valid(self, eps: float = 0) -> bool:
         val = self.value()
         if self.sense == const.LpConstraintEQ:
-            return abs(val) <= eps
+            return abs(val) <= eps  # type: ignore[arg-type]
         else:
             return val * self.sense >= -eps
 
@@ -1230,38 +1255,44 @@ class LpConstraint:
         """
         return FixedElasticSubProblem(self, *args, **kwargs)
 
-    def toDict(self):
+    def toDataclass(self) -> mpslp.MPSConstraint:
         """
-        exports constraint information into a dictionary
+        Exports constraint information into a :py:class:`mpslp.MPSConstraint` dataclass
 
-        :return: dictionary with all the constraint information
+        :return: :py:class:`mpslp.MPSConstraint` with all the constraint information
         """
-        return dict(
+        return mpslp.MPSConstraint(
             sense=self.sense,
             pi=self.pi,
             constant=self.constant,
             name=self.name,
-            coefficients=self.expr.toDict(),
+            coefficients=self.expr.toDataclass(),
         )
 
     @classmethod
-    def fromDict(cls, _dict):
+    def fromDataclass(
+        cls, mps: mpslp.MPSConstraint, variables: dict[str, LpVariable]
+    ) -> LpConstraint:
         """
-        Initializes a constraint object from a dictionary with necessary information
+        Initializes a constraint object from a :py:class:`mpslp.MPSConstraint` dataclass and variables
 
-        :param dict _dict: dictionary with data
+        :param mps: :py:class:`mpslp.MPSConstraint` containing constraint information
+        :param variables: dictionary of the variables
         :return: a new :py:class:`LpConstraint`
         """
         const = cls(
-            e=_dict["coefficients"],
-            rhs=-_dict["constant"],
-            name=_dict["name"],
-            sense=_dict["sense"],
+            e=LpAffineExpression(
+                {
+                    variables[coefficient.name]: coefficient.value
+                    for coefficient in mps.coefficients
+                }
+            ),
+            sense=mps.sense,
+            name=mps.name,
+            rhs=-mps.constant,
         )
-        const.pi = _dict["pi"]
+        const.pi = mps.pi
         return const
-
-    from_dict = fromDict
 
     @property
     def name(self) -> str | None:
@@ -1272,7 +1303,7 @@ class LpConstraint:
         if name is not None:
             self.__name = name.translate(LpAffineExpression.trans)
         else:
-            self.__name = None
+            self.__name = None  # type: ignore[assignment]
 
     def isAtomic(self):
         return len(self) == 1 and self.constant == 0 and next(iter(self.values())) == 1
@@ -1423,8 +1454,8 @@ class LpProblem:
         if " " in name:
             warnings.warn("Spaces are not permitted in the name. Converted to '_'")
             name = name.replace(" ", "_")
-        self.objective: None | LpAffineExpression = None
-        self.constraints: dict[str, LpConstraint] = _DICT_TYPE()
+        self.objective: None | LpAffineExpression = None  # type: ignore[annotation-unchecked]
+        self.constraints: dict[str, LpConstraint] = {}  # type: ignore[annotation-unchecked]
         self.name = name
         self.sense = sense
         self.sos1 = {}
@@ -1437,8 +1468,8 @@ class LpProblem:
         self.modifiedVariables = []
         self.modifiedConstraints = []
         self.resolveOK = False
-        self._variables: list[LpVariable] = []
-        self._variable_ids: dict[int, LpVariable] = (
+        self._variables: list[LpVariable] = []  # type: ignore[annotation-unchecked]
+        self._variable_ids: dict[int, LpVariable] = (  # type: ignore[annotation-unchecked]
             {}
         )  # old school using dict.keys() for a set
         self.dummyVar = None
@@ -1492,21 +1523,21 @@ class LpProblem:
         lpcopy = LpProblem(name=self.name, sense=self.sense)
         if self.objective is not None:
             lpcopy.objective = self.objective.copy()
-        lpcopy.constraints = _DICT_TYPE[str, LpConstraint]()
+        lpcopy.constraints = {}
         for k, v in self.constraints.items():
             lpcopy.constraints[k] = v.copy()
         lpcopy.sos1 = self.sos1.copy()
         lpcopy.sos2 = self.sos2.copy()
         return lpcopy
 
-    def toDict(self):
+    def toDataclass(self) -> mpslp.MPS:
         """
-        creates a dictionary from the model with as much data as possible.
+        Creates a :py:class:`mpslp.MPS` from the model with as much data as possible.
         It replaces variables by variable names.
         So it requires to have unique names for variables.
 
-        :return: dictionary with model data
-        :rtype: dict
+        :return: :py:class:`mpslp.MPS` with model data
+        :rtype: mpslp.MPS
         """
         try:
             self.checkDuplicateVars()
@@ -1517,13 +1548,13 @@ class LpProblem:
         self.fixObjective()
         assert self.objective is not None
         variables = self.variables()
-        return dict(
-            objective=dict(
-                name=self.objective.name, coefficients=self.objective.toDict()
+        return mpslp.MPS(
+            objective=mpslp.MPSObjective(
+                name=self.objective.name, coefficients=self.objective.toDataclass()
             ),
-            constraints=[v.toDict() for v in self.constraints.values()],
-            variables=[v.toDict() for v in variables],
-            parameters=dict(
+            constraints=[v.toDataclass() for v in self.constraints.values()],
+            variables=[v.toDataclass() for v in variables],
+            parameters=mpslp.MPSParameters(
                 name=self.name,
                 sense=self.sense,
                 status=self.status,
@@ -1533,57 +1564,64 @@ class LpProblem:
             sos2=list(self.sos2.values()),
         )
 
-    to_dict = toDict
-
     @classmethod
-    def fromDict(cls, _dict):
+    def fromDataclass(cls, mps: mpslp.MPS) -> tuple[dict[str, LpVariable], LpProblem]:
         """
-        Takes a dictionary with all necessary information to build a model.
+        Takes a :py:class:`mpslp.MPS` with all necessary information to build a model.
         And returns a dictionary of variables and a problem object
 
-        :param _dict: dictionary with the model stored
+        :param mps: :py:class:`mpslp.MPS` with the model stored
         :return: a tuple with a dictionary of variables and a :py:class:`LpProblem`
         """
 
         # we instantiate the problem
-        params = _dict["parameters"]
-        pb_params = {"name", "sense"}
-        args = {k: params[k] for k in pb_params}
-        pb = cls(**args)
-        pb.status = params["status"]
-        pb.sol_status = params["sol_status"]
+        pb = cls(name=mps.parameters.name, sense=mps.parameters.sense)
+        pb.status = mps.parameters.status
+        pb.sol_status = mps.parameters.sol_status
 
         # recreate the variables.
-        var = {v["name"]: LpVariable.fromDict(**v) for v in _dict["variables"]}
+        var: dict[str, LpVariable] = {
+            v.name: LpVariable.fromDataclass(v) for v in mps.variables
+        }
 
         # objective function.
         # we change the names for the objects:
-        obj_e = {var[v["name"]]: v["value"] for v in _dict["objective"]["coefficients"]}
-        pb += LpAffineExpression(e=obj_e, name=_dict["objective"]["name"])
+        obj_e = {var[v.name]: v.value for v in mps.objective.coefficients}
+        pb += LpAffineExpression(e=obj_e, name=mps.objective.name)
 
         # constraints
-        # we change the names for the objects:
-        def edit_const(const):
-            const = dict(const)
-            const["coefficients"] = {
-                var[v["name"]]: v["value"] for v in const["coefficients"]
-            }
-            return const
-
-        constraints = [edit_const(v) for v in _dict["constraints"]]
-        for c in constraints:
-            pb += LpConstraint.fromDict(c)
+        for c in mps.constraints:
+            pb += LpConstraint.fromDataclass(c, var)
 
         # last, parameters, other options
-        list_to_dict = lambda v: {k: v for k, v in enumerate(v)}
-        pb.sos1 = list_to_dict(_dict["sos1"])
-        pb.sos2 = list_to_dict(_dict["sos2"])
+        pb.sos1 = dict(enumerate(mps.sos1))
+        pb.sos2 = dict(enumerate(mps.sos2))
 
         return var, pb
 
-    from_dict = fromDict
+    def toDict(self):
+        return dataclasses.asdict(self.toDataclass())
 
-    def toJson(self, filename, *args, **kwargs):
+    def to_dict(self):
+        warnings.warn(
+            "LpProblem.to_dict is deprecated, use LpProblem.toDict instead",
+            category=DeprecationWarning,
+        )
+        return self.toDict()
+
+    @classmethod
+    def fromDict(cls, data: dict[Any, Any]):
+        return cls.fromDataclass(mpslp.MPS.fromDict(data))
+
+    @classmethod
+    def from_dict(cls, data: dict[Any, Any]):
+        warnings.warn(
+            "LpProblem.from_dict is deprecated, use LpProblem.fromDict instead",
+            category=DeprecationWarning,
+        )
+        return cls.fromDict(data)
+
+    def toJson(self, filename: str, *args: Any, **kwargs: Any):
         """
         Creates a json file from the LpProblem information
 
@@ -1595,12 +1633,17 @@ class LpProblem:
         with open(filename, "w") as f:
             json.dump(self.toDict(), f, *args, **kwargs)
 
-    to_json = toJson
+    def to_json(self, filename: str, *args: Any, **kwargs: Any):
+        warnings.warn(
+            "LpProblem.to_json is deprecated, use LpProblem.toJson instead",
+            category=DeprecationWarning,
+        )
+        return self.toJson(filename, *args, **kwargs)
 
     @classmethod
-    def fromJson(cls, filename):
+    def fromJson(cls, filename: str) -> tuple[dict[str, LpVariable], LpProblem]:
         """
-        Creates a new Lp Problem from a json file with information
+        Creates a new LpProblem from a json file with information
 
         :param str filename: json file name
         :return: a tuple with a dictionary of variables and an LpProblem
@@ -1610,12 +1653,20 @@ class LpProblem:
             data = json.load(f)
         return cls.fromDict(data)
 
-    from_json = fromJson
+    @classmethod
+    def from_json(cls, filename: str):
+        warnings.warn(
+            "LpProblem.from_json is deprecated, use LpProblem.fromJson instead",
+            category=DeprecationWarning,
+        )
+        return cls.fromJson(filename)
 
     @classmethod
-    def fromMPS(cls, filename, sense=const.LpMinimize, **kwargs):
-        data = mpslp.readMPS(filename, sense=sense, **kwargs)
-        return cls.fromDict(data)
+    def fromMPS(
+        cls, filename: str, sense: int = const.LpMinimize, dropConsNames: bool = False
+    ):
+        data = mpslp.readMPS(filename, sense=sense, dropConsNames=dropConsNames)
+        return cls.fromDataclass(data)
 
     def normalisedNames(self):
         constraintsNames = {k: "C%07d" % i for i, k in enumerate(self.constraints)}
@@ -1828,7 +1879,7 @@ class LpProblem:
                     raise ValueError("Objective not set by provided problem")
                 self.objective += other.objective
         else:
-            for c in other:
+            for c in other:  # type: ignore[assignment]
                 if isinstance(c, tuple):
                     name = c[0]
                     c = c[1]

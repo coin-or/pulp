@@ -24,17 +24,29 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."""
 from __future__ import annotations
-from .core import LpSolver_CMD, LpSolver, subprocess, PulpSolverError, clock, log
-from .core import devnull, operating_system, arch
+
 import os
-from .. import constants
 from typing import TYPE_CHECKING
+
+from .. import constants
+from .core import (
+    LpSolver,
+    LpSolver_CMD,
+    PulpSolverError,
+    arch,
+    clock,
+    devnull,
+    log,
+    operating_system,
+    subprocess,
+)
 
 if TYPE_CHECKING:
     from .. import LpProblem
-from tempfile import mktemp
+
 import ctypes
 import warnings
+from tempfile import mktemp
 
 cbc_path = "cbc"
 if operating_system == "win":
@@ -196,8 +208,8 @@ class COIN_CMD(LpSolver_CMD):
         args.extend(cmds[1:].split())
         if not self.msg and operating_system == "win":
             # Prevent flashing windows if used from a GUI application
-            startupinfo = subprocess.STARTUPINFO()
-            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            startupinfo = subprocess.STARTUPINFO()  # type: ignore[attr-defined,unused-ignore]
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW  # type: ignore[attr-defined,unused-ignore]
             cbc = subprocess.Popen(
                 args, stdout=pipe, stderr=pipe, stdin=devnull, startupinfo=startupinfo
             )
@@ -422,14 +434,14 @@ def COINMP_DLL_load_dll(path: list[str]):
     path is a list of paths actually
     """
     if os.name == "nt":
-        lib = ctypes.windll.LoadLibrary(str(path[-1]))
+        lib = ctypes.windll.LoadLibrary(str(path[-1]))  # type: ignore[attr-defined,unused-ignore]
     else:
         # linux hack to get working
         mode = ctypes.RTLD_GLOBAL
         for libpath in path[:-1]:
             # RTLD_LAZY = 0x00001
             ctypes.CDLL(libpath, mode=mode)
-        lib = ctypes.CDLL(path[-1], mode=mode)
+        lib = ctypes.CDLL(path[-1], mode=mode)  # type: ignore[assignment,unused-ignore]
     return lib
 
 
@@ -668,7 +680,7 @@ class COINMP_DLL(LpSolver):
 
 
 if COINMP_DLL.available():
-    COIN = COINMP_DLL
+    COIN = COINMP_DLL  # type: ignore[assignment,misc]
 
 yaposib = None
 
@@ -688,7 +700,7 @@ class YAPOSIB(LpSolver):
     try:
         # import the model into the global scope
         global yaposib
-        import yaposib
+        import yaposib  # type: ignore[import-not-found]
     except ImportError:
 
         def available(self):
@@ -879,7 +891,7 @@ class CYLP(LpSolver):
     name = "CyLP"
     try:
         global cy
-        from cylp import cy
+        from cylp import cy  # type: ignore[import-not-found]
     except:
 
         def available(self):
@@ -916,7 +928,7 @@ class CYLP(LpSolver):
             self.gapRel = gapRel
             self.threads = threads
 
-        def actualSolve(self, lp, **kwargs):
+        def actualSolve(self, lp, **kwargs):  # type: ignore[misc]
             self.buildSolverModel(lp)
             my_status = self.callSolver(lp)
             # get the solution information
