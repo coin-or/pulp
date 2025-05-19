@@ -4,7 +4,6 @@ import subprocess
 import sys
 import warnings
 from uuid import uuid4
-import numpy as np
 from ..constants import (
     LpBinary,
     LpConstraintEQ,
@@ -29,50 +28,12 @@ from .core import (
     sparse,
 )
 
-# COPT string convention
-if sys.version_info >= (3, 0):
-    coptstr = lambda x: bytes(x, "utf-8")
-else:
-    coptstr = lambda x: x
-
-byref = ctypes.byref
-
 # Constraint Sense Converter
-sense_conv = {LpConstraintLE: "L",
-              LpConstraintGE: "G",
-              LpConstraintEQ: "E",
-             }
-
-def process_constraint(args):
-    local_data = []
-    local_vars = []
-    local_sense = []
-    local_rhs = []
-    for constraints in args:
-        name, constraint = constraints
-        local_data.extend(list(constraint.values()))
-        local_vars.extend(list(constraint.keys()))
-        local_sense.append(sense_conv[constraint.sense])
-        local_rhs.append(-constraint.constant)
-    return local_data, local_vars, local_sense, local_rhs
-
-
-def process_variables(var):
-    #obj_coeff = lp.objective.get(var, 0.0))
-    lowBound = var.lowBound
-    if lowBound is None:
-        lowBound = -np.inf
-    upBound = var.upBound
-    if upBound is None:
-        upBound = np.inf
-    varType = "C"
-    if var.cat == LpInteger and self.mip:
-        varType = "I"
-    if var.cat == LpBinary and self.mip:
-        varType = "I"
-        lowBound = 0
-        upBound  = 1
-    return lowBound, upBound, varType, var.name
+sense_conv = {
+    LpConstraintLE: "L",
+    LpConstraintGE: "G",
+    LpConstraintEQ: "E",
+}
 
 
 class CUOPT(LpSolver):
@@ -85,6 +46,9 @@ class CUOPT(LpSolver):
     try:
         global cuopt
         import cuopt  # type: ignore[import-not-found]
+
+        global np
+        import numpy as np
     except:
 
         def available(self):
@@ -114,6 +78,7 @@ class CUOPT(LpSolver):
             :param float gapRel: relative gap tolerance for the solver to stop (in fraction)
             :param bool warmStart: if True, the solver will use the current value of variables as a start
             :param str logPath: path to the log file
+            :param solverParams: solver setting paramters for cuopt
             """
 
             LpSolver.__init__(
@@ -126,25 +91,16 @@ class CUOPT(LpSolver):
                 warmStart=warmStart,
             )
 
-            from cuopt.linear_programming import data_model, solver_settings, solver
+            from cuopt.linear_programming import data_model
+
             self.model = data_model.DataModel()
-            self.settings = solver_settings.SolverSettings()
-            self.solver = solver
-            self.solution = None
             self.var_list = None
             self.solver_params = solverParams
 
-            ## TODO: Disable logging if self.msg = False
-            for key, value in solverParams.items():
-                if key == "optimality_tolerance":
-                    self.settings.set_optimality_tolerance(value)
-
-
-        def findSolutionValues(self, lp):
-            model = lp.solverModel
-            solution = self.solution
-            solutionStatus = solution.get_termination_reason()
-            print("CUOPT status=", solutionStatus)
+        def findSolutionValues(self, lp, solution):
+            solutionStatus = solution.get_termination_status()
+            if self.msg:
+                print("CUOPT status=", solution.get_termination_reason())
 
             CuoptLpStatus = {
                 0: LpStatusNotSolved,
@@ -153,13 +109,13 @@ class CUOPT(LpSolver):
                 3: LpStatusUnbounded,
                 4: LpStatusNotSolved,
                 5: LpStatusNotSolved,
-                6: LpStatusNotSolved, # Primal Feasible?
+                6: LpStatusNotSolved,  # Primal Feasible?
             }
 
             CuoptMipStatus = {
                 0: LpStatusNotSolved,
                 1: LpStatusOptimal,
-                2: LpStatusNotSolved, # Feasible Solution Found ??
+                2: LpStatusNotSolved,  # Feasible Solution Found ??
                 3: LpStatusInfeasible,
                 4: LpStatusUnbounded,
             }
@@ -186,7 +142,7 @@ class CUOPT(LpSolver):
             if not solution.get_problem_category():
                 # TODO: Compute Slack
 
-                redcosts = solution.get_lp_stats()["reduced_cost"]
+                redcosts = solution.get_reduced_cost()
                 for var, value in zip(lp._variables, redcosts):
                     var.dj = value
 
@@ -202,14 +158,28 @@ class CUOPT(LpSolver):
 
         def callSolver(self, lp, callback=None):
             """Solves the problem with CUOPT"""
+            from cuopt.linear_programming import solver_settings, solver
+
             self.solveTime = -clock()
             # TODO: Add callback
             log_file = self.optionsDict.get("logPath") or ""
 
-            self.settings.set_infeasibility_detection(True)
-            self.solution = self.solver.Solve(lp.solverModel, self.settings, log_file)
+            settings = solver_settings.SolverSettings()
+            settings.set_parameter("infeasibility_detection", True)
+            settings.set_parameter("log_to_console", self.msg)
+            if self.timeLimit:
+                settings.set_parameter("time_limit", self.timeLimit)
+            for key, value in self.solver_params.items():
+                if key == "optimality_tolerance":
+                    settings.set_optimality_tolerance(value)
+            gapRel = self.optionsDict.get("gapRel")
+            if gapRel:
+                settings.set_parameter("relative_gap_tolerance", gapRel)
+
+            solution = solver.Solve(lp.solverModel, settings, log_file)
 
             self.solveTime += clock()
+            return solution
 
         def buildSolverModel(self, lp):
             """
@@ -219,12 +189,6 @@ class CUOPT(LpSolver):
 
             if lp.sense == LpMaximize:
                 lp.solverModel.set_maximize(True)
-            if self.timeLimit:
-                self.settings.set_time_limit(self.timeLimit)
-
-            gapRel = self.optionsDict.get("gapRel")
-            if gapRel:
-                self.settings.set_relative_gap_tolerance(gapRel)
 
             var_lb, var_ub, var_type, var_name = [], [], [], []
             obj_coeff = []
@@ -244,33 +208,21 @@ class CUOPT(LpSolver):
                 if var.cat == LpBinary and self.mip:
                     varType = "I"
                     lowBound = 0
-                    upBound  = 1
+                    upBound = 1
                 var_lb.append(lowBound)
                 var_ub.append(upBound)
                 var_type.append(varType)
                 var_name.append(var.name)
                 var_dict[var.name] = i
-                var.solverVar = {var.name: {"lb": var_lb, "ub": var_ub, "type": var_type}}
-
+                var.solverVar = {
+                    var.name: {"lb": var_lb, "ub": var_ub, "type": var_type}
+                }
             lp.solverModel.set_variable_lower_bounds(np.array(var_lb))
             lp.solverModel.set_variable_upper_bounds(np.array(var_ub))
             lp.solverModel.set_variable_types(np.array(var_type))
             lp.solverModel.set_variable_names(np.array(var_name))
 
-            var_warmstart = []
-            if self.optionsDict.get("warmStart", False):
-                for var in lp._variables:
-                    if var.varValue is not None:
-                        var_warmstart.append(var.varValue)
-                    else:
-                        var_warmstart = None
-                        break
-
-            #if var_warmstart:
-            #    print("Setting variable warmstart: ", var_warmstart)
-            #    lp.solverModel.set_initial_primal_solution(np.array(var_warmstart))
-
-            rhs, sense  = [], []
+            rhs, sense = [], []
             matrix_data, matrix_indices, matrix_indptr = [], [], [0]
 
             for name, constraint in lp.constraints.items():
@@ -284,9 +236,9 @@ class CUOPT(LpSolver):
                     raise PulpSolverError("Detected an invalid constraint type")
                 rhs.append(-constraint.constant)
                 sense.append(c_sense)
-                #constraint.solverConstraint = {name: {"bound": -constraint.constant, "sense": c_sense, "coefficients": row_coeffs}}
-
-            lp.solverModel.set_csr_constraint_matrix(np.array(matrix_data), np.array(matrix_indices), np.array(matrix_indptr))
+            lp.solverModel.set_csr_constraint_matrix(
+                np.array(matrix_data), np.array(matrix_indices), np.array(matrix_indptr)
+            )
             lp.solverModel.set_constraint_bounds(np.array(rhs))
             lp.solverModel.set_row_types(np.array(sense))
 
@@ -300,9 +252,9 @@ class CUOPT(LpSolver):
             them to the lp model which it then solves
             """
             self.buildSolverModel(lp)
-            self.callSolver(lp, callback=callback)
+            solution = self.callSolver(lp, callback=callback)
 
-            solutionStatus = self.findSolutionValues(lp)
+            solutionStatus = self.findSolutionValues(lp, solution)
             for var in lp._variables:
                 var.modified = False
             for constraint in lp.constraints.values():
