@@ -125,7 +125,7 @@ To build, run the following in a terminal window, in the PuLP root directory
 ::
 
     python3 -m pip install --upgrade pip
-    pip install --groups=dev .
+    pip install --group=dev .
     cd doc
     make html
 

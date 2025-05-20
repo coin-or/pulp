@@ -39,7 +39,7 @@ That's it, you will download the whole project.
 Installing from source
 ----------------------------
 
-To build pulp from source we wil get inside the pulp directory, then we will create a virtual environment and install dependencies. I assume Linux / Mac. Windows is very similar commands::
+To build pulp from source we wil get inside the pulp directory, then we will create a virtual environment and install dependencies. I assume Linux / Mac. Windows has very similar commands::
 
     cd pulp
     python3 -m venv venv
