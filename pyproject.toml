@@ -26,10 +26,7 @@ keywords=["Optimization", "Linear Programming", "Operations Research"]
 
 [tool.mypy]
 exclude = [
-    "doc/",
-    "pulp/mps_lp.py",
     "pulp/solverdir/",
-    "pulp/tests/",
     ".venv/.*",
     "build/",
 ]
