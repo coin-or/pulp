@@ -15,6 +15,9 @@ def check_dummy_env():
 
 
 def is_single_use_license() -> bool:
+    if gp is None:
+        # no gurobi license
+        return False
     try:
         with gp.Env() as env1:
             with gp.Env() as env2:
