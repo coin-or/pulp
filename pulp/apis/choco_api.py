@@ -89,10 +89,12 @@ class CHOCO_CMD(LpSolver_CMD):
             os.remove(tmpSol)
         except:
             pass
-        cmd = [java_path, '-cp', self.path, 'org.chocosolver.parser.mps.ChocoMPS']
+        cmd = [java_path, "-cp", self.path, "org.chocosolver.parser.mps.ChocoMPS"]
         if self.timeLimit is not None:
-            cmd.extend(["-limit",  f"[-{self.timeLimit}s]"])
-        cmd.extend([key_or_value for key_value in self.options for key_or_value in key_value])
+            cmd.extend(["-limit", f"[-{self.timeLimit}s]"])
+        cmd.extend(
+            [key_or_value for key_value in self.options for key_or_value in key_value]
+        )
         cmd.append(tmpMps)
         if lp.sense == constants.LpMaximize:
             cmd.append("-max")
