@@ -459,23 +459,23 @@ class GUROBI_CMD(LpSolver_CMD):
             os.remove(tmpSol)
         except:
             pass
-        cmd = self.path
+        cmd = [self.path]
         options = self.options + self.getOptions()
         if self.timeLimit is not None:
             options.append(("TimeLimit", self.timeLimit))
-        cmd += " " + " ".join([f"{key}={value}" for key, value in options])
-        cmd += f" ResultFile={tmpSol}"
+        cmd.extend(f"{key}={value}" for key, value in options)
+        cmd.append(f"ResultFile={tmpSol}")
         if self.optionsDict.get("warmStart", False):
             self.writesol(filename=tmpMst, vs=vs)
-            cmd += f" InputFile={tmpMst}"
+            cmd.append(f"InputFile={tmpMst}")
 
         if lp.isMIP():
             if not self.mip:
                 warnings.warn("GUROBI_CMD does not allow a problem to be relaxed")
-        cmd += f" {tmpLp}"
+        cmd.append(tmpLp)
         pipe = self.get_pipe()
 
-        return_code = subprocess.call(cmd.split(), stdout=pipe, stderr=pipe)
+        return_code = subprocess.call(cmd, stdout=pipe, stderr=pipe)
 
         # Close the pipe now if we used it.
         if pipe is not None:
