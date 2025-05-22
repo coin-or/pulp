@@ -45,7 +45,7 @@ class CUOPT(LpSolver):
 
     try:
         global cuopt
-        import cuopt  # type: ignore[import-not-found]
+        import cuopt  # type: ignore[import-not-found, import-untyped, unused-ignore]
 
         global np
         import numpy as np
@@ -91,7 +91,7 @@ class CUOPT(LpSolver):
                 warmStart=warmStart,
             )
 
-            from cuopt.linear_programming import data_model
+            from cuopt.linear_programming import data_model  # type: ignore[import-not-found, import-untyped, unused-ignore]
 
             self.model = data_model.DataModel()
             self.var_list = None
@@ -102,33 +102,24 @@ class CUOPT(LpSolver):
             if self.msg:
                 print("CUOPT status=", solution.get_termination_reason())
 
-            CuoptLpStatus = {
-                0: LpStatusNotSolved,
-                1: LpStatusOptimal,
-                2: LpStatusInfeasible,
-                3: LpStatusUnbounded,
-                4: LpStatusNotSolved,
-                5: LpStatusNotSolved,
-                6: LpStatusNotSolved,  # Primal Feasible?
-            }
-
-            CuoptMipStatus = {
-                0: LpStatusNotSolved,
-                1: LpStatusOptimal,
-                2: LpStatusNotSolved,  # Feasible Solution Found ??
-                3: LpStatusInfeasible,
-                4: LpStatusUnbounded,
+            CuoptStatus = {
+                0: LpStatusNotSolved,  # No Termination
+                1: LpStatusOptimal,  # Optimal
+                2: LpStatusInfeasible,  # Infeasible
+                3: LpStatusUnbounded,  # Unbounded
+                4: LpStatusNotSolved,  # Iteration Limit
+                5: LpStatusNotSolved,  # Timelimit
+                6: LpStatusNotSolved,  # Numerical Error
+                7: LpStatusNotSolved,  # Primal Feasible
+                8: LpStatusNotSolved,  # Feasible Found
+                9: LpStatusNotSolved,  # Concurrent Limit
             }
 
             lp.resolveOK = True
             for var in lp._variables:
                 var.isModified = False
 
-            if solution.get_problem_category() == 0:
-                status = CuoptLpStatus.get(solutionStatus, LpStatusUndefined)
-            else:
-                status = CuoptMipStatus.get(solutionStatus, LpStatusUndefined)
-
+            status = CuoptStatus.get(solutionStatus, LpStatusUndefined)
             lp.assignStatus(status)
 
             values = solution.get_primal_solution()
@@ -155,7 +146,7 @@ class CUOPT(LpSolver):
 
         def callSolver(self, lp, callback=None):
             """Solves the problem with CUOPT"""
-            from cuopt.linear_programming import solver_settings, solver
+            from cuopt.linear_programming import solver_settings, solver  # type: ignore[import-not-found, import-untyped, unused-ignore]
 
             self.solveTime = -clock()
             # TODO: Add callback
