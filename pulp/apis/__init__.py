@@ -13,6 +13,7 @@ from .mosek_api import *
 from .sas_api import *
 from .scip_api import *
 from .xpress_api import *
+from .cuopt_api import *
 
 _all_solvers: List[Type[LpSolver]] = [
     CYLP,
@@ -41,6 +42,7 @@ _all_solvers: List[Type[LpSolver]] = [
     COPT_CMD,
     SAS94,
     SASCAS,
+    CUOPT,
 ]
 
 import json

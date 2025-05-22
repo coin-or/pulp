@@ -100,7 +100,11 @@ class BaseSolverTest:
         solveInst = None
 
         def setUp(self):
-            self.solver = self.solveInst(msg=False)
+            if self.solveInst == CUOPT:
+                # cuOpt requires a user provided time limit for MIP problems
+                self.solver = self.solveInst(msg=False, timeLimit=120)
+            else:
+                self.solver = self.solveInst(msg=False)
             if not self.solver.available():
                 self.skipTest(f"solver {self.solveInst.name} not available")
 
@@ -2201,6 +2205,10 @@ class HiGHS_CMDTest(BaseSolverTest.PuLPTest):
 
 class COPTTest(BaseSolverTest.PuLPTest):
     solveInst = COPT  # type: ignore[assignment]
+
+
+class CUOPTTest(BaseSolverTest.PuLPTest):
+    solveInst = CUOPT
 
 
 class SASTest:
