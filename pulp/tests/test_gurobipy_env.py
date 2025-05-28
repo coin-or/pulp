@@ -3,10 +3,9 @@ import unittest
 from pulp import GUROBI, LpProblem, LpVariable, const
 
 try:
-    import gurobipy as gp  # type: ignore[import-not-found]
-    from gurobipy import GRB
+    import gurobipy as gp  # type: ignore[import-not-found, import-untyped, unused-ignore]
 except ImportError:
-    gp = None
+    gp = None  # type: ignore[assignment, unused-ignore]
 
 
 def check_dummy_env():
