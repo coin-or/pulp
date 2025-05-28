@@ -28,7 +28,7 @@ from pulp.tests.bin_packing_problem import create_bin_packing_problem
 from pulp.utilities import makeDict
 
 try:
-    import gurobipy as gp  # type: ignore[import-not-found,no-redef]
+    import gurobipy as gp  # type: ignore
 except ImportError:
     gp = None
 
@@ -97,7 +97,7 @@ def dumpTestProblem(prob):
 
 class BaseSolverTest:
     class PuLPTest(unittest.TestCase):
-        solveInst = None
+        solveInst: Type[LpSolver] | None = None
 
         def setUp(self):
             self.solver = self.solveInst(msg=False)
@@ -1833,7 +1833,7 @@ class BaseSolverTest:
 
 
 class PULP_CBC_CMDTest(BaseSolverTest.PuLPTest):
-    solveInst = PULP_CBC_CMD  # type: ignore[assignment]
+    solveInst = PULP_CBC_CMD
 
     @staticmethod
     def read_command_line_from_log_file(logPath):
@@ -2030,31 +2030,31 @@ class PULP_CBC_CMDTest(BaseSolverTest.PuLPTest):
 
 
 class CPLEX_CMDTest(BaseSolverTest.PuLPTest):
-    solveInst = CPLEX_CMD  # type: ignore[assignment]
+    solveInst = CPLEX_CMD
 
 
 class CPLEX_PYTest(BaseSolverTest.PuLPTest):
-    solveInst = CPLEX_CMD  # type: ignore[assignment]
+    solveInst = CPLEX_CMD
 
 
 class XPRESS_CMDTest(BaseSolverTest.PuLPTest):
-    solveInst = XPRESS_CMD  # type: ignore[assignment]
+    solveInst = XPRESS_CMD
 
 
 class XPRESS_PyTest(BaseSolverTest.PuLPTest):
-    solveInst = XPRESS_PY  # type: ignore[assignment]
+    solveInst = XPRESS_PY
 
 
 class COIN_CMDTest(BaseSolverTest.PuLPTest):
-    solveInst = COIN_CMD  # type: ignore[assignment]
+    solveInst = COIN_CMD
 
 
 class COINMP_DLLTest(BaseSolverTest.PuLPTest):
-    solveInst = COINMP_DLL  # type: ignore[assignment]
+    solveInst = COINMP_DLL
 
 
 class GLPK_CMDTest(BaseSolverTest.PuLPTest):
-    solveInst = GLPK_CMD  # type: ignore[assignment]
+    solveInst = GLPK_CMD
 
     def test_issue814_rounding_mip(self):
         """
@@ -2152,55 +2152,55 @@ class GLPK_CMDTest(BaseSolverTest.PuLPTest):
 
 
 class GUROBITest(BaseSolverTest.PuLPTest):
-    solveInst = GUROBI  # type: ignore[assignment]
+    solveInst = GUROBI
 
 
 class GUROBI_CMDTest(BaseSolverTest.PuLPTest):
-    solveInst = GUROBI_CMD  # type: ignore[assignment]
+    solveInst = GUROBI_CMD
 
 
 class PYGLPKTest(BaseSolverTest.PuLPTest):
-    solveInst = PYGLPK  # type: ignore[assignment]
+    solveInst = PYGLPK
 
 
 class YAPOSIBTest(BaseSolverTest.PuLPTest):
-    solveInst = YAPOSIB  # type: ignore[assignment]
+    solveInst = YAPOSIB
 
 
 class CHOCO_CMDTest(BaseSolverTest.PuLPTest):
-    solveInst = CHOCO_CMD  # type: ignore[assignment]
+    solveInst = CHOCO_CMD
 
 
 class MIPCL_CMDTest(BaseSolverTest.PuLPTest):
-    solveInst = MIPCL_CMD  # type: ignore[assignment]
+    solveInst = MIPCL_CMD
 
 
 class MOSEKTest(BaseSolverTest.PuLPTest):
-    solveInst = MOSEK  # type: ignore[assignment]
+    solveInst = MOSEK
 
 
 class SCIP_CMDTest(BaseSolverTest.PuLPTest):
-    solveInst = SCIP_CMD  # type: ignore[assignment]
+    solveInst = SCIP_CMD
 
 
 class FSCIP_CMDTest(BaseSolverTest.PuLPTest):
-    solveInst = FSCIP_CMD  # type: ignore[assignment]
+    solveInst = FSCIP_CMD
 
 
 class SCIP_PYTest(BaseSolverTest.PuLPTest):
-    solveInst = SCIP_PY  # type: ignore[assignment]
+    solveInst = SCIP_PY
 
 
 class HiGHS_PYTest(BaseSolverTest.PuLPTest):
-    solveInst = HiGHS  # type: ignore[assignment]
+    solveInst = HiGHS
 
 
 class HiGHS_CMDTest(BaseSolverTest.PuLPTest):
-    solveInst = HiGHS_CMD  # type: ignore[assignment]
+    solveInst = HiGHS_CMD
 
 
 class COPTTest(BaseSolverTest.PuLPTest):
-    solveInst = COPT  # type: ignore[assignment]
+    solveInst = COPT
 
 
 class SASTest:
@@ -2222,11 +2222,11 @@ class SASTest:
 
 
 class SAS94Test(BaseSolverTest.PuLPTest, SASTest):
-    solveInst = SAS94  # type: ignore[assignment]
+    solveInst = SAS94
 
 
 class SASCASTest(BaseSolverTest.PuLPTest, SASTest):
-    solveInst = SASCAS  # type: ignore[assignment]
+    solveInst = SASCAS
 
 
 # class CyLPTest(BaseSolverTest.PuLPTest):
