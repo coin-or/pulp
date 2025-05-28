@@ -190,7 +190,10 @@ class BaseSolverTest:
                 prob += w >= 0, "c4"
 
                 pulpTestCheck(
-                    prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0}
+                    prob,
+                    self.solver,
+                    [const.LpStatusOptimal],
+                    {x: 4, y: -1, z: 6, w: 0},
                 )
 
         def test_non_intermediate_var(self):
