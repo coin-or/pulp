@@ -271,6 +271,9 @@ class HiGHS_CMD(LpSolver_CMD):
         return values
 
 
+highspy = None
+
+
 class HiGHS(LpSolver):
     name = "HiGHS"
 
@@ -289,7 +292,7 @@ class HiGHS(LpSolver):
             raise PulpSolverError("HiGHS: Not Available")
 
     else:
-        hscb = highspy.cb
+        hscb = highspy.cb  # type: ignore[attr-defined, unused-ignore]
 
         def __init__(
             self,
@@ -300,7 +303,7 @@ class HiGHS(LpSolver):
             gapRel=None,
             threads=None,
             timeLimit=None,
-            callbacksToActivate: Optional[List[hscb.HighsCallbackType]] = None,
+            callbacksToActivate: Optional[List[highspy.cb.HighsCallbackType]] = None,
             **solverParams,
         ):
             """
