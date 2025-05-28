@@ -2194,6 +2194,36 @@ class SCIP_PYTest(BaseSolverTest.PuLPTest):
 class HiGHS_PYTest(BaseSolverTest.PuLPTest):
     solveInst = HiGHS
 
+    def test_callback(self):
+        prob = create_bin_packing_problem(bins=40, seed=99)
+
+        # we pass a list as data to the tuple, so we can edit it.
+        # then we count the number of calls and stop the solving
+        # for more information on the callback, see: github.com/ERGO-Code/HiGHS @ examples/call_highs_from_python
+        def user_callback(
+            callback_type, message, data_out, data_in, user_callback_data
+        ):
+            #
+            if callback_type == HiGHS.hscb.HighsCallbackType.kCallbackMipInterrupt:
+                print(
+                    f"userInterruptCallback(type {callback_type}); "
+                    f"data {user_callback_data};"
+                    f"message: {message};"
+                    f"objective {data_out.objective_function_value:.4g};"
+                )
+                print(f"Dual bound = {data_out.mip_dual_bound:.4g}")
+                print(f"Primal bound = {data_out.mip_primal_bound:.4g}")
+                print(f"Gap = {data_out.mip_gap:.4g}")
+                if isinstance(user_callback_data, list):
+                    user_callback_data.append(1)
+                    data_in.user_interrupt = len(user_callback_data) > 5
+
+        solver = HiGHS(
+            callbackTuple=(user_callback, []),
+            callbacksToActivate=[HiGHS.hscb.HighsCallbackType.kCallbackMipInterrupt],
+        )
+        status = prob.solve(solver)
+
 
 class HiGHS_CMDTest(BaseSolverTest.PuLPTest):
     solveInst = HiGHS_CMD
