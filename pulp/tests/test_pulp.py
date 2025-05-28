@@ -8,7 +8,7 @@ import re
 import tempfile
 import unittest
 from decimal import Decimal
-from typing import Union
+from typing import Union, Optional
 
 
 from pulp import (
@@ -97,7 +97,7 @@ def dumpTestProblem(prob):
 
 class BaseSolverTest:
     class PuLPTest(unittest.TestCase):
-        solveInst: Type[LpSolver] | None = None
+        solveInst: Optional[Type[LpSolver]] = None
 
         def setUp(self):
             self.solver = self.solveInst(msg=False)
