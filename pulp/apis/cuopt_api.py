@@ -48,7 +48,7 @@ class CUOPT(LpSolver):
         import cuopt  # type: ignore[import-not-found, import-untyped, unused-ignore]
 
         global np
-        import numpy as np
+        import numpy as np  # type: ignore[import-not-found, import-untyped, unused-ignore]
     except:
 
         def available(self):
