@@ -122,6 +122,12 @@
 <li class="toctree-l4"><a class="reference internal" href="#pulp.apis.CPLEX_PY.name"><code class="docutils literal notranslate"><span class="pre">CPLEX_PY.name</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.CUOPT"><code class="docutils literal notranslate"><span class="pre">CUOPT</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.CUOPT.actualSolve"><code class="docutils literal notranslate"><span class="pre">CUOPT.actualSolve()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.CUOPT.available"><code class="docutils literal notranslate"><span class="pre">CUOPT.available()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.CUOPT.name"><code class="docutils literal notranslate"><span class="pre">CUOPT.name</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#pulp.apis.CYLP"><code class="docutils literal notranslate"><span class="pre">CYLP</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#pulp.apis.CYLP.actualSolve"><code class="docutils literal notranslate"><span class="pre">CYLP.actualSolve()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#pulp.apis.CYLP.available"><code class="docutils literal notranslate"><span class="pre">CYLP.available()</span></code></a></li>
@@ -810,6 +816,43 @@ e.g. gapRel=0.1, gapAbs=10, logPath=””,</p></li>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pulp.apis.CPLEX_PY.name">
 <span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'CPLEX_PY'</span></em><a class="headerlink" href="#pulp.apis.CPLEX_PY.name" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pulp.apis.CUOPT">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">CUOPT</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeLimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CUOPT" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pulp.apis.LpSolver" title="pulp.apis.core.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpSolver</span></code></a></p>
+<p>The CUOPT Optimizer via its python interface</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – if False, assume LP even if integer variables</p></li>
+<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – if False, no log is shown</p></li>
+<li><p><strong>options</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a>)</p></li>
+<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
+<li><p><strong>args</strong></p></li>
+<li><p><strong>kwargs</strong> – optional named options to pass to each solver,
+e.g. gapRel=0.1, gapAbs=10, logPath=””,</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pulp.apis.CUOPT.actualSolve">
+<span class="sig-name descname"><span class="pre">actualSolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">callback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CUOPT.actualSolve" title="Link to this definition"></a></dt>
+<dd><p>Solve a well formulated lp problem</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulp.apis.CUOPT.available">
+<span class="sig-name descname"><span class="pre">available</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CUOPT.available" title="Link to this definition"></a></dt>
+<dd><p>True if the solver is available</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulp.apis.CUOPT.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'CUOPT'</span></em><a class="headerlink" href="#pulp.apis.CUOPT.name" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
