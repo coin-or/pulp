@@ -312,9 +312,9 @@ def writeMPS(
     if mpsSense != lp.sense:
         n = cobj.name
         cobj = -cobj
-        cobj.name = n  # type: ignore[union-attr]
+        cobj.name = n
     if rename:
-        constrNames, varNames, cobj.name = lp.normalisedNames()  # type: ignore[union-attr]
+        constrNames, varNames, cobj.name = lp.normalisedNames()
         # No need to call self.variables() again, we have just filled self._variables:
         vs = lp._variables
     else:
@@ -324,7 +324,7 @@ def writeMPS(
     model_name = lp.name
     if rename:
         model_name = "MODEL"
-    objName = cobj.name  # type: ignore[union-attr]
+    objName = cobj.name
     if not objName:
         objName = "OBJ"
 
@@ -346,7 +346,7 @@ def writeMPS(
     for v in vs:
         name = varNames[v.name]
         columns_lines.extend(
-            writeMPSColumnLines(coefs[name], v, mip, name, cobj, objName)  # type: ignore[arg-type]
+            writeMPSColumnLines(coefs[name], v, mip, name, cobj, objName)
         )
 
     # right hand side
@@ -382,7 +382,7 @@ def writeMPS(
     if not rename:
         return vs
     else:
-        return vs, varNames, constrNames, cobj.name  # type: ignore[union-attr]
+        return vs, varNames, constrNames, cobj.name
 
 
 def writeMPSColumnLines(
