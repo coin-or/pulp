@@ -75,4 +75,4 @@ for v in prob.variables():
     print(v.name, "=", v.varValue)
 
 # The optimised objective function value is printed to the screen
-print("Total Cost of Transportation = ", prob.objective.value())
+print("Total Cost of Transportation = ", prob.objective.value())  # type: ignore[union-attr]

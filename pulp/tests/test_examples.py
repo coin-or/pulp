@@ -10,7 +10,10 @@ class Examples_DocsTests(unittest.TestCase):
 
         this_file = os.path.realpath(__file__)
         parent_dir = os.path.dirname(this_file)
-        files = os.listdir(os.path.join(parent_dir, examples_dir))
+        try:
+            files = os.listdir(os.path.join(parent_dir, examples_dir))
+        except FileNotFoundError:
+            raise unittest.SkipTest("Examples not found")
         TMP_dir = "_tmp/"
         if not os.path.exists(TMP_dir):
             os.mkdir(TMP_dir)
