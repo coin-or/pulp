@@ -45,7 +45,7 @@ routes = [(w, b) for w in warehouses for b in bars]
 x = pulp.LpVariable.dicts("route", (warehouses, bars), lowBound=0, cat=pulp.LpInteger)
 
 # The objective function is added to 'prob' first
-prob += sum([x[w][b] * costs[w][b] for (w, b) in routes]), "Sum_of_Transporting_Costs"  # type: ignore[call-overload]
+prob += sum([x[w][b] * costs[w][b] for (w, b) in routes]), "Sum_of_Transporting_Costs"
 
 # Supply maximum constraints are added to prob for each supply node (warehouse)
 for w in warehouses:
