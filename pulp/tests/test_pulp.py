@@ -8,15 +8,17 @@ import re
 import tempfile
 import unittest
 from decimal import Decimal
+from typing import Union, Optional
+
 
 from pulp import (
+    FixedElasticSubProblem,
     LpAffineExpression,
     LpConstraint,
     LpConstraintVar,
     LpFractionConstraint,
     LpProblem,
     LpVariable,
-    FixedElasticSubProblem,
 )
 from pulp import constants as const
 from pulp import lpSum
@@ -26,7 +28,7 @@ from pulp.tests.bin_packing_problem import create_bin_packing_problem
 from pulp.utilities import makeDict
 
 try:
-    import gurobipy as gp
+    import gurobipy as gp  # type: ignore
 except ImportError:
     gp = None
 
@@ -95,10 +97,14 @@ def dumpTestProblem(prob):
 
 class BaseSolverTest:
     class PuLPTest(unittest.TestCase):
-        solveInst = None
+        solveInst: Optional[Type[LpSolver]] = None
 
         def setUp(self):
-            self.solver = self.solveInst(msg=False)
+            if self.solveInst == CUOPT:
+                # cuOpt requires a user provided time limit for MIP problems
+                self.solver = self.solveInst(msg=False, timeLimit=120)
+            else:
+                self.solver = self.solveInst(msg=False)
             if not self.solver.available():
                 self.skipTest(f"solver {self.solveInst.name} not available")
 
@@ -828,7 +834,7 @@ class BaseSolverTest:
                 prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: -1.0}
             )
 
-        def test_elastic_constraints_penalty_unbounded(self):
+        def test_elastic_constraints_penalty_unbounded(self) -> None:
             """
             Test the ability to use Elastic constraints (penalty unbounded)
             """
@@ -1543,7 +1549,7 @@ class BaseSolverTest:
             x = LpVariable("x")
             self.assertRaises(PulpError, lambda: x * a)
 
-        def test_constraint_copy(self):
+        def test_constraint_copy(self) -> None:
             """
             LpConstraint.copy()
             """
@@ -1566,7 +1572,7 @@ class BaseSolverTest:
             self.assertEqual(str(c), str(c2))
             self.assertEqual(repr(c), repr(c2))
 
-        def test_constraint_add(self):
+        def test_constraint_add(self) -> None:
             """
             __add__ operator on LpConstraint
             """
@@ -1595,7 +1601,7 @@ class BaseSolverTest:
             self.assertEqual(str(c1_variable), str(2 * x + y <= 5))
             self.assertEqual(repr(c1_variable), repr(2 * x + y <= 5))
 
-            expr: LpAffineExpression = x + 1
+            expr = x + 1
             self.assertIsInstance(expr, LpAffineExpression)
             self.assertEqual(expr.constant, 1)
             self.assertEqual(str(expr), "x + 1")
@@ -1613,15 +1619,15 @@ class BaseSolverTest:
             self.assertEqual(str(c1_constraint), str(2 * x + y <= 6))
             self.assertEqual(repr(c1_constraint), repr(2 * x + y <= 6))
 
-            constraint: LpConstraint = x + 1 <= 2
+            constraint = x + 1 <= 2
             self.assertIsInstance(constraint, LpConstraint)
             self.assertEqual(constraint.constant, -1)
             self.assertEqual(constraint.expr.constant, 1)
-            c1_constraint: LpConstraint = c1 + constraint
+            c1_constraint = c1 + constraint
             self.assertEqual(str(c1_constraint), str(2 * x + y <= 6))
             self.assertEqual(repr(c1_constraint), repr(2 * x + y <= 6))
 
-        def test_constraint_neg(self):
+        def test_constraint_neg(self) -> None:
             """
             __neg__ operator on LpConstraint
             """
@@ -1638,7 +1644,7 @@ class BaseSolverTest:
             self.assertEqual(str(c1_neg), str(-x + -y <= -5))
             self.assertEqual(repr(c1_neg), repr(-x + -y <= -5))
 
-        def test_constraint_sub(self):
+        def test_constraint_sub(self) -> None:
             """
             __sub__ operator on LpConstraint
             """
@@ -1675,13 +1681,13 @@ class BaseSolverTest:
             self.assertEqual(str(c1_constraint), "0*x + y <= 4")
             self.assertEqual(repr(c1_constraint), "0*x + 1*y + -4 <= 0")
 
-            constraint: LpConstraint = x + 1 <= 2
+            constraint = x + 1 <= 2
             self.assertIsInstance(constraint, LpConstraint)
-            c1_constraint: LpConstraint = c1 - constraint
+            c1_constraint = c1 - constraint
             self.assertEqual(str(c1_constraint), "0*x + y <= 4")
             self.assertEqual(repr(c1_constraint), "0*x + 1*y + -4 <= 0")
 
-        def test_constraint_mul(self):
+        def test_constraint_mul(self) -> None:
             """
             __mul__ operator on LpConstraint
             """
@@ -1720,7 +1726,7 @@ class BaseSolverTest:
             with self.assertRaises(TypeError):
                 c2 * (x + 1)
 
-        def test_constraint_div(self):
+        def test_constraint_div(self) -> None:
             """
             __div__ operator on LpConstraint
             """
@@ -1770,7 +1776,7 @@ class BaseSolverTest:
 
             self.assertEqual(str(x_div), "0.5*x")
 
-        def test_regression_794(self):
+        def test_regression_794(self) -> None:
             # See: https://github.com/coin-or/pulp/issues/794#issuecomment-2671682768
 
             initial_stock = 8  # s_0
@@ -1783,7 +1789,7 @@ class BaseSolverTest:
                 variable = LpVariable(f"x_{t}", cat="Integer", lowBound=0)
                 supply.append(variable)
 
-            stock: list[LpVariable | int] = [initial_stock]  # stock[t] = s_t
+            stock: list[Union[LpVariable, int]] = [initial_stock]  # stock[t] = s_t
             for t in range(1, max_periods + 1):
                 variable = LpVariable(f"s_{t}", cat="Integer", lowBound=0)
                 stock.append(variable)
@@ -2213,6 +2219,36 @@ class SCIP_PYTest(BaseSolverTest.PuLPTest):
 class HiGHS_PYTest(BaseSolverTest.PuLPTest):
     solveInst = HiGHS
 
+    def test_callback(self):
+        prob = create_bin_packing_problem(bins=40, seed=99)
+
+        # we pass a list as data to the tuple, so we can edit it.
+        # then we count the number of calls and stop the solving
+        # for more information on the callback, see: github.com/ERGO-Code/HiGHS @ examples/call_highs_from_python
+        def user_callback(
+            callback_type, message, data_out, data_in, user_callback_data
+        ):
+            #
+            if callback_type == HiGHS.hscb.HighsCallbackType.kCallbackMipInterrupt:
+                print(
+                    f"userInterruptCallback(type {callback_type}); "
+                    f"data {user_callback_data};"
+                    f"message: {message};"
+                    f"objective {data_out.objective_function_value:.4g};"
+                )
+                print(f"Dual bound = {data_out.mip_dual_bound:.4g}")
+                print(f"Primal bound = {data_out.mip_primal_bound:.4g}")
+                print(f"Gap = {data_out.mip_gap:.4g}")
+                if isinstance(user_callback_data, list):
+                    user_callback_data.append(1)
+                    data_in.user_interrupt = len(user_callback_data) > 5
+
+        solver = HiGHS(
+            callbackTuple=(user_callback, []),
+            callbacksToActivate=[HiGHS.hscb.HighsCallbackType.kCallbackMipInterrupt],
+        )
+        status = prob.solve(solver)
+
 
 class HiGHS_CMDTest(BaseSolverTest.PuLPTest):
     solveInst = HiGHS_CMD
@@ -2220,6 +2256,10 @@ class HiGHS_CMDTest(BaseSolverTest.PuLPTest):
 
 class COPTTest(BaseSolverTest.PuLPTest):
     solveInst = COPT
+
+
+class CUOPTTest(BaseSolverTest.PuLPTest):
+    solveInst = CUOPT
 
 
 class SASTest:
