@@ -2038,7 +2038,7 @@ class CPLEX_CMDTest(BaseSolverTest.PuLPTest):
 
 
 class CPLEX_PYTest(BaseSolverTest.PuLPTest):
-    solveInst = CPLEX_CMD
+    solveInst = CPLEX_PY
 
 
 class XPRESS_CMDTest(BaseSolverTest.PuLPTest):
