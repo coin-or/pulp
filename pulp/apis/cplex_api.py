@@ -276,6 +276,7 @@ class CPLEX_PY(LpSolver):
             warmStart=False,
             logPath=None,
             threads=None,
+            **solverParams,
         ):
             """
             :param bool mip: if False, assume LP even if integer variables
@@ -285,6 +286,15 @@ class CPLEX_PY(LpSolver):
             :param bool warmStart: if True, the solver will use the current value of variables as a start
             :param str logPath: path to the log file
             :param int threads: number of threads to be used by CPLEX to solve a problem (default None uses all available)
+
+            :param dict solverParams: Additional parameters to set in the CPLEX solver.
+
+            Parameters should use dot notation as specified in the CPLEX documentation.
+            The 'parameters.' prefix is optional. For example:
+                  
+                  * parameters.advance (or advance)
+                  * parameters.barrier.algorithm (or barrier.algorithm)
+                  * parameters.mip.strategy.probe (or mip.strategy.probe)
             """
 
             LpSolver.__init__(
@@ -297,6 +307,7 @@ class CPLEX_PY(LpSolver):
                 logPath=logPath,
                 threads=threads,
             )
+            self.solverParams = solverParams
 
         def available(self):
             """True if the solver is available"""
@@ -430,6 +441,29 @@ class CPLEX_PY(LpSolver):
                 self.solverModel.MIP_starts.add(
                     cplex.SparsePair(ind=ind, val=val), effort, "1"
                 )
+            for param, value in self.solverParams.items():
+                self.set_param(param, value)
+
+        def set_param(self, name: str, value):
+            param = self.search_param(name=name)
+            param.set(value)
+
+        def get_param(self, name: str):
+            param = self.search_param(name=name)
+            return param.get()
+
+        def search_param(self, name: str):
+            name = name.replace("parameters.", "")
+            param = self.solverModel.parameters
+            for attr in name.split("."):
+                param = getattr(param, attr)
+            return param
+
+        def get_all_params(self):
+            return self.solverModel.parameters.get_all()
+
+        def get_changed_params(self):
+            return self.solverModel.parameters.get_changed()
 
         def setlogfile(self, fileobj):
             """

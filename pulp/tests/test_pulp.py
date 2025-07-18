@@ -2040,6 +2040,41 @@ class CPLEX_CMDTest(BaseSolverTest.PuLPTest):
 class CPLEX_PYTest(BaseSolverTest.PuLPTest):
     solveInst = CPLEX_PY
 
+    def _build(self, **kwargs):
+        problem = create_bin_packing_problem(bins=40, seed=99)
+        solver = self.solveInst(**kwargs)
+        solver.buildSolverModel(lp=problem)
+        return solver
+
+    def test_get_param(self):
+        solver = self._build()
+        self.assertEqual(solver.get_param("barrier.algorithm"), 0)
+
+    def test_get_param_with_full_path(self):
+        solver = self._build()
+        self.assertEqual(solver.get_param("parameters.barrier.algorithm"), 0)
+
+    def test_set_param(self):
+        param = "barrier.limits.iteration"
+        solver = self._build(**{param: 100})
+        self.assertEqual(solver.get_param(name=param), 100)
+
+    def test_set_param_with_full_path(self):
+        param = "parameters.barrier.limits.iteration"
+        solver = self._build(**{param: 100})
+        self.assertEqual(solver.get_param(name=param), 100)
+
+    def test_changed_param(self):
+        param = "parameters.barrier.limits.iteration"
+        solver = self._build(**{param: 100})
+        self.assertEqual(len(solver.get_changed_params()), 1)
+
+    def test_set_all_params(self):
+        solver = self._build()
+        parameters = solver.get_all_params()
+        for param, value in parameters:
+            solver.set_param(name=str(param), value=value)
+        self.assertEqual(solver.get_changed_params(), [])
 
 class XPRESS_CMDTest(BaseSolverTest.PuLPTest):
     solveInst = XPRESS_CMD
