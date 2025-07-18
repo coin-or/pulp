@@ -1,5 +1,6 @@
 import os
 import warnings
+from typing import Iterable, Optional
 
 from .. import constants
 from .core import LpSolver, LpSolver_CMD, PulpSolverError, clock, log, subprocess
@@ -313,17 +314,19 @@ class CPLEX_PY(LpSolver):
             """True if the solver is available"""
             return True
 
-        def actualSolve(self, lp, callback=None):  # type: ignore[misc]
+        def actualSolve(self, lp, callback: Optional[Iterable[type[cplex.callbacks.Callback]]] = None):  # type: ignore[misc]
             """
             Solve a well formulated lp problem
 
             creates a cplex model, variables and constraints and attaches
             them to the lp model which it then solves
+
+            :param callback: Optional list of CPLEX callback classes to register during solve
             """
             self.buildSolverModel(lp)
             # set the initial solution
             log.debug("Solve the Model using cplex")
-            self.callSolver(lp)
+            self.callSolver(lp, callback=callback)
             # get the solution information
             solutionStatus = self.findSolutionValues(lp)
             for var in lp._variables:
@@ -492,9 +495,18 @@ class CPLEX_PY(LpSolver):
             """
             self.solverModel.parameters.timelimit.set(timeLimit)
 
-        def callSolver(self, isMIP):
-            """Solves the problem with cplex"""
+        def callSolver(self, isMIP,
+                       callback: Optional[Iterable[type[cplex.callbacks.Callback]]] = None):
+            """
+            Solves the problem with cplex
+
+
+            :param callback: Optional list of CPLEX callback classes to register during solve
+            """
             # solve the problem
+            if callback is not None:
+                for call in callback:
+                    self.solverModel.register_callback(call)
             self.solveTime = -clock()
             self.solverModel.solve()
             self.solveTime += clock()
