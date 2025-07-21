@@ -2093,7 +2093,8 @@ class CPLEX_PYTest(BaseSolverTest.PuLPTest):
         self.assertEqual(solver.get_changed_params(), [])
 
     def test_callback(self):
-        from cplex.callbacks import IncumbentCallback # type: ignore[import-not-found, import-untyped, unused-ignore]
+        from cplex.callbacks import IncumbentCallback  # type: ignore[import-not-found, import-untyped, unused-ignore]
+
         counter = 0
 
         class Callback(IncumbentCallback):
@@ -2104,6 +2105,7 @@ class CPLEX_PYTest(BaseSolverTest.PuLPTest):
         problem = create_bin_packing_problem(bins=5, seed=55)
         pulpTestCheck(problem, self.solver, [LpStatusOptimal], callback=[Callback])
         self.assertGreaterEqual(counter, 1)
+
 
 class XPRESS_CMDTest(BaseSolverTest.PuLPTest):
     solveInst = XPRESS_CMD

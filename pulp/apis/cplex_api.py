@@ -292,7 +292,7 @@ class CPLEX_PY(LpSolver):
 
             Parameters should use dot notation as specified in the CPLEX documentation.
             The 'parameters.' prefix is optional. For example:
-                  
+
                   * parameters.advance (or advance)
                   * parameters.barrier.algorithm (or barrier.algorithm)
                   * parameters.mip.strategy.probe (or mip.strategy.probe)
@@ -513,8 +513,11 @@ class CPLEX_PY(LpSolver):
             """
             self.solverModel.parameters.timelimit.set(timeLimit)
 
-        def callSolver(self, isMIP,
-                       callback: Optional[Iterable[type[cplex.callbacks.Callback]]] = None):
+        def callSolver(
+            self,
+            isMIP,
+            callback: Optional[Iterable[type[cplex.callbacks.Callback]]] = None,
+        ):
             """
             Solves the problem with cplex
 
