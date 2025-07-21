@@ -448,14 +448,26 @@ class CPLEX_PY(LpSolver):
                 self.set_param(param, value)
 
         def set_param(self, name: str, value):
+            """
+            Sets a parameter value using its name.
+            """
             param = self.search_param(name=name)
             param.set(value)
 
         def get_param(self, name: str):
+            """
+            Returns the value of a named parameter by searching within the instance's parameters.
+            """
             param = self.search_param(name=name)
             return param.get()
 
         def search_param(self, name: str):
+            """
+            Searches for a solver model parameter by its name and returns the corresponding attribute.
+
+            The method takes a parameter name string, processes it to remove the "parameters." prefix
+            and splits it by periods to traverse the attribute hierarchy of the solver model's parameters.
+            """
             name = name.replace("parameters.", "")
             param = self.solverModel.parameters
             for attr in name.split("."):
@@ -463,9 +475,15 @@ class CPLEX_PY(LpSolver):
             return param
 
         def get_all_params(self):
+            """
+            Returns all parameters from the solver model.
+            """
             return self.solverModel.parameters.get_all()
 
         def get_changed_params(self):
+            """
+            Returns the parameters that have been changed in the solver model.
+            """
             return self.solverModel.parameters.get_changed()
 
         def setlogfile(self, fileobj):
