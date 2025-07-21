@@ -2093,7 +2093,7 @@ class CPLEX_PYTest(BaseSolverTest.PuLPTest):
         self.assertEqual(solver.get_changed_params(), [])
 
     def test_callback(self):
-        from cplex.callbacks import IncumbentCallback # type: ignore[import-not-found]
+        from cplex.callbacks import IncumbentCallback # type: ignore[import-not-found, import-untyped, unused-ignore]
         counter = 0
 
         class Callback(IncumbentCallback):

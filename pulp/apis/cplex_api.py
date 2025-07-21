@@ -253,7 +253,7 @@ class CPLEX_PY(LpSolver):
     name = "CPLEX_PY"
     try:
         global cplex
-        import cplex  # type: ignore[import-not-found]
+        import cplex  # type: ignore[import-not-found, import-untyped, unused-ignore]
     except Exception as e:
         err = e
         """The CPLEX LP/MIP solver from python. Something went wrong!!!!"""
