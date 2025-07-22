@@ -124,8 +124,8 @@ To build, run the following in a terminal window, in the PuLP root directory
 
 ::
 
-    cd pulp
-    python -m pip install -r requirements-dev.txt
+    python3 -m pip install --upgrade pip
+    pip install --group=dev .
     cd doc
     make html
 
