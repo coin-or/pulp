@@ -84,5 +84,5 @@ include = '\.pyi?$'
 exclude = '/(\.eggs|\.git|\.hg|\.mypy_cache|\.tox|\.venv|_build|buck-out|build|dist)/'
 
 [project.optional-dependencies]
-open_py = ["cylp", "highspy", "pyscipopt"]
+open_py = ["cylp; sys_platform != 'win32'", "highspy", "pyscipopt"]
 public_py = ["gurobipy", "coptpy", 'xpress']
