@@ -86,3 +86,36 @@ exclude = '/(\.eggs|\.git|\.hg|\.mypy_cache|\.tox|\.venv|_build|buck-out|build|d
 [project.optional-dependencies]
 open_py = ["cylp; sys_platform != 'win32'", "highspy", "pyscipopt"]
 public_py = ["gurobipy", "coptpy", 'xpress']
+
+[tool.ruff]
+line-length = 88
+target-version = "py39"
+fix = false
+
+[tool.ruff.lint]
+unfixable = []
+
+select = [
+  # pyflakes
+  "F",
+  # pycodestyle
+  "E", "W",
+]
+
+ignore = [
+    "E501", # line too long
+    "F405", # name may be undefined, but is defined in a different module
+    "E731", # do not assign a lambda expression, use a def,
+    "F841", # local variable is assigned to but never used
+    "E722", # do not use bare except, specify exception,
+    "E711", # do not compare types, use isinstance instead,
+    "E402", # module level import not at top of file
+    "F401", # module imported but unused
+    "F403", # from module import * used; unable to detect undefined names
+    "F541", # f-string without any placeholders
+    "E741", # ambiguous variable name
+    "E714", # Test for object identity should be `is not`
+    "E713", # Test for membership should be `not in`
+]
+
+exclude = ["doc/**/*.py", "examples/**/*.py",]
