@@ -39,13 +39,13 @@ That's it, you will download the whole project.
 Installing from source
 ----------------------------
 
-To build pulp from source we wil get inside the pulp directory, then we will create a virtual environment and install dependencies. Finally we will execute ``setup.py``. I assume Linux / Mac. Windows is very similar commands::
+To build pulp from source we wil get inside the pulp directory, then we will create a virtual environment and install dependencies. I assume Linux / Mac. Windows has very similar commands::
 
     cd pulp
     python3 -m venv venv
     source venv/bin/activate
-    python -m pip install -r requirements-dev.txt
-    python3 setup.py develop
+    python3 -m pip install --upgrade pip
+    pip install --group=dev --editable .
 
 This will link the pulp version on your virtual environment with the source files in the pulp directory. You can now use pulp from that virtual environment and you will be using the files in the pulp directory. We assume you have run this successfully for all further steps.
 
@@ -54,7 +54,6 @@ Running tests
 
 To run tests of pulp you need to run::
 
-    cd pulp
     python3 pulp/tests/run_tests.py
 
 It will detect the solvers in your system and test all of the ones it finds.

@@ -202,8 +202,8 @@
 <p>The PuLP documentation is built with <a class="reference external" href="https://www.sphinx-doc.org">Sphinx</a>.  We recommended using a
 <a class="reference external" href="https://docs.python.org/3/library/venv.html">virtual environment</a> to build the documentation locally.</p>
 <p>To build, run the following in a terminal window, in the PuLP root directory</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">pulp</span>
-<span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">r</span> <span class="n">requirements</span><span class="o">-</span><span class="n">dev</span><span class="o">.</span><span class="n">txt</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python3</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">upgrade</span> <span class="n">pip</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">group</span><span class="o">=</span><span class="n">dev</span> <span class="o">.</span>
 <span class="n">cd</span> <span class="n">doc</span>
 <span class="n">make</span> <span class="n">html</span>
 </pre></div>
