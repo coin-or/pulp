@@ -895,7 +895,7 @@ class BaseSolverTest:
             """
             Test the availability of the function pulpTestAll
             """
-            from pulp import pulpTestAll
+            from pulp.tests.run_tests import pulpTestAll
 
         def test_export_dict_LP(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
