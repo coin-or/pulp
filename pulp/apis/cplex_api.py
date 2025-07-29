@@ -1,5 +1,6 @@
 import os
 import warnings
+from typing import Iterable, Optional
 
 from .. import constants
 from .core import LpSolver, LpSolver_CMD, PulpSolverError, clock, log, subprocess
@@ -252,7 +253,7 @@ class CPLEX_PY(LpSolver):
     name = "CPLEX_PY"
     try:
         global cplex
-        import cplex  # type: ignore[import-not-found]
+        import cplex  # type: ignore[import-not-found, import-untyped, unused-ignore]
     except Exception as e:
         err = e
         """The CPLEX LP/MIP solver from python. Something went wrong!!!!"""
@@ -276,6 +277,7 @@ class CPLEX_PY(LpSolver):
             warmStart=False,
             logPath=None,
             threads=None,
+            **solverParams,
         ):
             """
             :param bool mip: if False, assume LP even if integer variables
@@ -285,6 +287,15 @@ class CPLEX_PY(LpSolver):
             :param bool warmStart: if True, the solver will use the current value of variables as a start
             :param str logPath: path to the log file
             :param int threads: number of threads to be used by CPLEX to solve a problem (default None uses all available)
+
+            :param dict solverParams: Additional parameters to set in the CPLEX solver.
+
+            Parameters should use dot notation as specified in the CPLEX documentation.
+            The 'parameters.' prefix is optional. For example:
+
+                  * parameters.advance (or advance)
+                  * parameters.barrier.algorithm (or barrier.algorithm)
+                  * parameters.mip.strategy.probe (or mip.strategy.probe)
             """
 
             LpSolver.__init__(
@@ -297,22 +308,25 @@ class CPLEX_PY(LpSolver):
                 logPath=logPath,
                 threads=threads,
             )
+            self.solverParams = solverParams
 
         def available(self):
             """True if the solver is available"""
             return True
 
-        def actualSolve(self, lp, callback=None):  # type: ignore[misc]
+        def actualSolve(self, lp, callback: Optional[Iterable[type[cplex.callbacks.Callback]]] = None):  # type: ignore[misc]
             """
             Solve a well formulated lp problem
 
             creates a cplex model, variables and constraints and attaches
             them to the lp model which it then solves
+
+            :param callback: Optional list of CPLEX callback classes to register during solve
             """
             self.buildSolverModel(lp)
             # set the initial solution
             log.debug("Solve the Model using cplex")
-            self.callSolver(lp)
+            self.callSolver(lp, callback=callback)
             # get the solution information
             solutionStatus = self.findSolutionValues(lp)
             for var in lp._variables:
@@ -430,6 +444,47 @@ class CPLEX_PY(LpSolver):
                 self.solverModel.MIP_starts.add(
                     cplex.SparsePair(ind=ind, val=val), effort, "1"
                 )
+            for param, value in self.solverParams.items():
+                self.set_param(param, value)
+
+        def set_param(self, name: str, value):
+            """
+            Sets a parameter value using its name.
+            """
+            param = self.search_param(name=name)
+            param.set(value)
+
+        def get_param(self, name: str):
+            """
+            Returns the value of a named parameter by searching within the instance's parameters.
+            """
+            param = self.search_param(name=name)
+            return param.get()
+
+        def search_param(self, name: str):
+            """
+            Searches for a solver model parameter by its name and returns the corresponding attribute.
+
+            The method takes a parameter name string, processes it to remove the "parameters." prefix
+            and splits it by periods to traverse the attribute hierarchy of the solver model's parameters.
+            """
+            name = name.replace("parameters.", "")
+            param = self.solverModel.parameters
+            for attr in name.split("."):
+                param = getattr(param, attr)
+            return param
+
+        def get_all_params(self):
+            """
+            Returns all parameters from the solver model.
+            """
+            return self.solverModel.parameters.get_all()
+
+        def get_changed_params(self):
+            """
+            Returns the parameters that have been changed in the solver model.
+            """
+            return self.solverModel.parameters.get_changed()
 
         def setlogfile(self, fileobj):
             """
@@ -458,9 +513,21 @@ class CPLEX_PY(LpSolver):
             """
             self.solverModel.parameters.timelimit.set(timeLimit)
 
-        def callSolver(self, isMIP):
-            """Solves the problem with cplex"""
+        def callSolver(
+            self,
+            isMIP,
+            callback: Optional[Iterable[type[cplex.callbacks.Callback]]] = None,
+        ):
+            """
+            Solves the problem with cplex
+
+
+            :param callback: Optional list of CPLEX callback classes to register during solve
+            """
             # solve the problem
+            if callback is not None:
+                for call in callback:
+                    self.solverModel.register_callback(call)
             self.solveTime = -clock()
             self.solverModel.solve()
             self.solveTime += clock()
