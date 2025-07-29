@@ -308,7 +308,7 @@ class CPLEX_PY(LpSolver):
                 logPath=logPath,
                 threads=threads,
             )
-            self.solverParams = solverParams
+            self.solver_params = solverParams
 
         def available(self):
             """True if the solver is available"""
@@ -444,7 +444,7 @@ class CPLEX_PY(LpSolver):
                 self.solverModel.MIP_starts.add(
                     cplex.SparsePair(ind=ind, val=val), effort, "1"
                 )
-            for param, value in self.solverParams.items():
+            for param, value in self.solver_params.items():
                 self.set_param(param, value)
 
         def set_param(self, name: str, value):
