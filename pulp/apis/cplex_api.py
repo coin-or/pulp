@@ -515,7 +515,7 @@ class CPLEX_PY(LpSolver):
 
         def callSolver(
             self,
-            isMIP,
+            isMIP: bool,
             callback: Optional[Iterable[type[cplex.callbacks.Callback]]] = None,
         ):
             """
