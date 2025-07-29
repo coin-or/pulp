@@ -27,10 +27,11 @@ from pulp.constants import PulpError
 from pulp.tests.bin_packing_problem import create_bin_packing_problem
 from pulp.utilities import makeDict
 
+
 try:
-    import gurobipy as gp  # type: ignore
+    import gurobipy as gp  # type: ignore[import-not-found, import-untyped, unused-ignore]
 except ImportError:
-    gp = None
+    gp = None  # type: ignore[assignment, unused-ignore]
 
 # from: http://lpsolve.sourceforge.net/5.5/mps-format.htm
 EXAMPLE_MPS_RHS56 = """NAME          TESTPROB
@@ -2281,8 +2282,6 @@ class CUOPTTest(BaseSolverTest.PuLPTest):
 
 
 class SASTest:
-    solveInst: Type[solvers.SASsolver]
-    solver: solvers.SASsolver
 
     def test_sas_with_option(self):
         prob = LpProblem("test", const.LpMinimize)

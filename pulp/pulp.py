@@ -259,6 +259,14 @@ class LpVariable(LpElement):
         existence in the objective function and constraints
     """
 
+    varValue: Optional[float]
+    dj: Optional[float]
+    lowBound: Optional[float]
+    upBound: Optional[float]
+    cat: str
+    _lowbound_original: Optional[float]
+    _upbound_original: Optional[float]
+
     def __init__(
         self,
         name: str,
