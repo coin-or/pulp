@@ -114,7 +114,7 @@ def addPatterns(
 
 def masterSolve(
     prob: LpProblem, relax: bool = True
-) -> Union[Tuple[float, Dict[str, int]], Dict[str, float]]:
+) -> Union[Tuple[float, Dict[str, int]], Dict[str, Optional[float]]]:
     # Unrelaxes the Integer Constraint
     if not relax:
         for v in prob.variables():
@@ -132,14 +132,17 @@ def masterSolve(
         return duals
     else:
         # A dictionary of variable values and the objective value are returned
-        varsdict = {}
+        varsdict: dict[str, int] = {}
         for v in prob.variables():
-            varsdict[v.name] = v.varValue
+            if v.varValue is None:
+                varsdict[v.name] = 0
+            else:
+                varsdict[v.name] = int(v.varValue)
 
         return value(prob.objective), varsdict
 
 
-def subSolve(duals: Dict[str, float]) -> List[Union[Any, List[int]]]:
+def subSolve(duals: Dict[str, Optional[float]]) -> List[Union[Any, List[int]]]:
     # The variable 'prob' is created
     prob = LpProblem("SubProb", LpMinimize)
 
@@ -169,15 +172,18 @@ def subSolve(duals: Dict[str, float]) -> List[Union[Any, List[int]]]:
     newPatterns = []
     # Check if there are more patterns which would reduce the master LP objective function further
     if value(prob.objective) < -(10**-5):
-        varsdict = {}
+        varsdict: dict[str, int] = {}
         for v in prob.variables():
-            varsdict[v.name] = v.varValue
+            if v.varValue is None:
+                varsdict[v.name] = 0
+            else:
+                varsdict[v.name] = int(v.varValue)
         # Adds the new pattern to the newPatterns list
         newPatterns += [
             [
-                int(varsdict["Roll_Length_5"]),
-                int(varsdict["Roll_Length_7"]),
-                int(varsdict["Roll_Length_9"]),
+                varsdict["Roll_Length_5"],
+                varsdict["Roll_Length_7"],
+                varsdict["Roll_Length_9"],
             ]
         ]
 
