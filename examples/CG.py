@@ -37,7 +37,7 @@ def masterSolve(
     Patterns: List[Pattern],
     rollData: Dict[str, List[Union[float, int]]],
     relax: bool = True,
-) -> Union[Dict[str, float], Tuple[float, Dict[str, int]]]:
+) -> Union[Dict[str, Optional[float]], Tuple[float, Dict[str, int]]]:
     # The rollData is made into separate dictionaries
     (rollDemand, surplusPrice) = splitDict(rollData)
 
@@ -86,19 +86,22 @@ def masterSolve(
 
     else:
         # Creates a dictionary of the variables and their values
-        varsdict = {}
+        varsdict: dict[str, int] = {}
         for v in prob.variables():
-            varsdict[v.name] = v.varValue
+            if v.varValue is None:
+                varsdict[v.name] = 0
+            else:
+                varsdict[v.name] = int(v.varValue)
 
         # The number of rolls of each length in each pattern is printed
         for p in Patterns:
             print(p, " = %s" % [p.lengthsdict[j] for j in Pattern.lenOpts])
-
-        return value(prob.objective), varsdict
+        my_value: float = value(prob.objective)
+        return my_value, varsdict
 
 
 def subSolve(
-    Patterns: List[Pattern], duals: Dict[str, float]
+    Patterns: List[Pattern], duals: Dict[str, Optional[float]]
 ) -> Tuple[List[Pattern], bool]:
     # The variable 'prob' is created
     prob = LpProblem("SubProb", LpMinimize)
@@ -127,14 +130,17 @@ def subSolve(
     prob.roundSolution()
 
     # The new pattern is written to a dictionary
-    varsdict = {}
+    varsdict: dict[str, int] = {}
     newPattern = {}
     for v in prob.variables():
-        varsdict[v.name] = v.varValue
+        if v.varValue is None:
+            varsdict[v.name] = 0
+        else:
+            varsdict[v.name] = int(v.varValue)
     for i, j in zip(
         Pattern.lenOpts, ["Roll_Length_5", "Roll_Length_7", "Roll_Length_9"]
     ):
-        newPattern[i] = int(varsdict[j])
+        newPattern[i] = varsdict[j]
 
     # Check if there are more patterns which would reduce the master LP objective function further
     if value(prob.objective) < -(10**-5):
