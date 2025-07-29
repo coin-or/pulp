@@ -309,6 +309,7 @@ class CPLEX_PY(LpSolver):
                 threads=threads,
             )
             self.solver_params = solverParams
+            self.solverModel = None
 
         def available(self):
             """True if the solver is available"""
@@ -461,6 +462,22 @@ class CPLEX_PY(LpSolver):
             param = self.search_param(name=name)
             return param.get()
 
+        @staticmethod
+        def check_solverModel(func):
+            """
+            Decorator that checks if the solverModel is initialized.
+
+            :raises PulpSolverError: If the ``solverModel`` attribute is not initialized
+            """
+
+            def wrapper(self, *args, **kwargs):
+                if self.solverModel is None:
+                    raise PulpSolverError("solverModel not initialized")
+                return func(self, *args, **kwargs)
+
+            return wrapper
+
+        @check_solverModel
         def search_param(self, name: str):
             """
             Searches for a solver model parameter by its name and returns the corresponding attribute.
@@ -474,12 +491,14 @@ class CPLEX_PY(LpSolver):
                 param = getattr(param, attr)
             return param
 
+        @check_solverModel
         def get_all_params(self):
             """
             Returns all parameters from the solver model.
             """
             return self.solverModel.parameters.get_all()
 
+        @check_solverModel
         def get_changed_params(self):
             """
             Returns the parameters that have been changed in the solver model.
