@@ -37,7 +37,7 @@ def masterSolve(
     Patterns: List[Pattern],
     rollData: Dict[str, List[Union[float, int]]],
     relax: bool = True,
-) -> Union[Dict[str, float | None], Tuple[float, Dict[str, int]]]:
+) -> Union[Dict[str, Optional[float]], Tuple[float, Dict[str, int]]]:
     # The rollData is made into separate dictionaries
     (rollDemand, surplusPrice) = splitDict(rollData)
 
@@ -101,7 +101,7 @@ def masterSolve(
 
 
 def subSolve(
-    Patterns: List[Pattern], duals: Dict[str, float | None]
+    Patterns: List[Pattern], duals: Dict[str, Optional[float]]
 ) -> Tuple[List[Pattern], bool]:
     # The variable 'prob' is created
     prob = LpProblem("SubProb", LpMinimize)

@@ -114,7 +114,7 @@ def addPatterns(
 
 def masterSolve(
     prob: LpProblem, relax: bool = True
-) -> Union[Tuple[float, Dict[str, int]], Dict[str, float | None]]:
+) -> Union[Tuple[float, Dict[str, int]], Dict[str, Optional[float]]]:
     # Unrelaxes the Integer Constraint
     if not relax:
         for v in prob.variables():
@@ -142,7 +142,7 @@ def masterSolve(
         return value(prob.objective), varsdict
 
 
-def subSolve(duals: Dict[str, float | None]) -> List[Union[Any, List[int]]]:
+def subSolve(duals: Dict[str, Optional[float]]) -> List[Union[Any, List[int]]]:
     # The variable 'prob' is created
     prob = LpProblem("SubProb", LpMinimize)
 
