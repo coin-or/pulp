@@ -19,6 +19,7 @@ from pulp import (
     LpFractionConstraint,
     LpProblem,
     LpVariable,
+    PulpSolverError,
 )
 from pulp import constants as const
 from pulp import lpSum
@@ -2071,7 +2072,7 @@ class CPLEX_CMDTest(BaseSolverTest.PuLPTest):
 
 
 class CPLEX_PYTest(BaseSolverTest.PuLPTest):
-    solveInst = solvers.CPLEX_CMD
+    solveInst = solvers.CPLEX_PY
 
     def _build(self, **kwargs):
         """
@@ -2081,6 +2082,15 @@ class CPLEX_PYTest(BaseSolverTest.PuLPTest):
         solver = self.solveInst(**kwargs)
         solver.buildSolverModel(lp=problem)
         return solver
+
+    def test_search_param_without_solver_model(self):
+        """
+        Tests the behavior of the `search_param` method when invoked without a `solverModel`
+        initialized. Validates that an appropriate error is raised under these conditions.
+        """
+        solver = self.solveInst()
+        with self.assertRaises(PulpSolverError):
+            solver.search_param("barrier.algorithm")
 
     def test_get_param(self):
         """
@@ -2136,7 +2146,9 @@ class CPLEX_PYTest(BaseSolverTest.PuLPTest):
                 counter += 1
 
         problem = create_bin_packing_problem(bins=5, seed=55)
-        pulpTestCheck(problem, self.solver, [LpStatusOptimal], callback=[Callback])
+        pulpTestCheck(
+            problem, self.solver, [const.LpStatusOptimal], callback=[Callback]
+        )
         self.assertGreaterEqual(counter, 1)
 
 
