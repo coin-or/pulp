@@ -91,11 +91,11 @@ required-environments = [
 
 [project.optional-dependencies]
 open_py = ["cylp", "highspy", "pyscipopt"]
-public_py = ["gurobipy", "coptpy", 'xpress', "cplex; sys_platform != 'darwin' or python_full_version < '3.12'"]
+public_py = ["gurobipy", "coptpy", 'xpress', "cplex; sys_platform != 'darwin'"]
 highs = ["highspy"]
 scip = ["pyscipopt"]
 gurobi = ["gurobipy"]
 xpress = ["xpress"]
 copt = ["coptpy"]
-cplex = ["cplex; sys_platform != 'darwin' or python_full_version < '3.12'"]
+cplex = ["cplex; sys_platform != 'darwin'"]
 mosek = ["mosek"]
