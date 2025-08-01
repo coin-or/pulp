@@ -49,4 +49,4 @@ jobs:
       - name: Test with pulptest
         env:
           PYTHONPATH: .
-        run: uv run --all-extras pulp/tests/run_tests.py
+        run: uv run --all-extras --no-extra mosek pulp/tests/run_tests.py
