@@ -83,6 +83,12 @@ target-version = ['py37']
 include = '\.pyi?$'
 exclude = '/(\.eggs|\.git|\.hg|\.mypy_cache|\.tox|\.venv|_build|buck-out|build|dist)/'
 
+[tool.uv]
+required-environments = [
+    "sys_platform == 'darwin'",
+]
+
+
 [project.optional-dependencies]
 open_py = ["cylp", "highspy", "pyscipopt"]
 public_py = ["gurobipy", "coptpy", 'xpress', "cplex"]
@@ -92,4 +98,4 @@ gurobi = ["gurobipy"]
 xpress = ["xpress"]
 copt = ["coptpy"]
 cplex = ["cplex"]
-mosek = ["mosek "]
+mosek = ["mosek"]
