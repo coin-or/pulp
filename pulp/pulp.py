@@ -274,12 +274,15 @@ class LpVariable(LpElement):
         upBound: Optional[float] = None,
         cat: str = const.LpContinuous,
         e=None,
+        varValue=None,
     ):
         LpElement.__init__(self, name)
         self._lowbound_original = self.lowBound = lowBound
         self._upbound_original = self.upBound = upBound
         self.cat = cat
         self.varValue = None
+        if varValue is not None:
+            self.setInitialValue(val=varValue)
         self.dj = None
         if cat == const.LpBinary:
             self._lowbound_original = self.lowBound = 0
@@ -330,10 +333,13 @@ class LpVariable(LpElement):
         :rtype: :LpVariable
         """
         var = cls(
-            name=mps.name, lowBound=mps.lowBound, upBound=mps.upBound, cat=mps.cat
+            name=mps.name,
+            lowBound=mps.lowBound,
+            upBound=mps.upBound,
+            cat=mps.cat,
+            varValue=mps.varValue,
         )
         var.dj = mps.dj
-        var.varValue = mps.varValue
         return var
 
     def toDict(self) -> dict[str, Any]:
@@ -716,6 +722,24 @@ class LpVariable(LpElement):
 
     def unfixValue(self):
         self.bounds(self._lowbound_original, self._upbound_original)
+
+
+class LpBinaryVariable(LpVariable):
+    """
+    This class models an LP Binary Variable with the specified associated parameters
+    """
+
+    def __init__(self, name: str, **kwargs):
+        LpVariable.__init__(self, name=name, cat=const.LpBinary, **kwargs)
+
+
+class LpIntegerVariable(LpVariable):
+    """
+    This class models an LP Integer Variable with the specified associated parameters
+    """
+
+    def __init__(self, name: str, **kwargs):
+        LpVariable.__init__(self, name=name, cat=const.LpInteger, **kwargs)
 
 
 class LpAffineExpression(dict):

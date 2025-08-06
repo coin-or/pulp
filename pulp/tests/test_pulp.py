@@ -14,9 +14,11 @@ from typing import Union, Optional, Type
 from pulp import (
     FixedElasticSubProblem,
     LpAffineExpression,
+    LpBinaryVariable,
     LpConstraint,
     LpConstraintVar,
     LpFractionConstraint,
+    LpIntegerVariable,
     LpProblem,
     LpVariable,
     PulpSolverError,
@@ -1868,6 +1870,23 @@ class BaseSolverTest:
 
             second_expression_2 = x * m2 - 6 - y
             self.assertEqual(str(second_expression_2), "8.1*x - y - 6.0")
+
+        def test_lp_binary_variable(self):
+            self.assertTrue(LpBinaryVariable("x").isBinary())
+            self.assertTrue(LpBinaryVariable("x").isInteger())
+
+        def test_lp_integer_variable(self):
+            self.assertTrue(LpIntegerVariable("x").isInteger())
+
+        def test_lp_integer_variable_with_bounds(self):
+            self.assertEqual(LpIntegerVariable("x", lowBound=0).lowBound, 0)
+            self.assertEqual(LpIntegerVariable("x", upBound=10).upBound, 10)
+
+        def test_lp_variable_with_0_as_initial_value(self):
+            self.assertEqual(LpVariable("x", varValue=0).varValue, 0)
+
+        def test_lp_variable_with_10_as_initial_value(self):
+            self.assertEqual(LpVariable("x", varValue=10).varValue, 10)
 
 
 class PULP_CBC_CMDTest(BaseSolverTest.PuLPTest):
