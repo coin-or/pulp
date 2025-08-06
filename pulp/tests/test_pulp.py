@@ -1882,6 +1882,12 @@ class BaseSolverTest:
             self.assertEqual(LpIntegerVariable("x", lowBound=0).lowBound, 0)
             self.assertEqual(LpIntegerVariable("x", upBound=10).upBound, 10)
 
+        def test_lp_variable_with_0_as_initial_value(self):
+            self.assertEqual(LpVariable("x", varValue=0).varValue, 0)
+
+        def test_lp_variable_with_10_as_initial_value(self):
+            self.assertEqual(LpVariable("x", varValue=10).varValue, 10)
+
 
 class PULP_CBC_CMDTest(BaseSolverTest.PuLPTest):
     solveInst = solvers.PULP_CBC_CMD

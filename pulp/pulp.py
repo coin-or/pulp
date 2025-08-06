@@ -274,12 +274,15 @@ class LpVariable(LpElement):
         upBound: Optional[float] = None,
         cat: str = const.LpContinuous,
         e=None,
+        varValue=None,
     ):
         LpElement.__init__(self, name)
         self._lowbound_original = self.lowBound = lowBound
         self._upbound_original = self.upBound = upBound
         self.cat = cat
         self.varValue = None
+        if varValue is not None:
+            self.setInitialValue(val=varValue)
         self.dj = None
         if cat == const.LpBinary:
             self._lowbound_original = self.lowBound = 0
