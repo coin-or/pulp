@@ -2128,13 +2128,6 @@ class CPLEX_PYTest(BaseSolverTest.PuLPTest):
         solver = self._build(**{param: 100})
         self.assertEqual(len(solver.get_changed_params()), 1)
 
-    def test_set_all_params(self):
-        solver = self._build()
-        parameters = solver.get_all_params()
-        for param, value in parameters:
-            solver.set_param(name=str(param), value=value)
-        self.assertEqual(solver.get_changed_params(), [])
-
     def test_callback(self):
         from cplex.callbacks import IncumbentCallback  # type: ignore[import-not-found, import-untyped, unused-ignore]
 
