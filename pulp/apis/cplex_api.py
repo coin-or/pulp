@@ -240,6 +240,21 @@ class CPLEX_CMD(LpSolver_CMD):
         return True
 
 
+def check_solverModel(func):
+    """
+    Decorator that checks if the solverModel is initialized.
+
+    :raises PulpSolverError: If the ``solverModel`` attribute is not initialized
+    """
+
+    def wrapper(self, *args, **kwargs):
+        if self.solverModel is None:
+            raise PulpSolverError("solverModel not initialized")
+        return func(self, *args, **kwargs)
+
+    return wrapper
+
+
 class CPLEX_PY(LpSolver):
     """
     The CPLEX LP/MIP solver (via a Python Binding)
@@ -461,21 +476,6 @@ class CPLEX_PY(LpSolver):
             """
             param = self.search_param(name=name)
             return param.get()
-
-        @staticmethod
-        def check_solverModel(func):
-            """
-            Decorator that checks if the solverModel is initialized.
-
-            :raises PulpSolverError: If the ``solverModel`` attribute is not initialized
-            """
-
-            def wrapper(self, *args, **kwargs):
-                if self.solverModel is None:
-                    raise PulpSolverError("solverModel not initialized")
-                return func(self, *args, **kwargs)
-
-            return wrapper
 
         @check_solverModel
         def search_param(self, name: str):
