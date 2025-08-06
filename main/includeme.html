@@ -50,7 +50,10 @@
 <li class="toctree-l2"><a class="reference internal" href="installing_pulp_at_home.html">Installing PuLP at Home</a></li>
 <li class="toctree-l2"><a class="reference internal" href="amply.html">Amply</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">README</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#installation">Installation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#installation">Installation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#installing-solvers">Installing solvers</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#quickstart">Quickstart</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#essential-classes">Essential Classes</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#useful-functions">Useful Functions</a></li>
@@ -118,6 +121,25 @@
 </pre></div>
 </div>
 <p>Otherwise follow the download instructions on the <a class="reference external" href="https://pypi.python.org/pypi/PuLP">PyPi page</a>.</p>
+<section id="installing-solvers">
+<h3>Installing solvers<a class="headerlink" href="#installing-solvers" title="Link to this heading"></a></h3>
+<p>PuLP can use a variety of solvers. The default solver is the COIN-OR CBC solver, which is included with PuLP. If you want to use other solvers, PuLP offers a quick way to install most solvers via their pypi package (some require a commercial license for running or for running large models):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">pulp</span><span class="p">[</span><span class="n">gurobi</span><span class="p">]</span>
+<span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">pulp</span><span class="p">[</span><span class="n">cplex</span><span class="p">]</span>
+<span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">pulp</span><span class="p">[</span><span class="n">xpress</span><span class="p">]</span>
+<span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">pulp</span><span class="p">[</span><span class="n">scip</span><span class="p">]</span>
+<span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">pulp</span><span class="p">[</span><span class="n">highs</span><span class="p">]</span>
+<span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">pulp</span><span class="p">[</span><span class="n">copt</span><span class="p">]</span>
+<span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">pulp</span><span class="p">[</span><span class="n">mosek</span><span class="p">]</span>
+<span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">pulp</span><span class="p">[</span><span class="n">cylp</span><span class="p">]</span>
+</pre></div>
+</div>
+<dl class="simple">
+<dt>If you want to install all open source solvers (scip, highs, cylp), you can use the shortcut::</dt><dd><p>python -m pip install pulp[open_py]</p>
+</dd>
+</dl>
+<p>For more information on how to install solvers, see the <a class="reference external" href="https://coin-or.github.io/pulp/guides/how_to_configure_solvers.html">guide on configuring solvers</a>.</p>
+</section>
 </section>
 <section id="quickstart">
 <h2>Quickstart<a class="headerlink" href="#quickstart" title="Link to this heading"></a></h2>
