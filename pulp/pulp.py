@@ -333,10 +333,13 @@ class LpVariable(LpElement):
         :rtype: :LpVariable
         """
         var = cls(
-            name=mps.name, lowBound=mps.lowBound, upBound=mps.upBound, cat=mps.cat
+            name=mps.name,
+            lowBound=mps.lowBound,
+            upBound=mps.upBound,
+            cat=mps.cat,
+            varValue=mps.varValue,
         )
         var.dj = mps.dj
-        var.varValue = mps.varValue
         return var
 
     def toDict(self) -> dict[str, Any]:
