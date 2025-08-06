@@ -718,6 +718,24 @@ class LpVariable(LpElement):
         self.bounds(self._lowbound_original, self._upbound_original)
 
 
+class LpBinaryVariable(LpVariable):
+    """
+    This class models an LP Binary Variable with the specified associated parameters
+    """
+
+    def __init__(self, name: str, **kwargs):
+        LpVariable.__init__(self, name=name, cat=const.LpBinary, **kwargs)
+
+
+class LpIntegerVariable(LpVariable):
+    """
+    This class models an LP Integer Variable with the specified associated parameters
+    """
+
+    def __init__(self, name: str, **kwargs):
+        LpVariable.__init__(self, name=name, cat=const.LpInteger, **kwargs)
+
+
 class LpAffineExpression(dict):
     """
     A linear combination of :class:`LpVariables<LpVariable>`.
