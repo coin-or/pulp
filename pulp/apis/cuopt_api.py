@@ -155,6 +155,8 @@ class CUOPT(LpSolver):
             settings = solver_settings.SolverSettings()
             settings.set_parameter("infeasibility_detection", True)
             settings.set_parameter("log_to_console", self.msg)
+            if log_file:
+                settings.set_parameter("log_file", log_file)
             if self.timeLimit:
                 settings.set_parameter("time_limit", self.timeLimit)
             for key, value in self.solver_params.items():
@@ -164,7 +166,7 @@ class CUOPT(LpSolver):
             if gapRel:
                 settings.set_parameter("relative_gap_tolerance", gapRel)
 
-            solution = solver.Solve(lp.solverModel, settings, log_file)
+            solution = solver.Solve(lp.solverModel, settings)
 
             self.solveTime += clock()
             return solution
@@ -231,6 +233,7 @@ class CUOPT(LpSolver):
             lp.solverModel.set_row_types(np.array(sense))
 
             lp.solverModel.set_objective_coefficients(np.array(obj_coeff))
+            lp.solverModel.set_objective_offset(lp.objective.constant)
 
         def actualSolve(self, lp, callback=None):
             """
