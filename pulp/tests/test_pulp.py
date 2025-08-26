@@ -2352,10 +2352,6 @@ class CUOPTTest(BaseSolverTest.PuLPTest):
     solveInst = solvers.CUOPT
 
 
-class CUOPTTest(BaseSolverTest.PuLPTest):
-    solveInst = CUOPT
-
-
 class SASTest:
 
     def test_sas_with_option(self):
