@@ -381,7 +381,7 @@ class XPRESS_PY(LpSolver):
         if self._available is None:
             try:
                 global xpress
-                import xpress  # type: ignore[import-not-found]
+                import xpress  # type: ignore[import-not-found, import-untyped, unused-ignore]
 
                 # Always disable the global output. We only want output if
                 # we install callbacks explicitly

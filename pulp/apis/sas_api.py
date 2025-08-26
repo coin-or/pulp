@@ -176,7 +176,7 @@ class SAS94(SASsolver):
 
     try:
         global saspy
-        import saspy  # type: ignore[import-not-found]
+        import saspy  # type: ignore[import-not-found, import-untyped, unused-ignore]
 
     except:
 
@@ -485,7 +485,7 @@ class SASCAS(SASsolver):
 
     try:
         global swat
-        import swat  # type: ignore[import-not-found]
+        import swat  # type: ignore[import-not-found, import-untyped, unused-ignore]
 
     except ImportError:
 

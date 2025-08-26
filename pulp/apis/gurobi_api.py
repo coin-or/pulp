@@ -57,7 +57,7 @@ class GUROBI(LpSolver):
     try:
         # to import the name into the module scope
         global gp
-        import gurobipy as gp  # type: ignore[import-not-found]
+        import gurobipy as gp  # type: ignore[import-not-found, import-untyped, unused-ignore]
     except:  # FIXME: Bug because gurobi returns
         #  a gurobi exception on failed imports
         def available(self):
@@ -163,10 +163,9 @@ class GUROBI(LpSolver):
 
             # set the output of gurobi
             if not self.msg:
-                if self.manage_env:
-                    self.env_options["OutputFlag"] = 0
-                else:
-                    self.env_options["OutputFlag"] = 0
+                self.env_options["OutputFlag"] = 0
+
+                if not self.manage_env:
                     self.solver_params["OutputFlag"] = 0
 
         def __del__(self):

@@ -158,9 +158,9 @@ def readMPS(path: str, sense: int, dropConsNames: bool = False) -> MPS:
 
     with open(path) as reader:
         for line in reader:
-            line = re.split(" |\t", line)
-            line = [x.strip() for x in line]
-            line = list(filter(None, line))
+            line = re.split(" |\t", line)  # type: ignore[assignment]
+            line = [x.strip() for x in line]  # type: ignore[assignment]
+            line = list(filter(None, line))  # type: ignore[assignment]
 
             if line[0] == "ENDATA":
                 break
@@ -229,9 +229,9 @@ def readMPS(path: str, sense: int, dropConsNames: bool = False) -> MPS:
                     raise const.PulpError(
                         "Other RHS name was given even though name was set after RHS tag."
                     )
-                readMPSSetRhs(line, constraints)
+                readMPSSetRhs(line, constraints)  # type: ignore[arg-type]
             elif mode == CORE_FILE_RHS_MODE_NO_NAME:
-                readMPSSetRhs(line, constraints)
+                readMPSSetRhs(line, constraints)  # type: ignore[arg-type]
                 if line[0] not in rhs_names:
                     rhs_names.append(line[0])
             elif mode == CORE_FILE_BOUNDS_MODE_NAME_GIVEN:
@@ -239,9 +239,9 @@ def readMPS(path: str, sense: int, dropConsNames: bool = False) -> MPS:
                     raise const.PulpError(
                         "Other BOUNDS name was given even though name was set after BOUNDS tag."
                     )
-                readMPSSetBounds(line, variable_info)
+                readMPSSetBounds(line, variable_info)  # type: ignore[arg-type]
             elif mode == CORE_FILE_BOUNDS_MODE_NO_NAME:
-                readMPSSetBounds(line, variable_info)
+                readMPSSetBounds(line, variable_info)  # type: ignore[arg-type]
                 if line[1] not in bnd_names:
                     bnd_names.append(line[1])
     constraints_list = list(constraints.values())
@@ -306,9 +306,9 @@ def writeMPS(
     wasNone, dummyVar = lp.fixObjective()
     if mpsSense == 0:
         mpsSense = lp.sense
-    cobj = lp.objective
-    if cobj is None:
+    if lp.objective is None:
         raise ValueError("objective is None")
+    cobj: LpAffineExpression = lp.objective
     if mpsSense != lp.sense:
         n = cobj.name
         cobj = -cobj
@@ -316,7 +316,7 @@ def writeMPS(
     if rename:
         constrNames, varNames, cobj.name = lp.normalisedNames()
         # No need to call self.variables() again, we have just filled self._variables:
-        vs = lp._variables  # type: ignore
+        vs = lp._variables
     else:
         vs = lp.variables()
         varNames = {v.name: v.name for v in vs}

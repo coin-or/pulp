@@ -2,6 +2,15 @@
 #       Copyright S.A.Mitchell (s.mitchell@auckland.ac.nz), 2007-
 #       Copyright F.Peschiera (pchtsp@gmail.com), 2019-
 # See the LICENSE file for copyright information.
+3.2.0 2025-05-29
+    Callbacks in HiGHS solver
+    Added CuOpt solver
+3.1.0 2025-03-24
+    cleaned old configuration files and functions
+    moved to pyproject.toml instead of setup.py
+    migrate to uv packaging
+    support python >= 3.9
+    add incomplete CyLP solver API
 3.0.0 2025-02-19
     Improved performance for large models
     new solvers: SAS SAS94 and SASCAS

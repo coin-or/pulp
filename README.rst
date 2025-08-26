@@ -27,6 +27,25 @@ The easiest way to install PuLP is with ``pip``. If ``pip`` is available on your
 
 Otherwise follow the download instructions on the `PyPi page <https://pypi.python.org/pypi/PuLP>`_.
 
+Installing solvers
+----------------------
+
+PuLP can use a variety of solvers. The default solver is the COIN-OR CBC solver, which is included with PuLP. If you want to use other solvers, PuLP offers a quick way to install most solvers via their pypi package (some require a commercial license for running or for running large models)::
+
+    python -m pip install pulp[gurobi]
+    python -m pip install pulp[cplex]
+    python -m pip install pulp[xpress]
+    python -m pip install pulp[scip]
+    python -m pip install pulp[highs]
+    python -m pip install pulp[copt]
+    python -m pip install pulp[mosek]
+    python -m pip install pulp[cylp]
+
+
+If you want to install all open source solvers (scip, highs, cylp), you can use the shortcut::
+    python -m pip install pulp[open_py]
+
+For more information on how to install solvers, see the `guide on configuring solvers <https://coin-or.github.io/pulp/guides/how_to_configure_solvers.html>`_.
 
 Quickstart 
 ===============
@@ -124,8 +143,8 @@ To build, run the following in a terminal window, in the PuLP root directory
 
 ::
 
-    cd pulp
-    python -m pip install -r requirements-dev.txt
+    python3 -m pip install --upgrade pip
+    pip install --group=dev .
     cd doc
     make html
 

@@ -3,15 +3,30 @@ import unittest
 from pulp import GUROBI, LpProblem, LpVariable, const
 
 try:
-    import gurobipy as gp
-    from gurobipy import GRB
+    import gurobipy as gp  # type: ignore[import-not-found, import-untyped, unused-ignore]
 except ImportError:
-    gp = None
+    gp = None  # type: ignore[assignment, unused-ignore]
 
 
 def check_dummy_env():
     with gp.Env(params={"OutputFlag": 0}):
         pass
+
+
+def is_single_use_license() -> bool:
+    if gp is None:
+        # no gurobi license
+        return False
+    try:
+        with gp.Env() as env1:
+            with gp.Env() as env2:
+                pass
+    except gp.GurobiError as ge:
+        if ge.errno == gp.GRB.Error.NO_LICENSE:
+            print("single use license")
+            print(f"Error code {ge.errno}: {ge}")
+            return True
+    return False
 
 
 def generate_lp() -> LpProblem:
@@ -40,8 +55,11 @@ class GurobiEnvTests(unittest.TestCase):
             solver.close()
         check_dummy_env()
 
-    @unittest.SkipTest
     def test_gp_env_no_close(self):
+        if not is_single_use_license():
+            raise unittest.SkipTest(
+                "this test is only expected to pass with a single-use license"
+            )
         # Not closing results in an error for a single use license.
         with gp.Env(params=self.env_options) as env:
             prob = generate_lp()
@@ -64,13 +82,16 @@ class GurobiEnvTests(unittest.TestCase):
 
         check_dummy_env()
 
-    @unittest.SkipTest
     def test_backward_compatibility(self):
         """
         Backward compatibility check as previously the environment was not being
         freed. On a single-use license this passes (fails to initialise a dummy
         env).
         """
+        if not is_single_use_license():
+            raise unittest.SkipTest(
+                "this test is only expected to pass with a single-use license"
+            )
         solver = GUROBI(msg=False, **self.options)
         prob = generate_lp()
         prob.solve(solver)
@@ -101,13 +122,16 @@ class GurobiEnvTests(unittest.TestCase):
         solver2.close()
         check_dummy_env()
 
-    @unittest.SkipTest
     def test_leak(self):
         """
         Check that we cannot initialise environments after a memory leak. On a
         single-use license this passes (fails to initialise a dummy env with a
         memory leak).
         """
+        if not is_single_use_license():
+            raise unittest.SkipTest(
+                "this test is only expected to pass with a single-use license"
+            )
         solver = GUROBI(msg=False, **self.options)
         prob = generate_lp()
         prob.solve(solver)

@@ -108,6 +108,10 @@ class COIN_CMD(LpSolver_CMD):
         :param str timeMode: "elapsed": count wall-time to timeLimit; "cpu": count cpu-time
         :param int maxNodes: max number of nodes during branching. Stops the solving when reached.
         """
+        if warmStart and not keepFiles and operating_system == "win":
+            warnings.warn(
+                "When using CBC on Windows, warmStart requires keepFiles=True."
+            )
 
         LpSolver_CMD.__init__(
             self,
@@ -891,7 +895,7 @@ class CYLP(LpSolver):
     name = "CyLP"
     try:
         global cy
-        from cylp import cy  # type: ignore[import-not-found]
+        from cylp import cy  # type: ignore[import-not-found, import-untyped, unused-ignore]
     except:
 
         def available(self):

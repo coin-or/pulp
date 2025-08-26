@@ -39,13 +39,13 @@ That's it, you will download the whole project.
 Installing from source
 ----------------------------
 
-To build pulp from source we wil get inside the pulp directory, then we will create a virtual environment and install dependencies. Finally we will execute ``setup.py``. I assume Linux / Mac. Windows is very similar commands::
+To build pulp from source we wil get inside the pulp directory, then we will create a virtual environment and install dependencies. I assume Linux / Mac. Windows has very similar commands::
 
     cd pulp
     python3 -m venv venv
     source venv/bin/activate
-    python -m pip install -r requirements-dev.txt
-    python3 setup.py develop
+    python3 -m pip install --upgrade pip
+    pip install --group=dev --editable .
 
 This will link the pulp version on your virtual environment with the source files in the pulp directory. You can now use pulp from that virtual environment and you will be using the files in the pulp directory. We assume you have run this successfully for all further steps.
 
@@ -54,7 +54,6 @@ Running tests
 
 To run tests of pulp you need to run::
 
-    cd pulp
     python3 pulp/tests/run_tests.py
 
 It will detect the solvers in your system and test all of the ones it finds.
@@ -68,13 +67,23 @@ Applying the black linter / formatter
 -----------------------------------------------------
 
 We use `the black formatter <https://black.readthedocs.io/en/stable/>`_. Before sending your changes, be sure to execute the black package to style the resulting files.
-The quickest way to do this is to run:
+The quickest way to do this is to run::
 
     python -m black pulp
 
 And it will do the changes directly on the files.
 
 The easiest way is to integrate it inside your IDE so it runs every time you save a file. Learn how to do that `in the black integration docs <https://black.readthedocs.io/en/stable/integrations/editors.html>`_.
+
+Checking types with mypy
+-------------------------------------
+
+We use `the mypy type checker <https://mypy.readthedocs.io/en/stable/index.html>`_. Before sending your changes, be sure to execute the mypy package to check the types.
+The quickest way to do this is to run::
+
+    python -m mypy ./
+
+Fix all the errors you see before pushing the changes.
 
 Building the documentation
 ----------------------------

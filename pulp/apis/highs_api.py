@@ -3,7 +3,7 @@
 import os
 import subprocess
 from math import inf
-from typing import List
+from typing import List, Optional
 
 from .. import constants
 from .core import LpSolver, LpSolver_CMD, PulpSolverError
@@ -271,13 +271,17 @@ class HiGHS_CMD(LpSolver_CMD):
         return values
 
 
+highspy = None
+
+
 class HiGHS(LpSolver):
     name = "HiGHS"
 
     try:
         global highspy
-        import highspy  # type: ignore[import-not-found]
+        import highspy  # type: ignore[import-not-found, import-untyped, unused-ignore]
     except:
+        hscb = None
 
         def available(self):
             """True if the solver is available"""
@@ -288,13 +292,7 @@ class HiGHS(LpSolver):
             raise PulpSolverError("HiGHS: Not Available")
 
     else:
-        # Note(maciej): It was surprising to me that higshpy wasn't logging out of the box,
-        #  even with the different logging options set. This callback seems to work, but there
-        #  are probably better ways of doing this ¯\_(ツ)_/¯
-        DEFAULT_CALLBACK = lambda logType, logMsg, callbackValue: print(
-            f"[{logType.name}] {logMsg}"
-        )
-        DEFAULT_CALLBACK_VALUE = ""
+        hscb = highspy.cb  # type: ignore[attr-defined, unused-ignore]
 
         def __init__(
             self,
@@ -305,21 +303,23 @@ class HiGHS(LpSolver):
             gapRel=None,
             threads=None,
             timeLimit=None,
+            callbacksToActivate: Optional[List[highspy.cb.HighsCallbackType]] = None,
             **solverParams,
         ):
             """
             :param bool mip: if False, assume LP even if integer variables
             :param bool msg: if False, no log is shown
-            :param tuple callbackTuple: Tuple of log callback function (see DEFAULT_CALLBACK above for definition)
-                and callbackValue (tag embedded in every callback)
+            :param tuple callbackTuple: Tuple of callback function and callbackValue (see tests for an example)
             :param float gapRel: relative gap tolerance for the solver to stop (in fraction)
             :param float gapAbs: absolute gap tolerance for the solver to stop
             :param int threads: sets the maximum number of threads
             :param float timeLimit: maximum time for solver (in seconds)
             :param dict solverParams: list of named options to pass directly to the HiGHS solver
+            :param callbacksToActivate: list of callback types to start
             """
             super().__init__(mip=mip, msg=msg, timeLimit=timeLimit, **solverParams)
             self.callbackTuple = callbackTuple
+            self.callbacksToActivate = callbacksToActivate
             self.gapAbs = gapAbs
             self.gapRel = gapRel
             self.threads = threads
@@ -333,12 +333,12 @@ class HiGHS(LpSolver):
         def createAndConfigureSolver(self, lp):
             lp.solverModel = highspy.Highs()
 
-            if self.msg and self.callbackTuple:
-                callbackTuple = self.callbackTuple or (
-                    HiGHS.DEFAULT_CALLBACK,
-                    HiGHS.DEFAULT_CALLBACK_VALUE,
-                )
-                lp.solverModel.setLogCallback(*callbackTuple)
+            if self.callbackTuple:
+                lp.solverModel.setCallback(*self.callbackTuple)
+
+            if self.callbacksToActivate:
+                for cb_type in self.callbacksToActivate:
+                    lp.solverModel.startCallback(cb_type)
 
             if not self.msg:
                 lp.solverModel.setOptionValue("output_flag", False)
@@ -462,6 +462,10 @@ class HiGHS(LpSolver):
                     constants.LpSolutionIntegerFeasible,
                 ),
                 HighsModelStatus.kObjectiveTarget: (
+                    constants.LpStatusOptimal,
+                    constants.LpSolutionIntegerFeasible,
+                ),
+                HighsModelStatus.kInterrupt: (
                     constants.LpStatusOptimal,
                     constants.LpSolutionIntegerFeasible,
                 ),

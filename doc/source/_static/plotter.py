@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from matplotlib import rc
+from matplotlib import rc  # type: ignore[import-not-found]
 
 rc("text", usetex=True)
 rc("font", family="serif")
@@ -28,12 +28,12 @@ def plot_interval(a, c, x_left, x_right, i, fbound):
     title(rf"Elasticized constraint\_{i}   $C(x)= {c} $")
 
 
-figure()
-subplots_adjust(hspace=0.5)
+figure()  # type: ignore[name-defined]
+subplots_adjust(hspace=0.5)  # type: ignore[name-defined]
 
 fbound = "proportionFreeBound"
 i = 1
-subplot(2, 1, i)
+subplot(2, 1, i)  # type: ignore[name-defined]
 a = [0.01, 0.01]
 c = 200
 x_left = 0.97 * c
@@ -42,14 +42,14 @@ fb_string = f"{fbound} = {a[0]}"
 plot_interval(a, c, x_left, x_right, i, fb_string)
 
 i += 1
-subplot(2, 1, i)
+subplot(2, 1, i)  # type: ignore[name-defined]
 a = [0.02, 0.05]
 c = 500
 x_left = 0.9 * c  # scale of window
 x_right = 1.2 * c  # scale of window
 fb_string = f"{fbound}List = [{a[0]},{a[1]}]"
 plot_interval(a, c, x_left, x_right, i, fb_string)
-savefig("freebound.jpg")
-savefig("freebound.pdf")
+savefig("freebound.jpg")  # type: ignore[name-defined]
+savefig("freebound.pdf")  # type: ignore[name-defined]
 
 # vim: fenc=utf-8: ft=python:sw=4:et:nu:fdm=indent:fdn=1:syn=python
