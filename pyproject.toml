@@ -1,6 +1,6 @@
 [project]
 name = "PuLP"
-version = "3.2.3"
+dynamic = ["version"]
 description = "PuLP is an LP modeler written in python. PuLP can generate MPS or LP files and call GLPK, COIN CLP/CBC, CPLEX, and GUROBI to solve linear problems."
 authors = [
     {name = 'J.S. Roy'},
@@ -65,6 +65,9 @@ packages = [
         "pulp.tests"]
 # This is a workaround for https://github.com/astral-sh/uv/issues/9513
 license-files = []
+
+[tool.setuptools.dynamic]
+version = {attr = "pulp.__version__"}
 
 [tool.setuptools.package-data]
 "pulp.solverdir.cbc.linux.i32"= ["*", "*.*"]
