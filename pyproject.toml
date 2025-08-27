@@ -11,12 +11,12 @@ maintainers= [{name= "Franco Peschiera", email= "pchtsp@gmail.com"}]
 dependencies = []
 requires-python = ">=3.9"
 readme = "README.rst"
-license = {text = "MIT"}
+license = "MIT"
+license-files = ["LICENSE"]
 classifiers=[
     "Development Status :: 5 - Production/Stable",
     "Environment :: Console",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: MIT License",
     "Natural Language :: English",
     "Programming Language :: Python",
     "Topic :: Scientific/Engineering :: Mathematics",
@@ -39,7 +39,7 @@ module = [
 follow_imports = "skip"
 
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [dependency-groups]
@@ -63,8 +63,6 @@ packages = [
         "pulp.solverdir.cbc.osx.i64",
         "pulp.apis",
         "pulp.tests"]
-# This is a workaround for https://github.com/astral-sh/uv/issues/9513
-license-files = []
 
 [tool.setuptools.package-data]
 "pulp.solverdir.cbc.linux.i32"= ["*", "*.*"]
