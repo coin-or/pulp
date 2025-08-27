@@ -375,6 +375,7 @@ class XPRESS_PY(LpSolver):
             warmStart=warmStart,
         )
         self._available = None
+        self._version = None
         self._export = export
 
     def available(self):
@@ -388,6 +389,11 @@ class XPRESS_PY(LpSolver):
                 # we install callbacks explicitly
                 xpress.setOutputEnabled(False)
                 self._available = True
+                version_parts = "".join(
+                    ch if (ch.isdigit() or ch == ".") else "."
+                    for ch in str(xpress.__version__)
+                ).split(".")
+                self._version = tuple(int(p) for p in version_parts if p.isdigit())
             except:
                 self._available = False
         return self._available
@@ -426,42 +432,18 @@ class XPRESS_PY(LpSolver):
 
     def findSolutionValues(self, lp):
         try:
-            def _xp_fill_solution(model, x=None, slacks=None):
-                """
-                Version-safe way to populate solution arrays.
-                Returns True if a call succeeded, False otherwise.
-                Prefers the new API (>= 9.5): model.getSolution(x, slacks)
-                Falls back to old API: model.getmipsol(x, slacks)
-                """
-                # Prefer new API if present
-                if hasattr(model, "getSolution"):
-                    try:
-                        model.getSolution(x, slacks)
-                        return True
-                    except Exception:
-                        # Some old bindings might expose getSolution but fail at runtime.
-                        pass
-
-                # Fallback to old API (suppress possible deprecation noise on newer XPRESS)
-                if hasattr(model, "getmipsol"):
-                    try:
-                        with warnings.catch_warnings():
-                            # If XPRESS emits a Python DeprecationWarning, ignore it here.
-                            warnings.simplefilter("ignore", category=DeprecationWarning)
-                            model.getmipsol(x, slacks)
-                        return True
-                    except Exception:
-                        pass
-
-                return False
-
             model = lp.solverModel
             # Collect results
             if _ismip(lp) and self.mip:
                 # Solved as MIP
                 x, slacks, duals, djs = [], [], None, None
-                ok = _xp_fill_solution(model, x, slacks)
-                if not ok:
+                try:
+                    if self._version >= (9,5):
+                        model.getSolution(x, slacks)
+                    else:
+                        model.getlpsol(x, slacks)
+                except:
+                    # No solution available
                     x, slacks = None, None
                 statusmap = {
                     0: constants.LpStatusUndefined,  # XPRS_MIP_NOT_LOADED
@@ -495,7 +477,14 @@ class XPRESS_PY(LpSolver):
                 }
                 statuskey = "lpstatus"
             if x is not None:
-                lp.assignVarsVals({v.name: x[v._xprs[0]] for v in lp.variables()})
+                for v in lp.variables():
+                    print(f"Is MIP?: {_ismip(lp)} AND self.mip {self.mip}")
+                    print(f"Version: {self._version}")
+                    print(f"Greater or equal than 9.5?: {self._version >= (9,5)}")
+                    print(f"x:{x}")
+                    print(f"v:{v}")
+                    print(f"v._xprs[0]:{v._xprs[0]}")
+                    lp.assignVarsVals({v.name: x[v._xprs[0]]})
             if djs is not None:
                 lp.assignVarsDj({v.name: djs[v._xprs[0]] for v in lp.variables()})
             if duals is not None:
