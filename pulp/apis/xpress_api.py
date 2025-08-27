@@ -456,8 +456,8 @@ class XPRESS_PY(LpSolver):
                     2: constants.LpStatusUndefined,  # XPRS_MIP_LP_OPTIMAL
                     3: constants.LpStatusUndefined,  # XPRS_MIP_NO_SOL_FOUND
                     4: constants.LpStatusUndefined,  # XPRS_MIP_SOLUTION
-                    5: constants.LpStatusInfeasible, # XPRS_MIP_INFEAS
-                    6: constants.LpStatusOptimal,    # XPRS_MIP_OPTIMAL
+                    5: constants.LpStatusInfeasible,  # XPRS_MIP_INFEAS
+                    6: constants.LpStatusOptimal,  # XPRS_MIP_OPTIMAL
                     7: constants.LpStatusUndefined,  # XPRS_MIP_UNBOUNDED
                 }
                 statuskey = "mipstatus"
@@ -492,8 +492,8 @@ class XPRESS_PY(LpSolver):
                 vals = slacks = duals = djs = None
                 statusmap = {
                     0: constants.LpStatusNotSolved,  # XPRS_LP_UNSTARTED
-                    1: constants.LpStatusOptimal,    # XPRS_LP_OPTIMAL
-                    2: constants.LpStatusInfeasible, # XPRS_LP_INFEAS
+                    1: constants.LpStatusOptimal,  # XPRS_LP_OPTIMAL
+                    2: constants.LpStatusInfeasible,  # XPRS_LP_INFEAS
                     3: constants.LpStatusUndefined,  # XPRS_LP_CUTOFF
                     4: constants.LpStatusUndefined,  # XPRS_LP_UNFINISHED
                     5: constants.LpStatusUnbounded,  # XPRS_LP_UNBOUNDED
@@ -718,7 +718,7 @@ class XPRESS_PY(LpSolver):
             # Map PuLP senses -> XPRESS tokens (prefer xp.leq/geq/eq if present; else fall back to 'L','G','E')
             _XP_LEQ = getattr(xpress, "leq", "L")
             _XP_GEQ = getattr(xpress, "geq", "G")
-            _XP_EQ  = getattr(xpress, "eq",  "E")
+            _XP_EQ = getattr(xpress, "eq", "E")
 
             _SENSE_MAP = {
                 constants.LpConstraintLE: _XP_LEQ,
@@ -734,13 +734,19 @@ class XPRESS_PY(LpSolver):
                 """
                 # Prefer the new keyword first
                 try:
-                    return xpress.constraint(body=lhs, type=xp_sense, rhs=rhs, name=name)
+                    return xpress.constraint(
+                        body=lhs, type=xp_sense, rhs=rhs, name=name
+                    )
                 except TypeError:
                     # Fallback to old keyword
                     try:
-                        return xpress.constraint(body=lhs, sense=xp_sense, rhs=rhs, name=name)
+                        return xpress.constraint(
+                            body=lhs, sense=xp_sense, rhs=rhs, name=name
+                        )
                     except TypeError as e:
-                        raise PulpSolverError(f"XPRESS constraint constructor is incompatible: {e}")
+                        raise PulpSolverError(
+                            f"XPRESS constraint constructor is incompatible: {e}"
+                        )
 
             model = xpress.problem()
             if lp.sense == constants.LpMaximize:
@@ -783,12 +789,14 @@ class XPRESS_PY(LpSolver):
                     for x, a in sorted(con.items(), key=lambda x: x[0]._xprs[0])
                 )
                 rhs = -con.constant
-                
+
                 xp_sense = _SENSE_MAP.get(con.sense)
                 if xp_sense is None:
                     raise PulpSolverError(f"Unsupported constraint type {con.sense}")
 
-                c = _xp_make_constraint(lhs=lhs, rhs=rhs, xp_sense=xp_sense, name=con.name)
+                c = _xp_make_constraint(
+                    lhs=lhs, rhs=rhs, xp_sense=xp_sense, name=con.name
+                )
                 cons.append((i, c, con))
                 if len(cons) > 100:
                     model.addConstraint([c for _, c, _ in cons])
