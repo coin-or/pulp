@@ -32,7 +32,7 @@ jobs:
           sudo apt install -qq glpk-utils
       - name: Install highspy cmd
         if: matrix.os == 'ubuntu-latest'
-        uses: supplypike/setup-bin@v4
+        uses: supplypike/setup-bin@v5
         with:
           uri: 'https://github.com/JuliaBinaryWrappers/HiGHSstatic_jll.jl/releases/download/HiGHSstatic-v1.7.1%2B0/HiGHSstatic.v1.7.1.x86_64-linux-gnu-cxx11.tar.gz'
           subPath: 'bin'
@@ -40,7 +40,7 @@ jobs:
           version: '1.7.1'
       - name: Install SCIP_CMD
         if: matrix.os == 'ubuntu-latest'
-        uses: supplypike/setup-bin@v4
+        uses: supplypike/setup-bin@v5
         with:
           uri: 'https://www.scipopt.org/download/release/SCIPOptSuite-9.2.1-Linux-ubuntu24.deb'
           name: 'SCIPOptSuite-9.2.1-Linux-ubuntu24.deb'
