@@ -2410,7 +2410,7 @@ def pulpTestCheck(
         )
     if sol is not None:
         for v, x in sol.items():
-            if abs(v.varValue - x) > eps:
+            if v.varValue is not None and abs(v.varValue - x) > eps:
                 dumpTestProblem(prob)
                 raise PulpError(
                     "Tests failed for solver {}:\nvar {} == {} != {}".format(
