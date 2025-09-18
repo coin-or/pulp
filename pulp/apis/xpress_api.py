@@ -426,14 +426,30 @@ class XPRESS_PY(LpSolver):
     def findSolutionValues(self, lp):
         try:
             model = lp.solverModel
-            # Collect results
+
+            # Build ordered lists of solver vars/cons for new API
+            # PuLP stores Xpress handles in v._xprs / c._xprs; index 1 is the handle.
+            xpress_vars = []
+            for v in lp.variables():
+                h = (
+                    v._xprs[1]
+                    if isinstance(v._xprs, (list, tuple)) and len(v._xprs) > 1
+                    else v._xprs
+                )
+                xpress_vars.append((v, h))
+
+            xpress_cons = []
+            for n, c in lp.constraints.items():
+                h = (
+                    c._xprs[1]
+                    if isinstance(c._xprs, (list, tuple)) and len(c._xprs) > 1
+                    else c._xprs
+                )
+                xpress_cons.append((n, c, h))
+
             if _ismip(lp) and self.mip:
-                # Solved as MIP
-                x, slacks, duals, djs = [], [], None, None
-                try:
-                    model.getmipsol(x, slacks)
-                except:
-                    x, slacks = None, None
+                # ------- MIP branch -------
+                vals = slacks = duals = djs = None
                 statusmap = {
                     0: constants.LpStatusUndefined,  # XPRS_MIP_NOT_LOADED
                     1: constants.LpStatusUndefined,  # XPRS_MIP_LP_NOT_OPTIMAL
@@ -445,14 +461,35 @@ class XPRESS_PY(LpSolver):
                     7: constants.LpStatusUndefined,  # XPRS_MIP_UNBOUNDED
                 }
                 statuskey = "mipstatus"
-            else:
-                # Solved as continuous
-                x, slacks, duals, djs = [], [], [], []
+
+                # New API first
                 try:
-                    model.getlpsol(x, slacks, duals, djs)
-                except:
-                    # No solution available
-                    x, slacks, duals, djs = None, None, None, None
+                    var_vals = model.getSolution([h for _, h in xpress_vars])
+                    slacks = (
+                        model.getSlacks([h for _, _, h in xpress_cons])
+                        if xpress_cons
+                        else None
+                    )
+                    vals = var_vals
+                except Exception as e:
+                    # Fallback to deprecated API (avoids DeprecationWarning only if not hit)
+                    try:
+                        print(e)
+                        x_list, s_list = [], []
+                        model.getmipsol(x_list, s_list)
+                        vals, slacks = (
+                            x_list if x_list else None,
+                            s_list if s_list else None,
+                        )
+                    except Exception:
+                        vals = slacks = None
+
+                duals = None
+                djs = None
+
+            else:
+                # ------- LP (continuous) branch -------
+                vals = slacks = duals = djs = None
                 statusmap = {
                     0: constants.LpStatusNotSolved,  # XPRS_LP_UNSTARTED
                     1: constants.LpStatusOptimal,  # XPRS_LP_OPTIMAL
@@ -465,24 +502,54 @@ class XPRESS_PY(LpSolver):
                     8: constants.LpStatusUndefined,  # XPRS_LP_NONCONVEX
                 }
                 statuskey = "lpstatus"
-            if x is not None:
-                lp.assignVarsVals({v.name: x[v._xprs[0]] for v in lp.variables()})
+
+                # New API first
+                try:
+                    var_vals = model.getSolution([h for _, h in xpress_vars])
+                    vals = var_vals
+                    slacks = (
+                        model.getSlacks([h for _, _, h in xpress_cons])
+                        if xpress_cons
+                        else None
+                    )
+                    duals = (
+                        model.getDuals([h for _, _, h in xpress_cons])
+                        if xpress_cons
+                        else None
+                    )
+                    djs = model.getRedCosts([h for _, h in xpress_vars])
+                except Exception:
+                    # Fallback to deprecated API
+                    try:
+                        x_list, s_list, d_list, rc_list = [], [], [], []
+                        model.getlpsol(x_list, s_list, d_list, rc_list)
+                        vals = x_list if x_list else None
+                        slacks = s_list if s_list else None
+                        duals = d_list if d_list else None
+                        djs = rc_list if rc_list else None
+                    except Exception:
+                        vals = slacks = duals = djs = None
+
+            # ---- write back into PuLP structures ----
+            if vals is not None:
+                lp.assignVarsVals(
+                    {v.name: val for (v, _), val in zip(xpress_vars, vals)}
+                )
+
             if djs is not None:
-                lp.assignVarsDj({v.name: djs[v._xprs[0]] for v in lp.variables()})
+                lp.assignVarsDj({v.name: rc for (v, _), rc in zip(xpress_vars, djs)})
+
             if duals is not None:
-                lp.assignConsPi(
-                    {n: duals[c._xprs[0]] for (n, c) in lp.constraints.items()}
-                )
+                # constraints dict preserves insertion order in Python 3.7+
+                lp.assignConsPi({n: pi for (n, c, _), pi in zip(xpress_cons, duals)})
+
             if slacks is not None:
-                lp.assignConsSlack(
-                    {n: slacks[c._xprs[0]] for (n, c) in lp.constraints.items()}
-                )
+                lp.assignConsSlack({n: s for (n, c, _), s in zip(xpress_cons, slacks)})
 
             status = statusmap.get(
                 model.getAttrib(statuskey), constants.LpStatusUndefined
             )
             lp.assignStatus(status)
-
             return status
 
         except (xpress.ModelError, xpress.InterfaceError, xpress.SolverError) as err:
@@ -648,6 +715,39 @@ class XPRESS_PY(LpSolver):
         """
         self._reset(lp)
         try:
+            # Map PuLP senses -> XPRESS tokens (prefer xp.leq/geq/eq if present; else fall back to 'L','G','E')
+            _XP_LEQ = getattr(xpress, "leq", "L")
+            _XP_GEQ = getattr(xpress, "geq", "G")
+            _XP_EQ = getattr(xpress, "eq", "E")
+
+            _SENSE_MAP = {
+                constants.LpConstraintLE: _XP_LEQ,
+                constants.LpConstraintGE: _XP_GEQ,
+                constants.LpConstraintEQ: _XP_EQ,
+            }
+
+            def _xp_make_constraint(lhs, rhs, xp_sense, name=None):
+                """
+                Create an XPRESS constraint in a way that works with both APIs:
+                new: xpress.constraint(body=..., type=..., rhs=..., name=...)
+                old: xpress.constraint(body=..., sense=..., rhs=..., name=...)
+                """
+                # Prefer the new keyword first
+                try:
+                    return xpress.constraint(
+                        body=lhs, type=xp_sense, rhs=rhs, name=name
+                    )
+                except TypeError:
+                    # Fallback to old keyword
+                    try:
+                        return xpress.constraint(
+                            body=lhs, sense=xp_sense, rhs=rhs, name=name
+                        )
+                    except TypeError as e:
+                        raise PulpSolverError(
+                            f"XPRESS constraint constructor is incompatible: {e}"
+                        )
+
             model = xpress.problem()
             if lp.sense == constants.LpMaximize:
                 model.chgobjsense(xpress.maximize)
@@ -689,16 +789,14 @@ class XPRESS_PY(LpSolver):
                     for x, a in sorted(con.items(), key=lambda x: x[0]._xprs[0])
                 )
                 rhs = -con.constant
-                if con.sense == constants.LpConstraintLE:
-                    c = xpress.constraint(body=lhs, sense=xpress.leq, rhs=rhs)
-                elif con.sense == constants.LpConstraintGE:
-                    c = xpress.constraint(body=lhs, sense=xpress.geq, rhs=rhs)
-                elif con.sense == constants.LpConstraintEQ:
-                    c = xpress.constraint(body=lhs, sense=xpress.eq, rhs=rhs)
-                else:
-                    raise PulpSolverError(
-                        "Unsupprted constraint type " + str(con.sense)
-                    )
+
+                xp_sense = _SENSE_MAP.get(con.sense)
+                if xp_sense is None:
+                    raise PulpSolverError(f"Unsupported constraint type {con.sense}")
+
+                c = _xp_make_constraint(
+                    lhs=lhs, rhs=rhs, xp_sense=xp_sense, name=con.name
+                )
                 cons.append((i, c, con))
                 if len(cons) > 100:
                     model.addConstraint([c for _, c, _ in cons])
