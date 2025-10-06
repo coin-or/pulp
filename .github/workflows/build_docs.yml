@@ -19,7 +19,7 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
-      run: uv sync --dev
+      run: uv sync --dev --all-extras
     - name: Building docs
       run: cd doc && uv run make html && cd ..
     # Great extra actions to compose with:
