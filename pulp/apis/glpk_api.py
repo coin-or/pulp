@@ -83,8 +83,16 @@ class GLPK_CMD(LpSolver_CMD):
         """Solve a well formulated lp problem"""
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute " + self.path)
+
+        # GLPK cannot handle empty problems:
+        if not lp.numConstraints():
+            status = constants.LpStatusNotSolved
+            lp.assignStatus(status)
+            return status
+
         tmpLp, tmpOut, tmpSol = self.create_tmp_files(lp.name, "lp", "out", "sol")
         lp.writeLP(tmpLp, writeSOS=0)
+
         proc = ["glpsol", "--cpxlp", tmpLp, "-o", tmpOut, "-w", tmpSol]
         if self.timeLimit:
             proc.extend(["--tmlim", str(self.timeLimit)])

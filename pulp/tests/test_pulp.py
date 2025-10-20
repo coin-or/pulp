@@ -171,7 +171,9 @@ class BaseSolverTest:
 
         def test_empty(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
-            pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], {})
+            pulpTestCheck(
+                prob, self.solver, [const.LpStatusOptimal, const.LpStatusNotSolved], {}
+            )
 
         def test_continuous(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
