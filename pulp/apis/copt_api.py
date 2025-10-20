@@ -944,18 +944,23 @@ class COPT(LpSolver):
                 var.varValue = value
 
             if not model.ismip:
-                # NOTE: slacks in COPT are activities of rows
-                slacks = model.getInfo("Slack", model.getConstrs())
-                for constr, value in zip(lp.constraints.values(), slacks):
-                    constr.slack = value
+                # COPT returns an error with an empty model
+                try:
+                    # NOTE: slacks in COPT are activities of rows
+                    slacks = model.getInfo("Slack", model.getConstrs())
+                    for constr, value in zip(lp.constraints.values(), slacks):
+                        constr.slack = value
 
-                redcosts = model.getInfo("RedCost", model.getVars())
-                for var, value in zip(lp._variables, redcosts):
-                    var.dj = value
+                    redcosts = model.getInfo("RedCost", model.getVars())
+                    for var, value in zip(lp._variables, redcosts):
+                        var.dj = value
 
-                duals = model.getInfo("Dual", model.getConstrs())
-                for constr, value in zip(lp.constraints.values(), duals):
-                    constr.pi = value
+                    duals = model.getInfo("Dual", model.getConstrs())
+                    for constr, value in zip(lp.constraints.values(), duals):
+                        constr.pi = value
+                except coptpy.CoptError:
+                    # sometimes the model is not solved, and thus these infos are not available
+                    pass
 
             return status
 
@@ -1010,8 +1015,8 @@ class COPT(LpSolver):
             if self.optionsDict.get("warmStart", False):
                 for var in lp._variables:
                     if var.varValue is not None:
-                        self.coptmdl.setMipStart(var.solverVar, var.varValue)
-                self.coptmdl.loadMipStart()
+                        lp.solverModel.setMipStart(var.solverVar, var.varValue)
+                lp.solverModel.loadMipStart()
 
             for name, constraint in lp.constraints.items():
                 expr = coptpy.LinExpr(
