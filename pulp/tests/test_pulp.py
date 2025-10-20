@@ -169,6 +169,12 @@ class BaseSolverTest:
                     ],
                 )
 
+        def test_empty(self):
+            prob = LpProblem(self._testMethodName, const.LpMinimize)
+            pulpTestCheck(
+                prob, self.solver, [const.LpStatusOptimal, const.LpStatusNotSolved], {}
+            )
+
         def test_continuous(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
             x = LpVariable("x", 0, 4)
@@ -518,6 +524,7 @@ class BaseSolverTest:
                 "HiGHS_CMD",
                 "SAS94",
                 "SASCAS",
+                "PULP_CBC_CMD",
             ]:
                 self.solver.optionsDict["warmStart"] = True
             pulpTestCheck(

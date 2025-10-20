@@ -259,6 +259,7 @@ class LpVariable(LpElement):
         existence in the objective function and constraints
     """
 
+    name: str
     varValue: Optional[float]
     dj: Optional[float]
     lowBound: Optional[float]
@@ -535,11 +536,7 @@ class LpVariable(LpElement):
                 and self.varValue >= self.lowBound - eps
             ):
                 self.varValue = self.lowBound
-            if (
-                self.cat == const.LpInteger
-                and abs(round(self.varValue) - self.varValue) <= epsInt
-            ):
-                self.varValue = round(self.varValue)
+            self.varValue = self.roundedValue(epsInt)
 
     def roundedValue(self, eps=1e-5):
         if (
@@ -592,7 +589,7 @@ class LpVariable(LpElement):
             return False
         return True
 
-    def infeasibilityGap(self, mip=1):
+    def infeasibilityGap(self, mip: bool = True):
         if self.varValue is None:
             raise ValueError("variable value is None")
         if self.upBound is not None and self.varValue > self.upBound:
