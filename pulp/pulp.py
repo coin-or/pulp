@@ -258,6 +258,7 @@ class LpVariable(LpElement):
     :param e: Used for column based modelling: relates to the variable's
         existence in the objective function and constraints
     """
+
     name: str
     varValue: Optional[float]
     dj: Optional[float]
@@ -588,7 +589,7 @@ class LpVariable(LpElement):
             return False
         return True
 
-    def infeasibilityGap(self, mip: bool=True):
+    def infeasibilityGap(self, mip: bool = True):
         if self.varValue is None:
             raise ValueError("variable value is None")
         if self.upBound is not None and self.varValue > self.upBound:
