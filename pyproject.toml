@@ -39,8 +39,8 @@ module = [
 follow_imports = "skip"
 
 [build-system]
-requires = ["setuptools>=77"]
-build-backend = "setuptools.build_meta"
+requires = ["maturin>=1.0,<2.0"]
+build-backend = "maturin"
 
 [dependency-groups]
 dev = [
@@ -51,7 +51,7 @@ dev = [
     "sphinx-rtd-theme",
 ]
 
-[tool.setuptools]
+[tool.maturin]
 packages = [
         "pulp",
         "pulp.solverdir",
@@ -64,10 +64,10 @@ packages = [
         "pulp.apis",
         "pulp.tests"]
 
-[tool.setuptools.dynamic]
+[tool.maturin.dynamic]
 version = {attr = "pulp.__version__"}
 
-[tool.setuptools.package-data]
+[tool.maturin.package-data]
 "pulp.solverdir.cbc.linux.i32"= ["*", "*.*"]
 "pulp.solverdir.cbc.linux.i64"= ["*", "*.*"]
 "pulp.solverdir.cbc.linux.arm64"= ["*", "*.*"]
