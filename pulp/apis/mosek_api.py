@@ -37,7 +37,7 @@ class MOSEK(LpSolver):
     name = "MOSEK"
     try:
         global mosek
-        import mosek  # type: ignore[import-not-found]
+        import mosek  # type: ignore[import-not-found, import-untyped, unused-ignore]
 
         env = mosek.Env()  # type: ignore[name-defined]
     except ImportError:

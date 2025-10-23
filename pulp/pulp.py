@@ -716,6 +716,8 @@ class LpVariable(LpElement):
 
 
 class LpAffineExpression(dict):
+    __name: str
+    constant: float
     """
     A linear combination of :class:`LpVariables<LpVariable>`.
     Can be initialised with the following:
@@ -764,7 +766,7 @@ class LpAffineExpression(dict):
             )
         if isinstance(e, (LpAffineExpression, LpConstraint)):
             # Will not copy the name
-            self.constant = e.constant  # type: ignore[has-type]
+            self.constant = e.constant
             super().__init__(e.items())
         elif isinstance(e, dict):
             self.constant = constant
@@ -1108,7 +1110,21 @@ class LpAffineExpression(dict):
 class LpConstraint:
     """An LP constraint"""
 
-    def __init__(self, e=None, sense=const.LpConstraintEQ, name=None, rhs=None):
+    constant: float
+    expr: LpAffineExpression
+    __name: str | None
+    sense: int
+    modified: bool
+    pi: float | None
+    slack: float | None
+
+    def __init__(
+        self,
+        e=None,
+        sense: int = const.LpConstraintEQ,
+        name: str | None = None,
+        rhs: float | None = None,
+    ):
         """
         :param e: an instance of :class:`LpAffineExpression`
         :param sense: one of :data:`~pulp.const.LpConstraintEQ`, :data:`~pulp.const.LpConstraintGE`, :data:`~pulp.const.LpConstraintLE` (0, 1, -1 respectively)
@@ -1117,11 +1133,12 @@ class LpConstraint:
         """
         self.expr = e if isinstance(e, LpAffineExpression) else LpAffineExpression(e)
         self.name = name
-        self.constant: float = self.expr.constant  # type: ignore[annotation-unchecked]
+        # we multiply by one
+        self.constant: float = float(self.expr.constant)
         if rhs is not None:
             if not math.isfinite(rhs):
                 raise const.PulpError("Cannot set constraint RHS to NaN/inf values")
-            self.constant -= rhs
+            self.constant -= float(rhs)
         self.sense = sense
         self.pi = None
         self.slack = None
@@ -1273,8 +1290,10 @@ class LpConstraint:
 
     def valid(self, eps: float = 0) -> bool:
         val = self.value()
+        if val is None:
+            return False
         if self.sense == const.LpConstraintEQ:
-            return abs(val) <= eps  # type: ignore[arg-type]
+            return abs(val) <= eps
         else:
             return val * self.sense >= -eps
 
@@ -1334,7 +1353,7 @@ class LpConstraint:
         if name is not None:
             self.__name = name.translate(LpAffineExpression.trans)
         else:
-            self.__name = None  # type: ignore[assignment]
+            self.__name = None
 
     def isAtomic(self):
         return len(self) == 1 and self.constant == 0 and next(iter(self.values())) == 1

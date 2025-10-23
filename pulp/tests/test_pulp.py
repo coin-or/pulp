@@ -1605,14 +1605,14 @@ class BaseSolverTest:
             self.assertIsInstance(c1, LpConstraint)
             self.assertEqual(c1.constant, -5)
             self.assertEqual(c1.expr.constant, 0)
-            self.assertEqual(str(c1), "x + y <= 5")
-            self.assertEqual(repr(c1), "1*x + 1*y + -5 <= 0")
+            self.assertEqual(str(c1), "x + y <= 5.0")
+            self.assertEqual(repr(c1), "1*x + 1*y + -5.0 <= 0")
 
             c1_int: LpConstraint = c1 + 2
             self.assertIsInstance(c1_int, LpConstraint)
             self.assertEqual(c1_int.constant, -3)
-            self.assertEqual(str(c1_int), "x + y <= 3")
-            self.assertEqual(repr(c1_int), "1*x + 1*y + -3 <= 0")
+            self.assertEqual(str(c1_int), "x + y <= 3.0")
+            self.assertEqual(repr(c1_int), "1*x + 1*y + -3.0 <= 0")
 
             c1_variable: LpConstraint = c1 + x
             self.assertIsInstance(c1_variable, LpConstraint)
@@ -1683,27 +1683,27 @@ class BaseSolverTest:
 
             c1_variable: LpConstraint = c1 - x
             self.assertIsInstance(c1_variable, LpConstraint)
-            self.assertEqual(str(c1_variable), "0*x + y <= 5")
-            self.assertEqual(repr(c1_variable), "0*x + 1*y + -5 <= 0")
+            self.assertEqual(str(c1_variable), "0*x + y <= 5.0")
+            self.assertEqual(repr(c1_variable), "0*x + 1*y + -5.0 <= 0")
 
             expr: LpAffineExpression = x + 1
             self.assertIsInstance(expr, LpAffineExpression)
             c1_expr: LpConstraint = c1 - expr
             self.assertIsInstance(c1_expr, LpConstraint)
-            self.assertEqual(str(c1_expr), "0*x + y <= 6")
-            self.assertEqual(repr(c1_expr), "0*x + 1*y + -6 <= 0")
+            self.assertEqual(str(c1_expr), "0*x + y <= 6.0")
+            self.assertEqual(repr(c1_expr), "0*x + 1*y + -6.0 <= 0")
 
             constraint: LpConstraint = x <= 1
             self.assertIsInstance(constraint, LpConstraint)
             c1_constraint: LpConstraint = c1 - constraint
-            self.assertEqual(str(c1_constraint), "0*x + y <= 4")
-            self.assertEqual(repr(c1_constraint), "0*x + 1*y + -4 <= 0")
+            self.assertEqual(str(c1_constraint), "0*x + y <= 4.0")
+            self.assertEqual(repr(c1_constraint), "0*x + 1*y + -4.0 <= 0")
 
             constraint = x + 1 <= 2
             self.assertIsInstance(constraint, LpConstraint)
             c1_constraint = c1 - constraint
-            self.assertEqual(str(c1_constraint), "0*x + y <= 4")
-            self.assertEqual(repr(c1_constraint), "0*x + 1*y + -4 <= 0")
+            self.assertEqual(str(c1_constraint), "0*x + y <= 4.0")
+            self.assertEqual(repr(c1_constraint), "0*x + 1*y + -4.0 <= 0")
 
         def test_constraint_mul(self) -> None:
             """
@@ -1723,14 +1723,14 @@ class BaseSolverTest:
             c1_int: LpConstraint = c1 * 2
             self.assertIsInstance(c1_int, LpConstraint)
             self.assertEqual(c1_int.constant, -10)
-            self.assertEqual(str(c1_int), "2*x + 2*y <= 10")
-            self.assertEqual(repr(c1_int), "2*x + 2*y + -10 <= 0")
+            self.assertEqual(str(c1_int), "2*x + 2*y <= 10.0")
+            self.assertEqual(repr(c1_int), "2*x + 2*y + -10.0 <= 0")
 
             c1_const_expr: LpConstraint = c1 * LpAffineExpression(2)
             self.assertIsInstance(c1_const_expr, LpConstraint)
             self.assertEqual(c1_const_expr.constant, -10)
-            self.assertEqual(str(c1_int), "2*x + 2*y <= 10")
-            self.assertEqual(repr(c1_int), "2*x + 2*y + -10 <= 0")
+            self.assertEqual(str(c1_int), "2*x + 2*y <= 10.0")
+            self.assertEqual(repr(c1_int), "2*x + 2*y + -10.0 <= 0")
 
             with self.assertRaises(TypeError):
                 c1 * x
@@ -2223,6 +2223,20 @@ class GLPK_CMDTest(BaseSolverTest.PuLPTest):
         model.solve(self.solver)
         self.solver.options = self.solver.options[:-1]
         assert abs(Q.value() - ub) / ub < 1e-9
+
+    def test_numpy_float(self):
+        try:
+            import numpy as np
+        except ImportError:
+            self.skipTest("numpy not available")
+
+        model = LpProblem("float_test", sense=const.LpMinimize)
+
+        var = LpVariable(name="var", lowBound=0, cat=const.LpContinuous)
+        model += LpConstraint(np.float64(34.5) >= var)
+        model += var <= np.float64(34.5)
+
+        model.solve()
 
     def test_decimal_815(self):
         # See: https://github.com/coin-or/pulp/issues/815

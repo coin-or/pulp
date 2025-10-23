@@ -49,6 +49,7 @@ dev = [
     "pre-commit==2.12.0",
     "sphinx",
     "sphinx-rtd-theme",
+    "numpy",
 ]
 
 [tool.setuptools]
