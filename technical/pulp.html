@@ -119,7 +119,7 @@
 <td><p>This class models an LP Variable with the specified associated parameters</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#pulp.LpAffineExpression" title="pulp.LpAffineExpression"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LpAffineExpression</span></code></a>([e, constant, name])</p></td>
-<td><p>A linear combination of <a class="reference internal" href="#pulp.LpVariable" title="pulp.LpVariable"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpVariables</span></code></a>.</p></td>
+<td><p></p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#pulp.LpConstraint" title="pulp.LpConstraint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LpConstraint</span></code></a>([e, sense, name, rhs])</p></td>
 <td><p>An LP constraint</p></td>
@@ -540,26 +540,6 @@ integer.</p>
 <dt class="sig sig-object py" id="pulp.LpAffineExpression">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pulp.</span></span><span class="sig-name descname"><span class="pre">LpAffineExpression</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">e</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constant</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpAffineExpression" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a></p>
-<p>A linear combination of <a class="reference internal" href="#pulp.LpVariable" title="pulp.LpVariable"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpVariables</span></code></a>.
-Can be initialised with the following:</p>
-<ol class="arabic simple">
-<li><p>e = None: an empty Expression</p></li>
-<li><p>e = dict: gives an expression with the values being the coefficients of the keys (order of terms is undetermined)</p></li>
-<li><p>e = list or generator of 2-tuples: equivalent to dict.items()</p></li>
-<li><p>e = LpElement: an expression of length 1 with the coefficient 1</p></li>
-<li><p>e = other: the constant is initialised as e</p></li>
-</ol>
-<p>Examples:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">=</span><span class="n">LpAffineExpression</span><span class="p">(</span><span class="n">LpElement</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span>
-<span class="go">1*x + 0</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">x_name</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;x_0&#39;</span><span class="p">,</span> <span class="s1">&#39;x_1&#39;</span><span class="p">,</span> <span class="s1">&#39;x_2&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="n">LpVariable</span><span class="p">(</span><span class="n">x_name</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">lowBound</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">upBound</span> <span class="o">=</span> <span class="mi">10</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">LpAffineExpression</span><span class="p">([</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="o">-</span><span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span><span class="mi">4</span><span class="p">)])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span>
-<span class="go">1*x_0 + -3*x_1 + 4*x_2 + 0</span>
-</pre></div>
-</div>
 <p>In brief, <span class="math notranslate nohighlight">\(\textsf{LpAffineExpression([(x[i],a[i]) for i in
 I])} = \sum_{i \in I} a_i x_i\)</span> where  (note the order):</p>
 <blockquote>
@@ -590,6 +570,31 @@ if we subtract other =&gt; -1</p>
 <dt class="sig sig-object py" id="pulp.LpAffineExpression.asCplexVariablesOnly">
 <span class="sig-name descname"><span class="pre">asCplexVariablesOnly</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpAffineExpression.asCplexVariablesOnly" title="Link to this definition"></a></dt>
 <dd><p>helper for asCplexLpAffineExpression</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulp.LpAffineExpression.constant">
+<span class="sig-name descname"><span class="pre">constant</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></em><a class="headerlink" href="#pulp.LpAffineExpression.constant" title="Link to this definition"></a></dt>
+<dd><p>A linear combination of <a class="reference internal" href="#pulp.LpVariable" title="pulp.LpVariable"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpVariables</span></code></a>.
+Can be initialised with the following:</p>
+<ol class="arabic simple">
+<li><p>e = None: an empty Expression</p></li>
+<li><p>e = dict: gives an expression with the values being the coefficients of the keys (order of terms is undetermined)</p></li>
+<li><p>e = list or generator of 2-tuples: equivalent to dict.items()</p></li>
+<li><p>e = LpElement: an expression of length 1 with the coefficient 1</p></li>
+<li><p>e = other: the constant is initialised as e</p></li>
+</ol>
+<p>Examples:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">=</span><span class="n">LpAffineExpression</span><span class="p">(</span><span class="n">LpElement</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span>
+<span class="go">1*x + 0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x_name</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;x_0&#39;</span><span class="p">,</span> <span class="s1">&#39;x_1&#39;</span><span class="p">,</span> <span class="s1">&#39;x_2&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="n">LpVariable</span><span class="p">(</span><span class="n">x_name</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">lowBound</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">upBound</span> <span class="o">=</span> <span class="mi">10</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">LpAffineExpression</span><span class="p">([</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="o">-</span><span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span><span class="mi">4</span><span class="p">)])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span>
+<span class="go">1*x_0 + -3*x_1 + 4*x_2 + 0</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py method">
@@ -668,7 +673,7 @@ it does not export the constant</p>
 <h2>Constraints<a class="headerlink" href="#constraints" title="Link to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="pulp.LpConstraint">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pulp.</span></span><span class="sig-name descname"><span class="pre">LpConstraint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">e</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sense</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rhs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpConstraint" title="Link to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pulp.</span></span><span class="sig-name descname"><span class="pre">LpConstraint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">e</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sense</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rhs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.LpConstraint" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>An LP constraint</p>
 <dl class="field-list simple">
