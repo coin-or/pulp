@@ -302,6 +302,8 @@ class GUROBI(LpSolver):
                 varType = gp.GRB.CONTINUOUS
                 if var.cat == constants.LpInteger and self.mip:
                     varType = gp.GRB.INTEGER
+                if var.cat == constants.LpBinary and self.mip:
+                    varType = gp.GRB.BINARY
                 # only add variable once, ow new variable will be created.
                 if not hasattr(var, "solverVar") or nvars == 0:
                     var.solverVar = lp.solverModel.addVar(
