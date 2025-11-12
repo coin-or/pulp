@@ -22,6 +22,8 @@ We will use plain git through the command line but feel free to use the git clie
 Forking PuLP
 --------------
 
+The PuLP repository is available at `https://github.com/coin-or/pulp <https://github.com/coin-or/pulp>`_.
+
 You can follow the github guides to fork a project: `here <https://guides.github.com/activities/forking/>`_ and `also here <https://docs.github.com/en/github/getting-started-with-github/quickstart/fork-a-repo>`_.
 
 You need a github account to fork a github project. It's free.
@@ -29,9 +31,9 @@ You need a github account to fork a github project. It's free.
 Cloning the project
 ----------------------------
 
-You first need to download the pulp project from your fork. In the following command replace ``pchtsp`` with your actual username::
+You first need to download the pulp project from your fork. In the following command replace ``<USERNAME>`` with your actual username::
 
-    git clone git@github.com:pchtsp/pulp.git
+    git clone git@github.com:<USERNAME>/pulp.git
 
 That's it, you will download the whole project.
 
