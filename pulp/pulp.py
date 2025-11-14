@@ -125,22 +125,20 @@ References
 
 from __future__ import annotations
 
-from collections import Counter
-import sys
-import warnings
+import dataclasses
+import logging
 import math
+import warnings
+from collections import Counter
+from collections.abc import Iterable
 from time import time
 from typing import Any, Literal, Optional
 
-from .apis import LpSolverDefault, PULP_CBC_CMD
-from .apis.core import clock
-from .utilities import value
 from . import constants as const
 from . import mps_lp as mpslp
-
-from collections.abc import Iterable
-import logging
-import dataclasses
+from .apis import LpSolverDefault
+from .apis.core import clock
+from .utilities import value
 
 log = logging.getLogger(__name__)
 
@@ -741,6 +739,9 @@ class LpAffineExpression(dict):
        1*x_0 + -3*x_1 + 4*x_2 + 0
     """
 
+    name: str
+    constant: float
+
     # to remove illegal characters from the names
     trans = str.maketrans("-+[] ", "_____")
 
@@ -1110,6 +1111,13 @@ class LpAffineExpression(dict):
 
 class LpConstraint:
     """An LP constraint"""
+    expr: LpAffineExpression
+    name: str | None
+    constant: float
+    sense: int | None
+    pi: Optional[float]
+    slack: Optional[float]
+    modified: bool
 
     def __init__(self, e=None, sense=const.LpConstraintEQ, name=None, rhs=None):
         """
@@ -1747,13 +1755,11 @@ class LpProblem:
             return True
 
     def infeasibilityGap(self, mip=1):
-        gap = 0
-        for v in self.variables():
-            gap = max(abs(v.infeasibilityGap(mip)), gap)
-        for c in self.constraints.values():
-            if not c.valid(0):
-                gap = max(abs(c.value()), gap)
-        return gap
+        gaps_vars = (abs(v.infeasibilityGap(mip)) for v in self.variables())
+        gaps_cons = (
+            abs(c.value()) for c in self.constraints.values() if not c.valid(0)
+        )
+        return max(0, *gaps_vars, *gaps_cons)
 
     def addVariable(self, variable: LpVariable):
         """
@@ -2064,7 +2070,7 @@ class LpProblem:
     def restoreObjective(self, wasNone, dummyVar):
         if wasNone:
             self.objective = None
-        elif not dummyVar is None:
+        elif dummyVar is not None:
             self.objective -= dummyVar
 
     def solve(self, solver=None, **kwargs):

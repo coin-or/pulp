@@ -1,12 +1,23 @@
+use pyo3::types::PyAny;
+use pyo3::prelude::*;
 use std::collections::{HashMap, HashSet};
 use std::fmt;
 use std::ops::{Add, Sub, Mul, Div, Neg};
 
+#[pyclass(eq, eq_int)]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum LpCategory {
     Continuous,
     Integer,
     Binary,
+}
+
+pub enum Other {
+    Variable(LpVariable),
+    Constraint(LpConstraint),
+    AffineExpression(LpAffineExpression),
+    Constant(f64),
+    Unknown,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -25,6 +36,7 @@ pub enum LpStatus {
     // ... add more as needed
 }
 
+#[pyclass]
 #[derive(Debug, Clone)]
 pub struct LpVariable {
     pub name: String,
@@ -37,8 +49,12 @@ pub struct LpVariable {
     pub _upbound_original: Option<f64>,
 }
 
+#[pymethods]
 impl LpVariable {
-    pub fn new(name: &str, lowBound: Option<f64>, upBound: Option<f64>, cat: LpCategory) -> Self {
+
+    #[new]
+    #[pyo3(signature = (name, lowBound=None, upBound=None, cat=LpCategory::Continuous))]
+    pub fn init(name: &str, lowBound: Option<f64>, upBound: Option<f64>, cat: LpCategory) -> Self {
         let (lowBound, upBound, cat) = match cat {
             LpCategory::Binary => (Some(0.0), Some(1.0), LpCategory::Integer),
             _ => (lowBound, upBound, cat),
@@ -52,10 +68,32 @@ impl LpVariable {
             dj: None,
             _lowbound_original: lowBound,
             _upbound_original: upBound,
-        }
+             }
         // TODO: math.isfinite checks for both bounds
         // TODO: LpElement init?
         // TODO: column-based modeling attributes (e)
+    }
+    pub fn __add__(&self, other: &PyAny) -> LpAffineExpression {
+        let mut expr = LpAffineExpression::from_variable(&self);
+        match detect_other(other) {
+            Other::Variable(var) => {
+                expr.add_term(&var, 1.0);
+            }
+            Other::Constant(c) => {
+                expr.constant += c;
+            }
+            Other::AffineExpression(e) => {
+                expr.addInPlace(&e, 1.0);
+            }
+            Other::Constraint(constraint) => {
+                expr.addInPlace(&constraint.expr, 1.0);
+            }
+            Other::Unknown => {
+                // Handle unknown type if necessary
+            }
+        }
+        expr
+
     }
 
     pub fn bounds(&mut self, low: Option<f64>, up: Option<f64>) {
@@ -202,7 +240,7 @@ impl LpVariable {
         self.lowBound == Some(0.0) && self.upBound.is_none()
     }
 }
-
+#[pyclass]
 #[derive(Debug, Clone)]
 pub struct LpAffineExpression {
     pub terms: HashMap<String, f64>, // variable name -> coefficient
@@ -210,12 +248,38 @@ pub struct LpAffineExpression {
 }
 
 impl LpAffineExpression {
-    pub fn new() -> Self {
+    fn from_variable(var: &LpVariable) -> Self {
+        Self {
+            terms: HashMap::from([(var.name.clone(), 1.0)]),
+            constant: 0.0,
+        }
+    }
+    fn from_constant(c: f64) -> Self {
+        Self {
+            terms: HashMap::new(),
+            constant: c,
+        }
+    }
+    fn from_expression(expr: &LpAffineExpression) -> Self {
+        expr.clone()
+    }
+    fn from_constraint(constraint: &LpConstraint) -> Self {
+        // TODO: check sense and constraint.rhs
+        constraint.expr.clone()
+    }
+}
+
+#[pymethods]
+impl LpAffineExpression {
+    
+    #[new]
+    pub fn init() -> Self {
         Self {
             terms: HashMap::new(),
             constant: 0.0,
         }
     }
+
     pub fn add_term(&mut self, var: &LpVariable, coeff: f64) {
         *self.terms.entry(var.name.clone()).or_insert(0.0) += coeff;
     }
@@ -266,14 +330,14 @@ impl LpAffineExpression {
 impl Add for LpAffineExpression {
     type Output = Self;
     fn add(mut self, rhs: Self) -> Self::Output {
-        self.add_in_place(&rhs, 1.0);
+        self.addInPlace(&rhs, 1.0);
         self
     }
 }
 impl Sub for LpAffineExpression {
     type Output = Self;
     fn sub(mut self, rhs: Self) -> Self::Output {
-        self.sub_in_place(&rhs);
+        self.subInPlace(&rhs);
         self
     }
 }
@@ -307,7 +371,7 @@ impl Div<f64> for LpAffineExpression {
         self
     }
 }
-
+#[pyclass]
 #[derive(Debug, Clone)]
 pub struct LpConstraint {
     pub expr: LpAffineExpression,
@@ -361,7 +425,7 @@ impl LpConstraint {
         }
     }
 }
-
+#[pyclass]
 #[derive(Debug, Clone)]
 pub struct LpProblem {
     pub name: String,
@@ -439,23 +503,21 @@ impl LpProblem {
     }
 
     pub fn infeasibilityGap(&self, mip: bool) -> f64 {
-        let mut gap = 0.0;
-        for v in self.variables.values() {
-            gap = gap.max(v.infeasibilityGap(mip).abs());
-        }
-        for c in self.constraints.values() {
-            let val = c.value(&self.variables).unwrap_or(0.0);
-            if !c.valid(&self.variables, 0.0) {
-                gap = gap.max(val.abs());
-            }
-        }
-        gap
+    let gaps_vars = self.variables()
+        .iter()
+        .map(|v| v.infeasibilityGap(mip).abs()).collect::<Vec<_>>();
+
+    let gaps_cons = self.constraints.values()
+        .filter(|c| !c.valid(&self.variables, 0.0))
+        .map(|c| c.value(&self.variables).unwrap_or(0.0).abs()).collect::<Vec<_>>();
+
+    gaps_vars.iter().chain(gaps_cons.iter()).fold(0.0, |acc, x| acc.max(*x))
     }
 }
 
 // Utility functions
 pub fn lp_sum(exprs: &[LpAffineExpression]) -> LpAffineExpression {
-    exprs.iter().cloned().fold(LpAffineExpression::new(), |acc, e| acc + e)
+    exprs.iter().cloned().fold(LpAffineExpression::init(), |acc, e| acc + e)
 }
 
 pub fn lp_dot(v1: &[LpAffineExpression], v2: &[LpAffineExpression]) -> LpAffineExpression {
@@ -509,5 +571,19 @@ impl fmt::Display for LpProblem {
             writeln!(f, "{}", v)?;
         }
         Ok(())
+    }
+}
+
+fn detect_other(other: Bound<'_, PyAny>) -> Other {
+    if let Ok(var) = other.extract::<LpVariable>() {
+        Other::Variable(var)
+    } else if let Ok(constraint) = other.extract::<LpConstraint>() {
+        Other::Constraint(constraint)
+    } else if let Ok(expr) = other.extract::<LpAffineExpression>() {
+        Other::AffineExpression(expr)
+    } else if let Ok(val) = other.extract::<f64>() {
+        Other::Constant(val)
+    } else {
+        Other::Unknown
     }
 }
