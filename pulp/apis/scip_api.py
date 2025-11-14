@@ -565,6 +565,8 @@ class SCIP_PY(LpSolver):
             if solutionStatus in possible_solution_found_statuses:
                 try:  # Feasible solution found
                     solution = lp.solverModel.getBestSol()
+                    if lp.solverModel.getNSols() <= 0:
+                        raise ValueError('Returned solution by solver cannot be trusted')
                     for variable in lp._variables:
                         variable.varValue = solution[variable.solverVar]
                     for constraint in lp.constraints.values():
