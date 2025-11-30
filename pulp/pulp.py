@@ -259,7 +259,7 @@ class LpVariable(LpElement):
         existence in the objective function and constraints
     """
 
-    name: str
+    name: str  # Note: name is inherited from LpElement as a property
     varValue: Optional[float]
     dj: Optional[float]
     lowBound: Optional[float]
@@ -396,13 +396,44 @@ class LpVariable(LpElement):
     @classmethod
     def matrix(
         cls,
-        name,
-        indices=None,
-        lowBound=None,
-        upBound=None,
-        cat=const.LpContinuous,
-        indexStart=[],
-    ):
+        name: str,
+        indices: Iterable,
+        lowBound: Optional[float] = None,
+        upBound: Optional[float] = None,
+        cat: str = const.LpContinuous,
+        indexStart: Optional[list] = None,
+    ) -> list:
+        """Create a nested list (matrix) of LP variables.
+
+        This method creates a structure of variables useful for
+        multi-dimensional optimization problems (e.g., assignment problems,
+        network flows). Similar to :py:meth:`dicts` but returns nested lists
+        instead of nested dictionaries.
+
+        :param name: The prefix for variable names. Use ``%s`` for custom formatting,
+            otherwise ``"_{index}"`` will be appended used for each dimension
+        :param indices: A tuple of index lists for each dimension, or a single list
+            for 1D. For a 2D matrix, use ``(rows, cols)``
+        :param lowBound: Lower bound for all variables (default: None = -infinity)
+        :param upBound: Upper bound for all variables (default: None = +infinity)
+        :param cat: Variable category: LpContinuous (default), LpInteger, or LpBinary
+        :param indexStart: used for internal recursion.
+
+        :return: Nested list structure of :py:class:`LpVariable` objects
+
+        :Example:
+
+            >>> # Create a 3 rows x 4 columns 2D list  with %s placeholders
+            >>> LpVariable.matrix("z_%s_%s", (['A','B'], [1,2,3]), 0, 1, const.LpBinary)
+            [[z_A_1, z_A_2, z_A_3], [z_B_1, z_B_2, z_B_3]]
+
+        .. seealso::
+            :py:meth:`dicts` for nested dictionary-based variable collections
+            :py:meth:`dict` for a flat dictionary-based variable collections
+        """
+
+        if indexStart is None:
+            indexStart = []
         if not isinstance(indices, tuple):
             indices = (indices,)
         if "%" not in name:
@@ -426,15 +457,15 @@ class LpVariable(LpElement):
     @classmethod
     def dicts(
         cls,
-        name,
-        indices=None,
-        lowBound=None,
-        upBound=None,
-        cat=const.LpContinuous,
-        indexStart=[],
-    ):
+        name: str,
+        indices: Iterable,
+        lowBound: Optional[float] = None,
+        upBound: Optional[float] = None,
+        cat: str = const.LpContinuous,
+        indexStart: Optional[list] = None,
+    ) -> dict[Any, Any]:
         """
-        This function creates a dictionary of :py:class:`LpVariable` with the specified associated parameters.
+        Creates a (possibly nested) dictionary of :py:class:`LpVariable`.
 
         :param name: The prefix to the name of each LP variable created
         :param indices: A list of strings of the keys to the dictionary of LP
@@ -443,12 +474,25 @@ class LpVariable(LpElement):
             negative infinity
         :param upBound: The upper bound on these variables' range. Default is
             positive infinity
-        :param cat: The category these variables are in, Integer or
-            Continuous(default)
+        :param cat: The category these variables are in, Integer, Binary or
+            Continuous (default)
+        :param indexStart: used for internal recursion.
 
         :return: A dictionary of :py:class:`LpVariable`
+
+        :Example:
+
+            >>> # Create a 3 rows x 2 columns 2D dict with %s placeholders
+            >>> LpVariable.dicts("y_%s_%s", (['A','B', 'C'], ['a','b']))
+            {'A': {'a': y_A_a, 'b': y_A_b}, 'B': {'a': y_B_a, 'b': y_B_b}, 'C': {'a': y_C_a, 'b': y_C_b}}
+
+        .. seealso::
+            :py:meth:`matrix` for nested list-based variable collections
+            :py:meth:`dict` for a flat dictionary-based variable collection
         """
 
+        if indexStart is None:
+            indexStart = []
         if not isinstance(indices, tuple):
             indices = (indices,)
         if "%" not in name:
@@ -456,7 +500,7 @@ class LpVariable(LpElement):
 
         index = indices[0]
         indices = indices[1:]
-        d = {}
+        d: dict[Any, Any] = {}
         if len(indices) == 0:
             for i in index:
                 d[i] = LpVariable(
@@ -470,7 +514,26 @@ class LpVariable(LpElement):
         return d
 
     @classmethod
-    def dict(cls, name, indices, lowBound=None, upBound=None, cat=const.LpContinuous):
+    def dict(
+        cls,
+        name: str,
+        indices: Iterable,
+        lowBound: Optional[float] = None,
+        upBound: Optional[float] = None,
+        cat: str = const.LpContinuous,
+    ) -> dict:
+        """Creates a dictionary of LpVariables whose keys are tuples of indices
+
+        :Example:
+
+            >>> # Create a dict with vars with %s placeholders
+            >>> LpVariable.dict("y_%s_%s", (['A','B'], ['x','y']))
+            {('A', 'x'): y_A_x, ('A', 'y'): y_A_y, ('B', 'x'): y_B_x, ('B', 'y'): y_B_y}
+
+        .. seealso::
+            :py:meth:`matrix` for nested list-based variable collections
+            :py:meth:`dicts` for nested dictionary-based variable collections
+        """
         if not isinstance(indices, tuple):
             indices = (indices,)
         if "%" not in name:
@@ -480,7 +543,7 @@ class LpVariable(LpElement):
 
         if len(indices) > 1:
             # Cartesian product
-            res = []
+            res = []  # type: ignore
             while len(lists):
                 first = lists[-1]
                 nres = []
@@ -940,7 +1003,7 @@ class LpAffineExpression(dict):
         result = "%s\n" % "\n".join(result)
         return result
 
-    def addInPlace(self, other, sign: Literal[+1, -1] = 1):
+    def addInPlace(self, other, sign: Literal[1, -1] = 1):
         """
         :param int sign: the sign of the operation to do other.
             if we add other => 1
@@ -1212,7 +1275,7 @@ class LpConstraint:
     def emptyCopy(self):
         return LpConstraint(sense=self.sense)
 
-    def addInPlace(self, other, sign: Literal[+1, -1] = 1):
+    def addInPlace(self, other, sign: Literal[1, -1] = 1):
         """
         :param int sign: the sign of the operation to do other.
             if we add other => 1
