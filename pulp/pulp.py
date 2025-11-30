@@ -259,7 +259,7 @@ class LpVariable(LpElement):
         existence in the objective function and constraints
     """
 
-    name: str
+    name: str  # Note: name is inherited from LpElement as a property
     varValue: Optional[float]
     dj: Optional[float]
     lowBound: Optional[float]
@@ -397,11 +397,11 @@ class LpVariable(LpElement):
     def matrix(
         cls,
         name: str,
-        indices: tuple = None,
+        indices: Iterable,
         lowBound: Optional[float] = None,
         upBound: Optional[float] = None,
         cat: str = const.LpContinuous,
-        indexStart: Optional[list] = [],
+        indexStart: Optional[list] = None,
     ) -> list:
         """Create a nested list (matrix) of LP variables.
 
@@ -432,6 +432,8 @@ class LpVariable(LpElement):
             :py:meth:`dict` for a flat dictionary-based variable collections
         """
 
+        if indexStart is None:
+            indexStart = []
         if not isinstance(indices, tuple):
             indices = (indices,)
         if "%" not in name:
@@ -456,12 +458,12 @@ class LpVariable(LpElement):
     def dicts(
         cls,
         name: str,
-        indices: list[str] = None,
+        indices: Iterable,
         lowBound: Optional[float] = None,
         upBound: Optional[float] = None,
-        cat: Optional[str] = const.LpContinuous,
-        indexStart: Optional[list] = [],
-    ) -> dict:
+        cat: str = const.LpContinuous,
+        indexStart: Optional[list] = None,
+    ) -> dict[Any, Any]:
         """
         Creates a (possibly nested) dictionary of :py:class:`LpVariable`.
 
@@ -489,6 +491,8 @@ class LpVariable(LpElement):
             :py:meth:`dict` for a flat dictionary-based variable collection
         """
 
+        if indexStart is None:
+            indexStart = []
         if not isinstance(indices, tuple):
             indices = (indices,)
         if "%" not in name:
@@ -496,7 +500,7 @@ class LpVariable(LpElement):
 
         index = indices[0]
         indices = indices[1:]
-        d = {}
+        d: dict[Any, Any] = {}
         if len(indices) == 0:
             for i in index:
                 d[i] = LpVariable(
@@ -513,10 +517,10 @@ class LpVariable(LpElement):
     def dict(
         cls,
         name: str,
-        indices: tuple,
+        indices: Iterable,
         lowBound: Optional[float] = None,
         upBound: Optional[float] = None,
-        cat: Optional[str] = const.LpContinuous,
+        cat: str = const.LpContinuous,
     ) -> dict:
         """Creates a dictionary of LpVariables whose keys are tuples of indices
 
@@ -539,7 +543,7 @@ class LpVariable(LpElement):
 
         if len(indices) > 1:
             # Cartesian product
-            res = []
+            res = []  # type: ignore
             while len(lists):
                 first = lists[-1]
                 nres = []
@@ -999,7 +1003,7 @@ class LpAffineExpression(dict):
         result = "%s\n" % "\n".join(result)
         return result
 
-    def addInPlace(self, other, sign: Literal[+1, -1] = 1):
+    def addInPlace(self, other, sign: Literal[1, -1] = 1):
         """
         :param int sign: the sign of the operation to do other.
             if we add other => 1
@@ -1271,7 +1275,7 @@ class LpConstraint:
     def emptyCopy(self):
         return LpConstraint(sense=self.sense)
 
-    def addInPlace(self, other, sign: Literal[+1, -1] = 1):
+    def addInPlace(self, other, sign: Literal[1, -1] = 1):
         """
         :param int sign: the sign of the operation to do other.
             if we add other => 1
