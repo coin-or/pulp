@@ -12,13 +12,13 @@ jobs:
         os: [ubuntu-latest, macOS-latest, windows-latest]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install uv and set the python version
-        uses: astral-sh/setup-uv@v6
+        uses: astral-sh/setup-uv@v7
         with:
           python-version: ${{ matrix.python-version }}
       - name: Code Quality
@@ -32,7 +32,7 @@ jobs:
           sudo apt install -qq glpk-utils
       - name: Install highspy cmd
         if: matrix.os == 'ubuntu-latest'
-        uses: supplypike/setup-bin@v4
+        uses: supplypike/setup-bin@v5
         with:
           uri: 'https://github.com/JuliaBinaryWrappers/HiGHSstatic_jll.jl/releases/download/HiGHSstatic-v1.7.1%2B0/HiGHSstatic.v1.7.1.x86_64-linux-gnu-cxx11.tar.gz'
           subPath: 'bin'
@@ -40,7 +40,7 @@ jobs:
           version: '1.7.1'
       - name: Install SCIP_CMD
         if: matrix.os == 'ubuntu-latest'
-        uses: supplypike/setup-bin@v4
+        uses: supplypike/setup-bin@v5
         with:
           uri: 'https://www.scipopt.org/download/release/SCIPOptSuite-9.2.1-Linux-ubuntu24.deb'
           name: 'SCIPOptSuite-9.2.1-Linux-ubuntu24.deb'
@@ -49,4 +49,4 @@ jobs:
       - name: Test with pulptest
         env:
           PYTHONPATH: .
-        run: uv run --all-extras pulp/tests/run_tests.py
+        run: uv run --all-extras --no-extra mosek pulp/tests/run_tests.py

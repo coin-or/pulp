@@ -2,6 +2,15 @@
 #       Copyright S.A.Mitchell (s.mitchell@auckland.ac.nz), 2007-
 #       Copyright F.Peschiera (pchtsp@gmail.com), 2019-
 # See the LICENSE file for copyright information.
+3.3.0 2025-09-18
+    fixed some docs
+    changes to unit tests
+    mypy fixes
+    fixes to GUROBI API
+    callbacks in CPLEX_PY API
+    fixes to CUOPT API
+    compatibility with new XPRESS_PY API
+    allow joint installation of python-based APIs
 3.2.0 2025-05-29
     Callbacks in HiGHS solver
     Added CuOpt solver

@@ -1,6 +1,6 @@
 [project]
 name = "PuLP"
-version = "3.2.1"
+dynamic = ["version"]
 description = "PuLP is an LP modeler written in python. PuLP can generate MPS or LP files and call GLPK, COIN CLP/CBC, CPLEX, and GUROBI to solve linear problems."
 authors = [
     {name = 'J.S. Roy'},
@@ -11,12 +11,12 @@ maintainers= [{name= "Franco Peschiera", email= "pchtsp@gmail.com"}]
 dependencies = []
 requires-python = ">=3.9"
 readme = "README.rst"
-license = {text = "MIT"}
+license = "MIT"
+license-files = ["LICENSE"]
 classifiers=[
     "Development Status :: 5 - Production/Stable",
     "Environment :: Console",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: MIT License",
     "Natural Language :: English",
     "Programming Language :: Python",
     "Topic :: Scientific/Engineering :: Mathematics",
@@ -39,7 +39,7 @@ module = [
 follow_imports = "skip"
 
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [dependency-groups]
@@ -49,6 +49,7 @@ dev = [
     "pre-commit==2.12.0",
     "sphinx",
     "sphinx-rtd-theme",
+    "numpy",
 ]
 
 [tool.setuptools]
@@ -63,8 +64,9 @@ packages = [
         "pulp.solverdir.cbc.osx.i64",
         "pulp.apis",
         "pulp.tests"]
-# This is a workaround for https://github.com/astral-sh/uv/issues/9513
-license-files = []
+
+[tool.setuptools.dynamic]
+version = {attr = "pulp.__version__"}
 
 [tool.setuptools.package-data]
 "pulp.solverdir.cbc.linux.i32"= ["*", "*.*"]
@@ -83,6 +85,19 @@ target-version = ['py37']
 include = '\.pyi?$'
 exclude = '/(\.eggs|\.git|\.hg|\.mypy_cache|\.tox|\.venv|_build|buck-out|build|dist)/'
 
+[tool.uv]
+required-environments = [
+    "sys_platform == 'darwin'",
+]
+
+
 [project.optional-dependencies]
 open_py = ["cylp", "highspy", "pyscipopt"]
-public_py = ["gurobipy", "coptpy", 'xpress']
+public_py = ["gurobipy", "coptpy", 'xpress', "cplex; sys_platform != 'darwin' or python_full_version < '3.12'"]
+highs = ["highspy"]
+scip = ["pyscipopt"]
+gurobi = ["gurobipy"]
+xpress = ["xpress"]
+copt = ["coptpy"]
+cplex = ["cplex; sys_platform != 'darwin' or python_full_version < '3.12'"]
+mosek = ["mosek"]

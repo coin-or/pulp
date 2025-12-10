@@ -22,6 +22,8 @@ We will use plain git through the command line but feel free to use the git clie
 Forking PuLP
 --------------
 
+The PuLP repository is available at `https://github.com/coin-or/pulp <https://github.com/coin-or/pulp>`_.
+
 You can follow the github guides to fork a project: `here <https://guides.github.com/activities/forking/>`_ and `also here <https://docs.github.com/en/github/getting-started-with-github/quickstart/fork-a-repo>`_.
 
 You need a github account to fork a github project. It's free.
@@ -29,9 +31,9 @@ You need a github account to fork a github project. It's free.
 Cloning the project
 ----------------------------
 
-You first need to download the pulp project from your fork. In the following command replace ``pchtsp`` with your actual username::
+You first need to download the pulp project from your fork. In the following command replace ``<USERNAME>`` with your actual username::
 
-    git clone git@github.com:pchtsp/pulp.git
+    git clone git@github.com:<USERNAME>/pulp.git
 
 That's it, you will download the whole project.
 
@@ -39,13 +41,13 @@ That's it, you will download the whole project.
 Installing from source
 ----------------------------
 
-To build pulp from source we wil get inside the pulp directory, then we will create a virtual environment and install dependencies. Finally we will execute ``setup.py``. I assume Linux / Mac. Windows is very similar commands::
+To build pulp from source we wil get inside the pulp directory, then we will create a virtual environment and install dependencies. I assume Linux / Mac. Windows has very similar commands::
 
     cd pulp
     python3 -m venv venv
     source venv/bin/activate
-    python -m pip install -r requirements-dev.txt
-    python3 setup.py develop
+    python3 -m pip install --upgrade pip
+    pip install --group=dev --editable .
 
 This will link the pulp version on your virtual environment with the source files in the pulp directory. You can now use pulp from that virtual environment and you will be using the files in the pulp directory. We assume you have run this successfully for all further steps.
 
@@ -54,7 +56,6 @@ Running tests
 
 To run tests of pulp you need to run::
 
-    cd pulp
     python3 pulp/tests/run_tests.py
 
 It will detect the solvers in your system and test all of the ones it finds.

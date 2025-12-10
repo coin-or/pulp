@@ -1,7 +1,7 @@
 How to warm-start a solver
 ======================================
 
-Many solvers permit the possibility of giving a valid (or parcially valid in some cases) solution so the solver can start from that solution. This can lead to performance gains.
+Many solvers permit the possibility of giving a valid (or partially valid in some cases) solution so the solver can start from that solution. This can lead to performance gains.
 
 
 Supported solver APIs

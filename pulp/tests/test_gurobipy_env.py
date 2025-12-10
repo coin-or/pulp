@@ -55,11 +55,11 @@ class GurobiEnvTests(unittest.TestCase):
             solver.close()
         check_dummy_env()
 
-    @unittest.skipUnless(
-        is_single_use_license(),
-        "this test is only expected to pass with a single-use license",
-    )
     def test_gp_env_no_close(self):
+        if not is_single_use_license():
+            raise unittest.SkipTest(
+                "this test is only expected to pass with a single-use license"
+            )
         # Not closing results in an error for a single use license.
         with gp.Env(params=self.env_options) as env:
             prob = generate_lp()
@@ -82,16 +82,16 @@ class GurobiEnvTests(unittest.TestCase):
 
         check_dummy_env()
 
-    @unittest.skipUnless(
-        is_single_use_license(),
-        "this test is only expected to pass with a single-use license",
-    )
     def test_backward_compatibility(self):
         """
         Backward compatibility check as previously the environment was not being
         freed. On a single-use license this passes (fails to initialise a dummy
         env).
         """
+        if not is_single_use_license():
+            raise unittest.SkipTest(
+                "this test is only expected to pass with a single-use license"
+            )
         solver = GUROBI(msg=False, **self.options)
         prob = generate_lp()
         prob.solve(solver)
@@ -122,16 +122,16 @@ class GurobiEnvTests(unittest.TestCase):
         solver2.close()
         check_dummy_env()
 
-    @unittest.skipUnless(
-        is_single_use_license(),
-        "this test is only expected to pass with a single-use license",
-    )
     def test_leak(self):
         """
         Check that we cannot initialise environments after a memory leak. On a
         single-use license this passes (fails to initialise a dummy env with a
         memory leak).
         """
+        if not is_single_use_license():
+            raise unittest.SkipTest(
+                "this test is only expected to pass with a single-use license"
+            )
         solver = GUROBI(msg=False, **self.options)
         prob = generate_lp()
         prob.solve(solver)

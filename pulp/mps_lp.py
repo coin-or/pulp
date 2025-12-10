@@ -306,9 +306,9 @@ def writeMPS(
     wasNone, dummyVar = lp.fixObjective()
     if mpsSense == 0:
         mpsSense = lp.sense
-    cobj = lp.objective
-    if cobj is None:
+    if lp.objective is None:
         raise ValueError("objective is None")
+    cobj: LpAffineExpression = lp.objective
     if mpsSense != lp.sense:
         n = cobj.name
         cobj = -cobj

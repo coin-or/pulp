@@ -1,6 +1,5 @@
 #! /usr/bin/env python
 # PuLP : Python LP Modeler
-from __future__ import annotations
 
 # Copyright (c) 2002-2005, Jean-Sebastien Roy (js@jeannot.org)
 # Modifications Copyright (c) 2007- Stuart Anthony Mitchell (s.mitchell@auckland.ac.nz)
@@ -24,6 +23,7 @@ from __future__ import annotations
 # CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 """
 PuLP is an linear and mixed integer programming modeler written in Python.
@@ -123,12 +123,14 @@ References
 
 """
 
+from __future__ import annotations
+
 from collections import Counter
 import sys
 import warnings
 import math
 from time import time
-from typing import Any, Literal
+from typing import Any, Literal, Optional
 
 from .apis import LpSolverDefault, PULP_CBC_CMD
 from .apis.core import clock
@@ -257,8 +259,22 @@ class LpVariable(LpElement):
         existence in the objective function and constraints
     """
 
+    name: str
+    varValue: Optional[float]
+    dj: Optional[float]
+    lowBound: Optional[float]
+    upBound: Optional[float]
+    cat: str
+    _lowbound_original: Optional[float]
+    _upbound_original: Optional[float]
+
     def __init__(
-        self, name, lowBound=None, upBound=None, cat=const.LpContinuous, e=None
+        self,
+        name: str,
+        lowBound: Optional[float] = None,
+        upBound: Optional[float] = None,
+        cat: str = const.LpContinuous,
+        e=None,
     ):
         LpElement.__init__(self, name)
         self._lowbound_original = self.lowBound = lowBound
@@ -270,6 +286,20 @@ class LpVariable(LpElement):
             self._lowbound_original = self.lowBound = 0
             self._upbound_original = self.upBound = 1
             self.cat = const.LpInteger
+        if self.lowBound is not None:
+            if not math.isfinite(self.lowBound):
+                raise const.PulpError(
+                    "The lower bound of a variable must be finite, got {}".format(
+                        self.lowBound
+                    )
+                )
+        if self.upBound is not None:
+            if not math.isfinite(self.upBound):
+                raise const.PulpError(
+                    "The upper bound of a variable must be finite, got {}".format(
+                        self.upBound
+                    )
+                )
         # Code to add a variable to constraints for column based
         # modelling.
         if e:
@@ -501,21 +531,17 @@ class LpVariable(LpElement):
             ):
                 self.varValue = self.upBound
             elif (
-                self.lowBound != None
+                self.lowBound is not None
                 and self.varValue < self.lowBound
                 and self.varValue >= self.lowBound - eps
             ):
                 self.varValue = self.lowBound
-            if (
-                self.cat == const.LpInteger
-                and abs(round(self.varValue) - self.varValue) <= epsInt
-            ):
-                self.varValue = round(self.varValue)
+            self.varValue = self.roundedValue(epsInt)
 
     def roundedValue(self, eps=1e-5):
         if (
             self.cat == const.LpInteger
-            and self.varValue != None
+            and self.varValue is not None
             and abs(self.varValue - round(self.varValue)) <= eps
         ):
             return round(self.varValue)
@@ -523,10 +549,10 @@ class LpVariable(LpElement):
             return self.varValue
 
     def valueOrDefault(self):
-        if self.varValue != None:
+        if self.varValue is not None:
             return self.varValue
-        elif self.lowBound != None:
-            if self.upBound != None:
+        elif self.lowBound is not None:
+            if self.upBound is not None:
                 if 0 >= self.lowBound and 0 <= self.upBound:
                     return 0
                 else:
@@ -539,7 +565,7 @@ class LpVariable(LpElement):
                     return 0
                 else:
                     return self.lowBound
-        elif self.upBound != None:
+        elif self.upBound is not None:
             if 0 <= self.upBound:
                 return 0
             else:
@@ -563,12 +589,12 @@ class LpVariable(LpElement):
             return False
         return True
 
-    def infeasibilityGap(self, mip=1):
-        if self.varValue == None:
+    def infeasibilityGap(self, mip: bool = True):
+        if self.varValue is None:
             raise ValueError("variable value is None")
-        if self.upBound != None and self.varValue > self.upBound:
+        if self.upBound is not None and self.varValue > self.upBound:
             return self.varValue - self.upBound
-        if self.lowBound != None and self.varValue < self.lowBound:
+        if self.lowBound is not None and self.varValue < self.lowBound:
             return self.varValue - self.lowBound
         if (
             mip
@@ -600,7 +626,7 @@ class LpVariable(LpElement):
             return self.name + " free"
         if self.isConstant():
             return self.name + f" = {self.lowBound:.12g}"
-        if self.lowBound == None:
+        if self.lowBound is None:
             s = "-inf <= "
         # Note: XPRESS and CPLEX do not interpret integer variables without
         # explicit bounds
@@ -690,6 +716,8 @@ class LpVariable(LpElement):
 
 
 class LpAffineExpression(dict):
+    __name: str
+    constant: float
     """
     A linear combination of :class:`LpVariables<LpVariable>`.
     Can be initialised with the following:
@@ -731,9 +759,14 @@ class LpAffineExpression(dict):
         # TODO remove isinstance usage
         if e is None:
             e = {}
+        # maybe check for constant
+        if not math.isfinite(constant):
+            raise const.PulpError(
+                f"Invalid constant value: {constant}. It must be a finite number."
+            )
         if isinstance(e, (LpAffineExpression, LpConstraint)):
             # Will not copy the name
-            self.constant = e.constant  # type: ignore[has-type]
+            self.constant = e.constant
             super().__init__(e.items())
         elif isinstance(e, dict):
             self.constant = constant
@@ -832,9 +865,7 @@ class LpAffineExpression(dict):
         return result
 
     def __repr__(self, override_constant: float | None = None):
-        constant = constant = (
-            self.constant if override_constant is None else override_constant
-        )
+        constant = self.constant if override_constant is None else override_constant
         l = [str(self[v]) + "*" + str(v) for v in self.sorted_keys()]
         l.append(str(constant))
         s = " + ".join(l)
@@ -1079,7 +1110,21 @@ class LpAffineExpression(dict):
 class LpConstraint:
     """An LP constraint"""
 
-    def __init__(self, e=None, sense=const.LpConstraintEQ, name=None, rhs=None):
+    constant: float
+    expr: LpAffineExpression
+    __name: str | None
+    sense: int
+    modified: bool
+    pi: float | None
+    slack: float | None
+
+    def __init__(
+        self,
+        e=None,
+        sense: int = const.LpConstraintEQ,
+        name: str | None = None,
+        rhs: float | None = None,
+    ):
         """
         :param e: an instance of :class:`LpAffineExpression`
         :param sense: one of :data:`~pulp.const.LpConstraintEQ`, :data:`~pulp.const.LpConstraintGE`, :data:`~pulp.const.LpConstraintLE` (0, 1, -1 respectively)
@@ -1088,9 +1133,12 @@ class LpConstraint:
         """
         self.expr = e if isinstance(e, LpAffineExpression) else LpAffineExpression(e)
         self.name = name
-        self.constant: float = self.expr.constant  # type: ignore[annotation-unchecked]
+        # we multiply by one
+        self.constant: float = float(self.expr.constant)
         if rhs is not None:
-            self.constant -= rhs
+            if not math.isfinite(rhs):
+                raise const.PulpError("Cannot set constraint RHS to NaN/inf values")
+            self.constant -= float(rhs)
         self.sense = sense
         self.pi = None
         self.slack = None
@@ -1242,8 +1290,10 @@ class LpConstraint:
 
     def valid(self, eps: float = 0) -> bool:
         val = self.value()
+        if val is None:
+            return False
         if self.sense == const.LpConstraintEQ:
-            return abs(val) <= eps  # type: ignore[arg-type]
+            return abs(val) <= eps
         else:
             return val * self.sense >= -eps
 
@@ -1303,7 +1353,7 @@ class LpConstraint:
         if name is not None:
             self.__name = name.translate(LpAffineExpression.trans)
         else:
-            self.__name = None  # type: ignore[assignment]
+            self.__name = None
 
     def isAtomic(self):
         return len(self) == 1 and self.constant == 0 and next(iter(self.values())) == 1
@@ -1893,7 +1943,7 @@ class LpProblem:
 
     def coefficients(self, translation=None):
         coefs = []
-        if translation == None:
+        if translation is None:
             for c in self.constraints:
                 cst = self.constraints[c]
                 coefs.extend([(v.name, c, cst[v]) for v in cst])
