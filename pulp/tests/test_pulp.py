@@ -124,9 +124,10 @@ class BaseSolverTest:
             """
             Test that a variable is deleted when it is subtracted to 0
             """
-            x = LpVariable("x", 0, 4)
-            y = LpVariable("y", -1, 1)
-            z = LpVariable("z", 0)
+            prob = LpProblem(self._testMethodName, const.LpMinimize)
+            x = prob.add_variable("x", 0, 4)
+            y = prob.add_variable("y", -1, 1)
+            z = prob.add_variable("z", 0)
             c1 = x + y <= 5
             c2 = c1 + z - z
             assert str(c2)
@@ -134,10 +135,10 @@ class BaseSolverTest:
 
         def test_infeasible(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
-            x = LpVariable("x", 0, 4)
-            y = LpVariable("y", -1, 1)
-            z = LpVariable("z", 0)
-            w = LpVariable("w", 0)
+            x = prob.add_variable("x", 0, 4)
+            y = prob.add_variable("y", -1, 1)
+            z = prob.add_variable("z", 0)
+            w = prob.add_variable("w", 0)
             prob += x + 4 * y + 9 * z, "obj"
             prob += (
                 lpSum([v for v in [x] if False]) >= 5,
@@ -177,10 +178,10 @@ class BaseSolverTest:
 
         def test_continuous(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
-            x = LpVariable("x", 0, 4)
-            y = LpVariable("y", -1, 1)
-            z = LpVariable("z", 0)
-            w = LpVariable("w", 0)
+            x = prob.add_variable("x", 0, 4)
+            y = prob.add_variable("y", -1, 1)
+            z = prob.add_variable("z", 0)
+            w = prob.add_variable("w", 0)
             prob += x + 4 * y + 9 * z, "obj"
             prob += x + y <= 5, "c1"
             prob += x + z >= 10, "c2"
@@ -191,7 +192,8 @@ class BaseSolverTest:
             )
 
         def test_NAN_const(self):
-            my_var = LpVariable(
+            prob = LpProblem("test", const.LpMinimize)
+            my_var = prob.add_variable(
                 "my_var", lowBound=None, upBound=None, cat=const.LpContinuous
             )
 
@@ -203,9 +205,10 @@ class BaseSolverTest:
             self.assertRaises(const.PulpError, gives_error)
 
         def test_NAN_bound(self):
+            prob = LpProblem("test", const.LpMinimize)
 
             def gives_error():
-                return LpVariable(
+                return prob.add_variable(
                     "my_var",
                     lowBound=float("nan"),
                     upBound=None,
@@ -217,7 +220,7 @@ class BaseSolverTest:
         def test_non_intermediate_var(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
             x_vars = {
-                i: LpVariable(f"x{i}", lowBound=0, cat=const.LpContinuous)
+                i: prob.add_variable(f"x{i}", lowBound=0, cat=const.LpContinuous)
                 for i in range(3)
             }
             prob += lpSum(x_vars[i] for i in range(3)) >= 2
@@ -228,7 +231,7 @@ class BaseSolverTest:
         def test_intermediate_var(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
             x_vars = {
-                i: LpVariable(f"x{i}", lowBound=0, cat=const.LpContinuous)
+                i: prob.add_variable(f"x{i}", lowBound=0, cat=const.LpContinuous)
                 for i in range(3)
             }
             x = lpSum(x_vars[i] for i in range(3))
@@ -240,7 +243,7 @@ class BaseSolverTest:
         def test_comparison(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
             x_vars = {
-                i: LpVariable(f"x{i}", lowBound=0, cat=const.LpContinuous)
+                i: prob.add_variable(f"x{i}", lowBound=0, cat=const.LpContinuous)
                 for i in range(3)
             }
             x = lpSum(x_vars[i] for i in range(3))
@@ -252,10 +255,10 @@ class BaseSolverTest:
 
         def test_continuous_max(self):
             prob = LpProblem(self._testMethodName, const.LpMaximize)
-            x = LpVariable("x", 0, 4)
-            y = LpVariable("y", -1, 1)
-            z = LpVariable("z", 0)
-            w = LpVariable("w", 0)
+            x = prob.add_variable("x", 0, 4)
+            y = prob.add_variable("y", -1, 1)
+            z = prob.add_variable("z", 0)
+            w = prob.add_variable("w", 0)
             prob += x + 4 * y + 9 * z, "obj"
             prob += x + y <= 5, "c1"
             prob += x + z >= 10, "c2"
@@ -267,10 +270,10 @@ class BaseSolverTest:
 
         def test_unbounded(self):
             prob = LpProblem(self._testMethodName, const.LpMaximize)
-            x = LpVariable("x", 0, 4)
-            y = LpVariable("y", -1, 1)
-            z = LpVariable("z", 0)
-            w = LpVariable("w", 0)
+            x = prob.add_variable("x", 0, 4)
+            y = prob.add_variable("y", -1, 1)
+            z = prob.add_variable("z", 0)
+            w = prob.add_variable("w", 0)
             prob += x + 4 * y + 9 * z + w, "obj"
             prob += x + y <= 5, "c1"
             prob += x + z >= 10, "c2"
@@ -303,10 +306,10 @@ class BaseSolverTest:
 
         def test_long_var_name(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
-            x = LpVariable("x" * 120, 0, 4)
-            y = LpVariable("y", -1, 1)
-            z = LpVariable("z", 0)
-            w = LpVariable("w", 0)
+            x = prob.add_variable("x" * 120, 0, 4)
+            y = prob.add_variable("y", -1, 1)
+            z = prob.add_variable("z", 0)
+            w = prob.add_variable("w", 0)
             prob += x + 4 * y + 9 * z, "obj"
             prob += x + y <= 5, "c1"
             prob += x + z >= 10, "c2"
@@ -347,10 +350,10 @@ class BaseSolverTest:
 
         def test_repeated_name(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
-            x = LpVariable("x", 0, 4)
-            y = LpVariable("x", -1, 1)
-            z = LpVariable("z", 0)
-            w = LpVariable("w", 0)
+            x = prob.add_variable("x", 0, 4)
+            y = prob.add_variable("x", -1, 1)
+            z = prob.add_variable("z", 0)
+            w = prob.add_variable("w", 0)
             prob += x + 4 * y + 9 * z, "obj"
             prob += x + y <= 5, "c1"
             prob += x + z >= 10, "c2"
@@ -397,10 +400,10 @@ class BaseSolverTest:
 
         def test_zero_constraint(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
-            x = LpVariable("x", 0, 4)
-            y = LpVariable("y", -1, 1)
-            z = LpVariable("z", 0)
-            w = LpVariable("w", 0)
+            x = prob.add_variable("x", 0, 4)
+            y = prob.add_variable("y", -1, 1)
+            z = prob.add_variable("z", 0)
+            w = prob.add_variable("w", 0)
             prob += x + 4 * y + 9 * z, "obj"
             prob += x + y <= 5, "c1"
             prob += x + z >= 10, "c2"
@@ -413,10 +416,10 @@ class BaseSolverTest:
 
         def test_no_objective(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
-            x = LpVariable("x", 0, 4)
-            y = LpVariable("y", -1, 1)
-            z = LpVariable("z", 0)
-            w = LpVariable("w", 0)
+            x = prob.add_variable("x", 0, 4)
+            y = prob.add_variable("y", -1, 1)
+            z = prob.add_variable("z", 0)
+            w = prob.add_variable("w", 0)
             prob += x + y <= 5, "c1"
             prob += x + z >= 10, "c2"
             prob += -y + z == 7, "c3"
@@ -426,10 +429,10 @@ class BaseSolverTest:
 
         def test_variable_as_objective(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
-            x = LpVariable("x", 0, 4)
-            y = LpVariable("y", -1, 1)
-            z = LpVariable("z", 0)
-            w = LpVariable("w", 0)
+            x = prob.add_variable("x", 0, 4)
+            y = prob.add_variable("y", -1, 1)
+            z = prob.add_variable("z", 0)
+            w = prob.add_variable("w", 0)
             prob.setObjective(x)
             prob += x + y <= 5, "c1"
             prob += x + z >= 10, "c2"
@@ -440,10 +443,10 @@ class BaseSolverTest:
 
         def test_longname_lp(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
-            x = LpVariable("x" * 90, 0, 4)
-            y = LpVariable("y" * 90, -1, 1)
-            z = LpVariable("z" * 90, 0)
-            w = LpVariable("w" * 90, 0)
+            x = prob.add_variable("x" * 90, 0, 4)
+            y = prob.add_variable("y" * 90, -1, 1)
+            z = prob.add_variable("z" * 90, 0)
+            w = prob.add_variable("w" * 90, 0)
             prob += x + 4 * y + 9 * z, "obj"
             prob += x + y <= 5, "c1"
             prob += x + z >= 10, "c2"
@@ -460,10 +463,10 @@ class BaseSolverTest:
 
         def test_divide(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
-            x = LpVariable("x", 0, 4)
-            y = LpVariable("y", -1, 1)
-            z = LpVariable("z", 0)
-            w = LpVariable("w", 0)
+            x = prob.add_variable("x", 0, 4)
+            y = prob.add_variable("y", -1, 1)
+            z = prob.add_variable("z", 0)
+            w = prob.add_variable("w", 0)
             prob += x + 4 * y + 9 * z, "obj"
             prob += ((2 * x + 2 * y) / 2.0) <= 5, "c1"
             prob += x + z >= 10, "c2"
@@ -475,9 +478,9 @@ class BaseSolverTest:
 
         def test_mip(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
-            x = LpVariable("x", 0, 4)
-            y = LpVariable("y", -1, 1)
-            z = LpVariable("z", 0, None, const.LpInteger)
+            x = prob.add_variable("x", 0, 4)
+            y = prob.add_variable("y", -1, 1)
+            z = prob.add_variable("z", 0, None, const.LpInteger)
             prob += x + 4 * y + 9 * z, "obj"
             prob += x + y <= 5, "c1"
             prob += x + z >= 10, "c2"
@@ -488,9 +491,9 @@ class BaseSolverTest:
 
         def test_mip_floats_objective(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
-            x = LpVariable("x", 0, 4)
-            y = LpVariable("y", -1, 1)
-            z = LpVariable("z", 0, None, const.LpInteger)
+            x = prob.add_variable("x", 0, 4)
+            y = prob.add_variable("y", -1, 1)
+            z = prob.add_variable("z", 0, None, const.LpInteger)
             prob += 1.1 * x + 4.1 * y + 9.1 * z, "obj"
             prob += x + y <= 5, "c1"
             prob += x + z >= 10, "c2"
@@ -505,9 +508,9 @@ class BaseSolverTest:
 
         def test_initial_value(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
-            x = LpVariable("x", 0, 4)
-            y = LpVariable("y", -1, 1)
-            z = LpVariable("z", 0, None, const.LpInteger)
+            x = prob.add_variable("x", 0, 4)
+            y = prob.add_variable("y", -1, 1)
+            z = prob.add_variable("z", 0, None, const.LpInteger)
             prob += x + 4 * y + 9 * z, "obj"
             prob += x + y <= 5, "c1"
             prob += x + z >= 10, "c2"
@@ -533,9 +536,9 @@ class BaseSolverTest:
 
         def test_fixed_value(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
-            x = LpVariable("x", 0, 4)
-            y = LpVariable("y", -1, 1)
-            z = LpVariable("z", 0, None, const.LpInteger)
+            x = prob.add_variable("x", 0, 4)
+            y = prob.add_variable("y", -1, 1)
+            z = prob.add_variable("z", 0, None, const.LpInteger)
             prob += x + 4 * y + 9 * z, "obj"
             prob += x + y <= 5, "c1"
             prob += x + z >= 10, "c2"
@@ -549,9 +552,9 @@ class BaseSolverTest:
 
         def test_relaxed_mip(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
-            x = LpVariable("x", 0, 4)
-            y = LpVariable("y", -1, 1)
-            z = LpVariable("z", 0, None, const.LpInteger)
+            x = prob.add_variable("x", 0, 4)
+            y = prob.add_variable("y", -1, 1)
+            z = prob.add_variable("z", 0, None, const.LpInteger)
             prob += x + 4 * y + 9 * z, "obj"
             prob += x + y <= 5, "c1"
             prob += x + z >= 10, "c2"
@@ -577,9 +580,9 @@ class BaseSolverTest:
 
         def test_feasibility_only(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
-            x = LpVariable("x", 0, 4)
-            y = LpVariable("y", -1, 1)
-            z = LpVariable("z", 0, None, const.LpInteger)
+            x = prob.add_variable("x", 0, 4)
+            y = prob.add_variable("y", -1, 1)
+            z = prob.add_variable("z", 0, None, const.LpInteger)
             prob += x + y <= 5, "c1"
             prob += x + z >= 10, "c2"
             prob += -y + z == 7.5, "c3"
@@ -587,9 +590,9 @@ class BaseSolverTest:
 
         def test_infeasible_2(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
-            x = LpVariable("x", 0, 4)
-            y = LpVariable("y", -1, 1)
-            z = LpVariable("z", 0, 10)
+            x = prob.add_variable("x", 0, 4)
+            y = prob.add_variable("y", -1, 1)
+            z = prob.add_variable("z", 0, 10)
             prob += x + y <= 5.2, "c1"
             prob += x + z >= 10.3, "c2"
             prob += -y + z == 17.5, "c3"
@@ -604,9 +607,9 @@ class BaseSolverTest:
 
         def test_integer_infeasible(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
-            x = LpVariable("x", 0, 4, const.LpInteger)
-            y = LpVariable("y", -1, 1, const.LpInteger)
-            z = LpVariable("z", 0, 10, const.LpInteger)
+            x = prob.add_variable("x", 0, 4, const.LpInteger)
+            y = prob.add_variable("y", -1, 1, const.LpInteger)
+            z = prob.add_variable("z", 0, 10, const.LpInteger)
             prob += x + y <= 5.2, "c1"
             prob += x + z >= 10.3, "c2"
             prob += -y + z == 7.4, "c3"
@@ -629,9 +632,9 @@ class BaseSolverTest:
         def test_integer_infeasible_2(self):
             prob = LpProblem(self._testMethodName, const.LpMaximize)
 
-            dummy = LpVariable("dummy")
-            c1 = LpVariable("c1", 0, 1, const.LpBinary)
-            c2 = LpVariable("c2", 0, 1, const.LpBinary)
+            dummy = prob.add_variable("dummy")
+            c1 = prob.add_variable("c1", 0, 1, const.LpBinary)
+            c2 = prob.add_variable("c2", 0, 1, const.LpBinary)
 
             prob += dummy
             prob += c1 + c2 == 2
@@ -661,9 +664,9 @@ class BaseSolverTest:
             prob += b
             prob += c
             # Variables
-            x = LpVariable("x", 0, 4, const.LpContinuous, obj + a + b)
-            y = LpVariable("y", -1, 1, const.LpContinuous, 4 * obj + a - c)
-            z = LpVariable("z", 0, None, const.LpContinuous, 9 * obj + b + c)
+            x = prob.add_variable("x", 0, 4, const.LpContinuous, obj + a + b)
+            y = prob.add_variable("y", -1, 1, const.LpContinuous, 4 * obj + a - c)
+            z = prob.add_variable("z", 0, None, const.LpContinuous, 9 * obj + b + c)
             pulpTestCheck(
                 prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6}
             )
@@ -681,9 +684,9 @@ class BaseSolverTest:
             prob += b
             prob += c
             # Variables
-            x = LpVariable("x", 0, 4, const.LpContinuous, obj + b)
-            y = LpVariable("y", -1, 1, const.LpContinuous, 4 * obj - c)
-            z = LpVariable("z", 0, None, const.LpContinuous, 9 * obj + b + c)
+            x = prob.add_variable("x", 0, 4, const.LpContinuous, obj + b)
+            y = prob.add_variable("y", -1, 1, const.LpContinuous, 4 * obj - c)
+            z = prob.add_variable("z", 0, None, const.LpContinuous, 9 * obj + b + c)
             if self.solver.name in ["CPLEX_CMD", "COINMP_DLL", "YAPOSIB", "PYGLPK"]:
                 pulpTestCheck(
                     prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6}
@@ -694,9 +697,9 @@ class BaseSolverTest:
             Test the reporting of dual variables slacks and reduced costs
             """
             prob = LpProblem(self._testMethodName, const.LpMinimize)
-            x = LpVariable("x", 0, 5)
-            y = LpVariable("y", -1, 1)
-            z = LpVariable("z", 0)
+            x = prob.add_variable("x", 0, 5)
+            y = prob.add_variable("y", -1, 1)
+            z = prob.add_variable("z", 0)
             c1 = x + y <= 5
             c2 = x + z >= 10
             c3 = -y + z == 7
@@ -740,10 +743,10 @@ class BaseSolverTest:
             prob += c
 
             prob.setSolver(self.solver)  # Variables
-            x = LpVariable("x", 0, 4, const.LpContinuous, obj + a + b)
-            y = LpVariable("y", -1, 1, const.LpContinuous, 4 * obj + a - c)
+            x = prob.add_variable("x", 0, 4, const.LpContinuous, obj + a + b)
+            y = prob.add_variable("y", -1, 1, const.LpContinuous, 4 * obj + a - c)
             prob.resolve()
-            z = LpVariable("z", 0, None, const.LpContinuous, 9 * obj + b + c)
+            z = prob.add_variable("z", 0, None, const.LpContinuous, 9 * obj + b + c)
             if self.solver.name in ["COINMP_DLL"]:
                 prob.resolve()
                 # difficult to check this is doing what we want as the resolve is
@@ -756,9 +759,9 @@ class BaseSolverTest:
             """
             # set up a cubic feasible region
             prob = LpProblem(self._testMethodName, const.LpMinimize)
-            x = LpVariable("x", 0, 1)
-            y = LpVariable("y", 0, 1)
-            z = LpVariable("z", 0, 1)
+            x = prob.add_variable("x", 0, 1)
+            y = prob.add_variable("y", 0, 1)
+            z = prob.add_variable("z", 0, 1)
 
             obj1 = x + 0 * y + 0 * z
             obj2 = 0 * x - 1 * y + 0 * z
@@ -779,10 +782,10 @@ class BaseSolverTest:
             Test the ability to use fractional constraints
             """
             prob = LpProblem(self._testMethodName, const.LpMinimize)
-            x = LpVariable("x", 0, 4)
-            y = LpVariable("y", -1, 1)
-            z = LpVariable("z", 0)
-            w = LpVariable("w", 0)
+            x = prob.add_variable("x", 0, 4)
+            y = prob.add_variable("y", -1, 1)
+            z = prob.add_variable("z", 0)
+            w = prob.add_variable("w", 0)
             prob += x + 4 * y + 9 * z, "obj"
             prob += x + y <= 5, "c1"
             prob += x + z >= 10, "c2"
@@ -801,10 +804,10 @@ class BaseSolverTest:
             Test the ability to use Elastic constraints
             """
             prob = LpProblem(self._testMethodName, const.LpMinimize)
-            x = LpVariable("x", 0, 4)
-            y = LpVariable("y", -1, 1)
-            z = LpVariable("z", 0)
-            w = LpVariable("w")
+            x = prob.add_variable("x", 0, 4)
+            y = prob.add_variable("y", -1, 1)
+            z = prob.add_variable("z", 0)
+            w = prob.add_variable("w")
             prob += x + 4 * y + 9 * z + w, "obj"
             prob += x + y <= 5, "c1"
             prob += x + z >= 10, "c2"
@@ -819,10 +822,10 @@ class BaseSolverTest:
             Test the ability to use Elastic constraints
             """
             prob = LpProblem(self._testMethodName, const.LpMinimize)
-            x = LpVariable("x", 0, 4)
-            y = LpVariable("y", -1, 1)
-            z = LpVariable("z", 0)
-            w = LpVariable("w")
+            x = prob.add_variable("x", 0, 4)
+            y = prob.add_variable("y", -1, 1)
+            z = prob.add_variable("z", 0)
+            w = prob.add_variable("w")
             prob += x + 4 * y + 9 * z + w, "obj"
             prob += x + y <= 5, "c1"
             prob += x + z >= 10, "c2"
@@ -837,10 +840,10 @@ class BaseSolverTest:
             Test the ability to use Elastic constraints (penalty unchanged)
             """
             prob = LpProblem(self._testMethodName, const.LpMinimize)
-            x = LpVariable("x", 0, 4)
-            y = LpVariable("y", -1, 1)
-            z = LpVariable("z", 0)
-            w = LpVariable("w")
+            x = prob.add_variable("x", 0, 4)
+            y = prob.add_variable("y", -1, 1)
+            z = prob.add_variable("z", 0)
+            w = prob.add_variable("w")
             prob += x + 4 * y + 9 * z + w, "obj"
             prob += x + y <= 5, "c1"
             prob += x + z >= 10, "c2"
@@ -855,10 +858,10 @@ class BaseSolverTest:
             Test the ability to use Elastic constraints (penalty unbounded)
             """
             prob = LpProblem(self._testMethodName, const.LpMinimize)
-            x = LpVariable("x", 0, 4)
-            y = LpVariable("y", -1, 1)
-            z = LpVariable("z", 0)
-            w = LpVariable("w")
+            x = prob.add_variable("x", 0, 4)
+            y = prob.add_variable("y", -1, 1)
+            z = prob.add_variable("z", 0)
+            w = prob.add_variable("w")
             prob += x + 4 * y + 9 * z + w, "obj"
             prob += x + y <= 5, "c1"
             prob += x + z >= 10, "c2"
@@ -909,10 +912,10 @@ class BaseSolverTest:
             Test setting the msg arg to True does not interfere with solve
             """
             prob = LpProblem(self._testMethodName, const.LpMinimize)
-            x = LpVariable("x", 0, 4)
-            y = LpVariable("y", -1, 1)
-            z = LpVariable("z", 0)
-            w = LpVariable("w", 0)
+            x = prob.add_variable("x", 0, 4)
+            y = prob.add_variable("y", -1, 1)
+            z = prob.add_variable("z", 0)
+            w = prob.add_variable("w", 0)
             prob += x + 4 * y + 9 * z, "obj"
             prob += x + y <= 5, "c1"
             prob += x + z >= 10, "c2"
@@ -936,10 +939,10 @@ class BaseSolverTest:
 
         def test_export_dict_LP(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
-            x = LpVariable("x", 0, 4)
-            y = LpVariable("y", -1, 1)
-            z = LpVariable("z", 0)
-            w = LpVariable("w", 0)
+            x = prob.add_variable("x", 0, 4)
+            y = prob.add_variable("y", -1, 1)
+            z = prob.add_variable("z", 0)
+            w = prob.add_variable("w", 0)
             prob += x + 4 * y + 9 * z, "obj"
             prob += x + y <= 5, "c1"
             prob += x + z >= 10, "c2"
@@ -954,10 +957,10 @@ class BaseSolverTest:
 
         def test_export_dict_LP_no_obj(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
-            x = LpVariable("x", 0, 4)
-            y = LpVariable("y", -1, 1)
-            z = LpVariable("z", 0)
-            w = LpVariable("w", 0, 0)
+            x = prob.add_variable("x", 0, 4)
+            y = prob.add_variable("y", -1, 1)
+            z = prob.add_variable("z", 0)
+            w = prob.add_variable("w", 0, 0)
             prob += x + y >= 5, "c1"
             prob += x + z == 10, "c2"
             prob += -y + z <= 7, "c3"
@@ -972,10 +975,10 @@ class BaseSolverTest:
         def test_export_json_LP(self):
             name = self._testMethodName
             prob = LpProblem(self._testMethodName, const.LpMinimize)
-            x = LpVariable("x", 0, 4)
-            y = LpVariable("y", -1, 1)
-            z = LpVariable("z", 0)
-            w = LpVariable("w", 0)
+            x = prob.add_variable("x", 0, 4)
+            y = prob.add_variable("y", -1, 1)
+            z = prob.add_variable("z", 0)
+            w = prob.add_variable("w", 0)
             prob += x + 4 * y + 9 * z, "obj"
             prob += x + y <= 5, "c1"
             prob += x + z >= 10, "c2"
@@ -997,9 +1000,9 @@ class BaseSolverTest:
             import copy
 
             prob = LpProblem("test_export_dict_MIP", const.LpMinimize)
-            x = LpVariable("x", 0, 4)
-            y = LpVariable("y", -1, 1)
-            z = LpVariable("z", 0, None, const.LpInteger)
+            x = prob.add_variable("x", 0, 4)
+            y = prob.add_variable("y", -1, 1)
+            z = prob.add_variable("z", 0, None, const.LpInteger)
             prob += x + 4 * y + 9 * z, "obj"
             prob += x + y <= 5, "c1"
             prob += x + z >= 10, "c2"
@@ -1016,10 +1019,10 @@ class BaseSolverTest:
 
         def test_export_dict_max(self):
             prob = LpProblem("test_export_dict_max", const.LpMaximize)
-            x = LpVariable("x", 0, 4)
-            y = LpVariable("y", -1, 1)
-            z = LpVariable("z", 0)
-            w = LpVariable("w", 0)
+            x = prob.add_variable("x", 0, 4)
+            y = prob.add_variable("y", -1, 1)
+            z = prob.add_variable("z", 0)
+            w = prob.add_variable("w", 0)
             prob += x + 4 * y + 9 * z, "obj"
             prob += x + y <= 5, "c1"
             prob += x + z >= 10, "c2"
@@ -1034,10 +1037,10 @@ class BaseSolverTest:
 
         def test_export_solver_dict_LP(self):
             prob = LpProblem("test_export_dict_LP", const.LpMinimize)
-            x = LpVariable("x", 0, 4)
-            y = LpVariable("y", -1, 1)
-            z = LpVariable("z", 0)
-            w = LpVariable("w", 0)
+            x = prob.add_variable("x", 0, 4)
+            y = prob.add_variable("y", -1, 1)
+            z = prob.add_variable("z", 0)
+            w = prob.add_variable("w", 0)
             prob += x + 4 * y + 9 * z, "obj"
             prob += x + y <= 5, "c1"
             prob += x + z >= 10, "c2"
@@ -1052,10 +1055,10 @@ class BaseSolverTest:
         def test_export_solver_json(self):
             name = self._testMethodName
             prob = LpProblem(name, const.LpMinimize)
-            x = LpVariable("x", 0, 4)
-            y = LpVariable("y", -1, 1)
-            z = LpVariable("z", 0)
-            w = LpVariable("w", 0)
+            x = prob.add_variable("x", 0, 4)
+            y = prob.add_variable("y", -1, 1)
+            z = prob.add_variable("z", 0)
+            w = prob.add_variable("w", 0)
             prob += x + 4 * y + 9 * z, "obj"
             prob += x + y <= 5, "c1"
             prob += x + z >= 10, "c2"
@@ -1091,10 +1094,10 @@ class BaseSolverTest:
         def test_timeLimit(self):
             name = self._testMethodName
             prob = LpProblem(name, const.LpMinimize)
-            x = LpVariable("x", 0, 4)
-            y = LpVariable("y", -1, 1)
-            z = LpVariable("z", 0)
-            w = LpVariable("w", 0)
+            x = prob.add_variable("x", 0, 4)
+            y = prob.add_variable("y", -1, 1)
+            z = prob.add_variable("z", 0)
+            w = prob.add_variable("w", 0)
             prob += x + 4 * y + 9 * z, "obj"
             prob += x + y <= 5, "c1"
             prob += x + z >= 10, "c2"
@@ -1119,10 +1122,10 @@ class BaseSolverTest:
         def test_logPath(self):
             name = self._testMethodName
             prob = LpProblem(name, const.LpMinimize)
-            x = LpVariable("x", 0, 4)
-            y = LpVariable("y", -1, 1)
-            z = LpVariable("z", 0)
-            w = LpVariable("w", 0)
+            x = prob.add_variable("x", 0, 4)
+            y = prob.add_variable("y", -1, 1)
+            z = prob.add_variable("z", 0)
+            w = prob.add_variable("w", 0)
             prob += x + 4 * y + 9 * z, "obj"
             prob += x + y <= 5, "c1"
             prob += x + z >= 10, "c2"
@@ -1178,10 +1181,10 @@ class BaseSolverTest:
         def test_importMPS_maximize(self):
             name = self._testMethodName
             prob = LpProblem(name, const.LpMaximize)
-            x = LpVariable("x", 0, 4)
-            y = LpVariable("y", -1, 1)
-            z = LpVariable("z", 0)
-            w = LpVariable("w", 0)
+            x = prob.add_variable("x", 0, 4)
+            y = prob.add_variable("y", -1, 1)
+            z = prob.add_variable("z", 0)
+            w = prob.add_variable("w", 0)
             prob += x + 4 * y + 9 * z, "obj"
             prob += x + y <= 5, "c1"
             prob += x + z >= 10, "c2"
@@ -1197,10 +1200,10 @@ class BaseSolverTest:
         def test_importMPS_noname(self):
             name = self._testMethodName
             prob = LpProblem("", const.LpMaximize)
-            x = LpVariable("x", 0, 4)
-            y = LpVariable("y", -1, 1)
-            z = LpVariable("z", 0)
-            w = LpVariable("w", 0)
+            x = prob.add_variable("x", 0, 4)
+            y = prob.add_variable("y", -1, 1)
+            z = prob.add_variable("z", 0)
+            w = prob.add_variable("w", 0)
             prob += x + 4 * y + 9 * z, "obj"
             prob += x + y <= 5, "c1"
             prob += x + z >= 10, "c2"
@@ -1216,9 +1219,9 @@ class BaseSolverTest:
         def test_importMPS_integer(self):
             name = self._testMethodName
             prob = LpProblem(name, const.LpMinimize)
-            x = LpVariable("x", 0, 4)
-            y = LpVariable("y", -1, 1)
-            z = LpVariable("z", 0, None, const.LpInteger)
+            x = prob.add_variable("x", 0, 4)
+            y = prob.add_variable("y", -1, 1)
+            z = prob.add_variable("z", 0, None, const.LpInteger)
             prob += 1.1 * x + 4.1 * y + 9.1 * z, "obj"
             prob += x + y <= 5, "c1"
             prob += x + z >= 10, "c2"
@@ -1233,9 +1236,9 @@ class BaseSolverTest:
         def test_importMPS_binary(self):
             name = self._testMethodName
             prob = LpProblem(name, const.LpMaximize)
-            dummy = LpVariable("dummy")
-            c1 = LpVariable("c1", 0, 1, const.LpBinary)
-            c2 = LpVariable("c2", 0, 1, const.LpBinary)
+            dummy = prob.add_variable("dummy")
+            c1 = prob.add_variable("c1", 0, 1, const.LpBinary)
+            c2 = prob.add_variable("c2", 0, 1, const.LpBinary)
             prob += dummy
             prob += c1 + c2 == 2
             prob += c1 <= 0
@@ -1280,7 +1283,7 @@ class BaseSolverTest:
             """
             name = self._testMethodName
             prob = LpProblem(name, const.LpMaximize)
-            x = LpVariable("x")
+            x = prob.add_variable("x")
             prob += 0 * x
             prob += x >= 1
             pulpTestCheck(prob, self.solver, [const.LpStatusOptimal])
@@ -1292,7 +1295,7 @@ class BaseSolverTest:
             as invalid."""
             name = self._testMethodName
             prob = LpProblem(name, const.LpMaximize)
-            x = LpVariable("x")
+            x = prob.add_variable("x")
             prob += 1000 * x
             prob += x >= 1
             self.assertFalse(prob.valid())
@@ -1302,7 +1305,7 @@ class BaseSolverTest:
             given conflicting constraints, assert that it is invalid."""
             name = self._testMethodName
             prob = LpProblem(name, const.LpMaximize)
-            x = LpVariable("x")
+            x = prob.add_variable("x")
             prob += 1 * x
             prob += x >= 2  # Constraint x to be more than 2
             prob += x <= 1  # Constraint x to be less than 1
@@ -1388,10 +1391,10 @@ class BaseSolverTest:
 
         def test_invalid_var_names(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
-            x = LpVariable("a")
-            w = LpVariable("b")
-            y = LpVariable("g", -1, 1)
-            z = LpVariable("End")
+            x = prob.add_variable("a")
+            w = prob.add_variable("b")
+            y = prob.add_variable("g", -1, 1)
+            z = prob.add_variable("End")
             prob += x + 4 * y + 9 * z, "obj"
             prob += x + y <= 5, "c1"
             prob += x + z >= 10, "c2"
@@ -1413,23 +1416,24 @@ class BaseSolverTest:
             """
             Test that 'indexs' param continues to work
             """
+            prob = LpProblem(self._testMethodName, const.LpMinimize)
             customers = [1, 2, 3]
             agents = ["A", "B", "C"]
 
             # explicit param creates a dict of type LpVariable
-            assign_vars = LpVariable.dicts(name="test", indices=(customers, agents))
+            assign_vars = prob.add_variable_dicts(name="test", indices=(customers, agents))
             for k, v in assign_vars.items():
                 for a, b in v.items():
                     self.assertIsInstance(b, LpVariable)
 
             # param by position creates a dict of type LpVariable
-            assign_vars = LpVariable.dicts("test", (customers, agents))
+            assign_vars = prob.add_variable_dicts("test", (customers, agents))
             for k, v in assign_vars.items():
                 for a, b in v.items():
                     self.assertIsInstance(b, LpVariable)
 
             # explicit param creates list of LpVariable
-            assign_vars_matrix = LpVariable.matrix(
+            assign_vars_matrix = prob.add_variable_matrix(
                 name="test", indices=(customers, agents)
             )
             for a in assign_vars_matrix:
@@ -1437,7 +1441,7 @@ class BaseSolverTest:
                     self.assertIsInstance(b, LpVariable)
 
             # param by position creates list of list of LpVariable
-            assign_vars_matrix = LpVariable.matrix("test", (customers, agents))
+            assign_vars_matrix = prob.add_variable_matrix("test", (customers, agents))
             for a in assign_vars_matrix:
                 for b in a:
                     self.assertIsInstance(b, LpVariable)
@@ -1451,13 +1455,13 @@ class BaseSolverTest:
             agents = ["A", "B", "C"]
 
             # explicit param creates a dict of type LpVariable
-            assign_vars = LpVariable.dicts(name="test", indices=(customers, agents))
+            assign_vars = prob.add_variable_dicts(name="test", indices=(customers, agents))
             for k, v in assign_vars.items():
                 for a, b in v.items():
                     self.assertIsInstance(b, LpVariable)
 
             # explicit param creates list of list of LpVariable
-            assign_vars_matrix = LpVariable.matrix(
+            assign_vars_matrix = prob.add_variable_matrix(
                 name="test", indices=(customers, agents)
             )
             for a in assign_vars_matrix:
@@ -1526,10 +1530,10 @@ class BaseSolverTest:
         def test_options_parsing_SCIP_HIGHS(self):
             name = self._testMethodName
             prob = LpProblem(name, const.LpMinimize)
-            x = LpVariable("x", 0, 4)
-            y = LpVariable("y", -1, 1)
-            z = LpVariable("z", 0)
-            w = LpVariable("w", 0)
+            x = prob.add_variable("x", 0, 4)
+            y = prob.add_variable("y", -1, 1)
+            z = prob.add_variable("z", 0)
+            w = prob.add_variable("w", 0)
             prob += x + 4 * y + 9 * z, "obj"
             prob += x + y <= 5, "c1"
             prob += x + z >= 10, "c2"
@@ -1556,23 +1560,24 @@ class BaseSolverTest:
         def test_sum_nan_values(self):
             import math
 
+            prob = LpProblem(self._testMethodName, const.LpMinimize)
             a = math.nan
-            x = LpVariable("x")
+            x = prob.add_variable("x")
             self.assertRaises(PulpError, lambda: x + a)
 
         def test_multiply_nan_values(self):
             import math
 
             a = math.nan
-            x = LpVariable("x")
+            x = prob.add_variable("x")
             self.assertRaises(PulpError, lambda: x * a)
 
         def test_constraint_copy(self) -> None:
             """
             LpConstraint.copy()
             """
-            x = LpVariable("x")
-            y = LpVariable("y")
+            x = prob.add_variable("x")
+            y = prob.add_variable("y")
 
             expr: LpAffineExpression = x + y + 1
             self.assertIsInstance(expr, LpAffineExpression)
@@ -1594,8 +1599,8 @@ class BaseSolverTest:
             """
             __add__ operator on LpConstraint
             """
-            x = LpVariable("x")
-            y = LpVariable("y")
+            x = prob.add_variable("x")
+            y = prob.add_variable("y")
 
             expr: LpAffineExpression = x + y + 1
             self.assertIsInstance(expr, LpAffineExpression)
@@ -1649,8 +1654,8 @@ class BaseSolverTest:
             """
             __neg__ operator on LpConstraint
             """
-            x = LpVariable("x")
-            y = LpVariable("y")
+            x = prob.add_variable("x")
+            y = prob.add_variable("y")
 
             c1: LpConstraint = x + y <= 5
             self.assertIsInstance(c1, LpConstraint)
@@ -1666,8 +1671,8 @@ class BaseSolverTest:
             """
             __sub__ operator on LpConstraint
             """
-            x = LpVariable("x")
-            y = LpVariable("y")
+            x = prob.add_variable("x")
+            y = prob.add_variable("y")
 
             expr0: LpAffineExpression = 0 * x
             self.assertIsInstance(expr0, LpAffineExpression)
@@ -1709,8 +1714,8 @@ class BaseSolverTest:
             """
             __mul__ operator on LpConstraint
             """
-            x = LpVariable("x")
-            y = LpVariable("y")
+            x = prob.add_variable("x")
+            y = prob.add_variable("y")
 
             c1: LpConstraint = x + y <= 5
             self.assertIsInstance(c1, LpConstraint)
@@ -1748,8 +1753,8 @@ class BaseSolverTest:
             """
             __div__ operator on LpConstraint
             """
-            x = LpVariable("x")
-            y = LpVariable("y")
+            x = prob.add_variable("x")
+            y = prob.add_variable("y")
 
             c1: LpConstraint = x + y <= 5
             self.assertIsInstance(c1, LpConstraint)
@@ -1787,7 +1792,8 @@ class BaseSolverTest:
             """
             __div__ operator on LpVariable
             """
-            x = LpVariable("x")
+            prob = LpProblem(self._testMethodName, const.LpMinimize)
+            x = prob.add_variable("x")
             x_div = x / 2
             self.assertIsInstance(x_div, LpAffineExpression)
             self.assertEqual(x_div[x], 0.5)
@@ -1804,12 +1810,12 @@ class BaseSolverTest:
             # Create decision variables.
             supply: list[LpVariable] = []  # supply[t] = x_t
             for t in range(1, max_periods + 1):
-                variable = LpVariable(f"x_{t}", cat="Integer", lowBound=0)
+                variable = prob.add_variable(f"x_{t}", cat="Integer", lowBound=0)
                 supply.append(variable)
 
             stock: list[Union[LpVariable, int]] = [initial_stock]  # stock[t] = s_t
             for t in range(1, max_periods + 1):
-                variable = LpVariable(f"s_{t}", cat="Integer", lowBound=0)
+                variable = prob.add_variable(f"s_{t}", cat="Integer", lowBound=0)
                 stock.append(variable)
 
             # Create the constraints.
@@ -1855,11 +1861,11 @@ class BaseSolverTest:
             m2 = Decimal("8.1")
             extra = 5
 
-            x = LpVariable("x", lowBound=0, upBound=50, cat=const.LpContinuous)
-            y = LpVariable(
+            x = prob.add_variable("x", lowBound=0, upBound=50, cat=const.LpContinuous)
+            y = prob.add_variable(
                 "y", lowBound=0, upBound=Decimal("32.24"), cat=const.LpContinuous
             )
-            include_extra = LpVariable("include_extra1", cat=const.LpBinary)
+            include_extra = prob.add_variable("include_extra1", cat=const.LpBinary)
 
             expression = LpAffineExpression()
             expression += x * m1 + include_extra * extra - y
@@ -1930,10 +1936,10 @@ class PULP_CBC_CMDTest(BaseSolverTest.PuLPTest):
         """
         name = self._testMethodName
         prob = LpProblem(name, const.LpMinimize)
-        x = LpVariable("x", 0, 4)
-        y = LpVariable("y", -1, 1)
-        z = LpVariable("z", 0)
-        w = LpVariable("w", 0)
+        x = prob.add_variable("x", 0, 4)
+        y = prob.add_variable("y", -1, 1)
+        z = prob.add_variable("z", 0)
+        w = prob.add_variable("w", 0)
         prob += x + 4 * y + 9 * z, "obj"
         prob += x + y <= 5, "c1"
         prob += x + z >= 10, "c2"
@@ -1966,10 +1972,10 @@ class PULP_CBC_CMDTest(BaseSolverTest.PuLPTest):
         """
         name = self._testMethodName
         prob = LpProblem(name, const.LpMinimize)
-        x = LpVariable("x", 0, 4)
-        y = LpVariable("y", -1, 1)
-        z = LpVariable("z", 0)
-        w = LpVariable("w", 0)
+        x = prob.add_variable("x", 0, 4)
+        y = prob.add_variable("y", -1, 1)
+        z = prob.add_variable("z", 0)
+        w = prob.add_variable("w", 0)
         prob += x + 4 * y + 9 * z, "obj"
         prob += x + y <= 5, "c1"
         prob += x + z >= 10, "c2"
@@ -2009,10 +2015,10 @@ class PULP_CBC_CMDTest(BaseSolverTest.PuLPTest):
         """
         name = self._testMethodName
         prob = LpProblem(name, const.LpMinimize)
-        x = LpVariable("x", 0, 4)
-        y = LpVariable("y", -1, 1)
-        z = LpVariable("z", 0)
-        w = LpVariable("w", 0)
+        x = prob.add_variable("x", 0, 4)
+        y = prob.add_variable("y", -1, 1)
+        z = prob.add_variable("z", 0)
+        w = prob.add_variable("w", 0)
         prob += x + 4 * y + 9 * z, "obj"
         prob += x + y <= 5, "c1"
         prob += x + z >= 10, "c2"
@@ -2044,10 +2050,10 @@ class PULP_CBC_CMDTest(BaseSolverTest.PuLPTest):
         """
         name = self._testMethodName
         prob = LpProblem(name, const.LpMinimize)
-        x = LpVariable("x", 0, 4)
-        y = LpVariable("y", -1, 1)
-        z = LpVariable("z", 0)
-        w = LpVariable("w", 0)
+        x = prob.add_variable("x", 0, 4)
+        y = prob.add_variable("y", -1, 1)
+        z = prob.add_variable("z", 0)
+        w = prob.add_variable("w", 0)
         prob += x + 4 * y + 9 * z, "obj"
         prob += x + y <= 5, "c1"
         prob += x + z >= 10, "c2"
@@ -2184,7 +2190,7 @@ class GLPK_CMDTest(BaseSolverTest.PuLPTest):
         assert float(format(ub + 2, ".12g")) != float(ub + 2)
 
         model = LpProblem("mip-814", const.LpMaximize)
-        Q = LpVariable("Q", cat="Integer", lowBound=0, upBound=ub)
+        Q = prob.add_variable("Q", cat="Integer", lowBound=0, upBound=ub)
         model += Q
         model += Q >= 0
         model.solve(self.solver)
@@ -2200,7 +2206,7 @@ class GLPK_CMDTest(BaseSolverTest.PuLPTest):
 
         for simplex in ["primal", "dual"]:
             model = LpProblem(f"lp-814-{simplex}", const.LpMaximize)
-            Q = LpVariable("Q", lowBound=0, upBound=ub)
+            Q = prob.add_variable("Q", lowBound=0, upBound=ub)
             model += Q
             model += Q >= 0
             self.solver.options.append("--" + simplex)
@@ -2216,7 +2222,7 @@ class GLPK_CMDTest(BaseSolverTest.PuLPTest):
         ub = 12345678999.0
 
         model = LpProblem("ipt-814", const.LpMaximize)
-        Q = LpVariable("Q", lowBound=0, upBound=ub)
+        Q = prob.add_variable("Q", lowBound=0, upBound=ub)
         model += Q
         model += Q >= 0
         self.solver.options.append("--interior")
@@ -2232,7 +2238,7 @@ class GLPK_CMDTest(BaseSolverTest.PuLPTest):
 
         model = LpProblem("float_test", sense=const.LpMinimize)
 
-        var = LpVariable(name="var", lowBound=0, cat=const.LpContinuous)
+        var = prob.add_variable(name="var", lowBound=0, cat=const.LpContinuous)
         model += LpConstraint(np.float64(34.5) >= var)
         model += var <= np.float64(34.5)
 
@@ -2245,11 +2251,11 @@ class GLPK_CMDTest(BaseSolverTest.PuLPTest):
         m2 = Decimal("8.1")
         extra = 5
 
-        x = LpVariable("x", lowBound=0, upBound=50, cat=const.LpContinuous)
-        y = LpVariable(
+        x = prob.add_variable("x", lowBound=0, upBound=50, cat=const.LpContinuous)
+        y = prob.add_variable(
             "y", lowBound=0, upBound=Decimal("32.24"), cat=const.LpContinuous
         )
-        include_extra = LpVariable("include_extra1", cat=const.LpBinary)
+        include_extra = prob.add_variable("include_extra1", cat=const.LpBinary)
 
         prob = LpProblem("graph", const.LpMaximize)
 
@@ -2377,7 +2383,7 @@ class SASTest:
 
     def test_sas_with_option(self):
         prob = LpProblem("test", const.LpMinimize)
-        X = LpVariable.dicts("x", [1, 2, 3], lowBound=0.0, cat="Integer")
+        X = prob.add_variable_dicts("x", [1, 2, 3], lowBound=0.0, cat="Integer")
         prob += 2 * X[1] - 3 * X[2] - 4 * X[3], "obj"
         prob += -2 * X[2] - 3 * X[3] >= -5, "R1"
         prob += X[1] + X[2] + 2 * X[3] <= 4, "R2"

@@ -1,6 +1,5 @@
 from pulp import *
 import random
-from itertools import product
 
 
 def _bin_packing_instance(bins, seed=0):
@@ -29,9 +28,9 @@ def create_bin_packing_problem(bins, seed=0):
     bin_indices = [i for i in range(len(items))]
     item_indices = [i for i in range(len(items))]
 
-    using_bin = LpVariable.dicts("y", bin_indices, cat=LpBinary)
-    items_packed = LpVariable.dicts(
-        "x", indices=product(item_indices, bin_indices), cat=LpBinary
+    using_bin = prob.add_variable_dicts("y", bin_indices, cat=LpBinary)
+    items_packed = prob.add_variable_dicts(
+        "x", indices=[(i, b) for i in item_indices for b in bin_indices], cat=LpBinary
     )
 
     prob += lpSum(using_bin), "objective"

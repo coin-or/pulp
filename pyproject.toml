@@ -39,8 +39,8 @@ module = [
 follow_imports = "skip"
 
 [build-system]
-requires = ["setuptools>=77"]
-build-backend = "setuptools.build_meta"
+requires = ["maturin>=1.4,<2.0"]
+build-backend = "maturin"
 
 [dependency-groups]
 dev = [
@@ -75,6 +75,11 @@ version = {attr = "pulp.__version__"}
 "pulp.solverdir.cbc.win.i32"= ["*", "*.*"]
 "pulp.solverdir.cbc.win.i64"= ["*", "*.*"]
 "pulp.solverdir.cbc.osx.i64"= ["*", "*.*"]
+
+[tool.maturin]
+bindings = "pyo3"
+module-name = "pulp._rustcore"
+python-packages = ["pulp"]
 
 [project.scripts]
 pulptest = "pulp.tests.run_tests:pulpTestAll"
