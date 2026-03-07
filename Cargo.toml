@@ -1,0 +1,16 @@
+[package]
+name = "pulp-rust-core"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "Rust core for the PuLP Python LP modeler"
+repository = "https://github.com/coin-or/pulp"
+
+[lib]
+name = "pulp_rust_core"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.21", features = ["extension-module"] }
+indexmap = "2"
+

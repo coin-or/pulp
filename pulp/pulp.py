@@ -142,6 +142,9 @@ from collections.abc import Iterable
 import logging
 import dataclasses
 
+# The Rust core is a hard dependency in this redesigned, model-centric API.
+from . import _rustcore  # type: ignore[import-untyped]
+
 log = logging.getLogger(__name__)
 
 try:
@@ -179,13 +182,7 @@ class LpElement:
 
     def __init__(self, name):
         self.name = name
-        # self.hash MUST be different for each variable
-        # else dict() will call the comparison operators that are overloaded
-        self.hash = id(self)
         self.modified = True
-
-    def __hash__(self):
-        return self.hash
 
     def __str__(self):
         return self.name
@@ -244,66 +241,92 @@ class LpElement:
             return True
 
 
+def _rust_cat_to_const(rust_cat):
+    if rust_cat == _rustcore.Category.Continuous:
+        return const.LpContinuous
+    if rust_cat == _rustcore.Category.Integer:
+        return const.LpInteger
+    if rust_cat == _rustcore.Category.Binary:
+        return const.LpInteger  # Binary as Integer 0-1
+    return const.LpContinuous
+
+
+def _inf_to_none(x: float):
+    if x == float("-inf") or x <= -1e30:
+        return None
+    if x == float("inf") or x >= 1e30:
+        return None
+    return x
+
+
 class LpVariable(LpElement):
     """
-    This class models an LP Variable with the specified associated parameters
-
-    :param name: The name of the variable used in the output .lp file
-    :param lowBound: The lower bound on this variable's range.
-        Default is negative infinity
-    :param upBound: The upper bound on this variable's range.
-        Default is positive infinity
-    :param cat: The category this variable is in, Integer, Binary or
-        Continuous(default)
-    :param e: Used for column based modelling: relates to the variable's
-        existence in the objective function and constraints
+    Thin wrapper over the Rust Variable. Created only via
+    LpProblem.add_variable() or add_variable_dicts/dict/matrix.
     """
 
-    name: str
-    varValue: Optional[float]
-    dj: Optional[float]
-    lowBound: Optional[float]
-    upBound: Optional[float]
-    cat: str
-    _lowbound_original: Optional[float]
-    _upbound_original: Optional[float]
+    def __init__(self, _var):
+        self._var = _var
+        LpElement.__init__(self, _var.name)
 
-    def __init__(
-        self,
-        name: str,
-        lowBound: Optional[float] = None,
-        upBound: Optional[float] = None,
-        cat: str = const.LpContinuous,
-        e=None,
-    ):
-        LpElement.__init__(self, name)
-        self._lowbound_original = self.lowBound = lowBound
-        self._upbound_original = self.upBound = upBound
-        self.cat = cat
-        self.varValue = None
-        self.dj = None
-        if cat == const.LpBinary:
-            self._lowbound_original = self.lowBound = 0
-            self._upbound_original = self.upBound = 1
-            self.cat = const.LpInteger
-        if self.lowBound is not None:
-            if not math.isfinite(self.lowBound):
-                raise const.PulpError(
-                    "The lower bound of a variable must be finite, got {}".format(
-                        self.lowBound
-                    )
-                )
-        if self.upBound is not None:
-            if not math.isfinite(self.upBound):
-                raise const.PulpError(
-                    "The upper bound of a variable must be finite, got {}".format(
-                        self.upBound
-                    )
-                )
-        # Code to add a variable to constraints for column based
-        # modelling.
-        if e:
-            self.add_expression(e)
+    @property
+    def name(self) -> str:
+        return self._var.name
+
+    @name.setter
+    def name(self, value: str) -> None:
+        self._var.set_name(value)  # type: ignore[union-attr]
+
+    def __hash__(self) -> int:
+        return hash(self._var.id())
+
+    def __eq__(self, other: object):
+        if isinstance(other, LpVariable):
+            return self._var.id() == other._var.id()
+        if isinstance(other, (int, float)):
+            return LpAffineExpression(self) == other
+        return NotImplemented
+
+    @property
+    def lowBound(self) -> Optional[float]:
+        return _inf_to_none(self._var.lb)
+
+    @lowBound.setter
+    def lowBound(self, value: Optional[float]) -> None:
+        lb = float("-inf") if value is None else value
+        self._var.set_lb(lb)  # type: ignore[union-attr]
+
+    @property
+    def upBound(self) -> Optional[float]:
+        return _inf_to_none(self._var.ub)
+
+    @upBound.setter
+    def upBound(self, value: Optional[float]) -> None:
+        ub = float("inf") if value is None else value
+        self._var.set_ub(ub)  # type: ignore[union-attr]
+
+    @property
+    def cat(self) -> str:
+        return _rust_cat_to_const(self._var.category)
+
+    @property
+    def varValue(self) -> Optional[float]:
+        return self._var.value
+
+    @varValue.setter
+    def varValue(self, v: Optional[float]) -> None:
+        if v is not None:
+            self._var.set_value(v)
+
+    @property
+    def _lowbound_original(self) -> Optional[float]:
+        return self.lowBound
+
+    @property
+    def _upbound_original(self) -> Optional[float]:
+        return self.upBound
+
+    dj = None  # placeholder; can be extended if Rust stores dual
 
     def toDataclass(self) -> mpslp.MPSVariable:
         """
@@ -322,19 +345,19 @@ class LpVariable(LpElement):
         )
 
     @classmethod
-    def fromDataclass(cls, mps: mpslp.MPSVariable):
+    def fromDataclass(cls, problem: "LpProblem", mps: mpslp.MPSVariable):
         """
-        Initializes a variable object from information that comes from a dataclass
+        Initializes a variable from a dataclass by adding it to the given problem.
 
+        :param problem: the problem to add the variable to
         :param mps: a :py:class:`mpslp.MPSVariable` with the variable information
         :return: a :py:class:`LpVariable`
-        :rtype: :LpVariable
         """
-        var = cls(
-            name=mps.name, lowBound=mps.lowBound, upBound=mps.upBound, cat=mps.cat
-        )
-        var.dj = mps.dj
-        var.varValue = mps.varValue
+        lb = mps.lowBound if mps.lowBound is not None else float("-inf")
+        ub = mps.upBound if mps.upBound is not None else float("inf")
+        var = problem.add_variable(mps.name, mps.lowBound, mps.upBound, mps.cat)
+        if mps.varValue is not None:
+            var._var.set_value(mps.varValue)
         return var
 
     def toDict(self) -> dict[str, Any]:
@@ -362,148 +385,30 @@ class LpVariable(LpElement):
         return self.toDict()
 
     @classmethod
-    def fromDict(cls, data: dict[str, Any]):
+    def fromDict(cls, problem: "LpProblem", data: dict[str, Any]):
         """
-        Initializes a variable object from information that comes from a dict.
+        Initializes a variable from a dict by adding it to the given problem.
 
+        :param problem: the problem to add the variable to
         :param data: a dict with the variable information
         :return: a :py:class:`LpVariable`
-        :rtype: :LpVariable
         """
-        return cls.fromDataclass(mpslp.MPSVariable.fromDict(data))
+        return cls.fromDataclass(problem, mpslp.MPSVariable.fromDict(data))
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]):
+    def from_dict(cls, problem: "LpProblem", data: dict[str, Any]):
         """
-        Initializes a variable object from information that comes from a dict.
-
-        This method is deprecated and :py:class:`LpVariable.fromDict` should be used instead.
-
-        :param data: a dict with the variable information
-        :return: a :py:class:`LpVariable`
-        :rtype: :LpVariable
+        Deprecated. Use LpVariable.fromDict(problem, data) instead.
         """
         warnings.warn(
             "LpVariable.from_dict is deprecated, use LpVariable.fromDict instead",
             category=DeprecationWarning,
         )
-        return cls.fromDataclass(mpslp.MPSVariable.fromDict(data))
+        return cls.fromDict(problem, data)
 
     def add_expression(self, e):
-        self.expression = e
+        """Column-based modelling: add variable to constraints in e."""
         self.addVariableToConstraints(e)
-
-    @classmethod
-    def matrix(
-        cls,
-        name,
-        indices=None,
-        lowBound=None,
-        upBound=None,
-        cat=const.LpContinuous,
-        indexStart=[],
-    ):
-        if not isinstance(indices, tuple):
-            indices = (indices,)
-        if "%" not in name:
-            name += "_%s" * len(indices)
-
-        index = indices[0]
-        indices = indices[1:]
-        if len(indices) == 0:
-            return [
-                LpVariable(name % tuple(indexStart + [i]), lowBound, upBound, cat)
-                for i in index
-            ]
-        else:
-            return [
-                LpVariable.matrix(
-                    name, indices, lowBound, upBound, cat, indexStart + [i]
-                )
-                for i in index
-            ]
-
-    @classmethod
-    def dicts(
-        cls,
-        name,
-        indices=None,
-        lowBound=None,
-        upBound=None,
-        cat=const.LpContinuous,
-        indexStart=[],
-    ):
-        """
-        This function creates a dictionary of :py:class:`LpVariable` with the specified associated parameters.
-
-        :param name: The prefix to the name of each LP variable created
-        :param indices: A list of strings of the keys to the dictionary of LP
-            variables, and the main part of the variable name itself
-        :param lowBound: The lower bound on these variables' range. Default is
-            negative infinity
-        :param upBound: The upper bound on these variables' range. Default is
-            positive infinity
-        :param cat: The category these variables are in, Integer or
-            Continuous(default)
-
-        :return: A dictionary of :py:class:`LpVariable`
-        """
-
-        if not isinstance(indices, tuple):
-            indices = (indices,)
-        if "%" not in name:
-            name += "_%s" * len(indices)
-
-        index = indices[0]
-        indices = indices[1:]
-        d = {}
-        if len(indices) == 0:
-            for i in index:
-                d[i] = LpVariable(
-                    name % tuple(indexStart + [str(i)]), lowBound, upBound, cat
-                )
-        else:
-            for i in index:
-                d[i] = LpVariable.dicts(
-                    name, indices, lowBound, upBound, cat, indexStart + [i]
-                )
-        return d
-
-    @classmethod
-    def dict(cls, name, indices, lowBound=None, upBound=None, cat=const.LpContinuous):
-        if not isinstance(indices, tuple):
-            indices = (indices,)
-        if "%" not in name:
-            name += "_%s" * len(indices)
-
-        lists = indices
-
-        if len(indices) > 1:
-            # Cartesian product
-            res = []
-            while len(lists):
-                first = lists[-1]
-                nres = []
-                if res:
-                    if first:
-                        for f in first:
-                            nres.extend([[f] + r for r in res])
-                    else:
-                        nres = res
-                    res = nres
-                else:
-                    res = [[f] for f in first]
-                lists = lists[:-1]
-            index = [tuple(r) for r in res]
-        elif len(indices) == 1:
-            index = indices[0]
-        else:
-            return {}
-
-        d = {}
-        for i in index:
-            d[i] = cls(name % i, lowBound, upBound, cat)
-        return d
 
     def getLb(self):
         return self.lowBound
@@ -512,15 +417,17 @@ class LpVariable(LpElement):
         return self.upBound
 
     def bounds(self, low, up):
-        self.lowBound = low
-        self.upBound = up
+        lb = float("-inf") if low is None else low
+        ub = float("inf") if up is None else up
+        self._var.set_lb(lb)
+        self._var.set_ub(ub)
         self.modified = True
 
     def positive(self):
         self.bounds(0, None)
 
     def value(self):
-        return self.varValue
+        return self._var.value
 
     def round(self, epsInt=1e-5, eps=1e-7):
         if self.varValue is not None:
@@ -666,32 +573,25 @@ class LpVariable(LpElement):
             constraint.addVariable(self, coeff)
 
     def setInitialValue(self, val, check=True):
-        """
-        sets the initial value of the variable to `val`
-        May be used for warmStart a solver, if supported by the solver
-
-        :param float val: value to set to variable
-        :param bool check: if True, we check if the value fits inside the variable bounds
-        :return: True if the value was set
-        :raises ValueError: if check=True and the value does not fit inside the bounds
-        """
         lb = self.lowBound
         ub = self.upBound
-        config = [
-            ("smaller", "lowBound", lb, lambda: val < lb),
-            ("greater", "upBound", ub, lambda: val > ub),
-        ]
-
-        for rel, bound_name, bound_value, condition in config:
-            if bound_value is not None and condition():
-                if not check:
-                    return False
+        if lb is not None and val < lb:
+            if check:
                 raise ValueError(
-                    "In variable {}, initial value {} is {} than {} {}".format(
-                        self.name, val, rel, bound_name, bound_value
+                    "In variable {}, initial value {} is smaller than lowBound {}".format(
+                        self.name, val, lb
                     )
                 )
-        self.varValue = val
+            return False
+        if ub is not None and val > ub:
+            if check:
+                raise ValueError(
+                    "In variable {}, initial value {} is greater than upBound {}".format(
+                        self.name, val, ub
+                    )
+                )
+            return False
+        self._var.set_value(val)
         return True
 
     def fixValue(self):
@@ -754,18 +654,21 @@ class LpAffineExpression(dict):
         else:
             self.__name = None  # type: ignore[assignment]
 
-    def __init__(self, e=None, constant: float = 0.0, name: str | None = None):
+    def __init__(self, e=None, constant: float = 0.0, name: str | None = None, _expr=None):
         self.name = name
+        if _expr is not None:
+            self._expr = _expr
+            self.constant = _expr.constant
+            super().__init__()
+            return
         # TODO remove isinstance usage
         if e is None:
             e = {}
-        # maybe check for constant
         if not math.isfinite(constant):
             raise const.PulpError(
                 f"Invalid constant value: {constant}. It must be a finite number."
             )
         if isinstance(e, (LpAffineExpression, LpConstraint)):
-            # Will not copy the name
             self.constant = e.constant
             super().__init__(e.items())
         elif isinstance(e, dict):
@@ -780,6 +683,21 @@ class LpAffineExpression(dict):
         else:
             self.constant = e
             super().__init__()
+        # Keep Rust _expr in sync for constraint/objective push to Rust
+        self._expr = None
+        if e is None or (isinstance(e, dict) and len(e) == 0):
+            self._expr = _rustcore.AffineExpr()  # type: ignore[attr-defined]
+        elif isinstance(e, LpVariable):
+            self._expr = _rustcore.AffineExpr()  # type: ignore[attr-defined]
+            self._expr.add_term(e._var, 1)  # type: ignore[union-attr]
+        elif isinstance(e, (LpAffineExpression, LpConstraint)) and getattr(e, "_expr", None) is not None:
+            self._expr = e._expr.clone_expr()  # type: ignore[union-attr]
+        elif isinstance(e, (int, float)) and math.isfinite(e):
+            self._expr = _rustcore.AffineExpr()  # type: ignore[attr-defined]
+            self._expr.set_constant(float(e))  # type: ignore[union-attr]
+        else:
+            self._expr = _rustcore.AffineExpr()  # type: ignore[attr-defined]
+            self._expr.set_constant(self.constant)  # type: ignore[union-attr]
 
     # Proxy functions for variables
 
@@ -817,6 +735,13 @@ class LpAffineExpression(dict):
         else:
             self[key] = value
 
+    def __setitem__(self, key: LpElement, value: float | int):
+        old = self.get(key, 0.0)
+        super().__setitem__(key, value)
+        if getattr(self, "_expr", None) is not None and isinstance(key, LpVariable):
+            delta = float(value) - float(old)
+            self._expr.add_term(key._var, delta)  # type: ignore[union-attr]
+
     def emptyCopy(self):
         return LpAffineExpression()
 
@@ -824,6 +749,12 @@ class LpAffineExpression(dict):
         """Make a copy of self except the name which is reset"""
         # Will not copy the name
         return LpAffineExpression(self)
+
+    @staticmethod
+    def _str_coeff(c: float) -> str:
+        """Format coefficient for __str__: int when whole number, else float."""
+        c = float(c)
+        return str(int(c)) if c == int(c) else str(c)
 
     def __str__(
         self, include_constant: bool = True, override_constant: float | None = None
@@ -842,7 +773,7 @@ class LpAffineExpression(dict):
             if val == 1:
                 s += str(v)
             else:
-                s += str(val) + "*" + str(v)
+                s += self._str_coeff(val) + "*" + str(v)
         if include_constant:
             constant = self.constant if override_constant is None else override_constant
             if s == "":
@@ -866,8 +797,8 @@ class LpAffineExpression(dict):
 
     def __repr__(self, override_constant: float | None = None):
         constant = self.constant if override_constant is None else override_constant
-        l = [str(self[v]) + "*" + str(v) for v in self.sorted_keys()]
-        l.append(str(constant))
+        l = [f"{float(self[v])}*{v}" for v in self.sorted_keys()]
+        l.append(str(float(constant)))
         s = " + ".join(l)
         return s
 
@@ -941,38 +872,42 @@ class LpAffineExpression(dict):
         return result
 
     def addInPlace(self, other, sign: Literal[+1, -1] = 1):
-        """
-        :param int sign: the sign of the operation to do other.
-            if we add other => 1
-            if we subtract other => -1
-        """
         if isinstance(other, int) and (other == 0):
             return self
         if other is None:
             return self
         if isinstance(other, LpElement):
-            # if a variable, we add it to the dictionary
             self.addterm(other, sign)
+            if getattr(self, "_expr", None) is not None and isinstance(other, LpVariable):
+                self._expr.add_term(other._var, sign)  # type: ignore[union-attr]
         elif isinstance(other, (LpAffineExpression, LpConstraint)):
-            # if an expression, we add each variable and the constant
             self.constant += other.constant * sign
-            for v, x in other.items():
-                self.addterm(v, x * sign)
+            if getattr(self, "_expr", None) is not None and getattr(other, "_expr", None) is not None:
+                # Both have _expr: update dict and _expr without __setitem__ (so _expr updated once per term)
+                for v, x in other.items():
+                    super().__setitem__(v, self.get(v, 0) + x * sign)
+                    if isinstance(v, LpVariable):
+                        self._expr.add_term(v._var, float(x * sign))  # type: ignore[union-attr]
+                self._expr.set_constant(
+                    self._expr.constant + float(other.constant * sign)
+                )  # type: ignore[union-attr]
+            else:
+                for v, x in other.items():
+                    self.addterm(v, x * sign)
+                if getattr(self, "_expr", None) is not None and getattr(other, "_expr", None) is None:
+                    self._expr = None  # other has no _expr, can't keep in sync
         elif isinstance(other, dict):
-            # if a dictionary, we add each value
             for e in other.values():
                 self.addInPlace(e, sign=sign)
         elif isinstance(other, Iterable):
-            # if a list, we add each element of the list
             for e in other:
                 self.addInPlace(e, sign=sign)
-        # if we're here, other must be a number
-        # we check if it's an actual number:
         elif not math.isfinite(other):
             raise const.PulpError("Cannot add/subtract NaN/inf values")
-        # if it's indeed a number, we add it to the constant
         else:
             self.constant += other * sign
+            if getattr(self, "_expr", None) is not None:
+                self._expr.set_constant(self._expr.constant + other * sign)  # type: ignore[union-attr]
         return self
 
     def subInPlace(self, other):
@@ -1107,8 +1042,96 @@ class LpAffineExpression(dict):
         return self.toDict()
 
 
+def _rust_sense_to_const(rsense):
+    if rsense == _rustcore.Sense.LessEqual:  # type: ignore[attr-defined]
+        return const.LpConstraintLE
+    if rsense == _rustcore.Sense.GreaterEqual:  # type: ignore[attr-defined]
+        return const.LpConstraintGE
+    return const.LpConstraintEQ
+
+
+class _ConstraintExprProxy:
+    """Proxy for LpConstraint.expr when constraint is Rust-backed (no Python expr)."""
+
+    def __init__(self, constraint: "LpConstraint"):
+        self._constraint = constraint
+
+    @property
+    def constant(self) -> float:
+        return self._constraint.constant
+
+    def items(self):
+        return self._constraint.items()
+
+    def keys(self):
+        return self._constraint.keys()
+
+    def values(self):
+        return self._constraint.values()
+
+    def __str__(self, include_constant=True, override_constant=None):
+        c = override_constant if override_constant is not None else self.constant
+        parts = [f"{coeff}*{v.name}" for v, coeff in self.items()]
+        return " + ".join(parts) + (f" + {c}" if c else "")
+
+    def __repr__(self, override_constant=None):
+        c = override_constant if override_constant is not None else self.constant
+        return " + ".join(f"{float(coeff)}*{v.name}" for v, coeff in self.items()) + f" + {float(c)}"
+
+    @staticmethod
+    def _count_characters(line):
+        return sum(len(t) for t in line)
+
+    def asCplexVariablesOnly(self, name: str):
+        result = []
+        line = [f"{name}:"]
+        not_first = 0
+        for v, val in self.items():
+            if val < 0:
+                sign = " -"
+                val = -val
+            elif not_first:
+                sign = " +"
+            else:
+                sign = ""
+            not_first = 1
+            term = f"{sign} {val + 0:.12g} {v.name}" if val != 1 else f"{sign} {v.name}"
+            if self._count_characters(line) + len(term) > const.LpCplexLPLineSize:
+                result += ["".join(line)]
+                line = [term]
+            else:
+                line += [term]
+        return result, line
+
+    def asCplexLpAffineExpression(self, name: str, include_constant=True, override_constant=None):
+        result, line = self.asCplexVariablesOnly(name)
+        c = override_constant if override_constant is not None else self.constant
+        term = f" - {-c:.12g}" if c < 0 else (f" + {c}" if c > 0 else " 0")
+        result += ["".join(line) + term]
+        return "%s\n" % "\n".join(result)
+
+    def toDataclass(self):
+        return [mpslp.MPSCoefficient(name=k.name, value=v) for k, v in self.items()]
+
+    def isNumericalConstant(self):
+        return len(self.items()) == 0
+
+    def atom(self):
+        items = self.items()
+        return items[0][0] if items else None
+
+    def get(self, key, default=None):
+        for v, c in self.items():
+            if v is key or getattr(v, "name", None) == getattr(key, "name", None):
+                return c
+        return default
+
+    def copy(self):
+        return LpAffineExpression(self.items())
+
+
 class LpConstraint:
-    """An LP constraint"""
+    """An LP constraint (input form: expr, sense, rhs; or stored form: _constr, _model)."""
 
     constant: float
     expr: LpAffineExpression
@@ -1124,25 +1147,119 @@ class LpConstraint:
         sense: int = const.LpConstraintEQ,
         name: str | None = None,
         rhs: float | None = None,
+        _constr=None,
+        _model=None,
     ):
-        """
-        :param e: an instance of :class:`LpAffineExpression`
-        :param sense: one of :data:`~pulp.const.LpConstraintEQ`, :data:`~pulp.const.LpConstraintGE`, :data:`~pulp.const.LpConstraintLE` (0, 1, -1 respectively)
-        :param name: identifying string
-        :param rhs: numerical value of constraint target
-        """
+        if _constr is not None and _model is not None:
+            self._constr = _constr
+            self._model = _model
+            self.expr = _ConstraintExprProxy(self)
+            self.pi = None
+            self.slack = None
+            self.modified = True
+            self.__name = None
+            return
+        self._constr = None
+        self._model = None
         self.expr = e if isinstance(e, LpAffineExpression) else LpAffineExpression(e)
-        self.name = name
-        # we multiply by one
-        self.constant: float = float(self.expr.constant)
+        self.__name = name
+        # __constant is the RHS in normalized form (expr + __constant <= 0); used when pushing to Rust
+        expr_const = float(self.expr.constant)
         if rhs is not None:
             if not math.isfinite(rhs):
                 raise const.PulpError("Cannot set constraint RHS to NaN/inf values")
-            self.constant -= float(rhs)
-        self.sense = sense
+            self.__constant = expr_const - float(rhs)
+        else:
+            # (e, sense) form: expr <= 0 / >= 0 / == 0 => normalized RHS is 0
+            self.__constant = 0.0
+        self.__sense = sense
         self.pi = None
         self.slack = None
         self.modified = True
+
+    def _get_rust_data(self):
+        if self._constr is None:
+            return None
+        return self._model.get_constraint_data(self._constr.id())  # type: ignore[union-attr]
+
+    def _normalized_rhs(self) -> float:
+        """RHS in normalized form (expr + _normalized_rhs <= 0); use when pushing to Rust."""
+        if self._constr is None:
+            return self.__constant
+        d = self._get_rust_data()
+        return -d[1] if d else 0.0
+
+    @property
+    def name(self) -> str | None:
+        if self._constr is None:
+            return self.__name
+        d = self._get_rust_data()
+        return d[0] if d else None
+
+    @name.setter
+    def name(self, value: str | None):
+        if self._constr is None:
+            self.__name = value
+        # no setter for Rust-backed name
+
+    @property
+    def constant(self) -> float:
+        if self._constr is None:
+            # For EQ (e == 0), API expects constraint.constant == -expr.constant
+            if self.__sense == const.LpConstraintEQ:
+                return -float(self.expr.constant)
+            return self.__constant
+        d = self._get_rust_data()
+        if d is None:
+            return 0.0
+        return -d[1]  # PuLP constant = -rhs
+
+    @constant.setter
+    def constant(self, value: float):
+        if self._constr is None:
+            self.__constant = value
+        # no setter for Rust-backed
+
+    @property
+    def sense(self) -> int:
+        if self._constr is None:
+            return self.__sense
+        d = self._get_rust_data()
+        return _rust_sense_to_const(d[2]) if d else const.LpConstraintEQ
+
+    @sense.setter
+    def sense(self, value: int):
+        if self._constr is None:
+            self.__sense = value
+
+    def items(self):
+        if self._constr is not None:
+            d = self._get_rust_data()
+            if d:
+                return [(LpVariable(v), c) for v, c in d[3]]
+            return []
+        return list(self.expr.items()) if hasattr(self.expr, "items") else []
+
+    def keys(self):
+        return [v for v, _ in self.items()]
+
+    def values(self):
+        return [c for _, c in self.items()]
+
+    def __getitem__(self, key):
+        for v, c in self.items():
+            if v is key or (getattr(v, "name", None) == getattr(key, "name", None)):
+                return c
+        raise KeyError(key)
+
+    def __contains__(self, key):
+        return any(v is key or getattr(v, "name", None) == getattr(key, "name", None) for v, _ in self.items())
+
+    def __iter__(self):
+        return iter(self.keys())
+
+    def __len__(self):
+        return len(self.items())
 
     def getLb(self) -> float | None:
         if (self.sense == const.LpConstraintGE) or (self.sense == const.LpConstraintEQ):
@@ -1368,25 +1485,25 @@ class LpConstraint:
         return (float(self.constant) != 0.0) or (len(self) > 0)
 
     def __len__(self):
+        if self._constr is not None:
+            return len(self.items())
         return len(self.expr)
 
     def __iter__(self):
+        if self._constr is not None:
+            return iter(self.keys())
         return iter(self.expr)
 
     def __getitem__(self, key: LpElement):
         return self.expr[key]
 
     def get(self, key: LpVariable, default: float | None) -> float | None:
+        if self._constr is not None:
+            for v, c in self.items():
+                if v is key or (getattr(v, "name", None) == getattr(key, "name", None)):
+                    return c
+            return default
         return self.expr.get(key, default)
-
-    def keys(self):
-        return self.expr.keys()
-
-    def values(self):
-        return self.expr.values()
-
-    def items(self):
-        return self.expr.items()
 
     def value(self) -> float | None:
         s = self.constant
@@ -1475,6 +1592,9 @@ class LpConstraintVar(LpElement):
         LpElement.__init__(self, name)
         self.constraint = LpConstraint(name=self.name, sense=sense, rhs=rhs, e=e)
 
+    def __hash__(self) -> int:
+        return id(self)
+
     def addVariable(self, var, coeff):
         """
         Adds a variable to the constraint with the
@@ -1484,6 +1604,112 @@ class LpConstraintVar(LpElement):
 
     def value(self):
         return self.constraint.value()
+
+
+class _ObjectiveView:
+    """Thin view over Rust objective: .items(), .constant, .name, .sense."""
+
+    def __init__(self, coeffs, constant: float, sense, name=None):
+        self._coeffs = coeffs  # list of (Variable, float) from Rust
+        self._constant = constant
+        self._sense = sense
+        self._name = name
+
+    @property
+    def constant(self) -> float:
+        return self._constant
+
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, value):
+        self._name = value
+
+    def items(self):
+        return [(LpVariable(v), c) for v, c in self._coeffs]
+
+    def keys(self):
+        return [LpVariable(v) for v, _ in self._coeffs]
+
+    def values(self):
+        return [c for _, c in self._coeffs]
+
+    def value(self) -> float | None:
+        """Objective value from variable values; None if any variable has no value."""
+        s = self._constant
+        for v, c in self.items():
+            if v.varValue is None:
+                return None
+            s += v.varValue * c
+        return s
+
+    def isNumericalConstant(self):
+        return len(self._coeffs) == 0
+
+    def __contains__(self, variable):
+        return any(
+            v is variable or getattr(v, "name", None) == getattr(variable, "name", None)
+            for v, _ in self.items()
+        )
+
+    def __getitem__(self, variable):
+        for v, c in self.items():
+            if v is variable or getattr(v, "name", None) == getattr(variable, "name", None):
+                return c
+        raise KeyError(variable)
+
+    def __iter__(self):
+        return iter(self.keys())
+
+    def __neg__(self):
+        return _ObjectiveView(
+            [(v, -c) for v, c in self._coeffs],
+            -self._constant,
+            self._sense,
+            name=self._name,
+        )
+
+    @staticmethod
+    def _count_characters(line):
+        return sum(len(t) for t in line)
+
+    def asCplexVariablesOnly(self, name: str):
+        result = []
+        line = [f"{name}:"]
+        not_first = 0
+        for v, val in self.items():
+            if val < 0:
+                sign = " -"
+                val = -val
+            elif not_first:
+                sign = " +"
+            else:
+                sign = ""
+            not_first = 1
+            term = f"{sign} {val + 0:.12g} {v.name}" if val != 1 else f"{sign} {v.name}"
+            if self._count_characters(line) + len(term) > const.LpCplexLPLineSize:
+                result += ["".join(line)]
+                line = [term]
+            else:
+                line += [term]
+        return result, line
+
+    def asCplexLpAffineExpression(
+        self, name: str, include_constant: bool = True, override_constant=None
+    ):
+        result, line = self.asCplexVariablesOnly(name)
+        if include_constant:
+            c = override_constant if override_constant is not None else self._constant
+            term = f" - {-c:.12g}" if c < 0 else (f" + {c}" if c > 0 else " 0")
+            result += ["".join(line) + term]
+        else:
+            result += ["".join(line)]
+        return "%s\n" % "\n".join(result)
+
+    def toDataclass(self):
+        return [mpslp.MPSCoefficient(name=v.name, value=c) for v, c in self.items()]
 
 
 class LpProblem:
@@ -1504,10 +1730,8 @@ class LpProblem:
         if " " in name:
             warnings.warn("Spaces are not permitted in the name. Converted to '_'")
             name = name.replace(" ", "_")
-        self.objective: None | LpAffineExpression = None  # type: ignore[annotation-unchecked]
-        self.constraints: dict[str, LpConstraint] = {}  # type: ignore[annotation-unchecked]
         self.name = name
-        self.sense = sense
+        self._sense = sense
         self.sos1 = {}
         self.sos2 = {}
         self.status = const.LpStatusNotSolved
@@ -1518,16 +1742,246 @@ class LpProblem:
         self.modifiedVariables = []
         self.modifiedConstraints = []
         self.resolveOK = False
-        self._variables: list[LpVariable] = []  # type: ignore[annotation-unchecked]
-        self._variable_ids: dict[int, LpVariable] = (  # type: ignore[annotation-unchecked]
-            {}
-        )  # old school using dict.keys() for a set
         self.dummyVar = None
         self.solutionTime = 0
         self.solutionCpuTime = 0
-
-        # locals
         self.lastUnused = 0
+
+        self._model = _rustcore.Model(self.name)  # type: ignore[attr-defined]
+        self._constraints: dict[str, LpConstraint] = {}
+        self._variable_cache: dict[str, LpVariable] = {}
+
+    def add_variable(
+        self,
+        name: str,
+        lowBound: Optional[float] = None,
+        upBound: Optional[float] = None,
+        cat: str = const.LpContinuous,
+        obj=None,
+    ) -> LpVariable:
+        """Add a variable to the problem. Returns LpVariable wrapping the Rust variable.
+        If obj is given (column-based modelling), add variable to each LpConstraintVar with the given coefficient.
+        """
+        if lowBound is not None and not math.isfinite(lowBound):
+            raise const.PulpError(
+                "The lower bound of a variable must be finite, got {}".format(lowBound)
+            )
+        if upBound is not None and not math.isfinite(upBound):
+            raise const.PulpError(
+                "The upper bound of a variable must be finite, got {}".format(upBound)
+            )
+        lb = float("-inf") if lowBound is None else lowBound
+        ub = float("inf") if upBound is None else upBound
+        if cat == const.LpBinary:
+            lb, ub = 0.0, 1.0
+            cat = const.LpInteger
+        if lowBound is not None and math.isfinite(lowBound):
+            lb = lowBound
+        if upBound is not None and math.isfinite(upBound):
+            ub = upBound
+        rcat = (
+            _rustcore.Category.Binary  # type: ignore[attr-defined]
+            if cat == const.LpBinary
+            else (
+                _rustcore.Category.Integer  # type: ignore[attr-defined]
+                if cat == const.LpInteger
+                else _rustcore.Category.Continuous  # type: ignore[attr-defined]
+            )
+        )
+        rvar = self._model.add_variable(name, lb, ub, rcat)  # type: ignore[union-attr]
+        var = LpVariable(rvar)
+        self._variable_cache[var.name] = var
+        if obj is not None:
+            for term, coeff in obj.items():
+                if isinstance(term, LpConstraintVar):
+                    term.addVariable(var, coeff)
+        return var
+
+    def add_variable_dicts(
+        self,
+        name: str,
+        indices=None,
+        lowBound: Optional[float] = None,
+        upBound: Optional[float] = None,
+        cat: str = const.LpContinuous,
+        indexStart=None,
+    ) -> dict:
+        """Create a dictionary of variables; names built from name + indices."""
+        if indexStart is None:
+            indexStart = []
+        if not isinstance(indices, tuple):
+            indices = (indices,)
+        if "%" not in name:
+            name += "_%s" * len(indices)
+        index = indices[0]
+        indices_rest = indices[1:]
+        lb = float("-inf") if lowBound is None else lowBound
+        ub = float("inf") if upBound is None else upBound
+        if cat == const.LpBinary:
+            lb, ub = 0.0, 1.0
+            cat = const.LpInteger
+        rcat = (
+            _rustcore.Category.Binary  # type: ignore[attr-defined]
+            if cat == const.LpBinary
+            else (
+                _rustcore.Category.Integer  # type: ignore[attr-defined]
+                if cat == const.LpInteger
+                else _rustcore.Category.Continuous  # type: ignore[attr-defined]
+            )
+        )
+        if len(indices_rest) == 0:
+            names = [name % tuple(indexStart + [str(i)]) for i in index]
+            vars_ = self._model.add_variables_batch(names, lb, ub, rcat)  # type: ignore[union-attr]
+            return {i: LpVariable(v) for i, v in zip(index, vars_)}
+        return {
+            i: self.add_variable_dicts(
+                name, indices_rest, lowBound, upBound, cat, indexStart + [i]
+            )
+            for i in index
+        }
+
+    def add_variable_dict(
+        self,
+        name: str,
+        indices,
+        lowBound: Optional[float] = None,
+        upBound: Optional[float] = None,
+        cat: str = const.LpContinuous,
+    ) -> dict:
+        """Create a dictionary of variables with Cartesian product of indices."""
+        if not isinstance(indices, tuple):
+            indices = (indices,)
+        if "%" not in name:
+            name += "_%s" * len(indices)
+        lists = list(indices)
+        if len(indices) > 1:
+            res = []
+            while lists:
+                first = lists[-1]
+                nres = []
+                if res:
+                    if first:
+                        for f in first:
+                            nres.extend([[f] + r for r in res])
+                    else:
+                        nres = res
+                    res = nres
+                else:
+                    res = [[f] for f in first]
+                lists = lists[:-1]
+            index = [tuple(r) for r in res]
+        elif len(indices) == 1:
+            index = list(indices[0])
+        else:
+            return {}
+        names = [name % (i if isinstance(i, tuple) else (i,)) for i in index]
+        lb = float("-inf") if lowBound is None else lowBound
+        ub = float("inf") if upBound is None else upBound
+        if cat == const.LpBinary:
+            lb, ub = 0.0, 1.0
+            cat = const.LpInteger
+        rcat = (
+            _rustcore.Category.Binary  # type: ignore[attr-defined]
+            if cat == const.LpBinary
+            else (
+                _rustcore.Category.Integer  # type: ignore[attr-defined]
+                if cat == const.LpInteger
+                else _rustcore.Category.Continuous  # type: ignore[attr-defined]
+            )
+        )
+        vars_ = self._model.add_variables_batch(names, lb, ub, rcat)  # type: ignore[union-attr]
+        return {i: LpVariable(v) for i, v in zip(index, vars_)}
+
+    def add_variable_matrix(
+        self,
+        name: str,
+        indices=None,
+        lowBound: Optional[float] = None,
+        upBound: Optional[float] = None,
+        cat: str = const.LpContinuous,
+        indexStart=None,
+    ):
+        """Create a list or nested list of variables; names built from name + indices."""
+        if indexStart is None:
+            indexStart = []
+        if not isinstance(indices, tuple):
+            indices = (indices,)
+        if "%" not in name:
+            name += "_%s" * len(indices)
+        index = indices[0]
+        indices_rest = indices[1:]
+        lb = float("-inf") if lowBound is None else lowBound
+        ub = float("inf") if upBound is None else upBound
+        if cat == const.LpBinary:
+            lb, ub = 0.0, 1.0
+            cat = const.LpInteger
+        rcat = (
+            _rustcore.Category.Binary  # type: ignore[attr-defined]
+            if cat == const.LpBinary
+            else (
+                _rustcore.Category.Integer  # type: ignore[attr-defined]
+                if cat == const.LpInteger
+                else _rustcore.Category.Continuous  # type: ignore[attr-defined]
+            )
+        )
+        if len(indices_rest) == 0:
+            names = [name % tuple(indexStart + [i]) for i in index]
+            vars_ = self._model.add_variables_batch(names, lb, ub, rcat)  # type: ignore[union-attr]
+            return [LpVariable(v) for v in vars_]
+        return [
+            self.add_variable_matrix(
+                name, indices_rest, lowBound, upBound, cat, indexStart + [i]
+            )
+            for i in index
+        ]
+
+    @property
+    def constraints(self) -> dict[str, LpConstraint]:
+        """Constraints name -> LpConstraint (from Rust)."""
+        return self._constraints
+
+    @property
+    def objective(self):
+        """Objective view from Rust (has .items(), .constant, .name, .sense)."""
+        obj = self._model.get_objective()  # type: ignore[union-attr]
+        if obj is None:
+            return None
+        coeffs, constant, sense = obj
+        return _ObjectiveView(coeffs, constant, sense)
+
+    @objective.setter
+    def objective(self, value):
+        """Set objective from LpAffineExpression or similar; stored in Rust."""
+        if value is None:
+            self._model.clear_objective()  # type: ignore[union-attr]
+            return
+        if isinstance(value, LpVariable):
+            value = LpAffineExpression(value)
+        if isinstance(value, LpAffineExpression):
+            # Use dict as source of truth (constraint-style); _expr may be out of sync e.g. when built from dict
+            coeffs = [(v._var, float(c)) for v, c in value.items()]
+            cst = float(value.constant)
+            sense = (
+                _rustcore.ObjSense.Minimize  # type: ignore[attr-defined]
+                if self.sense == const.LpMinimize
+                else _rustcore.ObjSense.Maximize  # type: ignore[attr-defined]
+            )
+            self._model.set_objective(coeffs, cst, sense)  # type: ignore[union-attr]
+        elif isinstance(value, _ObjectiveView):
+            sense = (
+                _rustcore.ObjSense.Minimize  # type: ignore[attr-defined]
+                if self.sense == const.LpMinimize
+                else _rustcore.ObjSense.Maximize  # type: ignore[attr-defined]
+            )
+            self._model.set_objective(value._coeffs, value._constant, sense)  # type: ignore[union-attr]
+
+    @property
+    def sense(self):
+        return self._sense
+
+    @sense.setter
+    def sense(self, value):
+        self._sense = value
 
     def __repr__(self):
         s = self.name + ":\n"
@@ -1547,23 +2001,32 @@ class LpProblem:
         return s
 
     def __getstate__(self):
-        # Remove transient data prior to pickling.
-        state = self.__dict__.copy()
-        del state["_variable_ids"]
-        return state
+        return self.__dict__.copy()
 
     def __setstate__(self, state):
-        # Update transient data prior to unpickling.
         self.__dict__.update(state)
-        self._variable_ids = {}
-        for v in self._variables:
-            self._variable_ids[v.hash] = v
 
     def copy(self):
-        """Make a copy of self. Expressions are copied by reference"""
+        """Make a copy of self. Variables, objective, and constraints are re-built in Rust."""
         lpcopy = LpProblem(name=self.name, sense=self.sense)
-        lpcopy.objective = self.objective
-        lpcopy.constraints = self.constraints.copy()
+        for v in self.variables():
+            lpcopy.add_variable(v.name, v.lowBound, v.upBound, v.cat)
+        if self.objective is not None:
+            lpcopy.objective = self.objective
+        var_by_name = {v.name: v for v in lpcopy.variables()}
+        for name, c in self.constraints.items():
+            items = c.items()
+            items_new = [(var_by_name[v.name], coeff) for v, coeff in items if v.name in var_by_name]
+            expr = LpAffineExpression()
+            expr._expr = _rustcore.AffineExpr()  # type: ignore[attr-defined]
+            for v_new, coeff in items_new:
+                expr._expr.add_term(v_new._var, coeff)  # type: ignore[union-attr]
+            expr._expr.set_constant(0)  # type: ignore[union-attr]
+            expr.constant = 0
+            lpcopy.addConstraint(
+                LpConstraint(expr, c.sense, name=name, rhs=-c.constant),
+                name=name,
+            )
         lpcopy.sos1 = self.sos1.copy()
         lpcopy.sos2 = self.sos2.copy()
         return lpcopy
@@ -1614,13 +2077,38 @@ class LpProblem:
             sos2=list(self.sos2.values()),
         )
 
+    def toRustModel(self):
+        """
+        Return the Rust-backed model for this problem, if available.
+
+        When the compiled extension ``pulp._rustcore`` is present, each
+        :class:`LpProblem` maintains an internal Rust ``Model`` that mirrors
+        variables, objective, and constraints as they are created.
+
+        :raises RuntimeError: if the Rust extension is not available.
+        """
+        if not self._rust_enabled():
+            raise RuntimeError(
+                "pulp._rustcore is not available; build the Rust extension with maturin "
+                "before calling toRustModel()."
+            )
+        return self._model
+
     @classmethod
-    def fromDataclass(cls, mps: mpslp.MPS) -> tuple[dict[str, LpVariable], LpProblem]:
+    def fromDataclass(
+        cls,
+        mps: mpslp.MPS,
+        *,
+        objective_negate_for_max: bool = True,
+    ) -> tuple[dict[str, LpVariable], LpProblem]:
         """
         Takes a :py:class:`mpslp.MPS` with all necessary information to build a model.
-        And returns a dictionary of variables and a problem object
+        And returns a dictionary of variables and a problem object.
 
         :param mps: :py:class:`mpslp.MPS` with the model stored
+        :param objective_negate_for_max: when True (default), negate objective coefficients
+            when sense is Maximize (for MPS files written as minimization). Set False when
+            loading from :meth:`toDict` / JSON, where coefficients are stored as-is.
         :return: a tuple with a dictionary of variables and a :py:class:`LpProblem`
         """
 
@@ -1631,12 +2119,14 @@ class LpProblem:
 
         # recreate the variables.
         var: dict[str, LpVariable] = {
-            v.name: LpVariable.fromDataclass(v) for v in mps.variables
+            v.name: LpVariable.fromDataclass(pb, v) for v in mps.variables
         }
 
         # objective function.
-        # we change the names for the objects:
         obj_e = {var[v.name]: v.value for v in mps.objective.coefficients}
+        # MPS files are written as minimization; when sense is Maximize we negated on write, so negate back on read. toDict stores coefficients as-is, so do not negate when loading from dict.
+        if objective_negate_for_max and mps.parameters.sense == const.LpMaximize:
+            obj_e = {v: -c for v, c in obj_e.items()}
         pb += LpAffineExpression(e=obj_e, name=mps.objective.name)
 
         # constraints
@@ -1661,7 +2151,9 @@ class LpProblem:
 
     @classmethod
     def fromDict(cls, data: dict[Any, Any]):
-        return cls.fromDataclass(mpslp.MPS.fromDict(data))
+        return cls.fromDataclass(
+            mpslp.MPS.fromDict(data), objective_negate_for_max=False
+        )
 
     @classmethod
     def from_dict(cls, data: dict[Any, Any]):
@@ -1721,6 +2213,7 @@ class LpProblem:
     def normalisedNames(self):
         constraintsNames = {k: "C%07d" % i for i, k in enumerate(self.constraints)}
         _variables = self.variables()
+        self._variables = _variables  # used by writeMPS after rename
         variablesNames = {k.name: "X%07d" % i for i, k in enumerate(_variables)}
         return constraintsNames, variablesNames, "OBJ"
 
@@ -1772,47 +2265,28 @@ class LpProblem:
         return gap
 
     def addVariable(self, variable: LpVariable):
-        """
-        Adds a variable to the problem before a constraint is added
-
-        :param variable: the variable to be added
-        """
-        if variable.hash not in self._variable_ids:
-            self._variables.append(variable)
-            self._variable_ids[variable.hash] = variable
+        """No-op: variables are only created via add_variable/add_variables_batch."""
+        pass
 
     def addVariables(self, variables: Iterable[LpVariable]):
-        """
-        Adds variables to the problem before a constraint is added
-
-        :param variables: the variables to be added
-        """
-        for v in variables:
-            self.addVariable(v)
+        """No-op: variables are only created via add_variable/add_variables_batch."""
+        pass
 
     def variables(self) -> list[LpVariable]:
-        """
-        Returns the problem variables
-
-        :return: A list containing the problem variables
-        :rtype: (list, :py:class:`LpVariable`)
-        """
-        if self.objective:
-            self.addVariables(self.objective.keys())
-        for c in self.constraints.values():
-            self.addVariables(c.keys())
-        self._variables.sort(key=lambda v: v.name)
-        return self._variables
+        """Returns the problem variables from the Rust model (cached so assignVarsVals/Dj update the same instances)."""
+        out = []
+        for v in self._model.list_variables():  # type: ignore[union-attr]
+            if v.name in self._variable_cache:
+                out.append(self._variable_cache[v.name])
+            else:
+                w = LpVariable(v)
+                self._variable_cache[v.name] = w
+                out.append(w)
+        return out
 
     def variablesDict(self):
-        variables = {}
-        if self.objective:
-            for v in self.objective:
-                variables[v.name] = v
-        for c in self.constraints.values():
-            for v in c:
-                variables[v.name] = v
-        return variables
+        """Dict of variable name -> LpVariable, using same order as variables()."""
+        return {v.name: v for v in self.variables()}
 
     def add(self, constraint, name=None):
         self.addConstraint(constraint, name)
@@ -1823,24 +2297,36 @@ class LpProblem:
         if name:
             constraint.name = name
         try:
-            if constraint.name:
-                name = constraint.name
-            else:
-                name = self.unusedConstraintName()
+            cname = constraint.name
         except AttributeError:
-            raise TypeError("Can only add LpConstraint objects")
-            # removed as this test fails for empty constraints
-        #        if len(constraint) == 0:
-        #            if not constraint.valid():
-        #                raise ValueError, "Cannot add false constraints"
-        if name in self.constraints:
+            cname = None
+        name = cname or self.unusedConstraintName()
+        if name in self._constraints:
             if self.noOverlap:
                 raise const.PulpError("overlapping constraint names: " + name)
             else:
                 print("Warning: overlapping constraint names:", name)
-        self.constraints[name] = constraint
-        self.modifiedConstraints.append(constraint)
-        self.addVariables(constraint.keys())
+        # Input constraint has .expr (LpAffineExpression with _expr), .constant, .sense
+        expr = getattr(constraint, "expr", None)
+        if expr is not None and hasattr(expr, "_expr"):
+            # Use expr.items() (Python dict) as source of truth for coefficients
+            coeffs = [(v._var, float(c)) for v, c in expr.items()]
+            rhs = -constraint._normalized_rhs()
+            sense = (
+                _rustcore.Sense.LessEqual  # type: ignore[attr-defined]
+                if constraint.sense == const.LpConstraintLE
+                else (
+                    _rustcore.Sense.GreaterEqual  # type: ignore[attr-defined]
+                    if constraint.sense == const.LpConstraintGE
+                    else _rustcore.Sense.Equal  # type: ignore[attr-defined]
+                )
+            )
+            rust_constr = self._model.add_constraint(name, coeffs, rhs, sense)  # type: ignore[union-attr]
+            self._constraints[name] = LpConstraint(_constr=rust_constr, _model=self._model)
+        else:
+            # Stored constraint (already has _constr, _model) - just store
+            self._constraints[name] = constraint
+        self.modifiedConstraints.append(self._constraints[name])
 
     def setObjective(self, obj):
         """
@@ -1860,7 +2346,6 @@ class LpProblem:
         except AttributeError:
             name = None
         self.objective = obj
-        self.objective.name = name
         self.resolveOK = False
 
     def __iadd__(self, other):
@@ -1880,14 +2365,10 @@ class LpProblem:
             if self.objective is not None:
                 warnings.warn("Overwriting previously set objective.")
             self.objective = other
-            if name is not None:
-                # we may keep the LpAffineExpression name
-                self.objective.name = name
         elif isinstance(other, LpVariable) or isinstance(other, (int, float)):
             if self.objective is not None:
                 warnings.warn("Overwriting previously set objective.")
             self.objective = LpAffineExpression(other)
-            self.objective.name = name
         else:
             raise TypeError(
                 "Can only add LpConstraintVar, LpConstraint, LpAffineExpression or True objects"
@@ -1927,7 +2408,22 @@ class LpProblem:
             if use_objective:
                 if other.objective is None:
                     raise ValueError("Objective not set by provided problem")
-                self.objective += other.objective
+                if isinstance(self.objective, _ObjectiveView):
+                    obj = LpAffineExpression(
+                        e=dict(self.objective.items()), constant=self.objective.constant
+                    )
+                    if isinstance(other.objective, _ObjectiveView):
+                        obj.addInPlace(
+                            LpAffineExpression(
+                                e=dict(other.objective.items()),
+                                constant=other.objective.constant,
+                            )
+                        )
+                    else:
+                        obj.addInPlace(other.objective)
+                    self.objective = obj
+                else:
+                    self.objective += other.objective
         else:
             for c in other:  # type: ignore[assignment]
                 if isinstance(c, tuple):
@@ -2028,7 +2524,7 @@ class LpProblem:
     def assignVarsVals(self, values):
         variables = self.variablesDict()
         for name in values:
-            if name != "__dummy":
+            if name != "__dummy" and name in variables:
                 variables[name].varValue = values[name]
 
     def assignVarsDj(self, values):
@@ -2036,6 +2532,10 @@ class LpProblem:
         for name in values:
             if name != "__dummy":
                 variables[name].dj = values[name]
+        # Ensure variables not in solution file have dj set (e.g. 0) so v.dj is never None
+        for name, v in variables.items():
+            if name != "__dummy" and v.dj is None:
+                v.dj = 0.0
 
     def assignConsPi(self, values):
         for name in values:
@@ -2059,7 +2559,7 @@ class LpProblem:
 
     def get_dummyVar(self):
         if self.dummyVar is None:
-            self.dummyVar = LpVariable("__dummy", 0, 0)
+            self.dummyVar = self.add_variable("__dummy", 0, 0)
         return self.dummyVar
 
     def fixObjective(self):
@@ -2189,7 +2689,7 @@ class LpProblem:
 
         :return: number of variables in model
         """
-        return len(self._variable_ids)
+        return len(self.variables())
 
     def numConstraints(self):
         """
@@ -2251,10 +2751,10 @@ class FixedElasticSubProblem(LpProblem):
         self.constant = constraint.constant
         self.RHS = -constraint.constant
         self += constraint, "_Constraint"
-        # create and add these variables but disabled
-        self.freeVar = LpVariable("_free_bound", upBound=0, lowBound=0)
-        self.upVar = LpVariable("_pos_penalty_var", upBound=0, lowBound=0)
-        self.lowVar = LpVariable("_neg_penalty_var", upBound=0, lowBound=0)
+        # create and add these variables but disabled (use problem so Rust-backed)
+        self.freeVar = self.add_variable("_free_bound", 0, 0)
+        self.upVar = self.add_variable("_pos_penalty_var", 0, 0)
+        self.lowVar = self.add_variable("_neg_penalty_var", 0, 0)
         constraint.addInPlace(self.freeVar + self.lowVar + self.upVar)
         if proportionFreeBound:
             proportionFreeBoundList = (proportionFreeBound, proportionFreeBound)
