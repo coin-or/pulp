@@ -80,8 +80,11 @@ log = logging.getLogger(__name__)
 import subprocess
 
 devnull = subprocess.DEVNULL
+
+
 def to_string(_obj):
     return str(_obj).encode()
+
 
 from uuid import uuid4
 

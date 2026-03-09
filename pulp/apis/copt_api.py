@@ -32,11 +32,14 @@ from .core import (
 
 # COPT string convention
 if sys.version_info >= (3, 0):
+
     def coptstr(x):
         return bytes(x, "utf-8")
 else:
+
     def coptstr(x):
         return x
+
 
 byref = ctypes.byref
 
