@@ -23,8 +23,8 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
-      - name: Code Quality
-        run: uv run black pulp/ --check
+      - name: Lint and format
+        run: uv run ruff check pulp && uv run ruff format pulp --check
       - name: Type Check
         run: uv run ty check pulp
       - name: install ubuntu-only solvers

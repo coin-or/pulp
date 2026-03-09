@@ -339,7 +339,11 @@ class CPLEX_PY(LpSolver):
             """True if the solver is available"""
             return True
 
-        def actualSolve(self, lp, callback: Optional[Iterable[type[cplex.callbacks.Callback]]] = None):  # type: ignore[misc]
+        def actualSolve(
+            self,
+            lp,
+            callback: Optional[Iterable[type[cplex.callbacks.Callback]]] = None,
+        ):  # type: ignore[misc]
             """
             Solve a well formulated lp problem
 

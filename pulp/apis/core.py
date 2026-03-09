@@ -100,7 +100,13 @@ class LpSolver:
     name = "LpSolver"
 
     def __init__(
-        self, mip: bool = True, msg: bool = True, options: list[str] | None = None, timeLimit: float | None = None, *args: Any, **kwargs: Any
+        self,
+        mip: bool = True,
+        msg: bool = True,
+        options: list[str] | None = None,
+        timeLimit: float | None = None,
+        *args: Any,
+        **kwargs: Any,
     ) -> None:
         """
         :param bool mip: if False, assume LP even if integer variables
@@ -309,7 +315,13 @@ class LpSolver_CMD(LpSolver):
 
     name = "LpSolver_CMD"
 
-    def __init__(self, path: str | None = None, keepFiles: bool = False, *args: Any, **kwargs: Any) -> None:
+    def __init__(
+        self,
+        path: str | None = None,
+        keepFiles: bool = False,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
         """
 
         :param bool mip: if False, assume LP even if integer variables

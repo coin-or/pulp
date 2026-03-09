@@ -99,7 +99,9 @@ def allcombinations(orgset: list[Any], k: int) -> Iterator[tuple[Any, ...]]:
     return itertools.chain(*[combination(orgset, i) for i in range(1, k + 1)])
 
 
-def makeDict(headers: list[list[Any]], array: list[Any], default: Any = None) -> dict[Any, Any]:
+def makeDict(
+    headers: list[list[Any]], array: list[Any], default: Any = None
+) -> dict[Any, Any]:
     """
     makes a list into a dictionary with the headings given in headings
     headers is a list of header lists
@@ -109,7 +111,9 @@ def makeDict(headers: list[list[Any]], array: list[Any], default: Any = None) ->
     return result
 
 
-def __makeDict(headers: list[list[Any]], array: list[Any], default: Any = None) -> tuple[dict[Any, Any], Any]:
+def __makeDict(
+    headers: list[list[Any]], array: list[Any], default: Any = None
+) -> tuple[dict[Any, Any], Any]:
     # this is a recursive function so end the recursion as follows
     result = {}
     returndefaultvalue = None
@@ -147,7 +151,9 @@ def splitDict(data: dict[Any, list[Any]]) -> tuple[dict[Any, Any], ...]:
     return tuple(output)
 
 
-def read_table(data: str, coerce_type: type, transpose: bool = False) -> dict[tuple[str, str], Any]:
+def read_table(
+    data: str, coerce_type: type, transpose: bool = False
+) -> dict[tuple[str, str], Any]:
     """
     Reads in data from a simple table and forces it to be a particular type
 

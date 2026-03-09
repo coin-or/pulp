@@ -173,7 +173,9 @@ class LpVariable:
 
     def __init__(self, _var: _rustcore.Variable) -> None:
         if _var is None:
-            raise TypeError("LpVariable requires a Rust variable (created only by the model)")
+            raise TypeError(
+                "LpVariable requires a Rust variable (created only by the model)"
+            )
         self._var: _rustcore.Variable = _var
 
     @property
@@ -202,31 +204,49 @@ class LpVariable:
     def __bool__(self) -> bool:
         return bool(self.roundedValue())
 
-    def __add__(self, other: LpAffineExpression | LpVariable | int | float) -> LpAffineExpression:
+    def __add__(
+        self, other: LpAffineExpression | LpVariable | int | float
+    ) -> LpAffineExpression:
         return LpAffineExpression.from_variable(self) + other
 
-    def __radd__(self, other: LpAffineExpression | LpVariable | int | float) -> LpAffineExpression:
+    def __radd__(
+        self, other: LpAffineExpression | LpVariable | int | float
+    ) -> LpAffineExpression:
         return LpAffineExpression.from_variable(self) + other
 
-    def __sub__(self, other: LpAffineExpression | LpVariable | int | float) -> LpAffineExpression:
+    def __sub__(
+        self, other: LpAffineExpression | LpVariable | int | float
+    ) -> LpAffineExpression:
         return LpAffineExpression.from_variable(self) - other
 
-    def __rsub__(self, other: LpAffineExpression | LpVariable | int | float) -> LpAffineExpression:
+    def __rsub__(
+        self, other: LpAffineExpression | LpVariable | int | float
+    ) -> LpAffineExpression:
         return other - LpAffineExpression.from_variable(self)
 
-    def __mul__(self, other: LpAffineExpression | LpVariable | int | float) -> LpAffineExpression:
+    def __mul__(
+        self, other: LpAffineExpression | LpVariable | int | float
+    ) -> LpAffineExpression:
         return LpAffineExpression.from_variable(self) * other
 
-    def __rmul__(self, other: LpAffineExpression | LpVariable | int | float) -> LpAffineExpression:
+    def __rmul__(
+        self, other: LpAffineExpression | LpVariable | int | float
+    ) -> LpAffineExpression:
         return LpAffineExpression.from_variable(self) * other
 
-    def __truediv__(self, other: LpAffineExpression | LpVariable | int | float) -> LpAffineExpression:
+    def __truediv__(
+        self, other: LpAffineExpression | LpVariable | int | float
+    ) -> LpAffineExpression:
         return LpAffineExpression.from_variable(self) / other
 
-    def __le__(self, other: LpAffineExpression | LpVariable | int | float) -> LpAffineExpression:
+    def __le__(
+        self, other: LpAffineExpression | LpVariable | int | float
+    ) -> LpAffineExpression:
         return LpAffineExpression.from_variable(self) <= other
 
-    def __ge__(self, other: LpAffineExpression | LpVariable | int | float) -> LpAffineExpression:
+    def __ge__(
+        self, other: LpAffineExpression | LpVariable | int | float
+    ) -> LpAffineExpression:
         return LpAffineExpression.from_variable(self) >= other
 
     def __eq__(self, other: object):
@@ -253,7 +273,7 @@ class LpVariable:
 
     @lowBound.setter
     def lowBound(self, value: float | None) -> None:
-        self._var.set_lb(float('-inf') if value is None else value)
+        self._var.set_lb(float("-inf") if value is None else value)
 
     @property
     def upBound(self) -> float:
@@ -261,7 +281,7 @@ class LpVariable:
 
     @upBound.setter
     def upBound(self, value: float | None) -> None:
-        self._var.set_ub(float('inf') if value is None else value)
+        self._var.set_ub(float("inf") if value is None else value)
 
     @property
     def cat(self) -> str:
@@ -476,7 +496,9 @@ class LpVariable:
             s += f" <= {self.upBound:.12g}"
         return s
 
-    def asCplexLpAffineExpression(self, name: str, include_constant: bool = True) -> str:
+    def asCplexLpAffineExpression(
+        self, name: str, include_constant: bool = True
+    ) -> str:
         return LpAffineExpression.from_variable(self).asCplexLpAffineExpression(
             name, include_constant
         )
@@ -556,7 +578,9 @@ class LpAffineExpression:
         return cls(expr)
 
     @classmethod
-    def from_variable(cls, var: LpVariable, name: str | None = None) -> LpAffineExpression:
+    def from_variable(
+        cls, var: LpVariable, name: str | None = None
+    ) -> LpAffineExpression:
         expr = _rustcore.AffineExpr.from_variable(var._var)
         cls._set_name(expr, name)
         return cls(expr)
@@ -568,7 +592,9 @@ class LpAffineExpression:
         return cls(expr)
 
     @classmethod
-    def from_dict(cls, d: dict[LpVariable, float], constant: float = 0.0, name: str | None = None) -> LpAffineExpression:
+    def from_dict(
+        cls, d: dict[LpVariable, float], constant: float = 0.0, name: str | None = None
+    ) -> LpAffineExpression:
         expr = _rustcore.AffineExpr()
         expr.set_constant(float(constant))
         for k, v in d.items():
@@ -578,7 +604,12 @@ class LpAffineExpression:
         return cls(expr)
 
     @classmethod
-    def from_list(cls, pairs: list[tuple[LpVariable, float]], constant: float = 0.0, name: str | None = None) -> LpAffineExpression:
+    def from_list(
+        cls,
+        pairs: list[tuple[LpVariable, float]],
+        constant: float = 0.0,
+        name: str | None = None,
+    ) -> LpAffineExpression:
         expr = _rustcore.AffineExpr()
         expr.set_constant(float(constant))
         for k, v in pairs:
@@ -708,14 +739,23 @@ class LpAffineExpression:
         c = float(c)
         return str(int(c)) if c == int(c) else str(c)
 
-    def _str_expr(self, include_constant: bool = True, override_constant: float | None = None):
+    def _str_expr(
+        self, include_constant: bool = True, override_constant: float | None = None
+    ):
         s = ""
         for v in self.sorted_keys():
             val = self[v]
             if val < 0:
-                s += (" - " if s else "-") + (str(-val) if val != -1 else "") + ("" if val == -1 else "*") + str(v)
+                s += (
+                    (" - " if s else "-")
+                    + (str(-val) if val != -1 else "")
+                    + ("" if val == -1 else "*")
+                    + str(v)
+                )
             elif s:
-                s += " + " + (str(v) if val == 1 else self._str_coeff(val) + "*" + str(v))
+                s += " + " + (
+                    str(v) if val == 1 else self._str_coeff(val) + "*" + str(v)
+                )
             else:
                 s = str(v) if val == 1 else self._str_coeff(val) + "*" + str(v)
         if include_constant:
@@ -730,7 +770,9 @@ class LpAffineExpression:
             s = "0"
         return s
 
-    def __str__(self, include_constant: bool = True, override_constant: float | None = None):
+    def __str__(
+        self, include_constant: bool = True, override_constant: float | None = None
+    ):
         if self.sense is not None:
             s = self._str_expr(include_constant=False)
             rhs = -self.constant if override_constant is None else -override_constant
@@ -774,7 +816,10 @@ class LpAffineExpression:
         return result, line
 
     def asCplexLpAffineExpression(
-        self, name: str, include_constant: bool = True, override_constant: float | None = None
+        self,
+        name: str,
+        include_constant: bool = True,
+        override_constant: float | None = None,
     ) -> str:
         result, line = self.asCplexVariablesOnly(name)
         c = self.constant if override_constant is None else override_constant
@@ -801,7 +846,18 @@ class LpAffineExpression:
         result += ["".join(line)]
         return "%s\n" % "\n".join(result)
 
-    def addInPlace(self, other: LpVariable | LpAffineExpression | LpConstraint | dict[Any, Any] | Iterable[Any] | int | float | None, sign: Literal[+1, -1] = 1) -> LpAffineExpression:
+    def addInPlace(
+        self,
+        other: LpVariable
+        | LpAffineExpression
+        | LpConstraint
+        | dict[Any, Any]
+        | Iterable[Any]
+        | int
+        | float
+        | None,
+        sign: Literal[+1, -1] = 1,
+    ) -> LpAffineExpression:
         if other is None or (isinstance(other, int) and other == 0):
             return self
         if isinstance(other, LpVariable):
@@ -823,7 +879,17 @@ class LpAffineExpression:
             self._expr.set_constant(self._expr.constant + other * sign)
         return self
 
-    def subInPlace(self, other: LpVariable | LpAffineExpression | LpConstraint | dict[Any, Any] | Iterable[Any] | int | float | None) -> LpAffineExpression:
+    def subInPlace(
+        self,
+        other: LpVariable
+        | LpAffineExpression
+        | LpConstraint
+        | dict[Any, Any]
+        | Iterable[Any]
+        | int
+        | float
+        | None,
+    ) -> LpAffineExpression:
         return self.addInPlace(other, sign=-1)
 
     def __neg__(self) -> LpAffineExpression:
@@ -834,25 +900,39 @@ class LpAffineExpression:
     def __pos__(self) -> LpAffineExpression:
         return self
 
-    def __add__(self, other: LpVariable | LpAffineExpression | LpConstraint | int | float) -> LpAffineExpression:
+    def __add__(
+        self, other: LpVariable | LpAffineExpression | LpConstraint | int | float
+    ) -> LpAffineExpression:
         return self.copy().addInPlace(other)
 
-    def __radd__(self, other: LpVariable | LpAffineExpression | LpConstraint | int | float) -> LpAffineExpression:
+    def __radd__(
+        self, other: LpVariable | LpAffineExpression | LpConstraint | int | float
+    ) -> LpAffineExpression:
         return self.copy().addInPlace(other)
 
-    def __iadd__(self, other: LpVariable | LpAffineExpression | LpConstraint | int | float) -> LpAffineExpression:
+    def __iadd__(
+        self, other: LpVariable | LpAffineExpression | LpConstraint | int | float
+    ) -> LpAffineExpression:
         return self.addInPlace(other)
 
-    def __sub__(self, other: LpVariable | LpAffineExpression | LpConstraint | int | float) -> LpAffineExpression:
+    def __sub__(
+        self, other: LpVariable | LpAffineExpression | LpConstraint | int | float
+    ) -> LpAffineExpression:
         return self.copy().subInPlace(other)
 
-    def __rsub__(self, other: LpVariable | LpAffineExpression | LpConstraint | int | float) -> LpAffineExpression:
+    def __rsub__(
+        self, other: LpVariable | LpAffineExpression | LpConstraint | int | float
+    ) -> LpAffineExpression:
         return (-self).addInPlace(other)
 
-    def __isub__(self, other: LpVariable | LpAffineExpression | LpConstraint | int | float) -> LpAffineExpression:
+    def __isub__(
+        self, other: LpVariable | LpAffineExpression | LpConstraint | int | float
+    ) -> LpAffineExpression:
         return self.subInPlace(other)
 
-    def __mul__(self, other: LpAffineExpression | LpConstraint | LpVariable | int | float) -> LpAffineExpression:
+    def __mul__(
+        self, other: LpAffineExpression | LpConstraint | LpVariable | int | float
+    ) -> LpAffineExpression:
         e = LpAffineExpression.empty()
         if isinstance(other, LpAffineExpression):
             e.constant = self.constant * other.constant
@@ -884,15 +964,23 @@ class LpAffineExpression:
                 e._expr.scale(float(other))
         return e
 
-    def __rmul__(self, other: LpAffineExpression | LpConstraint | LpVariable | int | float) -> LpAffineExpression:
+    def __rmul__(
+        self, other: LpAffineExpression | LpConstraint | LpVariable | int | float
+    ) -> LpAffineExpression:
         return self * other
 
-    def __truediv__(self, other: LpAffineExpression | LpConstraint | LpVariable | int | float) -> LpAffineExpression:
+    def __truediv__(
+        self, other: LpAffineExpression | LpConstraint | LpVariable | int | float
+    ) -> LpAffineExpression:
         if isinstance(other, LpVariable):
-            raise TypeError("Expressions cannot be divided by a non-constant expression")
+            raise TypeError(
+                "Expressions cannot be divided by a non-constant expression"
+            )
         if isinstance(other, (LpAffineExpression, LpConstraint)):
             if len(other):
-                raise TypeError("Expressions cannot be divided by a non-constant expression")
+                raise TypeError(
+                    "Expressions cannot be divided by a non-constant expression"
+                )
             other = other.constant
         if not math.isfinite(other):
             raise const.PulpError("Cannot divide variables with NaN/inf values")
@@ -940,12 +1028,16 @@ class LpAffineExpression:
         return self.constant
 
     def getLb(self) -> float | None:
-        if self.sense is not None and (self.sense == const.LpConstraintGE or self.sense == const.LpConstraintEQ):
+        if self.sense is not None and (
+            self.sense == const.LpConstraintGE or self.sense == const.LpConstraintEQ
+        ):
             return -self.constant
         return None
 
     def getUb(self) -> float | None:
-        if self.sense is not None and (self.sense == const.LpConstraintLE or self.sense == const.LpConstraintEQ):
+        if self.sense is not None and (
+            self.sense == const.LpConstraintLE or self.sense == const.LpConstraintEQ
+        ):
             return -self.constant
         return None
 
@@ -997,7 +1089,9 @@ class LpConstraint:
 
     def __init__(self, _constr: _rustcore.Constraint) -> None:
         if _constr is None:
-            raise TypeError("LpConstraint requires a Rust Constraint (created only by the model)")
+            raise TypeError(
+                "LpConstraint requires a Rust Constraint (created only by the model)"
+            )
         self._constr: _rustcore.Constraint = _constr
 
     @property
@@ -1115,7 +1209,9 @@ class LpConstraint:
         parts: list[str] = []
         for v, coeff in self.items():
             if coeff < 0:
-                parts.append(f" - {-coeff}*{v.name}" if parts else f"-{-coeff}*{v.name}")
+                parts.append(
+                    f" - {-coeff}*{v.name}" if parts else f"-{-coeff}*{v.name}"
+                )
             elif parts:
                 parts.append(f" + {coeff}*{v.name}" if coeff != 1 else f" + {v.name}")
             else:
@@ -1147,7 +1243,9 @@ class LpConstraint:
         result += ["".join(line)]
         return "%s\n" % "\n".join(result)
 
-    def asCplexLpAffineExpression(self, name: str, include_constant: bool = True) -> str:
+    def asCplexLpAffineExpression(
+        self, name: str, include_constant: bool = True
+    ) -> str:
         result, line = self._asCplexVariablesOnly(name)
         c = self.constant
         term = f" - {-c:.12g}" if c < 0 else (f" + {c}" if c > 0 else " 0")
@@ -1190,7 +1288,9 @@ class LpConstraint:
             pi=self.pi,
             constant=self.constant,
             name=self.name,
-            coefficients=[mpslp.MPSCoefficient(name=k.name, value=v) for k, v in self.items()],
+            coefficients=[
+                mpslp.MPSCoefficient(name=k.name, value=v) for k, v in self.items()
+            ],
         )
 
     def isAtomic(self) -> bool:
@@ -1510,7 +1610,11 @@ class LpProblem:
         var_by_name = {v.name: v for v in lpcopy.variables()}
         for name, c in self.constraints.items():
             items = c.items()
-            items_new = [(var_by_name[v.name], coeff) for v, coeff in items if v.name in var_by_name]
+            items_new = [
+                (var_by_name[v.name], coeff)
+                for v, coeff in items
+                if v.name in var_by_name
+            ]
             rust_expr = _rustcore.AffineExpr()
             for v_new, coeff in items_new:
                 rust_expr.add_term(v_new._var, coeff)
@@ -1769,10 +1873,14 @@ class LpProblem:
         """Dict of variable name -> LpVariable, using same order as variables()."""
         return {v.name: v for v in self.variables()}
 
-    def add(self, constraint: LpConstraint | LpAffineExpression, name: str | None = None) -> None:
+    def add(
+        self, constraint: LpConstraint | LpAffineExpression, name: str | None = None
+    ) -> None:
         self.addConstraint(constraint, name)
 
-    def _addConstraintFromDataclass(self, mps: mpslp.MPSConstraint, variables: dict[str, LpVariable]) -> None:
+    def _addConstraintFromDataclass(
+        self, mps: mpslp.MPSConstraint, variables: dict[str, LpVariable]
+    ) -> None:
         """Build a constraint directly from an MPSConstraint dataclass, preserving pi."""
         coeffs: list[tuple[_rustcore.Variable, float]] = []
         for coefficient in mps.coefficients:
@@ -1784,7 +1892,9 @@ class LpProblem:
         if mps.pi is not None:
             rust_constr.set_pi(mps.pi)
 
-    def addConstraint(self, constraint: LpConstraint | LpAffineExpression, name: str | None = None) -> None:
+    def addConstraint(
+        self, constraint: LpConstraint | LpAffineExpression, name: str | None = None
+    ) -> None:
         if isinstance(constraint, LpConstraint):
             return
         if name:
@@ -1823,7 +1933,16 @@ class LpProblem:
         else:
             self.objective = obj
 
-    def __iadd__(self, other: LpConstraint | LpAffineExpression | LpVariable | int | float | bool | tuple[Any, str | None]) -> LpProblem:
+    def __iadd__(
+        self,
+        other: LpConstraint
+        | LpAffineExpression
+        | LpVariable
+        | int
+        | float
+        | bool
+        | tuple[Any, str | None],
+    ) -> LpProblem:
         name: str | None = None
         if isinstance(other, tuple):
             other_val = other[0]
@@ -1900,7 +2019,9 @@ class LpProblem:
         else:
             for item in other:
                 if isinstance(item, tuple):
-                    cname_val: str | None = str(item[0]) if item[0] is not None else None
+                    cname_val: str | None = (
+                        str(item[0]) if item[0] is not None else None
+                    )
                     constr: LpConstraint = item[1]  # type: ignore[assignment]
                 elif isinstance(item, LpConstraint):
                     cname_val = None
@@ -1911,7 +2032,9 @@ class LpProblem:
                     cname_val = constr.name
                 self.addConstraint(constr, name=cname_val or None)
 
-    def coefficients(self, translation: dict[str, str] | None = None) -> list[tuple[str, str, float]]:
+    def coefficients(
+        self, translation: dict[str, str] | None = None
+    ) -> list[tuple[str, str, float]]:
         coefs = []
         cons = self.constraints
         if translation is None:
@@ -1924,8 +2047,16 @@ class LpProblem:
         return coefs
 
     def writeMPS(
-        self, filename: str, mpsSense: int = 0, rename: int | bool = 0, mip: int | bool = 1, with_objsense: bool = False
-    ) -> list[LpVariable] | tuple[list[LpVariable], dict[str, str], dict[str, str], str | None]:
+        self,
+        filename: str,
+        mpsSense: int = 0,
+        rename: int | bool = 0,
+        mip: int | bool = 1,
+        with_objsense: bool = False,
+    ) -> (
+        list[LpVariable]
+        | tuple[list[LpVariable], dict[str, str], dict[str, str], str | None]
+    ):
         """
         Writes an mps files from the problem information
 
@@ -1947,7 +2078,13 @@ class LpProblem:
             with_objsense=with_objsense,
         )
 
-    def writeLP(self, filename: str, writeSOS: int | bool = 1, mip: int | bool = 1, max_length: int = 100) -> list[LpVariable]:
+    def writeLP(
+        self,
+        filename: str,
+        writeSOS: int | bool = 1,
+        mip: int | bool = 1,
+        max_length: int = 100,
+    ) -> list[LpVariable]:
         """
         Write the given Lp problem to a .lp file.
 

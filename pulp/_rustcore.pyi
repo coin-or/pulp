@@ -31,7 +31,6 @@ class ObjSense:
     def __ne__(self, other: object) -> bool: ...
     def __hash__(self) -> int: ...
 
-
 class Variable:
     """Handle to a variable stored inside a Rust ``ModelCore``."""
 

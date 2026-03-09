@@ -24,33 +24,18 @@ classifiers=[
 urls= {source= "https://github.com/coin-or/pulp", download="https://github.com/coin-or/pulp/archive/master.zip"}
 keywords=["Optimization", "Linear Programming", "Operations Research"]
 
-[tool.mypy]
-exclude = [
-    "pulp/solverdir/",
-    ".venv/.*",
-    "build/",
-]
-warn_unused_ignores = true
-
-[[tool.mypy.overrides]]
-module = [
-  "pulp.*",
-]
-follow_imports = "skip"
-
 [build-system]
 requires = ["maturin>=1.4,<2.0"]
 build-backend = "maturin"
 
 [dependency-groups]
 dev = [
-    "black",
-    "mypy",
     "pre-commit==2.12.0",
+    "ruff",
     "sphinx",
     "sphinx-rtd-theme",
-    "numpy",
     "ty",
+    "numpy",
 ]
 
 [tool.setuptools]
@@ -85,11 +70,13 @@ python-packages = ["pulp"]
 [project.scripts]
 pulptest = "pulp.tests.run_tests:pulpTestAll"
 
-[tool.black]
+[tool.ruff]
 line-length = 88
-target-version = ['py37']
-include = '\.pyi?$'
-exclude = '/(\.eggs|\.git|\.hg|\.mypy_cache|\.tox|\.venv|_build|buck-out|build|dist)/'
+target-version = "py39"
+exclude = [".eggs", ".git", ".venv", "_build", "build", "dist", "target"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W"]
 
 [tool.uv]
 required-environments = [

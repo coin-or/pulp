@@ -23,7 +23,12 @@ alwaysApply: true
 - Sync dependencies: `uv sync`
 - Build the project: `uv run maturin develop`
 
-## Type Checking
+## Linting and formatting
 
-- Use `ty` for type checking (not mypy or pyright).
-- Run type checks via: `ty check`
+- Use **ruff** for linting and formatting (not black).
+- Run: `uv run ruff check pulp` and `uv run ruff format pulp` (or `ruff format pulp --check` to only check).
+
+## Type checking
+
+- Use **ty** for type checking (not mypy or pyright).
+- Run type checks via: `uv run ty check pulp`

@@ -11,7 +11,7 @@ The quick summary is:
 #. Make your changes.
 #. Create a test for your changes if needed.
 #. Make sure all the tests pass.
-#. Lint your code with black.
+#. Lint and format your code with ruff.
 #. Ensure the docs are accurate.
 #. Submit a Pull Request.
 
@@ -79,17 +79,19 @@ Creating a test
 
 When you fix an issue in pulp or add a functionality, you should add a test to the repository. For this you should go to the file `tests/test_pulp.py` and add a new method that tests your change.
 
-Applying the black linter / formatter
+Applying the ruff linter / formatter
 -----------------------------------------------------
 
-We use `the black formatter <https://black.readthedocs.io/en/stable/>`_. Before sending your changes, be sure to execute the black package to style the resulting files.
-The quickest way to do this is to run::
+We use `ruff <https://docs.astral.sh/ruff/>`_ for linting and formatting. Before sending your changes, run::
 
-    python -m black pulp
+    uv run ruff check pulp
+    uv run ruff format pulp
 
-And it will do the changes directly on the files.
+To check without modifying files (e.g. in CI)::
 
-The easiest way is to integrate it inside your IDE so it runs every time you save a file. Learn how to do that `in the black integration docs <https://black.readthedocs.io/en/stable/integrations/editors.html>`_.
+    uv run ruff check pulp && uv run ruff format pulp --check
+
+You can integrate ruff in your IDE so it runs on save; see the `ruff editor docs <https://docs.astral.sh/ruff/integration/>`_.
 
 Checking types
 -------------------------------------

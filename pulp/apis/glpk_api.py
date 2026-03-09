@@ -197,7 +197,6 @@ class GLPK_CMD(LpSolver_CMD):
 
         # now actually read column values
         with open(solFile) as f:
-
             values = []
             status2 = constants.LpStatusUndefined
             vpos = 2

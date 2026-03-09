@@ -222,7 +222,9 @@ class ModelUnitTest(unittest.TestCase):
         cons = prob.constraints
         self.assertEqual(len(cons), 3)
         names = list(cons.keys())
-        self.assertEqual(len(set(names)), 3, "All auto-generated names should be distinct")
+        self.assertEqual(
+            len(set(names)), 3, "All auto-generated names should be distinct"
+        )
 
     # -- 6. Duplicate constraint name --
 
@@ -1464,7 +1466,9 @@ class BaseSolverTest:
             agents = ["A", "B", "C"]
 
             # explicit param creates a dict of type LpVariable
-            assign_vars = prob.add_variable_dicts(name="test", indices=(customers, agents))
+            assign_vars = prob.add_variable_dicts(
+                name="test", indices=(customers, agents)
+            )
             for k, v in assign_vars.items():
                 for a, b in v.items():
                     self.assertIsInstance(b, LpVariable)
@@ -1498,7 +1502,9 @@ class BaseSolverTest:
             agents = ["A", "B", "C"]
 
             # explicit param creates a dict of type LpVariable
-            assign_vars = prob.add_variable_dicts(name="test", indices=(customers, agents))
+            assign_vars = prob.add_variable_dicts(
+                name="test", indices=(customers, agents)
+            )
             for k, v in assign_vars.items():
                 for a, b in v.items():
                     self.assertIsInstance(b, LpVariable)
@@ -1610,6 +1616,7 @@ class BaseSolverTest:
 
         def test_multiply_nan_values(self):
             import math
+
             prob = LpProblem(self._testMethodName, const.LpMinimize)
             a = math.nan
             x = prob.add_variable("x")
@@ -1880,10 +1887,12 @@ class BaseSolverTest:
                 self.assertIsNotNone(expr.sense)
 
                 if t == 1:
-                    self.assertEqual(str(rhs), f"x_{t} + {stock[t-1] - demands[t-1]}")
+                    self.assertEqual(
+                        str(rhs), f"x_{t} + {stock[t - 1] - demands[t - 1]}"
+                    )
                     self.assertEqual(expr.constant, -rhs.constant + lhs)
                 else:
-                    self.assertEqual(str(rhs), f"s_{t-1} + x_{t} - {demands[t-1]}")
+                    self.assertEqual(str(rhs), f"s_{t - 1} + x_{t} - {demands[t - 1]}")
                     self.assertEqual(expr.constant, -rhs.constant)
 
         def test_regression_805(self):
@@ -2453,7 +2462,6 @@ class CUOPTTest(BaseSolverTest.PuLPTest):
 
 
 class SASTest:
-
     def test_sas_with_option(self):
         prob = LpProblem("test", const.LpMinimize)
         X = prob.add_variable_dicts("x", [1, 2, 3], lowBound=0.0, cat="Integer")

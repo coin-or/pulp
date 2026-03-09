@@ -42,6 +42,7 @@ def _safe_var_bounds(variable: "LpVariable"):
     """(lowBound, upBound) with defaults if variable is from another model.
     Converts inf/-inf back to None for MPS/LP format compatibility."""
     import math
+
     try:
         lb = variable.lowBound
         ub = variable.upBound
@@ -52,6 +53,7 @@ def _safe_var_bounds(variable: "LpVariable"):
         return (lb, ub)
     except BaseException:
         return (0, None)
+
 
 from dataclasses import dataclass
 
@@ -326,7 +328,10 @@ def writeMPS(
     rename: int | bool = False,
     mip: int | bool = True,
     with_objsense: bool = False,
-) -> list[LpVariable] | tuple[list[LpVariable], dict[str, str], dict[str, str], str | None]:
+) -> (
+    list[LpVariable]
+    | tuple[list[LpVariable], dict[str, str], dict[str, str], str | None]
+):
     wasNone, dummyVar = lp.fixObjective()
     if mpsSense == 0:
         mpsSense = lp.sense
@@ -379,6 +384,7 @@ def writeMPS(
         def col_name(v: LpVariable) -> str:
             vid = v._var.id()
             return varNames.get(v.name) or extra_col.get(vid) or ("_var_%d" % vid)
+
     model_name = lp.name
     if rename:
         model_name = "MODEL"

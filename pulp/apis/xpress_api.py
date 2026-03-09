@@ -678,10 +678,14 @@ class XPRESS_PY(LpSolver):
                 # At the moment only bounds can change in pulp.py
                 bndind.append(v._xprs[0])
                 bndtype.append("L")
-                bndval.append(-xpress.infinity if not math.isfinite(v.lowBound) else v.lowBound)
+                bndval.append(
+                    -xpress.infinity if not math.isfinite(v.lowBound) else v.lowBound
+                )
                 bndind.append(v._xprs[0])
                 bndtype.append("G")
-                bndval.append(xpress.infinity if not math.isfinite(v.upBound) else v.upBound)
+                bndval.append(
+                    xpress.infinity if not math.isfinite(v.upBound) else v.upBound
+                )
             if len(bndtype) > 0:
                 lp.solverModel.chgbounds(bndind, bndtype, bndval)
 
@@ -766,8 +770,12 @@ class XPRESS_PY(LpSolver):
             ctype = list()
             names = list()
             for v in lp.variables():
-                lb.append(-xpress.infinity if not math.isfinite(v.lowBound) else v.lowBound)
-                ub.append(xpress.infinity if not math.isfinite(v.upBound) else v.upBound)
+                lb.append(
+                    -xpress.infinity if not math.isfinite(v.lowBound) else v.lowBound
+                )
+                ub.append(
+                    xpress.infinity if not math.isfinite(v.upBound) else v.upBound
+                )
                 obj.append(lp.objective.get(v, 0.0))
                 if v.cat == constants.LpInteger:
                     ctype.append("I")
