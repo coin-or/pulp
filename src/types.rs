@@ -7,6 +7,8 @@ use indexmap::IndexMap;
 use pyo3::exceptions::PyRuntimeError;
 use pyo3::prelude::*;
 
+use crate::affine_expr::AffineExpr;
+
 /// Unique identifier for a variable within a model.
 pub type VarId = usize;
 /// Unique identifier for a constraint within a model.
@@ -59,19 +61,12 @@ pub struct ConstraintData {
     pub slack: Option<f64>,
 }
 
-#[derive(Clone, Debug)]
-pub struct ObjectiveData {
-    pub coeffs: IndexMap<VarId, f64>,
-    pub constant: f64,
-    pub sense: ObjSense,
-}
-
 #[derive(Debug)]
 pub struct ModelCore {
     pub name: String,
     pub vars: Vec<VariableData>,
     pub constraints: Vec<ConstraintData>,
-    pub objective: Option<ObjectiveData>,
+    pub objective: Option<AffineExpr>,
     /// Objective sense (min/max); set when set_objective is called, or default Minimize.
     pub sense: ObjSense,
 }
@@ -126,18 +121,8 @@ impl ModelCore {
         id
     }
 
-    pub fn set_objective(
-        &mut self,
-        coeffs: IndexMap<VarId, f64>,
-        constant: f64,
-        sense: ObjSense,
-    ) {
-        self.sense = sense;
-        self.objective = Some(ObjectiveData {
-            coeffs,
-            constant,
-            sense,
-        });
+    pub fn set_objective(&mut self, expr: AffineExpr) {
+        self.objective = Some(expr);
     }
 
     pub fn clear_objective(&mut self) {

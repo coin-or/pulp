@@ -8,7 +8,7 @@ alwaysApply: true
 ## Testing
 
 - Use `unittest` (not pytest) for writing and running unit tests.
-- Run tests via: `.venv\Scripts\python -m unittest discover -s pulp/tests`
+- Run tests via: `uv run python -m unittest discover -s pulp/tests`
 
 ## Virtual Environment
 

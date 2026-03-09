@@ -15,7 +15,7 @@ use crate::variable::Variable;
 /// Optionally carries sense (for pending constraints) and name.
 /// Holds a weak model ref acquired automatically from the first variable.
 #[pyclass(unsendable)]
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct AffineExpr {
     pub terms: IndexMap<VarId, f64>,
     pub constant: f64,

@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Any, Union
 from . import constants as const
 
 if TYPE_CHECKING:
-    from pulp.pulp import LpProblem, LpVariable, LpAffineExpression, _ObjectiveView
+    from pulp.pulp import LpProblem, LpVariable, LpAffineExpression
 
 CORE_FILE_ROW_MODE = "ROWS"
 CORE_FILE_COL_MODE = "COLUMNS"
@@ -448,7 +448,7 @@ def writeMPSColumnLines(
     variable: LpVariable,
     mip: int | bool,
     name: str,
-    cobj: LpAffineExpression | _ObjectiveView,
+    cobj: LpAffineExpression,
     objName: str,
 ) -> list[str]:
     columns_lines: list[str] = []

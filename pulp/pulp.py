@@ -1227,119 +1227,6 @@ class LpConstraint:
         return s
 
 
-class _ObjectiveView:
-    """Thin view over Rust objective: .items(), .constant, .name, .sense."""
-
-    def __init__(
-        self,
-        coeffs: list[tuple[_rustcore.Variable, float]],
-        constant: float,
-        sense: _rustcore.ObjSense,
-        name: str | None = None,
-    ) -> None:
-        self._coeffs = coeffs
-        self._constant = constant
-        self._sense = sense
-        self._name = name
-
-    @property
-    def constant(self) -> float:
-        return self._constant
-
-    @property
-    def name(self) -> str | None:
-        return self._name
-
-    @name.setter
-    def name(self, value: str | None) -> None:
-        self._name = value
-
-    def items(self) -> list[tuple[LpVariable, float]]:
-        return [(LpVariable(v), c) for v, c in self._coeffs]
-
-    def keys(self) -> list[LpVariable]:
-        return [LpVariable(v) for v, _ in self._coeffs]
-
-    def values(self) -> list[float]:
-        return [c for _, c in self._coeffs]
-
-    def value(self) -> float | None:
-        """Objective value from variable values; None if any variable has no value."""
-        s = self._constant
-        for v, c in self.items():
-            if v.varValue is None:
-                return None
-            s += v.varValue * c
-        return s
-
-    def isNumericalConstant(self) -> bool:
-        return len(self._coeffs) == 0
-
-    def __contains__(self, variable: object) -> bool:
-        if isinstance(variable, LpVariable):
-            return any(v is variable or v.name == variable.name for v, _ in self.items())
-        if isinstance(variable, str):
-            return any(v.name == variable for v, _ in self.items())
-        return any(v is variable for v, _ in self.items())
-
-    def __getitem__(self, variable: LpVariable) -> float:
-        for v, c in self.items():
-            if v is variable or v.name == variable.name:
-                return c
-        raise KeyError(variable)
-
-    def __iter__(self) -> Iterator[LpVariable]:
-        return iter(self.keys())
-
-    def __neg__(self) -> _ObjectiveView:
-        return _ObjectiveView(
-            [(v, -c) for v, c in self._coeffs],
-            -self._constant,
-            self._sense,
-            name=self._name,
-        )
-
-    @staticmethod
-    def _count_characters(line: list[str]) -> int:
-        return sum(len(t) for t in line)
-
-    def asCplexVariablesOnly(self, name: str) -> tuple[list[str], list[str]]:
-        result: list[str] = []
-        line: list[str] = [f"{name}:"]
-        not_first = 0
-        for v, val in self.items():
-            if val < 0:
-                sign = " -"
-                val = -val
-            elif not_first:
-                sign = " +"
-            else:
-                sign = ""
-            not_first = 1
-            term = f"{sign} {val + 0:.12g} {v.name}" if val != 1 else f"{sign} {v.name}"
-            if self._count_characters(line) + len(term) > const.LpCplexLPLineSize:
-                result += ["".join(line)]
-                line = [term]
-            else:
-                line += [term]
-        return result, line
-
-    def asCplexLpAffineExpression(
-        self, name: str, include_constant: bool = True, override_constant: float | None = None
-    ) -> str:
-        result, line = self.asCplexVariablesOnly(name)
-        if include_constant:
-            c = override_constant if override_constant is not None else self._constant
-            term = f" - {-c:.12g}" if c < 0 else (f" + {c}" if c > 0 else " 0")
-            result += ["".join(line) + term]
-        else:
-            result += ["".join(line)]
-        return "%s\n" % "\n".join(result)
-
-    def toDataclass(self) -> list[mpslp.MPSCoefficient]:
-        return [mpslp.MPSCoefficient(name=v.name, value=c) for v, c in self.items()]
-
-
 class LpProblem:
     """An LP Problem"""
 
@@ -1371,6 +1258,11 @@ class LpProblem:
         self.solutionCpuTime = 0
 
         self._model: _rustcore.Model = _rustcore.Model(self.name)
+        self._model.set_sense(
+            _rustcore.ObjSense.Minimize
+            if sense == const.LpMinimize
+            else _rustcore.ObjSense.Maximize
+        )
 
     def add_variable(
         self,
@@ -1553,33 +1445,22 @@ class LpProblem:
         return {name: LpConstraint(c) for name, c in self._model.constraints_dict()}
 
     @property
-    def objective(self) -> _ObjectiveView | None:
-        """Objective view from Rust (has .items(), .constant, .name, .sense)."""
-        obj = self._model.get_objective()
-        if obj is None:
+    def objective(self) -> LpAffineExpression | None:
+        """Objective expression from Rust, wrapped as LpAffineExpression."""
+        expr = self._model.get_objective()
+        if expr is None:
             return None
-        coeffs, constant, sense = obj
-        return _ObjectiveView(coeffs, constant, sense)
+        return LpAffineExpression(expr)
 
     @objective.setter
-    def objective(self, value: LpAffineExpression | _ObjectiveView | LpVariable | None) -> None:
+    def objective(self, value: LpAffineExpression | LpVariable | None) -> None:
         """Set objective from LpAffineExpression or similar; stored in Rust."""
         if value is None:
             self._model.clear_objective()
             return
         if isinstance(value, LpVariable):
             value = LpAffineExpression.from_variable(value)
-        sense = (
-            _rustcore.ObjSense.Minimize
-            if self.sense == const.LpMinimize
-            else _rustcore.ObjSense.Maximize
-        )
-        if isinstance(value, LpAffineExpression):
-            coeffs = value._expr.items()
-            cst = float(value.constant)
-            self._model.set_objective(coeffs, cst, sense)
-        elif isinstance(value, _ObjectiveView):
-            self._model.set_objective(value._coeffs, value._constant, sense)
+        self._model.set_objective(value._expr)
 
     @property
     def sense(self) -> int:
@@ -1588,6 +1469,11 @@ class LpProblem:
     @sense.setter
     def sense(self, value: int) -> None:
         self._sense = value
+        self._model.set_sense(
+            _rustcore.ObjSense.Minimize
+            if value == const.LpMinimize
+            else _rustcore.ObjSense.Maximize
+        )
 
     def __repr__(self) -> str:
         s = self.name + ":\n"
@@ -1955,15 +1841,17 @@ class LpProblem:
             else:
                 if self.objective is not None:
                     warnings.warn("Overwriting previously set objective.")
+                if name is not None:
+                    other.name = name
                 self.objective = other
         elif isinstance(other, LpVariable):
             if self.objective is not None:
                 warnings.warn("Overwriting previously set objective.")
-            self.objective = LpAffineExpression.from_variable(other)
+            self.objective = LpAffineExpression.from_variable(other, name=name)
         elif isinstance(other, (int, float)):
             if self.objective is not None:
                 warnings.warn("Overwriting previously set objective.")
-            self.objective = LpAffineExpression.from_constant(float(other))
+            self.objective = LpAffineExpression.from_constant(float(other), name=name)
         else:
             raise TypeError(
                 "Can only add LpConstraint, LpAffineExpression or True objects"
@@ -2003,25 +1891,12 @@ class LpProblem:
             if use_objective:
                 if other.objective is None:
                     raise ValueError("Objective not set by provided problem")
-                if isinstance(self.objective, _ObjectiveView):
-                    obj = LpAffineExpression.from_dict(
-                        dict(self.objective.items()), constant=self.objective.constant
-                    )
-                    if isinstance(other.objective, _ObjectiveView):
-                        obj.addInPlace(
-                            LpAffineExpression.from_dict(
-                                dict(other.objective.items()),
-                                constant=other.objective.constant,
-                            )
-                        )
-                    else:
-                        obj.addInPlace(other.objective)
+                if self.objective is not None:
+                    obj = self.objective.copy()
+                    obj.addInPlace(other.objective)
                     self.objective = obj
-                elif other.objective is not None:
-                    self.objective = LpAffineExpression.from_dict(
-                        dict(other.objective.items()),
-                        constant=other.objective.constant,
-                    )
+                else:
+                    self.objective = other.objective
         else:
             for item in other:
                 if isinstance(item, tuple):
@@ -2159,7 +2034,7 @@ class LpProblem:
 
         if obj is not None and obj.isNumericalConstant():
             dummyVar = self.get_dummyVar()
-            expr = LpAffineExpression.from_dict(dict(obj.items()), constant=obj.constant)
+            expr = obj.copy()
             expr.addInPlace(dummyVar)
             self.objective = expr
         else:
@@ -2173,7 +2048,7 @@ class LpProblem:
         elif dummyVar is not None:
             obj = self.objective
             if obj is not None:
-                expr = LpAffineExpression.from_dict(dict(obj.items()), constant=obj.constant)
+                expr = obj.copy()
                 expr.subInPlace(dummyVar)
                 self.objective = expr
 

@@ -7,6 +7,7 @@ use indexmap::IndexMap;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
+use crate::affine_expr::AffineExpr;
 use crate::constraint::Constraint;
 use crate::types::{Category, ConstrId, ModelCore, ObjSense, Sense, VarId};
 use crate::variable::Variable;
@@ -95,20 +96,16 @@ impl Model {
         })
     }
 
-    fn set_objective(
-        &mut self,
-        coeffs: Vec<(Variable, f64)>,
-        constant: f64,
-        sense: ObjSense,
-    ) {
-        let mut map = IndexMap::new();
-        for (var, coeff) in coeffs {
-            let entry = map.entry(var.id()).or_insert(0.0);
-            *entry += coeff;
+    fn set_objective(&mut self, expr: &AffineExpr) {
+        let mut stored = expr.clone();
+        if stored.model.is_none() {
+            stored.model = Some(Rc::downgrade(&self.core));
         }
-        self.core
-            .borrow_mut()
-            .set_objective(map, constant, sense);
+        self.core.borrow_mut().set_objective(stored);
+    }
+
+    fn set_sense(&mut self, sense: ObjSense) {
+        self.core.borrow_mut().sense = sense;
     }
 
     fn clear_objective(&mut self) {
@@ -165,25 +162,9 @@ impl Model {
             .collect()
     }
 
-    fn get_objective(
-        &self,
-    ) -> Option<(Vec<(Variable, f64)>, f64, ObjSense)> {
+    fn get_objective(&self) -> Option<AffineExpr> {
         let core = self.core.borrow();
-        let obj = core.objective.as_ref()?;
-        let coeffs: Vec<(Variable, f64)> = obj
-            .coeffs
-            .iter()
-            .map(|(var_id, coeff)| {
-                (
-                    Variable {
-                        id: *var_id,
-                        model: Rc::downgrade(&self.core),
-                    },
-                    *coeff,
-                )
-            })
-            .collect();
-        Some((coeffs, obj.constant, obj.sense))
+        core.objective.clone()
     }
 
     fn get_sense(&self) -> ObjSense {
