@@ -19,7 +19,7 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install Rust
-      uses: dtolnay/rust-action@stable
+      uses: dtolnay/rust-toolchain@stable
     - name: Install dependencies
       run: uv sync --dev --all-extras
     - name: Building docs
