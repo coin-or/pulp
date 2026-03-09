@@ -4,6 +4,7 @@ import os
 import subprocess
 import sys
 import warnings
+from typing import Any
 from uuid import uuid4
 
 from ..constants import (
@@ -43,6 +44,9 @@ else:
 
 byref = ctypes.byref
 
+# Set by COPT class when coptpy import succeeds; used for type checker.
+coptpy: Any = None
+
 
 class COPT_CMD(LpSolver_CMD):
     """
@@ -65,7 +69,7 @@ class COPT_CMD(LpSolver_CMD):
         """
         Initialize command-line solver
         """
-        LpSolver_CMD.__init__(self, path, keepFiles, mip, msg, [])
+        LpSolver_CMD.__init__(self, path, bool(keepFiles), mip, msg, [])
 
         self.mipstart = warmStart
         self.logfile = logfile
@@ -216,6 +220,8 @@ def COPT_DLL_loadlib():
     libfile = None
     libpath = None
     libhome = os.getenv("COPT_HOME")
+    if libhome is None:
+        libhome = ""
 
     if sys.platform == "win32":
         libfile = glob(os.path.join(libhome, "bin", "copt.dll"))

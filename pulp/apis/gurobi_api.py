@@ -271,6 +271,7 @@ class GUROBI(LpSolver):
             """
             log.debug("create the gurobi model")
             self.initGurobi()
+            assert self.model is not None
             self.model.ModelName = lp.name
             lp.solverModel = self.model
             log.debug("set the sense of the problem")

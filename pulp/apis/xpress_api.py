@@ -205,7 +205,7 @@ class XPRESS(LpSolver_CMD):
                 stderr=suberr,
                 universal_newlines=True,
             )
-            if consume:
+            if consume and xpress.stdout is not None:
                 # Special case in which messages are disabled and we have
                 # to consume any output
                 for _ in xpress.stdout:

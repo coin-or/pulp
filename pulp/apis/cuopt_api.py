@@ -247,7 +247,7 @@ class CUOPT(LpSolver):
             rhs = lp.solverModel.get_constraint_bounds()
             sense = lp.solverModel.get_row_types()
 
-            for i, name, constraint in enumerate(lp.constraints.items()):
+            for i, (name, constraint) in enumerate(lp.constraints.items()):
                 if constraint.modified:
                     sense[i] = sense_conv[constraint.sense]
                     rhs[i] = -constraint.constant
@@ -256,7 +256,6 @@ class CUOPT(LpSolver):
             lp.solverModel.set_constraint_bounds(rhs)
             lp.solverModel.set_row_types(sense)
 
-            self.callSolver(lp, callback=callback)
-
-            solutionStatus = self.findSolutionValues(lp)
+            solution = self.callSolver(lp, callback=callback)
+            solutionStatus = self.findSolutionValues(lp, solution)
             return solutionStatus

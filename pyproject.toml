@@ -85,6 +85,43 @@ ignore = [
     "F405",   # name from star import — used by design in tests and __init__
 ]
 
+[tool.ty]
+terminal = { error-on-warning = false }
+[tool.ty.analysis]
+allowed-unresolved-imports = [
+    "cylp", "cylp.**",
+    "cplex", "cplex.**",
+    "cuopt", "cuopt.**",
+    "xpress", "xpress.**",
+    "gurobipy", "gurobipy.**",
+    "elementtree.ElementTree", "elementtree.**",
+]
+[tool.ty.rules]
+possibly-missing-attribute = "warn"
+invalid-method-override = "warn"
+unresolved-attribute = "warn"
+unused-type-ignore-comment = "warn"
+deprecated = "warn"
+[[tool.ty.overrides]]
+include = ["pulp/apis/*.py"]
+[tool.ty.overrides.rules]
+unresolved-reference = "warn"
+[[tool.ty.overrides]]
+include = ["pulp/tests/**"]
+[tool.ty.overrides.rules]
+unresolved-import = "warn"
+unresolved-attribute = "warn"
+unresolved-reference = "warn"
+invalid-argument-type = "warn"
+unsupported-operator = "warn"
+no-matching-overload = "warn"
+too-many-positional-arguments = "warn"
+missing-argument = "warn"
+unknown-argument = "warn"
+call-non-callable = "warn"
+invalid-assignment = "warn"
+not-iterable = "warn"
+
 [tool.uv]
 required-environments = [
     "sys_platform == 'darwin'",

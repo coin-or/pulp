@@ -36,5 +36,4 @@ from .constants import VERSION
 from .pulp import *
 from .utilities import *
 
-__doc__ = pulp.__doc__  # type: ignore[name-defined]
 __version__ = VERSION

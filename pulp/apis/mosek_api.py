@@ -95,7 +95,7 @@ class MOSEK(LpSolver):
             self.solution_type = sol_type
             if options is None:
                 options = {}
-            self.options = options
+            self.options: dict = options
             if self.timeLimit is not None:
                 timeLimit_keys = {"MSK_DPAR_MIO_MAX_TIME", mosek.dparam.mio_max_time}  # type: ignore[name-defined]
                 if not timeLimit_keys.isdisjoint(self.options.keys()):

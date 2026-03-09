@@ -46,8 +46,8 @@ if TYPE_CHECKING:
     from .. import LpProblem
 
 import ctypes
+import tempfile
 import warnings
-from tempfile import mktemp
 
 cbc_path = "cbc"
 if operating_system == "win":
@@ -270,7 +270,7 @@ class COIN_CMD(LpSolver_CMD):
         """
         Read a CBC solution file generated from an mps or lp file (possible different names)
         """
-        values = {v.name: 0 for v in vs}
+        values = {v.name: 0.0 for v in vs}
 
         reverseVn = {v: k for k, v in variablesNames.items()}
         reverseCn = {v: k for k, v in constraintsNames.items()}
@@ -513,15 +513,22 @@ class COINMP_DLL(LpSolver):
 
         def copy(self):
             """Make a copy of self"""
-            aCopy = LpSolver.copy(self)
-            aCopy.cuts = self.cuts
-            aCopy.presolve = self.presolve
-            aCopy.dual = self.dual
-            aCopy.crash = self.crash
-            aCopy.scale = self.scale
-            aCopy.rounding = self.rounding
-            aCopy.integerPresolve = self.integerPresolve
-            aCopy.strong = self.strong
+            aCopy = self.__class__(
+                cuts=self.cuts,
+                presolve=self.presolve,
+                dual=self.dual,
+                crash=self.crash,
+                scale=self.scale,
+                rounding=self.rounding,
+                integerPresolve=self.integerPresolve,
+                strong=self.strong,
+                mip=self.mip,
+                msg=self.msg,
+                options=self.options,
+                timeLimit=self.timeLimit,
+                **self.optionsDict,
+            )
+            aCopy.fracGap = self.fracGap
             return aCopy
 
         @classmethod
@@ -621,9 +628,9 @@ class COINMP_DLL(LpSolver):
             if lp.isMIP() and self.mip:
                 self.lib.CoinLoadInteger(hProb, columnType)
 
-            if self.msg == 0:
+            if not self.msg:
                 self.lib.CoinRegisterMsgLogCallback(
-                    hProb, ctypes.c_char_p(""), ctypes.POINTER(ctypes.c_int)()
+                    hProb, ctypes.c_char_p(b""), ctypes.POINTER(ctypes.c_int)()
                 )
             self.coinTime = -clock()
             self.lib.CoinOptimizeProblem(hProb, 0)
@@ -773,21 +780,26 @@ class YAPOSIB(LpSolver):
         def callSolver(self, lp, callback=None):
             """Solves the problem with yaposib"""
             savestdout = None
-            if self.msg == 0:
+            tmp = None
+            if not self.msg:
                 # close stdout to get rid of messages
-                tempfile = open(mktemp(), "w")
+                tmp = tempfile.NamedTemporaryFile(mode="w", delete=False)
                 savestdout = os.dup(1)
                 os.close(1)
-                if os.dup(tempfile.fileno()) != 1:
+                if os.dup(tmp.fileno()) != 1:
                     raise PulpSolverError("couldn't redirect stdout - dup() error")
             self.solveTime = -clock()
             lp.solverModel.solve(self.mip)
             self.solveTime += clock()
-            if self.msg == 0:
+            if not self.msg and savestdout is not None:
                 # reopen stdout
                 os.close(1)
                 os.dup(savestdout)
                 os.close(savestdout)
+                savestdout = None
+            if not self.msg and tmp is not None:
+                tmp.close()
+                os.unlink(tmp.name)
 
         def buildSolverModel(self, lp):
             """

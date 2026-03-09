@@ -78,6 +78,7 @@ except ImportError:
 log = logging.getLogger(__name__)
 
 import subprocess
+from time import perf_counter as clock  # noqa: E402, F401, I001
 
 devnull = subprocess.DEVNULL
 

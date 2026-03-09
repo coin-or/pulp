@@ -123,7 +123,12 @@ class GLPK_CMD(LpSolver_CMD):
             if os.name != "nt":
                 rc = os.spawnvp(os.P_WAIT, self.path, proc)
             else:
-                rc = os.spawnv(os.P_WAIT, self.executable(self.path), proc)
+                exe = self.executable(self.path)
+                if exe is None:
+                    raise PulpSolverError(
+                        "PuLP: Could not find executable for " + self.path
+                    )
+                rc = os.spawnv(os.P_WAIT, exe, proc)
             if rc == 127:
                 raise PulpSolverError(
                     "PuLP: Error while trying to execute " + self.path
