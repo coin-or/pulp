@@ -118,36 +118,55 @@ The examples use the default solver (CBC). To use other solvers they must be ava
 For Developers 
 ================
 
-
 If you want to install the latest version from GitHub you can run::
 
     python -m pip install -U git+https://github.com/coin-or/pulp
 
+Building from source
+--------------------------
 
-On Linux and MacOS systems, you must run the tests to make the default solver executable::
+This version of PuLP includes a Rust extension (``pulp._rustcore``) that provides the core model, variables, constraints, and expressions. The build uses `maturin <https://github.com/PyO3/maturin>`_ and requires a Rust toolchain in addition to Python.
 
-     sudo pulptest
+**Requirements**
 
+* **Python** 3.9 or newer
+* **Rust** (latest stable). Install from https://rustup.rs/
+* **uv** (recommended for install and dev). Install with: ``curl -LsSf https://astral.sh/uv/install.sh | sh`` (Linux/macOS) or ``powershell -c "irm https://astral.sh/uv/install.ps1 | iex"`` (Windows)
+* **OS**: Windows, macOS (x86_64, arm64), or Linux (x86_64, arm64). The Rust extension is built for the host platform.
 
+**Build steps**
 
+From the PuLP root directory, create a virtual environment and install the package in editable mode with dev dependencies::
+
+    uv venv
+    uv pip install --group dev -e .
+
+Or with plain pip (maturin will be used automatically by the build backend)::
+
+    python -m venv .venv
+    source .venv/bin/activate   # Windows: .venv\Scripts\activate
+    python -m pip install --upgrade pip
+    pip install --group dev -e .
+
+**Running tests**
+
+::
+
+    uv run python -m unittest discover -s pulp/tests -v
+
+On Linux and macOS you may need to make the default CBC solver executable::
+
+    sudo pulptest
 
 Building the documentation
 --------------------------
 
-The PuLP documentation is built with `Sphinx <https://www.sphinx-doc.org>`_.  We recommended using a
-`virtual environment <https://docs.python.org/3/library/venv.html>`_ to build the documentation locally.
+The PuLP documentation is built with `Sphinx <https://www.sphinx-doc.org>`_. Use a virtual environment and the dev install above, then::
 
-To build, run the following in a terminal window, in the PuLP root directory
-
-::
-
-    python3 -m pip install --upgrade pip
-    pip install --group=dev .
     cd doc
     make html
 
-A folder named html will be created inside the ``build/`` directory.
-The home page for the documentation is ``doc/build/html/index.html`` which can be opened in a browser.
+A folder named ``html`` will be created inside ``doc/build/``. Open ``doc/build/html/index.html`` in a browser.
 
 Contributing to PuLP
 -----------------------

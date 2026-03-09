@@ -21,10 +21,12 @@ jobs:
         uses: astral-sh/setup-uv@v7
         with:
           python-version: ${{ matrix.python-version }}
+      - name: Install Rust
+        uses: dtolnay/rust-action@stable
       - name: Code Quality
         run: uv run black pulp/ --check
       - name: Type Check
-        run: uv run mypy ./
+        run: uv run ty check pulp
       - name: install ubuntu-only solvers
         if: matrix.os == 'ubuntu-latest'
         run: |
@@ -46,6 +48,8 @@ jobs:
           name: 'SCIPOptSuite-9.2.1-Linux-ubuntu24.deb'
           version: '9.2.1'
           command: "sudo apt install -qq ./SCIPOptSuite-9.2.1-Linux-ubuntu24.deb"
+      - name: Install package
+        run: uv pip install -e .
       - name: Test with pulptest
         env:
           PYTHONPATH: .
