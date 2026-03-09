@@ -112,10 +112,10 @@ Patterns = makePatterns(Pattern.totalRollLength, Pattern.lenOpts)
 prob = LpProblem("Cutting Stock Problem", LpMinimize)
 
 # The problem variables of the number of each pattern to make are created
-pattVars = LpVariable.dicts("Patt", Patterns, 0, None, LpInteger)
+pattVars = prob.add_variable_dict("Patt", (Patterns,), 0, None, LpInteger)
 
 # The problem variables of the number of surplus rolls for each length are created
-surplusVars = LpVariable.dicts("Surp", Pattern.lenOpts, 0, None, LpInteger)
+surplusVars = prob.add_variable_dict("Surp", (Pattern.lenOpts,), 0, None, LpInteger)
 
 # The objective function is entered: (the total number of large rolls used * the cost of each) - (the value of the surplus stock) - (the value of the trim)
 prob += (

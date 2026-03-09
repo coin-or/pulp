@@ -25,11 +25,11 @@ D = 100
 n = 10 * (m - 1)
 
 # A vector of n binary variables
-x = LpVariable.matrix("x", list(range(n)), 0, 1, LpInteger)
+x = prob.add_variable_matrix("x", (list(range(n)),), 0, 1, LpInteger)
 
 # Slacks
-s = LpVariable.matrix("s", list(range(m)), 0)
-w = LpVariable.matrix("w", list(range(m)), 0)
+s = prob.add_variable_matrix("s", (list(range(m)),), 0, None, LpContinuous)
+w = prob.add_variable_matrix("w", (list(range(m)),), 0, None, LpContinuous)
 
 # Objective
 prob += lpSum(s) + lpSum(w)

@@ -48,18 +48,18 @@ Routes = [(p, s) for p in Plants for s in Stores]
 # The cost data is made into a dictionary
 costs_dict = makeDict([Plants, Stores], costs, 0)
 
-# Creates the problem variables of the Flow on the Arcs
-flow = LpVariable.dicts("Route", (Plants, Stores), 0, None, LpInteger)
-
-# Creates the master problem variables of whether to build the Plants or not
-build = LpVariable.dicts("BuildaPlant", Plants, 0, 1, LpInteger)
-
 # Creates the 'prob' variable to contain the problem data
 prob = LpProblem("Computer Plant Problem", LpMinimize)
 
+# Creates the problem variables of the Flow on the Arcs
+flow = prob.add_variable_dict("Route", (Plants, Stores), 0, None, LpInteger)
+
+# Creates the master problem variables of whether to build the Plants or not
+build = prob.add_variable_dict("BuildaPlant", (Plants,), 0, 1, LpInteger)
+
 # The objective function is added to prob - The sum of the transportation costs and the building fixed costs
 prob += (
-    lpSum([flow[p][s] * costs_dict[p][s] for (p, s) in Routes])
+    lpSum([flow[p, s] * costs_dict[p][s] for (p, s) in Routes])
     + lpSum([fixedCost[p] * build[p] for p in Plants]),
     "Total Costs",
 )
@@ -67,14 +67,14 @@ prob += (
 # The Supply maximum constraints are added for each supply node (plant)
 for p in Plants:
     prob += (
-        lpSum([flow[p][s] for s in Stores]) <= supply[p] * build[p],
+        lpSum([flow[p, s] for s in Stores]) <= supply[p] * build[p],
         f"Sum of Products out of Plant {p}",
     )
 
 # The Demand minimum constraints are added for each demand node (store)
 for s in Stores:
     prob += (
-        lpSum([flow[p][s] for p in Plants]) >= demand[s],
+        lpSum([flow[p, s] for p in Plants]) >= demand[s],
         f"Sum of Products into Stores {s}",
     )
 

@@ -7,11 +7,9 @@ from pulp import *
 # A new LP problem
 prob = LpProblem("test7", LpMinimize)
 
-x = LpVariable("x", 0, 4)
-
-y = LpVariable("y", -1, 1)
-
-z = LpVariable("z", 0)
+x = prob.add_variable("x", 0, 4)
+y = prob.add_variable("y", -1, 1)
+z = prob.add_variable("z", 0, None)
 
 prob += x + 4 * y + 9 * z, "obj"
 

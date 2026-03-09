@@ -37,14 +37,14 @@ trimValue = 0.04
 # The pattern data is made into a dictionary
 patterns_dict = makeDict([LenOpts, PatternNames], patterns, 0)
 
-# The problem variables of the number of each pattern to make are created
-pattVars = LpVariable.dicts("Patt", PatternNames, 0, None, LpInteger)
-
-# The problem variables of the number of surplus rolls for each length are created
-surplusVars = LpVariable.dicts("Surp", LenOpts, 0, None, LpInteger)
-
 # The variable 'prob' is created
 prob = LpProblem("Cutting Stock Problem", LpMinimize)
+
+# The problem variables of the number of each pattern to make are created
+pattVars = prob.add_variable_dict("Patt", (PatternNames,), 0, None, LpInteger)
+
+# The problem variables of the number of surplus rolls for each length are created
+surplusVars = prob.add_variable_dict("Surp", (LenOpts,), 0, None, LpInteger)
 
 # The objective function is entered: the total number of large rolls used * the fixed cost of each minus the surplus
 # sales and the trim sales
