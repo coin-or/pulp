@@ -50,6 +50,7 @@ dev = [
     "sphinx",
     "sphinx-rtd-theme",
     "numpy",
+    "ty",
 ]
 
 [tool.setuptools]

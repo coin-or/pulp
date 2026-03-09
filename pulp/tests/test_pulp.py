@@ -12,11 +12,8 @@ from typing import Union, Optional, Type
 
 
 from pulp import (
-    FixedElasticSubProblem,
     LpAffineExpression,
     LpConstraint,
-    LpConstraintExpr,
-    LpFractionConstraint,
     LpProblem,
     LpVariable,
     PulpSolverError,
@@ -278,34 +275,7 @@ class ModelUnitTest(unittest.TestCase):
         self.assertIsNot(v1, v2, "Each call should produce a fresh wrapper")
         self.assertEqual(v1.name, v2.name)
 
-    # -- 9. get_constraint_data --
-
-    def test_get_constraint_data_by_lp_constraint(self):
-        prob = self._make_prob()
-        x = prob.add_variable("x", 0, 10)
-        y = prob.add_variable("y", 0, 10)
-        prob += 2 * x + 3 * y <= 7, "mycon"
-        c = prob.constraints["mycon"]
-        data = prob.get_constraint_data(c)
-        name, rhs, sense, coeffs = data
-        self.assertEqual(name, "mycon")
-        self.assertAlmostEqual(rhs, 7.0)
-        coeffs_by_name = {v.name: val for v, val in coeffs}
-        self.assertAlmostEqual(coeffs_by_name["x"], 2.0)
-        self.assertAlmostEqual(coeffs_by_name["y"], 3.0)
-
-    def test_get_constraint_data_by_id(self):
-        prob = self._make_prob()
-        x = prob.add_variable("x", 0, 10)
-        prob += x <= 5, "c1"
-        c = prob.constraints["c1"]
-        cid = c._constr.id()
-        data = prob.get_constraint_data(cid)
-        name, rhs, sense, coeffs = data
-        self.assertEqual(name, "c1")
-        self.assertAlmostEqual(rhs, 5.0)
-
-    # -- 10. Batch setters --
+    # -- 9. Batch setters --
 
     def test_assign_vars_vals(self):
         prob = self._make_prob()
@@ -357,9 +327,9 @@ class ModelUnitTest(unittest.TestCase):
         le = x <= 5
         ge = x >= 3
         eq = x == 4
-        self.assertIsInstance(le, LpConstraintExpr)
-        self.assertIsInstance(ge, LpConstraintExpr)
-        self.assertIsInstance(eq, LpConstraintExpr)
+        self.assertIsInstance(le, LpAffineExpression)
+        self.assertIsInstance(ge, LpAffineExpression)
+        self.assertIsInstance(eq, LpAffineExpression)
         self.assertEqual(le.sense, const.LpConstraintLE)
         self.assertEqual(ge.sense, const.LpConstraintGE)
         self.assertEqual(eq.sense, const.LpConstraintEQ)
@@ -980,136 +950,6 @@ class BaseSolverTest:
                     status=status,
                 )
 
-        def test_fractional_constraints(self):
-            """
-            Test the ability to use fractional constraints
-            """
-            prob = LpProblem(self._testMethodName, const.LpMinimize)
-            x = prob.add_variable("x", 0, 4)
-            y = prob.add_variable("y", -1, 1)
-            z = prob.add_variable("z", 0)
-            w = prob.add_variable("w", 0)
-            prob += x + 4 * y + 9 * z, "obj"
-            prob += x + y <= 5, "c1"
-            prob += x + z >= 10, "c2"
-            prob += -y + z == 7, "c3"
-            prob += w >= 0, "c4"
-            prob += LpFractionConstraint(x, z, const.LpConstraintEQ, 0.5, name="c5")
-            pulpTestCheck(
-                prob,
-                self.solver,
-                [const.LpStatusOptimal],
-                {x: 10 / 3.0, y: -1 / 3.0, z: 20 / 3.0, w: 0},
-            )
-
-        def test_elastic_constraints(self):
-            """
-            Test the ability to use Elastic constraints
-            """
-            prob = LpProblem(self._testMethodName, const.LpMinimize)
-            x = prob.add_variable("x", 0, 4)
-            y = prob.add_variable("y", -1, 1)
-            z = prob.add_variable("z", 0)
-            w = prob.add_variable("w")
-            prob += x + 4 * y + 9 * z + w, "obj"
-            prob += x + y <= 5, "c1"
-            prob += x + z >= 10, "c2"
-            prob += -y + z == 7, "c3"
-            prob.extend((w >= -1).makeElasticSubProblem())
-            pulpTestCheck(
-                prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: -1}
-            )
-
-        def test_elastic_constraints_2(self):
-            """
-            Test the ability to use Elastic constraints
-            """
-            prob = LpProblem(self._testMethodName, const.LpMinimize)
-            x = prob.add_variable("x", 0, 4)
-            y = prob.add_variable("y", -1, 1)
-            z = prob.add_variable("z", 0)
-            w = prob.add_variable("w")
-            prob += x + 4 * y + 9 * z + w, "obj"
-            prob += x + y <= 5, "c1"
-            prob += x + z >= 10, "c2"
-            prob += -y + z == 7, "c3"
-            prob.extend((w >= -1).makeElasticSubProblem(proportionFreeBound=0.1))
-            pulpTestCheck(
-                prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: -1.1}
-            )
-
-        def test_elastic_constraints_penalty_unchanged(self):
-            """
-            Test the ability to use Elastic constraints (penalty unchanged)
-            """
-            prob = LpProblem(self._testMethodName, const.LpMinimize)
-            x = prob.add_variable("x", 0, 4)
-            y = prob.add_variable("y", -1, 1)
-            z = prob.add_variable("z", 0)
-            w = prob.add_variable("w")
-            prob += x + 4 * y + 9 * z + w, "obj"
-            prob += x + y <= 5, "c1"
-            prob += x + z >= 10, "c2"
-            prob += -y + z == 7, "c3"
-            prob.extend((w >= -1).makeElasticSubProblem(penalty=1.1))
-            pulpTestCheck(
-                prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: -1.0}
-            )
-
-        def test_elastic_constraints_penalty_unbounded(self) -> None:
-            """
-            Test the ability to use Elastic constraints (penalty unbounded)
-            """
-            prob = LpProblem(self._testMethodName, const.LpMinimize)
-            x = prob.add_variable("x", 0, 4)
-            y = prob.add_variable("y", -1, 1)
-            z = prob.add_variable("z", 0)
-            w = prob.add_variable("w")
-            prob += x + 4 * y + 9 * z + w, "obj"
-            prob += x + y <= 5, "c1"
-            prob += x + z >= 10, "c2"
-            prob += -y + z == 7, "c3"
-
-            sub_prob: FixedElasticSubProblem = (w >= -1).makeElasticSubProblem(
-                penalty=0.9
-            )
-            self.assertEqual(sub_prob.RHS, -1)
-            self.assertEqual(
-                str(sub_prob.objective), "-0.9*_neg_penalty_var + 0.9*_pos_penalty_var"
-            )
-
-            prob.extend(sub_prob)
-
-            elastic_constraint1 = sub_prob.constraints["_Constraint"]
-            elastic_constraint2 = prob.constraints["None_elastic_SubProblem_Constraint"]
-            self.assertEqual(str(elastic_constraint1), str(elastic_constraint2))
-
-            if self.solver.name in [
-                "COINMP_DLL",
-                "GUROBI",
-                "CPLEX_CMD",
-                "YAPOSIB",
-                "MOSEK",
-                "COPT",
-            ]:
-                # COINMP_DLL Does not report unbounded problems, correctly
-                pulpTestCheck(
-                    prob,
-                    self.solver,
-                    [const.LpStatusInfeasible, const.LpStatusUnbounded],
-                )
-            elif self.solver.name in ["GLPK_CMD"]:
-                # GLPK_CMD Does not report unbounded problems, correctly
-                pulpTestCheck(prob, self.solver, [const.LpStatusUndefined])
-            elif self.solver.name in ["GUROBI_CMD", "SCIP_CMD"]:
-                pulpTestCheck(prob, self.solver, [const.LpStatusNotSolved])
-            elif self.solver.name in ["CHOCO_CMD", "FSCIP_CMD"]:
-                # choco bounds all variables. Would not return unbounded status
-                # FSCIP_CMD returns optimal
-                pass
-            else:
-                pulpTestCheck(prob, self.solver, [const.LpStatusUnbounded])
-
         def test_msg_arg(self):
             """
             Test setting the msg arg to True does not interfere with solve
@@ -1478,7 +1318,7 @@ class BaseSolverTest:
             os.unlink(h.name)
             self.assertIsInstance(problem, LpProblem)
             mi_var = vars["YTWO"]
-            self.assertEqual(mi_var.lowBound, None)
+            self.assertEqual(mi_var.lowBound, float("-inf"))
 
         def test_unset_objective_value__is_valid(self):
             """Given a valid problem that does not converge,
@@ -1777,7 +1617,8 @@ class BaseSolverTest:
 
         def test_constraint_copy(self) -> None:
             """
-            LpConstraint.copy()
+            Comparison operators return LpAffineExpression with sense.
+            copy() preserves terms, constant, and sense.
             """
             prob = LpProblem(self._testMethodName, const.LpMinimize)
             x = prob.add_variable("x")
@@ -1787,21 +1628,21 @@ class BaseSolverTest:
             self.assertIsInstance(expr, LpAffineExpression)
             self.assertEqual(expr.constant, 1)
 
-            c: LpConstraint = expr <= 5
-            self.assertIsInstance(c, LpConstraint)
+            c = expr <= 5
+            self.assertIsInstance(c, LpAffineExpression)
+            self.assertIsNotNone(c.sense)
             self.assertEqual(c.constant, -4)
-            self.assertEqual(c.expr.constant, 1)
 
-            c2: LpConstraint = c.copy()
-            self.assertIsInstance(c2, LpConstraint)
+            c2 = c.copy()
+            self.assertIsInstance(c2, LpAffineExpression)
             self.assertEqual(c2.constant, -4)
-            self.assertEqual(c2.expr.constant, 1)
+            self.assertIsNotNone(c2.sense)
             self.assertEqual(str(c), str(c2))
             self.assertEqual(repr(c), repr(c2))
 
         def test_constraint_add(self) -> None:
             """
-            __add__ operator on LpConstraint
+            __add__ operator on LpAffineExpression with sense (pending constraint)
             """
             prob = LpProblem(self._testMethodName, const.LpMinimize)
             x = prob.add_variable("x")
@@ -1811,21 +1652,21 @@ class BaseSolverTest:
             self.assertIsInstance(expr, LpAffineExpression)
             self.assertEqual(expr.constant, 1)
 
-            c1: LpConstraint = x + y <= 5
-            self.assertIsInstance(c1, LpConstraint)
+            c1 = x + y <= 5
+            self.assertIsInstance(c1, LpAffineExpression)
+            self.assertIsNotNone(c1.sense)
             self.assertEqual(c1.constant, -5)
-            self.assertEqual(c1.expr.constant, 0)
             self.assertEqual(str(c1), "x + y <= 5.0")
             self.assertEqual(repr(c1), "1.0*x + 1.0*y + -5.0 <= 0")
 
-            c1_int: LpConstraint = c1 + 2
-            self.assertIsInstance(c1_int, LpConstraint)
+            c1_int = c1 + 2
+            self.assertIsInstance(c1_int, LpAffineExpression)
             self.assertEqual(c1_int.constant, -3)
             self.assertEqual(str(c1_int), "x + y <= 3.0")
             self.assertEqual(repr(c1_int), "1.0*x + 1.0*y + -3.0 <= 0")
 
-            c1_variable: LpConstraint = c1 + x
-            self.assertIsInstance(c1_variable, LpConstraint)
+            c1_variable = c1 + x
+            self.assertIsInstance(c1_variable, LpAffineExpression)
             self.assertEqual(str(c1_variable), str(2 * x + y <= 5))
             self.assertEqual(repr(c1_variable), repr(2 * x + y <= 5))
 
@@ -1834,48 +1675,46 @@ class BaseSolverTest:
             self.assertEqual(expr.constant, 1)
             self.assertEqual(str(expr), "x + 1")
 
-            c1_expr: LpConstraint = c1 + expr
-            self.assertIsInstance(c1_expr, LpConstraint)
-            self.assertEqual(c1_expr.expr.constant, 1)
+            c1_expr = c1 + expr
+            self.assertIsInstance(c1_expr, LpAffineExpression)
             self.assertEqual(c1_expr.constant, -4)
             self.assertEqual(str(c1_expr), str(2 * x + y <= 4))
             self.assertEqual(repr(c1_expr), repr(2 * x + y <= 4))
 
-            constraint: LpConstraint = x <= 1
-            self.assertIsInstance(constraint, LpConstraint)
-            c1_constraint: LpConstraint = c1 + constraint
+            constraint = x <= 1
+            self.assertIsInstance(constraint, LpAffineExpression)
+            c1_constraint = c1 + constraint
             self.assertEqual(str(c1_constraint), str(2 * x + y <= 6))
             self.assertEqual(repr(c1_constraint), repr(2 * x + y <= 6))
 
             constraint = x + 1 <= 2
-            self.assertIsInstance(constraint, LpConstraint)
+            self.assertIsInstance(constraint, LpAffineExpression)
             self.assertEqual(constraint.constant, -1)
-            self.assertEqual(constraint.expr.constant, 1)
             c1_constraint = c1 + constraint
             self.assertEqual(str(c1_constraint), str(2 * x + y <= 6))
             self.assertEqual(repr(c1_constraint), repr(2 * x + y <= 6))
 
         def test_constraint_neg(self) -> None:
             """
-            __neg__ operator on LpConstraint
+            __neg__ operator on LpAffineExpression with sense
             """
             prob = LpProblem(self._testMethodName, const.LpMinimize)
             x = prob.add_variable("x")
             y = prob.add_variable("y")
 
-            c1: LpConstraint = x + y <= 5
-            self.assertIsInstance(c1, LpConstraint)
+            c1 = x + y <= 5
+            self.assertIsInstance(c1, LpAffineExpression)
             self.assertEqual(c1.constant, -5)
 
-            c1_neg: LpConstraint = -c1
-            self.assertIsInstance(c1_neg, LpConstraint)
+            c1_neg = -c1
+            self.assertIsInstance(c1_neg, LpAffineExpression)
             self.assertEqual(c1_neg.constant, 5)
             self.assertEqual(str(c1_neg), str(-x + -y <= -5))
             self.assertEqual(repr(c1_neg), repr(-x + -y <= -5))
 
         def test_constraint_sub(self) -> None:
             """
-            __sub__ operator on LpConstraint
+            __sub__ operator on LpAffineExpression with sense
             """
             prob = LpProblem(self._testMethodName, const.LpMinimize)
             x = prob.add_variable("x")
@@ -1885,62 +1724,62 @@ class BaseSolverTest:
             self.assertIsInstance(expr0, LpAffineExpression)
             self.assertTrue(expr0.isNumericalConstant())
 
-            c1: LpConstraint = x + y <= 5
-            self.assertIsInstance(c1, LpConstraint)
+            c1 = x + y <= 5
+            self.assertIsInstance(c1, LpAffineExpression)
             self.assertEqual(c1.constant, -5)
 
-            c1_int: LpConstraint = c1 - 2
-            self.assertIsInstance(c1_int, LpConstraint)
+            c1_int = c1 - 2
+            self.assertIsInstance(c1_int, LpAffineExpression)
             self.assertEqual(c1_int.constant, -7)
 
-            c1_variable: LpConstraint = c1 - x
-            self.assertIsInstance(c1_variable, LpConstraint)
+            c1_variable = c1 - x
+            self.assertIsInstance(c1_variable, LpAffineExpression)
             self.assertEqual(str(c1_variable), "0*x + y <= 5.0")
             self.assertEqual(repr(c1_variable), "0.0*x + 1.0*y + -5.0 <= 0")
 
             expr: LpAffineExpression = x + 1
             self.assertIsInstance(expr, LpAffineExpression)
-            c1_expr: LpConstraint = c1 - expr
-            self.assertIsInstance(c1_expr, LpConstraint)
+            c1_expr = c1 - expr
+            self.assertIsInstance(c1_expr, LpAffineExpression)
             self.assertEqual(str(c1_expr), "0*x + y <= 6.0")
             self.assertEqual(repr(c1_expr), "0.0*x + 1.0*y + -6.0 <= 0")
 
-            constraint: LpConstraint = x <= 1
-            self.assertIsInstance(constraint, LpConstraint)
-            c1_constraint: LpConstraint = c1 - constraint
+            constraint = x <= 1
+            self.assertIsInstance(constraint, LpAffineExpression)
+            c1_constraint = c1 - constraint
             self.assertEqual(str(c1_constraint), "0*x + y <= 4.0")
             self.assertEqual(repr(c1_constraint), "0.0*x + 1.0*y + -4.0 <= 0")
 
             constraint = x + 1 <= 2
-            self.assertIsInstance(constraint, LpConstraint)
+            self.assertIsInstance(constraint, LpAffineExpression)
             c1_constraint = c1 - constraint
             self.assertEqual(str(c1_constraint), "0*x + y <= 4.0")
             self.assertEqual(repr(c1_constraint), "0.0*x + 1.0*y + -4.0 <= 0")
 
         def test_constraint_mul(self) -> None:
             """
-            __mul__ operator on LpConstraint
+            __mul__ operator on LpAffineExpression with sense
             """
             prob = LpProblem(self._testMethodName, const.LpMinimize)
             x = prob.add_variable("x")
             y = prob.add_variable("y")
 
-            c1: LpConstraint = x + y <= 5
-            self.assertIsInstance(c1, LpConstraint)
+            c1 = x + y <= 5
+            self.assertIsInstance(c1, LpAffineExpression)
             self.assertEqual(c1.constant, -5)
 
-            c2: LpConstraint = y <= 5
-            self.assertIsInstance(c2, LpConstraint)
+            c2 = y <= 5
+            self.assertIsInstance(c2, LpAffineExpression)
             self.assertEqual(c2.constant, -5)
 
-            c1_int: LpConstraint = c1 * 2
-            self.assertIsInstance(c1_int, LpConstraint)
+            c1_int = c1 * 2
+            self.assertIsInstance(c1_int, LpAffineExpression)
             self.assertEqual(c1_int.constant, -10)
             self.assertEqual(str(c1_int), "2*x + 2*y <= 10.0")
             self.assertEqual(repr(c1_int), "2.0*x + 2.0*y + -10.0 <= 0")
 
-            c1_const_expr: LpConstraint = c1 * LpAffineExpression(2)
-            self.assertIsInstance(c1_const_expr, LpConstraint)
+            c1_const_expr = c1 * LpAffineExpression.from_constant(2)
+            self.assertIsInstance(c1_const_expr, LpAffineExpression)
             self.assertEqual(c1_const_expr.constant, -10)
             self.assertEqual(str(c1_int), "2*x + 2*y <= 10.0")
             self.assertEqual(repr(c1_int), "2.0*x + 2.0*y + -10.0 <= 0")
@@ -1959,28 +1798,28 @@ class BaseSolverTest:
 
         def test_constraint_div(self) -> None:
             """
-            __div__ operator on LpConstraint
+            __div__ operator on LpAffineExpression with sense
             """
             prob = LpProblem(self._testMethodName, const.LpMinimize)
             x = prob.add_variable("x")
             y = prob.add_variable("y")
 
-            c1: LpConstraint = x + y <= 5
-            self.assertIsInstance(c1, LpConstraint)
+            c1 = x + y <= 5
+            self.assertIsInstance(c1, LpAffineExpression)
             self.assertEqual(c1.constant, -5)
 
-            c2: LpConstraint = y <= 5
-            self.assertIsInstance(c2, LpConstraint)
+            c2 = y <= 5
+            self.assertIsInstance(c2, LpAffineExpression)
             self.assertEqual(c2.constant, -5)
 
-            c1_int: LpConstraint = c1 / 2.0
-            self.assertIsInstance(c1_int, LpConstraint)
+            c1_int = c1 / 2.0
+            self.assertIsInstance(c1_int, LpAffineExpression)
             self.assertEqual(c1_int.constant, -2.5)
             self.assertEqual(str(c1_int), "0.5*x + 0.5*y <= 2.5")
             self.assertEqual(repr(c1_int), "0.5*x + 0.5*y + -2.5 <= 0")
 
-            c1_const_expr: LpConstraint = c1 / LpAffineExpression(2)
-            self.assertIsInstance(c1_const_expr, LpConstraint)
+            c1_const_expr = c1 / LpAffineExpression.from_constant(2)
+            self.assertIsInstance(c1_const_expr, LpAffineExpression)
             self.assertEqual(c1_const_expr.constant, -2.5)
             self.assertEqual(str(c1_const_expr), "0.5*x + 0.5*y <= 2.5")
             self.assertEqual(repr(c1_const_expr), "0.5*x + 0.5*y + -2.5 <= 0")
@@ -2037,9 +1876,9 @@ class BaseSolverTest:
                 self.assertEqual(str(lhs), f"s_{t}")
 
                 self.assertIsInstance(rhs, LpAffineExpression)
-                self.assertIsInstance(expr, LpConstraint)
+                self.assertIsInstance(expr, LpAffineExpression)
+                self.assertIsNotNone(expr.sense)
 
-                # First stock item is an int, subsequent are LpVariables
                 if t == 1:
                     self.assertEqual(str(rhs), f"x_{t} + {stock[t-1] - demands[t-1]}")
                     self.assertEqual(expr.constant, -rhs.constant + lhs)
@@ -2050,19 +1889,21 @@ class BaseSolverTest:
         def test_regression_805(self):
             # See: https://github.com/coin-or/pulp/issues/805
 
-            e = LpAffineExpression(1)
+            e = LpAffineExpression.from_constant(1)
             self.assertIsNone(e.name)
 
-            c = LpConstraintExpr(e, name="Test2")
-            self.assertEqual(c.name, "Test2")
-            self.assertIsNone(c.expr.name)
+            e2 = e.copy()
+            e2.name = "Test2"
+            self.assertEqual(e2.name, "Test2")
+            self.assertIsNone(e.name)
 
-            e = LpAffineExpression(1, name="Test1")
+            e = LpAffineExpression.from_constant(1, name="Test1")
             self.assertEqual(e.name, "Test1")
 
-            c = LpConstraintExpr(e, name="Test2")
-            self.assertEqual(c.name, "Test2")
-            self.assertEqual(c.expr.name, "Test1")
+            e2 = e.copy()
+            e2.name = "Test2"
+            self.assertEqual(e2.name, "Test2")
+            self.assertEqual(e.name, "Test1")
 
         def test_decimal_815_addinplace(self):
             # See: https://github.com/coin-or/pulp/issues/815
@@ -2076,20 +1917,20 @@ class BaseSolverTest:
             )
             include_extra = prob.add_variable("include_extra1", cat=const.LpBinary)
 
-            expression = LpAffineExpression()
+            expression = LpAffineExpression.empty()
             expression += x * m1 + include_extra * extra - y
             self.assertEqual(str(expression), "5*include_extra1 + 3*x - y")
 
-            with self.assertRaises(TypeError):
-                second_expression = LpAffineExpression()
-                second_expression += x * m2 - 6 - y
-
-            second_expression = LpAffineExpression(constant=Decimal("0"))
+            second_expression = LpAffineExpression.empty()
             second_expression += x * m2 - 6 - y
-            self.assertEqual(str(second_expression), "8.1*x - y - 6.0")
+            self.assertEqual(str(second_expression), "8.1*x - y - 6")
+
+            second_expression = LpAffineExpression.from_constant(0.0)
+            second_expression += x * m2 - 6 - y
+            self.assertEqual(str(second_expression), "8.1*x - y - 6")
 
             second_expression_2 = x * m2 - 6 - y
-            self.assertEqual(str(second_expression_2), "8.1*x - y - 6.0")
+            self.assertEqual(str(second_expression_2), "8.1*x - y - 6")
 
         def test_mps_output_unbounded_variable(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)

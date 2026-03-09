@@ -1,22 +1,25 @@
 # Utility functions
+from __future__ import annotations
+
 import collections
 import itertools
 from itertools import combinations as combination
 from itertools import permutations as permutation
+from typing import Any, Iterator
 
 
-def resource_clock():
+def resource_clock() -> float:
     import resource
 
     return resource.getrusage(resource.RUSAGE_CHILDREN).ru_utime
 
 
-def isNumber(x):
+def isNumber(x: object) -> bool:
     """Returns true if x is an int or a float"""
     return isinstance(x, (int, float))
 
 
-def value(x):
+def value(x: Any) -> float | None:
     """Returns the value of the variable/expression x, or x if it is a number"""
     if isNumber(x):
         return x
@@ -24,7 +27,7 @@ def value(x):
         return x.value()
 
 
-def valueOrDefault(x):
+def valueOrDefault(x: Any) -> float:
     """Returns the value of the variable/expression x, or x if it is a number
     Variable without value (None) are affected a possible value (within their
     bounds)."""
@@ -34,7 +37,7 @@ def valueOrDefault(x):
         return x.valueOrDefault()
 
 
-def allpermutations(orgset, k):
+def allpermutations(orgset: list[Any], k: int) -> Iterator[tuple[Any, ...]]:
     """
     returns all permutations of orgset with up to k items
 
@@ -68,7 +71,7 @@ def allpermutations(orgset, k):
     return itertools.chain(*[permutation(orgset, i) for i in range(1, k + 1)])
 
 
-def allcombinations(orgset, k):
+def allcombinations(orgset: list[Any], k: int) -> Iterator[tuple[Any, ...]]:
     """
     returns all combinations of orgset with up to k items
 
@@ -96,7 +99,7 @@ def allcombinations(orgset, k):
     return itertools.chain(*[combination(orgset, i) for i in range(1, k + 1)])
 
 
-def makeDict(headers, array, default=None):
+def makeDict(headers: list[list[Any]], array: list[Any], default: Any = None) -> dict[Any, Any]:
     """
     makes a list into a dictionary with the headings given in headings
     headers is a list of header lists
@@ -106,7 +109,7 @@ def makeDict(headers, array, default=None):
     return result
 
 
-def __makeDict(headers, array, default=None):
+def __makeDict(headers: list[list[Any]], array: list[Any], default: Any = None) -> tuple[dict[Any, Any], Any]:
     # this is a recursive function so end the recursion as follows
     result = {}
     returndefaultvalue = None
@@ -125,7 +128,7 @@ def __makeDict(headers, array, default=None):
     return result, returndefaultvalue
 
 
-def splitDict(data):
+def splitDict(data: dict[Any, list[Any]]) -> tuple[dict[Any, Any], ...]:
     """
     Split a dictionary with lists as the data, into smaller dictionaries
 
@@ -144,7 +147,7 @@ def splitDict(data):
     return tuple(output)
 
 
-def read_table(data, coerce_type, transpose=False):
+def read_table(data: str, coerce_type: type, transpose: bool = False) -> dict[tuple[str, str], Any]:
     """
     Reads in data from a simple table and forces it to be a particular type
 

@@ -165,36 +165,6 @@ impl Model {
             .collect()
     }
 
-    fn get_constraint_data(
-        &self,
-        id: ConstrId,
-    ) -> (String, f64, Sense, Vec<(Variable, f64)>) {
-        let (name, rhs, sense, coeffs_map) = {
-            let core = self.core.borrow();
-            let c = core.constraints.get(id).expect("constraint id valid");
-            let coeffs_map = c.coeffs.clone();
-            (
-                c.name.clone(),
-                c.rhs,
-                c.sense,
-                coeffs_map,
-            )
-        };
-        let coeffs: Vec<(Variable, f64)> = coeffs_map
-            .into_iter()
-            .map(|(var_id, coeff)| {
-                (
-                    Variable {
-                        id: var_id,
-                        model: Rc::downgrade(&self.core),
-                    },
-                    coeff,
-                )
-            })
-            .collect();
-        (name, rhs, sense, coeffs)
-    }
-
     fn get_objective(
         &self,
     ) -> Option<(Vec<(Variable, f64)>, f64, ObjSense)> {

@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Any, Union
 from . import constants as const
 
 if TYPE_CHECKING:
-    from pulp.pulp import LpProblem, LpVariable, LpAffineExpression
+    from pulp.pulp import LpProblem, LpVariable, LpAffineExpression, _ObjectiveView
 
 CORE_FILE_ROW_MODE = "ROWS"
 CORE_FILE_COL_MODE = "COLUMNS"
@@ -182,9 +182,9 @@ def readMPS(path: str, sense: int, dropConsNames: bool = False) -> MPS:
 
     with open(path) as reader:
         for line in reader:
-            line = re.split(" |\t", line)  # type: ignore[assignment]
-            line = [x.strip() for x in line]  # type: ignore[assignment]
-            line = list(filter(None, line))  # type: ignore[assignment]
+            line = re.split(" |\t", line)
+            line = [x.strip() for x in line]
+            line = list(filter(None, line))
 
             if line[0] == "ENDATA":
                 break
@@ -253,9 +253,9 @@ def readMPS(path: str, sense: int, dropConsNames: bool = False) -> MPS:
                     raise const.PulpError(
                         "Other RHS name was given even though name was set after RHS tag."
                     )
-                readMPSSetRhs(line, constraints)  # type: ignore[arg-type]
+                readMPSSetRhs(line, constraints)
             elif mode == CORE_FILE_RHS_MODE_NO_NAME:
-                readMPSSetRhs(line, constraints)  # type: ignore[arg-type]
+                readMPSSetRhs(line, constraints)
                 if line[0] not in rhs_names:
                     rhs_names.append(line[0])
             elif mode == CORE_FILE_BOUNDS_MODE_NAME_GIVEN:
@@ -263,9 +263,9 @@ def readMPS(path: str, sense: int, dropConsNames: bool = False) -> MPS:
                     raise const.PulpError(
                         "Other BOUNDS name was given even though name was set after BOUNDS tag."
                     )
-                readMPSSetBounds(line, variable_info)  # type: ignore[arg-type]
+                readMPSSetBounds(line, variable_info)
             elif mode == CORE_FILE_BOUNDS_MODE_NO_NAME:
-                readMPSSetBounds(line, variable_info)  # type: ignore[arg-type]
+                readMPSSetBounds(line, variable_info)
                 if line[1] not in bnd_names:
                     bnd_names.append(line[1])
     constraints_list = list(constraints.values())
@@ -323,16 +323,16 @@ def writeMPS(
     lp: LpProblem,
     filename: str,
     mpsSense: int = 0,
-    rename: bool = False,
-    mip: bool = True,
+    rename: int | bool = False,
+    mip: int | bool = True,
     with_objsense: bool = False,
-):
+) -> list[LpVariable] | tuple[list[LpVariable], dict[str, str], dict[str, str], str | None]:
     wasNone, dummyVar = lp.fixObjective()
     if mpsSense == 0:
         mpsSense = lp.sense
     if lp.objective is None:
         raise ValueError("objective is None")
-    cobj: LpAffineExpression = lp.objective
+    cobj = lp.objective
     # Normalize to minimization: max f <=> min -f, so CBC always sees MIN (avoids -max flag)
     if mpsSense == const.LpMaximize:
         n = cobj.name
@@ -352,13 +352,13 @@ def writeMPS(
                         varNames[v.name] = "X%07d" % n
                         vs.append(v)
                     else:
-                        vid = v._var.id()  # type: ignore[union-attr]
+                        vid = v._var.id()
                         if vid not in extra_col:
                             extra_col[vid] = "_var_%d" % vid
                             vs.append(v)
 
-        def col_name(v):
-            vid = v._var.id()  # type: ignore[union-attr]
+        def col_name(v: LpVariable) -> str:
+            vid = v._var.id()
             return varNames.get(v.name) or extra_col.get(vid) or ("_var_%d" % vid)
     else:
         vs = list(lp.variables())
@@ -371,13 +371,13 @@ def writeMPS(
                         varNames[v.name] = v.name
                         vs.append(v)
                     else:
-                        vid = v._var.id()  # type: ignore[union-attr]
+                        vid = v._var.id()
                         if vid not in extra_col:
                             extra_col[vid] = "_var_%d" % vid
                             vs.append(v)
 
-        def col_name(v):
-            vid = v._var.id()  # type: ignore[union-attr]
+        def col_name(v: LpVariable) -> str:
+            vid = v._var.id()
             return varNames.get(v.name) or extra_col.get(vid) or ("_var_%d" % vid)
     model_name = lp.name
     if rename:
@@ -446,9 +446,9 @@ def writeMPS(
 def writeMPSColumnLines(
     cv: dict[str, Union[int, float]],
     variable: LpVariable,
-    mip: bool,
+    mip: int | bool,
     name: str,
-    cobj: LpAffineExpression,
+    cobj: LpAffineExpression | _ObjectiveView,
     objName: str,
 ) -> list[str]:
     columns_lines: list[str] = []
@@ -469,7 +469,7 @@ def writeMPSColumnLines(
     return columns_lines
 
 
-def writeMPSBoundLines(name: str, variable: LpVariable, mip: bool) -> list[str]:
+def writeMPSBoundLines(name: str, variable: LpVariable, mip: int | bool) -> list[str]:
     low, up = _safe_var_bounds(variable)
     cat = _safe_var_cat(variable)
     if low is not None and low == up:
@@ -493,10 +493,10 @@ def writeMPSBoundLines(name: str, variable: LpVariable, mip: bool) -> list[str]:
 def writeLP(
     lp: LpProblem,
     filename: str,
-    writeSOS: bool = True,
-    mip: bool = True,
+    writeSOS: int | bool = True,
+    mip: int | bool = True,
     max_length: int = 100,
-):
+) -> list[LpVariable]:
     f = open(filename, "w")
     f.write("\\* " + lp.name + " *\\\n")
     if lp.sense == 1:

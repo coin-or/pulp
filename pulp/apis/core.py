@@ -30,6 +30,8 @@ Note that the solvers that require a compiled extension may not work in
 the current version
 """
 
+from __future__ import annotations
+
 import ctypes
 import math
 import os
@@ -38,7 +40,7 @@ import shutil
 import sys
 
 
-def get_operating_system():
+def get_operating_system() -> str:
     if sys.platform in ["win32", "cli"]:
         return "win"
     if sys.platform in ["darwin"]:
@@ -46,7 +48,7 @@ def get_operating_system():
     return "linux"
 
 
-def get_arch():
+def get_arch() -> str:
     is_64bits = sys.maxsize > 2**32
     if is_64bits:
         if platform.machine().lower() in ["aarch64", "arm64"]:
@@ -59,11 +61,15 @@ operating_system = get_operating_system()
 arch = get_arch()
 
 import logging
+from collections.abc import Iterator
 from time import monotonic as clock
-from typing import Union
+from typing import Any, Union, TYPE_CHECKING
 
 from .. import constants as const
 from .. import sparse
+
+if TYPE_CHECKING:
+    from ..pulp import LpProblem
 
 try:
     import ujson as json  # type: ignore[import-untyped]
@@ -94,8 +100,8 @@ class LpSolver:
     name = "LpSolver"
 
     def __init__(
-        self, mip=True, msg=True, options=None, timeLimit=None, *args, **kwargs
-    ):
+        self, mip: bool = True, msg: bool = True, options: list[str] | None = None, timeLimit: float | None = None, *args: Any, **kwargs: Any
+    ) -> None:
         """
         :param bool mip: if False, assume LP even if integer variables
         :param bool msg: if False, no log is shown
@@ -116,23 +122,23 @@ class LpSolver:
         # gapRel, gapAbs, maxMemory, maxNodes, threads, logPath, timeMode
         self.optionsDict = {k: v for k, v in kwargs.items() if v is not None}
 
-    def available(self):
+    def available(self) -> bool:
         """True if the solver is available"""
         raise NotImplementedError
 
-    def actualSolve(self, lp):
+    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
         """Solve a well formulated lp problem"""
         raise NotImplementedError
 
-    def actualResolve(self, lp, **kwargs):
+    def actualResolve(self, lp: LpProblem, **kwargs: Any) -> int:
         """
         uses existing problem information and solves the problem
         If it is not implemented in the solver
         just solve again
         """
-        self.actualSolve(lp, **kwargs)
+        return self.actualSolve(lp, **kwargs)
 
-    def copy(self):
+    def copy(self) -> LpSolver:
         """Make a copy of self"""
 
         aCopy = self.__class__()
@@ -141,9 +147,8 @@ class LpSolver:
         aCopy.options = self.options
         return aCopy
 
-    def solve(self, lp):
+    def solve(self, lp: LpProblem) -> int:
         """Solve the problem lp"""
-        # Always go through the solve method of LpProblem
         return lp.solve(self)
 
     # TODO: Not sure if this code should be here or in a child class
@@ -272,8 +277,8 @@ class LpSolver:
             self.n2c,
         )
 
-    def toDict(self):
-        data = dict(solver=self.name)
+    def toDict(self) -> dict[str, Any]:
+        data: dict[str, Any] = dict(solver=self.name)
         for k in ["mip", "msg", "keepFiles"]:
             try:
                 data[k] = getattr(self, k)
@@ -292,7 +297,7 @@ class LpSolver:
 
     to_dict = toDict
 
-    def toJson(self, filename, *args, **kwargs):
+    def toJson(self, filename: str, *args: Any, **kwargs: Any) -> None:
         with open(filename, "w") as f:
             json.dump(self.toDict(), f, *args, **kwargs)
 
@@ -304,7 +309,7 @@ class LpSolver_CMD(LpSolver):
 
     name = "LpSolver_CMD"
 
-    def __init__(self, path=None, keepFiles=False, *args, **kwargs):
+    def __init__(self, path: str | None = None, keepFiles: bool = False, *args: Any, **kwargs: Any) -> None:
         """
 
         :param bool mip: if False, assume LP even if integer variables
@@ -324,16 +329,19 @@ class LpSolver_CMD(LpSolver):
         self.keepFiles = keepFiles
         self.setTmpDir()
 
-    def copy(self):
+    def copy(self) -> LpSolver_CMD:
         """Make a copy of self"""
 
-        aCopy = LpSolver.copy(self)
+        aCopy: LpSolver_CMD = self.__class__()
+        aCopy.mip = self.mip
+        aCopy.msg = self.msg
+        aCopy.options = self.options
         aCopy.path = self.path
         aCopy.keepFiles = self.keepFiles
         aCopy.tmpDir = self.tmpDir
         return aCopy
 
-    def setTmpDir(self):
+    def setTmpDir(self) -> None:
         """Set the tmpDir attribute to a reasonnable location for a temporary
         directory"""
         if os.name != "nt":
@@ -350,7 +358,7 @@ class LpSolver_CMD(LpSolver):
         elif not os.access(self.tmpDir, os.F_OK + os.W_OK):
             self.tmpDir = ""
 
-    def create_tmp_files(self, name, *args):
+    def create_tmp_files(self, name: str, *args: str) -> Iterator[str]:
         if self.keepFiles:
             prefix = name
         else:
@@ -363,35 +371,35 @@ class LpSolver_CMD(LpSolver):
         except FileNotFoundError:
             pass
 
-    def delete_tmp_files(self, *args):
+    def delete_tmp_files(self, *args: str) -> None:
         if self.keepFiles:
             return
         for file in args:
             self.silent_remove(file)
 
-    def defaultPath(self):
+    def defaultPath(self) -> str:
         raise NotImplementedError
 
     @staticmethod
-    def executableExtension(name):
+    def executableExtension(name: str) -> str:
         if os.name != "nt":
             return name
         else:
             return name + ".exe"
 
     @staticmethod
-    def executable(command):
+    def executable(command: str) -> str | None:
         """Checks that the solver command is executable,
         And returns the actual path to it."""
         return shutil.which(command)
 
-    def get_pipe(self):
+    def get_pipe(self) -> Any:
         if self.msg:
             return None
         return open(os.devnull, "w")
 
 
-def ctypesArrayFill(myList, type=ctypes.c_double):
+def ctypesArrayFill(myList: list[Any], type: Any = ctypes.c_double) -> Any:
     """
     Creates a c array with ctypes from a python list
     type is the type of the c array

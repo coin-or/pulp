@@ -2,15 +2,16 @@
 //! Model is always present; no optional fallbacks.
 
 use pyo3::prelude::*;
-
-use crate::types::{upgrade_model, ConstrId};
+use std::cell::RefCell;
+use std::rc::Weak;
+use crate::types::{upgrade_model, ConstrId, ModelCore};
 
 /// Handle to a constraint stored inside a `ModelCore`. Only created by the model.
 #[pyclass(unsendable)]
 #[derive(Clone)]
 pub struct Constraint {
     pub id: ConstrId,
-    pub model: std::rc::Weak<std::cell::RefCell<crate::types::ModelCore>>,
+    pub model: Weak<RefCell<ModelCore>>,
 }
 
 #[pymethods]
@@ -27,6 +28,14 @@ impl Constraint {
             .get(self.id)
             .map(|c| c.name.clone())
             .unwrap_or_default()
+    }
+
+    fn set_name(&self, name: String) {
+        let core_rc = upgrade_model(&self.model).expect("model always present");
+        let mut core = core_rc.borrow_mut();
+        if let Some(c) = core.constraints.get_mut(self.id) {
+            c.name = name;
+        }
     }
 
     #[getter]

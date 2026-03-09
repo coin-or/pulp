@@ -11,10 +11,6 @@
    LpVariable
    LpAffineExpression
    LpConstraint
-   LpConstraint.makeElasticSubProblem
-   FixedElasticSubProblem
-
-.. todo::   LpFractionConstraint, FractionElasticSubProblem
 
 The LpProblem Class
 -------------------
@@ -92,10 +88,6 @@ Constraints
    :show-inheritance:
    :members:
 
-
-.. autoclass:: FixedElasticSubProblem
-   :show-inheritance:
-   :members:
 
 Combinations  and Permutations
 ------------------------------
