@@ -90,7 +90,7 @@ class MIPCL_CMD(LpSolver_CMD):
         # just to report duplicated variables:
         try:
             os.remove(tmpSol)
-        except:
+        except Exception:
             pass
         cmd = self.path
         cmd += f" {tmpMps}"
@@ -131,7 +131,7 @@ class MIPCL_CMD(LpSolver_CMD):
         """Read a MIPCL solution file"""
         with open(filename) as f:
             content = f.readlines()
-        content = [l.strip() for l in content]
+        content = [line.strip() for line in content]
         values = {}
         if not len(content):
             return (

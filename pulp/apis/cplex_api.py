@@ -75,7 +75,7 @@ class CPLEX_CMD(LpSolver_CMD):
         vs = lp.writeLP(tmpLp, writeSOS=1)
         try:
             os.remove(tmpSol)
-        except:
+        except Exception:
             pass
         if not self.msg:
             cplex = subprocess.Popen(
@@ -594,7 +594,7 @@ class CPLEX_PY(LpSolver):
             var_names = [var.name for var in lp._variables]
             con_names = [con for con in lp.constraints]
             try:
-                objectiveValue = lp.solverModel.solution.get_objective_value()
+                lp.solverModel.solution.get_objective_value()
                 variablevalues = dict(
                     zip(var_names, lp.solverModel.solution.get_values(var_names))
                 )

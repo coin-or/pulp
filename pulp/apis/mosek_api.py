@@ -145,14 +145,14 @@ class MOSEK(LpSolver):
                 vbkey = mosek.boundkey.fr
                 vup = inf
                 vlow = -inf
-                if self.vars[i].lowBound != None:
+                if self.vars[i].lowBound is not None:
                     vlow = self.vars[i].lowBound
-                    if self.vars[i].upBound != None:
+                    if self.vars[i].upBound is not None:
                         vup = self.vars[i].upBound
                         vbkey = mosek.boundkey.ra
                     else:
                         vbkey = mosek.boundkey.lo
-                elif self.vars[i].upBound != None:
+                elif self.vars[i].upBound is not None:
                     vup = self.vars[i].upBound
                     vbkey = mosek.boundkey.up
                 self.task.putvarbound(i, vbkey, vlow, vup)
@@ -170,7 +170,7 @@ class MOSEK(LpSolver):
             self.constraint_data_list = []
             for c in self.cons:
                 cname = self.cons[c].name
-                if cname != None:
+                if cname is not None:
                     self.task.putconname(self.cons_dict[c], cname)
                 else:
                     self.task.putconname(self.cons_dict[c], c)

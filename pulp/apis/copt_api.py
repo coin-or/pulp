@@ -32,9 +32,11 @@ from .core import (
 
 # COPT string convention
 if sys.version_info >= (3, 0):
-    coptstr = lambda x: bytes(x, "utf-8")
+    def coptstr(x):
+        return bytes(x, "utf-8")
 else:
-    coptstr = lambda x: x
+    def coptstr(x):
+        return x
 
 byref = ctypes.byref
 
@@ -130,7 +132,7 @@ class COPT_CMD(LpSolver_CMD):
 
         try:
             os.remove(tmpSol)
-        except:
+        except Exception:
             pass
 
         if self.msg:
@@ -156,7 +158,7 @@ class COPT_CMD(LpSolver_CMD):
             for oldfile in [tmpLp, tmpSol, tmpMst]:
                 try:
                     os.remove(oldfile)
-                except:
+                except Exception:
                     pass
 
         if status == LpStatusOptimal:
@@ -854,7 +856,7 @@ class COPT(LpSolver):
     try:
         global coptpy
         import coptpy  # type: ignore[import-not-found, import-untyped, unused-ignore]
-    except:
+    except Exception:
 
         def available(self):
             """True if the solver is available"""

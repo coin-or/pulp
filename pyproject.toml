@@ -76,7 +76,14 @@ target-version = "py39"
 exclude = [".eggs", ".git", ".venv", "_build", "build", "dist", "target"]
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "N", "W"]
+select = ["E", "F", "I", "W"]
+# N (naming) omitted: ignore naming convention rules
+ignore = [
+    "E501",   # line length — fix incrementally
+    "E402",   # import not at top — used for optional/solver imports
+    "F403",   # star import — used by design in pulp/__init__.py
+    "F405",   # name from star import — used by design in tests and __init__
+]
 
 [tool.uv]
 required-environments = [

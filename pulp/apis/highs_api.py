@@ -280,7 +280,7 @@ class HiGHS(LpSolver):
     try:
         global highspy
         import highspy  # type: ignore[import-not-found, import-untyped, unused-ignore]
-    except:
+    except Exception:
         hscb = None
 
         def available(self):

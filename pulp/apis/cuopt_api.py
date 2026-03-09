@@ -1,19 +1,12 @@
-import ctypes
 import math
-import os
-import subprocess
-import sys
-import warnings
-from uuid import uuid4
+
 from ..constants import (
     LpBinary,
     LpConstraintEQ,
     LpConstraintGE,
     LpConstraintLE,
-    LpContinuous,
     LpInteger,
     LpMaximize,
-    LpMinimize,
     LpStatusInfeasible,
     LpStatusNotSolved,
     LpStatusOptimal,
@@ -22,11 +15,8 @@ from ..constants import (
 )
 from .core import (
     LpSolver,
-    LpSolver_CMD,
     PulpSolverError,
     clock,
-    ctypesArrayFill,
-    sparse,
 )
 
 # Constraint Sense Converter
@@ -50,7 +40,7 @@ class CUOPT(LpSolver):
 
         global np
         import numpy as np  # type: ignore[import-not-found, import-untyped, unused-ignore]
-    except:
+    except Exception:
 
         def available(self):
             """True if the solver is available"""
@@ -92,7 +82,9 @@ class CUOPT(LpSolver):
                 warmStart=warmStart,
             )
 
-            from cuopt.linear_programming import data_model  # type: ignore[import-not-found, import-untyped, unused-ignore]
+            from cuopt.linear_programming import (
+                data_model,  # type: ignore[import-not-found, import-untyped, unused-ignore]
+            )
 
             self.model = data_model.DataModel()
             self.var_list = None
@@ -143,7 +135,10 @@ class CUOPT(LpSolver):
 
         def callSolver(self, lp, callback=None):
             """Solves the problem with CUOPT"""
-            from cuopt.linear_programming import solver_settings, solver  # type: ignore[import-not-found, import-untyped, unused-ignore]
+            from cuopt.linear_programming import (  # type: ignore[import-not-found, import-untyped, unused-ignore]
+                solver,
+                solver_settings,
+            )
 
             self.solveTime = -clock()
             # TODO: Add callback
@@ -212,13 +207,12 @@ class CUOPT(LpSolver):
             matrix_data, matrix_indices, matrix_indptr = [], [], [0]
 
             for name, constraint in lp.constraints.items():
-                row_coeffs = []
                 matrix_data.extend(list(constraint.values()))
                 matrix_indices.extend([var_dict[v.name] for v in constraint.keys()])
                 matrix_indptr.append(len(matrix_data))
                 try:
                     c_sense = sense_conv[constraint.sense]
-                except:
+                except Exception:
                     raise PulpSolverError("Detected an invalid constraint type")
                 rhs.append(-constraint.constant)
                 sense.append(c_sense)

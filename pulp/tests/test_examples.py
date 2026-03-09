@@ -1,7 +1,8 @@
 import os
-import unittest
-import pulp
 import shutil
+import unittest
+
+import pulp
 
 
 class Examples_DocsTests(unittest.TestCase):

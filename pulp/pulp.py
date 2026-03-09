@@ -123,23 +123,21 @@ References
 
 from __future__ import annotations
 
-from collections import Counter
-import warnings
+import dataclasses
+import logging
 import math
+import warnings
+from collections import Counter
+from collections.abc import Iterable, Iterator
 from time import time
 from typing import Any, Literal, Optional
 
-from .apis import LpSolverDefault
-from .apis.core import clock, LpSolver
-from .utilities import value
+from . import _rustcore
 from . import constants as const
 from . import mps_lp as mpslp
-
-from collections.abc import Iterable, Iterator
-import logging
-import dataclasses
-
-from . import _rustcore
+from .apis import LpSolverDefault
+from .apis.core import LpSolver, clock
+from .utilities import value
 
 log = logging.getLogger(__name__)
 

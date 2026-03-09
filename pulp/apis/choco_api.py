@@ -87,7 +87,7 @@ class CHOCO_CMD(LpSolver_CMD):
         lp.writeMPS(tmpMps, mpsSense=lp.sense)
         try:
             os.remove(tmpSol)
-        except:
+        except Exception:
             pass
         cmd = java_path + ' -cp "' + self.path + '" org.chocosolver.parser.mps.ChocoMPS'
         if self.timeLimit is not None:
@@ -145,7 +145,7 @@ class CHOCO_CMD(LpSolver_CMD):
         values = {}
         with open(filename) as f:
             content = f.readlines()
-        content = [l.strip() for l in content if l[:2] not in ["o ", "c "]]
+        content = [line.strip() for line in content if line[:2] not in ["o ", "c "]]
         if not len(content):
             return status, values, sol_status
         if content[0][:2] == "s ":

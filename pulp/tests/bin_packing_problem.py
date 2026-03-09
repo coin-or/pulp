@@ -1,5 +1,6 @@
-from pulp import *
 import random
+
+from pulp import *
 
 
 def _bin_packing_instance(bins, seed=0):
@@ -13,7 +14,7 @@ def _bin_packing_instance(bins, seed=0):
             packed_bins[i].append(item)
             remaining_size -= item
         packed_bins[i][-1] += remaining_size
-    all_items_with_bin = [(n, i) for i, l in enumerate(packed_bins) for n in l]
+    all_items_with_bin = [(n, i) for i, bin_list in enumerate(packed_bins) for n in bin_list]
 
     random.shuffle(all_items_with_bin)
     items, packing = zip(*all_items_with_bin)

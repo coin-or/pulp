@@ -26,7 +26,6 @@
 
 import operator
 import os
-import sys
 import warnings
 from typing import Dict, List, Optional, Tuple
 
@@ -223,7 +222,7 @@ class SCIP_CMD(LpSolver_CMD):
                 try:
                     comps = line.split()
                     values[comps[0]] = float(comps[1])
-                except:
+                except Exception:
                     raise PulpSolverError(f"Can't read SCIP solver output: {line!r}")
 
             # if we have a solution, we should change status to Optimal by conventio
@@ -574,7 +573,7 @@ class SCIP_PY(LpSolver):
                     else:
                         status = constants.LpStatusOptimal
                         lp.assignStatus(status, constants.LpSolutionIntegerFeasible)
-                except:  # No solution found
+                except Exception:  # No solution found
                     lp.assignStatus(status, constants.LpSolutionNoSolutionFound)
             else:
                 lp.assignStatus(status)

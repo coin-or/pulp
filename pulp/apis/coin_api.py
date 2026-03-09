@@ -176,17 +176,17 @@ class COIN_CMD(LpSolver_CMD):
         if self.optionsDict.get("presolve") is not None:
             if self.optionsDict["presolve"]:
                 # presolve is True: add 'presolve on'
-                cmds += f"-presolve on "
+                cmds += "-presolve on "
             else:
                 # presolve is False: add 'presolve off'
-                cmds += f"-presolve off "
+                cmds += "-presolve off "
         if self.optionsDict.get("cuts") is not None:
             if self.optionsDict["cuts"]:
                 # activate gomory, knapsack, and probing cuts
-                cmds += f"-gomory on knapsack on probing on "
+                cmds += "-gomory on knapsack on probing on "
             else:
                 # turn off all cuts
-                cmds += f"-cuts off "
+                cmds += "-cuts off "
         options = self.options + self.getOptions()
         for option in options:
             cmds += "-" + option + " "
@@ -227,7 +227,7 @@ class COIN_CMD(LpSolver_CMD):
             )
         try:
             pipe.close()
-        except:
+        except Exception:
             pass
 
         if not os.path.exists(tmpSol):
@@ -280,16 +280,16 @@ class COIN_CMD(LpSolver_CMD):
         slacks = {}
         status, sol_status = self.get_status(filename)
         with open(filename) as f:
-            for l in f:
-                if len(l) <= 2:
+            for line in f:
+                if len(line) <= 2:
                     break
-                l = l.split()
+                line = line.split()
                 # incase the solution is infeasible
-                if l[0] == "**":
-                    l = l[1:]
-                vn = l[1]
-                val = l[2]
-                dj = l[3]
+                if line[0] == "**":
+                    line = line[1:]
+                vn = line[1]
+                val = line[2]
+                dj = line[3]
                 if vn in reverseVn:
                     values[reverseVn[vn]] = float(val)
                     reducedCosts[reverseVn[vn]] = float(dj)
@@ -373,7 +373,7 @@ class PULP_CBC_CMD(COIN_CMD):
                 import stat
 
                 os.chmod(pulp_cbc_path, stat.S_IXUSR + stat.S_IXOTH)
-    except:  # probably due to incorrect permissions
+    except Exception:  # probably due to incorrect permissions
 
         def available(self):
             """True if the solver is available"""
@@ -569,7 +569,7 @@ class COINMP_DLL(LpSolver):
                     hProb, self.COIN_REAL_MIPFRACGAP, ctypes.c_double(self.fracGap)
                 )
             # CoinGetInfinity is needed for varibles with no bounds
-            coinDblMax = self.lib.CoinGetInfinity()
+            self.lib.CoinGetInfinity()
             if self.debug:
                 print("Before getCoinMPArrays")
             (
@@ -639,9 +639,9 @@ class COINMP_DLL(LpSolver):
                 5: constants.LpStatusNotSolved,
                 -1: constants.LpStatusUndefined,
             }
-            solutionStatus = self.lib.CoinGetSolutionStatus(hProb)
-            solutionText = self.lib.CoinGetSolutionText(hProb)
-            objectValue = self.lib.CoinGetObjectValue(hProb)
+            self.lib.CoinGetSolutionStatus(hProb)
+            self.lib.CoinGetSolutionText(hProb)
+            self.lib.CoinGetObjectValue(hProb)
 
             # get the solution values
             NumVarDoubleArray = ctypes.c_double * numVars
@@ -883,8 +883,10 @@ class CYLP(LpSolver):
     name = "CyLP"
     try:
         global cy
-        from cylp import cy  # type: ignore[import-not-found, import-untyped, unused-ignore]
-    except:
+        from cylp import (
+            cy,  # type: ignore[import-not-found, import-untyped, unused-ignore]
+        )
+    except Exception:
 
         def available(self):
             """True if the solver is available"""
@@ -922,18 +924,10 @@ class CYLP(LpSolver):
 
         def actualSolve(self, lp, **kwargs):  # type: ignore[misc]
             self.buildSolverModel(lp)
-            my_status = self.callSolver(lp)
+            self.callSolver(lp)
             # get the solution information
             self.findSolutionValues(lp)
 
-            my_map = {
-                0: constants.LpStatusOptimal,
-                1: constants.LpStatusInfeasible,
-                2: constants.LpStatusInfeasible,
-                4: constants.LpStatusNotSolved,
-                5: constants.LpStatusUndefined,
-                -1: constants.LpStatusUndefined,
-            }
             sol_stats = lp.solverModel.status
             print(sol_stats)
             my_map_2 = {
@@ -995,7 +989,7 @@ class CYLP(LpSolver):
             success = my_model.readMps(tmpMps)
             try:
                 os.remove(tmpMps)
-            except:
+            except Exception:
                 pass
             if success != 0:
                 raise PulpSolverError("Error reading MPS file")

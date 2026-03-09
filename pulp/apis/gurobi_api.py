@@ -28,14 +28,13 @@ from __future__ import annotations
 
 import math
 import os
-import sys
 from typing import TYPE_CHECKING
 
 from .. import constants
 from .core import LpSolver, LpSolver_CMD, PulpSolverError, clock, log, subprocess
 
 if TYPE_CHECKING:
-    from .. import LpProblem
+    pass
 
 import warnings
 
@@ -59,7 +58,7 @@ class GUROBI(LpSolver):
         # to import the name into the module scope
         global gp
         import gurobipy as gp  # type: ignore[import-not-found, import-untyped, unused-ignore]
-    except:  # FIXME: Bug because gurobi returns
+    except Exception:  # FIXME: Bug because gurobi returns
         #  a gurobi exception on failed imports
         def available(self):
             """True if the solver is available"""
@@ -447,7 +446,7 @@ class GUROBI_CMD(LpSolver_CMD):
         vs = lp.writeLP(tmpLp, writeSOS=1)
         try:
             os.remove(tmpSol)
-        except:
+        except Exception:
             pass
         cmd = self.path
         options = self.options + self.getOptions()

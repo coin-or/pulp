@@ -1,4 +1,4 @@
-from pulp import lpDot, LpVariable
+from pulp import LpVariable, lpDot
 
 
 def test_lpdot():

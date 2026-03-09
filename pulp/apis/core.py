@@ -62,8 +62,7 @@ arch = get_arch()
 
 import logging
 from collections.abc import Iterator
-from time import monotonic as clock
-from typing import Any, Union, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Union
 
 from .. import constants as const
 from .. import sparse
@@ -81,7 +80,8 @@ log = logging.getLogger(__name__)
 import subprocess
 
 devnull = subprocess.DEVNULL
-to_string = lambda _obj: str(_obj).encode()
+def to_string(_obj):
+    return str(_obj).encode()
 
 from uuid import uuid4
 

@@ -238,8 +238,8 @@ class XPRESS(LpSolver_CMD):
                 elif lineno == 6:
                     # Line with status information
                     _line = _line.split()
-                    rows = int(_line[2])
-                    cols = int(_line[5])
+                    int(_line[2])
+                    int(_line[5])
                 elif lineno < 10:
                     # Empty line, "Solution Statistics", objective direction
                     pass
@@ -388,7 +388,7 @@ class XPRESS_PY(LpSolver):
                 # we install callbacks explicitly
                 xpress.setOutputEnabled(False)
                 self._available = True
-            except:
+            except Exception:
                 self._available = False
         return self._available
 
@@ -557,7 +557,7 @@ class XPRESS_PY(LpSolver):
             # Import again to get a more verbose error message
             message = "XPRESS Python API not available"
             try:
-                import xpress
+                import xpress  # noqa: F401
             except ImportError as err:
                 message = str(err)
             raise PulpSolverError(message)

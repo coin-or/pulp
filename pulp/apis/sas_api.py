@@ -29,11 +29,10 @@ import sys
 import warnings
 from contextlib import redirect_stdout
 from io import StringIO
-from typing import Union
 from uuid import uuid4
 
 from .. import constants
-from .core import LpSolver, LpSolver_CMD, PulpSolverError, log
+from .core import LpSolver_CMD, PulpSolverError, log
 
 # The maximum length of the names of variables and constraints.
 MAX_NAME_LENGTH = 256
@@ -178,7 +177,7 @@ class SAS94(SASsolver):
         global saspy
         import saspy  # type: ignore[import-not-found, import-untyped, unused-ignore]
 
-    except:
+    except Exception:
 
         def available(self):
             """True if SAS94 is available."""

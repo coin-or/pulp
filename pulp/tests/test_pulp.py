@@ -8,23 +8,21 @@ import re
 import tempfile
 import unittest
 from decimal import Decimal
-from typing import Union, Optional, Type
+from typing import Optional, Type, Union
 
-
+import pulp.apis as solvers
 from pulp import (
     LpAffineExpression,
     LpConstraint,
     LpProblem,
     LpVariable,
     PulpSolverError,
+    lpSum,
 )
 from pulp import constants as const
-from pulp import lpSum
-import pulp.apis as solvers
 from pulp.constants import PulpError
 from pulp.tests.bin_packing_problem import create_bin_packing_problem
 from pulp.utilities import makeDict
-
 
 try:
     import gurobipy as gp  # type: ignore[import-not-found, import-untyped, unused-ignore]
@@ -90,7 +88,7 @@ def dumpTestProblem(prob):
     try:
         prob.writeLP("debug.lp")
         prob.writeMPS("debug.mps")
-    except:
+    except Exception:
         pass
 
 
@@ -356,7 +354,7 @@ class BaseSolverTest:
                 filename = f"{self._testMethodName}.{ext}"
                 try:
                     os.remove(filename)
-                except:
+                except Exception:
                     pass
             pass
 
@@ -980,7 +978,6 @@ class BaseSolverTest:
             """
             Test the availability of the function pulpTestAll
             """
-            from pulp.tests.run_tests import pulpTestAll
 
         def test_export_dict_LP(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
@@ -1034,7 +1031,7 @@ class BaseSolverTest:
             var1, prob1 = LpProblem.fromJson(filename)
             try:
                 os.remove(filename)
-            except:
+            except Exception:
                 pass
             x, y, z, w = (var1[name] for name in ["x", "y", "z", "w"])
             pulpTestCheck(
@@ -1130,7 +1127,7 @@ class BaseSolverTest:
             solver1 = solvers.getSolverFromJson(filename)
             try:
                 os.remove(filename)
-            except:
+            except Exception:
                 pass
             pulpTestCheck(
                 prob, solver1, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0}
@@ -1220,8 +1217,8 @@ class BaseSolverTest:
             # Check if a default value is passed
             self.assertEqual(dict_with_default["X"]["Y"], 0)
             # Check if a KeyError is raised
-            _func = lambda: dict_without_default["X"]["Y"]
-            self.assertRaises(KeyError, _func)
+            with self.assertRaises(KeyError):
+                dict_without_default["X"]["Y"]
 
         def test_importMPS_maximize(self):
             name = self._testMethodName
@@ -1612,7 +1609,8 @@ class BaseSolverTest:
             prob = LpProblem(self._testMethodName, const.LpMinimize)
             a = math.nan
             x = prob.add_variable("x")
-            self.assertRaises(PulpError, lambda: x + a)
+            with self.assertRaises(PulpError):
+                x + a
 
         def test_multiply_nan_values(self):
             import math
@@ -1620,7 +1618,8 @@ class BaseSolverTest:
             prob = LpProblem(self._testMethodName, const.LpMinimize)
             a = math.nan
             x = prob.add_variable("x")
-            self.assertRaises(PulpError, lambda: x * a)
+            with self.assertRaises(PulpError):
+                x * a
 
         def test_constraint_copy(self) -> None:
             """
@@ -2223,7 +2222,9 @@ class CPLEX_PYTest(BaseSolverTest.PuLPTest):
         self.assertEqual(len(solver.get_changed_params()), 1)
 
     def test_callback(self):
-        from cplex.callbacks import IncumbentCallback  # type: ignore[import-not-found, import-untyped, unused-ignore]
+        from cplex.callbacks import (
+            IncumbentCallback,  # type: ignore[import-not-found, import-untyped, unused-ignore]
+        )
 
         counter = 0
 
@@ -2446,7 +2447,7 @@ class HiGHS_PYTest(BaseSolverTest.PuLPTest):
                 solvers.HiGHS.hscb.HighsCallbackType.kCallbackMipInterrupt
             ],
         )
-        status = prob.solve(solver)
+        prob.solve(solver)
 
 
 class HiGHS_CMDTest(BaseSolverTest.PuLPTest):

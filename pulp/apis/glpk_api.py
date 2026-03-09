@@ -173,12 +173,6 @@ class GLPK_CMD(LpSolver_CMD):
             if statusString not in glpkStatus:
                 raise PulpSolverError("Unknown status returned by GLPK")
             status = glpkStatus[statusString]
-            isInteger = statusString in [
-                "INTEGER NON-OPTIMAL",
-                "INTEGER OPTIMAL",
-                "INTEGER UNDEFINED",
-                "INTEGER EMPTY",
-            ]
             names = []
             for i in range(4):
                 f.readline()
@@ -249,7 +243,7 @@ class PYGLPK(LpSolver):
         # import the model into the global scope
         global glpk
         import glpk.glpkpi as glpk  # type: ignore[import-not-found]
-    except:
+    except Exception:
 
         def available(self):
             """True if the solver is available"""
@@ -391,14 +385,14 @@ class PYGLPK(LpSolver):
                     glpk.glp_set_obj_coef(prob, var.glpk_index, value)
             log.debug("set the problem matrix")
             for constraint in lp.constraints.values():
-                l = len(list(constraint.items()))
-                ind = glpk.intArray(l + 1)
-                val = glpk.doubleArray(l + 1)
+                n = len(list(constraint.items()))
+                ind = glpk.intArray(n + 1)
+                val = glpk.doubleArray(n + 1)
                 for j, v in enumerate(constraint.items(), start=1):
                     var, value = v
                     ind[j] = var.glpk_index
                     val[j] = value
-                glpk.glp_set_mat_row(prob, constraint.glpk_index, l, ind, val)
+                glpk.glp_set_mat_row(prob, constraint.glpk_index, n, ind, val)
             lp.solverModel = prob
             # glpk.glp_write_lp(prob, None, "glpk.lp")
 

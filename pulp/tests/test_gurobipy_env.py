@@ -18,8 +18,8 @@ def is_single_use_license() -> bool:
         # no gurobi license
         return False
     try:
-        with gp.Env() as env1:
-            with gp.Env() as env2:
+        with gp.Env():
+            with gp.Env():
                 pass
     except gp.GurobiError as ge:
         if ge.errno == gp.GRB.Error.NO_LICENSE:
@@ -136,7 +136,6 @@ class GurobiEnvTests(unittest.TestCase):
         prob = generate_lp()
         prob.solve(solver)
 
-        tmp = solver.model
         solver.close()
 
         solver2 = GUROBI(msg=False, **self.options)

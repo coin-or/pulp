@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Any, Union
 from . import constants as const
 
 if TYPE_CHECKING:
-    from pulp.pulp import LpProblem, LpVariable, LpAffineExpression
+    from pulp.pulp import LpAffineExpression, LpProblem, LpVariable
 
 CORE_FILE_ROW_MODE = "ROWS"
 CORE_FILE_COL_MODE = "COLUMNS"
