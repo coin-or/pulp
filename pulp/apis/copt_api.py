@@ -1,4 +1,5 @@
 import ctypes
+import math
 import os
 import subprocess
 import sys
@@ -456,10 +457,6 @@ class COPT_DLL(LpSolver):
             # Get problem status and solution
             status = self.getsolution(lp, ncol, nrow)
 
-            # Reset attributes
-            for var in lp.variables():
-                var.modified = False
-
             return status
 
         def extract(self, lp):
@@ -506,12 +503,12 @@ class COPT_DLL(LpSolver):
             for col in lp.variables():
                 colname[self.v2n[col]] = coptstr(col.name)
 
-                if col.lowBound is not None:
+                if math.isfinite(col.lowBound):
                     collb[self.v2n[col]] = col.lowBound
                 else:
                     collb[self.v2n[col]] = -1e30
 
-                if col.upBound is not None:
+                if math.isfinite(col.upBound):
                     colub[self.v2n[col]] = col.upBound
                 else:
                     colub[self.v2n[col]] = 1e30
@@ -688,11 +685,6 @@ class COPT_DLL(LpSolver):
                 lp.assignVarsDj(var_dj)
                 lp.assignConsPi(con_pi)
                 lp.assignConsSlack(con_slack)
-
-            # Reset attributes
-            lp.resolveOK = True
-            for var in lp.variables():
-                var.isModified = False
 
             lp.status = coptlpstat.get(status.value, LpStatusUndefined)
             return lp.status
@@ -930,10 +922,6 @@ class COPT(LpSolver):
             if self.msg:
                 print("COPT status=", solutionStatus)
 
-            lp.resolveOK = True
-            for var in lp._variables:
-                var.isModified = False
-
             status = CoptLpStatus.get(solutionStatus, LpStatusUndefined)
             lp.assignStatus(status)
             if status != LpStatusOptimal:
@@ -999,10 +987,10 @@ class COPT(LpSolver):
 
             for var in lp.variables():
                 lowBound = var.lowBound
-                if lowBound is None:
+                if not math.isfinite(lowBound):
                     lowBound = -coptpy.COPT.INFINITY
                 upBound = var.upBound
-                if upBound is None:
+                if not math.isfinite(upBound):
                     upBound = coptpy.COPT.INFINITY
                 obj = lp.objective.get(var, 0.0)
                 varType = coptpy.COPT.CONTINUOUS
@@ -1045,10 +1033,6 @@ class COPT(LpSolver):
             self.callSolver(lp, callback=callback)
 
             solutionStatus = self.findSolutionValues(lp)
-            for var in lp._variables:
-                var.modified = False
-            for constraint in lp.constraints.values():
-                constraint.modified = False
             return solutionStatus
 
         def actualResolve(self, lp, callback=None):
@@ -1070,8 +1054,4 @@ class COPT(LpSolver):
             self.callSolver(lp, callback=callback)
 
             solutionStatus = self.findSolutionValues(lp)
-            for var in lp._variables:
-                var.modified = False
-            for constraint in lp.constraints.values():
-                constraint.modified = False
             return solutionStatus

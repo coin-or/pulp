@@ -29,6 +29,30 @@ ROW_MODE_OBJ = "N"
 ROW_EQUIV = {v: k for k, v in const.LpConstraintTypeToMps.items()}
 COL_EQUIV = {1: "Integer", 0: "Continuous"}
 
+
+def _safe_var_cat(variable: "LpVariable"):
+    """Variable category; defaults to continuous if variable is from another model (e.g. after extend)."""
+    try:
+        return variable.cat
+    except BaseException:
+        return const.LpContinuous
+
+
+def _safe_var_bounds(variable: "LpVariable"):
+    """(lowBound, upBound) with defaults if variable is from another model.
+    Converts inf/-inf back to None for MPS/LP format compatibility."""
+    import math
+    try:
+        lb = variable.lowBound
+        ub = variable.upBound
+        if lb is not None and not math.isfinite(lb):
+            lb = None
+        if ub is not None and not math.isfinite(ub):
+            ub = None
+        return (lb, ub)
+    except BaseException:
+        return (0, None)
+
 from dataclasses import dataclass
 
 
@@ -309,18 +333,52 @@ def writeMPS(
     if lp.objective is None:
         raise ValueError("objective is None")
     cobj: LpAffineExpression = lp.objective
-    if mpsSense != lp.sense:
+    # Normalize to minimization: max f <=> min -f, so CBC always sees MIN (avoids -max flag)
+    if mpsSense == const.LpMaximize:
         n = cobj.name
         cobj = -cobj
         cobj.name = n
+        mpsSense = const.LpMinimize
+    # For variables in constraints but not in vs (e.g. extend/elastic); key by Rust var id so wrappers match
+    extra_col: dict[int, str] = {}
     if rename:
         constrNames, varNames, cobj.name = lp.normalisedNames()
-        # No need to call self.variables() again, we have just filled self._variables:
-        vs = lp._variables
+        vs = list(lp._variables)
+        for c in lp.constraints.values():
+            for v, _ in c.items():
+                if v.name not in varNames:
+                    if v.name:
+                        n = len(vs)
+                        varNames[v.name] = "X%07d" % n
+                        vs.append(v)
+                    else:
+                        vid = v._var.id()  # type: ignore[union-attr]
+                        if vid not in extra_col:
+                            extra_col[vid] = "_var_%d" % vid
+                            vs.append(v)
+
+        def col_name(v):
+            vid = v._var.id()  # type: ignore[union-attr]
+            return varNames.get(v.name) or extra_col.get(vid) or ("_var_%d" % vid)
     else:
-        vs = lp.variables()
+        vs = list(lp.variables())
         varNames = {v.name: v.name for v in vs}
         constrNames = {c: c for c in lp.constraints}
+        for c in lp.constraints.values():
+            for v, _ in c.items():
+                if v.name not in varNames:
+                    if v.name:
+                        varNames[v.name] = v.name
+                        vs.append(v)
+                    else:
+                        vid = v._var.id()  # type: ignore[union-attr]
+                        if vid not in extra_col:
+                            extra_col[vid] = "_var_%d" % vid
+                            vs.append(v)
+
+        def col_name(v):
+            vid = v._var.id()  # type: ignore[union-attr]
+            return varNames.get(v.name) or extra_col.get(vid) or ("_var_%d" % vid)
     model_name = lp.name
     if rename:
         model_name = "MODEL"
@@ -335,16 +393,16 @@ def writeMPS(
     ]
     # Creation of a dict of dict:
     # coefs[variable_name][constraint_name] = coefficient
-    coefs: dict[str, dict[str, Union[int, float]]] = {varNames[v.name]: {} for v in vs}
+    coefs: dict[str, dict[str, Union[int, float]]] = {col_name(v): {} for v in vs}
     for k, c in lp.constraints.items():
         k = constrNames[k]
         for v, value in c.items():
-            coefs[varNames[v.name]][k] = value
+            coefs[col_name(v)][k] = value
 
     # matrix
     columns_lines: list[str] = []
     for v in vs:
-        name = varNames[v.name]
+        name = col_name(v)
         columns_lines.extend(
             writeMPSColumnLines(coefs[name], v, mip, name, cobj, objName)
         )
@@ -358,7 +416,7 @@ def writeMPS(
     # bounds
     bound_lines: list[str] = []
     for v in vs:
-        bound_lines.extend(writeMPSBoundLines(varNames[v.name], v, mip))
+        bound_lines.extend(writeMPSBoundLines(col_name(v), v, mip))
 
     with open(filename, "w") as f:
         if with_objsense:
@@ -394,7 +452,8 @@ def writeMPSColumnLines(
     objName: str,
 ) -> list[str]:
     columns_lines: list[str] = []
-    if mip and variable.cat == const.LpInteger:
+    cat = _safe_var_cat(variable)
+    if mip and cat == const.LpInteger:
         columns_lines.append("    MARK      'MARKER'                 'INTORG'\n")
     # Most of the work is done here
     _tmp = ["    %-8s  %-8s  % .12e\n" % (name, k, v) for k, v in cv.items()]
@@ -405,39 +464,29 @@ def writeMPSColumnLines(
         columns_lines.append(
             "    %-8s  %-8s  % .12e\n" % (name, objName, cobj[variable])
         )
-    if mip and variable.cat == const.LpInteger:
+    if mip and cat == const.LpInteger:
         columns_lines.append("    MARK      'MARKER'                 'INTEND'\n")
     return columns_lines
 
 
 def writeMPSBoundLines(name: str, variable: LpVariable, mip: bool) -> list[str]:
-    if variable.lowBound is not None and variable.lowBound == variable.upBound:
-        return [" FX BND       %-8s  % .12e\n" % (name, variable.lowBound)]
-    elif (
-        variable.lowBound == 0
-        and variable.upBound == 1
-        and mip
-        and variable.cat == const.LpInteger
-    ):
+    low, up = _safe_var_bounds(variable)
+    cat = _safe_var_cat(variable)
+    if low is not None and low == up:
+        return [" FX BND       %-8s  % .12e\n" % (name, low)]
+    elif low == 0 and up == 1 and mip and cat == const.LpInteger:
         return [" BV BND       %-8s\n" % name]
     bound_lines: list[str] = []
-    if variable.lowBound is not None:
-        # In MPS files, variables with no bounds (i.e. >= 0)
-        # are assumed BV by COIN and CPLEX.
-        # So we explicitly write a 0 lower bound in this case.
-        if variable.lowBound != 0 or (
-            mip and variable.cat == const.LpInteger and variable.upBound is None
-        ):
-            bound_lines.append(
-                " LO BND       %-8s  % .12e\n" % (name, variable.lowBound)
-            )
+    if low is not None:
+        if low != 0 or (mip and cat == const.LpInteger and up is None):
+            bound_lines.append(" LO BND       %-8s  % .12e\n" % (name, low))
     else:
-        if variable.upBound is not None:
+        if up is not None:
             bound_lines.append(" MI BND       %-8s\n" % name)
         else:
             bound_lines.append(" FR BND       %-8s\n" % name)
-    if variable.upBound is not None:
-        bound_lines.append(" UP BND       %-8s  % .12e\n" % (name, variable.upBound))
+    if up is not None:
+        bound_lines.append(" UP BND       %-8s  % .12e\n" % (name, up))
     return bound_lines
 
 
@@ -467,13 +516,19 @@ def writeLP(
     for k in ks:
         constraint = lp.constraints[k]
         if not list(constraint.keys()):
-            # empty constraint add the dummyVar
+            # empty constraint: use dummyVar so infeasible problems stay infeasible
+            # (do not modify Rust-backed constraint in place; write synthetic line)
             dummyVar = lp.get_dummyVar()
-            constraint += dummyVar
-            # set this dummyvar to zero so infeasible problems are not made feasible
             if not dummyWritten:
                 f.write((dummyVar == 0.0).asCplexLpConstraint("_dummy"))
                 dummyWritten = True
+            c = -constraint.constant
+            if c == 0:
+                c = 0
+            f.write(
+                f"{k}: 1 {dummyVar.name} {const.LpConstraintSenses[constraint.sense]} {c:.12g}\n"
+            )
+            continue
         f.write(constraint.asCplexLpConstraint(k))
     # check if any names are longer than 100 characters
     lp.checkLengthVars(max_length)

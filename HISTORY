@@ -11,6 +11,8 @@
     fixes to CUOPT API
     compatibility with new XPRESS_PY API
     allow joint installation of python-based APIs
+    initial experimental Rust core (crate pulp-rust-core) and optional
+        pulp._rustcore extension exposed via LpProblem.toRustModel
 3.2.0 2025-05-29
     Callbacks in HiGHS solver
     Added CuOpt solver

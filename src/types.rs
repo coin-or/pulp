@@ -46,6 +46,7 @@ pub struct VariableData {
     pub category: Category,
     pub obj_coeff: f64,
     pub value: Option<f64>,
+    pub dj: Option<f64>,
 }
 
 #[derive(Clone, Debug)]
@@ -54,6 +55,8 @@ pub struct ConstraintData {
     pub coeffs: IndexMap<VarId, f64>,
     pub rhs: f64,
     pub sense: Sense,
+    pub pi: Option<f64>,
+    pub slack: Option<f64>,
 }
 
 #[derive(Clone, Debug)]
@@ -99,6 +102,7 @@ impl ModelCore {
             category,
             obj_coeff: 0.0,
             value: None,
+            dj: None,
         });
         id
     }
@@ -116,6 +120,8 @@ impl ModelCore {
             coeffs,
             rhs,
             sense,
+            pi: None,
+            slack: None,
         });
         id
     }

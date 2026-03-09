@@ -100,8 +100,6 @@ Essential Classes
 
       a1x1 + a2x2 + ... + anxn (<=, =, >=) b
 
-* ``LpConstraintVar`` -- A special type of constraint for constructing column of the model in column-wise modelling
-
 Useful Functions
 ------------------
 

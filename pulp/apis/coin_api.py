@@ -25,6 +25,7 @@
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."""
 from __future__ import annotations
 
+import math
 import os
 from typing import TYPE_CHECKING
 
@@ -161,8 +162,6 @@ class COIN_CMD(LpSolver_CMD):
                 tmpMps, rename=1
             )
             cmds = " " + tmpMps + " "
-            if lp.sense == constants.LpMaximize:
-                cmds += "-max "
         else:
             vs = lp.writeLP(tmpLp)
             # In the Lp we do not create new variable or constraint names:
@@ -763,9 +762,6 @@ class YAPOSIB(LpSolver):
                 constr.slack = -constr.constant - constr.solverConstraint.activity
             if self.msg:
                 print("yaposib status=", solutionStatus)
-            lp.resolveOK = True
-            for var in lp.variables():
-                var.isModified = False
             status = yaposibLpStatus.get(solutionStatus, constants.LpStatusUndefined)
             lp.assignStatus(status)
             return status
@@ -808,9 +804,9 @@ class YAPOSIB(LpSolver):
             for var in lp.variables():
                 col = prob.cols.add(yaposib.vec([]))
                 col.name = var.name
-                if not var.lowBound is None:
+                if math.isfinite(var.lowBound):
                     col.lowerbound = var.lowBound
-                if not var.upBound is None:
+                if math.isfinite(var.upBound):
                     col.upperbound = var.upBound
                 if var.cat == constants.LpInteger:
                     col.integer = True
@@ -851,10 +847,6 @@ class YAPOSIB(LpSolver):
             self.callSolver(lp, callback=callback)
             # get the solution information
             solutionStatus = self.findSolutionValues(lp)
-            for var in lp.variables():
-                var.modified = False
-            for constraint in lp.constraints.values():
-                constraint.modified = False
             return solutionStatus
 
         def actualResolve(self, lp, callback=None):
@@ -880,10 +872,6 @@ class YAPOSIB(LpSolver):
             self.callSolver(lp, callback=callback)
             # get the solution information
             solutionStatus = self.findSolutionValues(lp)
-            for var in lp.variables():
-                var.modified = False
-            for constraint in lp.constraints.values():
-                constraint.modified = False
             return solutionStatus
 
 

@@ -26,6 +26,7 @@
 
 from __future__ import annotations
 
+import math
 import os
 import sys
 from typing import TYPE_CHECKING
@@ -202,9 +203,6 @@ class GUROBI(LpSolver):
             }
             if self.msg:
                 print("Gurobi status=", solutionStatus)
-            lp.resolveOK = True
-            for var in lp._variables:
-                var.isModified = False
             status = gurobiLpStatus.get(solutionStatus, constants.LpStatusUndefined)
             lp.assignStatus(status)
             if model.SolCount >= 1:
@@ -293,10 +291,10 @@ class GUROBI(LpSolver):
             nvars = lp.solverModel.NumVars
             for var in lp.variables():
                 lowBound = var.lowBound
-                if lowBound is None:
+                if not math.isfinite(lowBound):
                     lowBound = -gp.GRB.INFINITY
                 upBound = var.upBound
-                if upBound is None:
+                if not math.isfinite(upBound):
                     upBound = gp.GRB.INFINITY
                 obj = lp.objective.get(var, 0.0)
                 varType = gp.GRB.CONTINUOUS
@@ -350,10 +348,6 @@ class GUROBI(LpSolver):
             self.callSolver(lp, callback=callback)
             # get the solution information
             solutionStatus = self.findSolutionValues(lp)
-            for var in lp._variables:
-                var.modified = False
-            for constraint in lp.constraints.values():
-                constraint.modified = False
             return solutionStatus
 
         def actualResolve(self, lp, callback=None):
@@ -372,10 +366,6 @@ class GUROBI(LpSolver):
             self.callSolver(lp, callback=callback)
             # get the solution information
             solutionStatus = self.findSolutionValues(lp)
-            for var in lp._variables:
-                var.modified = False
-            for constraint in lp.constraints.values():
-                constraint.modified = False
             return solutionStatus
 
 

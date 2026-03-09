@@ -4,7 +4,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use indexmap::IndexMap;
-use pyo3::exceptions::PyRuntimeError;
+use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
 use crate::constraint::Constraint;
@@ -15,6 +15,7 @@ use crate::variable::Variable;
 #[pyclass(unsendable)]
 pub struct Model {
     pub core: Rc<RefCell<ModelCore>>,
+    next_constraint_id: usize,
 }
 
 #[pymethods]
@@ -23,7 +24,10 @@ impl Model {
     fn new(name: Option<String>) -> Self {
         let name = name.unwrap_or_else(|| "Model".to_string());
         let core = Rc::new(RefCell::new(ModelCore::new(name)));
-        Self { core }
+        Self {
+            core,
+            next_constraint_id: 0,
+        }
     }
 
     fn add_variable(
@@ -46,7 +50,36 @@ impl Model {
         coeffs: Vec<(Variable, f64)>,
         rhs: f64,
         sense: Sense,
-    ) -> Constraint {
+    ) -> PyResult<Constraint> {
+        let actual_name = if name.is_empty() {
+            loop {
+                self.next_constraint_id += 1;
+                let candidate = format!("_C{}", self.next_constraint_id);
+                let exists = self
+                    .core
+                    .borrow()
+                    .constraints
+                    .iter()
+                    .any(|c| c.name == candidate);
+                if !exists {
+                    break candidate;
+                }
+            }
+        } else {
+            let exists = self
+                .core
+                .borrow()
+                .constraints
+                .iter()
+                .any(|c| c.name == name);
+            if exists {
+                return Err(PyValueError::new_err(format!(
+                    "Duplicate constraint name: {}",
+                    name
+                )));
+            }
+            name
+        };
         let mut map = IndexMap::new();
         for (var, coeff) in coeffs {
             let entry = map.entry(var.id()).or_insert(0.0);
@@ -55,11 +88,11 @@ impl Model {
         let id = self
             .core
             .borrow_mut()
-            .add_constraint(name, map, rhs, sense);
-        Constraint {
+            .add_constraint(actual_name, map, rhs, sense);
+        Ok(Constraint {
             id,
             model: Rc::downgrade(&self.core),
-        }
+        })
     }
 
     fn set_objective(
@@ -135,13 +168,10 @@ impl Model {
     fn get_constraint_data(
         &self,
         id: ConstrId,
-    ) -> PyResult<(String, f64, Sense, Vec<(Variable, f64)>)> {
+    ) -> (String, f64, Sense, Vec<(Variable, f64)>) {
         let (name, rhs, sense, coeffs_map) = {
             let core = self.core.borrow();
-            let c = core
-                .constraints
-                .get(id)
-                .ok_or_else(|| PyRuntimeError::new_err("Constraint id out of range"))?;
+            let c = core.constraints.get(id).expect("constraint id valid");
             let coeffs_map = c.coeffs.clone();
             (
                 c.name.clone(),
@@ -162,7 +192,7 @@ impl Model {
                 )
             })
             .collect();
-        Ok((name, rhs, sense, coeffs))
+        (name, rhs, sense, coeffs)
     }
 
     fn get_objective(
@@ -213,5 +243,123 @@ impl Model {
                 "unset"
             }
         )
+    }
+
+    fn set_variable_values(&self, values: Vec<(VarId, f64)>) {
+        let mut core = self.core.borrow_mut();
+        for (id, val) in values {
+            if let Some(v) = core.vars.get_mut(id) {
+                v.value = Some(val);
+            }
+        }
+    }
+
+    fn set_variable_djs(&self, values: Vec<(VarId, f64)>) {
+        let mut core = self.core.borrow_mut();
+        for (id, val) in values {
+            if let Some(v) = core.vars.get_mut(id) {
+                v.dj = Some(val);
+            }
+        }
+    }
+
+    fn set_constraint_pis(&self, values: Vec<(ConstrId, f64)>) {
+        let mut core = self.core.borrow_mut();
+        for (id, val) in values {
+            if let Some(c) = core.constraints.get_mut(id) {
+                c.pi = Some(val);
+            }
+        }
+    }
+
+    fn set_constraint_slacks(&self, values: Vec<(ConstrId, f64)>) {
+        let mut core = self.core.borrow_mut();
+        for (id, val) in values {
+            if let Some(c) = core.constraints.get_mut(id) {
+                c.slack = Some(val);
+            }
+        }
+    }
+
+    fn set_variable_values_by_name(&self, values: std::collections::HashMap<String, f64>) {
+        let mut core = self.core.borrow_mut();
+        for v in &mut core.vars {
+            if let Some(&val) = values.get(&v.name) {
+                v.value = Some(val);
+            }
+        }
+    }
+
+    fn set_variable_djs_by_name(&self, values: std::collections::HashMap<String, f64>) {
+        let mut core = self.core.borrow_mut();
+        for v in &mut core.vars {
+            if let Some(&val) = values.get(&v.name) {
+                v.dj = Some(val);
+            }
+        }
+    }
+
+    fn set_constraint_pis_by_name(&self, values: std::collections::HashMap<String, f64>) {
+        let mut core = self.core.borrow_mut();
+        for c in &mut core.constraints {
+            if let Some(&val) = values.get(&c.name) {
+                c.pi = Some(val);
+            }
+        }
+    }
+
+    fn set_constraint_slacks_by_name(&self, values: std::collections::HashMap<String, f64>) {
+        let mut core = self.core.borrow_mut();
+        for c in &mut core.constraints {
+            if let Some(&val) = values.get(&c.name) {
+                c.slack = Some(val);
+            }
+        }
+    }
+
+    fn constraints_dict(&self) -> Vec<(String, Constraint)> {
+        let core = self.core.borrow();
+        core.constraints
+            .iter()
+            .enumerate()
+            .map(|(id, c)| {
+                (
+                    c.name.clone(),
+                    Constraint {
+                        id,
+                        model: Rc::downgrade(&self.core),
+                    },
+                )
+            })
+            .collect()
+    }
+
+    fn variables_dict(&self) -> Vec<(String, Variable)> {
+        let core = self.core.borrow();
+        core.vars
+            .iter()
+            .enumerate()
+            .map(|(id, v)| {
+                (
+                    v.name.clone(),
+                    Variable {
+                        id,
+                        model: Rc::downgrade(&self.core),
+                    },
+                )
+            })
+            .collect()
+    }
+
+    fn get_constraint_by_name(&self, name: &str) -> Option<Constraint> {
+        let core = self.core.borrow();
+        core.constraints
+            .iter()
+            .enumerate()
+            .find(|(_, c)| c.name == name)
+            .map(|(id, _)| Constraint {
+                id,
+                model: Rc::downgrade(&self.core),
+            })
     }
 }

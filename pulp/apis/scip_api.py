@@ -530,8 +530,6 @@ class SCIP_PY(LpSolver):
             )
 
         def findSolutionValues(self, lp):
-            lp.resolveOK = True
-
             solutionStatus = lp.solverModel.getStatus()
             scip_to_pulp_status = {
                 "optimal": constants.LpStatusOptimal,
@@ -701,10 +699,6 @@ class SCIP_PY(LpSolver):
             self.buildSolverModel(lp)
             self.callSolver(lp)
             solutionStatus = self.findSolutionValues(lp)
-            for variable in lp._variables:
-                variable.modified = False
-            for constraint in lp.constraints.values():
-                constraint.modified = False
             return solutionStatus
 
         def actualResolve(self, lp):

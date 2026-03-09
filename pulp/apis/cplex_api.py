@@ -1,3 +1,4 @@
+import math
 import os
 import warnings
 from typing import Iterable, Optional
@@ -188,32 +189,40 @@ class CPLEX_CMD(LpSolver_CMD):
             "113": constants.LpSolutionIntegerFeasible,  # abort feasible
         }
         solStatus = cplexSolStatus.get(statusValue)
-        shadowPrices = {}
-        slacks = {}
-        constraints = solutionXML.find("linearConstraints")
-        for constraint in constraints:
-            name = constraint.get("name")
-            slack = constraint.get("slack")
-            shadowPrice = constraint.get("dual")
-            try:
-                # See issue #508
-                shadowPrices[name] = float(shadowPrice)
-            except TypeError:
-                shadowPrices[name] = None
-            slacks[name] = float(slack)
+        shadowPrices: dict[str, float | None] = {}
+        slacks: dict[str, float] = {}
 
-        values = {}
-        reducedCosts = {}
-        for variable in solutionXML.find("variables"):
-            name = variable.get("name")
-            value = variable.get("value")
-            values[name] = float(value)
-            reducedCost = variable.get("reducedCost")
-            try:
-                # See issue #508
-                reducedCosts[name] = float(reducedCost)
-            except TypeError:
-                reducedCosts[name] = None
+        constraints = solutionXML.find("linearConstraints")
+        if constraints is not None:
+            for constraint in constraints:
+                name = constraint.get("name")
+                slack = constraint.get("slack")
+                shadowPrice = constraint.get("dual")
+                if name is None or slack is None:
+                    continue
+                try:
+                    # See issue #508
+                    shadowPrices[name] = float(shadowPrice)  # type: ignore[arg-type]
+                except (TypeError, ValueError):
+                    shadowPrices[name] = None
+                slacks[name] = float(slack)
+
+        values: dict[str, float] = {}
+        reducedCosts: dict[str, float | None] = {}
+        variables = solutionXML.find("variables")
+        if variables is not None:
+            for variable in variables:
+                name = variable.get("name")
+                value = variable.get("value")
+                if name is None or value is None:
+                    continue
+                values[name] = float(value)
+                reducedCost = variable.get("reducedCost")
+                try:
+                    # See issue #508
+                    reducedCosts[name] = float(reducedCost)  # type: ignore[arg-type]
+                except (TypeError, ValueError):
+                    reducedCosts[name] = None
 
         return status, values, reducedCosts, shadowPrices, slacks, solStatus
 
@@ -345,10 +354,6 @@ class CPLEX_PY(LpSolver):
             self.callSolver(lp, callback=callback)
             # get the solution information
             solutionStatus = self.findSolutionValues(lp)
-            for var in lp._variables:
-                var.modified = False
-            for constraint in lp.constraints.values():
-                constraint.modified = False
             return solutionStatus
 
         def buildSolverModel(self, lp):
@@ -376,7 +381,7 @@ class CPLEX_PY(LpSolver):
             obj = [float(lp.objective.get(var, 0.0)) for var in model_variables]
 
             def cplex_var_lb(var):
-                if var.lowBound is not None:
+                if math.isfinite(var.lowBound):
                     return float(var.lowBound)
                 else:
                     return -cplex.infinity
@@ -384,7 +389,7 @@ class CPLEX_PY(LpSolver):
             lb = [cplex_var_lb(var) for var in model_variables]
 
             def cplex_var_ub(var):
-                if var.upBound is not None:
+                if math.isfinite(var.upBound):
                     return float(var.upBound)
                 else:
                     return cplex.infinity
@@ -488,7 +493,7 @@ class CPLEX_PY(LpSolver):
             name = name.replace("parameters.", "")
             param = self.solverModel.parameters
             for attr in name.split("."):
-                param = getattr(param, attr)
+                param = param.__getattribute__(attr)
             return param
 
         @check_solverModel
@@ -616,9 +621,6 @@ class CPLEX_PY(LpSolver):
             # TODO: clear up the name of self.n2c
             if self.msg:
                 print("Cplex status=", lp.cplex_status)
-            lp.resolveOK = True
-            for var in lp._variables:
-                var.isModified = False
             return status
 
         def actualResolve(self, lp, **kwargs):

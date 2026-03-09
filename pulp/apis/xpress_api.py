@@ -24,6 +24,7 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."""
 
+import math
 import re
 import sys
 
@@ -402,11 +403,6 @@ class XPRESS_PY(LpSolver):
             model = lp.solverModel
             # Mark all variables and constraints as unmodified so that
             # actualResolve will do the correct thing.
-            for v in lp.variables():
-                v.modified = False
-            for c in lp.constraints.values():
-                c.modified = False
-
             if self._export is not None:
                 if self._export.lower().endswith(".lp"):
                     model.write(self._export, "l")
@@ -682,10 +678,10 @@ class XPRESS_PY(LpSolver):
                 # At the moment only bounds can change in pulp.py
                 bndind.append(v._xprs[0])
                 bndtype.append("L")
-                bndval.append(-xpress.infinity if v.lowBound is None else v.lowBound)
+                bndval.append(-xpress.infinity if not math.isfinite(v.lowBound) else v.lowBound)
                 bndind.append(v._xprs[0])
                 bndtype.append("G")
-                bndval.append(xpress.infinity if v.upBound is None else v.upBound)
+                bndval.append(xpress.infinity if not math.isfinite(v.upBound) else v.upBound)
             if len(bndtype) > 0:
                 lp.solverModel.chgbounds(bndind, bndtype, bndval)
 
@@ -716,9 +712,18 @@ class XPRESS_PY(LpSolver):
         self._reset(lp)
         try:
             # Map PuLP senses -> XPRESS tokens (prefer xp.leq/geq/eq if present; else fall back to 'L','G','E')
-            _XP_LEQ = getattr(xpress, "leq", "L")
-            _XP_GEQ = getattr(xpress, "geq", "G")
-            _XP_EQ = getattr(xpress, "eq", "E")
+            try:
+                _XP_LEQ = xpress.leq
+            except AttributeError:
+                _XP_LEQ = "L"
+            try:
+                _XP_GEQ = xpress.geq
+            except AttributeError:
+                _XP_GEQ = "G"
+            try:
+                _XP_EQ = xpress.eq
+            except AttributeError:
+                _XP_EQ = "E"
 
             _SENSE_MAP = {
                 constants.LpConstraintLE: _XP_LEQ,
@@ -761,8 +766,8 @@ class XPRESS_PY(LpSolver):
             ctype = list()
             names = list()
             for v in lp.variables():
-                lb.append(-xpress.infinity if v.lowBound is None else v.lowBound)
-                ub.append(xpress.infinity if v.upBound is None else v.upBound)
+                lb.append(-xpress.infinity if not math.isfinite(v.lowBound) else v.lowBound)
+                ub.append(xpress.infinity if not math.isfinite(v.upBound) else v.upBound)
                 obj.append(lp.objective.get(v, 0.0))
                 if v.cat == constants.LpInteger:
                     ctype.append("I")

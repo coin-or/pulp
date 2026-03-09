@@ -304,10 +304,6 @@ class MOSEK(LpSolver):
                 self.task.solutionsummary(mosek.streamtype.msg)
             self.findSolutionValues(lp)
             lp.assignStatus(self.solution_status_dict[self.solsta])
-            for var in lp.variables():
-                var.modified = False
-            for con in lp.constraints.values():
-                con.modified = False
             return lp.status
 
         def actualResolve(self, lp, inf=1e20, **kwargs):
@@ -338,8 +334,4 @@ class MOSEK(LpSolver):
             self.task.optimize()
             self.findSolutionValues(lp)
             lp.assignStatus(self.solution_status_dict[self.solsta])
-            for var in lp.variables():
-                var.modified = False
-            for con in lp.constraints.values():
-                con.modified = False
             return lp.status

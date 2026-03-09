@@ -15,7 +15,7 @@ from pulp import (
     FixedElasticSubProblem,
     LpAffineExpression,
     LpConstraint,
-    LpConstraintVar,
+    LpConstraintExpr,
     LpFractionConstraint,
     LpProblem,
     LpVariable,
@@ -95,6 +95,274 @@ def dumpTestProblem(prob):
         prob.writeMPS("debug.mps")
     except:
         pass
+
+
+class ModelUnitTest(unittest.TestCase):
+    """Solver-independent tests for the thin-wrapper architecture."""
+
+    def _make_prob(self, name=None):
+        return LpProblem(name or self._testMethodName, const.LpMinimize)
+
+    # -- 1. Variable bounds: inf/None conversion --
+
+    def test_variable_bounds_inf_conversion(self):
+        prob = self._make_prob()
+        x = prob.add_variable("x", lowBound=None, upBound=None)
+        self.assertEqual(x.lowBound, float("-inf"))
+        self.assertEqual(x.upBound, float("inf"))
+        x.lowBound = None
+        x.upBound = None
+        self.assertEqual(x.lowBound, float("-inf"))
+        self.assertEqual(x.upBound, float("inf"))
+
+    def test_variable_bounds_set_finite(self):
+        prob = self._make_prob()
+        x = prob.add_variable("x", 0, 100)
+        x.lowBound = 5.0
+        x.upBound = 10.0
+        self.assertEqual(x.lowBound, 5.0)
+        self.assertEqual(x.upBound, 10.0)
+
+    # -- 2. Variable dj property --
+
+    def test_variable_dj_default_none(self):
+        prob = self._make_prob()
+        x = prob.add_variable("x", 0, 10)
+        self.assertIsNone(x.dj)
+
+    def test_variable_dj_set_and_get(self):
+        prob = self._make_prob()
+        x = prob.add_variable("x", 0, 10)
+        x.dj = 3.5
+        self.assertEqual(x.dj, 3.5)
+
+    # -- 3. Constraint pi and slack --
+
+    def test_constraint_pi_default_none(self):
+        prob = self._make_prob()
+        x = prob.add_variable("x", 0, 10)
+        prob += x <= 5, "c1"
+        c = prob.constraints["c1"]
+        self.assertIsNone(c.pi)
+
+    def test_constraint_pi_set_and_get(self):
+        prob = self._make_prob()
+        x = prob.add_variable("x", 0, 10)
+        prob += x <= 5, "c1"
+        c = prob.constraints["c1"]
+        c.pi = 1.5
+        c2 = prob.constraints["c1"]
+        self.assertEqual(c2.pi, 1.5)
+
+    def test_constraint_slack_default_none(self):
+        prob = self._make_prob()
+        x = prob.add_variable("x", 0, 10)
+        prob += x <= 5, "c1"
+        c = prob.constraints["c1"]
+        self.assertIsNone(c.slack)
+
+    def test_constraint_slack_set_and_get(self):
+        prob = self._make_prob()
+        x = prob.add_variable("x", 0, 10)
+        prob += x <= 5, "c1"
+        c = prob.constraints["c1"]
+        c.slack = 2.0
+        c2 = prob.constraints["c1"]
+        self.assertEqual(c2.slack, 2.0)
+
+    # -- 4. Constraint properties delegate to Rust --
+
+    def test_constraint_sense_property(self):
+        prob = self._make_prob()
+        x = prob.add_variable("x", 0, 10)
+        prob += x <= 5, "le"
+        prob += x >= 1, "ge"
+        prob += x == 3, "eq"
+        cons = prob.constraints
+        self.assertEqual(cons["le"].sense, const.LpConstraintLE)
+        self.assertEqual(cons["ge"].sense, const.LpConstraintGE)
+        self.assertEqual(cons["eq"].sense, const.LpConstraintEQ)
+
+    def test_constraint_rhs_via_constant(self):
+        prob = self._make_prob()
+        x = prob.add_variable("x", 0, 10)
+        y = prob.add_variable("y", 0, 10)
+        prob += x + y <= 5, "c1"
+        c = prob.constraints["c1"]
+        self.assertEqual(c.constant, -5)
+
+    def test_constraint_items_keys_values(self):
+        prob = self._make_prob()
+        x = prob.add_variable("x", 0, 10)
+        y = prob.add_variable("y", 0, 10)
+        prob += 2 * x + 3 * y <= 10, "c1"
+        c = prob.constraints["c1"]
+        items = c.items()
+        coeffs_by_name = {v.name: coeff for v, coeff in items}
+        self.assertAlmostEqual(coeffs_by_name["x"], 2.0)
+        self.assertAlmostEqual(coeffs_by_name["y"], 3.0)
+        key_names = sorted(v.name for v in c.keys())
+        self.assertEqual(key_names, ["x", "y"])
+        self.assertEqual(sorted(c.values()), [2.0, 3.0])
+
+    # -- 5. Auto-naming constraints --
+
+    def test_auto_named_constraint(self):
+        prob = self._make_prob()
+        x = prob.add_variable("x", 0, 10)
+        prob += x <= 5
+        cons = prob.constraints
+        self.assertEqual(len(cons), 1)
+        name = list(cons.keys())[0]
+        self.assertTrue(len(name) > 0, "Auto-generated name should be non-empty")
+
+    def test_multiple_auto_named_constraints(self):
+        prob = self._make_prob()
+        x = prob.add_variable("x", 0, 10)
+        prob += x <= 5
+        prob += x >= 1
+        prob += x <= 8
+        cons = prob.constraints
+        self.assertEqual(len(cons), 3)
+        names = list(cons.keys())
+        self.assertEqual(len(set(names)), 3, "All auto-generated names should be distinct")
+
+    # -- 6. Duplicate constraint name --
+
+    def test_duplicate_constraint_name_raises(self):
+        prob = self._make_prob()
+        x = prob.add_variable("x", 0, 10)
+        prob += x <= 5, "c1"
+        with self.assertRaises(ValueError):
+            prob += x >= 1, "c1"
+
+    # -- 7. constraints property (fresh from Rust) --
+
+    def test_constraints_property_returns_dict(self):
+        prob = self._make_prob()
+        x = prob.add_variable("x", 0, 10)
+        prob += x <= 5, "c1"
+        prob += x >= 1, "c2"
+        cons = prob.constraints
+        self.assertIsInstance(cons, dict)
+        self.assertEqual(set(cons.keys()), {"c1", "c2"})
+        self.assertIsInstance(cons["c1"], LpConstraint)
+        self.assertIsInstance(cons["c2"], LpConstraint)
+
+    def test_constraints_property_fresh_wrappers(self):
+        prob = self._make_prob()
+        x = prob.add_variable("x", 0, 10)
+        prob += x <= 5, "c1"
+        a = prob.constraints["c1"]
+        b = prob.constraints["c1"]
+        self.assertIsNot(a, b, "Each call should produce a fresh wrapper")
+        self.assertEqual(a.name, b.name)
+
+    # -- 8. variables() (fresh from Rust) --
+
+    def test_variables_returns_list(self):
+        prob = self._make_prob()
+        prob.add_variable("x", 0, 10)
+        prob.add_variable("y", 0, 10)
+        prob.add_variable("z", 0, 10)
+        vs = prob.variables()
+        self.assertEqual(len(vs), 3)
+        names = sorted(v.name for v in vs)
+        self.assertEqual(names, ["x", "y", "z"])
+
+    def test_variables_fresh_wrappers(self):
+        prob = self._make_prob()
+        prob.add_variable("x", 0, 10)
+        v1 = prob.variables()[0]
+        v2 = prob.variables()[0]
+        self.assertIsNot(v1, v2, "Each call should produce a fresh wrapper")
+        self.assertEqual(v1.name, v2.name)
+
+    # -- 9. get_constraint_data --
+
+    def test_get_constraint_data_by_lp_constraint(self):
+        prob = self._make_prob()
+        x = prob.add_variable("x", 0, 10)
+        y = prob.add_variable("y", 0, 10)
+        prob += 2 * x + 3 * y <= 7, "mycon"
+        c = prob.constraints["mycon"]
+        data = prob.get_constraint_data(c)
+        name, rhs, sense, coeffs = data
+        self.assertEqual(name, "mycon")
+        self.assertAlmostEqual(rhs, 7.0)
+        coeffs_by_name = {v.name: val for v, val in coeffs}
+        self.assertAlmostEqual(coeffs_by_name["x"], 2.0)
+        self.assertAlmostEqual(coeffs_by_name["y"], 3.0)
+
+    def test_get_constraint_data_by_id(self):
+        prob = self._make_prob()
+        x = prob.add_variable("x", 0, 10)
+        prob += x <= 5, "c1"
+        c = prob.constraints["c1"]
+        cid = c._constr.id()
+        data = prob.get_constraint_data(cid)
+        name, rhs, sense, coeffs = data
+        self.assertEqual(name, "c1")
+        self.assertAlmostEqual(rhs, 5.0)
+
+    # -- 10. Batch setters --
+
+    def test_assign_vars_vals(self):
+        prob = self._make_prob()
+        prob.add_variable("x", 0, 10)
+        prob.add_variable("y", 0, 10)
+        prob.assignVarsVals({"x": 1.0, "y": 2.0})
+        vd = prob.variablesDict()
+        self.assertEqual(vd["x"].varValue, 1.0)
+        self.assertEqual(vd["y"].varValue, 2.0)
+
+    def test_assign_vars_dj(self):
+        prob = self._make_prob()
+        prob.add_variable("x", 0, 10)
+        prob.assignVarsDj({"x": 0.5})
+        vd = prob.variablesDict()
+        self.assertEqual(vd["x"].dj, 0.5)
+
+    def test_assign_cons_pi(self):
+        prob = self._make_prob()
+        x = prob.add_variable("x", 0, 10)
+        prob += x <= 5, "c1"
+        prob.assignConsPi({"c1": 1.5})
+        self.assertEqual(prob.constraints["c1"].pi, 1.5)
+
+    def test_assign_cons_slack(self):
+        prob = self._make_prob()
+        x = prob.add_variable("x", 0, 10)
+        prob += x <= 5, "c1"
+        prob.assignConsSlack({"c1": 2.0})
+        self.assertEqual(prob.constraints["c1"].slack, 2.0)
+
+    # -- 11. LpVariable arithmetic operators --
+
+    def test_variable_arithmetic_operators(self):
+        prob = self._make_prob()
+        x = prob.add_variable("x", 0, 10)
+        y = prob.add_variable("y", 0, 10)
+        self.assertIsInstance(x + y, LpAffineExpression)
+        self.assertIsInstance(x - y, LpAffineExpression)
+        self.assertIsInstance(2 * x, LpAffineExpression)
+        self.assertIsInstance(x * 3, LpAffineExpression)
+        self.assertIsInstance(x / 2, LpAffineExpression)
+        self.assertIsInstance(-x, LpAffineExpression)
+        self.assertIs(+x, x)
+
+    def test_variable_comparison_operators(self):
+        prob = self._make_prob()
+        x = prob.add_variable("x", 0, 10)
+        le = x <= 5
+        ge = x >= 3
+        eq = x == 4
+        self.assertIsInstance(le, LpConstraintExpr)
+        self.assertIsInstance(ge, LpConstraintExpr)
+        self.assertIsInstance(eq, LpConstraintExpr)
+        self.assertEqual(le.sense, const.LpConstraintLE)
+        self.assertEqual(ge.sense, const.LpConstraintGE)
+        self.assertEqual(eq.sense, const.LpConstraintEQ)
 
 
 class BaseSolverTest:
@@ -651,47 +919,6 @@ class BaseSolverTest:
             else:
                 pulpTestCheck(prob, self.solver, [const.LpStatusInfeasible])
 
-        def test_column_based(self):
-            prob = LpProblem(self._testMethodName, const.LpMinimize)
-            obj = LpConstraintVar("obj")
-            # constraints
-            a = LpConstraintVar("C1", const.LpConstraintLE, 5)
-            b = LpConstraintVar("C2", const.LpConstraintGE, 10)
-            c = LpConstraintVar("C3", const.LpConstraintEQ, 7)
-
-            prob.setObjective(obj)
-            prob += a
-            prob += b
-            prob += c
-            # Variables
-            x = prob.add_variable("x", 0, 4, const.LpContinuous, obj + a + b)
-            y = prob.add_variable("y", -1, 1, const.LpContinuous, 4 * obj + a - c)
-            z = prob.add_variable("z", 0, None, const.LpContinuous, 9 * obj + b + c)
-            pulpTestCheck(
-                prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6}
-            )
-
-        def test_colum_based_empty_constraints(self):
-            prob = LpProblem(self._testMethodName, const.LpMinimize)
-            obj = LpConstraintVar("obj")
-            # constraints
-            a = LpConstraintVar("C1", const.LpConstraintLE, 5)
-            b = LpConstraintVar("C2", const.LpConstraintGE, 10)
-            c = LpConstraintVar("C3", const.LpConstraintEQ, 7)
-
-            prob.setObjective(obj)
-            prob += a
-            prob += b
-            prob += c
-            # Variables
-            x = prob.add_variable("x", 0, 4, const.LpContinuous, obj + b)
-            y = prob.add_variable("y", -1, 1, const.LpContinuous, 4 * obj - c)
-            z = prob.add_variable("z", 0, None, const.LpContinuous, 9 * obj + b + c)
-            if self.solver.name in ["CPLEX_CMD", "COINMP_DLL", "YAPOSIB", "PYGLPK"]:
-                pulpTestCheck(
-                    prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6}
-                )
-
         def test_dual_variables_reduced_costs(self):
             """
             Test the reporting of dual variables slacks and reduced costs
@@ -728,30 +955,6 @@ class BaseSolverTest:
                     duals={"c1": 0, "c2": 1, "c3": 8},
                     slacks={"c1": 2, "c2": 0, "c3": 0},
                 )
-
-        def test_column_based_modelling_resolve(self):
-            prob = LpProblem(self._testMethodName, const.LpMinimize)
-            obj = LpConstraintVar("obj")
-            # constraints
-            a = LpConstraintVar("C1", const.LpConstraintLE, 5)
-            b = LpConstraintVar("C2", const.LpConstraintGE, 10)
-            c = LpConstraintVar("C3", const.LpConstraintEQ, 7)
-
-            prob.setObjective(obj)
-            prob += a
-            prob += b
-            prob += c
-
-            prob.setSolver(self.solver)  # Variables
-            x = prob.add_variable("x", 0, 4, const.LpContinuous, obj + a + b)
-            y = prob.add_variable("y", -1, 1, const.LpContinuous, 4 * obj + a - c)
-            prob.resolve()
-            z = prob.add_variable("z", 0, None, const.LpContinuous, 9 * obj + b + c)
-            if self.solver.name in ["COINMP_DLL"]:
-                prob.resolve()
-                # difficult to check this is doing what we want as the resolve is
-                # overridden if it is not implemented
-                # test_pulp_Check(prob, self.solver, [const.LpStatusOptimal], {x:4, y:-1, z:6})
 
         def test_sequential_solve(self):
             """
@@ -1850,14 +2053,14 @@ class BaseSolverTest:
             e = LpAffineExpression(1)
             self.assertIsNone(e.name)
 
-            c = LpConstraint(e, name="Test2")
+            c = LpConstraintExpr(e, name="Test2")
             self.assertEqual(c.name, "Test2")
             self.assertIsNone(c.expr.name)
 
             e = LpAffineExpression(1, name="Test1")
             self.assertEqual(e.name, "Test1")
 
-            c = LpConstraint(e, name="Test2")
+            c = LpConstraintExpr(e, name="Test2")
             self.assertEqual(c.name, "Test2")
             self.assertEqual(c.expr.name, "Test1")
 
@@ -1887,6 +2090,28 @@ class BaseSolverTest:
 
             second_expression_2 = x * m2 - 6 - y
             self.assertEqual(str(second_expression_2), "8.1*x - y - 6.0")
+
+        def test_mps_output_unbounded_variable(self):
+            prob = LpProblem(self._testMethodName, const.LpMinimize)
+            x = prob.add_variable("x", lowBound=0, upBound=None)
+            y = prob.add_variable("y", lowBound=None, upBound=10)
+            prob += x + y, "obj"
+            prob += x + y >= 1, "c1"
+            with tempfile.NamedTemporaryFile(
+                mode="r", suffix=".mps", delete=False
+            ) as f:
+                mps_path = f.name
+            try:
+                prob.writeMPS(mps_path)
+                with open(mps_path) as f:
+                    content = f.read()
+                self.assertNotIn(" inf", content.lower())
+                self.assertNotIn("-inf", content.lower())
+            finally:
+                try:
+                    os.remove(mps_path)
+                except OSError:
+                    pass
 
 
 class PULP_CBC_CMDTest(BaseSolverTest.PuLPTest):
@@ -2245,7 +2470,7 @@ class GLPK_CMDTest(BaseSolverTest.PuLPTest):
         model = LpProblem("float_test", sense=const.LpMinimize)
 
         var = model.add_variable(name="var", lowBound=0, cat=const.LpContinuous)
-        model += LpConstraint(np.float64(34.5) >= var)
+        model += np.float64(34.5) >= var
         model += var <= np.float64(34.5)
 
         model.solve()

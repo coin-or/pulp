@@ -60,6 +60,16 @@ impl AffineExpr {
         self.clone()
     }
 
+    /// Number of variable terms (excluding constant).
+    fn num_terms(&self) -> usize {
+        self.terms.len()
+    }
+
+    /// Coefficient for a variable (0.0 if not present).
+    fn get_coeff(&self, var: &Variable) -> f64 {
+        self.terms.get(&var.id()).copied().unwrap_or(0.0)
+    }
+
     #[getter]
     fn constant(&self) -> f64 {
         self.constant

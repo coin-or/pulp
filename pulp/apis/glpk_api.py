@@ -24,6 +24,7 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."""
 
+import math
 import os
 
 from .. import constants
@@ -306,9 +307,6 @@ class PYGLPK(LpSolver):
                     row_val = glpk.glp_get_row_prim(prob, constr.glpk_index)
                 constr.slack = -constr.constant - row_val
                 constr.pi = glpk.glp_get_row_dual(prob, constr.glpk_index)
-            lp.resolveOK = True
-            for var in lp.variables():
-                var.isModified = False
             status = glpkLpStatus.get(solutionStatus, constants.LpStatusUndefined)
             lp.assignStatus(status)
             return status
@@ -371,13 +369,13 @@ class PYGLPK(LpSolver):
                 lb = 0.0
                 ub = 0.0
                 t = glpk.GLP_FR
-                if not var.lowBound is None:
+                if math.isfinite(var.lowBound):
                     lb = var.lowBound
                     t = glpk.GLP_LO
-                if not var.upBound is None:
+                if math.isfinite(var.upBound):
                     ub = var.upBound
                     t = glpk.GLP_UP
-                if not var.upBound is None and not var.lowBound is None:
+                if math.isfinite(var.upBound) and math.isfinite(var.lowBound):
                     if ub == lb:
                         t = glpk.GLP_FX
                     else:
@@ -418,10 +416,6 @@ class PYGLPK(LpSolver):
             self.callSolver(lp, callback=callback)
             # get the solution information
             solutionStatus = self.findSolutionValues(lp)
-            for var in lp.variables():
-                var.modified = False
-            for constraint in lp.constraints.values():
-                constraint.modified = False
             return solutionStatus
 
         def actualResolve(self, lp, callback=None):
@@ -457,8 +451,4 @@ class PYGLPK(LpSolver):
             self.callSolver(lp, callback=callback)
             # get the solution information
             solutionStatus = self.findSolutionValues(lp)
-            for var in lp.variables():
-                var.modified = False
-            for constraint in lp.constraints.values():
-                constraint.modified = False
             return solutionStatus

@@ -31,6 +31,7 @@ the current version
 """
 
 import ctypes
+import math
 import os
 import platform
 import shutil
@@ -168,19 +169,20 @@ class LpSolver:
         import ctypes
 
         rangeCount = 0
+
         variables = list(lp.variables())
         numVars = len(variables)
-        # associate each variable with a ordinal
-        self.v2n = {variables[i]: i for i in range(numVars)}
+        # associate each variable with an ordinal (key by name; variables are not hashable)
         self.vname2n = {variables[i].name: i for i in range(numVars)}
+        self.v2n = self.vname2n  # alias for code that uses v2n[v.name]
         self.n2v = {i: variables[i] for i in range(numVars)}
         # objective values
         objSense = LpObjSenses[lp.sense]
         NumVarDoubleArray = ctypes.c_double * numVars
         objectCoeffs = NumVarDoubleArray()
-        # print "Get objective Values"
-        for v, val in lp.objective.items():
-            objectCoeffs[self.v2n[v]] = val
+        if lp.objective is not None:
+            for v, val in lp.objective.items():
+                objectCoeffs[self.vname2n[v.name]] = val
         # values for variables
         objectConst = ctypes.c_double(0.0)
         NumVarStrArray = ctypes.c_char_p * numVars
@@ -189,16 +191,17 @@ class LpSolver:
         upperBounds = NumVarDoubleArray()
         initValues = NumVarDoubleArray()
         for v in lp.variables():
-            colNames[self.v2n[v]] = to_string(v.name)
-            initValues[self.v2n[v]] = 0.0
-            if v.lowBound != None:
-                lowerBounds[self.v2n[v]] = v.lowBound
+            i = self.vname2n[v.name]
+            colNames[i] = to_string(v.name)
+            initValues[i] = 0.0
+            if math.isfinite(v.lowBound):
+                lowerBounds[i] = v.lowBound
             else:
-                lowerBounds[self.v2n[v]] = -infBound
-            if v.upBound != None:
-                upperBounds[self.v2n[v]] = v.upBound
+                lowerBounds[i] = -infBound
+            if math.isfinite(v.upBound):
+                upperBounds[i] = v.upBound
             else:
-                upperBounds[self.v2n[v]] = infBound
+                upperBounds[i] = infBound
         # values for constraints
         numRows = len(lp.constraints)
         NumRowDoubleArray = ctypes.c_double * numRows
@@ -241,7 +244,7 @@ class LpSolver:
         columnType = NumVarCharArray()
         if lp.isMIP():
             for v in lp.variables():
-                columnType[self.v2n[v]] = to_string(LpVarCategories[v.cat])
+                columnType[self.vname2n[v.name]] = to_string(LpVarCategories[v.cat])
         self.addedVars = numVars
         self.addedRows = numRows
         return (

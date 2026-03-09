@@ -8,7 +8,7 @@ repository = "https://github.com/coin-or/pulp"
 
 [lib]
 name = "pulp_rust_core"
-crate-type = ["cdylib"]
+crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 pyo3 = { version = "0.21", features = ["extension-module"] }

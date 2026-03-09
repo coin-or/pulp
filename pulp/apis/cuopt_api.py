@@ -1,4 +1,5 @@
 import ctypes
+import math
 import os
 import subprocess
 import sys
@@ -115,10 +116,6 @@ class CUOPT(LpSolver):
                 9: LpStatusNotSolved,  # Concurrent Limit
             }
 
-            lp.resolveOK = True
-            for var in lp._variables:
-                var.isModified = False
-
             status = CuoptStatus.get(solutionStatus, LpStatusUndefined)
             lp.assignStatus(status)
 
@@ -186,10 +183,10 @@ class CUOPT(LpSolver):
             for i, var in enumerate(lp.variables()):
                 obj_coeff.append(lp.objective.get(var, 0.0))
                 lowBound = var.lowBound
-                if lowBound is None:
+                if not math.isfinite(lowBound):
                     lowBound = -np.inf
                 upBound = var.upBound
-                if upBound is None:
+                if not math.isfinite(upBound):
                     upBound = np.inf
                 varType = "C"
                 if var.cat == LpInteger and self.mip:
@@ -245,10 +242,6 @@ class CUOPT(LpSolver):
             solution = self.callSolver(lp, callback=callback)
 
             solutionStatus = self.findSolutionValues(lp, solution)
-            for var in lp._variables:
-                var.modified = False
-            for constraint in lp.constraints.values():
-                constraint.modified = False
             return solutionStatus
 
         def actualResolve(self, lp, callback=None):
@@ -272,8 +265,4 @@ class CUOPT(LpSolver):
             self.callSolver(lp, callback=callback)
 
             solutionStatus = self.findSolutionValues(lp)
-            for var in lp._variables:
-                var.modified = False
-            for constraint in lp.constraints.values():
-                constraint.modified = False
             return solutionStatus

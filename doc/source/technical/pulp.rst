@@ -52,7 +52,7 @@ The LpProblem Class
 Variables and Expressions
 -------------------------
 
-.. autoclass:: LpElement
+.. autoclass:: LpVariable
     :members:
 
 ----

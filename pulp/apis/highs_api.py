@@ -522,13 +522,6 @@ class HiGHS(LpSolver):
             self.callSolver(lp)
 
             status, sol_status = self.findSolutionValues(lp)
-
-            for var in lp.variables():
-                var.modified = False
-
-            for constraint in lp.constraints.values():
-                constraint.modifier = False
-
             lp.assignStatus(status, sol_status)
 
             return status
