@@ -237,9 +237,9 @@ class PYGLPK(LpSolver):
 
     Copyright Christophe-Marie Duquesne 2012
 
-    The glpk variables are available (after a solve) in var.solverVar
-    The glpk constraints are available in constraint.solverConstraint
-    The Model is in prob.solverModel
+    After calling solve, the model is in prob.solverModel. Solver handles
+    (GLPK 1-based column/row indices) are stored by id:
+    lp._solver_var_handles[var.id] and lp._solver_constr_handles[constraint.id].
     """
 
     name = "PYGLPK"
@@ -292,19 +292,21 @@ class PYGLPK(LpSolver):
             }
             # populate pulp solution values
             for var in lp.variables():
+                col = lp._solver_var_handles[var.id]
                 if self.mip and self.hasMIPConstraints(lp.solverModel):
-                    var.varValue = glpk.glp_mip_col_val(prob, var.glpk_index)
+                    var.varValue = glpk.glp_mip_col_val(prob, col)
                 else:
-                    var.varValue = glpk.glp_get_col_prim(prob, var.glpk_index)
-                var.dj = glpk.glp_get_col_dual(prob, var.glpk_index)
+                    var.varValue = glpk.glp_get_col_prim(prob, col)
+                var.dj = glpk.glp_get_col_dual(prob, col)
             # put pi and slack variables against the constraints
             for constr in lp.constraints.values():
+                row = lp._solver_constr_handles[constr.id]
                 if self.mip and self.hasMIPConstraints(lp.solverModel):
-                    row_val = glpk.glp_mip_row_val(prob, constr.glpk_index)
+                    row_val = glpk.glp_mip_row_val(prob, row)
                 else:
-                    row_val = glpk.glp_get_row_prim(prob, constr.glpk_index)
+                    row_val = glpk.glp_get_row_prim(prob, row)
                 constr.slack = -constr.constant - row_val
-                constr.pi = glpk.glp_get_row_dual(prob, constr.glpk_index)
+                constr.pi = glpk.glp_get_row_dual(prob, row)
             status = glpkLpStatus.get(solutionStatus, constants.LpStatusUndefined)
             lp.assignStatus(status)
             return status
@@ -341,9 +343,10 @@ class PYGLPK(LpSolver):
             if lp.sense == constants.LpMaximize:
                 glpk.glp_set_obj_dir(prob, glpk.GLP_MAX)
             log.debug("add the constraints to the problem")
+            lp._solver_var_handles = []
+            lp._solver_constr_handles = []
             glpk.glp_add_rows(prob, len(list(lp.constraints.keys())))
-            for i, v in enumerate(lp.constraints.items(), start=1):
-                name, constraint = v
+            for i, (name, constraint) in enumerate(lp.constraints.items(), start=1):
                 glpk.glp_set_row_name(prob, i, name)
                 if constraint.sense == constants.LpConstraintLE:
                     glpk.glp_set_row_bnds(
@@ -359,7 +362,7 @@ class PYGLPK(LpSolver):
                     )
                 else:
                     raise PulpSolverError("Detected an invalid constraint type")
-                constraint.glpk_index = i
+                lp._solver_constr_handles.append(i)
             log.debug("add the variables to the problem")
             glpk.glp_add_cols(prob, len(lp.variables()))
             for j, var in enumerate(lp.variables(), start=1):
@@ -382,22 +385,23 @@ class PYGLPK(LpSolver):
                 if var.cat == constants.LpInteger:
                     glpk.glp_set_col_kind(prob, j, glpk.GLP_IV)
                     assert glpk.glp_get_col_kind(prob, j) == glpk.GLP_IV
-                var.glpk_index = j
+                lp._solver_var_handles.append(j)
             log.debug("set the objective function")
             for var in lp.variables():
                 value = lp.objective.get(var)
                 if value:
-                    glpk.glp_set_obj_coef(prob, var.glpk_index, value)
+                    glpk.glp_set_obj_coef(prob, lp._solver_var_handles[var.id], value)
             log.debug("set the problem matrix")
             for constraint in lp.constraints.values():
                 n = len(list(constraint.items()))
                 ind = glpk.intArray(n + 1)
                 val = glpk.doubleArray(n + 1)
-                for j, v in enumerate(constraint.items(), start=1):
-                    var, value = v
-                    ind[j] = var.glpk_index
+                for j, (var, value) in enumerate(constraint.items(), start=1):
+                    ind[j] = lp._solver_var_handles[var.id]
                     val[j] = value
-                glpk.glp_set_mat_row(prob, constraint.glpk_index, n, ind, val)
+                glpk.glp_set_mat_row(
+                    prob, lp._solver_constr_handles[constraint.id], n, ind, val
+                )
             lp.solverModel = prob
             # glpk.glp_write_lp(prob, None, "glpk.lp")
 
@@ -426,7 +430,7 @@ class PYGLPK(LpSolver):
             prob = lp.solverModel
             log.debug("Resolve the Model using glpk")
             for constraint in lp.constraints.values():
-                i = constraint.glpk_index
+                i = lp._solver_constr_handles[constraint.id]
                 if constraint.modified:
                     if constraint.sense == constants.LpConstraintLE:
                         glpk.glp_set_row_bnds(

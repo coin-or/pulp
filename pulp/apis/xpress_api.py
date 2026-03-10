@@ -454,10 +454,9 @@ class XPRESS_PY(LpSolver):
                         else None
                     )
                     vals = var_vals
-                except Exception as e:
-                    # Fallback to deprecated API (avoids DeprecationWarning only if not hit)
+                except Exception:
+                    # Fallback to deprecated API
                     try:
-                        print(e)
                         x_list, s_list = [], []
                         model.getmipsol(x_list, s_list)
                         vals, slacks = (

@@ -7,6 +7,7 @@ use indexmap::IndexMap;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
+use crate::format;
 use crate::model::Model;
 use crate::types::{ModelCore, Sense, VarId};
 use crate::variable::Variable;
@@ -74,7 +75,6 @@ impl AffineExpr {
     }
 
     /// Resolve VarId -> Variable handles via the provided model.
-    /// Kept for backward compatibility during migration.
     fn terms_with_variables(&self, model: &Model) -> Vec<(Variable, f64)> {
         self.terms
             .iter()
@@ -249,7 +249,6 @@ impl AffineExpr {
     }
 
     /// Combine sense when adding two constraint-like expressions.
-    /// Keep self.sense if present, else adopt other (flipped if sign < 0).
     #[pyo3(signature = (other_sense, sign))]
     fn combine_sense(&mut self, other_sense: Option<Sense>, sign: f64) {
         if self.sense.is_some() {
@@ -263,7 +262,123 @@ impl AffineExpr {
             }
         }
     }
+
+    // ── Formatting methods (delegate to format.rs) ──
+
+    /// Returns variables sorted by name, as Variable handles.
+    fn sorted_keys(&self) -> Vec<Variable> {
+        let weak = match &self.model {
+            Some(w) => w,
+            None => return Vec::new(),
+        };
+        let core_rc = match weak.upgrade() {
+            Some(rc) => rc,
+            None => return Vec::new(),
+        };
+        let core = core_rc.borrow();
+        let mut pairs: Vec<(VarId, String)> = self
+            .terms
+            .keys()
+            .map(|vid| {
+                let name = core
+                    .vars
+                    .get(*vid)
+                    .map(|v| v.name.clone())
+                    .unwrap_or_default();
+                (*vid, name)
+            })
+            .collect();
+        pairs.sort_by(|a, b| a.1.cmp(&b.1));
+        pairs
+            .into_iter()
+            .map(|(vid, _)| Variable {
+                id: vid,
+                model: weak.clone(),
+            })
+            .collect()
+    }
+
+    /// Evaluate using defaults for missing values.
+    fn value_or_default(&self) -> f64 {
+        let weak = match &self.model {
+            Some(w) => w,
+            None => return self.constant,
+        };
+        let core_rc = match weak.upgrade() {
+            Some(rc) => rc,
+            None => return self.constant,
+        };
+        let core = core_rc.borrow();
+        let mut total = self.constant;
+        for (var_id, coeff) in &self.terms {
+            if let Some(vd) = core.vars.get(*var_id) {
+                let v = vd.value.unwrap_or_else(|| format::default_value(vd.lb, vd.ub));
+                total += v * coeff;
+            }
+        }
+        total
+    }
+
+    /// CPLEX LP format: variable-terms portion.
+    fn as_cplex_variables_only(&self, name: &str) -> (Vec<String>, Vec<String>) {
+        let sorted = self.sorted_name_coeff_pairs();
+        format::cplex_variables_only(&sorted, name)
+    }
+
+    /// CPLEX LP affine expression string.
+    #[pyo3(signature = (name, include_constant=true))]
+    fn as_cplex_lp_affine_expression(&self, name: &str, include_constant: bool) -> String {
+        let sorted = self.sorted_name_coeff_pairs();
+        format::cplex_lp_affine_expression(&sorted, self.constant, name, include_constant)
+    }
+
+    /// CPLEX LP constraint string (with sense and RHS).
+    fn as_cplex_lp_constraint(&self, name: &str) -> PyResult<String> {
+        let sense = self
+            .sense
+            .ok_or_else(|| PyValueError::new_err("Cannot format constraint without sense"))?;
+        let sorted = self.sorted_name_coeff_pairs();
+        let rhs = if self.constant == 0.0 || self.constant == -0.0 {
+            0.0
+        } else {
+            -self.constant
+        };
+        Ok(format::cplex_lp_constraint(
+            &sorted,
+            sense,
+            rhs,
+            name,
+            self.terms.is_empty(),
+        ))
+    }
+
+    /// Human-readable expression string.
+    #[pyo3(signature = (include_constant=true))]
+    fn str_expr(&self, include_constant: bool) -> String {
+        let sorted = self.sorted_name_coeff_pairs();
+        format::str_expr(&sorted, self.constant, include_constant)
+    }
+
+    /// Full __str__ replacement: includes sense and RHS if present.
+    fn str_with_sense(&self) -> String {
+        if let Some(sense) = self.sense {
+            let sorted = self.sorted_name_coeff_pairs();
+            let lhs = format::str_expr(&sorted, 0.0, false);
+            format!("{} {} {}", lhs, sense.lp_symbol(), -self.constant as f64)
+        } else {
+            let sorted = self.sorted_name_coeff_pairs();
+            format::str_expr(&sorted, self.constant, true)
+        }
+    }
+
+    /// Python __repr__ equivalent.
+    fn repr_expr(&self) -> String {
+        let sorted = self.sorted_name_coeff_pairs();
+        format::repr_expr(&sorted, self.constant, self.sense)
+    }
 }
+
+// ── Private helpers ──
 
 impl AffineExpr {
     fn format_expr(&self) -> String {
@@ -326,6 +441,20 @@ impl AffineExpr {
             }
         }
         parts.join(" ")
+    }
+
+    /// Collect (name, coeff) pairs sorted by variable name.
+    pub(crate) fn sorted_name_coeff_pairs(&self) -> Vec<(String, f64)> {
+        let weak = match &self.model {
+            Some(w) => w,
+            None => return Vec::new(),
+        };
+        let core_rc = match weak.upgrade() {
+            Some(rc) => rc,
+            None => return Vec::new(),
+        };
+        let core = core_rc.borrow();
+        format::sorted_pairs_from_coeffs(&self.terms, &core)
     }
 }
 

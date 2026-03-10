@@ -313,4 +313,108 @@ impl Model {
                 model: Rc::downgrade(&self.core),
             })
     }
+
+    // ── Phase 3 methods ──
+
+    /// Whether any variable is Integer or Binary.
+    fn is_mip(&self) -> bool {
+        let core = self.core.borrow();
+        core.vars
+            .iter()
+            .any(|v| v.category == Category::Integer || v.category == Category::Binary)
+    }
+
+    /// Round all variable values to bounds and integrality.
+    #[pyo3(signature = (eps_int=1e-5, eps=1e-7))]
+    fn round_solution(&self, eps_int: f64, eps: f64) {
+        let mut core = self.core.borrow_mut();
+        for vd in &mut core.vars {
+            if let Some(val) = vd.value {
+                let mut v = val;
+                if vd.ub.is_finite() && v > vd.ub && v <= vd.ub + eps {
+                    v = vd.ub;
+                } else if vd.lb.is_finite() && v < vd.lb && v >= vd.lb - eps {
+                    v = vd.lb;
+                }
+                if vd.category == Category::Integer && (v - v.round()).abs() <= eps_int {
+                    v = v.round();
+                }
+                vd.value = Some(v);
+            }
+        }
+    }
+
+    /// Check for duplicate variable names.
+    fn check_duplicate_vars(&self) -> PyResult<()> {
+        let core = self.core.borrow();
+        let mut seen = std::collections::HashMap::new();
+        for vd in &core.vars {
+            *seen.entry(vd.name.clone()).or_insert(0usize) += 1;
+        }
+        let repeated: Vec<(String, usize)> =
+            seen.into_iter().filter(|(_, c)| *c >= 2).collect();
+        if !repeated.is_empty() {
+            return Err(pyo3::exceptions::PyRuntimeError::new_err(format!(
+                "Repeated variable names: {:?}",
+                repeated
+                    .iter()
+                    .map(|(n, c)| format!("('{}', {})", n, c))
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            )));
+        }
+        Ok(())
+    }
+
+    /// Check that no variable name exceeds max_length.
+    fn check_length_vars(&self, max_length: usize) -> PyResult<()> {
+        let core = self.core.borrow();
+        let long: Vec<String> = core
+            .vars
+            .iter()
+            .filter(|v| v.name.len() > max_length)
+            .map(|v| v.name.clone())
+            .collect();
+        if !long.is_empty() {
+            return Err(pyo3::exceptions::PyRuntimeError::new_err(format!(
+                "Variable names too long for Lp format: {:?}",
+                long
+            )));
+        }
+        Ok(())
+    }
+
+    /// Return all (variable_name, constraint_name, coefficient) triples.
+    fn coefficients(&self) -> Vec<(String, String, f64)> {
+        let core = self.core.borrow();
+        let mut result = Vec::new();
+        for cd in &core.constraints {
+            for (&vid, &coeff) in &cd.coeffs {
+                let vname = core
+                    .vars
+                    .get(vid)
+                    .map(|v| v.name.clone())
+                    .unwrap_or_default();
+                result.push((vname, cd.name.clone(), coeff));
+            }
+        }
+        result
+    }
+
+    /// Deep-copy the entire model (new Rc, new data).
+    fn copy_model(&self) -> Self {
+        let core = self.core.borrow();
+        let new_core = ModelCore {
+            name: core.name.clone(),
+            vars: core.vars.clone(),
+            constraints: core.constraints.clone(),
+            objective: core.objective.clone(),
+            sense: core.sense,
+        };
+        let next_id = self.next_constraint_id;
+        Self {
+            core: Rc::new(RefCell::new(new_core)),
+            next_constraint_id: next_id,
+        }
+    }
 }

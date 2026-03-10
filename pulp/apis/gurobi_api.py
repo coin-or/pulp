@@ -274,6 +274,8 @@ class GUROBI(LpSolver):
             assert self.model is not None
             self.model.ModelName = lp.name
             lp.solverModel = self.model
+            if not self.msg:
+                lp.solverModel.setParam("OutputFlag", 0)
             log.debug("set the sense of the problem")
             if lp.sense == constants.LpMaximize:
                 lp.solverModel.setAttr("ModelSense", -1)

@@ -126,11 +126,16 @@ from __future__ import annotations
 import dataclasses
 import logging
 import math
+import re
 import warnings
-from collections import Counter
 from collections.abc import Iterable, Iterator
 from time import time
 from typing import Any, Literal, Optional
+
+try:
+    import ujson as json  # type: ignore[import-untyped]
+except ImportError:
+    import json
 
 from . import _rustcore
 from . import constants as const
@@ -140,13 +145,6 @@ from .apis.core import LpSolver, clock
 from .utilities import value
 
 log = logging.getLogger(__name__)
-
-try:
-    import ujson as json  # type: ignore[import-untyped]
-except ImportError:
-    import json
-
-import re
 
 
 def _rust_cat_to_const(rust_cat: _rustcore.Category) -> str:
@@ -383,121 +381,37 @@ class LpVariable:
         return self._var.value
 
     def round(self, epsInt: float = 1e-5, eps: float = 1e-7) -> None:
-        if self.varValue is not None:
-            if (
-                math.isfinite(self.upBound)
-                and self.varValue > self.upBound
-                and self.varValue <= self.upBound + eps
-            ):
-                self.varValue = self.upBound
-            elif (
-                math.isfinite(self.lowBound)
-                and self.varValue < self.lowBound
-                and self.varValue >= self.lowBound - eps
-            ):
-                self.varValue = self.lowBound
-            self.varValue = self.roundedValue(epsInt)
+        self._var.round_value(epsInt, eps)
 
     def roundedValue(self, eps: float = 1e-5) -> float | None:
-        if (
-            self.cat == const.LpInteger
-            and self.varValue is not None
-            and abs(self.varValue - round(self.varValue)) <= eps
-        ):
-            return round(self.varValue)
-        else:
-            return self.varValue
+        return self._var.rounded_value(eps)
 
     def valueOrDefault(self) -> float:
-        if self.varValue is not None:
-            return self.varValue
-        elif math.isfinite(self.lowBound):
-            if math.isfinite(self.upBound):
-                if 0 >= self.lowBound and 0 <= self.upBound:
-                    return 0
-                else:
-                    if self.lowBound >= 0:
-                        return self.lowBound
-                    else:
-                        return self.upBound
-            else:
-                if 0 >= self.lowBound:
-                    return 0
-                else:
-                    return self.lowBound
-        elif math.isfinite(self.upBound):
-            if 0 <= self.upBound:
-                return 0
-            else:
-                return self.upBound
-        else:
-            return 0
+        return self._var.value_or_default()
 
     def valid(self, eps: float) -> bool:
-        if self.name == "__dummy" and self.varValue is None:
-            return True
-        if self.varValue is None:
-            return False
-        if math.isfinite(self.upBound) and self.varValue > self.upBound + eps:
-            return False
-        if math.isfinite(self.lowBound) and self.varValue < self.lowBound - eps:
-            return False
-        if (
-            self.cat == const.LpInteger
-            and abs(round(self.varValue) - self.varValue) > eps
-        ):
-            return False
-        return True
+        return self._var.valid(eps)
 
     def infeasibilityGap(self, mip: int | bool = True) -> float:
-        if self.varValue is None:
-            raise ValueError("variable value is None")
-        if math.isfinite(self.upBound) and self.varValue > self.upBound:
-            return self.varValue - self.upBound
-        if math.isfinite(self.lowBound) and self.varValue < self.lowBound:
-            return self.varValue - self.lowBound
-        if (
-            mip
-            and self.cat == const.LpInteger
-            and round(self.varValue) - self.varValue != 0
-        ):
-            return round(self.varValue) - self.varValue
-        return 0
+        return self._var.infeasibility_gap(bool(mip))
 
     def isBinary(self) -> bool:
-        if self.cat == const.LpBinary:
-            return True
-        return self.cat == const.LpInteger and self.lowBound == 0 and self.upBound == 1
+        return self._var.is_binary()
 
     def isInteger(self) -> bool:
-        return self.cat == const.LpInteger
+        return self._var.is_integer()
 
     def isFree(self) -> bool:
-        return not math.isfinite(self.lowBound) and not math.isfinite(self.upBound)
+        return self._var.is_free()
 
     def isConstant(self) -> bool:
-        return math.isfinite(self.lowBound) and self.upBound == self.lowBound
+        return self._var.is_constant()
 
     def isPositive(self) -> bool:
-        return self.lowBound == 0 and not math.isfinite(self.upBound)
+        return self._var.is_positive()
 
     def asCplexLpVariable(self) -> str:
-        if self.isFree():
-            return self.name + " free"
-        if self.isConstant():
-            return self.name + f" = {self.lowBound:.12g}"
-        if not math.isfinite(self.lowBound):
-            s = "-inf <= "
-        # Note: XPRESS and CPLEX do not interpret integer variables without
-        # explicit bounds
-        elif self.lowBound == 0 and self.cat == const.LpContinuous:
-            s = ""
-        else:
-            s = f"{self.lowBound:.12g} <= "
-        s += self.name
-        if math.isfinite(self.upBound):
-            s += f" <= {self.upBound:.12g}"
-        return s
+        return self._var.as_cplex_lp_variable()
 
     def asCplexLpAffineExpression(
         self, name: str, include_constant: bool = True
@@ -528,7 +442,7 @@ class LpVariable:
         self._var.set_value(val)
         return True
 
-    def fixValue(self):
+    def fixValue(self) -> None:
         """
         changes lower bound and upper bound to the initial value if exists.
         :return: None
@@ -715,10 +629,7 @@ class LpAffineExpression:
         return self._expr.value()
 
     def valueOrDefault(self) -> float:
-        s = self.constant
-        for v, x in self.items():
-            s += v.valueOrDefault() * x
-        return s
+        return self._expr.value_or_default()
 
     def addterm(self, key: LpVariable, value: float | int):
         self._expr.add_term(key._var, float(value))
@@ -744,38 +655,18 @@ class LpAffineExpression:
 
     def _str_expr(
         self, include_constant: bool = True, override_constant: float | None = None
-    ):
-        s = ""
-        for v in self.sorted_keys():
-            val = self[v]
-            if val < 0:
-                s += (
-                    (" - " if s else "-")
-                    + (str(-val) if val != -1 else "")
-                    + ("" if val == -1 else "*")
-                    + str(v)
-                )
-            elif s:
-                s += " + " + (
-                    str(v) if val == 1 else self._str_coeff(val) + "*" + str(v)
-                )
-            else:
-                s = str(v) if val == 1 else self._str_coeff(val) + "*" + str(v)
-        if include_constant:
-            c = self.constant if override_constant is None else override_constant
-            if not s:
-                s = self._fmt_const(c)
-            elif c < 0:
-                s += " - " + self._fmt_const(-c)
-            elif c > 0:
-                s += " + " + self._fmt_const(c)
-        elif not s:
-            s = "0"
-        return s
+    ) -> str:
+        if override_constant is not None:
+            saved = self.constant
+            self.constant = override_constant
+            result = self._expr.str_expr(include_constant)
+            self.constant = saved
+            return result
+        return self._expr.str_expr(include_constant)
 
     def __str__(
         self, include_constant: bool = True, override_constant: float | None = None
-    ):
+    ) -> str:
         if self.sense is not None:
             s = self._str_expr(include_constant=False)
             rhs = -self.constant if override_constant is None else -override_constant
@@ -784,39 +675,23 @@ class LpAffineExpression:
         return self._str_expr(include_constant, override_constant)
 
     def sorted_keys(self) -> list[LpVariable]:
-        result = list(self.keys())
-        result.sort(key=lambda v: v.name)
-        return result
+        return [LpVariable(v) for v in self._expr.sorted_keys()]
 
-    def __repr__(self, override_constant: float | None = None):
-        c = self.constant if override_constant is None else override_constant
-        parts = [f"{float(self[v])}*{v}" for v in self.sorted_keys()]
-        parts.append(str(float(c)))
-        s = " + ".join(parts)
-        if self.sense is not None:
-            s += " " + const.LpConstraintSenses[self.sense] + " 0"
-        return s
+    def __repr__(self, override_constant: float | None = None) -> str:
+        if override_constant is not None:
+            saved = self.constant
+            self.constant = override_constant
+            result = self._expr.repr_expr()
+            self.constant = saved
+            return result
+        return self._expr.repr_expr()
 
     @staticmethod
-    def _count_characters(line):
+    def _count_characters(line: list[str]) -> int:
         return sum(len(t) for t in line)
 
     def asCplexVariablesOnly(self, name: str) -> tuple[list[str], list[str]]:
-        result: list[str] = []
-        line: list[str] = [f"{name}:"]
-        not_first = 0
-        for v in self.sorted_keys():
-            val = self[v]
-            sign = " -" if val < 0 else (" +" if not_first else "")
-            val = abs(val)
-            not_first = 1
-            term = f"{sign} {v.name}" if val == 1 else f"{sign} {val + 0:.12g} {v.name}"
-            if self._count_characters(line) + len(term) > const.LpCplexLPLineSize:
-                result += ["".join(line)]
-                line = [term]
-            else:
-                line += [term]
-        return result, line
+        return self._expr.as_cplex_variables_only(name)
 
     def asCplexLpAffineExpression(
         self,
@@ -824,30 +699,16 @@ class LpAffineExpression:
         include_constant: bool = True,
         override_constant: float | None = None,
     ) -> str:
-        result, line = self.asCplexVariablesOnly(name)
-        c = self.constant if override_constant is None else override_constant
-        term = f" - {-c:.12g}" if c < 0 else (f" + {c}" if c > 0 else " 0")
-        result += ["".join(line) + term]
-        return "%s\n" % "\n".join(result)
+        if override_constant is not None:
+            saved = self.constant
+            self.constant = override_constant
+            result = self._expr.as_cplex_lp_affine_expression(name, include_constant)
+            self.constant = saved
+            return result
+        return self._expr.as_cplex_lp_affine_expression(name, include_constant)
 
     def asCplexLpConstraint(self, name: str) -> str:
-        result, line = self.asCplexVariablesOnly(name)
-        if len(self.keys()) == 0:
-            line += ["0"]
-        c = -self.constant
-        if c == 0:
-            c = 0
-        sense = self.sense
-        if sense is None:
-            raise ValueError("Cannot format constraint without sense")
-        term = f" {const.LpConstraintSenses[sense]} {c:.12g}"
-        if self._count_characters(line) + len(term) > const.LpCplexLPLineSize:
-            result += ["".join(line)]
-            line = [term]
-        else:
-            line += [term]
-        result += ["".join(line)]
-        return "%s\n" % "\n".join(result)
+        return self._expr.as_cplex_lp_constraint(name)
 
     def addInPlace(
         self,
@@ -991,7 +852,9 @@ class LpAffineExpression:
         e._expr.scale(1.0 / other)
         return e
 
-    def __le__(self, other) -> "LpAffineExpression":
+    def __le__(
+        self, other: LpAffineExpression | LpVariable | int | float
+    ) -> LpAffineExpression:
         if isinstance(other, (int, float)):
             result = self.copy()
             result.constant = result.constant - float(other)
@@ -1003,7 +866,9 @@ class LpAffineExpression:
             return result
         return NotImplemented
 
-    def __ge__(self, other) -> "LpAffineExpression":
+    def __ge__(
+        self, other: LpAffineExpression | LpVariable | int | float
+    ) -> LpAffineExpression:
         if isinstance(other, (int, float)):
             result = self.copy()
             result.constant = result.constant - float(other)
@@ -1015,7 +880,7 @@ class LpAffineExpression:
             return result
         return NotImplemented
 
-    def __eq__(self, other) -> "LpAffineExpression":  # type: ignore[override]
+    def __eq__(self, other: object) -> LpAffineExpression:  # type: ignore[override]
         if isinstance(other, (int, float)):
             result = self.copy()
             result.constant = result.constant - float(other)
@@ -1044,7 +909,7 @@ class LpAffineExpression:
             return -self.constant
         return None
 
-    def changeRHS(self, RHS: float):
+    def changeRHS(self, RHS: float) -> None:
         self.constant = -RHS
 
     def valid(self, eps: float = 0) -> bool:
@@ -1104,6 +969,7 @@ class LpConstraint:
         for var, coeff in self._constr.items():
             expr.add_term(var, coeff)
         expr.set_constant(-self._constr.rhs)
+        expr.set_sense(_const_to_rust_sense(self.sense))
         return expr
 
     @property
@@ -1193,74 +1059,23 @@ class LpConstraint:
         return sum(len(t) for t in line)
 
     def _asCplexVariablesOnly(self, name: str) -> tuple[list[str], list[str]]:
-        result: list[str] = []
-        line: list[str] = [f"{name}:"]
-        not_first = 0
-        for v, val in self.items():
-            if val < 0:
-                sign = " -"
-                val = -val
-            elif not_first:
-                sign = " +"
-            else:
-                sign = ""
-            not_first = 1
-            term = f"{sign} {val + 0:.12g} {v.name}" if val != 1 else f"{sign} {v.name}"
-            if self._count_characters(line) + len(term) > const.LpCplexLPLineSize:
-                result += ["".join(line)]
-                line = [term]
-            else:
-                line += [term]
-        return result, line
+        return self._expr.as_cplex_variables_only(name)
 
     def __str__(self) -> str:
-        parts: list[str] = []
-        for v, coeff in self.items():
-            if coeff < 0:
-                parts.append(
-                    f" - {-coeff}*{v.name}" if parts else f"-{-coeff}*{v.name}"
-                )
-            elif parts:
-                parts.append(f" + {coeff}*{v.name}" if coeff != 1 else f" + {v.name}")
-            else:
-                parts.append(f"{v.name}" if coeff == 1 else f"{coeff}*{v.name}")
-        s = "".join(parts) or "0"
-        s += " " + const.LpConstraintSenses[self.sense] + " " + str(-self.constant)
-        return s
+        return self._expr.str_with_sense()
 
     def __repr__(self) -> str:
-        parts = [f"{float(c)}*{v.name}" for v, c in self.items()]
-        parts.append(str(float(self.constant)))
-        s = " + ".join(parts)
-        s += " " + const.LpConstraintSenses[self.sense] + " 0"
-        return s
+        return self._expr.repr_expr()
 
     def asCplexLpConstraint(self, name: str) -> str:
-        result, line = self._asCplexVariablesOnly(name)
-        if len(self.keys()) == 0:
-            line += ["0"]
-        c = -self.constant
-        if c == 0:
-            c = 0
-        term = f" {const.LpConstraintSenses[self.sense]} {c:.12g}"
-        if self._count_characters(line) + len(term) > const.LpCplexLPLineSize:
-            result += ["".join(line)]
-            line = [term]
-        else:
-            line += [term]
-        result += ["".join(line)]
-        return "%s\n" % "\n".join(result)
+        return self._expr.as_cplex_lp_constraint(name)
 
     def asCplexLpAffineExpression(
         self, name: str, include_constant: bool = True
     ) -> str:
-        result, line = self._asCplexVariablesOnly(name)
-        c = self.constant
-        term = f" - {-c:.12g}" if c < 0 else (f" + {c}" if c > 0 else " 0")
-        result += ["".join(line) + term]
-        return "%s\n" % "\n".join(result)
+        return self._expr.as_cplex_lp_affine_expression(name, include_constant)
 
-    def changeRHS(self, RHS: float):
+    def changeRHS(self, RHS: float) -> None:
         raise NotImplementedError("Cannot change RHS of constraint already in model")
 
     def addInPlace(self, other: Any, sign: Literal[+1, -1] = 1) -> LpAffineExpression:
@@ -1321,18 +1136,10 @@ class LpConstraint:
         return default
 
     def value(self) -> float | None:
-        s = self.constant
-        for v, x in self.items():
-            if v.varValue is None:
-                return None
-            s += v.varValue * x
-        return s
+        return self._expr.value()
 
     def valueOrDefault(self) -> float:
-        s = self.constant
-        for v, x in self.items():
-            s += v.valueOrDefault() * x
-        return s
+        return self._expr.value_or_default()
 
 
 class LpProblem:
@@ -1758,13 +1565,13 @@ class LpProblem:
         return self.toDict()
 
     @classmethod
-    def fromDict(cls, data: dict[Any, Any]):
+    def fromDict(cls, data: dict[Any, Any]) -> tuple[dict[str, LpVariable], LpProblem]:
         return cls.fromDataclass(
             mpslp.MPS.fromDict(data), objective_negate_for_max=False
         )
 
     @classmethod
-    def from_dict(cls, data: dict[Any, Any]):
+    def from_dict(cls, data: dict[Any, Any]) -> tuple[dict[str, LpVariable], LpProblem]:
         warnings.warn(
             "LpProblem.from_dict is deprecated, use LpProblem.fromDict instead",
             category=DeprecationWarning,
@@ -1804,7 +1611,7 @@ class LpProblem:
         return cls.fromDict(data)
 
     @classmethod
-    def from_json(cls, filename: str):
+    def from_json(cls, filename: str) -> tuple[dict[str, LpVariable], LpProblem]:
         warnings.warn(
             "LpProblem.from_json is deprecated, use LpProblem.fromJson instead",
             category=DeprecationWarning,
@@ -1814,7 +1621,7 @@ class LpProblem:
     @classmethod
     def fromMPS(
         cls, filename: str, sense: int = const.LpMinimize, dropConsNames: bool = False
-    ):
+    ) -> tuple[dict[str, LpVariable], LpProblem]:
         data = mpslp.readMPS(filename, sense=sense, dropConsNames=dropConsNames)
         return cls.fromDataclass(data)
 
@@ -1826,10 +1633,7 @@ class LpProblem:
         return constraintsNames, variablesNames, "OBJ"
 
     def isMIP(self) -> int:
-        for v in self.variables():
-            if v.cat == const.LpInteger:
-                return 1
-        return 0
+        return 1 if self._model.is_mip() else 0
 
     def roundSolution(self, epsInt: float = 1e-5, eps: float = 1e-7) -> None:
         """
@@ -1841,8 +1645,7 @@ class LpProblem:
         Side Effects:
             - The lp variables are rounded
         """
-        for v in self.variables():
-            v.round(epsInt, eps)
+        self._model.round_solution(epsInt, eps)
 
     def valid(self, eps: float = 0) -> bool:
         for v in self.variables():
@@ -1864,14 +1667,6 @@ class LpProblem:
                 if cv is not None:
                     gap = max(abs(cv), gap)
         return gap
-
-    def addVariable(self, variable: LpVariable) -> None:
-        """No-op: variables are only created via add_variable/add_variables_batch."""
-        pass
-
-    def addVariables(self, variables: Iterable[LpVariable]) -> None:
-        """No-op: variables are only created via add_variable/add_variables_batch."""
-        pass
 
     def variables(self) -> list[LpVariable]:
         """Returns the problem variables from the Rust model."""
@@ -2115,12 +1910,10 @@ class LpProblem:
         :return: 1
         :raises `const.PulpError`: if there ar duplicates
         """
-        name_counter = Counter(variable.name for variable in self.variables())
-        repeated_names = {
-            (name, count) for name, count in name_counter.items() if count >= 2
-        }
-        if repeated_names:
-            raise const.PulpError(f"Repeated variable names: {repeated_names}")
+        try:
+            self._model.check_duplicate_vars()
+        except RuntimeError as e:
+            raise const.PulpError(str(e)) from None
 
     def checkLengthVars(self, max_length: int) -> None:
         """
@@ -2129,15 +1922,10 @@ class LpProblem:
         :return:
         :raises const.PulpError: if there is at least one variable that has a long name
         """
-        long_names = [
-            variable.name
-            for variable in self.variables()
-            if len(variable.name) > max_length
-        ]
-        if long_names:
-            raise const.PulpError(
-                f"Variable names too long for Lp format: {long_names}"
-            )
+        try:
+            self._model.check_length_vars(max_length)
+        except RuntimeError as e:
+            raise const.PulpError(str(e)) from None
 
     def assignVarsVals(self, values: dict[str, float]) -> None:
         filtered = {k: v for k, v in values.items() if k != "__dummy"}
@@ -2349,7 +2137,7 @@ def lpSum(
         | float
         | LpVariable
     ),
-):
+) -> LpAffineExpression:
     """
     Calculate the sum of a list of linear expressions
 
