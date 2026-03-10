@@ -184,6 +184,11 @@ class LpVariable:
     def name(self, value: str) -> None:
         self._var.set_name(value)
 
+    @property
+    def id(self) -> int:
+        """Index of this variable in the model's variable list (from ModelCore)."""
+        return self._var.id()
+
     def __hash__(self) -> int:
         return hash(self._var.id())
 
@@ -1135,6 +1140,11 @@ class LpConstraint:
     @property
     def sense(self) -> int:
         return _rust_sense_to_const(self._constr.sense)
+
+    @property
+    def id(self) -> int:
+        """Index of this constraint in the model's constraint list (from ModelCore)."""
+        return self._constr.id()
 
     def _normalized_rhs(self) -> float:
         val = -self._constr.rhs

@@ -365,6 +365,8 @@ class CPLEX_PY(LpSolver):
             Takes the pulp lp model and translates it into a cplex model
             """
             model_variables = lp.variables()
+            lp._solver_var_handles = [var.name for var in model_variables]
+            lp._solver_constr_handles = list(lp.constraints.keys())
             self.n2v = {var.name: var for var in model_variables}
             if len(self.n2v) != len(model_variables):
                 raise PulpSolverError(
@@ -591,8 +593,8 @@ class CPLEX_PY(LpSolver):
             # TODO: I did not find the following status: CPXMIP_NODE_LIM_FEAS, CPXMIP_MEM_LIM_FEAS
             sol_status = CplexSolStatus.get(lp.cplex_status)
             lp.assignStatus(status, sol_status)
-            var_names = [var.name for var in lp._variables]
-            con_names = [con for con in lp.constraints]
+            var_names = [var.name for var in lp.variables()]
+            con_names = list(lp.constraints.keys())
             try:
                 lp.solverModel.solution.get_objective_value()
                 variablevalues = dict(

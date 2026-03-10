@@ -205,12 +205,12 @@ class GUROBI(LpSolver):
             status = gurobiLpStatus.get(solutionStatus, constants.LpStatusUndefined)
             lp.assignStatus(status)
             if model.SolCount >= 1:
-                # populate pulp solution values
+                # populate pulp solution values (lp.variables() is in id order)
                 for var, value in zip(
-                    lp._variables, model.getAttr(GRB.Attr.X, model.getVars())
+                    lp.variables(), model.getAttr(GRB.Attr.X, model.getVars())
                 ):
                     var.varValue = value
-                # populate pulp constraints slack
+                # populate pulp constraints slack (constraints.items() in id order)
                 for constr, value in zip(
                     lp.constraints.values(),
                     model.getAttr(GRB.Attr.Slack, model.getConstrs()),
@@ -219,7 +219,7 @@ class GUROBI(LpSolver):
                 # put pi and slack variables against the constraints
                 if not model.IsMIP:
                     for var, value in zip(
-                        lp._variables, model.getAttr(GRB.Attr.RC, model.getVars())
+                        lp.variables(), model.getAttr(GRB.Attr.RC, model.getVars())
                     ):
                         var.dj = value
 
@@ -289,50 +289,82 @@ class GUROBI(LpSolver):
             log.debug("add the variables to the problem")
             lp.solverModel.update()
             nvars = lp.solverModel.NumVars
-            for var in lp.variables():
-                lowBound = var.lowBound
-                if not math.isfinite(lowBound):
-                    lowBound = -gp.GRB.INFINITY
-                upBound = var.upBound
-                if not math.isfinite(upBound):
-                    upBound = gp.GRB.INFINITY
-                obj = lp.objective.get(var, 0.0)
-                varType = gp.GRB.CONTINUOUS
-                if var.cat == constants.LpInteger and self.mip:
-                    varType = gp.GRB.INTEGER
-                # only add variable once, ow new variable will be created.
-                if not hasattr(var, "solverVar") or nvars == 0:
-                    var.solverVar = lp.solverModel.addVar(
+            lp._solver_var_handles = []
+            lp._solver_constr_handles = []
+            if nvars == 0:
+                for var in lp.variables():
+                    lowBound = var.lowBound
+                    if not math.isfinite(lowBound):
+                        lowBound = -gp.GRB.INFINITY
+                    upBound = var.upBound
+                    if not math.isfinite(upBound):
+                        upBound = gp.GRB.INFINITY
+                    obj = lp.objective.get(var, 0.0)
+                    varType = gp.GRB.CONTINUOUS
+                    if var.cat == constants.LpInteger and self.mip:
+                        varType = gp.GRB.INTEGER
+                    gvar = lp.solverModel.addVar(
                         lowBound, upBound, vtype=varType, obj=obj, name=var.name
                     )
+                    lp._solver_var_handles.append(gvar)
+            else:
+                lp._solver_var_handles = list(lp.solverModel.getVars())
+                lp._solver_constr_handles = list(lp.solverModel.getConstrs())
+                # Update objective (e.g. after sequentialSolve changes it)
+                for var in lp.variables():
+                    lp._solver_var_handles[var.id].Obj = lp.objective.get(var, 0.0)
             if self.optionsDict.get("warmStart", False):
-                # Once lp.variables() has been used at least once in the building of the model.
-                # we can use the lp._variables with the cache.
-                for var in lp._variables:
+                for var in lp.variables():
                     if var.varValue is not None:
-                        var.solverVar.start = var.varValue
+                        lp._solver_var_handles[var.id].start = var.varValue
 
             lp.solverModel.update()
-            log.debug("add the Constraints to the problem")
-            for name, constraint in lp.constraints.items():
-                # build the expression
-                expr = gp.LinExpr(
-                    list(constraint.values()), [v.solverVar for v in constraint.keys()]
-                )
-                if constraint.sense == constants.LpConstraintLE:
-                    constraint.solverConstraint = lp.solverModel.addConstr(
-                        expr <= -constraint.constant, name=name
-                    )
-                elif constraint.sense == constants.LpConstraintGE:
-                    constraint.solverConstraint = lp.solverModel.addConstr(
-                        expr >= -constraint.constant, name=name
-                    )
-                elif constraint.sense == constants.LpConstraintEQ:
-                    constraint.solverConstraint = lp.solverModel.addConstr(
-                        expr == -constraint.constant, name=name
-                    )
-                else:
-                    raise PulpSolverError("Detected an invalid constraint type")
+            if nvars == 0:
+                log.debug("add the Constraints to the problem")
+                for name, constraint in lp.constraints.items():
+                    # build the expression (id = index in _solver_var_handles)
+                    solver_vars = [
+                        lp._solver_var_handles[v.id] for v in constraint.keys()
+                    ]
+                    expr = gp.LinExpr(list(constraint.values()), solver_vars)
+                    if constraint.sense == constants.LpConstraintLE:
+                        gconstr = lp.solverModel.addConstr(
+                            expr <= -constraint.constant, name=name
+                        )
+                    elif constraint.sense == constants.LpConstraintGE:
+                        gconstr = lp.solverModel.addConstr(
+                            expr >= -constraint.constant, name=name
+                        )
+                    elif constraint.sense == constants.LpConstraintEQ:
+                        gconstr = lp.solverModel.addConstr(
+                            expr == -constraint.constant, name=name
+                        )
+                    else:
+                        raise PulpSolverError("Detected an invalid constraint type")
+                    lp._solver_constr_handles.append(gconstr)
+            else:
+                # Add any new constraints (e.g. added by sequentialSolve)
+                nconstr_in_model = len(lp._solver_constr_handles)
+                for name, constraint in list(lp.constraints.items())[nconstr_in_model:]:
+                    solver_vars = [
+                        lp._solver_var_handles[v.id] for v in constraint.keys()
+                    ]
+                    expr = gp.LinExpr(list(constraint.values()), solver_vars)
+                    if constraint.sense == constants.LpConstraintLE:
+                        gconstr = lp.solverModel.addConstr(
+                            expr <= -constraint.constant, name=name
+                        )
+                    elif constraint.sense == constants.LpConstraintGE:
+                        gconstr = lp.solverModel.addConstr(
+                            expr >= -constraint.constant, name=name
+                        )
+                    elif constraint.sense == constants.LpConstraintEQ:
+                        gconstr = lp.solverModel.addConstr(
+                            expr == -constraint.constant, name=name
+                        )
+                    else:
+                        raise PulpSolverError("Detected an invalid constraint type")
+                    lp._solver_constr_handles.append(gconstr)
             lp.solverModel.update()
 
         def actualSolve(self, lp, callback=None):
@@ -359,7 +391,7 @@ class GUROBI(LpSolver):
             log.debug("Resolve the Model using gurobi")
             for constraint in lp.constraints.values():
                 if constraint.modified:
-                    constraint.solverConstraint.setAttr(
+                    lp._solver_constr_handles[constraint.id].setAttr(
                         gp.GRB.Attr.RHS, -constraint.constant
                     )
             lp.solverModel.update()

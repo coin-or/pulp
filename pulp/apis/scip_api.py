@@ -466,10 +466,9 @@ class SCIP_PY(LpSolver):
     """
     The SCIP Optimization Suite (via its python interface)
 
-    The SCIP internals are available after calling solve as:
-    - each variable in variable.solverVar
-    - each constraint in constraint.solverConstraint
-    - the model in problem.solverModel
+    After calling solve, the model is in problem.solverModel. Solver handles
+    are stored by id: lp._solver_var_handles[var.id] and
+    lp._solver_constr_handles[constraint.id].
     """
 
     name = "SCIP_PY"
@@ -562,11 +561,11 @@ class SCIP_PY(LpSolver):
             if solutionStatus in possible_solution_found_statuses:
                 try:  # Feasible solution found
                     solution = lp.solverModel.getBestSol()
-                    for variable in lp._variables:
-                        variable.varValue = solution[variable.solverVar]
+                    for var in lp.variables():
+                        var.varValue = solution[lp._solver_var_handles[var.id]]
                     for constraint in lp.constraints.values():
                         constraint.slack = lp.solverModel.getSlack(
-                            constraint.solverConstraint, solution
+                            lp._solver_constr_handles[constraint.id], solution
                         )
                     if status == constants.LpStatusOptimal:
                         lp.assignStatus(status, constants.LpSolutionOptimal)
@@ -643,19 +642,22 @@ class SCIP_PY(LpSolver):
             ##################################################
             # add variables
             ##################################################
+            lp._solver_var_handles = []
+            lp._solver_constr_handles = []
             category_to_vtype = {
                 constants.LpBinary: "B",
                 constants.LpContinuous: "C",
                 constants.LpInteger: "I",
             }
             for var in lp.variables():
-                var.solverVar = lp.solverModel.addVar(
+                svar = lp.solverModel.addVar(
                     name=var.name,
                     vtype=category_to_vtype[var.cat],
                     lb=var.lowBound,  # a lower bound of None represents -infinity
                     ub=var.upBound,  # an upper bound of None represents +infinity
                     obj=lp.objective.get(var, 0.0),
                 )
+                lp._solver_var_handles.append(svar)
 
             ##################################################
             # add constraints
@@ -666,16 +668,17 @@ class SCIP_PY(LpSolver):
                 constants.LpConstraintEQ: operator.eq,
             }
             for name, constraint in lp.constraints.items():
-                constraint.solverConstraint = lp.solverModel.addCons(
+                ccon = lp.solverModel.addCons(
                     cons=sense_to_operator[constraint.sense](
                         scip.quicksum(
-                            coefficient * variable.solverVar
+                            coefficient * lp._solver_var_handles[variable.id]
                             for variable, coefficient in constraint.items()
                         ),
                         -constraint.constant,
                     ),
                     name=name,
                 )
+                lp._solver_constr_handles.append(ccon)
 
             ##################################################
             # add warm start
@@ -684,8 +687,9 @@ class SCIP_PY(LpSolver):
                 s = lp.solverModel.createPartialSol()
                 for var in lp.variables():
                     if var.varValue is not None:
-                        # Warm start variables having an initial value
-                        lp.solverModel.setSolVal(s, var.solverVar, var.varValue)
+                        lp.solverModel.setSolVal(
+                            s, lp._solver_var_handles[var.id], var.varValue
+                        )
                 lp.solverModel.addSol(s)
 
         def actualSolve(self, lp):

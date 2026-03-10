@@ -939,7 +939,7 @@ class COPT(LpSolver):
                 return status
 
             values = model.getInfo("Value", model.getVars())
-            for var, value in zip(lp._variables, values):
+            for var, value in zip(lp.variables(), values):
                 var.varValue = value
 
             if not model.ismip:
@@ -951,7 +951,7 @@ class COPT(LpSolver):
                         constr.slack = value
 
                     redcosts = model.getInfo("RedCost", model.getVars())
-                    for var, value in zip(lp._variables, redcosts):
+                    for var, value in zip(lp.variables(), redcosts):
                         var.dj = value
 
                     duals = model.getInfo("Dual", model.getConstrs())
@@ -996,6 +996,8 @@ class COPT(LpSolver):
             if logPath:
                 lp.solverModel.setLogFile(logPath)
 
+            lp._solver_var_handles = []
+            lp._solver_constr_handles = []
             for var in lp.variables():
                 lowBound = var.lowBound
                 if not math.isfinite(lowBound):
@@ -1007,20 +1009,22 @@ class COPT(LpSolver):
                 varType = coptpy.COPT.CONTINUOUS
                 if var.cat == LpInteger and self.mip:
                     varType = coptpy.COPT.INTEGER
-                var.solverVar = lp.solverModel.addVar(
+                cvar = lp.solverModel.addVar(
                     lowBound, upBound, vtype=varType, obj=obj, name=var.name
                 )
+                lp._solver_var_handles.append(cvar)
 
             if self.optionsDict.get("warmStart", False):
-                for var in lp._variables:
+                for var in lp.variables():
                     if var.varValue is not None:
-                        lp.solverModel.setMipStart(var.solverVar, var.varValue)
+                        lp.solverModel.setMipStart(
+                            lp._solver_var_handles[var.id], var.varValue
+                        )
                 lp.solverModel.loadMipStart()
 
             for name, constraint in lp.constraints.items():
-                expr = coptpy.LinExpr(
-                    [v.solverVar for v in constraint.keys()], list(constraint.values())
-                )
+                solver_vars = [lp._solver_var_handles[v.id] for v in constraint.keys()]
+                expr = coptpy.LinExpr(solver_vars, list(constraint.values()))
                 if constraint.sense == LpConstraintLE:
                     relation = coptpy.COPT.LESS_EQUAL
                 elif constraint.sense == LpConstraintGE:
@@ -1029,9 +1033,10 @@ class COPT(LpSolver):
                     relation = coptpy.COPT.EQUAL
                 else:
                     raise PulpSolverError("Detected an invalid constraint type")
-                constraint.solverConstraint = lp.solverModel.addConstr(
+                ccon = lp.solverModel.addConstr(
                     expr, relation, -constraint.constant, name
                 )
+                lp._solver_constr_handles.append(ccon)
 
         def actualSolve(self, lp, callback=None):
             """
@@ -1054,13 +1059,14 @@ class COPT(LpSolver):
             """
             for constraint in lp.constraints.values():
                 if constraint.modified:
+                    handle = lp._solver_constr_handles[constraint.id]
                     if constraint.sense == LpConstraintLE:
-                        constraint.solverConstraint.ub = -constraint.constant
+                        handle.ub = -constraint.constant
                     elif constraint.sense == LpConstraintGE:
-                        constraint.solverConstraint.lb = -constraint.constant
+                        handle.lb = -constraint.constant
                     else:
-                        constraint.solverConstraint.lb = -constraint.constant
-                        constraint.solverConstraint.ub = -constraint.constant
+                        handle.lb = -constraint.constant
+                        handle.ub = -constraint.constant
 
             self.callSolver(lp, callback=callback)
 

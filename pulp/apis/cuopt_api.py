@@ -113,14 +113,14 @@ class CUOPT(LpSolver):
 
             values = solution.get_primal_solution()
 
-            for var, value in zip(lp._variables, values):
+            for var, value in zip(lp.variables(), values):
                 var.varValue = value
 
             if not solution.get_problem_category():
                 # TODO: Compute Slack
 
                 redcosts = solution.get_reduced_cost()
-                for var, value in zip(lp._variables, redcosts):
+                for var, value in zip(lp.variables(), redcosts):
                     var.dj = value
 
                 duals = solution.get_dual_solution()
@@ -171,11 +171,14 @@ class CUOPT(LpSolver):
             if lp.sense == LpMaximize:
                 lp.solverModel.set_maximize(True)
 
+            lp._solver_var_handles = []
+            lp._solver_constr_handles = []
+
             var_lb, var_ub, var_type, var_name = [], [], [], []
             obj_coeff = []
-            var_dict = {}
 
-            for i, var in enumerate(lp.variables()):
+            for var in lp.variables():
+                lp._solver_var_handles.append(var.id)
                 obj_coeff.append(lp.objective.get(var, 0.0))
                 lowBound = var.lowBound
                 if not math.isfinite(lowBound):
@@ -194,10 +197,6 @@ class CUOPT(LpSolver):
                 var_ub.append(upBound)
                 var_type.append(varType)
                 var_name.append(var.name)
-                var_dict[var.name] = i
-                var.solverVar = {
-                    var.name: {"lb": var_lb, "ub": var_ub, "type": var_type}
-                }
             lp.solverModel.set_variable_lower_bounds(np.array(var_lb))
             lp.solverModel.set_variable_upper_bounds(np.array(var_ub))
             lp.solverModel.set_variable_types(np.array(var_type))
@@ -207,8 +206,9 @@ class CUOPT(LpSolver):
             matrix_data, matrix_indices, matrix_indptr = [], [], [0]
 
             for name, constraint in lp.constraints.items():
+                lp._solver_constr_handles.append(constraint.id)
                 matrix_data.extend(list(constraint.values()))
-                matrix_indices.extend([var_dict[v.name] for v in constraint.keys()])
+                matrix_indices.extend([v.id for v in constraint.keys()])
                 matrix_indptr.append(len(matrix_data))
                 try:
                     c_sense = sense_conv[constraint.sense]
@@ -247,12 +247,11 @@ class CUOPT(LpSolver):
             rhs = lp.solverModel.get_constraint_bounds()
             sense = lp.solverModel.get_row_types()
 
-            for i, (name, constraint) in enumerate(lp.constraints.items()):
+            for name, constraint in lp.constraints.items():
                 if constraint.modified:
+                    i = constraint.id
                     sense[i] = sense_conv[constraint.sense]
                     rhs[i] = -constraint.constant
-                    constraint.solverConstraint[name]["bound"] = rhs[i]
-                    constraint.solverConstraint[name]["sense"] = sense[i]
             lp.solverModel.set_constraint_bounds(rhs)
             lp.solverModel.set_row_types(sense)
 

@@ -364,7 +364,9 @@ class HiGHS(LpSolver):
 
             obj_mult = -1 if lp.sense == constants.LpMaximize else 1
 
-            for i, var in enumerate(lp.variables()):
+            lp._solver_var_handles = []
+            lp._solver_constr_handles = []
+            for var in lp.variables():
                 lb = var.lowBound
                 ub = var.upBound
                 lp.solverModel.addCol(
@@ -375,16 +377,16 @@ class HiGHS(LpSolver):
                     [],
                     [],
                 )
-                var.index = i
+                lp._solver_var_handles.append(var.id)
 
                 if var.cat == constants.LpInteger and self.mip:
                     lp.solverModel.changeColIntegrality(
-                        var.index, highspy.HighsVarType.kInteger
+                        var.id, highspy.HighsVarType.kInteger
                     )
 
-            for i, constraint in enumerate(lp.constraints.values()):
+            for constraint in lp.constraints.values():
                 non_zero_constraint_items = [
-                    (var.index, coefficient)
+                    (var.id, coefficient)
                     for var, coefficient in constraint.items()
                     if coefficient != 0
                 ]
@@ -394,7 +396,7 @@ class HiGHS(LpSolver):
                 else:
                     indices, coefficients = zip(*non_zero_constraint_items)
 
-                constraint.index = i
+                lp._solver_constr_handles.append(constraint.id)
 
                 lb = constraint.getLb()
                 ub = constraint.getUb()
@@ -487,23 +489,21 @@ class HiGHS(LpSolver):
             col_duals = list(solution.col_dual)
 
             # Assign values to the variables as with lp.assignVarsVals()
-            lp_variables = lp.variables()
-            for var in lp_variables:
-                var.varValue = col_values[var.index]
-                var.dj = col_duals[var.index]
+            for var in lp.variables():
+                var.varValue = col_values[var.id]
+                var.dj = col_duals[var.id]
 
-            constraints_list = list(lp.constraints.values())
             row_values = list(solution.row_value)
             row_duals = list(solution.row_dual)
-            for constraint in constraints_list:
+            for constraint in lp.constraints.values():
                 # PuLP returns LpConstraint.constant as if it were on the
                 # left-hand side, which means the signs on the following line
                 # are correct
                 # We need to flip the sign for slacks for LE constraints
-                constraint.slack = constraint.constant + row_values[constraint.index]
+                constraint.slack = constraint.constant + row_values[constraint.id]
                 if constraint.sense == constants.LpConstraintLE:
                     constraint.slack *= -1.0
-                constraint.pi = row_duals[constraint.index]
+                constraint.pi = row_duals[constraint.id]
 
             if obj_value == float(inf) and status in (
                 HighsModelStatus.kTimeLimit,

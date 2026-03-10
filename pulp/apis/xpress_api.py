@@ -423,25 +423,12 @@ class XPRESS_PY(LpSolver):
         try:
             model = lp.solverModel
 
-            # Build ordered lists of solver vars/cons for new API
-            # PuLP stores Xpress handles in v._xprs / c._xprs; index 1 is the handle.
-            xpress_vars = []
-            for v in lp.variables():
-                h = (
-                    v._xprs[1]
-                    if isinstance(v._xprs, (list, tuple)) and len(v._xprs) > 1
-                    else v._xprs
-                )
-                xpress_vars.append((v, h))
-
-            xpress_cons = []
-            for n, c in lp.constraints.items():
-                h = (
-                    c._xprs[1]
-                    if isinstance(c._xprs, (list, tuple)) and len(c._xprs) > 1
-                    else c._xprs
-                )
-                xpress_cons.append((n, c, h))
+            # Build ordered lists of solver vars/cons (id = index in handle lists)
+            xpress_vars = [(v, lp._solver_var_handles[v.id]) for v in lp.variables()]
+            xpress_cons = [
+                (n, c, lp._solver_constr_handles[c.id])
+                for n, c in lp.constraints.items()
+            ]
 
             if _ismip(lp) and self.mip:
                 # ------- MIP branch -------
@@ -623,10 +610,10 @@ class XPRESS_PY(LpSolver):
             if self.optionsDict.get("warmStart", False):
                 solval = list()
                 colind = list()
-                for v in sorted(lp.variables(), key=lambda x: x._xprs[0]):
+                for v in lp.variables():
                     if v.value() is not None:
                         solval.append(v.value())
-                        colind.append(v._xprs[0])
+                        colind.append(v.id)
                 if _ismip(lp) and self.mip:
                     # If we have a value for every variable then use
                     # loadmipsol(), which requires a dense solution. Otherwise
@@ -653,15 +640,10 @@ class XPRESS_PY(LpSolver):
         try:
             rhsind = list()
             rhsval = list()
-            for name in sorted(lp.constraints):
-                con = lp.constraints[name]
+            for name, con in lp.constraints.items():
                 if not con.modified:
                     continue
-                if not hasattr(con, "_xprs"):
-                    # Adding constraints is not implemented at the moment
-                    raise PulpSolverError("Cannot add new constraints")
-                # At the moment only RHS can change in pulp.py
-                rhsind.append(con._xprs[0])
+                rhsind.append(con.id)
                 rhsval.append(-con.constant)
             if len(rhsind) > 0:
                 lp.solverModel.chgrhs(rhsind, rhsval)
@@ -672,16 +654,12 @@ class XPRESS_PY(LpSolver):
             for v in lp.variables():
                 if not v.modified:
                     continue
-                if not hasattr(v, "_xprs"):
-                    # Adding variables is not implemented at the moment
-                    raise PulpSolverError("Cannot add new variables")
-                # At the moment only bounds can change in pulp.py
-                bndind.append(v._xprs[0])
+                bndind.append(v.id)
                 bndtype.append("L")
                 bndval.append(
                     -xpress.infinity if not math.isfinite(v.lowBound) else v.lowBound
                 )
-                bndind.append(v._xprs[0])
+                bndind.append(v.id)
                 bndtype.append("G")
                 bndval.append(
                     xpress.infinity if not math.isfinite(v.upBound) else v.upBound
@@ -699,12 +677,10 @@ class XPRESS_PY(LpSolver):
         """Reset any XPRESS specific information in lp."""
         if hasattr(lp, "solverModel"):
             delattr(lp, "solverModel")
-        for v in lp.variables():
-            if hasattr(v, "_xprs"):
-                delattr(v, "_xprs")
-        for c in lp.constraints.values():
-            if hasattr(c, "_xprs"):
-                delattr(c, "_xprs")
+        if hasattr(lp, "_solver_var_handles"):
+            delattr(lp, "_solver_var_handles")
+        if hasattr(lp, "_solver_constr_handles"):
+            delattr(lp, "_solver_constr_handles")
 
     def _extract(self, lp):
         """Extract a given model to an XPRESS Python API instance.
@@ -761,9 +737,10 @@ class XPRESS_PY(LpSolver):
             if lp.sense == constants.LpMaximize:
                 model.chgobjsense(xpress.maximize)
 
-            # Create variables. We first collect the info for all variables
-            # and then create all of them in one shot. This is supposed to
-            # be faster in case we have to create a lot of variables.
+            lp._solver_var_handles = []
+            lp._solver_constr_handles = []
+
+            # Create variables (id = position in lp.variables()).
             obj = list()
             lb = list()
             ub = list()
@@ -785,21 +762,15 @@ class XPRESS_PY(LpSolver):
                     ctype.append("C")
                 names.append(v.name)
             model.addcols(obj, [0] * (len(obj) + 1), [], [], lb, ub, names, ctype)
-            for j, (v, x) in enumerate(zip(lp.variables(), model.getVariable())):
-                v._xprs = (j, x)
+            for v, x in zip(lp.variables(), model.getVariable()):
+                lp._solver_var_handles.append(x)
 
-            # Generate constraints. Sort by name to get deterministic
-            # ordering of constraints.
-            # Constraints are generated in blocks of 100 constraints to speed
-            # up things a bit but still keep memory usage small.
+            # Generate constraints in model order (lp.constraints.items() = id order).
             cons = list()
-            for i, name in enumerate(sorted(lp.constraints)):
-                con = lp.constraints[name]
-                # Sort the variables by index to get deterministic
-                # ordering of variables in the row.
+            for name, con in lp.constraints.items():
                 lhs = xpress.Sum(
-                    a * x._xprs[1]
-                    for x, a in sorted(con.items(), key=lambda x: x[0]._xprs[0])
+                    a * lp._solver_var_handles[x.id]
+                    for x, a in sorted(con.items(), key=lambda item: item[0].name)
                 )
                 rhs = -con.constant
 
@@ -810,30 +781,21 @@ class XPRESS_PY(LpSolver):
                 c = _xp_make_constraint(
                     lhs=lhs, rhs=rhs, xp_sense=xp_sense, name=con.name
                 )
-                cons.append((i, c, con))
-                if len(cons) > 100:
-                    model.addConstraint([c for _, c, _ in cons])
-                    for i, c, con in cons:
-                        con._xprs = (i, c)
+                cons.append(c)
+                if len(cons) >= 100:
+                    model.addConstraint(cons)
                     cons = list()
             if len(cons) > 0:
-                model.addConstraint([c for _, c, _ in cons])
-                for i, c, con in cons:
-                    con._xprs = (i, c)
+                model.addConstraint(cons)
 
-            # SOS constraints
+            lp._solver_constr_handles = list(model.getConstraint())
+
+            # SOS constraints (variable index = var.id)
             def addsos(m, sosdict, sostype):
-                """Extract sos constraints from PuLP."""
                 soslist = []
-                # Sort by name to get deterministic ordering. Note that
-                # names may be plain integers, that is why we use str(name)
-                # to pass them to the SOS constructor.
                 for name in sorted(sosdict):
-                    indices = []
-                    weights = []
-                    for v, val in sosdict[name].items():
-                        indices.append(v._xprs[0])
-                        weights.append(val)
+                    indices = [v.id for v, _ in sosdict[name].items()]
+                    weights = [val for _, val in sosdict[name].items()]
                     soslist.append(xpress.sos(indices, weights, sostype, str(name)))
                 if len(soslist):
                     m.addSOS(soslist)
