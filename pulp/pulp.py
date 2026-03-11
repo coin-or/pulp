@@ -150,10 +150,9 @@ log = logging.getLogger(__name__)
 def _is_numpy_bool(obj: object) -> bool:
     """Return True if obj is a numpy boolean scalar (e.g. from np.float64(3) >= var)."""
     t = type(obj)
-    return (
-        getattr(t, "__name__", "") in ("bool_", "bool8", "bool")
-        and (getattr(t, "__module__", "") or "").startswith("numpy")
-    )
+    return getattr(t, "__name__", "") in ("bool_", "bool8", "bool") and (
+        getattr(t, "__module__", "") or ""
+    ).startswith("numpy")
 
 
 def _rust_cat_to_const(rust_cat: _rustcore.Category) -> str:
