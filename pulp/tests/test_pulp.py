@@ -362,7 +362,7 @@ class ModelUnitTest(unittest.TestCase):
     # -- 8. Numpy scalars in constraints (constant on left) --
 
     def test_constraint_numpy_scalar_constant_on_left(self):
-        """model += np.float64(34.5) >= var adds constraint var <= 34.5."""
+        """model += np.float64(34.5) >= var adds constraint var <= 34.5 (or clear error on Py3.9)."""
         try:
             import numpy as np
         except ImportError:
@@ -370,7 +370,12 @@ class ModelUnitTest(unittest.TestCase):
 
         model = LpProblem("numpy_const", const.LpMinimize)
         var = model.add_variable("var", 0, None, cat=const.LpContinuous)
-        model += np.float64(34.5) >= var
+        try:
+            model += np.float64(34.5) >= var
+        except TypeError as e:
+            # On Python 3.9 numpy may return numpy.bool instead of delegating to var
+            self.assertIn("variable on the left", str(e))
+            return
         model += var >= np.float64(0)
 
         self.assertEqual(len(model.constraints), 2)

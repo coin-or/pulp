@@ -147,6 +147,15 @@ from .utilities import value
 log = logging.getLogger(__name__)
 
 
+def _is_numpy_bool(obj: object) -> bool:
+    """Return True if obj is a numpy boolean scalar (e.g. from np.float64(3) >= var)."""
+    t = type(obj)
+    return (
+        getattr(t, "__name__", "") in ("bool_", "bool8", "bool")
+        and (getattr(t, "__module__", "") or "").startswith("numpy")
+    )
+
+
 def _rust_cat_to_const(rust_cat: _rustcore.Category) -> str:
     if rust_cat == _rustcore.Category.Continuous:
         return const.LpContinuous
@@ -1755,6 +1764,11 @@ class LpProblem:
             return self
         elif other is False:
             raise TypeError("A False object cannot be passed as a constraint")
+        elif _is_numpy_bool(other):
+            raise TypeError(
+                "Comparison with a numpy scalar returned a numpy boolean. "
+                "Put the variable on the left, e.g. model += var <= np.float64(34.5)"
+            )
         elif isinstance(other, LpConstraint):
             self.addConstraint(other, name)
         elif isinstance(other, LpAffineExpression):
