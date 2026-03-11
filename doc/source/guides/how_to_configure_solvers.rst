@@ -140,6 +140,20 @@ GUROBI
     set PATH=%PATH%;%GUROBI_HOME%/bin
     set LD_LIBRARY_PATH=%LD_LIBRARY_PATH%;%GUROBI_HOME%/lib
 
+XPRESS
+*******
+
+**Linux / Mac**: add the following lines to the ~.bashrc (or ~.profile or /etc/profile or /etc/bash.bashrc) file::
+
+    export XPRESSDIR="/opt/xpressmp"
+    export PATH="${PATH}:${XPRESSDIR}/bin"
+    export XPAUTH_PATH="${XPRESSDIR}/bin/xpauth.xpr"
+
+**Windows**: add the following environment variables (via the command line or graphical user interface)::
+
+    set XPRESSDIR=C:/xpressmp
+    set PATH=%PATH%;%XPRESSDIR%/bin
+    set XPAUTH_PATH=%XPRESSDIR%/bin/xpauth.xpr
 
 Configuring where the CMD solvers write their temporary files
 ---------------------------------------------------------------------------
@@ -224,6 +238,29 @@ Following my installation paths it would be (Linux)::
      sudo python3 setup.py install
 
 As you can see, it is necessary to have admin rights to install it.
+
+Installing XPRESS_PY
+***********************
+
+This solver works by installing the `xpress` Python package, which includes a runtime distribution of the Xpress Optimizer libraries, and a Community License (free of charge, problem size limits apply).
+
+To install the Xpress Python package:
+    - PYPI: `pip install xpress`
+    - CONDA: `conda install -c fico-xpress xpress`
+
+If you plan to work with larger models and acquire an Academic or Commercial License, contact FICO support to obtain a license file, and then set the `XPAUTH_PATH` environment variable to the location of your license file.
+
+**Linux / Mac**: add the following line to the ~.bashrc (or ~.profile or /etc/profile or /etc/bash.bashrc) file::
+
+    export XPAUTH_PATH="/path/to/your/xpauth.xpr"
+
+**Windows**: add the following environment variable (via the command line or graphical user interface)::
+
+    set XPAUTH_PATH=C:/path/to/your/xpauth.xpr
+
+*Even though the XPRESS_PY solver interface in PuLP works for Xpress versions 9.0+, it has been updated and tested using Xpress version 9.8. If you have an older version of Xpress, please consider updating to the this version.
+
+**License tokens:** ``XPRESS`` (CMD) acquires and releases a license token per subprocess — once per ``model.solve()`` call. ``XPRESS_PY`` holds a token for the lifetime of the Python process from the moment ``xpress`` is imported. In batch environments where license tokens are shared across jobs, use ``xp.init()`` as a context manager around each job to scope the token lifetime and release it between solves.
 
 .. _solver-specific-config:
 

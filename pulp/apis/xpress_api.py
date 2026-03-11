@@ -26,6 +26,7 @@
 
 import re
 import sys
+import warnings
 
 from .. import constants
 from .core import LpSolver, LpSolver_CMD, PulpSolverError, subprocess
@@ -97,7 +98,20 @@ class XPRESS(LpSolver_CMD):
 
     def available(self):
         """True if the solver is available"""
-        return self.executable(self.path)
+        if self.executable(self.path):
+            return True
+        try:
+            import xpress  # noqa: F401
+
+            warnings.warn(
+                "Xpress optimizer binary not found. "
+                "Consider using XPRESS_PY instead: pip install xpress",
+                UserWarning,
+                stacklevel=2,
+            )
+        except ImportError:
+            pass
+        return False
 
     def actualSolve(self, lp):
         """Solve a well formulated lp problem"""
@@ -123,7 +137,7 @@ class XPRESS(LpSolver_CMD):
                 4: constants.LpStatusUndefined,  # XPRS_MIP_SOLUTION
                 5: constants.LpStatusInfeasible,  # XPRS_MIP_INFEAS
                 6: constants.LpStatusOptimal,  # XPRS_MIP_OPTIMAL
-                7: constants.LpStatusUndefined,  # XPRS_MIP_UNBOUNDED
+                7: constants.LpStatusUnbounded,  # XPRS_MIP_UNBOUNDED
             }
             statuskey = "mipstatus"
         else:
@@ -409,17 +423,29 @@ class XPRESS_PY(LpSolver):
 
             if self._export is not None:
                 if self._export.lower().endswith(".lp"):
-                    model.write(self._export, "l")
+                    try:  # New API first
+                        model.writeProb(self._export, "l")
+                    except AttributeError:  # Fallback to deprecated API
+                        model.write(self._export, "l")
                 else:
-                    model.write(self._export)
+                    try:  # New API first
+                        model.writeProb(self._export)
+                    except AttributeError:  # Fallback to deprecated API
+                        model.write(self._export)
             if prepare is not None:
                 prepare(lp)
             if _ismip(lp) and not self.mip:
                 # Solve only the LP relaxation
-                model.lpoptimize()
+                try:  # New API first
+                    model.lpOptimize()
+                except AttributeError:  # Fallback to deprecated API
+                    model.lpoptimize()
             else:
-                # In all other cases, solve() does the correct thing
-                model.solve()
+                # In all other cases, optimize() does the correct thing
+                try:  # New API first
+                    model.optimize()
+                except AttributeError:  # Fallback to deprecated API
+                    model.solve()
         except (xpress.ModelError, xpress.InterfaceError, xpress.SolverError) as err:
             raise PulpSolverError(str(err))
 
@@ -447,88 +473,68 @@ class XPRESS_PY(LpSolver):
                 )
                 xpress_cons.append((n, c, h))
 
-            if _ismip(lp) and self.mip:
-                # ------- MIP branch -------
-                vals = slacks = duals = djs = None
-                statusmap = {
-                    0: constants.LpStatusUndefined,  # XPRS_MIP_NOT_LOADED
-                    1: constants.LpStatusUndefined,  # XPRS_MIP_LP_NOT_OPTIMAL
-                    2: constants.LpStatusUndefined,  # XPRS_MIP_LP_OPTIMAL
-                    3: constants.LpStatusUndefined,  # XPRS_MIP_NO_SOL_FOUND
-                    4: constants.LpStatusUndefined,  # XPRS_MIP_SOLUTION
-                    5: constants.LpStatusInfeasible,  # XPRS_MIP_INFEAS
-                    6: constants.LpStatusOptimal,  # XPRS_MIP_OPTIMAL
-                    7: constants.LpStatusUndefined,  # XPRS_MIP_UNBOUNDED
-                }
-                statuskey = "mipstatus"
+            # Use unified solstatus attribute (available since Xpress 9.0)
+            # This replaces the separate mipstatus/lpstatus handling
+            vals = slacks = duals = djs = None
 
-                # New API first
-                try:
-                    var_vals = model.getSolution([h for _, h in xpress_vars])
-                    slacks = (
-                        model.getSlacks([h for _, _, h in xpress_cons])
-                        if xpress_cons
-                        else None
-                    )
-                    vals = var_vals
-                except Exception as e:
-                    # Fallback to deprecated API (avoids DeprecationWarning only if not hit)
+            # Map solstatus to (status, sol_status) tuples for detailed status reporting
+            statusmap = {
+                0: (
+                    constants.LpStatusNotSolved,
+                    constants.LpSolutionNoSolutionFound,
+                ),  # XPRS_SOLSTATUS_NOTFOUND
+                1: (
+                    constants.LpStatusOptimal,
+                    constants.LpSolutionOptimal,
+                ),  # XPRS_SOLSTATUS_OPTIMAL
+                2: (
+                    constants.LpStatusUndefined,
+                    constants.LpSolutionIntegerFeasible,
+                ),  # XPRS_SOLSTATUS_FEASIBLE
+                3: (
+                    constants.LpStatusInfeasible,
+                    constants.LpSolutionInfeasible,
+                ),  # XPRS_SOLSTATUS_INFEASIBLE
+                4: (
+                    constants.LpStatusUnbounded,
+                    constants.LpSolutionUnbounded,
+                ),  # XPRS_SOLSTATUS_UNBOUNDED
+            }
+
+            solstatus = model.attributes.solstatus
+
+            # Check if we have a solution (optimal or feasible)
+            if solstatus in [1, 2]:  # OPTIMAL or FEASIBLE
+                # Get primal solution and slacks for both LP and MIP
+                vals = model.getSolution([h for _, h in xpress_vars])
+                if xpress_cons:
+                    # Try plural version first (Xpress 9.8+)
                     try:
-                        print(e)
-                        x_list, s_list = [], []
-                        model.getmipsol(x_list, s_list)
-                        vals, slacks = (
-                            x_list if x_list else None,
-                            s_list if s_list else None,
-                        )
-                    except Exception:
-                        vals = slacks = None
+                        slacks = model.getSlacks([h for _, _, h in xpress_cons])
+                    except AttributeError:
+                        # Fall back to singular version for Xpress 9.7 and earlier
+                        slacks = [model.getSlack(h) for _, _, h in xpress_cons]
+                else:
+                    slacks = None
 
-                duals = None
-                djs = None
+                # Get dual solution only for LP (not for MIP)
+                if not (_ismip(lp) and self.mip):
+                    if xpress_cons:
+                        # Try plural version first (Xpress 9.8+)
+                        try:
+                            duals = model.getDuals([h for _, _, h in xpress_cons])
+                        except AttributeError:
+                            # Fall back to singular version for Xpress 9.7 and earlier
+                            duals = [model.getDual(h) for _, _, h in xpress_cons]
+                    else:
+                        duals = None
 
-            else:
-                # ------- LP (continuous) branch -------
-                vals = slacks = duals = djs = None
-                statusmap = {
-                    0: constants.LpStatusNotSolved,  # XPRS_LP_UNSTARTED
-                    1: constants.LpStatusOptimal,  # XPRS_LP_OPTIMAL
-                    2: constants.LpStatusInfeasible,  # XPRS_LP_INFEAS
-                    3: constants.LpStatusUndefined,  # XPRS_LP_CUTOFF
-                    4: constants.LpStatusUndefined,  # XPRS_LP_UNFINISHED
-                    5: constants.LpStatusUnbounded,  # XPRS_LP_UNBOUNDED
-                    6: constants.LpStatusUndefined,  # XPRS_LP_CUTOFF_IN_DUAL
-                    7: constants.LpStatusNotSolved,  # XPRS_LP_UNSOLVED
-                    8: constants.LpStatusUndefined,  # XPRS_LP_NONCONVEX
-                }
-                statuskey = "lpstatus"
-
-                # New API first
-                try:
-                    var_vals = model.getSolution([h for _, h in xpress_vars])
-                    vals = var_vals
-                    slacks = (
-                        model.getSlacks([h for _, _, h in xpress_cons])
-                        if xpress_cons
-                        else None
-                    )
-                    duals = (
-                        model.getDuals([h for _, _, h in xpress_cons])
-                        if xpress_cons
-                        else None
-                    )
-                    djs = model.getRedCosts([h for _, h in xpress_vars])
-                except Exception:
-                    # Fallback to deprecated API
+                    # Try plural version first (Xpress 9.8+)
                     try:
-                        x_list, s_list, d_list, rc_list = [], [], [], []
-                        model.getlpsol(x_list, s_list, d_list, rc_list)
-                        vals = x_list if x_list else None
-                        slacks = s_list if s_list else None
-                        duals = d_list if d_list else None
-                        djs = rc_list if rc_list else None
-                    except Exception:
-                        vals = slacks = duals = djs = None
+                        djs = model.getRedCosts([h for _, h in xpress_vars])
+                    except AttributeError:
+                        # Fall back to singular version for Xpress 9.7 and earlier
+                        djs = [model.getRedCost(h) for _, h in xpress_vars]
 
             # ---- write back into PuLP structures ----
             if vals is not None:
@@ -546,10 +552,11 @@ class XPRESS_PY(LpSolver):
             if slacks is not None:
                 lp.assignConsSlack({n: s for (n, c, _), s in zip(xpress_cons, slacks)})
 
-            status = statusmap.get(
-                model.getAttrib(statuskey), constants.LpStatusUndefined
+            status, sol_status = statusmap.get(
+                solstatus,
+                (constants.LpStatusUndefined, constants.LpSolutionNoSolutionFound),
             )
-            lp.assignStatus(status)
+            lp.assignStatus(status, sol_status)
             return status
 
         except (xpress.ModelError, xpress.InterfaceError, xpress.SolverError) as err:
@@ -633,14 +640,23 @@ class XPRESS_PY(LpSolver):
                         colind.append(v._xprs[0])
                 if _ismip(lp) and self.mip:
                     # If we have a value for every variable then use
-                    # loadmipsol(), which requires a dense solution. Otherwise
-                    # use addmipsol() which allows sparse vectors.
+                    # loadMipSol(), which requires a dense solution. Otherwise
+                    # use addMipSol() which allows sparse vectors.
                     if len(solval) == model.attributes.cols:
-                        model.loadmipsol(solval)
+                        try:  # Try new API first
+                            model.loadMipSol(solval)
+                        except AttributeError:  # Fallback to deprecated API
+                            model.loadmipsol(solval)
                     else:
-                        model.addmipsol(solval, colind, "warmstart")
+                        try:  # Try new API first
+                            model.addMipSol(solval, colind, "warmstart")
+                        except AttributeError:  # Fallback to deprecated API
+                            model.addmipsol(solval, colind, "warmstart")
                 else:
-                    model.loadlpsol(solval, None, None, None)
+                    try:  # Try new API first
+                        model.loadLPSol(solval, None, None, None)
+                    except AttributeError:  # Fallback to deprecated API
+                        model.loadlpsol(solval, None, None, None)
             # Setup message callback if output is requested
             if self.msg:
 
@@ -648,7 +664,10 @@ class XPRESS_PY(LpSolver):
                     if msgtype > 0:
                         print(msg)
 
-                model.addcbmessage(message)
+                try:  # Try new API first
+                    model.addMessageCallback(message)
+                except AttributeError:  # Fallback to deprecated API
+                    model.addcbmessage(message)
         except (xpress.ModelError, xpress.InterfaceError, xpress.SolverError) as err:
             raise PulpSolverError(str(err))
 
@@ -668,7 +687,10 @@ class XPRESS_PY(LpSolver):
                 rhsind.append(con._xprs[0])
                 rhsval.append(-con.constant)
             if len(rhsind) > 0:
-                lp.solverModel.chgrhs(rhsind, rhsval)
+                try:  # Try new API first
+                    lp.solverModel.chgRHS(rhsind, rhsval)
+                except AttributeError:  # Fallback to deprecated API
+                    lp.solverModel.chgrhs(rhsind, rhsval)
 
             bndind = list()
             bndtype = list()
@@ -687,7 +709,10 @@ class XPRESS_PY(LpSolver):
                 bndtype.append("G")
                 bndval.append(xpress.infinity if v.upBound is None else v.upBound)
             if len(bndtype) > 0:
-                lp.solverModel.chgbounds(bndind, bndtype, bndval)
+                try:  # Try new API first
+                    lp.solverModel.chgBounds(bndind, bndtype, bndval)
+                except AttributeError:  # Fallback to deprecated API
+                    lp.solverModel.chgbounds(bndind, bndtype, bndval)
 
             self.callSolver(lp, prepare)
             return self.findSolutionValues(lp)
@@ -750,7 +775,10 @@ class XPRESS_PY(LpSolver):
 
             model = xpress.problem()
             if lp.sense == constants.LpMaximize:
-                model.chgobjsense(xpress.maximize)
+                try:  # Try new API first
+                    model.chgObjSense(xpress.maximize)
+                except AttributeError:  # Fallback to deprecated API
+                    model.chgobjsense(xpress.maximize)
 
             # Create variables. We first collect the info for all variables
             # and then create all of them in one shot. This is supposed to
@@ -771,7 +799,12 @@ class XPRESS_PY(LpSolver):
                 else:
                     ctype.append("C")
                 names.append(v.name)
-            model.addcols(obj, [0] * (len(obj) + 1), [], [], lb, ub, names, ctype)
+            try:  # Try new API first
+                model.addCols(obj, [0] * (len(obj) + 1), [], [], lb, ub)
+                model.addNames(xpress.Namespaces.COLUMN, names, 0, len(names) - 1)
+                model.chgColType(range(len(ctype)), ctype)
+            except AttributeError:  # Fallback to deprecated API
+                model.addcols(obj, [0] * (len(obj) + 1), [], [], lb, ub, names, ctype)
             for j, (v, x) in enumerate(zip(lp.variables(), model.getVariable())):
                 v._xprs = (j, x)
 
