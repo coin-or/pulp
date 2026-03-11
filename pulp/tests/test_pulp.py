@@ -359,6 +359,32 @@ class ModelUnitTest(unittest.TestCase):
             _ = (x + y).items()
         self.assertIn("no longer exists", str(ctx.exception))
 
+    # -- 8. Numpy scalars in constraints (constant on left) --
+
+    def test_constraint_numpy_scalar_constant_on_left(self):
+        """model += np.float64(34.5) >= var adds constraint var <= 34.5."""
+        try:
+            import numpy as np
+        except ImportError:
+            self.skipTest("numpy not available")
+
+        model = LpProblem("numpy_const", const.LpMinimize)
+        var = model.add_variable("var", 0, None, cat=const.LpContinuous)
+        model += np.float64(34.5) >= var
+        model += var >= np.float64(0)
+
+        self.assertEqual(len(model.constraints), 2)
+        # Both constraints are var <= 34.5 and var >= 0 (order may vary)
+        senses = {c.sense for c in model.constraints.values()}
+        self.assertEqual(senses, {const.LpConstraintLE, const.LpConstraintGE})
+        # Check one constraint is var <= 34.5 (constant -34.5 in expr <= 0 form)
+        for c in model.constraints.values():
+            if c.sense == const.LpConstraintLE:
+                self.assertAlmostEqual(c.constant, -34.5)
+                break
+        else:
+            self.fail("Expected one LE constraint with constant -34.5")
+
 
 class BaseSolverTest:
     class PuLPTest(unittest.TestCase):
