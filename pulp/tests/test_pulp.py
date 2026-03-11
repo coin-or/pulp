@@ -334,6 +334,31 @@ class ModelUnitTest(unittest.TestCase):
         self.assertEqual(ge.sense, const.LpConstraintGE)
         self.assertEqual(eq.sense, const.LpConstraintEQ)
 
+    # -- 7. Dropped model: friendly ValueError --
+
+    def test_dropped_model_raises_value_error(self):
+        """Using a variable after its LpProblem was dropped raises ValueError."""
+        prob = self._make_prob()
+        x = prob.add_variable("x", 0, 1)
+        # Reassign so the first model is dropped; x still refers to it.
+        prob = LpProblem("other", const.LpMinimize)
+        expr = x * 2 + 1
+        with self.assertRaises(ValueError) as ctx:
+            expr.items()
+        self.assertIn("no longer exists", str(ctx.exception))
+        self.assertIn("LpProblem", str(ctx.exception))
+
+    def test_dropped_model_add_expr_raises_value_error(self):
+        """Adding expressions from different/dropped models raises ValueError."""
+        prob1 = self._make_prob()
+        x = prob1.add_variable("x", 0, 1)
+        prob1 = LpProblem("other", const.LpMinimize)
+        y = prob1.add_variable("y", 0, 1)
+        # x belongs to dropped model, y to current; adding them should fail.
+        with self.assertRaises(ValueError) as ctx:
+            _ = (x + y).items()
+        self.assertIn("no longer exists", str(ctx.exception))
+
 
 class BaseSolverTest:
     class PuLPTest(unittest.TestCase):
@@ -2339,8 +2364,6 @@ class GLPK_CMDTest(BaseSolverTest.PuLPTest):
             "y", lowBound=0, upBound=Decimal("32.24"), cat=const.LpContinuous
         )
         include_extra = prob.add_variable("include_extra1", cat=const.LpBinary)
-
-        prob = LpProblem("graph", const.LpMaximize)
 
         prob += y
 

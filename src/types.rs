@@ -4,7 +4,7 @@ use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 
 use indexmap::IndexMap;
-use pyo3::exceptions::PyRuntimeError;
+use pyo3::exceptions::{PyRuntimeError, PyValueError};
 use pyo3::prelude::*;
 
 use crate::affine_expr::AffineExpr;
@@ -133,6 +133,24 @@ impl ModelCore {
 pub fn upgrade_model(weak: &Weak<RefCell<ModelCore>>) -> PyResult<Rc<RefCell<ModelCore>>> {
     weak.upgrade().ok_or_else(|| {
         PyRuntimeError::new_err("Underlying model has been dropped; handle is no longer valid")
+    })
+}
+
+/// Get the model from an optional weak ref. Use for AffineExpr and anywhere the model
+/// may be missing or dropped. Returns a friendly error instead of panicking.
+pub fn get_model_optional(
+    opt_weak: &Option<Weak<RefCell<ModelCore>>>,
+) -> PyResult<Rc<RefCell<ModelCore>>> {
+    let weak = opt_weak.as_ref().ok_or_else(|| {
+        PyValueError::new_err(
+            "This expression has no associated model. Use variables from an existing LpProblem.",
+        )
+    })?;
+    weak.upgrade().ok_or_else(|| {
+        PyValueError::new_err(
+            "The model this variable/expression belongs to no longer exists. \
+             Do not reassign or delete the LpProblem and then use its variables or expressions.",
+        )
     })
 }
 

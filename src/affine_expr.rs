@@ -9,7 +9,7 @@ use pyo3::prelude::*;
 
 use crate::format;
 use crate::model::Model;
-use crate::types::{ModelCore, Sense, VarId};
+use crate::types::{get_model_optional, ModelCore, Sense, VarId};
 use crate::variable::Variable;
 
 /// Affine expression: sum_i coeff_i * x_i + constant.
@@ -54,8 +54,10 @@ impl AffineExpr {
         if self.model.is_none() {
             self.model = other.model.clone();
         }
-        if let (Some(ref s), Some(ref o)) = (&self.model, &other.model) {
-            if !Rc::ptr_eq(&s.upgrade().unwrap(), &o.upgrade().unwrap()) {
+        if self.model.is_some() && other.model.is_some() {
+            let self_rc = get_model_optional(&self.model)?;
+            let other_rc = get_model_optional(&other.model)?;
+            if !Rc::ptr_eq(&self_rc, &other_rc) {
                 return Err(PyValueError::new_err("Models are not the same"));
             }
         }
@@ -126,15 +128,14 @@ impl AffineExpr {
     }
 
     /// Resolve VarId -> Variable handle pairs via the internal weak model ref.
-    fn items(&self) -> Vec<(Variable, f64)> {
-        let weak = match &self.model {
-            Some(w) => w,
-            None => return Vec::new(),
-        };
-        if weak.upgrade().is_none() {
-            return Vec::new();
+    fn items(&self) -> PyResult<Vec<(Variable, f64)>> {
+        if self.model.is_none() {
+            return Ok(Vec::new());
         }
-        self.terms
+        let _ = get_model_optional(&self.model)?;
+        let weak = self.model.as_ref().unwrap().clone();
+        Ok(self
+            .terms
             .iter()
             .map(|(var_id, coeff)| {
                 (
@@ -145,24 +146,23 @@ impl AffineExpr {
                     *coeff,
                 )
             })
-            .collect()
+            .collect())
     }
 
-    fn keys(&self) -> Vec<Variable> {
-        let weak = match &self.model {
-            Some(w) => w,
-            None => return Vec::new(),
-        };
-        if weak.upgrade().is_none() {
-            return Vec::new();
+    fn keys(&self) -> PyResult<Vec<Variable>> {
+        if self.model.is_none() {
+            return Ok(Vec::new());
         }
-        self.terms
+        let _ = get_model_optional(&self.model)?;
+        let weak = self.model.as_ref().unwrap().clone();
+        Ok(self
+            .terms
             .keys()
             .map(|var_id| Variable {
                 id: *var_id,
                 model: weak.clone(),
             })
-            .collect()
+            .collect())
     }
 
     fn values(&self) -> Vec<f64> {
@@ -171,39 +171,36 @@ impl AffineExpr {
 
     /// Compute the expression value: sum(var.value * coeff) + constant.
     /// Returns None if any variable has no value set.
-    fn value(&self) -> Option<f64> {
-        let weak = match &self.model {
-            Some(w) => w,
-            None => {
-                return if self.terms.is_empty() {
-                    Some(self.constant)
-                } else {
-                    None
-                }
-            }
-        };
-        let core_rc = weak.upgrade()?;
+    fn value(&self) -> PyResult<Option<f64>> {
+        if self.model.is_none() {
+            return Ok(if self.terms.is_empty() {
+                Some(self.constant)
+            } else {
+                None
+            });
+        }
+        let core_rc = get_model_optional(&self.model)?;
         let core = core_rc.borrow();
         let mut total = self.constant;
         for (var_id, coeff) in &self.terms {
-            let val = core.vars.get(*var_id)?.value?;
+            let val = match core.vars.get(*var_id).and_then(|vd| vd.value) {
+                Some(v) => v,
+                None => return Ok(None),
+            };
             total += val * coeff;
         }
-        Some(total)
+        Ok(Some(total))
     }
 
     /// Returns (variable_name, coeff) pairs for Python serialization.
-    fn var_name_coeffs(&self) -> Vec<(String, f64)> {
-        let weak = match &self.model {
-            Some(w) => w,
-            None => return Vec::new(),
-        };
-        let core_rc = match weak.upgrade() {
-            Some(rc) => rc,
-            None => return Vec::new(),
-        };
+    fn var_name_coeffs(&self) -> PyResult<Vec<(String, f64)>> {
+        if self.model.is_none() {
+            return Ok(Vec::new());
+        }
+        let core_rc = get_model_optional(&self.model)?;
         let core = core_rc.borrow();
-        self.terms
+        Ok(self
+            .terms
             .iter()
             .map(|(var_id, coeff)| {
                 let name = core
@@ -213,14 +210,14 @@ impl AffineExpr {
                     .unwrap_or_default();
                 (name, *coeff)
             })
-            .collect()
+            .collect())
     }
 
-    fn __str__(&self) -> String {
+    fn __str__(&self) -> PyResult<String> {
         self.format_expr()
     }
 
-    fn __repr__(&self) -> String {
+    fn __repr__(&self) -> PyResult<String> {
         self.format_expr()
     }
 
@@ -266,15 +263,12 @@ impl AffineExpr {
     // ── Formatting methods (delegate to format.rs) ──
 
     /// Returns variables sorted by name, as Variable handles.
-    fn sorted_keys(&self) -> Vec<Variable> {
-        let weak = match &self.model {
-            Some(w) => w,
-            None => return Vec::new(),
-        };
-        let core_rc = match weak.upgrade() {
-            Some(rc) => rc,
-            None => return Vec::new(),
-        };
+    fn sorted_keys(&self) -> PyResult<Vec<Variable>> {
+        if self.model.is_none() {
+            return Ok(Vec::new());
+        }
+        let core_rc = get_model_optional(&self.model)?;
+        let weak = self.model.as_ref().unwrap().clone();
         let core = core_rc.borrow();
         let mut pairs: Vec<(VarId, String)> = self
             .terms
@@ -289,25 +283,21 @@ impl AffineExpr {
             })
             .collect();
         pairs.sort_by(|a, b| a.1.cmp(&b.1));
-        pairs
+        Ok(pairs
             .into_iter()
             .map(|(vid, _)| Variable {
                 id: vid,
                 model: weak.clone(),
             })
-            .collect()
+            .collect())
     }
 
     /// Evaluate using defaults for missing values.
-    fn value_or_default(&self) -> f64 {
-        let weak = match &self.model {
-            Some(w) => w,
-            None => return self.constant,
-        };
-        let core_rc = match weak.upgrade() {
-            Some(rc) => rc,
-            None => return self.constant,
-        };
+    fn value_or_default(&self) -> PyResult<f64> {
+        if self.model.is_none() {
+            return Ok(self.constant);
+        }
+        let core_rc = get_model_optional(&self.model)?;
         let core = core_rc.borrow();
         let mut total = self.constant;
         for (var_id, coeff) in &self.terms {
@@ -316,20 +306,25 @@ impl AffineExpr {
                 total += v * coeff;
             }
         }
-        total
+        Ok(total)
     }
 
     /// CPLEX LP format: variable-terms portion.
-    fn as_cplex_variables_only(&self, name: &str) -> (Vec<String>, Vec<String>) {
-        let sorted = self.sorted_name_coeff_pairs();
-        format::cplex_variables_only(&sorted, name)
+    fn as_cplex_variables_only(&self, name: &str) -> PyResult<(Vec<String>, Vec<String>)> {
+        let sorted = self.sorted_name_coeff_pairs()?;
+        Ok(format::cplex_variables_only(&sorted, name))
     }
 
     /// CPLEX LP affine expression string.
     #[pyo3(signature = (name, include_constant=true))]
-    fn as_cplex_lp_affine_expression(&self, name: &str, include_constant: bool) -> String {
-        let sorted = self.sorted_name_coeff_pairs();
-        format::cplex_lp_affine_expression(&sorted, self.constant, name, include_constant)
+    fn as_cplex_lp_affine_expression(&self, name: &str, include_constant: bool) -> PyResult<String> {
+        let sorted = self.sorted_name_coeff_pairs()?;
+        Ok(format::cplex_lp_affine_expression(
+            &sorted,
+            self.constant,
+            name,
+            include_constant,
+        ))
     }
 
     /// CPLEX LP constraint string (with sense and RHS).
@@ -337,7 +332,7 @@ impl AffineExpr {
         let sense = self
             .sense
             .ok_or_else(|| PyValueError::new_err("Cannot format constraint without sense"))?;
-        let sorted = self.sorted_name_coeff_pairs();
+        let sorted = self.sorted_name_coeff_pairs()?;
         let rhs = if self.constant == 0.0 || self.constant == -0.0 {
             0.0
         } else {
@@ -354,58 +349,57 @@ impl AffineExpr {
 
     /// Human-readable expression string.
     #[pyo3(signature = (include_constant=true))]
-    fn str_expr(&self, include_constant: bool) -> String {
-        let sorted = self.sorted_name_coeff_pairs();
-        format::str_expr(&sorted, self.constant, include_constant)
+    fn str_expr(&self, include_constant: bool) -> PyResult<String> {
+        let sorted = self.sorted_name_coeff_pairs()?;
+        Ok(format::str_expr(&sorted, self.constant, include_constant))
     }
 
     /// Full __str__ replacement: includes sense and RHS if present.
-    fn str_with_sense(&self) -> String {
+    fn str_with_sense(&self) -> PyResult<String> {
         if let Some(sense) = self.sense {
-            let sorted = self.sorted_name_coeff_pairs();
+            let sorted = self.sorted_name_coeff_pairs()?;
             let lhs = format::str_expr(&sorted, 0.0, false);
-            format!("{} {} {}", lhs, sense.lp_symbol(), -self.constant as f64)
+            Ok(format!(
+                "{} {} {}",
+                lhs,
+                sense.lp_symbol(),
+                -self.constant as f64
+            ))
         } else {
-            let sorted = self.sorted_name_coeff_pairs();
-            format::str_expr(&sorted, self.constant, true)
+            let sorted = self.sorted_name_coeff_pairs()?;
+            Ok(format::str_expr(&sorted, self.constant, true))
         }
     }
 
     /// Python __repr__ equivalent.
-    fn repr_expr(&self) -> String {
-        let sorted = self.sorted_name_coeff_pairs();
-        format::repr_expr(&sorted, self.constant, self.sense)
+    fn repr_expr(&self) -> PyResult<String> {
+        let sorted = self.sorted_name_coeff_pairs()?;
+        Ok(format::repr_expr(&sorted, self.constant, self.sense))
     }
 }
 
 // ── Private helpers ──
 
 impl AffineExpr {
-    fn format_expr(&self) -> String {
+    fn format_expr(&self) -> PyResult<String> {
         if self.terms.is_empty() {
-            return format!("{}", self.constant);
+            return Ok(format!("{}", self.constant));
         }
 
-        let names: Vec<(String, f64)> = if let Some(ref weak) = self.model {
-            if let Some(core_rc) = weak.upgrade() {
-                let core = core_rc.borrow();
-                self.terms
-                    .iter()
-                    .map(|(var_id, coeff)| {
-                        let name = core
-                            .vars
-                            .get(*var_id)
-                            .map(|v| v.name.clone())
-                            .unwrap_or_else(|| format!("x{}", var_id));
-                        (name, *coeff)
-                    })
-                    .collect()
-            } else {
-                self.terms
-                    .iter()
-                    .map(|(var_id, coeff)| (format!("x{}", var_id), *coeff))
-                    .collect()
-            }
+        let names: Vec<(String, f64)> = if let Some(_) = &self.model {
+            let core_rc = get_model_optional(&self.model)?;
+            let core = core_rc.borrow();
+            self.terms
+                .iter()
+                .map(|(var_id, coeff)| {
+                    let name = core
+                        .vars
+                        .get(*var_id)
+                        .map(|v| v.name.clone())
+                        .unwrap_or_else(|| format!("x{}", var_id));
+                    (name, *coeff)
+                })
+                .collect()
         } else {
             self.terms
                 .iter()
@@ -440,21 +434,17 @@ impl AffineExpr {
                 parts.push(format!("- {}", -self.constant));
             }
         }
-        parts.join(" ")
+        Ok(parts.join(" "))
     }
 
     /// Collect (name, coeff) pairs sorted by variable name.
-    pub(crate) fn sorted_name_coeff_pairs(&self) -> Vec<(String, f64)> {
-        let weak = match &self.model {
-            Some(w) => w,
-            None => return Vec::new(),
-        };
-        let core_rc = match weak.upgrade() {
-            Some(rc) => rc,
-            None => return Vec::new(),
-        };
+    pub(crate) fn sorted_name_coeff_pairs(&self) -> PyResult<Vec<(String, f64)>> {
+        if self.model.is_none() {
+            return Ok(Vec::new());
+        }
+        let core_rc = get_model_optional(&self.model)?;
         let core = core_rc.borrow();
-        format::sorted_pairs_from_coeffs(&self.terms, &core)
+        Ok(format::sorted_pairs_from_coeffs(&self.terms, &core))
     }
 }
 
