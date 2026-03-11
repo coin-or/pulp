@@ -30,6 +30,29 @@ Module file that imports all of the pulp functions
 Copyright 2007- Stuart Mitchell (s.mitchell@auckland.ac.nz)
 """
 
+# Pre-load highspy's C extension with RTLD_GLOBAL before any other imports.
+# highspy._core uses C++ exception handling (__cxa_throw etc.) that must be globally
+# visible when pulp._rustcore (a Rust/pyo3 extension) is later loaded into the same
+# process. Without RTLD_GLOBAL, the C++ runtime state gets split across multiple
+# symbol scopes, causing a segfault when highspy.Highs.run() is called.
+# We use find_spec("highspy") (the package) not find_spec("highspy._core") (the
+# submodule) to avoid triggering highspy/__init__.py which would import _core with
+# RTLD_LOCAL before our explicit RTLD_GLOBAL call can take effect.
+try:
+    import ctypes as _ctypes
+    import glob as _glob
+    import importlib.util as _ilu
+
+    _pkg_spec = _ilu.find_spec("highspy")
+    if _pkg_spec is not None and _pkg_spec.submodule_search_locations:
+        for _loc in _pkg_spec.submodule_search_locations:
+            for _so in _glob.glob(_loc + "/_core*.so"):
+                _ctypes.CDLL(_so, _ctypes.RTLD_GLOBAL)
+                break
+    del _ctypes, _glob, _ilu, _pkg_spec
+except Exception:
+    pass
+
 from .apis import *
 from .constants import *
 from .constants import VERSION
