@@ -171,6 +171,9 @@ class LpVariable:
     LpProblem.add_variable() or add_variable_dicts/dict/matrix.
     """
 
+    # Causes numpy to defer comparisons (e.g. np.float64(3) >= var) to our __le__/__ge__/__eq__
+    __array_priority__ = 20
+
     illegal_chars = "-+[] ->/"
     expression = re.compile(f"[{re.escape(illegal_chars)}]")
     trans = str.maketrans(illegal_chars, "________")
@@ -483,6 +486,9 @@ class LpAffineExpression:
       - LpAffineExpression.from_dict({v: coeff, ...})
       - LpAffineExpression.from_list([(v, coeff), ...])
     """
+
+    # Causes numpy to defer comparisons (e.g. np.float64(3) >= expr) to our __le__/__ge__/__eq__
+    __array_priority__ = 20
 
     trans = str.maketrans("-+[] ", "_____")
 
@@ -962,6 +968,9 @@ def _const_to_rust_sense(sense_int: int) -> _rustcore.Sense:
 
 class LpConstraint:
     """LP constraint backed by Rust. Only created via LpProblem.addConstraint."""
+
+    # Causes numpy to defer comparisons to our __le__/__ge__/__eq__
+    __array_priority__ = 20
 
     def __init__(self, _constr: _rustcore.Constraint) -> None:
         if _constr is None:

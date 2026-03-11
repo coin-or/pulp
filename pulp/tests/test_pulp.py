@@ -362,7 +362,7 @@ class ModelUnitTest(unittest.TestCase):
     # -- 8. Numpy scalars in constraints (constant on left) --
 
     def test_constraint_numpy_scalar_constant_on_left(self):
-        """model += np.float64(34.5) >= var adds constraint var <= 34.5 (or clear error on Py3.9)."""
+        """model += np.float64(34.5) >= var adds constraint var <= 34.5."""
         try:
             import numpy as np
         except ImportError:
@@ -370,19 +370,12 @@ class ModelUnitTest(unittest.TestCase):
 
         model = LpProblem("numpy_const", const.LpMinimize)
         var = model.add_variable("var", 0, None, cat=const.LpContinuous)
-        try:
-            model += np.float64(34.5) >= var
-        except TypeError as e:
-            # On Python 3.9 numpy may return numpy.bool instead of delegating to var
-            self.assertIn("variable on the left", str(e))
-            return
+        model += np.float64(34.5) >= var
         model += var >= np.float64(0)
 
         self.assertEqual(len(model.constraints), 2)
-        # Both constraints are var <= 34.5 and var >= 0 (order may vary)
         senses = {c.sense for c in model.constraints.values()}
         self.assertEqual(senses, {const.LpConstraintLE, const.LpConstraintGE})
-        # Check one constraint is var <= 34.5 (constant -34.5 in expr <= 0 form)
         for c in model.constraints.values():
             if c.sense == const.LpConstraintLE:
                 self.assertAlmostEqual(c.constant, -34.5)
@@ -2018,6 +2011,62 @@ class BaseSolverTest:
                 except OSError:
                     pass
 
+        def test_numpy_float(self):
+            try:
+                import numpy as np
+            except ImportError:
+                self.skipTest("numpy not available")
+
+            model = LpProblem("float_test", sense=const.LpMinimize)
+
+            var = model.add_variable(name="var", lowBound=0, cat=const.LpContinuous)
+            model += np.float64(34.5) >= var
+            model += var <= np.float64(34.5)
+
+            model.solve()
+
+        def test_decimal_815(self):
+            # See: https://github.com/coin-or/pulp/issues/815
+            # Will not run on other solvers due to how results are updated
+            m1 = 3
+            m2 = Decimal("8.1")
+            extra = 5
+            prob = LpProblem("graph", const.LpMaximize)
+
+            x = prob.add_variable("x", lowBound=0, upBound=50, cat=const.LpContinuous)
+            y = prob.add_variable(
+                "y", lowBound=0, upBound=Decimal("32.24"), cat=const.LpContinuous
+            )
+            include_extra = prob.add_variable("include_extra1", cat=const.LpBinary)
+
+            prob += y
+
+            # y = 3x + 5 | y = 3x
+            e1 = x * m1 + include_extra * extra - y
+            c1 = e1 == 0
+            prob += c1
+
+            # y = 8.1x - 6
+            e2 = x * m2 - 6 - y
+            c2 = e2 == 0
+            prob += c2
+
+            # This generates two possible systems of equations,
+            # y = 3x + 5
+            # y = 8.1x - 6
+            # this intersects at ~(11/5, 58/5)
+
+            # OR
+            # y = 3x
+            # y = 8.1x-6
+            # this intersects at ~(6/5, 18/5)
+            pulpTestCheck(
+                prob,
+                self.solver,
+                [const.LpStatusOptimal],
+                {x: 2.15686, y: 11.4706},
+            )
+
 
 class PULP_CBC_CMDTest(BaseSolverTest.PuLPTest):
     solveInst = solvers.PULP_CBC_CMD
@@ -2367,62 +2416,6 @@ class GLPK_CMDTest(BaseSolverTest.PuLPTest):
         model.solve(self.solver)
         self.solver.options = self.solver.options[:-1]
         assert abs(Q.value() - ub) / ub < 1e-9
-
-    def test_numpy_float(self):
-        try:
-            import numpy as np
-        except ImportError:
-            self.skipTest("numpy not available")
-
-        model = LpProblem("float_test", sense=const.LpMinimize)
-
-        var = model.add_variable(name="var", lowBound=0, cat=const.LpContinuous)
-        model += np.float64(34.5) >= var
-        model += var <= np.float64(34.5)
-
-        model.solve()
-
-    def test_decimal_815(self):
-        # See: https://github.com/coin-or/pulp/issues/815
-        # Will not run on other solvers due to how results are updated
-        m1 = 3
-        m2 = Decimal("8.1")
-        extra = 5
-        prob = LpProblem("graph", const.LpMaximize)
-
-        x = prob.add_variable("x", lowBound=0, upBound=50, cat=const.LpContinuous)
-        y = prob.add_variable(
-            "y", lowBound=0, upBound=Decimal("32.24"), cat=const.LpContinuous
-        )
-        include_extra = prob.add_variable("include_extra1", cat=const.LpBinary)
-
-        prob += y
-
-        # y = 3x + 5 | y = 3x
-        e1 = x * m1 + include_extra * extra - y
-        c1 = e1 == 0
-        prob += c1
-
-        # y = 8.1x - 6
-        e2 = x * m2 - 6 - y
-        c2 = e2 == 0
-        prob += c2
-
-        # This generates two possible systems of equations,
-        # y = 3x + 5
-        # y = 8.1x - 6
-        # this intersects at ~(11/5, 58/5)
-
-        # OR
-        # y = 3x
-        # y = 8.1x-6
-        # this intersects at ~(6/5, 18/5)
-        pulpTestCheck(
-            prob,
-            self.solver,
-            [const.LpStatusOptimal],
-            {x: 2.15686, y: 11.4706},
-        )
 
 
 class GUROBITest(BaseSolverTest.PuLPTest):
