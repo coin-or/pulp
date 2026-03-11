@@ -1,5 +1,4 @@
 //! Variable handle (variable stored in a ModelCore). Only created by Model.
-//! Model is always present; no optional fallbacks.
 
 use pyo3::prelude::*;
 use std::cell::RefCell;
@@ -23,158 +22,164 @@ impl Variable {
     }
 
     #[getter]
-    fn name(&self) -> String {
-        let core_rc = upgrade_model(&self.model).expect("model always present");
+    fn name(&self) -> PyResult<String> {
+        let core_rc = upgrade_model(&self.model)?;
         let core = core_rc.borrow();
-        core.vars
+        Ok(core
+            .vars
             .get(self.id)
             .map(|v| v.name.clone())
-            .unwrap_or_default()
+            .unwrap_or_default())
     }
 
     #[getter]
-    fn lb(&self) -> f64 {
-        let core_rc = upgrade_model(&self.model).expect("model always present");
+    fn lb(&self) -> PyResult<f64> {
+        let core_rc = upgrade_model(&self.model)?;
         let core = core_rc.borrow();
-        core.vars[self.id].lb
+        Ok(core.vars[self.id].lb)
     }
 
     #[getter]
-    fn ub(&self) -> f64 {
-        let core_rc = upgrade_model(&self.model).expect("model always present");
+    fn ub(&self) -> PyResult<f64> {
+        let core_rc = upgrade_model(&self.model)?;
         let core = core_rc.borrow();
-        core.vars[self.id].ub
+        Ok(core.vars[self.id].ub)
     }
 
     #[getter]
-    fn category(&self) -> Category {
-        let core_rc = upgrade_model(&self.model).expect("model always present");
+    fn category(&self) -> PyResult<Category> {
+        let core_rc = upgrade_model(&self.model)?;
         let core = core_rc.borrow();
-        core.vars[self.id].category
+        Ok(core.vars[self.id].category)
     }
 
     #[getter]
-    fn value(&self) -> Option<f64> {
-        let core_rc = upgrade_model(&self.model).expect("model always present");
+    fn value(&self) -> PyResult<Option<f64>> {
+        let core_rc = upgrade_model(&self.model)?;
         let core = core_rc.borrow();
-        core.vars[self.id].value
+        Ok(core.vars[self.id].value)
     }
 
-    fn set_value(&self, v: f64) {
-        let core_rc = upgrade_model(&self.model).expect("model always present");
+    fn set_value(&self, v: f64) -> PyResult<()> {
+        let core_rc = upgrade_model(&self.model)?;
         let mut core = core_rc.borrow_mut();
         if let Some(var) = core.vars.get_mut(self.id) {
             var.value = Some(v);
         }
+        Ok(())
     }
 
-    fn set_lb(&self, lb: f64) {
-        let core_rc = upgrade_model(&self.model).expect("model always present");
+    fn set_lb(&self, lb: f64) -> PyResult<()> {
+        let core_rc = upgrade_model(&self.model)?;
         let mut core = core_rc.borrow_mut();
         if let Some(var) = core.vars.get_mut(self.id) {
             var.lb = lb;
         }
+        Ok(())
     }
 
-    fn set_ub(&self, ub: f64) {
-        let core_rc = upgrade_model(&self.model).expect("model always present");
+    fn set_ub(&self, ub: f64) -> PyResult<()> {
+        let core_rc = upgrade_model(&self.model)?;
         let mut core = core_rc.borrow_mut();
         if let Some(var) = core.vars.get_mut(self.id) {
             var.ub = ub;
         }
+        Ok(())
     }
 
-    fn set_name(&self, name: String) {
-        let core_rc = upgrade_model(&self.model).expect("model always present");
+    fn set_name(&self, name: String) -> PyResult<()> {
+        let core_rc = upgrade_model(&self.model)?;
         let mut core = core_rc.borrow_mut();
         if let Some(var) = core.vars.get_mut(self.id) {
             var.name = name;
         }
+        Ok(())
     }
 
     #[getter]
-    fn dj(&self) -> Option<f64> {
-        let core_rc = upgrade_model(&self.model).expect("model always present");
+    fn dj(&self) -> PyResult<Option<f64>> {
+        let core_rc = upgrade_model(&self.model)?;
         let core = core_rc.borrow();
-        core.vars[self.id].dj
+        Ok(core.vars[self.id].dj)
     }
 
-    fn set_dj(&self, v: f64) {
-        let core_rc = upgrade_model(&self.model).expect("model always present");
+    fn set_dj(&self, v: f64) -> PyResult<()> {
+        let core_rc = upgrade_model(&self.model)?;
         let mut core = core_rc.borrow_mut();
         if let Some(var) = core.vars.get_mut(self.id) {
             var.dj = Some(v);
         }
+        Ok(())
     }
 
     // ── Property checks ──
 
-    fn is_binary(&self) -> bool {
-        let core_rc = upgrade_model(&self.model).expect("model always present");
+    fn is_binary(&self) -> PyResult<bool> {
+        let core_rc = upgrade_model(&self.model)?;
         let core = core_rc.borrow();
-        core.vars[self.id].is_binary()
+        Ok(core.vars[self.id].is_binary())
     }
 
-    fn is_integer(&self) -> bool {
-        let core_rc = upgrade_model(&self.model).expect("model always present");
+    fn is_integer(&self) -> PyResult<bool> {
+        let core_rc = upgrade_model(&self.model)?;
         let core = core_rc.borrow();
-        core.vars[self.id].is_integer()
+        Ok(core.vars[self.id].is_integer())
     }
 
-    fn is_free(&self) -> bool {
-        let core_rc = upgrade_model(&self.model).expect("model always present");
+    fn is_free(&self) -> PyResult<bool> {
+        let core_rc = upgrade_model(&self.model)?;
         let core = core_rc.borrow();
-        core.vars[self.id].is_free()
+        Ok(core.vars[self.id].is_free())
     }
 
-    fn is_constant(&self) -> bool {
-        let core_rc = upgrade_model(&self.model).expect("model always present");
+    fn is_constant(&self) -> PyResult<bool> {
+        let core_rc = upgrade_model(&self.model)?;
         let core = core_rc.borrow();
-        core.vars[self.id].is_constant()
+        Ok(core.vars[self.id].is_constant())
     }
 
-    fn is_positive(&self) -> bool {
-        let core_rc = upgrade_model(&self.model).expect("model always present");
+    fn is_positive(&self) -> PyResult<bool> {
+        let core_rc = upgrade_model(&self.model)?;
         let core = core_rc.borrow();
-        core.vars[self.id].is_positive()
+        Ok(core.vars[self.id].is_positive())
     }
 
     /// CPLEX LP bounds string for this variable.
-    fn as_cplex_lp_variable(&self) -> String {
-        let core_rc = upgrade_model(&self.model).expect("model always present");
+    fn as_cplex_lp_variable(&self) -> PyResult<String> {
+        let core_rc = upgrade_model(&self.model)?;
         let core = core_rc.borrow();
-        format::cplex_lp_variable(&core.vars[self.id])
+        Ok(format::cplex_lp_variable(&core.vars[self.id]))
     }
 
     /// Validate the variable value against its bounds and integrality.
     #[pyo3(signature = (eps=1e-7))]
-    fn valid(&self, eps: f64) -> bool {
-        let core_rc = upgrade_model(&self.model).expect("model always present");
+    fn valid(&self, eps: f64) -> PyResult<bool> {
+        let core_rc = upgrade_model(&self.model)?;
         let core = core_rc.borrow();
         let vd = &core.vars[self.id];
         if vd.name == "__dummy" && vd.value.is_none() {
-            return true;
+            return Ok(true);
         }
         let val = match vd.value {
             Some(v) => v,
-            None => return false,
+            None => return Ok(false),
         };
         if vd.ub.is_finite() && val > vd.ub + eps {
-            return false;
+            return Ok(false);
         }
         if vd.lb.is_finite() && val < vd.lb - eps {
-            return false;
+            return Ok(false);
         }
         if vd.category == Category::Integer && (val.round() - val).abs() > eps {
-            return false;
+            return Ok(false);
         }
-        true
+        Ok(true)
     }
 
     /// Infeasibility gap (distance from feasible region).
     #[pyo3(signature = (mip=true))]
     fn infeasibility_gap(&self, mip: bool) -> PyResult<f64> {
-        let core_rc = upgrade_model(&self.model).expect("model always present");
+        let core_rc = upgrade_model(&self.model)?;
         let core = core_rc.borrow();
         let vd = &core.vars[self.id];
         let val = vd
@@ -194,8 +199,8 @@ impl Variable {
 
     /// Round variable value to bounds and integer if appropriate.
     #[pyo3(signature = (eps_int=1e-5, eps=1e-7))]
-    fn round_value(&self, eps_int: f64, eps: f64) {
-        let core_rc = upgrade_model(&self.model).expect("model always present");
+    fn round_value(&self, eps_int: f64, eps: f64) -> PyResult<()> {
+        let core_rc = upgrade_model(&self.model)?;
         let mut core = core_rc.borrow_mut();
         let vd = &mut core.vars[self.id];
         if let Some(val) = vd.value {
@@ -210,21 +215,22 @@ impl Variable {
             }
             vd.value = Some(v);
         }
+        Ok(())
     }
 
     /// Value or default from bounds (used when no solution exists).
-    fn value_or_default(&self) -> f64 {
-        let core_rc = upgrade_model(&self.model).expect("model always present");
+    fn value_or_default(&self) -> PyResult<f64> {
+        let core_rc = upgrade_model(&self.model)?;
         let core = core_rc.borrow();
         let vd = &core.vars[self.id];
         if let Some(v) = vd.value {
-            return v;
+            return Ok(v);
         }
         let lb = vd.lb;
         let ub = vd.ub;
         let lb_fin = lb.is_finite();
         let ub_fin = ub.is_finite();
-        if lb_fin && ub_fin {
+        Ok(if lb_fin && ub_fin {
             if 0.0 >= lb && 0.0 <= ub {
                 0.0
             } else if lb >= 0.0 {
@@ -238,20 +244,20 @@ impl Variable {
             if 0.0 <= ub { 0.0 } else { ub }
         } else {
             0.0
-        }
+        })
     }
 
     /// Rounded value for integer variables.
     #[pyo3(signature = (eps=1e-5))]
-    fn rounded_value(&self, eps: f64) -> Option<f64> {
-        let core_rc = upgrade_model(&self.model).expect("model always present");
+    fn rounded_value(&self, eps: f64) -> PyResult<Option<f64>> {
+        let core_rc = upgrade_model(&self.model)?;
         let core = core_rc.borrow();
         let vd = &core.vars[self.id];
-        match vd.value {
+        Ok(match vd.value {
             Some(v) if vd.category == Category::Integer && (v - v.round()).abs() <= eps => {
                 Some(v.round())
             }
             other => other,
-        }
+        })
     }
 }

@@ -4,7 +4,7 @@ use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 
 use indexmap::IndexMap;
-use pyo3::exceptions::{PyRuntimeError, PyValueError};
+use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
 use crate::affine_expr::AffineExpr;
@@ -132,7 +132,10 @@ impl ModelCore {
 
 pub fn upgrade_model(weak: &Weak<RefCell<ModelCore>>) -> PyResult<Rc<RefCell<ModelCore>>> {
     weak.upgrade().ok_or_else(|| {
-        PyRuntimeError::new_err("Underlying model has been dropped; handle is no longer valid")
+        PyValueError::new_err(
+            "The model this variable/constraint belongs to no longer exists. \
+             Do not reassign or delete the LpProblem and then use its variables or constraints.",
+        )
     })
 }
 

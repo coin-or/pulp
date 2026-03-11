@@ -1,5 +1,4 @@
 //! Constraint handle (constraint stored in a ModelCore). Only created by Model.
-//! Model is always present; no optional fallbacks.
 
 use pyo3::prelude::*;
 use std::cell::RefCell;
@@ -24,72 +23,76 @@ impl Constraint {
     }
 
     #[getter]
-    fn name(&self) -> String {
-        let core_rc = upgrade_model(&self.model).expect("model always present");
+    fn name(&self) -> PyResult<String> {
+        let core_rc = upgrade_model(&self.model)?;
         let core = core_rc.borrow();
-        core.constraints
+        Ok(core
+            .constraints
             .get(self.id)
             .map(|c| c.name.clone())
-            .unwrap_or_default()
+            .unwrap_or_default())
     }
 
-    fn set_name(&self, name: String) {
-        let core_rc = upgrade_model(&self.model).expect("model always present");
+    fn set_name(&self, name: String) -> PyResult<()> {
+        let core_rc = upgrade_model(&self.model)?;
         let mut core = core_rc.borrow_mut();
         if let Some(c) = core.constraints.get_mut(self.id) {
             c.name = name;
         }
+        Ok(())
     }
 
     #[getter]
-    fn pi(&self) -> Option<f64> {
-        let core_rc = upgrade_model(&self.model).expect("model always present");
+    fn pi(&self) -> PyResult<Option<f64>> {
+        let core_rc = upgrade_model(&self.model)?;
         let core = core_rc.borrow();
-        core.constraints[self.id].pi
+        Ok(core.constraints[self.id].pi)
     }
 
-    fn set_pi(&self, v: f64) {
-        let core_rc = upgrade_model(&self.model).expect("model always present");
+    fn set_pi(&self, v: f64) -> PyResult<()> {
+        let core_rc = upgrade_model(&self.model)?;
         let mut core = core_rc.borrow_mut();
         if let Some(c) = core.constraints.get_mut(self.id) {
             c.pi = Some(v);
         }
+        Ok(())
     }
 
     #[getter]
-    fn slack(&self) -> Option<f64> {
-        let core_rc = upgrade_model(&self.model).expect("model always present");
+    fn slack(&self) -> PyResult<Option<f64>> {
+        let core_rc = upgrade_model(&self.model)?;
         let core = core_rc.borrow();
-        core.constraints[self.id].slack
+        Ok(core.constraints[self.id].slack)
     }
 
-    fn set_slack(&self, v: f64) {
-        let core_rc = upgrade_model(&self.model).expect("model always present");
+    fn set_slack(&self, v: f64) -> PyResult<()> {
+        let core_rc = upgrade_model(&self.model)?;
         let mut core = core_rc.borrow_mut();
         if let Some(c) = core.constraints.get_mut(self.id) {
             c.slack = Some(v);
         }
+        Ok(())
     }
 
     #[getter]
-    fn sense(&self) -> Sense {
-        let core_rc = upgrade_model(&self.model).expect("model always present");
+    fn sense(&self) -> PyResult<Sense> {
+        let core_rc = upgrade_model(&self.model)?;
         let core = core_rc.borrow();
-        core.constraints[self.id].sense
+        Ok(core.constraints[self.id].sense)
     }
 
     #[getter]
-    fn rhs(&self) -> f64 {
-        let core_rc = upgrade_model(&self.model).expect("model always present");
+    fn rhs(&self) -> PyResult<f64> {
+        let core_rc = upgrade_model(&self.model)?;
         let core = core_rc.borrow();
-        core.constraints[self.id].rhs
+        Ok(core.constraints[self.id].rhs)
     }
 
-    fn items(&self) -> Vec<(Variable, f64)> {
-        let core_rc = upgrade_model(&self.model).expect("model always present");
+    fn items(&self) -> PyResult<Vec<(Variable, f64)>> {
+        let core_rc = upgrade_model(&self.model)?;
         let core = core_rc.borrow();
         let c = &core.constraints[self.id];
-        c.coeffs
+        Ok(c.coeffs
             .iter()
             .map(|(&var_id, &coeff)| {
                 (
@@ -100,26 +103,28 @@ impl Constraint {
                     coeff,
                 )
             })
-            .collect()
+            .collect())
     }
 
     // ── Value / validation methods ──
 
-    fn value(&self) -> Option<f64> {
-        let core_rc = upgrade_model(&self.model).expect("model always present");
+    fn value(&self) -> PyResult<Option<f64>> {
+        let core_rc = upgrade_model(&self.model)?;
         let core = core_rc.borrow();
         let cd = &core.constraints[self.id];
         let constant = if cd.rhs == 0.0 { 0.0 } else { -cd.rhs };
         let mut total = constant;
         for (&var_id, &coeff) in &cd.coeffs {
-            let val = core.vars.get(var_id)?.value?;
-            total += val * coeff;
+            match core.vars.get(var_id).and_then(|vd| vd.value) {
+                Some(val) => total += val * coeff,
+                None => return Ok(None),
+            }
         }
-        Some(total)
+        Ok(Some(total))
     }
 
-    fn value_or_default(&self) -> f64 {
-        let core_rc = upgrade_model(&self.model).expect("model always present");
+    fn value_or_default(&self) -> PyResult<f64> {
+        let core_rc = upgrade_model(&self.model)?;
         let core = core_rc.borrow();
         let cd = &core.constraints[self.id];
         let constant = if cd.rhs == 0.0 { 0.0 } else { -cd.rhs };
@@ -130,60 +135,71 @@ impl Constraint {
                 total += v * coeff;
             }
         }
-        total
+        Ok(total)
     }
 
     #[pyo3(signature = (eps=0.0))]
-    fn valid(&self, eps: f64) -> bool {
-        let val = match self.value() {
+    fn valid(&self, eps: f64) -> PyResult<bool> {
+        let val = match self.value()? {
             Some(v) => v,
-            None => return false,
+            None => return Ok(false),
         };
-        let core_rc = upgrade_model(&self.model).expect("model always present");
+        let core_rc = upgrade_model(&self.model)?;
         let core = core_rc.borrow();
         let cd = &core.constraints[self.id];
-        match cd.sense {
+        Ok(match cd.sense {
             Sense::Equal => val.abs() <= eps,
             Sense::LessEqual => val * (-1.0) >= -eps,
             Sense::GreaterEqual => val >= -eps,
-        }
+        })
     }
 
     // ── Formatting methods (delegate to format.rs) ──
 
-    fn as_cplex_lp_constraint(&self, name: &str) -> String {
-        let core_rc = upgrade_model(&self.model).expect("model always present");
+    fn as_cplex_lp_constraint(&self, name: &str) -> PyResult<String> {
+        let core_rc = upgrade_model(&self.model)?;
         let core = core_rc.borrow();
         let cd = &core.constraints[self.id];
         let sorted = format::sorted_pairs_from_coeffs(&cd.coeffs, &core);
         let rhs = if cd.rhs == 0.0 { 0.0 } else { cd.rhs };
-        format::cplex_lp_constraint(&sorted, cd.sense, rhs, name, cd.coeffs.is_empty())
+        Ok(format::cplex_lp_constraint(
+            &sorted,
+            cd.sense,
+            rhs,
+            name,
+            cd.coeffs.is_empty(),
+        ))
     }
 
     #[pyo3(signature = (name, include_constant=true))]
-    fn as_cplex_lp_affine_expression(&self, name: &str, include_constant: bool) -> String {
-        let core_rc = upgrade_model(&self.model).expect("model always present");
+    fn as_cplex_lp_affine_expression(&self, name: &str, include_constant: bool) -> PyResult<String> {
+        let core_rc = upgrade_model(&self.model)?;
         let core = core_rc.borrow();
         let cd = &core.constraints[self.id];
         let sorted = format::sorted_pairs_from_coeffs(&cd.coeffs, &core);
         let constant = if cd.rhs == 0.0 { 0.0 } else { -cd.rhs };
-        format::cplex_lp_affine_expression(&sorted, constant, name, include_constant)
+        Ok(format::cplex_lp_affine_expression(
+            &sorted,
+            constant,
+            name,
+            include_constant,
+        ))
     }
 
-    fn str_repr(&self) -> String {
-        let core_rc = upgrade_model(&self.model).expect("model always present");
+    fn str_repr(&self) -> PyResult<String> {
+        let core_rc = upgrade_model(&self.model)?;
         let core = core_rc.borrow();
         let cd = &core.constraints[self.id];
         let sorted = format::sorted_pairs_from_coeffs(&cd.coeffs, &core);
-        format::str_constraint(&sorted, cd.sense, -cd.rhs)
+        Ok(format::str_constraint(&sorted, cd.sense, -cd.rhs))
     }
 
-    fn repr_str(&self) -> String {
-        let core_rc = upgrade_model(&self.model).expect("model always present");
+    fn repr_str(&self) -> PyResult<String> {
+        let core_rc = upgrade_model(&self.model)?;
         let core = core_rc.borrow();
         let cd = &core.constraints[self.id];
         let sorted = format::sorted_pairs_from_coeffs(&cd.coeffs, &core);
         let constant = if cd.rhs == 0.0 { 0.0 } else { -cd.rhs };
-        format::repr_expr(&sorted, constant, Some(cd.sense))
+        Ok(format::repr_expr(&sorted, constant, Some(cd.sense)))
     }
 }
