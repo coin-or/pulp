@@ -129,9 +129,8 @@ required-environments = [
 
 
 [project.optional-dependencies]
-open_py = ["highspy", "pyscipopt"]
+open_py = ["pyscipopt"]
 public_py = ["gurobipy", "coptpy", 'xpress', "cplex; sys_platform != 'darwin' or python_full_version < '3.12'"]
-highs = ["highspy"]
 scip = ["pyscipopt"]
 gurobi = ["gurobipy"]
 xpress = ["xpress"]
