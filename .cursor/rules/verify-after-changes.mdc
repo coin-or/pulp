@@ -11,4 +11,4 @@ After making any code change to the repo, run all three checks before considerin
 2. **Type checking**: `.venv\Scripts\activate; uv run ty check pulp`
 3. **Linting and formatting**: `.venv\Scripts\activate; uv run ruff check pulp` and `uv run ruff format pulp --check`
 
-If any check fails, fix the issues before proceeding. If Rust source files (`src/`) were modified, rebuild first with `uv run maturin develop`.
+If any check fails, fix the issues before proceeding. If Rust source files (`src/`) were modified, run `uv run cargo check` and rebuild with `uv run maturin develop`.

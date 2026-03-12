@@ -268,7 +268,8 @@ class SAS94(SASsolver):
             localMst = os.path.join(self.tmpDir, mstName)
             remoteMst = f"/tmp/{mstName}"  # Remote machine is always Linux
 
-            vs = lp.writeMPS(localMps, with_objsense=False)
+            lp.writeMPS(localMps, with_objsense=False)
+            vs = lp.variables()
 
             nameLen = self._get_max_upload_len(localMps)
             if nameLen > MAX_NAME_LENGTH:
@@ -607,7 +608,8 @@ class SASCAS(SASsolver):
                 tmpMps, tmpMpsCsv, tmpMstCsv = self.create_tmp_files(
                     lp.name, "mps", "mps.csv", "mst.csv"
                 )
-                vs = lp.writeMPS(tmpMps, with_objsense=False)
+                lp.writeMPS(tmpMps, with_objsense=False)
+                vs = lp.variables()
 
                 nameLen = self._get_max_upload_len(tmpMps)
                 if nameLen > MAX_NAME_LENGTH:

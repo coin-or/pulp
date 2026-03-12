@@ -32,3 +32,10 @@ alwaysApply: true
 
 - Use **ty** for type checking (not mypy or pyright).
 - Run type checks via: `uv run ty check pulp`
+
+## Rust / Cargo
+
+- Always run Cargo through **uv** (do not invoke `cargo` directly).
+- Check Rust code: `uv run cargo check`
+- Build: `uv run cargo build`
+- Other subcommands: `uv run cargo <subcommand>`

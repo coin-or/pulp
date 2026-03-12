@@ -1642,13 +1642,6 @@ class LpProblem:
         data = mpslp.readMPS(filename, sense=sense, dropConsNames=dropConsNames)
         return cls.fromDataclass(data)
 
-    def normalisedNames(self) -> tuple[dict[str, str], dict[str, str], str]:
-        constraintsNames = {k: "C%07d" % i for i, k in enumerate(self.constraints)}
-        _variables = self.variables()
-        self._variables = _variables  # used by writeMPS after rename
-        variablesNames = {k.name: "X%07d" % i for i, k in enumerate(_variables)}
-        return constraintsNames, variablesNames, "OBJ"
-
     def isMIP(self) -> int:
         return 1 if self._model.is_mip() else 0
 
@@ -1878,21 +1871,16 @@ class LpProblem:
         rename: int | bool = 0,
         mip: int | bool = 1,
         with_objsense: bool = False,
-    ) -> (
-        list[LpVariable]
-        | tuple[list[LpVariable], dict[str, str], dict[str, str], str | None]
-    ):
+    ) -> tuple[list[str], list[str], str]:
         """
-        Writes an mps files from the problem information
+        Writes an mps file from the problem information.
 
-        :param str filename: name of the file to write
-        :param int mpsSense:
-        :param bool rename: if True, normalized names are used for variables and constraints
-        :param mip: variables and variable renames
-        :return:
-
-        Side Effects:
-            - The file is created
+        :param filename: name of the file to write
+        :param mpsSense: 0 (use problem sense), 1 minimize, -1 maximize
+        :param rename: if True, normalized names (X0000000, C0000000) are used in the file
+        :param mip: include integer/binary markers
+        :param with_objsense: write OBJSENSE section
+        :return: (variable_names, constraint_names, objective_name) as lists in model order (original or MPS names depending on rename)
         """
         return mpslp.writeMPS(
             self,

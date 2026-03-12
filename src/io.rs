@@ -2,7 +2,6 @@
 //! These operate directly on ModelCore data for performance.
 
 use std::collections::HashMap;
-use std::io::Write;
 
 use pyo3::exceptions::{PyRuntimeError, PyValueError};
 use pyo3::prelude::*;
@@ -10,8 +9,24 @@ use pyo3::types::{PyDict, PyList};
 
 use crate::format;
 use crate::model::Model;
-use crate::types::{Category, ObjSense};
+use crate::types::{Category, ObjSense, Sense};
 use crate::variable::Variable;
+
+macro_rules! writeln_mps {
+    ($f:expr, $($arg:tt)*) => {{
+        std::io::Write::write_fmt(&mut $f, format_args!($($arg)*))
+            .map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+        std::io::Write::write_fmt(&mut $f, format_args!("\n"))
+            .map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+    }};
+}
+
+macro_rules! write_mps {
+    ($f:expr, $($arg:tt)*) => {
+        std::io::Write::write_fmt(&mut $f, format_args!($($arg)*))
+            .map_err(|e| PyRuntimeError::new_err(e.to_string()))?
+    };
+}
 
 // ── writeLP ──
 
@@ -36,14 +51,13 @@ pub fn write_lp(
         .map_err(|e| PyRuntimeError::new_err(format!("Cannot create file: {}", e)))?;
 
     // Header
-    writeln!(f, "\\* {} *\\", core.name)
-        .map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+    writeln_mps!(f, "\\* {} *\\", core.name);
     let sense_str = if core.sense == ObjSense::Minimize {
         "Minimize"
     } else {
         "Maximize"
     };
-    writeln!(f, "{}", sense_str).map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+    writeln_mps!(f, "{}", sense_str);
 
     // Objective
     let obj_expr = core
@@ -52,10 +66,10 @@ pub fn write_lp(
         .ok_or_else(|| PyValueError::new_err("No objective set"))?;
     let sorted = format::sorted_pairs_from_coeffs(&obj_expr.terms, &core);
     let obj_str = format::cplex_lp_affine_expression(&sorted, obj_expr.constant, obj_name, false);
-    write!(f, "{}", obj_str).map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+    write_mps!(f, "{}", obj_str);
 
     // Subject To
-    writeln!(f, "Subject To").map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+    writeln_mps!(f, "Subject To");
 
     let mut constr_indices: Vec<usize> = (0..core.constraints.len()).collect();
     constr_indices.sort_by(|a, b| core.constraints[*a].name.cmp(&core.constraints[*b].name));
@@ -65,26 +79,24 @@ pub fn write_lp(
         let cd = &core.constraints[ci];
         if cd.coeffs.is_empty() {
             if !dummy_written && !dummy_var_name.is_empty() {
-                writeln!(f, "_dummy: 1 {} = 0", dummy_var_name)
-                    .map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+                writeln_mps!(f, "_dummy: 1 {} = 0", dummy_var_name);
                 dummy_written = true;
             }
             let rhs = if cd.rhs == 0.0 { 0.0 } else { cd.rhs };
-            writeln!(
+            writeln_mps!(
                 f,
                 "{}: 1 {} {} {}",
                 cd.name,
                 dummy_var_name,
                 cd.sense.lp_symbol(),
                 format::fmt_g12(rhs)
-            )
-            .map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+            );
             continue;
         }
         let sorted = format::sorted_pairs_from_coeffs(&cd.coeffs, &core);
         let rhs = if cd.rhs == 0.0 { 0.0 } else { cd.rhs };
         let s = format::cplex_lp_constraint(&sorted, cd.sense, rhs, &cd.name, false);
-        write!(f, "{}", s).map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+        write_mps!(f, "{}", s);
     }
 
     // Bounds
@@ -104,10 +116,10 @@ pub fn write_lp(
         }
     }
     if !bounds_vars.is_empty() {
-        writeln!(f, "Bounds").map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+        writeln_mps!(f, "Bounds");
         for &vi in &bounds_vars {
             let s = format::cplex_lp_variable(&core.vars[vi]);
-            writeln!(f, " {}", s).map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+            writeln_mps!(f, " {}", s);
         }
     }
 
@@ -122,10 +134,9 @@ pub fn write_lp(
             .map(|&vi| core.vars[vi].name.as_str())
             .collect();
         if !generals.is_empty() {
-            writeln!(f, "Generals").map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+            writeln_mps!(f, "Generals");
             for name in generals {
-                writeln!(f, "{}", name)
-                    .map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+                writeln_mps!(f, "{}", name);
             }
         }
 
@@ -135,20 +146,19 @@ pub fn write_lp(
             .map(|&vi| core.vars[vi].name.as_str())
             .collect();
         if !binaries.is_empty() {
-            writeln!(f, "Binaries").map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+            writeln_mps!(f, "Binaries");
             for name in binaries {
-                writeln!(f, "{}", name)
-                    .map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+                writeln_mps!(f, "{}", name);
             }
         }
     }
 
     // SOS (pre-formatted from Python)
     if !sos_lines.is_empty() {
-        write!(f, "{}", sos_lines).map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+        write_mps!(f, "{}", sos_lines);
     }
 
-    writeln!(f, "End").map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+    writeln_mps!(f, "End");
 
     drop(core);
     let weak = std::rc::Rc::downgrade(&model.core);
@@ -164,18 +174,20 @@ pub fn write_lp(
 // ── writeMPS ──
 
 /// Write an MPS file from the Model.
+/// Objective is read from the model; when mps_sense == -1 (maximize), coefficients are negated when writing.
+/// Returns (variable_names, constraint_names, objective_name) as Vec<String> and String; PyO3 converts to Python tuple of (list, list, str).
 #[pyfunction]
-#[pyo3(signature = (model, filename, mps_sense, mip, with_objsense, obj_name, obj_terms, model_name))]
+#[pyo3(signature = (model, filename, mps_sense, mip, with_objsense, rename, model_name, obj_name))]
 pub fn write_mps(
     model: &Model,
     filename: &str,
     mps_sense: i32,
     mip: bool,
     with_objsense: bool,
-    obj_name: &str,
-    obj_terms: Vec<(usize, f64)>,
+    rename: bool,
     model_name: &str,
-) -> PyResult<Vec<Variable>> {
+    obj_name: &str,
+) -> PyResult<(Vec<String>, Vec<String>, String)> {
     let core = model.core.borrow();
 
     let sense_label = if mps_sense == -1 {
@@ -185,31 +197,55 @@ pub fn write_mps(
     };
     let sense_mps = if mps_sense == -1 { "MAX" } else { "MIN" };
 
+    // Build objective map from core; negate if maximize so file is written as minimization
     let mut obj_map: HashMap<usize, f64> = HashMap::new();
-    for (vid, coeff) in &obj_terms {
-        obj_map.insert(*vid, *coeff);
+    if let Some(ref expr) = core.objective {
+        let sign = if mps_sense == -1 { -1.0 } else { 1.0 };
+        for (&vid, &coeff) in &expr.terms {
+            obj_map.insert(vid, coeff * sign);
+        }
     }
+
+    let file_model_name = if rename { "MODEL" } else { model_name };
+    let file_obj_name = if rename { "OBJ" } else { obj_name };
+
+    let var_names: Vec<String> = if rename {
+        (0..core.vars.len())
+            .map(|i| format!("X{:07}", i))
+            .collect()
+    } else {
+        core.vars.iter().map(|vd| vd.name.clone()).collect()
+    };
+    let constr_names: Vec<String> = if rename {
+        (0..core.constraints.len())
+            .map(|i| format!("C{:07}", i))
+            .collect()
+    } else {
+        core.constraints.iter().map(|cd| cd.name.clone()).collect()
+    };
 
     let mut f = std::fs::File::create(filename)
         .map_err(|e| PyRuntimeError::new_err(format!("Cannot create file: {}", e)))?;
 
     // Header
     if with_objsense {
-        writeln!(f, "OBJSENSE").map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
-        writeln!(f, " {}", sense_mps).map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+        writeln_mps!(f, "OBJSENSE");
+        writeln_mps!(f, " {}", sense_mps);
     } else {
-        writeln!(f, "*SENSE:{}", sense_label)
-            .map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+        writeln_mps!(f, "*SENSE:{}", sense_label);
     }
-    writeln!(f, "NAME          {}", model_name)
-        .map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+    writeln_mps!(f, "{}          {}", MpsSection::Name.as_token(), file_model_name);
 
     // ROWS
-    writeln!(f, "ROWS").map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
-    writeln!(f, " N  {}", obj_name).map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
-    for cd in &core.constraints {
-        writeln!(f, " {}  {}", cd.sense.mps_code(), cd.name)
-            .map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+    writeln_mps!(f, "{}", MpsSection::Rows.as_token());
+    writeln_mps!(f, " {}  {}", MpsRowType::Objective.as_token(), file_obj_name);
+    for (ci, cd) in core.constraints.iter().enumerate() {
+        writeln_mps!(
+            f,
+            " {}  {}",
+            sense_to_mps_row_type(cd.sense).as_token(),
+            constr_names[ci]
+        );
     }
 
     // COLUMNS
@@ -220,61 +256,62 @@ pub fn write_mps(
         }
     }
 
-    writeln!(f, "COLUMNS").map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+    writeln_mps!(f, "{}", MpsSection::Columns.as_token());
     for (vi, vd) in core.vars.iter().enumerate() {
         let cat = vd.category;
+        let vname = &var_names[vi];
         if mip && (cat == Category::Integer || cat == Category::Binary) {
-            writeln!(
+            writeln_mps!(
                 f,
-                "    MARK      'MARKER'                 'INTORG'"
-            )
-            .map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+                "    MARK      {}                 {}",
+                MPS_COLUMNS_MARKER,
+                MpsMarker::IntOrg.as_token()
+            );
         }
         for &(ci, coeff) in &coefs[vi] {
-            writeln!(
+            writeln_mps!(
                 f,
                 "    {:<8}  {:<8}  {}",
-                vd.name,
-                core.constraints[ci].name,
+                vname,
+                constr_names[ci],
                 format::mps_float(coeff)
-            )
-            .map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+            );
         }
         if let Some(&obj_coeff) = obj_map.get(&vi) {
-            writeln!(
+            writeln_mps!(
                 f,
                 "    {:<8}  {:<8}  {}",
-                vd.name,
-                obj_name,
+                vname,
+                file_obj_name,
                 format::mps_float(obj_coeff)
-            )
-            .map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+            );
         }
         if mip && (cat == Category::Integer || cat == Category::Binary) {
-            writeln!(
+            writeln_mps!(
                 f,
-                "    MARK      'MARKER'                 'INTEND'"
-            )
-            .map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+                "    MARK      {}                 {}",
+                MPS_COLUMNS_MARKER,
+                MpsMarker::IntEnd.as_token()
+            );
         }
     }
 
     // RHS
-    writeln!(f, "RHS").map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
-    for cd in &core.constraints {
+    writeln_mps!(f, "{}", MpsSection::Rhs.as_token());
+    for (ci, cd) in core.constraints.iter().enumerate() {
         let rhs = if cd.rhs == 0.0 { 0.0 } else { cd.rhs };
-        writeln!(
+        writeln_mps!(
             f,
             "    RHS       {:<8}  {}",
-            cd.name,
+            constr_names[ci],
             format::mps_float(rhs)
-        )
-        .map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+        );
     }
 
     // BOUNDS
-    writeln!(f, "BOUNDS").map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
-    for vd in &core.vars {
+    writeln_mps!(f, "{}", MpsSection::Bounds.as_token());
+    for (vi, vd) in core.vars.iter().enumerate() {
+        let vname = &var_names[vi];
         let lb = if vd.lb.is_finite() {
             Some(vd.lb)
         } else {
@@ -285,23 +322,21 @@ pub fn write_mps(
         } else {
             None
         };
-        let lines = format::mps_bound_lines(&vd.name, lb, ub, vd.category, mip);
+        let lines = format::mps_bound_lines(vname, lb, ub, vd.category, mip);
         for line in lines {
-            write!(f, "{}", line).map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+            write_mps!(f, "{}", line);
         }
     }
 
-    writeln!(f, "ENDATA").map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+    writeln_mps!(f, "{}", MpsSection::Endata.as_token());
 
     drop(core);
-    let weak = std::rc::Rc::downgrade(&model.core);
-    let result: Vec<Variable> = (0..model.core.borrow().vars.len())
-        .map(|id| Variable {
-            id,
-            model: weak.clone(),
-        })
-        .collect();
-    Ok(result)
+
+    Ok((
+        var_names,
+        constr_names,
+        file_obj_name.to_string(),
+    ))
 }
 
 // ── readMPS ──
@@ -318,7 +353,7 @@ pub fn read_mps(
     let content = std::fs::read_to_string(path)
         .map_err(|e| PyRuntimeError::new_err(format!("Cannot read file: {}", e)))?;
 
-    let mut mode = String::new();
+    let mut mode: Option<MpsParseMode> = None;
     let mut name = String::new();
     let mut obj_name = String::new();
     let mut constraints: indexmap::IndexMap<String, MpsConstraintData> = indexmap::IndexMap::new();
@@ -336,209 +371,343 @@ pub fn read_mps(
         if tokens.is_empty() {
             continue;
         }
-        if tokens[0] == "ENDATA" {
-            break;
-        }
-        if tokens[0] == "*" {
-            continue;
-        }
-        if tokens[0] == "NAME" {
-            name = if tokens.len() > 1 {
-                tokens[1].to_string()
-            } else {
-                String::new()
-            };
-            continue;
-        }
-
-        if tokens[0] == "ROWS" || tokens[0] == "COLUMNS" {
-            mode = tokens[0].to_string();
-        } else if tokens[0] == "RHS" && tokens.len() <= 2 {
-            if tokens.len() > 1 {
-                rhs_names.push(tokens[1].to_string());
-                mode = "RHS_NAME".to_string();
-            } else {
-                mode = "RHS_NO_NAME".to_string();
-            }
-        } else if tokens[0] == "BOUNDS" && tokens.len() <= 2 {
-            if tokens.len() > 1 {
-                bnd_names.push(tokens[1].to_string());
-                mode = "BOUNDS_NAME".to_string();
-            } else {
-                mode = "BOUNDS_NO_NAME".to_string();
-            }
-        } else if mode == "ROWS" {
-            let row_type = tokens[0];
-            let row_name = tokens[1];
-            if row_type == "N" {
-                obj_name = row_name.to_string();
-            } else {
-                let sense_val = match row_type {
-                    "L" => -1,
-                    "E" => 0,
-                    "G" => 1,
-                    _ => {
-                        return Err(PyRuntimeError::new_err(format!(
-                            "Unknown row type: {}",
-                            row_type
-                        )))
+        if let Some(section) = MpsSection::from_token(tokens[0]) {
+            match section {
+                MpsSection::Endata => break,
+                MpsSection::Comment => continue,
+                MpsSection::Name => {
+                    name = if tokens.len() > 1 {
+                        tokens[1].to_string()
+                    } else {
+                        String::new()
+                    };
+                    continue;
+                }
+                MpsSection::Rows => {
+                    mode = Some(MpsParseMode::Rows);
+                    continue;
+                }
+                MpsSection::Columns => {
+                    mode = Some(MpsParseMode::Columns);
+                    continue;
+                }
+                MpsSection::Rhs if tokens.len() <= 2 => {
+                    if tokens.len() > 1 {
+                        rhs_names.push(tokens[1].to_string());
+                        mode = Some(MpsParseMode::RhsNamed);
+                    } else {
+                        mode = Some(MpsParseMode::RhsUnnamed);
                     }
-                };
-                constraints.insert(
-                    row_name.to_string(),
-                    MpsConstraintData {
-                        name: row_name.to_string(),
-                        sense: sense_val,
-                        coefficients: Vec::new(),
-                        pi: None,
-                        constant: 0.0,
-                    },
-                );
+                    continue;
+                }
+                MpsSection::Bounds if tokens.len() <= 2 => {
+                    if tokens.len() > 1 {
+                        bnd_names.push(tokens[1].to_string());
+                        mode = Some(MpsParseMode::BoundsNamed);
+                    } else {
+                        mode = Some(MpsParseMode::BoundsUnnamed);
+                    }
+                    continue;
+                }
+                MpsSection::Rhs | MpsSection::Bounds => {
+                    // Line is "RHS name row val ..." or "BOUNDS type name val ..."; fall through to mode handling
+                }
             }
-        } else if mode == "COLUMNS" {
-            let var_name = tokens[0];
-            if tokens.len() > 1 && tokens[1] == "'MARKER'" {
-                if tokens.len() > 2 {
-                    if tokens[2] == "'INTORG'" {
-                        integral_marker = true;
-                    } else if tokens[2] == "'INTEND'" {
-                        integral_marker = false;
+        }
+
+        if let Some(current_mode) = mode {
+            match current_mode {
+                MpsParseMode::Rows => {
+                    let row_name = tokens[1];
+                    match MpsRowType::from_token(tokens[0]) {
+                        Some(MpsRowType::Objective) => obj_name = row_name.to_string(),
+                        Some(rt) => {
+                            constraints.insert(
+                                row_name.to_string(),
+                                MpsConstraintData {
+                                    name: row_name.to_string(),
+                                    sense: rt.sense_val(),
+                                    coefficients: Vec::new(),
+                                    pi: None,
+                                    constant: 0.0,
+                                },
+                            );
+                        }
+                        None => {
+                            return Err(PyRuntimeError::new_err(format!(
+                                "Unknown row type: {}",
+                                tokens[0]
+                            )))
+                        }
                     }
                 }
-                continue;
-            }
-            if !variables.contains_key(var_name) {
-                variables.insert(
-                    var_name.to_string(),
-                    MpsVarData {
-                        name: var_name.to_string(),
-                        cat: if integral_marker {
-                            "Integer"
-                        } else {
-                            "Continuous"
-                        },
-                        low_bound: Some(0.0),
-                        up_bound: None,
-                        var_value: None,
-                        dj: None,
-                    },
-                );
-            }
-            let mut j = 1;
-            while j < tokens.len() - 1 {
-                let constr_name = tokens[j];
-                let coeff: f64 = tokens[j + 1]
-                    .parse()
-                    .map_err(|e| PyRuntimeError::new_err(format!("Parse error: {}", e)))?;
-                if constr_name == obj_name {
-                    obj_coeffs.push((var_name.to_string(), coeff));
-                } else if let Some(cd) = constraints.get_mut(constr_name) {
-                    cd.coefficients.push((var_name.to_string(), coeff));
+                MpsParseMode::Columns => {
+                    let var_name = tokens[0];
+                    if tokens.len() > 1 && tokens[1] == MPS_COLUMNS_MARKER {
+                        if let Some(marker) = tokens.get(2).and_then(|t| MpsMarker::from_token(t)) {
+                            integral_marker = marker == MpsMarker::IntOrg;
+                        }
+                        continue;
+                    }
+                    if !variables.contains_key(var_name) {
+                        variables.insert(
+                            var_name.to_string(),
+                            MpsVarData {
+                                name: var_name.to_string(),
+                                cat: if integral_marker {
+                                    "Integer"
+                                } else {
+                                    "Continuous"
+                                },
+                                low_bound: Some(0.0),
+                                up_bound: None,
+                                var_value: None,
+                                dj: None,
+                            },
+                        );
+                    }
+                    let mut j = 1;
+                    while j < tokens.len() - 1 {
+                        let constr_name = tokens[j];
+                        let coeff: f64 = tokens[j + 1]
+                            .parse()
+                            .map_err(|e| PyRuntimeError::new_err(format!("Parse error: {}", e)))?;
+                        if constr_name == obj_name {
+                            obj_coeffs.push((var_name.to_string(), coeff));
+                        } else if let Some(cd) = constraints.get_mut(constr_name) {
+                            cd.coefficients.push((var_name.to_string(), coeff));
+                        }
+                        j += 2;
+                    }
                 }
-                j += 2;
-            }
-        } else if mode == "RHS_NAME" {
-            if tokens[0] != rhs_names.last().unwrap_or(&String::new()).as_str() {
-                return Err(PyRuntimeError::new_err(
-                    "Other RHS name was given even though name was set after RHS tag.",
-                ));
-            }
-            set_rhs(&tokens, &mut constraints)?;
-        } else if mode == "RHS_NO_NAME" {
-            set_rhs(&tokens, &mut constraints)?;
-            let rn = tokens[0].to_string();
-            if !rhs_names.contains(&rn) {
-                rhs_names.push(rn);
-            }
-        } else if mode == "BOUNDS_NAME" {
-            if tokens.len() > 1
-                && tokens[1] != bnd_names.last().unwrap_or(&String::new()).as_str()
-            {
-                return Err(PyRuntimeError::new_err(
-                    "Other BOUNDS name was given even though name was set after BOUNDS tag.",
-                ));
-            }
-            set_bounds(&tokens, &mut variables)?;
-        } else if mode == "BOUNDS_NO_NAME" {
-            set_bounds(&tokens, &mut variables)?;
-            if tokens.len() > 1 {
-                let bn = tokens[1].to_string();
-                if !bnd_names.contains(&bn) {
-                    bnd_names.push(bn);
+                MpsParseMode::RhsNamed => {
+                    if tokens[0] != rhs_names.last().unwrap_or(&String::new()).as_str() {
+                        return Err(PyRuntimeError::new_err(
+                            "Other RHS name was given even though name was set after RHS tag.",
+                        ));
+                    }
+                    set_rhs(&tokens, &mut constraints)?;
+                }
+                MpsParseMode::RhsUnnamed => {
+                    set_rhs(&tokens, &mut constraints)?;
+                    let rn = tokens[0].to_string();
+                    if !rhs_names.contains(&rn) {
+                        rhs_names.push(rn);
+                    }
+                }
+                MpsParseMode::BoundsNamed => {
+                    if tokens.len() > 1
+                        && tokens[1] != bnd_names.last().unwrap_or(&String::new()).as_str()
+                    {
+                        return Err(PyRuntimeError::new_err(
+                            "Other BOUNDS name was given even though name was set after BOUNDS tag.",
+                        ));
+                    }
+                    set_bounds(&tokens, &mut variables)?;
+                }
+                MpsParseMode::BoundsUnnamed => {
+                    set_bounds(&tokens, &mut variables)?;
+                    if tokens.len() > 1 {
+                        let bn = tokens[1].to_string();
+                        if !bnd_names.contains(&bn) {
+                            bnd_names.push(bn);
+                        }
+                    }
                 }
             }
         }
     }
 
-    // Build Python dict matching MPS dataclass shape
-    let result = PyDict::new(py);
-
-    let params = PyDict::new(py);
-    params.set_item("name", &name)?;
-    params.set_item("sense", sense)?;
-    params.set_item("status", 0)?;
-    params.set_item("sol_status", 0)?;
-    result.set_item("parameters", params)?;
-
-    let obj_dict = PyDict::new(py);
-    if drop_cons_names {
-        obj_dict.set_item("name", py.None())?;
-    } else {
-        obj_dict.set_item("name", &obj_name)?;
-    }
-    let obj_coeff_list = PyList::empty(py);
-    for (vname, coeff) in &obj_coeffs {
-        let c = PyDict::new(py);
-        c.set_item("name", vname)?;
-        c.set_item("value", *coeff)?;
-        obj_coeff_list.append(c)?;
-    }
-    obj_dict.set_item("coefficients", obj_coeff_list)?;
-    result.set_item("objective", obj_dict)?;
-
-    let var_list = PyList::empty(py);
-    for vd in variables.values() {
-        let v = PyDict::new(py);
-        v.set_item("name", &vd.name)?;
-        v.set_item("cat", vd.cat)?;
-        v.set_item("lowBound", vd.low_bound)?;
-        v.set_item("upBound", vd.up_bound)?;
-        v.set_item("varValue", vd.var_value)?;
-        v.set_item("dj", vd.dj)?;
-        var_list.append(v)?;
-    }
-    result.set_item("variables", var_list)?;
-
-    let constr_list = PyList::empty(py);
-    for cd in constraints.values() {
-        let c = PyDict::new(py);
-        if drop_cons_names {
-            c.set_item("name", py.None())?;
-        } else {
-            c.set_item("name", &cd.name)?;
-        }
-        c.set_item("sense", cd.sense)?;
-        c.set_item("pi", cd.pi)?;
-        c.set_item("constant", cd.constant)?;
-        let coeff_list = PyList::empty(py);
-        for (vname, coeff) in &cd.coefficients {
-            let cc = PyDict::new(py);
-            cc.set_item("name", vname)?;
-            cc.set_item("value", *coeff)?;
-            coeff_list.append(cc)?;
-        }
-        c.set_item("coefficients", coeff_list)?;
-        constr_list.append(c)?;
-    }
-    result.set_item("constraints", constr_list)?;
-
-    result.set_item("sos1", PyList::empty(py))?;
-    result.set_item("sos2", PyList::empty(py))?;
-
-    Ok(result.into())
+    let result = MpsResult {
+        parameters: MpsParameters {
+            name,
+            sense,
+            status: 0,
+            sol_status: 0,
+        },
+        objective: MpsObjective {
+            name: if drop_cons_names {
+                None
+            } else {
+                Some(obj_name)
+            },
+            coefficients: obj_coeffs,
+        },
+        variables: variables.into_values().collect(),
+        constraints: constraints.into_values().collect(),
+        drop_cons_names,
+    };
+    result.to_py_dict(py)
 }
 
 // ── Internal helpers (MPS parsing only) ──
+
+/// First token on a line: section header or comment.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum MpsSection {
+    Name,
+    Rows,
+    Columns,
+    Rhs,
+    Bounds,
+    Endata,
+    Comment,
+}
+
+impl MpsSection {
+    fn from_token(s: &str) -> Option<Self> {
+        match s {
+            "NAME" => Some(MpsSection::Name),
+            "ROWS" => Some(MpsSection::Rows),
+            "COLUMNS" => Some(MpsSection::Columns),
+            "RHS" => Some(MpsSection::Rhs),
+            "BOUNDS" => Some(MpsSection::Bounds),
+            "ENDATA" => Some(MpsSection::Endata),
+            "*" => Some(MpsSection::Comment),
+            _ => None,
+        }
+    }
+
+    /// Token as written in MPS files (for write_mps).
+    fn as_token(self) -> &'static str {
+        match self {
+            MpsSection::Name => "NAME",
+            MpsSection::Rows => "ROWS",
+            MpsSection::Columns => "COLUMNS",
+            MpsSection::Rhs => "RHS",
+            MpsSection::Bounds => "BOUNDS",
+            MpsSection::Endata => "ENDATA",
+            MpsSection::Comment => "*",
+        }
+    }
+}
+
+/// Parser state: which section we are in.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum MpsParseMode {
+    Rows,
+    Columns,
+    RhsNamed,
+    RhsUnnamed,
+    BoundsNamed,
+    BoundsUnnamed,
+}
+
+/// Row type in ROWS section: N = objective, L/E/G = constraint sense.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum MpsRowType {
+    Objective,
+    LessEqual,
+    Equal,
+    GreaterEqual,
+}
+
+impl MpsRowType {
+    fn from_token(s: &str) -> Option<Self> {
+        match s {
+            "N" => Some(MpsRowType::Objective),
+            "L" => Some(MpsRowType::LessEqual),
+            "E" => Some(MpsRowType::Equal),
+            "G" => Some(MpsRowType::GreaterEqual),
+            _ => None,
+        }
+    }
+
+    /// Row type code as written in MPS ROWS section (for write_mps).
+    fn as_token(self) -> &'static str {
+        match self {
+            MpsRowType::Objective => "N",
+            MpsRowType::LessEqual => "L",
+            MpsRowType::Equal => "E",
+            MpsRowType::GreaterEqual => "G",
+        }
+    }
+
+    fn sense_val(self) -> i32 {
+        match self {
+            MpsRowType::Objective => 0,
+            MpsRowType::LessEqual => -1,
+            MpsRowType::Equal => 0,
+            MpsRowType::GreaterEqual => 1,
+        }
+    }
+}
+
+/// Maps constraint sense to MPS row type for writing.
+fn sense_to_mps_row_type(sense: Sense) -> MpsRowType {
+    match sense {
+        Sense::LessEqual => MpsRowType::LessEqual,
+        Sense::Equal => MpsRowType::Equal,
+        Sense::GreaterEqual => MpsRowType::GreaterEqual,
+    }
+}
+
+/// Marker in COLUMNS: integer variable range.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum MpsMarker {
+    IntOrg,
+    IntEnd,
+}
+
+impl MpsMarker {
+    fn from_token(s: &str) -> Option<Self> {
+        match s {
+            "'INTORG'" => Some(MpsMarker::IntOrg),
+            "'INTEND'" => Some(MpsMarker::IntEnd),
+            _ => None,
+        }
+    }
+
+    /// Marker value as written in MPS COLUMNS section (for write_mps).
+    fn as_token(self) -> &'static str {
+        match self {
+            MpsMarker::IntOrg => "'INTORG'",
+            MpsMarker::IntEnd => "'INTEND'",
+        }
+    }
+}
+
+/// Literal for COLUMNS marker line (value is then INTORG or INTEND).
+const MPS_COLUMNS_MARKER: &str = "'MARKER'";
+
+/// Bound type in BOUNDS section.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum MpsBoundType {
+    Fr,
+    Bv,
+    Pl,
+    Mi,
+    Lo,
+    Up,
+    Fx,
+}
+
+impl MpsBoundType {
+    fn from_token(s: &str) -> Option<Self> {
+        match s {
+            "FR" => Some(MpsBoundType::Fr),
+            "BV" => Some(MpsBoundType::Bv),
+            "PL" => Some(MpsBoundType::Pl),
+            "MI" => Some(MpsBoundType::Mi),
+            "LO" => Some(MpsBoundType::Lo),
+            "UP" => Some(MpsBoundType::Up),
+            "FX" => Some(MpsBoundType::Fx),
+            _ => None,
+        }
+    }
+}
+
+struct MpsParameters {
+    name: String,
+    sense: i32,
+    status: i32,
+    sol_status: i32,
+}
+
+struct MpsObjective {
+    name: Option<String>,
+    coefficients: Vec<(String, f64)>,
+}
 
 struct MpsConstraintData {
     name: String,
@@ -555,6 +724,88 @@ struct MpsVarData {
     up_bound: Option<f64>,
     var_value: Option<f64>,
     dj: Option<f64>,
+}
+
+/// Result of MPS parsing; converted to Python dict in one place.
+struct MpsResult {
+    parameters: MpsParameters,
+    objective: MpsObjective,
+    variables: Vec<MpsVarData>,
+    constraints: Vec<MpsConstraintData>,
+    drop_cons_names: bool,
+}
+
+impl MpsResult {
+    fn to_py_dict(self, py: Python<'_>) -> PyResult<PyObject> {
+        let result = PyDict::new(py);
+
+        let params = PyDict::new(py);
+        params.set_item("name", self.parameters.name)?;
+        params.set_item("sense", self.parameters.sense)?;
+        params.set_item("status", self.parameters.status)?;
+        params.set_item("sol_status", self.parameters.sol_status)?;
+        result.set_item("parameters", params)?;
+
+        let obj_dict = PyDict::new(py);
+        match self.objective.name {
+            Some(n) if !self.drop_cons_names => {
+                obj_dict.set_item("name", n)?;
+            }
+            _ => {
+                obj_dict.set_item("name", py.None())?;
+            }
+        }
+        let obj_coeff_list = PyList::empty(py);
+        for (vname, coeff) in &self.objective.coefficients {
+            let c = PyDict::new(py);
+            c.set_item("name", vname)?;
+            c.set_item("value", *coeff)?;
+            obj_coeff_list.append(c)?;
+        }
+        obj_dict.set_item("coefficients", obj_coeff_list)?;
+        result.set_item("objective", obj_dict)?;
+
+        let var_list = PyList::empty(py);
+        for vd in &self.variables {
+            let v = PyDict::new(py);
+            v.set_item("name", &vd.name)?;
+            v.set_item("cat", vd.cat)?;
+            v.set_item("lowBound", vd.low_bound)?;
+            v.set_item("upBound", vd.up_bound)?;
+            v.set_item("varValue", vd.var_value)?;
+            v.set_item("dj", vd.dj)?;
+            var_list.append(v)?;
+        }
+        result.set_item("variables", var_list)?;
+
+        let constr_list = PyList::empty(py);
+        for cd in &self.constraints {
+            let c = PyDict::new(py);
+            if self.drop_cons_names {
+                c.set_item("name", py.None())?;
+            } else {
+                c.set_item("name", &cd.name)?;
+            }
+            c.set_item("sense", cd.sense)?;
+            c.set_item("pi", cd.pi)?;
+            c.set_item("constant", cd.constant)?;
+            let coeff_list = PyList::empty(py);
+            for (vname, coeff) in &cd.coefficients {
+                let cc = PyDict::new(py);
+                cc.set_item("name", vname)?;
+                cc.set_item("value", *coeff)?;
+                coeff_list.append(cc)?;
+            }
+            c.set_item("coefficients", coeff_list)?;
+            constr_list.append(c)?;
+        }
+        result.set_item("constraints", constr_list)?;
+
+        result.set_item("sos1", PyList::empty(py))?;
+        result.set_item("sos2", PyList::empty(py))?;
+
+        Ok(result.into())
+    }
 }
 
 fn set_rhs(
@@ -584,51 +835,51 @@ fn set_bounds(
     tokens: &[&str],
     variables: &mut indexmap::IndexMap<String, MpsVarData>,
 ) -> PyResult<()> {
-    let bound = tokens[0];
     let var_name = tokens[2];
-    if let Some(vd) = variables.get_mut(var_name) {
-        match bound {
-            "FR" => {
-                vd.low_bound = None;
-                vd.up_bound = None;
-            }
-            "BV" => {
-                vd.low_bound = Some(0.0);
-                vd.up_bound = Some(1.0);
-            }
-            "PL" => {
-                vd.low_bound = Some(0.0);
-                vd.up_bound = None;
-            }
-            "MI" => {
-                vd.low_bound = None;
-                vd.up_bound = Some(0.0);
-            }
-            "LO" | "UP" | "FX" => {
-                if tokens.len() < 4 {
-                    return Err(PyRuntimeError::new_err(format!(
-                        "Missing value for bound type {}",
-                        bound
-                    )));
-                }
-                let val: f64 = tokens[3]
-                    .parse()
-                    .map_err(|e| PyRuntimeError::new_err(format!("Parse error: {}", e)))?;
-                match bound {
-                    "LO" => vd.low_bound = Some(val),
-                    "UP" => vd.up_bound = Some(val),
-                    "FX" => {
-                        vd.low_bound = Some(val);
-                        vd.up_bound = Some(val);
-                    }
-                    _ => unreachable!(),
-                }
-            }
-            _ => {
+    let Some(vd) = variables.get_mut(var_name) else {
+        return Ok(());
+    };
+    let Some(bound) = MpsBoundType::from_token(tokens[0]) else {
+        return Err(PyRuntimeError::new_err(format!(
+            "Unknown bound type: {}",
+            tokens[0]
+        )));
+    };
+    match bound {
+        MpsBoundType::Fr => {
+            vd.low_bound = None;
+            vd.up_bound = None;
+        }
+        MpsBoundType::Bv => {
+            vd.low_bound = Some(0.0);
+            vd.up_bound = Some(1.0);
+        }
+        MpsBoundType::Pl => {
+            vd.low_bound = Some(0.0);
+            vd.up_bound = None;
+        }
+        MpsBoundType::Mi => {
+            vd.low_bound = None;
+            vd.up_bound = Some(0.0);
+        }
+        MpsBoundType::Lo | MpsBoundType::Up | MpsBoundType::Fx => {
+            if tokens.len() < 4 {
                 return Err(PyRuntimeError::new_err(format!(
-                    "Unknown bound type: {}",
+                    "Missing value for bound type {:?}",
                     bound
                 )));
+            }
+            let val: f64 = tokens[3]
+                .parse()
+                .map_err(|e| PyRuntimeError::new_err(format!("Parse error: {}", e)))?;
+            match bound {
+                MpsBoundType::Lo => vd.low_bound = Some(val),
+                MpsBoundType::Up => vd.up_bound = Some(val),
+                MpsBoundType::Fx => {
+                    vd.low_bound = Some(val);
+                    vd.up_bound = Some(val);
+                }
+                _ => unreachable!(),
             }
         }
     }

@@ -158,18 +158,17 @@ class COIN_CMD(LpSolver_CMD):
             lp.name, "lp", "mps", "sol", "mst"
         )
         if use_mps:
-            vs, variablesNames, constraintsNames, objectiveName = lp.writeMPS(
+            var_names_list, constr_names_list, objectiveName = lp.writeMPS(
                 tmpMps, rename=1
             )
             cmds = " " + tmpMps + " "
         else:
-            vs = lp.writeLP(tmpLp)
-            # In the Lp we do not create new variable or constraint names:
-            variablesNames = {v.name: v.name for v in vs}
-            constraintsNames = {c: c for c in lp.constraints}
+            lp.writeLP(tmpLp)
+            var_names_list = [v.name for v in lp.variables()]
+            constr_names_list = list(lp.constraints.keys())
             cmds = " " + tmpLp + " "
         if self.optionsDict.get("warmStart", False):
-            self.writesol(tmpMst, lp, vs, variablesNames, constraintsNames)
+            self.writesol(tmpMst, lp, var_names_list, constr_names_list)
             cmds += f"-mips {tmpMst} "
         if self.timeLimit is not None:
             cmds += f"-sec {self.timeLimit} "
@@ -239,7 +238,7 @@ class COIN_CMD(LpSolver_CMD):
             shadowPrices,
             slacks,
             sol_status,
-        ) = self.readsol_MPS(tmpSol, lp, vs, variablesNames, constraintsNames)
+        ) = self.readsol_MPS(tmpSol, lp, var_names_list, constr_names_list)
         lp.assignVarsVals(values)
         lp.assignVarsDj(reducedCosts)
         lp.assignConsPi(shadowPrices)
@@ -265,19 +264,32 @@ class COIN_CMD(LpSolver_CMD):
         ]
 
     def readsol_MPS(
-        self, filename, lp, vs, variablesNames, constraintsNames, objectiveName=None
-    ):
+        self,
+        filename: str,
+        lp: LpProblem,
+        variableNames: list[str],
+        constraintNames: list[str],
+        objectiveName: str | None = None,
+    ) -> tuple[
+        int,
+        dict[str, float],
+        dict[str, float],
+        dict[str, float],
+        dict[str, float],
+        int,
+    ]:
         """
-        Read a CBC solution file generated from an mps or lp file (possible different names)
+        Read a CBC solution file generated from an mps or lp file (possible different names).
+        variableNames and constraintNames are lists in the same order as lp.variables() and lp.constraints.
         """
+        vs = lp.variables()
         values = {v.name: 0.0 for v in vs}
+        reverseVn = {variableNames[i]: vs[i].name for i in range(len(vs))}
+        reverseCn = {constraintNames[i]: c for i, c in enumerate(lp.constraints)}
 
-        reverseVn = {v: k for k, v in variablesNames.items()}
-        reverseCn = {v: k for k, v in constraintsNames.items()}
-
-        reducedCosts = {}
-        shadowPrices = {}
-        slacks = {}
+        reducedCosts: dict[str, float] = {}
+        shadowPrices: dict[str, float] = {}
+        slacks: dict[str, float] = {}
         status, sol_status = self.get_status(filename)
         with open(filename) as f:
             for line in f:
@@ -298,15 +310,22 @@ class COIN_CMD(LpSolver_CMD):
                     shadowPrices[reverseCn[vn]] = float(dj)
         return status, values, reducedCosts, shadowPrices, slacks, sol_status
 
-    def writesol(self, filename, lp, vs, variablesNames, constraintsNames):
+    def writesol(
+        self,
+        filename: str,
+        lp: LpProblem,
+        variableNames: list[str],
+        constraintNames: list[str],
+    ) -> bool:
         """
-        Writes a CBC solution file generated from an mps / lp file (possible different names)
-        returns True on success
+        Writes a CBC solution file generated from an mps / lp file (possible different names).
+        variableNames and constraintNames are lists in the same order as lp.variables() and lp.constraints.
+        Returns True on success.
         """
+        vs = lp.variables()
         values = {v.name: v.value() if v.value() is not None else 0 for v in vs}
-        value_lines = []
-        value_lines += [
-            (i, v, values[k], 0) for i, (k, v) in enumerate(variablesNames.items())
+        value_lines = [
+            (i, variableNames[i], values[vs[i].name], 0) for i in range(len(vs))
         ]
         lines = ["Stopped on time - objective value 0\n"]
         lines += ["{:>7} {} {:>15} {:>23}\n".format(*tup) for tup in value_lines]
@@ -316,14 +335,23 @@ class COIN_CMD(LpSolver_CMD):
 
         return True
 
-    def readsol_LP(self, filename, lp, vs):
+    def readsol_LP(
+        self, filename: str, lp: LpProblem
+    ) -> tuple[
+        int,
+        dict[str, float],
+        dict[str, float],
+        dict[str, float],
+        dict[str, float],
+        int,
+    ]:
         """
-        Read a CBC solution file generated from an lp (good names)
-        returns status, values, reducedCosts, shadowPrices, slacks, sol_status
+        Read a CBC solution file generated from an lp (good names).
+        Returns status, values, reducedCosts, shadowPrices, slacks, sol_status.
         """
-        variablesNames = {v.name: v.name for v in vs}
-        constraintsNames = {c: c for c in lp.constraints}
-        return self.readsol_MPS(filename, lp, vs, variablesNames, constraintsNames)
+        variableNames = [v.name for v in lp.variables()]
+        constraintNames = list(lp.constraints.keys())
+        return self.readsol_MPS(filename, lp, variableNames, constraintNames)
 
     def get_status(self, filename):
         cbcStatus = {
