@@ -855,7 +855,6 @@ class BaseSolverTest:
                 "FSCIP_CMD",
                 "SCIP_PY",
                 "CYLP",
-                "HiGHS_CMD",
             ]:
                 # these solvers do not let the problem be relaxed
                 pulpTestCheck(
