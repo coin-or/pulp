@@ -10,15 +10,10 @@ alwaysApply: true
 - Use `unittest` (not pytest) for writing and running unit tests.
 - Run tests via: `uv run python -m unittest discover -s pulp/tests`
 
-## Virtual Environment
-
-- Always activate the virtual environment before running any Python or tool command.
-- On Windows: `.venv\Scripts\activate`
-- On Unix: `source .venv/bin/activate`
-
 ## Package Manager
 
 - Always use `uv` for dependency management, package installation, and running tools.
+- Do **not** manually activate the virtual environment; `uv run` handles it automatically.
 - Install packages: `uv pip install <package>`
 - Sync dependencies: `uv sync`
 - Build the project: `uv run maturin develop`

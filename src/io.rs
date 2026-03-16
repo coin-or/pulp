@@ -197,10 +197,14 @@ pub fn write_mps(
     };
     let sense_mps = if mps_sense == -1 { "MAX" } else { "MIN" };
 
-    // Build objective map from core; negate if maximize so file is written as minimization
+    // Build objective map from core.
+    // When with_objsense is false, negate coefficients for maximize so the
+    // file is always a minimization problem (legacy MPS convention).
+    // When with_objsense is true, the OBJSENSE header tells the solver the
+    // direction, so coefficients must remain as-is.
     let mut obj_map: HashMap<usize, f64> = HashMap::new();
     if let Some(ref expr) = core.objective {
-        let sign = if mps_sense == -1 { -1.0 } else { 1.0 };
+        let sign = if !with_objsense && mps_sense == -1 { -1.0 } else { 1.0 };
         for (&vid, &coeff) in &expr.terms {
             obj_map.insert(vid, coeff * sign);
         }
