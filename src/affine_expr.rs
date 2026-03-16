@@ -15,7 +15,7 @@ use crate::variable::Variable;
 /// Affine expression: sum_i coeff_i * x_i + constant.
 /// Optionally carries sense (for pending constraints) and name.
 /// Holds a weak model ref acquired automatically from the first variable.
-#[pyclass(unsendable)]
+#[pyclass(unsendable, from_py_object)]
 #[derive(Clone, Debug)]
 pub struct AffineExpr {
     pub terms: IndexMap<VarId, f64>,

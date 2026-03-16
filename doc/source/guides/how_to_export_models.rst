@@ -28,9 +28,9 @@ A very simple example taken from the internal tests. Imagine the following probl
     from pulp import *
 
     prob = LpProblem("test_export_dict_MIP", LpMinimize)
-    x = LpVariable("x", 0, 4)
-    y = LpVariable("y", -1, 1)
-    z = LpVariable("z", 0, None, LpInteger)
+    x = prob.add_variable("x", 0, 4)
+    y = prob.add_variable("y", -1, 1)
+    z = prob.add_variable("z", 0, None, LpInteger)
     prob += x + 4 * y + 9 * z, "obj"
     prob += x + y <= 5, "c1"
     prob += x + z >= 10, "c2"
@@ -124,9 +124,9 @@ The same model::
 
     from pulp import *
     prob = LpProblem("test_export_dict_MIP", LpMinimize)
-    x = LpVariable("x", 0, 4)
-    y = LpVariable("y", -1, 1)
-    z = LpVariable("z", 0, None, LpInteger)
+    x = prob.add_variable("x", 0, 4)
+    y = prob.add_variable("y", -1, 1)
+    z = prob.add_variable("z", 0, None, LpInteger)
     prob += x + 4 * y + 9 * z, "obj"
     prob += x + y <= 5, "c1"
     prob += x + z >= 10, "c2"
@@ -178,13 +178,10 @@ We will use as example the model in :ref:`set-partitioning-problem`::
     possible_tables = [tuple(c) for c in pulp.allcombinations(guests, 
                                             max_table_size)]
 
-    #create a binary variable to state that a table setting is used
-    x = pulp.LpVariable.dicts('table', possible_tables, 
-                                lowBound = 0,
-                                upBound = 1,
-                                cat = pulp.LpInteger)
-
     seating_model = pulp.LpProblem("Wedding_Seating_Model", pulp.LpMinimize)
+    # create a binary variable to state that a table setting is used
+    x = seating_model.add_variable_dict('table', possible_tables,
+                                        lowBound=0, upBound=1, cat=pulp.LpInteger)
 
     seating_model += pulp.lpSum([happiness(table) * x[table] for table in possible_tables])
 

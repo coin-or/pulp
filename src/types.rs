@@ -15,7 +15,7 @@ pub type VarId = usize;
 pub type ConstrId = usize;
 
 /// Variable category: continuous, integer, or binary.
-#[pyclass]
+#[pyclass(from_py_object)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Category {
     Continuous,
@@ -24,7 +24,7 @@ pub enum Category {
 }
 
 /// Constraint sense: <=, ==, >=.
-#[pyclass]
+#[pyclass(from_py_object)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Sense {
     LessEqual,
@@ -33,7 +33,7 @@ pub enum Sense {
 }
 
 /// Objective sense: minimize or maximize.
-#[pyclass]
+#[pyclass(from_py_object)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ObjSense {
     Minimize,

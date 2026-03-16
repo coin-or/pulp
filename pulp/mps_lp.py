@@ -6,7 +6,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from typing import TYPE_CHECKING, Any
 
 from . import _rustcore
@@ -14,6 +14,13 @@ from . import constants as const
 
 if TYPE_CHECKING:
     from pulp.pulp import LpProblem, LpVariable
+
+_DC = Any  # type alias for a dataclass type
+
+
+def _from_compatible_object(cls: type[_DC], obj: object) -> _DC:
+    """Initialize a dataclass from any object sharing the same field names."""
+    return cls(**{f.name: getattr(obj, f.name) for f in fields(cls)})
 
 
 @dataclass
@@ -115,6 +122,35 @@ class MPS:
             data["sos2"],
         )
 
+    @classmethod
+    def from_rust(cls, obj: Any) -> MPS:
+        """Build MPS dataclass from Rust MpsResult object returned by read_mps."""
+        parameters = _from_compatible_object(MPSParameters, obj.parameters)
+        obj_obj = obj.objective
+        objective = MPSObjective(
+            obj_obj.name,
+            [_from_compatible_object(MPSCoefficient, c) for c in obj_obj.coefficients],
+        )
+        variables = [_from_compatible_object(MPSVariable, v) for v in obj.variables]
+        constraints = [
+            MPSConstraint(
+                c.name,
+                c.sense,
+                [_from_compatible_object(MPSCoefficient, cc) for cc in c.coefficients],
+                c.pi,
+                c.constant,
+            )
+            for c in obj.constraints
+        ]
+        return cls(
+            parameters,
+            objective,
+            variables,
+            constraints,
+            list(obj.sos1),
+            list(obj.sos2),
+        )
+
 
 def readMPS(path: str, sense: int, dropConsNames: bool = False) -> MPS:
     """
@@ -127,8 +163,10 @@ def readMPS(path: str, sense: int, dropConsNames: bool = False) -> MPS:
     :param dropConsNames: if True, do not store the names of constraints
     :return: a dataclass with all the problem data
     """
-    data = _rustcore.read_mps(path, sense, dropConsNames)
-    return MPS.fromDict(data)
+    mps_result = _rustcore.read_mps(path, sense, dropConsNames)
+    if isinstance(mps_result, dict):
+        return MPS.fromDict(mps_result)
+    return MPS.from_rust(mps_result)
 
 
 def writeMPS(

@@ -9,8 +9,7 @@ whiskas_model = pulp.LpProblem("The Whiskas Problem", pulp.LpMinimize)
 # make a list of ingredients
 ingredients = ["chicken", "beef", "mutton", "rice", "wheat", "gel"]
 # create a dictionary of pulp variables with keys from ingredients
-# the default lower bound is -inf
-x = pulp.LpVariable.dict("x_%s", ingredients, lowBound=0)
+x = whiskas_model.add_variable_dict("x_%s", ingredients, lowBound=0, upBound=None)
 
 # cost data
 cost = dict(zip(ingredients, [0.013, 0.008, 0.010, 0.002, 0.005, 0.001]))

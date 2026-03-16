@@ -53,8 +53,9 @@ is done so that we can refer to parameters by meaningful names.
 .. literalinclude:: ../../../examples/Two_stage_Stochastic_GemstoneTools.py
     :lines: 54-58
 
-To define our decision variables, we use the function `pulp.LpVariable.dicts()`,
-which creates dictionaries with associated indexing values.
+To define our decision variables, we use the method
+:meth:`~pulp.LpProblem.add_variable_dict`, which creates dictionaries of
+variables with associated indexing values.
 
 .. literalinclude:: ../../../examples/Two_stage_Stochastic_GemstoneTools.py
     :lines: 61-64

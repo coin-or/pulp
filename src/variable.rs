@@ -8,7 +8,7 @@ use crate::format;
 use crate::types::{upgrade_model, Category, ModelCore, VarId};
 
 /// Handle to a variable stored inside a `ModelCore`. Only created by the model.
-#[pyclass(unsendable)]
+#[pyclass(unsendable, from_py_object)]
 #[derive(Clone)]
 pub struct Variable {
     pub id: VarId,

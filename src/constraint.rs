@@ -9,7 +9,7 @@ use crate::types::{upgrade_model, ConstrId, ModelCore, Sense};
 use crate::variable::Variable;
 
 /// Handle to a constraint stored inside a `ModelCore`. Only created by the model.
-#[pyclass(unsendable)]
+#[pyclass(unsendable, from_py_object)]
 #[derive(Clone)]
 pub struct Constraint {
     pub id: ConstrId,

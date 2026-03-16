@@ -72,9 +72,9 @@ Imagine using the ``CPLEX_CMD`` solver, the first one is really simple:
     path_to_cplex = r'C:\Program Files\IBM\ILOG\CPLEX_Studio128\cplex\bin\x64_win64\cplex.exe'
     import pulp as pl
     model = pl.LpProblem("Example", pl.LpMinimize)
+    _var = model.add_variable('a')
+    _var2 = model.add_variable('a2')
     solver = pl.CPLEX_CMD(path=path_to_cplex)
-    _var = pl.LpVariable('a')
-    _var2 = pl.LpVariable('a2')
     model += _var + _var2 == 1 
     result = model.solve(solver)
 
@@ -90,9 +90,9 @@ Once we have done that, we just do something very similar to the previous exampl
 
     import pulp as pl
     model = pl.LpProblem("Example", pl.LpMinimize)
+    _var = model.add_variable('a')
+    _var2 = model.add_variable('a2')
     solver = pl.CPLEX_CMD()
-    _var = pl.LpVariable('a')
-    _var2 = pl.LpVariable('a2')
     model += _var + _var2 == 1 
     result = model.solve(solver)
 
@@ -152,8 +152,8 @@ By default, PuLP does not keep the intermediary files (the \*.mps, \*.lp, \*.mst
 
     import pulp as pl
     model = pl.LpProblem("Example", pl.LpMinimize)
-    _var = pl.LpVariable('a')
-    _var2 = pl.LpVariable('a2')
+    _var = model.add_variable('a')
+    _var2 = model.add_variable('a2')
     model += _var + _var2 == 1 
     solver = pl.PULP_CBC_CMD()
     result = model.solve(solver)
@@ -164,8 +164,8 @@ Another option, is passing the argument `keepFiles=True` to the solver. With thi
 
     import pulp as pl
     model = pl.LpProblem("Example", pl.LpMinimize)
-    _var = pl.LpVariable('a')
-    _var2 = pl.LpVariable('a2')
+    _var = model.add_variable('a')
+    _var2 = model.add_variable('a2')
     model += _var + _var2 == 1 
     solver = pl.PULP_CBC_CMD(keepFiles=True)
     result = model.solve(solver)
@@ -176,8 +176,8 @@ Finally, one can manually edit the tmpDir attribute of the solver object before 
 
     import pulp as pl
     model = pl.LpProblem("Example", pl.LpMinimize)
-    _var = pl.LpVariable('a')
-    _var2 = pl.LpVariable('a2')
+    _var = model.add_variable('a')
+    _var2 = model.add_variable('a2')
     model += _var + _var2 == 1 
     solver = pl.PULP_CBC_CMD()
     solver.tmpDir = 'PUT_SOME_ALTERNATIVE_PATH_HERE'
@@ -239,8 +239,8 @@ For example, using the ``CPLEX_PY`` API we can access the api object after the s
 
     import pulp
 
-    x = pulp.LpVariable('x', lowBound=0)
     prob = pulp.LpProblem('name', pulp.LpMinimize)
+    x = prob.add_variable('x', lowBound=0)
     prob += x
 
     solver = pulp.CPLEX_PY()
@@ -254,8 +254,8 @@ Also, you can access the python api object before solving by using the lower-lev
 
     import pulp
 
-    x = pulp.LpVariable('x', lowBound=0)
     prob = pulp.LpProblem('name', pulp.LpMinimize)
+    x = prob.add_variable('x', lowBound=0)
     prob += x
 
     solver = pulp.CPLEX_PY()

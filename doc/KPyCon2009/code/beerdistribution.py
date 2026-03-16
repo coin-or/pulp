@@ -42,25 +42,25 @@ prob = pulp.LpProblem("Beer Distribution Problem", pulp.LpMinimize)
 routes = [(w, b) for w in warehouses for b in bars]
 
 # A dictionary called x is created to contain quantity shipped on the routes
-x = pulp.LpVariable.dicts("route", (warehouses, bars), lowBound=0, cat=pulp.LpInteger)
+x = prob.add_variable_dict("route", (warehouses, bars), 0, None, pulp.LpInteger)
 
 # The objective function is added to 'prob' first
 prob += (
-    sum([x[w][b] * my_costs[w][b] for (w, b) in routes]),
+    sum([x[w, b] * my_costs[w][b] for (w, b) in routes]),
     "Sum_of_Transporting_Costs",
 )
 
 # Supply maximum constraints are added to prob for each supply node (warehouse)
 for w in warehouses:
     prob += (
-        sum([x[w][b] for b in bars]) <= supply[w],
+        sum([x[w, b] for b in bars]) <= supply[w],
         f"Sum_of_Products_out_of_Warehouse_{w}",
     )
 
 # Demand minimum constraints are added to prob for each demand node (bar)
 for b in bars:
     prob += (
-        sum([x[w][b] for w in warehouses]) >= demand[b],
+        sum([x[w, b] for w in warehouses]) >= demand[b],
         f"Sum_of_Products_into_Bar{b}",
     )
 

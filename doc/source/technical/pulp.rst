@@ -49,17 +49,13 @@ Variables and Expressions
 -------------------------
 
 .. autoclass:: LpVariable
-    :members:
-
-----
-
-.. autoclass:: LpVariable
    :members:
 
-Example:
+Example (variables are created from a problem)::
 
->>> x = LpVariable('x',lowBound = 0, cat='Continuous')
->>> y = LpVariable('y', upBound = 5, cat='Integer')
+>>> prob = LpProblem("example", LpMinimize)
+>>> x = prob.add_variable('x', lowBound=0, cat='Continuous')
+>>> y = prob.add_variable('y', upBound=5, cat='Integer')
 
 gives  :math:`x \in [0,\infty)`, :math:`y \in (-\infty, 5]`, an
 integer.

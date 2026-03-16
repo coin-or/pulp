@@ -5,7 +5,7 @@ use std::collections::HashMap;
 
 use pyo3::exceptions::{PyRuntimeError, PyValueError};
 use pyo3::prelude::*;
-use pyo3::types::{PyDict, PyList};
+use pyo3::types::{PyAny, PyFloat, PyList, PyString};
 
 use crate::format;
 use crate::model::Model;
@@ -341,7 +341,7 @@ pub fn write_mps(
 
 // ── readMPS ──
 
-/// Parse an MPS file and return a Python dict matching the MPS dataclass shape.
+/// Parse an MPS file and return an MpsResult object (Python builds MPS dataclass from it).
 #[pyfunction]
 #[pyo3(signature = (path, sense, drop_cons_names=false))]
 pub fn read_mps(
@@ -349,7 +349,7 @@ pub fn read_mps(
     path: &str,
     sense: i32,
     drop_cons_names: bool,
-) -> PyResult<PyObject> {
+) -> PyResult<MpsResult> {
     let content = std::fs::read_to_string(path)
         .map_err(|e| PyRuntimeError::new_err(format!("Cannot read file: {}", e)))?;
 
@@ -518,26 +518,84 @@ pub fn read_mps(
         }
     }
 
-    let result = MpsResult {
-        parameters: MpsParameters {
+    let parameters = Py::new(
+        py,
+        MpsParameters {
             name,
             sense,
             status: 0,
             sol_status: 0,
         },
-        objective: MpsObjective {
+    )?;
+
+    let obj_coeff_list = PyList::empty(py);
+    for (vname, coeff) in &obj_coeffs {
+        let c = MpsCoefficient {
+            name: vname.clone(),
+            value: *coeff,
+        };
+        obj_coeff_list.append(Py::new(py, c)?)?;
+    }
+    let objective = Py::new(
+        py,
+        MpsObjective {
             name: if drop_cons_names {
                 None
             } else {
                 Some(obj_name)
             },
-            coefficients: obj_coeffs,
+            coefficients: obj_coeff_list.into_pyobject(py)?.unbind().into(),
         },
-        variables: variables.into_values().collect(),
-        constraints: constraints.into_values().collect(),
-        drop_cons_names,
-    };
-    result.to_py_dict(py)
+    )?;
+
+    let var_list = PyList::empty(py);
+    for vd in variables.into_values() {
+        let v = MpsVariable {
+            name: vd.name,
+            cat: vd.cat.to_string(),
+            low_bound: vd.low_bound,
+            up_bound: vd.up_bound,
+            var_value: vd.var_value,
+            dj: vd.dj,
+        };
+        var_list.append(Py::new(py, v)?)?;
+    }
+
+    let constr_list = PyList::empty(py);
+    for cd in constraints.into_values() {
+        let coeff_list = PyList::empty(py);
+        for (vname, coeff) in &cd.coefficients {
+            let cc = MpsCoefficient {
+                name: vname.clone(),
+                value: *coeff,
+            };
+            coeff_list.append(Py::new(py, cc)?)?;
+        }
+        let c = MpsConstraint {
+            name: if drop_cons_names {
+                None
+            } else {
+                Some(cd.name)
+            },
+            sense: cd.sense,
+            coefficients: coeff_list.into_pyobject(py)?.unbind().into(),
+            pi: cd.pi,
+            constant: cd.constant,
+        };
+        constr_list.append(Py::new(py, c)?)?;
+    }
+
+    let sos1 = PyList::empty(py).into_pyobject(py)?.unbind();
+    let sos2 = PyList::empty(py).into_pyobject(py)?.unbind();
+
+    Ok(MpsResult {
+        parameters,
+        objective,
+        variables: var_list.into_pyobject(py)?.unbind().into(),
+        constraints: constr_list.into_pyobject(py)?.unbind().into(),
+        sos1: sos1.into(),
+        sos2: sos2.into(),
+    })
 }
 
 // ── Internal helpers (MPS parsing only) ──
@@ -697,18 +755,6 @@ impl MpsBoundType {
     }
 }
 
-struct MpsParameters {
-    name: String,
-    sense: i32,
-    status: i32,
-    sol_status: i32,
-}
-
-struct MpsObjective {
-    name: Option<String>,
-    coefficients: Vec<(String, f64)>,
-}
-
 struct MpsConstraintData {
     name: String,
     sense: i32,
@@ -726,85 +772,199 @@ struct MpsVarData {
     dj: Option<f64>,
 }
 
-/// Result of MPS parsing; converted to Python dict in one place.
-struct MpsResult {
-    parameters: MpsParameters,
-    objective: MpsObjective,
-    variables: Vec<MpsVarData>,
-    constraints: Vec<MpsConstraintData>,
-    drop_cons_names: bool,
+// ── PyO3 classes for MPS result (exposed to Python) ──
+
+#[pyclass]
+pub struct MpsParameters {
+    name: String,
+    sense: i32,
+    status: i32,
+    sol_status: i32,
 }
 
+#[pymethods]
+impl MpsParameters {
+    #[getter]
+    fn name(&self) -> &str {
+        &self.name
+    }
+    #[getter]
+    fn sense(&self) -> i32 {
+        self.sense
+    }
+    #[getter]
+    fn status(&self) -> i32 {
+        self.status
+    }
+    #[getter]
+    fn sol_status(&self) -> i32 {
+        self.sol_status
+    }
+}
+
+#[pyclass]
+pub struct MpsCoefficient {
+    name: String,
+    value: f64,
+}
+
+#[pymethods]
+impl MpsCoefficient {
+    #[getter]
+    fn name(&self) -> &str {
+        &self.name
+    }
+    #[getter]
+    fn value(&self) -> f64 {
+        self.value
+    }
+}
+
+#[pyclass]
+pub struct MpsObjective {
+    name: Option<String>,
+    coefficients: Py<PyAny>,
+}
+
+#[pymethods]
+impl MpsObjective {
+    #[getter]
+    fn name(&self, py: Python<'_>) -> Py<PyAny> {
+        match &self.name {
+            Some(s) => PyString::new(py, s).unbind().into(),
+            None => py.None(),
+        }
+    }
+    #[getter]
+    fn coefficients(&self, py: Python<'_>) -> Py<PyAny> {
+        self.coefficients.clone_ref(py)
+    }
+}
+
+#[pyclass]
+pub struct MpsVariable {
+    name: String,
+    cat: String,
+    low_bound: Option<f64>,
+    up_bound: Option<f64>,
+    var_value: Option<f64>,
+    dj: Option<f64>,
+}
+
+#[pymethods]
+impl MpsVariable {
+    #[getter]
+    fn name(&self) -> &str {
+        &self.name
+    }
+    #[getter]
+    fn cat(&self) -> &str {
+        &self.cat
+    }
+    #[getter(lowBound)]
+    fn low_bound(&self, py: Python<'_>) -> Py<PyAny> {
+        match self.low_bound {
+            Some(v) => PyFloat::new(py, v).unbind().into(),
+            None => py.None(),
+        }
+    }
+    #[getter(upBound)]
+    fn up_bound(&self, py: Python<'_>) -> Py<PyAny> {
+        match self.up_bound {
+            Some(v) => PyFloat::new(py, v).unbind().into(),
+            None => py.None(),
+        }
+    }
+    #[getter(varValue)]
+    fn var_value(&self, py: Python<'_>) -> Py<PyAny> {
+        match self.var_value {
+            Some(v) => PyFloat::new(py, v).unbind().into(),
+            None => py.None(),
+        }
+    }
+    #[getter]
+    fn dj(&self, py: Python<'_>) -> Py<PyAny> {
+        match self.dj {
+            Some(v) => PyFloat::new(py, v).unbind().into(),
+            None => py.None(),
+        }
+    }
+}
+
+#[pyclass]
+pub struct MpsConstraint {
+    name: Option<String>,
+    sense: i32,
+    coefficients: Py<PyAny>,
+    pi: Option<f64>,
+    constant: f64,
+}
+
+#[pymethods]
+impl MpsConstraint {
+    #[getter]
+    fn name(&self, py: Python<'_>) -> Py<PyAny> {
+        match &self.name {
+            Some(s) => PyString::new(py, s).unbind().into(),
+            None => py.None(),
+        }
+    }
+    #[getter]
+    fn sense(&self) -> i32 {
+        self.sense
+    }
+    #[getter]
+    fn coefficients(&self, py: Python<'_>) -> Py<PyAny> {
+        self.coefficients.clone_ref(py)
+    }
+    #[getter]
+    fn pi(&self, py: Python<'_>) -> Py<PyAny> {
+        match self.pi {
+            Some(v) => PyFloat::new(py, v).unbind().into(),
+            None => py.None(),
+        }
+    }
+    #[getter]
+    fn constant(&self) -> f64 {
+        self.constant
+    }
+}
+
+#[pyclass]
+pub struct MpsResult {
+    parameters: Py<MpsParameters>,
+    objective: Py<MpsObjective>,
+    variables: Py<PyAny>,
+    constraints: Py<PyAny>,
+    sos1: Py<PyAny>,
+    sos2: Py<PyAny>,
+}
+
+#[pymethods]
 impl MpsResult {
-    fn to_py_dict(self, py: Python<'_>) -> PyResult<PyObject> {
-        let result = PyDict::new(py);
-
-        let params = PyDict::new(py);
-        params.set_item("name", self.parameters.name)?;
-        params.set_item("sense", self.parameters.sense)?;
-        params.set_item("status", self.parameters.status)?;
-        params.set_item("sol_status", self.parameters.sol_status)?;
-        result.set_item("parameters", params)?;
-
-        let obj_dict = PyDict::new(py);
-        match self.objective.name {
-            Some(n) if !self.drop_cons_names => {
-                obj_dict.set_item("name", n)?;
-            }
-            _ => {
-                obj_dict.set_item("name", py.None())?;
-            }
-        }
-        let obj_coeff_list = PyList::empty(py);
-        for (vname, coeff) in &self.objective.coefficients {
-            let c = PyDict::new(py);
-            c.set_item("name", vname)?;
-            c.set_item("value", *coeff)?;
-            obj_coeff_list.append(c)?;
-        }
-        obj_dict.set_item("coefficients", obj_coeff_list)?;
-        result.set_item("objective", obj_dict)?;
-
-        let var_list = PyList::empty(py);
-        for vd in &self.variables {
-            let v = PyDict::new(py);
-            v.set_item("name", &vd.name)?;
-            v.set_item("cat", vd.cat)?;
-            v.set_item("lowBound", vd.low_bound)?;
-            v.set_item("upBound", vd.up_bound)?;
-            v.set_item("varValue", vd.var_value)?;
-            v.set_item("dj", vd.dj)?;
-            var_list.append(v)?;
-        }
-        result.set_item("variables", var_list)?;
-
-        let constr_list = PyList::empty(py);
-        for cd in &self.constraints {
-            let c = PyDict::new(py);
-            if self.drop_cons_names {
-                c.set_item("name", py.None())?;
-            } else {
-                c.set_item("name", &cd.name)?;
-            }
-            c.set_item("sense", cd.sense)?;
-            c.set_item("pi", cd.pi)?;
-            c.set_item("constant", cd.constant)?;
-            let coeff_list = PyList::empty(py);
-            for (vname, coeff) in &cd.coefficients {
-                let cc = PyDict::new(py);
-                cc.set_item("name", vname)?;
-                cc.set_item("value", *coeff)?;
-                coeff_list.append(cc)?;
-            }
-            c.set_item("coefficients", coeff_list)?;
-            constr_list.append(c)?;
-        }
-        result.set_item("constraints", constr_list)?;
-
-        result.set_item("sos1", PyList::empty(py))?;
-        result.set_item("sos2", PyList::empty(py))?;
-
-        Ok(result.into())
+    #[getter]
+    fn parameters(&self, py: Python<'_>) -> Py<MpsParameters> {
+        self.parameters.clone_ref(py)
+    }
+    #[getter]
+    fn objective(&self, py: Python<'_>) -> Py<MpsObjective> {
+        self.objective.clone_ref(py)
+    }
+    #[getter]
+    fn variables(&self, py: Python<'_>) -> Py<PyAny> {
+        self.variables.clone_ref(py)
+    }
+    #[getter]
+    fn constraints(&self, py: Python<'_>) -> Py<PyAny> {
+        self.constraints.clone_ref(py)
+    }
+    #[getter]
+    fn sos1(&self, py: Python<'_>) -> Py<PyAny> {
+        self.sos1.clone_ref(py)
+    }
+    #[getter]
+    fn sos2(&self, py: Python<'_>) -> Py<PyAny> {
+        self.sos2.clone_ref(py)
     }
 }
 
@@ -860,7 +1020,6 @@ fn set_bounds(
         }
         MpsBoundType::Mi => {
             vd.low_bound = None;
-            vd.up_bound = Some(0.0);
         }
         MpsBoundType::Lo | MpsBoundType::Up | MpsBoundType::Fx => {
             if tokens.len() < 4 {

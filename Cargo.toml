@@ -11,6 +11,6 @@ name = "pulp_rust_core"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-pyo3 = { version = "0.21", features = ["extension-module"] }
+pyo3 = { version = "0.28", features = ["extension-module"] }
 indexmap = "2"
 
