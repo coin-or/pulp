@@ -174,7 +174,7 @@ def writeMPS(
     filename: str,
     mpsSense: int = 0,
     rename: int | bool = False,
-    mip: int | bool = True,
+    mip: bool = True,
     with_objsense: bool = False,
 ) -> tuple[list[str], list[str], str]:
     """Write MPS file via Rust core. Returns (variable_names, constraint_names, objective_name) in list form."""
@@ -205,7 +205,7 @@ def writeLP(
     lp: LpProblem,
     filename: str,
     writeSOS: int | bool = True,
-    mip: int | bool = True,
+    mip: bool = True,
     max_length: int = 100,
 ) -> list[LpVariable]:
     wasNone, objectiveDummyVar = lp.fixObjective()
@@ -240,7 +240,7 @@ def writeLP(
         rust_vars = _rustcore.write_lp(
             lp._model,
             filename,
-            bool(mip),
+            mip,
             max_length,
             objName,
             dummy_var_name,

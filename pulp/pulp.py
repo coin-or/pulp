@@ -400,7 +400,7 @@ class LpVariable:
     def valid(self, eps: float) -> bool:
         return self._var.valid(eps)
 
-    def infeasibilityGap(self, mip: int | bool = True) -> float:
+    def infeasibilityGap(self, mip: bool = True) -> float:
         return self._var.infeasibility_gap(bool(mip))
 
     def isBinary(self) -> bool:
@@ -1664,7 +1664,7 @@ class LpProblem:
         else:
             return True
 
-    def infeasibilityGap(self, mip: int = 1) -> float:
+    def infeasibilityGap(self, mip: bool = True) -> float:
         gap: float = 0
         for v in self.variables():
             gap = max(abs(v.infeasibilityGap(mip)), gap)
@@ -1866,7 +1866,7 @@ class LpProblem:
         filename: str,
         mpsSense: int = 0,
         rename: int | bool = 0,
-        mip: int | bool = 1,
+        mip: bool = True,
         with_objsense: bool = False,
     ) -> tuple[list[str], list[str], str]:
         """
@@ -1892,7 +1892,7 @@ class LpProblem:
         self,
         filename: str,
         writeSOS: int | bool = 1,
-        mip: int | bool = 1,
+        mip: bool = True,
         max_length: int = 100,
     ) -> list[LpVariable]:
         """
