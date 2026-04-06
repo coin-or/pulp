@@ -61,7 +61,7 @@ copyright = "2009-, pulp documentation team."
 # The full version, including alpha/beta/rc tags.
 import pulp
 
-release = pulp.VERSION
+release = pulp.__version__
 # The short X.Y version.
 version = ".".join(release.split(".")[:2])
 

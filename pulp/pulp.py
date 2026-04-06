@@ -1865,7 +1865,7 @@ class LpProblem:
         self,
         filename: str,
         mpsSense: int = 0,
-        rename: int | bool = 0,
+        rename: bool = False,
         mip: bool = True,
         with_objsense: bool = False,
     ) -> tuple[list[str], list[str], str]:

@@ -930,6 +930,7 @@ wheels = [
 
 [[package]]
 name = "pulp"
+version = "4.0.0a2"
 source = { editable = "." }
 
 [package.optional-dependencies]
@@ -998,7 +999,7 @@ requires-dist = [
     { name = "xpress", marker = "extra == 'public-py'" },
     { name = "xpress", marker = "extra == 'xpress'" },
 ]
-provides-extras = ["copt", "cplex", "gurobi", "highs", "mosek", "open-py", "public-py", "scip", "xpress"]
+provides-extras = ["open-py", "public-py", "highs", "scip", "gurobi", "xpress", "copt", "cplex", "mosek"]
 
 [package.metadata.requires-dev]
 dev = [

@@ -53,10 +53,11 @@ try:
 except Exception:
     pass
 
+from importlib.metadata import version
+
+__version__ = version("PuLP")
+
 from .apis import *
 from .constants import *
-from .constants import VERSION
 from .pulp import *
 from .utilities import *
-
-__version__ = VERSION
