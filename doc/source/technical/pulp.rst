@@ -45,6 +45,7 @@ The LpProblem Class
    .. automethod:: setObjective
    .. automethod:: writeLP
    .. automethod:: writeMPS
+   .. automethod:: writeMPL
    .. automethod:: toJson
    .. automethod:: fromJson
    .. automethod:: variables
