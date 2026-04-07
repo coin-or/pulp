@@ -28,7 +28,6 @@ from pulp.constants import PulpError
 from pulp.tests.bin_packing_problem import create_bin_packing_problem
 from pulp.utilities import makeDict
 
-
 try:
     import gurobipy as gp  # type: ignore[import-not-found, import-untyped, unused-ignore]
 except ImportError:
@@ -95,6 +94,40 @@ def dumpTestProblem(prob):
         prob.writeMPS("debug.mps")
     except:
         pass
+
+
+class ModelExportTests(unittest.TestCase):
+    def test_writeMPL(self):
+        prob = LpProblem("test_write_mpl", const.LpMaximize)
+        x = LpVariable("x", lowBound=0, upBound=5)
+        y = LpVariable("y", lowBound=0, cat=const.LpInteger)
+        z = LpVariable("z", cat=const.LpBinary)
+
+        prob += 2 * x + 3 * y + z
+        prob += x + y <= 6, "cap"
+        prob += y + z >= 1, "link"
+
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".mpl") as tmp:
+            filename = tmp.name
+        try:
+            prob.writeMPL(filename)
+            with open(filename) as fh:
+                data = fh.read()
+        finally:
+            os.unlink(filename)
+
+        self.assertIn("with(Optimization):", data)
+        self.assertIn("objective := 2*x + 3*y + z:", data)
+        self.assertIn("x + y <= 6", data)
+        self.assertIn("y + z >= 1", data)
+        self.assertIn("x >= 0", data)
+        self.assertIn("x <= 5", data)
+        self.assertIn("binary_vars := {z}:", data)
+        self.assertIn("integer_vars := {y}:", data)
+        self.assertIn(
+            "sol := Optimization:-Maximize(objective, constraints, variables = vars):",
+            data,
+        )
 
 
 class BaseSolverTest:

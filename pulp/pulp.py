@@ -1995,6 +1995,18 @@ class LpProblem:
             self, filename=filename, writeSOS=writeSOS, mip=mip, max_length=max_length
         )
 
+    def writeMPL(self, filename):
+        """
+        Write the given Lp problem to a Maple script (.mpl) file.
+
+        :param str filename: the name of the file to be created.
+        :return: variables
+
+        Side Effects:
+            - The file is created
+        """
+        return mpslp.writeMPL(self, filename=filename)
+
     def checkDuplicateVars(self) -> None:
         """
         Checks if there are at least two variables with the same name
