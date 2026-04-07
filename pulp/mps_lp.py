@@ -525,3 +525,170 @@ def writeLP(
     f.close()
     lp.restoreObjective(wasNone, objectiveDummyVar)
     return vs
+
+
+def _sanitize_maple_name(name: str) -> str:
+    # Clean invalid characters for Maple
+    cleaned = re.sub(r"[^0-9A-Za-z_]", "_", name)
+    if not cleaned:
+        cleaned = "v"
+    if cleaned[0].isdigit():
+        cleaned = f"v_{cleaned}"
+    return cleaned
+
+
+def _format_maple_number(value: float) -> str:
+    if abs(value - round(value)) < 1e-12:
+        return str(int(round(value)))
+    return f"{value:.12g}"
+
+
+def _format_maple_terms(
+    terms: list[tuple[LpVariable, float]],
+    constant: float,
+    var_names: dict[str, str],
+) -> str:
+    # Render an affine expression in a stable variable order
+    rendered_terms: list[str] = []
+    for var, coef in sorted(terms, key=lambda item: var_names[item[0].name]):
+        if abs(coef) < 1e-12:
+            continue
+        var_name = var_names[var.name]
+        if abs(coef - 1.0) < 1e-12:
+            rendered_terms.append(var_name)
+        elif abs(coef + 1.0) < 1e-12:
+            rendered_terms.append(f"-{var_name}")
+        else:
+            rendered_terms.append(f"{_format_maple_number(coef)}*{var_name}")
+
+    if abs(constant) >= 1e-12:
+        rendered_terms.append(_format_maple_number(constant))
+
+    if not rendered_terms:
+        return "0"
+
+    expression = rendered_terms[0]
+    for term in rendered_terms[1:]:
+        if term.startswith("-"):
+            expression += f" - {term[1:]}"
+        else:
+            expression += f" + {term}"
+    return expression
+
+
+def _constraint_to_maple(
+    constraint: Any,
+    var_names: dict[str, str],
+) -> str:
+    lhs = _format_maple_terms(list(constraint.items()), 0.0, var_names)
+    rhs = _format_maple_number(-constraint.constant)
+
+    # Add the operator based on the sense
+    if constraint.sense == const.LpConstraintLE:
+        op = "<="
+    elif constraint.sense == const.LpConstraintGE:
+        op = ">="
+    elif constraint.sense == const.LpConstraintEQ:
+        op = "="
+    else:
+        raise const.PulpError(f"Unsupported constraint sense: {constraint.sense}")
+
+    return f"{lhs} {op} {rhs}"
+
+
+def writeMPL(lp: LpProblem, filename: str):
+    """
+    Write the given Lp problem to a Maple Optimization script (.mpl) file.
+
+    :param str filename: the name of the file to be created.
+    :return: variables
+    """
+    wasNone, objectiveDummyVar = lp.fixObjective()
+    assert lp.objective is not None
+    vs = lp.variables()
+
+    used_names: set[str] = set()
+    var_names: dict[str, str] = {}
+    for var in sorted(vs, key=lambda v: v.name):
+        base = _sanitize_maple_name(var.name)
+        candidate = base
+        i = 1
+        # Avoid collisions after sanitization (e.g. "a-b" and "a b")
+        while candidate in used_names:
+            i += 1
+            candidate = f"{base}_{i}"
+        used_names.add(candidate)
+        var_names[var.name] = candidate
+
+    objective = _format_maple_terms(
+        list(lp.objective.items()), lp.objective.constant, var_names
+    )
+
+    constraints = [
+        _constraint_to_maple(c, var_names)
+        for _, c in sorted(lp.constraints.items(), key=lambda item: item[0])
+    ]
+
+    bounds: list[str] = []
+    binary_vars: list[str] = []
+    integer_vars: list[str] = []
+    for var in sorted(vs, key=lambda v: v.name):
+        var_name = var_names[var.name]
+        # Bounds are exported as normal constraints for Maple
+        if var.lowBound is not None:
+            bounds.append(f"{var_name} >= {_format_maple_number(var.lowBound)}")
+        if var.upBound is not None:
+            bounds.append(f"{var_name} <= {_format_maple_number(var.upBound)}")
+        if var.isBinary():
+            binary_vars.append(var_name)
+        elif var.cat == const.LpInteger:
+            integer_vars.append(var_name)
+
+    all_constraints = constraints + bounds
+    sense = "Minimize" if lp.sense == const.LpMinimize else "Maximize"
+
+    lines: list[str] = [
+        "restart:",
+        "with(Optimization):",
+        "",
+        f"objective := {objective}:",
+    ]
+
+    if all_constraints:
+        lines.append("constraints := {")
+        for index, c in enumerate(all_constraints):
+            suffix = "," if index < len(all_constraints) - 1 else ""
+            lines.append(f"    {c}{suffix}")
+        lines.append("}:")
+    else:
+        lines.append("constraints := {}:")
+
+    rendered_vars = ", ".join(
+        var_names[var.name] for var in sorted(vs, key=lambda v: v.name)
+    )
+    lines.append(f"vars := [{rendered_vars}]:")
+    lines.append(
+        f"binary_vars := {{{', '.join(binary_vars)}}}:"
+        if binary_vars
+        else "binary_vars := {}:"
+    )
+    lines.append(
+        f"integer_vars := {{{', '.join(integer_vars)}}}:"
+        if integer_vars
+        else "integer_vars := {}:"
+    )
+    lines.extend(
+        [
+            "",
+            f"sol := Optimization:-{sense}(objective, constraints, variables = vars):",
+            "",
+            "sol;",
+            "",
+        ]
+    )
+
+    with open(filename, "w") as f:
+        f.write("\n".join(lines))
+
+    lp.restoreObjective(wasNone, objectiveDummyVar)
+    return vs
