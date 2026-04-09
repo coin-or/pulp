@@ -2,9 +2,10 @@
 
 use pyo3::prelude::*;
 use std::cell::RefCell;
-use std::rc::Weak;
+use std::rc::{Rc, Weak};
 
 use crate::format;
+use crate::model::Model;
 use crate::types::{upgrade_model, Category, ModelCore, VarId};
 
 /// Handle to a variable stored inside a `ModelCore`. Only created by the model.
@@ -19,6 +20,18 @@ pub struct Variable {
 impl Variable {
     pub fn id(&self) -> VarId {
         self.id
+    }
+
+    /// Opaque identity of the owning model (pointer to `ModelCore`); for same-model checks in Python.
+    fn model_identity(&self) -> PyResult<usize> {
+        let core_rc = upgrade_model(&self.model)?;
+        Ok(Rc::as_ptr(&core_rc) as usize)
+    }
+
+    /// `Model` handle sharing this variable's core (any such handle is equivalent for batch APIs).
+    fn containing_model(&self) -> PyResult<Model> {
+        let core_rc = upgrade_model(&self.model)?;
+        Ok(Model::from_shared_core(core_rc))
     }
 
     #[getter]

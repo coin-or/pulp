@@ -4,6 +4,7 @@ use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 
 use indexmap::IndexMap;
+use pyo3::buffer::PyBuffer;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
@@ -66,6 +67,73 @@ impl AffineExpr {
             *entry += coeff * sign;
         }
         self.constant += other.constant * sign;
+        Ok(())
+    }
+
+    /// Add many `(variable_id, coefficient)` pairs from C-contiguous buffers (`array.array('Q')`, `array.array('d')`).
+    #[pyo3(signature = (model, ids, coeffs))]
+    fn add_term_ids_coeffs(
+        &mut self,
+        model: &Model,
+        ids: &Bound<'_, PyAny>,
+        coeffs: &Bound<'_, PyAny>,
+        py: Python<'_>,
+    ) -> PyResult<()> {
+        let ids_buf = PyBuffer::<u64>::get(ids)?;
+        let coeffs_buf = PyBuffer::<f64>::get(coeffs)?;
+        if !ids_buf.is_c_contiguous() {
+            return Err(PyValueError::new_err(
+                "ids must be C-contiguous unsigned 64-bit integers (e.g. array.array('Q'))",
+            ));
+        }
+        if !coeffs_buf.is_c_contiguous() {
+            return Err(PyValueError::new_err(
+                "coeffs must be C-contiguous float64 (e.g. array.array('d'))",
+            ));
+        }
+        let n = ids_buf.item_count();
+        if n != coeffs_buf.item_count() {
+            return Err(PyValueError::new_err(format!(
+                "ids length ({n}) and coeffs length ({}) must match",
+                coeffs_buf.item_count()
+            )));
+        }
+        if self.model.is_none() {
+            self.model = Some(Rc::downgrade(&model.core));
+        } else {
+            let self_rc = get_model_optional(&self.model)?;
+            if !Rc::ptr_eq(&self_rc, &model.core) {
+                return Err(PyValueError::new_err(
+                    "expression is already bound to a different model than the given Model",
+                ));
+            }
+        }
+        let num_vars = model.core.borrow().vars.len();
+        let ids_vec: Vec<u64> = ids_buf.to_vec(py)?;
+        let coeffs_vec: Vec<f64> = coeffs_buf.to_vec(py)?;
+        if self.terms.is_empty() && n > 0 {
+            self.terms.reserve(n);
+        }
+        for (raw_id, coeff) in ids_vec.iter().zip(coeffs_vec.iter()) {
+            if *raw_id > usize::MAX as u64 {
+                return Err(PyValueError::new_err(format!(
+                    "variable id {raw_id} is too large for this platform"
+                )));
+            }
+            let vid = *raw_id as VarId;
+            if vid >= num_vars {
+                return Err(PyValueError::new_err(format!(
+                    "variable id {vid} is out of range (model has {num_vars} variables)"
+                )));
+            }
+            if !coeff.is_finite() {
+                return Err(PyValueError::new_err(
+                    "non-finite coefficient in coeffs buffer",
+                ));
+            }
+            let entry = self.terms.entry(vid).or_insert(0.0);
+            *entry += *coeff;
+        }
         Ok(())
     }
 

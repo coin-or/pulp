@@ -159,13 +159,13 @@ class COIN_CMD(LpSolver_CMD):
         )
         if use_mps:
             var_names_list, constr_names_list, objectiveName = lp.writeMPS(
-                tmpMps, rename=1
+                tmpMps, rename=True
             )
             cmds = " " + tmpMps + " "
         else:
             lp.writeLP(tmpLp)
             var_names_list = [v.name for v in lp.variables()]
-            constr_names_list = list(lp.constraints.keys())
+            constr_names_list = [c.name for c in lp.constraints]
             cmds = " " + tmpLp + " "
         if self.optionsDict.get("warmStart", False):
             self.writesol(tmpMst, lp, var_names_list, constr_names_list)
@@ -285,7 +285,7 @@ class COIN_CMD(LpSolver_CMD):
         vs = lp.variables()
         values = {v.name: 0.0 for v in vs}
         reverseVn = {variableNames[i]: vs[i].name for i in range(len(vs))}
-        reverseCn = {constraintNames[i]: c for i, c in enumerate(lp.constraints)}
+        reverseCn = {constraintNames[i]: c.name for i, c in enumerate(lp.constraints)}
 
         reducedCosts: dict[str, float] = {}
         shadowPrices: dict[str, float] = {}
@@ -350,7 +350,7 @@ class COIN_CMD(LpSolver_CMD):
         Returns status, values, reducedCosts, shadowPrices, slacks, sol_status.
         """
         variableNames = [v.name for v in lp.variables()]
-        constraintNames = list(lp.constraints.keys())
+        constraintNames = [c.name for c in lp.constraints]
         return self.readsol_MPS(filename, lp, variableNames, constraintNames)
 
     def get_status(self, filename):
@@ -792,7 +792,7 @@ class YAPOSIB(LpSolver):
                 var.varValue = var.solverVar.solution
                 var.dj = var.solverVar.reducedcost
             # put pi and slack variables against the constraints
-            for constr in lp.constraints.values():
+            for constr in lp.constraints:
                 constr.pi = constr.solverConstraint.dual
                 constr.slack = -constr.constant - constr.solverConstraint.activity
             if self.msg:
@@ -853,7 +853,7 @@ class YAPOSIB(LpSolver):
                 prob.obj[col.index] = lp.objective.get(var, 0.0)
                 var.solverVar = col
             log.debug("add the Constraints to the problem")
-            for name, constraint in lp.constraints.items():
+            for constraint in lp.constraints:
                 row = prob.rows.add(
                     yaposib.vec(
                         [
@@ -871,7 +871,7 @@ class YAPOSIB(LpSolver):
                     row.lowerbound = -constraint.constant
                 else:
                     raise PulpSolverError("Detected an invalid constraint type")
-                row.name = name
+                row.name = constraint.name
                 constraint.solverConstraint = row
 
         def actualSolve(self, lp, callback=None):
@@ -897,7 +897,7 @@ class YAPOSIB(LpSolver):
             constraints
             """
             log.debug("Resolve the model using yaposib")
-            for constraint in lp.constraints.values():
+            for constraint in lp.constraints:
                 row = constraint.solverConstraint
                 if constraint.modified:
                     if constraint.sense == constants.LpConstraintLE:

@@ -68,7 +68,7 @@ from .. import constants as const
 from .. import sparse
 
 if TYPE_CHECKING:
-    from ..pulp import LpProblem
+    from ..core import LpProblem
 
 try:
     import ujson as json  # type: ignore[import-untyped]
@@ -229,14 +229,15 @@ class LpSolver:
         self.c2n = {}
         self.n2c = {}
         i = 0
-        for c in lp.constraints:
-            rhsValues[i] = -lp.constraints[c].constant
+        for constr in lp.constraints:
+            rhsValues[i] = -constr.constant
             # for ranged constraints a<= constraint >=b
             rangeValues[i] = 0.0
-            rowNames[i] = to_string(c)
-            rowType[i] = to_string(senseDict[lp.constraints[c].sense])
-            self.c2n[c] = i
-            self.n2c[i] = c
+            row_key = constr.name
+            rowNames[i] = to_string(row_key)
+            rowType[i] = to_string(senseDict[constr.sense])
+            self.c2n[row_key] = i
+            self.n2c[i] = row_key
             i = i + 1
         # return the coefficient matrix as a series of vectors
         coeffs = lp.coefficients()

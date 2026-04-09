@@ -299,7 +299,7 @@ class PYGLPK(LpSolver):
                     var.varValue = glpk.glp_get_col_prim(prob, col)
                 var.dj = glpk.glp_get_col_dual(prob, col)
             # put pi and slack variables against the constraints
-            for constr in lp.constraints.values():
+            for constr in lp.constraints:
                 row = lp._solver_constr_handles[constr.id]
                 if self.mip and self.hasMIPConstraints(lp.solverModel):
                     row_val = glpk.glp_mip_row_val(prob, row)
@@ -345,8 +345,9 @@ class PYGLPK(LpSolver):
             log.debug("add the constraints to the problem")
             lp._solver_var_handles = []
             lp._solver_constr_handles = []
-            glpk.glp_add_rows(prob, len(list(lp.constraints.keys())))
-            for i, (name, constraint) in enumerate(lp.constraints.items(), start=1):
+            glpk.glp_add_rows(prob, len(lp.constraints))
+            for i, constraint in enumerate(lp.constraints, start=1):
+                name = constraint.name
                 glpk.glp_set_row_name(prob, i, name)
                 if constraint.sense == constants.LpConstraintLE:
                     glpk.glp_set_row_bnds(
@@ -392,7 +393,7 @@ class PYGLPK(LpSolver):
                 if value:
                     glpk.glp_set_obj_coef(prob, lp._solver_var_handles[var.id], value)
             log.debug("set the problem matrix")
-            for constraint in lp.constraints.values():
+            for constraint in lp.constraints:
                 n = len(list(constraint.items()))
                 ind = glpk.intArray(n + 1)
                 val = glpk.doubleArray(n + 1)
@@ -429,7 +430,7 @@ class PYGLPK(LpSolver):
             """
             prob = lp.solverModel
             log.debug("Resolve the Model using glpk")
-            for constraint in lp.constraints.values():
+            for constraint in lp.constraints:
                 i = lp._solver_constr_handles[constraint.id]
                 if constraint.modified:
                     if constraint.sense == constants.LpConstraintLE:

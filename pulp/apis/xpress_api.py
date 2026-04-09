@@ -426,8 +426,12 @@ class XPRESS_PY(LpSolver):
             # Build ordered lists of solver vars/cons (id = index in handle lists)
             xpress_vars = [(v, lp._solver_var_handles[v.id]) for v in lp.variables()]
             xpress_cons = [
-                (n, c, lp._solver_constr_handles[c.id])
-                for n, c in lp.constraints.items()
+                (
+                    c.name,
+                    c,
+                    lp._solver_constr_handles[c.id],
+                )
+                for c in lp.constraints
             ]
 
             if _ismip(lp) and self.mip:
@@ -639,7 +643,7 @@ class XPRESS_PY(LpSolver):
         try:
             rhsind = list()
             rhsval = list()
-            for name, con in lp.constraints.items():
+            for con in lp.constraints:
                 if not con.modified:
                     continue
                 rhsind.append(con.id)
@@ -764,9 +768,9 @@ class XPRESS_PY(LpSolver):
             for v, x in zip(lp.variables(), model.getVariable()):
                 lp._solver_var_handles.append(x)
 
-            # Generate constraints in model order (lp.constraints.items() = id order).
+            # Generate constraints in model order (same as lp.constraints list).
             cons = list()
-            for name, con in lp.constraints.items():
+            for con in lp.constraints:
                 lhs = xpress.Sum(
                     a * lp._solver_var_handles[x.id]
                     for x, a in sorted(con.items(), key=lambda item: item[0].name)

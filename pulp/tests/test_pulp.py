@@ -2,6 +2,7 @@
 Tests for pulp
 """
 
+import array
 import functools
 import os
 import re
@@ -11,6 +12,7 @@ from decimal import Decimal
 from typing import Optional, Type, Union
 
 import pulp.apis as solvers
+import pulp.mps_lp as mps_lp
 from pulp import (
     LpAffineExpression,
     LpConstraint,
@@ -18,6 +20,8 @@ from pulp import (
     LpVariable,
     PulpSolverError,
     lpSum,
+    lpSum_vars,
+    lpSum_vars_coefs,
 )
 from pulp import constants as const
 from pulp.constants import PulpError
@@ -92,6 +96,14 @@ def dumpTestProblem(prob):
         pass
 
 
+def _constraint_named(prob: LpProblem, name: str) -> LpConstraint:
+    """Return the constraint with the given name (first match)."""
+    for c in prob.constraints:
+        if c.name == name:
+            return c
+    raise KeyError(name)
+
+
 class ModelUnitTest(unittest.TestCase):
     """Solver-independent tests for the thin-wrapper architecture."""
 
@@ -137,32 +149,32 @@ class ModelUnitTest(unittest.TestCase):
         prob = self._make_prob()
         x = prob.add_variable("x", 0, 10)
         prob += x <= 5, "c1"
-        c = prob.constraints["c1"]
+        c = _constraint_named(prob, "c1")
         self.assertIsNone(c.pi)
 
     def test_constraint_pi_set_and_get(self):
         prob = self._make_prob()
         x = prob.add_variable("x", 0, 10)
         prob += x <= 5, "c1"
-        c = prob.constraints["c1"]
+        c = _constraint_named(prob, "c1")
         c.pi = 1.5
-        c2 = prob.constraints["c1"]
+        c2 = _constraint_named(prob, "c1")
         self.assertEqual(c2.pi, 1.5)
 
     def test_constraint_slack_default_none(self):
         prob = self._make_prob()
         x = prob.add_variable("x", 0, 10)
         prob += x <= 5, "c1"
-        c = prob.constraints["c1"]
+        c = _constraint_named(prob, "c1")
         self.assertIsNone(c.slack)
 
     def test_constraint_slack_set_and_get(self):
         prob = self._make_prob()
         x = prob.add_variable("x", 0, 10)
         prob += x <= 5, "c1"
-        c = prob.constraints["c1"]
+        c = _constraint_named(prob, "c1")
         c.slack = 2.0
-        c2 = prob.constraints["c1"]
+        c2 = _constraint_named(prob, "c1")
         self.assertEqual(c2.slack, 2.0)
 
     # -- 4. Constraint properties delegate to Rust --
@@ -173,17 +185,16 @@ class ModelUnitTest(unittest.TestCase):
         prob += x <= 5, "le"
         prob += x >= 1, "ge"
         prob += x == 3, "eq"
-        cons = prob.constraints
-        self.assertEqual(cons["le"].sense, const.LpConstraintLE)
-        self.assertEqual(cons["ge"].sense, const.LpConstraintGE)
-        self.assertEqual(cons["eq"].sense, const.LpConstraintEQ)
+        self.assertEqual(_constraint_named(prob, "le").sense, const.LpConstraintLE)
+        self.assertEqual(_constraint_named(prob, "ge").sense, const.LpConstraintGE)
+        self.assertEqual(_constraint_named(prob, "eq").sense, const.LpConstraintEQ)
 
     def test_constraint_rhs_via_constant(self):
         prob = self._make_prob()
         x = prob.add_variable("x", 0, 10)
         y = prob.add_variable("y", 0, 10)
         prob += x + y <= 5, "c1"
-        c = prob.constraints["c1"]
+        c = _constraint_named(prob, "c1")
         self.assertEqual(c.constant, -5)
 
     def test_constraint_items_keys_values(self):
@@ -191,7 +202,7 @@ class ModelUnitTest(unittest.TestCase):
         x = prob.add_variable("x", 0, 10)
         y = prob.add_variable("y", 0, 10)
         prob += 2 * x + 3 * y <= 10, "c1"
-        c = prob.constraints["c1"]
+        c = _constraint_named(prob, "c1")
         items = c.items()
         coeffs_by_name = {v.name: coeff for v, coeff in items}
         self.assertAlmostEqual(coeffs_by_name["x"], 2.0)
@@ -208,7 +219,8 @@ class ModelUnitTest(unittest.TestCase):
         prob += x <= 5
         cons = prob.constraints
         self.assertEqual(len(cons), 1)
-        name = list(cons.keys())[0]
+        name = cons[0].name
+        self.assertIsNotNone(name)
         self.assertTrue(len(name) > 0, "Auto-generated name should be non-empty")
 
     def test_multiple_auto_named_constraints(self):
@@ -219,10 +231,43 @@ class ModelUnitTest(unittest.TestCase):
         prob += x <= 8
         cons = prob.constraints
         self.assertEqual(len(cons), 3)
-        names = list(cons.keys())
+        names = [c.name for c in cons]
         self.assertEqual(
             len(set(names)), 3, "All auto-generated names should be distinct"
         )
+        self.assertEqual(sorted(names), ["_C1", "_C2", "_C3"])
+
+    def test_constraint_name_leading_underscore_raises(self):
+        prob = self._make_prob()
+        x = prob.add_variable("x", 0, 10)
+        with self.assertRaises(ValueError):
+            prob += x <= 5, "_bad"
+
+    def test_from_dataclass_sanitizes_leading_underscore_constraint_name(self):
+        mps = mps_lp.MPS(
+            parameters=mps_lp.MPSParameters(
+                name="p", sense=const.LpMinimize, status=0, sol_status=0
+            ),
+            objective=mps_lp.MPSObjective(
+                name="OBJ",
+                coefficients=[mps_lp.MPSCoefficient("x", 1.0)],
+            ),
+            variables=[
+                mps_lp.MPSVariable("x", const.LpContinuous, 0, None),
+            ],
+            constraints=[
+                mps_lp.MPSConstraint(
+                    name="_row1",
+                    sense=const.LpConstraintLE,
+                    coefficients=[mps_lp.MPSCoefficient("x", 1.0)],
+                    constant=0.0,
+                )
+            ],
+            sos1=[],
+            sos2=[],
+        )
+        _var, pb = LpProblem.fromDataclass(mps, objective_negate_for_max=False)
+        self.assertTrue(any(c.name == "imp__row1" for c in pb.constraints))
 
     # -- 6. Duplicate constraint name --
 
@@ -230,28 +275,29 @@ class ModelUnitTest(unittest.TestCase):
         prob = self._make_prob()
         x = prob.add_variable("x", 0, 10)
         prob += x <= 5, "c1"
-        with self.assertRaises(ValueError):
-            prob += x >= 1, "c1"
+        prob += x >= 1, "c1"
+        with self.assertRaises(PulpError):
+            prob.checkDuplicateConstraints()
 
     # -- 7. constraints property (fresh from Rust) --
 
-    def test_constraints_property_returns_dict(self):
+    def test_constraints_property_returns_list(self):
         prob = self._make_prob()
         x = prob.add_variable("x", 0, 10)
         prob += x <= 5, "c1"
         prob += x >= 1, "c2"
         cons = prob.constraints
-        self.assertIsInstance(cons, dict)
-        self.assertEqual(set(cons.keys()), {"c1", "c2"})
-        self.assertIsInstance(cons["c1"], LpConstraint)
-        self.assertIsInstance(cons["c2"], LpConstraint)
+        self.assertIsInstance(cons, list)
+        self.assertEqual({c.name for c in cons}, {"c1", "c2"})
+        self.assertIsInstance(_constraint_named(prob, "c1"), LpConstraint)
+        self.assertIsInstance(_constraint_named(prob, "c2"), LpConstraint)
 
     def test_constraints_property_fresh_wrappers(self):
         prob = self._make_prob()
         x = prob.add_variable("x", 0, 10)
         prob += x <= 5, "c1"
-        a = prob.constraints["c1"]
-        b = prob.constraints["c1"]
+        a = _constraint_named(prob, "c1")
+        b = _constraint_named(prob, "c1")
         self.assertIsNot(a, b, "Each call should produce a fresh wrapper")
         self.assertEqual(a.name, b.name)
 
@@ -274,6 +320,42 @@ class ModelUnitTest(unittest.TestCase):
         v2 = prob.variables()[0]
         self.assertIsNot(v1, v2, "Each call should produce a fresh wrapper")
         self.assertEqual(v1.name, v2.name)
+
+    def test_lp_problem_copy_rust_model(self) -> None:
+        """copy() deep-copies the Rust model; variables are independent but data matches."""
+        prob = self._make_prob()
+        x = prob.add_variable("x", 0, 10)
+        y = prob.add_variable("y", 0, 10)
+        prob.objective = x + 2 * y
+        prob.addConstraint(x + y <= 5, name="c1")
+        x.setInitialValue(3.0)
+        y.setInitialValue(1.0)
+
+        prob2 = prob.copy()
+        self.assertIsNot(prob, prob2)
+        self.assertNotEqual(
+            x._var.model_identity(), prob2.variables()[0]._var.model_identity()
+        )
+
+        vx0, vy0 = prob.variables()
+        vx1, vy1 = prob2.variables()
+        self.assertEqual(vx0.name, vx1.name)
+        self.assertEqual(vy0.name, vy1.name)
+        self.assertEqual(vx1.value(), 3.0)
+        self.assertEqual(vy1.value(), 1.0)
+
+        self.assertEqual(prob2._model.num_variables, prob._model.num_variables)
+        self.assertEqual(prob2._model.num_constraints, prob._model.num_constraints)
+        self.assertIsNotNone(prob2.objective)
+        self.assertEqual(str(prob.objective), str(prob2.objective))
+        self.assertEqual({c.name for c in prob2.constraints}, {"c1"})
+
+        vx1.setInitialValue(7.0)
+        self.assertEqual(x.value(), 3.0)
+        self.assertEqual(vx1.value(), 7.0)
+
+        prob3 = prob.deepcopy()
+        self.assertEqual(prob3.variables()[0].value(), 3.0)
 
     # -- 9. Batch setters --
 
@@ -298,14 +380,14 @@ class ModelUnitTest(unittest.TestCase):
         x = prob.add_variable("x", 0, 10)
         prob += x <= 5, "c1"
         prob.assignConsPi({"c1": 1.5})
-        self.assertEqual(prob.constraints["c1"].pi, 1.5)
+        self.assertEqual(_constraint_named(prob, "c1").pi, 1.5)
 
     def test_assign_cons_slack(self):
         prob = self._make_prob()
         x = prob.add_variable("x", 0, 10)
         prob += x <= 5, "c1"
         prob.assignConsSlack({"c1": 2.0})
-        self.assertEqual(prob.constraints["c1"].slack, 2.0)
+        self.assertEqual(_constraint_named(prob, "c1").slack, 2.0)
 
     # -- 11. LpVariable arithmetic operators --
 
@@ -359,6 +441,15 @@ class ModelUnitTest(unittest.TestCase):
             _ = (x + y).items()
         self.assertIn("no longer exists", str(ctx.exception))
 
+    def test_lpconstraint_not_additive_with_affine(self):
+        prob = self._make_prob()
+        x = prob.add_variable("x", 0, 10)
+        prob += x <= 1, "c1"
+        c = _constraint_named(prob, "c1")
+        y = LpAffineExpression.from_variable(prob.add_variable("y", 0, 1))
+        with self.assertRaises(TypeError):
+            _ = y + c
+
     # -- 8. Numpy scalars in constraints (constant on left) --
 
     def test_constraint_numpy_scalar_constant_on_left(self):
@@ -374,9 +465,9 @@ class ModelUnitTest(unittest.TestCase):
         model += var >= np.float64(0)
 
         self.assertEqual(len(model.constraints), 2)
-        senses = {c.sense for c in model.constraints.values()}
+        senses = {c.sense for c in model.constraints}
         self.assertEqual(senses, {const.LpConstraintLE, const.LpConstraintGE})
-        for c in model.constraints.values():
+        for c in model.constraints:
             if c.sense == const.LpConstraintLE:
                 self.assertAlmostEqual(c.constant, -34.5)
                 break
@@ -512,7 +603,7 @@ class BaseSolverTest:
             }
             prob += lpSum(x_vars[i] for i in range(3)) >= 2
             prob += lpSum(x_vars[i] for i in range(3)) <= 5
-            for elem in prob.constraints.values():
+            for elem in prob.constraints:
                 self.assertIn(elem.constant, [-2, -5])
 
         def test_intermediate_var(self):
@@ -524,7 +615,7 @@ class BaseSolverTest:
             x = lpSum(x_vars[i] for i in range(3))
             prob += x >= 2
             prob += x <= 5
-            for elem in prob.constraints.values():
+            for elem in prob.constraints:
                 self.assertIn(elem.constant, [-2, -5])
 
         def test_comparison(self):
@@ -1348,7 +1439,7 @@ class BaseSolverTest:
                 h.write(str.encode(EXAMPLE_MPS_RHS56))
             _, problem = LpProblem.fromMPS(h.name)
             os.unlink(h.name)
-            self.assertEqual(problem.constraints["LIM2"].constant, -10)
+            self.assertEqual(_constraint_named(problem, "LIM2").constant, -10)
 
         def test_importMPS_PL_bound(self):
             """Import MPS file with PL bound type."""
@@ -2584,7 +2675,7 @@ def pulpTestCheck(
                 )
     if duals:
         for cname, p in duals.items():
-            c = prob.constraints[cname]
+            c = _constraint_named(prob, cname)
             if abs(c.pi - p) > eps:
                 dumpTestProblem(prob)
                 raise PulpError(
@@ -2594,7 +2685,7 @@ def pulpTestCheck(
                 )
     if slacks:
         for cname, slack in slacks.items():
-            c = prob.constraints[cname]
+            c = _constraint_named(prob, cname)
             if abs(c.slack - slack) > eps:
                 dumpTestProblem(prob)
                 raise PulpError(
@@ -2609,6 +2700,66 @@ def pulpTestCheck(
             raise PulpError(
                 f"Tests failed for solver {solver}:\nobjective {z} != {objective}"
             )
+
+
+def _affine_keyed(expr: LpAffineExpression) -> tuple[float, list[tuple[str, float]]]:
+    return (
+        float(expr.constant),
+        sorted((v.name, float(expr[v])) for v in expr),
+    )
+
+
+class TestLpSumVars(unittest.TestCase):
+    def test_lpSum_vars_matches_lpSum(self) -> None:
+        prob = LpProblem("t")
+        x = prob.add_variable("x")
+        y = prob.add_variable("y")
+        a = lpSum([x, y])
+        b = lpSum_vars([x, y])
+        self.assertEqual(_affine_keyed(a), _affine_keyed(b))
+
+    def test_lpSum_vars_empty(self) -> None:
+        e = lpSum_vars([])
+        self.assertEqual(len(e), 0)
+        self.assertEqual(e.constant, 0)
+
+    def test_lpSum_vars_coefs_matches_lpSum(self) -> None:
+        prob = LpProblem("t")
+        x = prob.add_variable("x")
+        y = prob.add_variable("y")
+        ref = lpSum([2 * x, 3 * y])
+        got = lpSum_vars_coefs([(x, 2.0), (y, 3.0)])
+        self.assertEqual(_affine_keyed(ref), _affine_keyed(got))
+
+    def test_lpSum_vars_coefs_empty(self) -> None:
+        e = lpSum_vars_coefs([])
+        self.assertEqual(len(e), 0)
+        self.assertEqual(e.constant, 0)
+
+    def test_add_term_ids_coeffs_bad_id(self) -> None:
+        prob = LpProblem("t")
+        prob.add_variable("x")
+        v = prob.add_variable("y")
+        model = v._var.containing_model()
+        e = LpAffineExpression.empty()
+        ids = array.array("Q", [99])
+        coeffs = array.array("d", [1.0])
+        with self.assertRaises(ValueError):
+            e._expr.add_term_ids_coeffs(model, ids, coeffs)
+
+    def test_lpSum_vars_mixed_model(self) -> None:
+        p1 = LpProblem("p1")
+        p2 = LpProblem("p2")
+        x = p1.add_variable("x")
+        y = p2.add_variable("y")
+        with self.assertRaises(PulpError):
+            lpSum_vars([x, y])
+
+    def test_lpSum_vars_coefs_nonfinite(self) -> None:
+        prob = LpProblem("t")
+        x = prob.add_variable("x")
+        with self.assertRaises(PulpError):
+            lpSum_vars_coefs([(x, float("nan"))])
 
 
 def getSortedDict(prob, keyCons="name", keyVars="name"):

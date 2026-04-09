@@ -83,6 +83,7 @@ class CHOCO_CMD(LpSolver_CMD):
         tmpMps, tmpLp, tmpSol = self.create_tmp_files(lp.name, "mps", "lp", "sol")
         # just to report duplicated variables:
         lp.checkDuplicateVars()
+        lp.checkDuplicateConstraints()
 
         lp.writeMPS(tmpMps, mpsSense=lp.sense)
         try:

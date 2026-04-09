@@ -26,8 +26,7 @@ The LpProblem Class
 
    .. attribute:: constraints
 
-      An :class:`ordered dictionary<odict.OrderedDict>` of
-      :class:`constraints<LpConstraint>` of the problem - indexed by their names.
+      A :class:`list` of :class:`constraints<LpConstraint>` in model order (same order as rows in the Rust core).
 
    .. attribute:: status 
 

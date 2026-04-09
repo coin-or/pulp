@@ -84,6 +84,7 @@ class MIPCL_CMD(LpSolver_CMD):
             )
             lp += -lp.objective
         lp.checkDuplicateVars()
+        lp.checkDuplicateConstraints()
         lp.checkLengthVars(52)
         lp.writeMPS(tmpMps, mpsSense=lp.sense)
 

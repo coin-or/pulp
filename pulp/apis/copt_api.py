@@ -533,13 +533,14 @@ class COPT_DLL(LpSolver):
 
             # Extract constraint rhs, senses and names
             idx = 0
-            for row in lp.constraints:
-                rowrhs[idx] = -lp.constraints[row].constant
-                rowsense[idx] = coptrsense[lp.constraints[row].sense]
-                rowname[idx] = coptstr(row)
+            for constr in lp.constraints:
+                row_key = constr.name
+                rowrhs[idx] = -constr.constant
+                rowsense[idx] = coptrsense[constr.sense]
+                rowname[idx] = coptstr(row_key)
 
-                self.c2n[row] = idx
-                self.n2c[idx] = row
+                self.c2n[row_key] = idx
+                self.n2c[idx] = row_key
                 idx += 1
 
             # Extract coefficient matrix and generate CSC-format matrix
@@ -947,7 +948,7 @@ class COPT(LpSolver):
                 try:
                     # NOTE: slacks in COPT are activities of rows
                     slacks = model.getInfo("Slack", model.getConstrs())
-                    for constr, value in zip(lp.constraints.values(), slacks):
+                    for constr, value in zip(lp.constraints, slacks):
                         constr.slack = value
 
                     redcosts = model.getInfo("RedCost", model.getVars())
@@ -955,7 +956,7 @@ class COPT(LpSolver):
                         var.dj = value
 
                     duals = model.getInfo("Dual", model.getConstrs())
-                    for constr, value in zip(lp.constraints.values(), duals):
+                    for constr, value in zip(lp.constraints, duals):
                         constr.pi = value
                 except coptpy.CoptError:
                     # sometimes the model is not solved, and thus these infos are not available
@@ -1022,7 +1023,8 @@ class COPT(LpSolver):
                         )
                 lp.solverModel.loadMipStart()
 
-            for name, constraint in lp.constraints.items():
+            for constraint in lp.constraints:
+                name = constraint.name
                 solver_vars = [lp._solver_var_handles[v.id] for v in constraint.keys()]
                 expr = coptpy.LinExpr(solver_vars, list(constraint.values()))
                 if constraint.sense == LpConstraintLE:
@@ -1057,7 +1059,7 @@ class COPT(LpSolver):
 
             uses the old solver and modifies the rhs of the modified constraints
             """
-            for constraint in lp.constraints.values():
+            for constraint in lp.constraints:
                 if constraint.modified:
                     handle = lp._solver_constr_handles[constraint.id]
                     if constraint.sense == LpConstraintLE:

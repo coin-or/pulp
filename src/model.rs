@@ -3,20 +3,24 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use indexmap::IndexMap;
-use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
 use crate::affine_expr::AffineExpr;
 use crate::constraint::Constraint;
-use crate::types::{Category, ConstrId, ModelCore, ObjSense, Sense, VarId};
+use crate::types::{get_model_optional, Category, ConstrId, ModelCore, ObjSense, VarId};
 use crate::variable::Variable;
 
 /// High-level model handle exposed to Python.
 #[pyclass(unsendable)]
 pub struct Model {
     pub core: Rc<RefCell<ModelCore>>,
-    next_constraint_id: usize,
+}
+
+impl Model {
+    /// Wrap an existing core (same `Rc` as variables). Used by `Variable::containing_model`.
+    pub(crate) fn from_shared_core(core: Rc<RefCell<ModelCore>>) -> Self {
+        Self { core }
+    }
 }
 
 #[pymethods]
@@ -25,10 +29,7 @@ impl Model {
     fn new(name: Option<String>) -> Self {
         let name = name.unwrap_or_else(|| "Model".to_string());
         let core = Rc::new(RefCell::new(ModelCore::new(name)));
-        Self {
-            core,
-            next_constraint_id: 0,
-        }
+        Self { core }
     }
 
     fn add_variable(
@@ -45,51 +46,19 @@ impl Model {
         }
     }
 
-    fn add_constraint(
-        &mut self,
-        name: String,
-        coeffs: Vec<(Variable, f64)>,
-        rhs: f64,
-        sense: Sense,
-    ) -> PyResult<Constraint> {
-        let actual_name = if name.is_empty() {
-            loop {
-                self.next_constraint_id += 1;
-                let candidate = format!("_C{}", self.next_constraint_id);
-                let exists = self
-                    .core
-                    .borrow()
-                    .constraints
-                    .iter()
-                    .any(|c| c.name == candidate);
-                if !exists {
-                    break candidate;
-                }
-            }
+    fn add_constraint(&mut self, expr: &AffineExpr) -> PyResult<Constraint> {
+        let mut e = expr.clone();
+        if e.model.is_none() {
+            e.model = Some(Rc::downgrade(&self.core));
         } else {
-            let exists = self
-                .core
-                .borrow()
-                .constraints
-                .iter()
-                .any(|c| c.name == name);
-            if exists {
-                return Err(PyValueError::new_err(format!(
-                    "Duplicate constraint name: {}",
-                    name
-                )));
+            let expr_core = get_model_optional(&e.model)?;
+            if !Rc::ptr_eq(&expr_core, &self.core) {
+                return Err(pyo3::exceptions::PyValueError::new_err(
+                    "Expression is bound to a different model than the one receiving the constraint.",
+                ));
             }
-            name
-        };
-        let mut map = IndexMap::new();
-        for (var, coeff) in coeffs {
-            let entry = map.entry(var.id()).or_insert(0.0);
-            *entry += coeff;
         }
-        let id = self
-            .core
-            .borrow_mut()
-            .add_constraint(actual_name, map, rhs, sense);
+        let id = self.core.borrow_mut().add_constraint(&e)?;
         Ok(Constraint {
             id,
             model: Rc::downgrade(&self.core),
@@ -346,42 +315,17 @@ impl Model {
 
     /// Check for duplicate variable names.
     fn check_duplicate_vars(&self) -> PyResult<()> {
-        let core = self.core.borrow();
-        let mut seen = std::collections::HashMap::new();
-        for vd in &core.vars {
-            *seen.entry(vd.name.clone()).or_insert(0usize) += 1;
-        }
-        let repeated: Vec<(String, usize)> =
-            seen.into_iter().filter(|(_, c)| *c >= 2).collect();
-        if !repeated.is_empty() {
-            return Err(pyo3::exceptions::PyRuntimeError::new_err(format!(
-                "Repeated variable names: {:?}",
-                repeated
-                    .iter()
-                    .map(|(n, c)| format!("('{}', {})", n, c))
-                    .collect::<Vec<_>>()
-                    .join(", ")
-            )));
-        }
-        Ok(())
+        self.core.borrow().check_duplicate_var_names()
+    }
+
+    /// Check for duplicate constraint names.
+    fn check_duplicate_constraints(&self) -> PyResult<()> {
+        self.core.borrow().check_duplicate_constraint_names()
     }
 
     /// Check that no variable name exceeds max_length.
     fn check_length_vars(&self, max_length: usize) -> PyResult<()> {
-        let core = self.core.borrow();
-        let long: Vec<String> = core
-            .vars
-            .iter()
-            .filter(|v| v.name.len() > max_length)
-            .map(|v| v.name.clone())
-            .collect();
-        if !long.is_empty() {
-            return Err(pyo3::exceptions::PyRuntimeError::new_err(format!(
-                "Variable names too long for Lp format: {:?}",
-                long
-            )));
-        }
-        Ok(())
+        self.core.borrow().check_var_name_lengths(max_length)
     }
 
     /// Return all (variable_name, constraint_name, coefficient) triples.
@@ -410,11 +354,15 @@ impl Model {
             constraints: core.constraints.clone(),
             objective: core.objective.clone(),
             sense: core.sense,
+            next_auto_constraint_id: core.next_auto_constraint_id,
         };
-        let next_id = self.next_constraint_id;
-        Self {
-            core: Rc::new(RefCell::new(new_core)),
-            next_constraint_id: next_id,
+        let new_rc = Rc::new(RefCell::new(new_core));
+        {
+            let mut inner = new_rc.borrow_mut();
+            if let Some(ref mut obj) = inner.objective {
+                obj.model = Some(Rc::downgrade(&new_rc));
+            }
         }
+        Self { core: new_rc }
     }
 }

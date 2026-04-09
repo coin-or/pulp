@@ -1,10 +1,11 @@
 //! Shared types and model core used by Variable, Constraint, AffineExpr, and Model.
 
 use std::cell::RefCell;
+use std::collections::HashMap;
 use std::rc::{Rc, Weak};
 
 use indexmap::IndexMap;
-use pyo3::exceptions::PyValueError;
+use pyo3::exceptions::{PyRuntimeError, PyValueError};
 use pyo3::prelude::*;
 
 use crate::affine_expr::AffineExpr;
@@ -69,6 +70,8 @@ pub struct ModelCore {
     pub objective: Option<AffineExpr>,
     /// Objective sense (min/max); set when set_objective is called, or default Minimize.
     pub sense: ObjSense,
+    /// Counter for auto-generated constraint names (`_C1`, ...); shared by all `Model` handles.
+    pub next_auto_constraint_id: usize,
 }
 
 impl ModelCore {
@@ -79,6 +82,7 @@ impl ModelCore {
             constraints: Vec::new(),
             objective: None,
             sense: ObjSense::Minimize,
+            next_auto_constraint_id: 0,
         }
     }
 
@@ -102,13 +106,50 @@ impl ModelCore {
         id
     }
 
-    pub fn add_constraint(
-        &mut self,
-        name: String,
-        coeffs: IndexMap<VarId, f64>,
-        rhs: f64,
-        sense: Sense,
-    ) -> ConstrId {
+    /// Add a constraint from a pending `AffineExpr` (must have `sense` set).
+    /// `rhs` in storage is `-expr.constant` (same convention as Python `addConstraint`).
+    pub fn add_constraint(&mut self, expr: &AffineExpr) -> PyResult<ConstrId> {
+        let sense = expr.sense.ok_or_else(|| {
+            PyValueError::new_err("Cannot add constraint without a sense (<=, >=, ==)")
+        })?;
+        if !expr.constant.is_finite() {
+            return Err(PyValueError::new_err(format!(
+                "Invalid constraint RHS value: {}. Coefficients and bounds must be finite.",
+                expr.constant
+            )));
+        }
+        for (vid, coeff) in &expr.terms {
+            if !coeff.is_finite() {
+                return Err(PyValueError::new_err(format!(
+                    "Invalid coefficient value: {coeff} for variable id {vid}. Coefficients must be finite."
+                )));
+            }
+            if *vid >= self.vars.len() {
+                return Err(PyValueError::new_err(format!(
+                    "Variable id {vid} is out of range (model has {} variables)",
+                    self.vars.len()
+                )));
+            }
+        }
+        let rhs = -expr.constant;
+        let coeffs = expr.terms.clone();
+        let raw_name = expr
+            .name
+            .as_deref()
+            .map(str::trim)
+            .filter(|s| !s.is_empty());
+        let name: String = match raw_name {
+            None => {
+                self.next_auto_constraint_id += 1;
+                format!("_C{}", self.next_auto_constraint_id)
+            }
+            Some(n) if n.starts_with('_') => {
+                return Err(PyValueError::new_err(
+                    "Constraint names must not start with '_'; names beginning with '_' are reserved for auto-generated constraints (_C1, _C2, ...).",
+                ));
+            }
+            Some(n) => n.to_string(),
+        };
         let id = self.constraints.len();
         self.constraints.push(ConstraintData {
             name,
@@ -118,7 +159,7 @@ impl ModelCore {
             pi: None,
             slack: None,
         });
-        id
+        Ok(id)
     }
 
     pub fn set_objective(&mut self, expr: AffineExpr) {
@@ -127,6 +168,63 @@ impl ModelCore {
 
     pub fn clear_objective(&mut self) {
         self.objective = None;
+    }
+
+    /// At least two variables share the same name (invalid for LP/MPS export).
+    pub(crate) fn check_duplicate_var_names(&self) -> PyResult<()> {
+        let mut seen: HashMap<&str, usize> = HashMap::new();
+        for vd in &self.vars {
+            *seen.entry(vd.name.as_str()).or_insert(0) += 1;
+        }
+        let repeated: Vec<(&str, usize)> = seen.into_iter().filter(|(_, c)| *c >= 2).collect();
+        if !repeated.is_empty() {
+            let msg: Vec<String> = repeated
+                .iter()
+                .map(|(n, c)| format!("('{}', {})", n, c))
+                .collect();
+            return Err(PyRuntimeError::new_err(format!(
+                "Repeated variable names: {{{}}}",
+                msg.join(", ")
+            )));
+        }
+        Ok(())
+    }
+
+    /// At least two constraints share the same name (invalid for LP/MPS export).
+    pub(crate) fn check_duplicate_constraint_names(&self) -> PyResult<()> {
+        let mut seen: HashMap<&str, usize> = HashMap::new();
+        for cd in &self.constraints {
+            *seen.entry(cd.name.as_str()).or_insert(0) += 1;
+        }
+        let repeated: Vec<(&str, usize)> = seen.into_iter().filter(|(_, c)| *c >= 2).collect();
+        if !repeated.is_empty() {
+            let msg: Vec<String> = repeated
+                .iter()
+                .map(|(n, c)| format!("('{}', {})", n, c))
+                .collect();
+            return Err(PyRuntimeError::new_err(format!(
+                "Repeated constraint names: {{{}}}",
+                msg.join(", ")
+            )));
+        }
+        Ok(())
+    }
+
+    /// Variable names longer than `max_length` are invalid for CPLEX LP format.
+    pub(crate) fn check_var_name_lengths(&self, max_length: usize) -> PyResult<()> {
+        let long: Vec<&str> = self
+            .vars
+            .iter()
+            .filter(|v| v.name.len() > max_length)
+            .map(|v| v.name.as_str())
+            .collect();
+        if !long.is_empty() {
+            return Err(PyRuntimeError::new_err(format!(
+                "Variable names too long for Lp format: {:?}",
+                long
+            )));
+        }
+        Ok(())
     }
 }
 

@@ -563,7 +563,7 @@ class SCIP_PY(LpSolver):
                     solution = lp.solverModel.getBestSol()
                     for var in lp.variables():
                         var.varValue = solution[lp._solver_var_handles[var.id]]
-                    for constraint in lp.constraints.values():
+                    for constraint in lp.constraints:
                         constraint.slack = lp.solverModel.getSlack(
                             lp._solver_constr_handles[constraint.id], solution
                         )
@@ -667,7 +667,8 @@ class SCIP_PY(LpSolver):
                 constants.LpConstraintGE: operator.ge,
                 constants.LpConstraintEQ: operator.eq,
             }
-            for name, constraint in lp.constraints.items():
+            for constraint in lp.constraints:
+                name = constraint.name
                 ccon = lp.solverModel.addCons(
                     cons=sense_to_operator[constraint.sense](
                         scip.quicksum(

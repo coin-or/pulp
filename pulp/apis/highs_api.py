@@ -97,6 +97,7 @@ class HiGHS_CMD(LpSolver_CMD):
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute " + self.path)
         lp.checkDuplicateVars()
+        lp.checkDuplicateConstraints()
 
         tmpMps, tmpSol, tmpOptions, tmpLog, tmpMst = self.create_tmp_files(
             lp.name, "mps", "sol", "HiGHS", "HiGHS_log", "mst"
@@ -384,7 +385,7 @@ class HiGHS(LpSolver):
                         var.id, highspy.HighsVarType.kInteger
                     )
 
-            for constraint in lp.constraints.values():
+            for constraint in lp.constraints:
                 non_zero_constraint_items = [
                     (var.id, coefficient)
                     for var, coefficient in constraint.items()
@@ -495,7 +496,7 @@ class HiGHS(LpSolver):
 
             row_values = list(solution.row_value)
             row_duals = list(solution.row_dual)
-            for constraint in lp.constraints.values():
+            for constraint in lp.constraints:
                 # PuLP returns LpConstraint.constant as if it were on the
                 # left-hand side, which means the signs on the following line
                 # are correct

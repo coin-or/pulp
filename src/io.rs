@@ -44,8 +44,9 @@ pub fn write_lp(
 ) -> PyResult<Vec<Variable>> {
     let core = model.core.borrow();
 
-    check_duplicate_vars_core(&core)?;
-    check_length_vars_core(&core, max_length)?;
+    core.check_duplicate_var_names()?;
+    core.check_duplicate_constraint_names()?;
+    core.check_var_name_lengths(max_length)?;
 
     let mut f = std::fs::File::create(filename)
         .map_err(|e| PyRuntimeError::new_err(format!("Cannot create file: {}", e)))?;
@@ -189,6 +190,8 @@ pub fn write_mps(
     obj_name: &str,
 ) -> PyResult<(Vec<String>, Vec<String>, String)> {
     let core = model.core.borrow();
+    core.check_duplicate_var_names()?;
+    core.check_duplicate_constraint_names()?;
 
     let sense_label = if mps_sense == -1 {
         "Maximize"
@@ -1045,46 +1048,6 @@ fn set_bounds(
                 _ => unreachable!(),
             }
         }
-    }
-    Ok(())
-}
-
-fn check_duplicate_vars_core(
-    core: &std::cell::Ref<'_, crate::types::ModelCore>,
-) -> PyResult<()> {
-    let mut seen: HashMap<&str, usize> = HashMap::new();
-    for vd in &core.vars {
-        *seen.entry(&vd.name).or_insert(0) += 1;
-    }
-    let repeated: Vec<(&str, usize)> = seen.into_iter().filter(|(_, c)| *c >= 2).collect();
-    if !repeated.is_empty() {
-        let msg: Vec<String> = repeated
-            .iter()
-            .map(|(n, c)| format!("('{}', {})", n, c))
-            .collect();
-        return Err(PyRuntimeError::new_err(format!(
-            "Repeated variable names: {{{}}}",
-            msg.join(", ")
-        )));
-    }
-    Ok(())
-}
-
-fn check_length_vars_core(
-    core: &std::cell::Ref<'_, crate::types::ModelCore>,
-    max_length: usize,
-) -> PyResult<()> {
-    let long: Vec<&str> = core
-        .vars
-        .iter()
-        .filter(|v| v.name.len() > max_length)
-        .map(|v| v.name.as_str())
-        .collect();
-    if !long.is_empty() {
-        return Err(PyRuntimeError::new_err(format!(
-            "Variable names too long for Lp format: {:?}",
-            long
-        )));
     }
     Ok(())
 }

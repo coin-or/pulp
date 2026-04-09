@@ -80,7 +80,12 @@ def masterSolve(
         # Creates a dual variables list
         duals = {}
         for name, i in zip(["Min5", "Min7", "Min9"], Pattern.lenOpts):
-            duals[i] = prob.constraints[name].pi
+            for c in prob.constraints:
+                if c.name == name:
+                    duals[i] = c.pi
+                    break
+            else:
+                raise KeyError(name)
 
         return duals
 

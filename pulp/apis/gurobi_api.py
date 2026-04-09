@@ -212,7 +212,7 @@ class GUROBI(LpSolver):
                     var.varValue = value
                 # populate pulp constraints slack (constraints.items() in id order)
                 for constr, value in zip(
-                    lp.constraints.values(),
+                    lp.constraints,
                     model.getAttr(GRB.Attr.Slack, model.getConstrs()),
                 ):
                     constr.slack = value
@@ -224,7 +224,7 @@ class GUROBI(LpSolver):
                         var.dj = value
 
                     for constr, value in zip(
-                        lp.constraints.values(),
+                        lp.constraints,
                         model.getAttr(GRB.Attr.Pi, model.getConstrs()),
                     ):
                         constr.pi = value
@@ -323,8 +323,9 @@ class GUROBI(LpSolver):
             lp.solverModel.update()
             if nvars == 0:
                 log.debug("add the Constraints to the problem")
-                for name, constraint in lp.constraints.items():
+                for constraint in lp.constraints:
                     # build the expression (id = index in _solver_var_handles)
+                    name = constraint.name
                     solver_vars = [
                         lp._solver_var_handles[v.id] for v in constraint.keys()
                     ]
@@ -347,7 +348,8 @@ class GUROBI(LpSolver):
             else:
                 # Add any new constraints (e.g. added by sequentialSolve)
                 nconstr_in_model = len(lp._solver_constr_handles)
-                for name, constraint in list(lp.constraints.items())[nconstr_in_model:]:
+                for constraint in lp.constraints[nconstr_in_model:]:
+                    name = constraint.name
                     solver_vars = [
                         lp._solver_var_handles[v.id] for v in constraint.keys()
                     ]
@@ -391,7 +393,7 @@ class GUROBI(LpSolver):
             uses the old solver and modifies the rhs of the modified constraints
             """
             log.debug("Resolve the Model using gurobi")
-            for constraint in lp.constraints.values():
+            for constraint in lp.constraints:
                 if constraint.modified:
                     lp._solver_constr_handles[constraint.id].setAttr(
                         gp.GRB.Attr.RHS, -constraint.constant

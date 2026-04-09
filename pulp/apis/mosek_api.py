@@ -118,15 +118,15 @@ class MOSEK(LpSolver):
             self.cons = lp.constraints
             self.numcons = len(self.cons)
             self.cons_dict = {}
-            i = 0
-            for c in self.cons:
-                self.cons_dict[c] = i
-                i = i + 1
+            for i, constr in enumerate(self.cons):
+                row = constr.name
+                self.cons_dict[row] = i
             self.vars = list(lp.variables())
             self.numvars = len(self.vars)
             self.var_dict = {}
             # Checking for repeated names
             lp.checkDuplicateVars()
+            lp.checkDuplicateConstraints()
             self.task = MOSEK.env.Task()
             self.task.appendcons(self.numcons)
             self.task.appendvars(self.numvars)
@@ -168,14 +168,15 @@ class MOSEK(LpSolver):
             self.task.putaijlist(self.A_rows, self.A_cols, self.A_vals)
             # Constraints
             self.constraint_data_list = []
-            for c in self.cons:
-                cname = self.cons[c].name
+            for i, constr in enumerate(self.cons):
+                cname = constr.name
+                row_key = cname if cname is not None else ""
                 if cname is not None:
-                    self.task.putconname(self.cons_dict[c], cname)
+                    self.task.putconname(i, cname)
                 else:
-                    self.task.putconname(self.cons_dict[c], c)
-                csense = self.cons[c].sense
-                cconst = -self.cons[c].constant
+                    self.task.putconname(i, row_key)
+                csense = constr.sense
+                cconst = -constr.constant
                 clow = -inf
                 cup = inf
                 # Constraint bounds
@@ -191,7 +192,7 @@ class MOSEK(LpSolver):
                     cup = cconst
                 else:
                     raise PulpSolverError("Invalid constraint type.")
-                self.constraint_data_list.append([self.cons_dict[c], cbkey, clow, cup])
+                self.constraint_data_list.append([i, cbkey, clow, cup])
             self.cons_id_list, self.cbkey_list, self.clow_list, self.cup_list = zip(
                 *self.constraint_data_list
             )
@@ -236,10 +237,8 @@ class MOSEK(LpSolver):
             try:
                 self.xc = [0.0] * self.numcons
                 self.task.getxc(self.solution_type, self.xc)
-                for con in lp.constraints:
-                    lp.constraints[con].slack = -(
-                        self.cons[con].constant + self.xc[self.cons_dict[con]]
-                    )
+                for i, constr in enumerate(lp.constraints):
+                    constr.slack = -(constr.constant + self.xc[i])
             except mosek.Error:
                 pass
             # Reduced costs.
@@ -257,8 +256,8 @@ class MOSEK(LpSolver):
                 try:
                     self.y = [0.0] * self.numcons
                     self.task.gety(self.solution_type, self.y)
-                    for con in lp.constraints:
-                        lp.constraints[con].pi = self.y[self.cons_dict[con]]
+                    for i, constr in enumerate(lp.constraints):
+                        constr.pi = self.y[i]
                 except mosek.Error:
                     pass
 

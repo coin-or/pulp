@@ -29,5 +29,6 @@ for v in prob.variables():
 print("objective=", value(prob.objective))
 
 print("\nSensitivity Analysis\nConstraint\t\tShadow Price\tSlack")
-for name, c in list(prob.constraints.items()):
+for c in prob.constraints:
+    name = c.name
     print(name, ":", c, "\t", c.pi, "\t\t", c.slack)

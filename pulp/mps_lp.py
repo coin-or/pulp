@@ -13,7 +13,7 @@ from . import _rustcore
 from . import constants as const
 
 if TYPE_CHECKING:
-    from pulp.pulp import LpProblem, LpVariable
+    from .core import LpProblem, LpVariable
 
 _DC = Any  # type alias for a dataclass type
 
@@ -85,7 +85,7 @@ class MPSVariable:
 
 @dataclass
 class MPSConstraint:
-    name: str | None
+    name: str
     sense: int
     coefficients: list[MPSCoefficient]
     pi: float | None = None
@@ -94,7 +94,7 @@ class MPSConstraint:
     @classmethod
     def fromDict(cls, data: dict[str, Any]) -> MPSConstraint:
         return cls(
-            data.get("name", None),
+            str(data.get("name") or ""),
             data["sense"],
             [MPSCoefficient.fromDict(d) for d in data["coefficients"]],
             data.get("pi", None),
@@ -186,16 +186,19 @@ def writeMPS(
             raise ValueError("objective is None")
         model_name = "MODEL" if rename else lp.name
         obj_name = (lp.objective.name or "OBJ") if not rename else "OBJ"
-        result = _rustcore.write_mps(
-            lp._model,
-            filename,
-            mpsSense,
-            bool(mip),
-            with_objsense,
-            bool(rename),
-            model_name,
-            obj_name,
-        )
+        try:
+            result = _rustcore.write_mps(
+                lp._model,
+                filename,
+                mpsSense,
+                bool(mip),
+                with_objsense,
+                bool(rename),
+                model_name,
+                obj_name,
+            )
+        except RuntimeError as e:
+            raise const.PulpError(str(e)) from None
         return result
     finally:
         lp.restoreObjective(wasNone, dummyVar)
@@ -213,7 +216,7 @@ def writeLP(
     objName = lp.objective.name or "OBJ"
 
     # Ensure dummy variable exists if any constraint is empty
-    has_empty = any(len(c) == 0 for c in lp.constraints.values())
+    has_empty = any(len(c) == 0 for c in lp.constraints)
     if has_empty:
         lp.get_dummyVar()
     dummy_var_name = ""
@@ -251,6 +254,6 @@ def writeLP(
     finally:
         lp.restoreObjective(wasNone, objectiveDummyVar)
 
-    from .pulp import LpVariable  # deferred: circular import with pulp.py
+    from .core import LpVariable  # deferred: circular import with core
 
     return [LpVariable(v) for v in rust_vars]

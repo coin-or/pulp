@@ -124,7 +124,7 @@ class CUOPT(LpSolver):
                     var.dj = value
 
                 duals = solution.get_dual_solution()
-                for constr, value in zip(lp.constraints.values(), duals):
+                for constr, value in zip(lp.constraints, duals):
                     constr.pi = value
 
             return status
@@ -205,7 +205,7 @@ class CUOPT(LpSolver):
             rhs, sense = [], []
             matrix_data, matrix_indices, matrix_indptr = [], [], [0]
 
-            for name, constraint in lp.constraints.items():
+            for constraint in lp.constraints:
                 lp._solver_constr_handles.append(constraint.id)
                 matrix_data.extend(list(constraint.values()))
                 matrix_indices.extend([v.id for v in constraint.keys()])
@@ -247,7 +247,7 @@ class CUOPT(LpSolver):
             rhs = lp.solverModel.get_constraint_bounds()
             sense = lp.solverModel.get_row_types()
 
-            for name, constraint in lp.constraints.items():
+            for constraint in lp.constraints:
                 if constraint.modified:
                     i = constraint.id
                     sense[i] = sense_conv[constraint.sense]

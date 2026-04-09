@@ -366,7 +366,7 @@ class CPLEX_PY(LpSolver):
             """
             model_variables = lp.variables()
             lp._solver_var_handles = [var.name for var in model_variables]
-            lp._solver_constr_handles = list(lp.constraints.keys())
+            lp._solver_constr_handles = [c.name for c in lp.constraints]
             self.n2v = {var.name: var for var in model_variables}
             if len(self.n2v) != len(model_variables):
                 raise PulpSolverError(
@@ -417,8 +417,8 @@ class CPLEX_PY(LpSolver):
             rows = []
             senses = []
             rhs = []
-            rownames = list(lp.constraints.keys())
-            for constraint in lp.constraints.values():
+            rownames = [c.name for c in lp.constraints]
+            for constraint in lp.constraints:
                 # build the expression
                 if len(constraint) == 0:
                     # if the constraint is empty
@@ -594,7 +594,7 @@ class CPLEX_PY(LpSolver):
             sol_status = CplexSolStatus.get(lp.cplex_status)
             lp.assignStatus(status, sol_status)
             var_names = [var.name for var in lp.variables()]
-            con_names = list(lp.constraints.keys())
+            con_names = [c.name for c in lp.constraints]
             try:
                 lp.solverModel.solution.get_objective_value()
                 variablevalues = dict(
