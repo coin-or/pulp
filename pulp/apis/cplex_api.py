@@ -1,10 +1,10 @@
-import math
 import os
-import warnings
-from typing import Iterable, Optional
+from typing import Iterable
 
 from .. import constants
-from .core import LpSolver, LpSolver_CMD, PulpSolverError, clock, log, subprocess
+from ..core.lp_problem import LpProblem
+from ..core.lp_variable import LpVariable
+from .core import LpSolver, LpSolver_CMD, PulpSolverError, log, subprocess
 
 
 class CPLEX_CMD(LpSolver_CMD):
@@ -67,12 +67,12 @@ class CPLEX_CMD(LpSolver_CMD):
         """True if the solver is available"""
         return self.executable(self.path)
 
-    def actualSolve(self, lp):
+    def actualSolve(self, lp: LpProblem):
         """Solve a well formulated lp problem"""
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute " + self.path)
         tmpLp, tmpSol, tmpMst = self.create_tmp_files(lp.name, "lp", "sol", "mst")
-        vs = lp.writeLP(tmpLp, writeSOS=1)
+        vs: list[LpVariable] = lp.writeLP(tmpLp, writeSOS=1)
         try:
             os.remove(tmpSol)
         except Exception:

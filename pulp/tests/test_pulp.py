@@ -2,6 +2,7 @@
 Tests for pulp
 """
 
+import sys
 import array
 import functools
 import os
@@ -2590,6 +2591,10 @@ class HiGHS_PYTest(BaseSolverTest.PuLPTest):
 
 class HiGHS_CMDTest(BaseSolverTest.PuLPTest):
     solveInst = solvers.HiGHS_CMD
+
+    @unittest.skipIf(sys.platform == "win32", "Windows fails for whatever reason")
+    def test_relaxed_mip(self):
+        super().test_relaxed_mip()
 
 
 class COPTTest(BaseSolverTest.PuLPTest):

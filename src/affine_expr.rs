@@ -328,38 +328,6 @@ impl AffineExpr {
         }
     }
 
-    // ── Formatting methods (delegate to format.rs) ──
-
-    /// Returns variables sorted by name, as Variable handles.
-    fn sorted_keys(&self) -> PyResult<Vec<Variable>> {
-        if self.model.is_none() {
-            return Ok(Vec::new());
-        }
-        let core_rc = get_model_optional(&self.model)?;
-        let weak = self.model.as_ref().unwrap().clone();
-        let core = core_rc.borrow();
-        let mut pairs: Vec<(VarId, String)> = self
-            .terms
-            .keys()
-            .map(|vid| {
-                let name = core
-                    .vars
-                    .get(*vid)
-                    .map(|v| v.name.clone())
-                    .unwrap_or_default();
-                (*vid, name)
-            })
-            .collect();
-        pairs.sort_by(|a, b| a.1.cmp(&b.1));
-        Ok(pairs
-            .into_iter()
-            .map(|(vid, _)| Variable {
-                id: vid,
-                model: weak.clone(),
-            })
-            .collect())
-    }
-
     /// Evaluate using defaults for missing values.
     fn value_or_default(&self) -> PyResult<f64> {
         if self.model.is_none() {

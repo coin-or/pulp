@@ -226,9 +226,6 @@ class LpAffineExpression:
             return s
         return self._str_expr(include_constant, override_constant)
 
-    def sorted_keys(self) -> list[LpVariable]:
-        return [LpVariable(v) for v in self._expr.sorted_keys()]
-
     def __repr__(self, override_constant: float | None = None) -> str:
         if override_constant is not None:
             saved = self.constant

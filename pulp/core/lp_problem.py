@@ -884,10 +884,15 @@ class LpProblem:
             statuses.append(status)
             if debug:
                 self.writeLP(f"{i}Sequence.lp")
+            obj_val = value(obj)
+            if obj_val is None:
+                raise const.PulpError(
+                    "Objective has no value after solve; cannot add sequential tolerance constraint"
+                )
             if self.sense == const.LpMinimize:
-                self += obj <= value(obj) * rel + absol, f"Sequence_Objective_{i}"
+                self += obj <= obj_val * rel + absol, f"Sequence_Objective_{i}"
             elif self.sense == const.LpMaximize:
-                self += obj >= value(obj) * rel + absol, f"Sequence_Objective_{i}"
+                self += obj >= obj_val * rel + absol, f"Sequence_Objective_{i}"
         self.stopClock()
         self.solver = solver
         return statuses

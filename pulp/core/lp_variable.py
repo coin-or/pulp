@@ -13,10 +13,10 @@ if TYPE_CHECKING:
     from .lp_affine_expression import LpAffineExpression
     from .lp_problem import LpProblem
 
-_ae_cls: type | None = None
+_ae_cls: type[LpAffineExpression] | None = None
 
 
-def _affine_expr_cls() -> type:
+def _affine_expr_cls() -> type[LpAffineExpression]:
     global _ae_cls
     if _ae_cls is None:
         from .lp_affine_expression import LpAffineExpression
