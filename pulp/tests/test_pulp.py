@@ -2,11 +2,11 @@
 Tests for pulp
 """
 
-import sys
 import array
 import functools
 import os
 import re
+import sys
 import tempfile
 import unittest
 from decimal import Decimal
@@ -30,9 +30,9 @@ from pulp.tests.bin_packing_problem import create_bin_packing_problem
 from pulp.utilities import makeDict
 
 try:
-    import gurobipy as gp  # type: ignore[import-not-found, import-untyped, unused-ignore]
+    import gurobipy as gp  # type: ignore[import-not-found, import-untyped]
 except ImportError:
-    gp = None  # type: ignore[assignment, unused-ignore]
+    gp = None  # type: ignore[assignment]
 
 # from: http://lpsolve.sourceforge.net/5.5/mps-format.htm
 EXAMPLE_MPS_RHS56 = """NAME          TESTPROB
@@ -99,7 +99,7 @@ def dumpTestProblem(prob):
 
 def _constraint_named(prob: LpProblem, name: str) -> LpConstraint:
     """Return the constraint with the given name (first match)."""
-    for c in prob.constraints:
+    for c in prob.constraints():
         if c.name == name:
             return c
     raise KeyError(name)
@@ -218,7 +218,7 @@ class ModelUnitTest(unittest.TestCase):
         prob = self._make_prob()
         x = prob.add_variable("x", 0, 10)
         prob += x <= 5
-        cons = prob.constraints
+        cons = prob.constraints()
         self.assertEqual(len(cons), 1)
         name = cons[0].name
         self.assertIsNotNone(name)
@@ -230,7 +230,7 @@ class ModelUnitTest(unittest.TestCase):
         prob += x <= 5
         prob += x >= 1
         prob += x <= 8
-        cons = prob.constraints
+        cons = prob.constraints()
         self.assertEqual(len(cons), 3)
         names = [c.name for c in cons]
         self.assertEqual(
@@ -268,7 +268,7 @@ class ModelUnitTest(unittest.TestCase):
             sos2=[],
         )
         _var, pb = LpProblem.fromDataclass(mps, objective_negate_for_max=False)
-        self.assertTrue(any(c.name == "imp__row1" for c in pb.constraints))
+        self.assertTrue(any(c.name == "imp__row1" for c in pb.constraints()))
 
     # -- 6. Duplicate constraint name --
 
@@ -287,7 +287,7 @@ class ModelUnitTest(unittest.TestCase):
         x = prob.add_variable("x", 0, 10)
         prob += x <= 5, "c1"
         prob += x >= 1, "c2"
-        cons = prob.constraints
+        cons = prob.constraints()
         self.assertIsInstance(cons, list)
         self.assertEqual({c.name for c in cons}, {"c1", "c2"})
         self.assertIsInstance(_constraint_named(prob, "c1"), LpConstraint)
@@ -349,7 +349,7 @@ class ModelUnitTest(unittest.TestCase):
         self.assertEqual(prob2._model.num_constraints, prob._model.num_constraints)
         self.assertIsNotNone(prob2.objective)
         self.assertEqual(str(prob.objective), str(prob2.objective))
-        self.assertEqual({c.name for c in prob2.constraints}, {"c1"})
+        self.assertEqual({c.name for c in prob2.constraints()}, {"c1"})
 
         vx1.setInitialValue(7.0)
         self.assertEqual(x.value(), 3.0)
@@ -465,10 +465,10 @@ class ModelUnitTest(unittest.TestCase):
         model += np.float64(34.5) >= var
         model += var >= np.float64(0)
 
-        self.assertEqual(len(model.constraints), 2)
-        senses = {c.sense for c in model.constraints}
+        self.assertEqual(len(model.constraints()), 2)
+        senses = {c.sense for c in model.constraints()}
         self.assertEqual(senses, {const.LpConstraintLE, const.LpConstraintGE})
-        for c in model.constraints:
+        for c in model.constraints():
             if c.sense == const.LpConstraintLE:
                 self.assertAlmostEqual(c.constant, -34.5)
                 break
@@ -604,7 +604,7 @@ class BaseSolverTest:
             }
             prob += lpSum(x_vars[i] for i in range(3)) >= 2
             prob += lpSum(x_vars[i] for i in range(3)) <= 5
-            for elem in prob.constraints:
+            for elem in prob.constraints():
                 self.assertIn(elem.constant, [-2, -5])
 
         def test_intermediate_var(self):
@@ -616,7 +616,7 @@ class BaseSolverTest:
             x = lpSum(x_vars[i] for i in range(3))
             prob += x >= 2
             prob += x <= 5
-            for elem in prob.constraints:
+            for elem in prob.constraints():
                 self.assertIn(elem.constant, [-2, -5])
 
         def test_comparison(self):
@@ -2420,7 +2420,7 @@ class CPLEX_PYTest(BaseSolverTest.PuLPTest):
 
     def test_callback(self):
         from cplex.callbacks import (
-            IncumbentCallback,  # type: ignore[import-not-found, import-untyped, unused-ignore]
+            IncumbentCallback,  # type: ignore[import-not-found, import-untyped]
         )
 
         counter = 0

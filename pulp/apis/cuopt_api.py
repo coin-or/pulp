@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import math
+from typing import TYPE_CHECKING, Any
 
 from ..constants import (
     LpBinary,
@@ -19,6 +22,9 @@ from .core import (
     clock,
 )
 
+if TYPE_CHECKING:
+    from ..core.lp_problem import LpProblem
+
 # Constraint Sense Converter
 sense_conv = {
     LpConstraintLE: "L",
@@ -36,18 +42,18 @@ class CUOPT(LpSolver):
 
     try:
         global cuopt
-        import cuopt  # type: ignore[import-not-found, import-untyped, unused-ignore]
+        import cuopt  # type: ignore[import-not-found, import-untyped]
 
         global np
-        import numpy as np  # type: ignore[import-not-found, import-untyped, unused-ignore]
+        import numpy as np  # type: ignore[import-not-found, import-untyped]
     except Exception:
 
         def available(self):
             """True if the solver is available"""
             return False
 
-        def actualSolve(self, lp, callback=None):
-            """Solve a well formulated lp problem"""
+        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+            """Solve a well formulated lp problem."""
             raise PulpSolverError("CUOPT: Not available")
 
     else:
@@ -83,7 +89,7 @@ class CUOPT(LpSolver):
             )
 
             from cuopt.linear_programming import (
-                data_model,  # type: ignore[import-not-found, import-untyped, unused-ignore]
+                data_model,  # type: ignore[import-not-found, import-untyped]
             )
 
             self.model = data_model.DataModel()
@@ -124,7 +130,7 @@ class CUOPT(LpSolver):
                     var.dj = value
 
                 duals = solution.get_dual_solution()
-                for constr, value in zip(lp.constraints, duals):
+                for constr, value in zip(lp.constraints(), duals):
                     constr.pi = value
 
             return status
@@ -135,7 +141,7 @@ class CUOPT(LpSolver):
 
         def callSolver(self, lp, callback=None):
             """Solves the problem with CUOPT"""
-            from cuopt.linear_programming import (  # type: ignore[import-not-found, import-untyped, unused-ignore]
+            from cuopt.linear_programming import (  # type: ignore[import-not-found, import-untyped]
                 solver,
                 solver_settings,
             )
@@ -171,14 +177,10 @@ class CUOPT(LpSolver):
             if lp.sense == LpMaximize:
                 lp.solverModel.set_maximize(True)
 
-            lp._solver_var_handles = []
-            lp._solver_constr_handles = []
-
             var_lb, var_ub, var_type, var_name = [], [], [], []
             obj_coeff = []
 
             for var in lp.variables():
-                lp._solver_var_handles.append(var.id)
                 obj_coeff.append(lp.objective.get(var, 0.0))
                 lowBound = var.lowBound
                 if not math.isfinite(lowBound):
@@ -205,8 +207,7 @@ class CUOPT(LpSolver):
             rhs, sense = [], []
             matrix_data, matrix_indices, matrix_indptr = [], [], [0]
 
-            for constraint in lp.constraints:
-                lp._solver_constr_handles.append(constraint.id)
+            for constraint in lp.constraints():
                 matrix_data.extend(list(constraint.values()))
                 matrix_indices.extend([v.id for v in constraint.keys()])
                 matrix_indptr.append(len(matrix_data))
@@ -225,36 +226,16 @@ class CUOPT(LpSolver):
             lp.solverModel.set_objective_coefficients(np.array(obj_coeff))
             lp.solverModel.set_objective_offset(lp.objective.constant)
 
-        def actualSolve(self, lp, callback=None):
+        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
             """
             Solve a well formulated lp problem
 
             creates a COPT model, variables and constraints and attaches
             them to the lp model which it then solves
             """
+            callback = kwargs.get("callback")
             self.buildSolverModel(lp)
             solution = self.callSolver(lp, callback=callback)
 
-            solutionStatus = self.findSolutionValues(lp, solution)
-            return solutionStatus
-
-        def actualResolve(self, lp, callback=None):
-            """
-            Solve a well formulated lp problem
-
-            uses the old solver and modifies the rhs of the modified constraints
-            """
-            rhs = lp.solverModel.get_constraint_bounds()
-            sense = lp.solverModel.get_row_types()
-
-            for constraint in lp.constraints:
-                if constraint.modified:
-                    i = constraint.id
-                    sense[i] = sense_conv[constraint.sense]
-                    rhs[i] = -constraint.constant
-            lp.solverModel.set_constraint_bounds(rhs)
-            lp.solverModel.set_row_types(sense)
-
-            solution = self.callSolver(lp, callback=callback)
             solutionStatus = self.findSolutionValues(lp, solution)
             return solutionStatus

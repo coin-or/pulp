@@ -27,7 +27,7 @@ from __future__ import annotations
 
 import math
 import os
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from .. import constants
 from .core import (
@@ -140,8 +140,8 @@ class COIN_CMD(LpSolver_CMD):
         aCopy.optionsDict = self.optionsDict
         return aCopy
 
-    def actualSolve(self, lp: LpProblem, **kwargs):
-        """Solve a well formulated lp problem"""
+    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+        """Solve a well formulated lp problem."""
         return self.solve_CBC(lp, **kwargs)
 
     def available(self):
@@ -165,7 +165,7 @@ class COIN_CMD(LpSolver_CMD):
         else:
             lp.writeLP(tmpLp)
             var_names_list = [v.name for v in lp.variables()]
-            constr_names_list = [c.name for c in lp.constraints]
+            constr_names_list = [c.name for c in lp.constraints()]
             cmds = " " + tmpLp + " "
         if self.optionsDict.get("warmStart", False):
             self.writesol(tmpMst, lp, var_names_list, constr_names_list)
@@ -210,8 +210,8 @@ class COIN_CMD(LpSolver_CMD):
         args.extend(cmds[1:].split())
         if not self.msg and operating_system == "win":
             # Prevent flashing windows if used from a GUI application
-            startupinfo = subprocess.STARTUPINFO()  # type: ignore[attr-defined,unused-ignore]
-            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW  # type: ignore[attr-defined,unused-ignore]
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
             cbc = subprocess.Popen(
                 args, stdout=pipe, stderr=pipe, stdin=devnull, startupinfo=startupinfo
             )
@@ -280,12 +280,12 @@ class COIN_CMD(LpSolver_CMD):
     ]:
         """
         Read a CBC solution file generated from an mps or lp file (possible different names).
-        variableNames and constraintNames are lists in the same order as lp.variables() and lp.constraints.
+        variableNames and constraintNames are lists in the same order as lp.variables() and lp.constraints().
         """
         vs = lp.variables()
         values = {v.name: 0.0 for v in vs}
         reverseVn = {variableNames[i]: vs[i].name for i in range(len(vs))}
-        reverseCn = {constraintNames[i]: c.name for i, c in enumerate(lp.constraints)}
+        reverseCn = {constraintNames[i]: c.name for i, c in enumerate(lp.constraints())}
 
         reducedCosts: dict[str, float] = {}
         shadowPrices: dict[str, float] = {}
@@ -319,7 +319,7 @@ class COIN_CMD(LpSolver_CMD):
     ) -> bool:
         """
         Writes a CBC solution file generated from an mps / lp file (possible different names).
-        variableNames and constraintNames are lists in the same order as lp.variables() and lp.constraints.
+        variableNames and constraintNames are lists in the same order as lp.variables() and lp.constraints().
         Returns True on success.
         """
         vs = lp.variables()
@@ -350,7 +350,7 @@ class COIN_CMD(LpSolver_CMD):
         Returns status, values, reducedCosts, shadowPrices, slacks, sol_status.
         """
         variableNames = [v.name for v in lp.variables()]
-        constraintNames = [c.name for c in lp.constraints]
+        constraintNames = [c.name for c in lp.constraints()]
         return self.readsol_MPS(filename, lp, variableNames, constraintNames)
 
     def get_status(self, filename):
@@ -407,8 +407,8 @@ class PULP_CBC_CMD(COIN_CMD):
             """True if the solver is available"""
             return False
 
-        def actualSolve(self, lp, callback=None):
-            """Solve a well formulated lp problem"""
+        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+            """Solve a well formulated lp problem."""
             raise PulpSolverError(
                 "PULP_CBC_CMD: Not Available (check permissions on %s)"
                 % self.pulp_cbc_path
@@ -465,14 +465,14 @@ def COINMP_DLL_load_dll(path: list[str]):
     path is a list of paths actually
     """
     if os.name == "nt":
-        lib = ctypes.windll.LoadLibrary(str(path[-1]))  # type: ignore[attr-defined,unused-ignore]
+        lib = ctypes.windll.LoadLibrary(str(path[-1]))
     else:
         # linux hack to get working
         mode = ctypes.RTLD_GLOBAL
         for libpath in path[:-1]:
             # RTLD_LAZY = 0x00001
             ctypes.CDLL(libpath, mode=mode)
-        lib = ctypes.CDLL(path[-1], mode=mode)  # type: ignore[assignment,unused-ignore]
+        lib = ctypes.CDLL(path[-1], mode=mode)
     return lib
 
 
@@ -485,6 +485,11 @@ class COINMP_DLL(LpSolver):
     """
 
     name = "COINMP_DLL"
+    COIN_INT_LOGLEVEL = 7
+    COIN_REAL_MAXSECONDS = 16
+    COIN_REAL_MIPMAXSEC = 19
+    COIN_REAL_MIPFRACGAP = 34
+    lib: Any = None
     try:
         lib = COINMP_DLL_load_dll(coinMP_path)
     except (ImportError, OSError):
@@ -494,15 +499,11 @@ class COINMP_DLL(LpSolver):
             """True if the solver is available"""
             return False
 
-        def actualSolve(self, lp):
-            """Solve a well formulated lp problem"""
+        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+            """Solve a well formulated lp problem."""
             raise PulpSolverError("COINMP_DLL: Not Available")
 
     else:
-        COIN_INT_LOGLEVEL = 7
-        COIN_REAL_MAXSECONDS = 16
-        COIN_REAL_MIPMAXSEC = 19
-        COIN_REAL_MIPFRACGAP = 34
         lib.CoinGetInfinity.restype = ctypes.c_double
         lib.CoinGetVersionStr.restype = ctypes.c_char_p
         lib.CoinGetSolutionText.restype = ctypes.c_char_p
@@ -574,8 +575,8 @@ class COINMP_DLL(LpSolver):
             """
             return self.lib.CoinGetVersionStr()
 
-        def actualSolve(self, lp):
-            """Solve a well formulated lp problem"""
+        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+            """Solve a well formulated lp problem."""
             # TODO alter so that msg parameter is handled correctly
             self.debug = 0
             # initialise solver
@@ -745,8 +746,8 @@ class YAPOSIB(LpSolver):
             """True if the solver is available"""
             return False
 
-        def actualSolve(self, lp, callback=None):
-            """Solve a well formulated lp problem"""
+        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+            """Solve a well formulated lp problem."""
             raise PulpSolverError("YAPOSIB: Not Available")
 
     else:
@@ -792,7 +793,7 @@ class YAPOSIB(LpSolver):
                 var.varValue = var.solverVar.solution
                 var.dj = var.solverVar.reducedcost
             # put pi and slack variables against the constraints
-            for constr in lp.constraints:
+            for constr in lp.constraints():
                 constr.pi = constr.solverConstraint.dual
                 constr.slack = -constr.constant - constr.solverConstraint.activity
             if self.msg:
@@ -853,7 +854,7 @@ class YAPOSIB(LpSolver):
                 prob.obj[col.index] = lp.objective.get(var, 0.0)
                 var.solverVar = col
             log.debug("add the Constraints to the problem")
-            for constraint in lp.constraints:
+            for constraint in lp.constraints():
                 row = prob.rows.add(
                     yaposib.vec(
                         [
@@ -874,41 +875,17 @@ class YAPOSIB(LpSolver):
                 row.name = constraint.name
                 constraint.solverConstraint = row
 
-        def actualSolve(self, lp, callback=None):
+        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
             """
             Solve a well formulated lp problem
 
             creates a yaposib model, variables and constraints and attaches
             them to the lp model which it then solves
             """
+            callback = kwargs.get("callback")
             self.buildSolverModel(lp)
             # set the initial solution
             log.debug("Solve the model using yaposib")
-            self.callSolver(lp, callback=callback)
-            # get the solution information
-            solutionStatus = self.findSolutionValues(lp)
-            return solutionStatus
-
-        def actualResolve(self, lp, callback=None):
-            """
-            Solve a well formulated lp problem
-
-            uses the old solver and modifies the rhs of the modified
-            constraints
-            """
-            log.debug("Resolve the model using yaposib")
-            for constraint in lp.constraints:
-                row = constraint.solverConstraint
-                if constraint.modified:
-                    if constraint.sense == constants.LpConstraintLE:
-                        row.upperbound = -constraint.constant
-                    elif constraint.sense == constants.LpConstraintGE:
-                        row.lowerbound = -constraint.constant
-                    elif constraint.sense == constants.LpConstraintEQ:
-                        row.upperbound = -constraint.constant
-                        row.lowerbound = -constraint.constant
-                    else:
-                        raise PulpSolverError("Detected an invalid constraint type")
             self.callSolver(lp, callback=callback)
             # get the solution information
             solutionStatus = self.findSolutionValues(lp)
@@ -924,7 +901,7 @@ class CYLP(LpSolver):
     try:
         global cy
         from cylp import (
-            cy,  # type: ignore[import-not-found, import-untyped, unused-ignore]
+            cy,  # type: ignore[import-not-found, import-untyped]
         )
     except Exception:
 
@@ -932,8 +909,8 @@ class CYLP(LpSolver):
             """True if the solver is available"""
             return False
 
-        def actualSolve(self, lp, callback=None):
-            """Solve a well formulated lp problem"""
+        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+            """Solve a well formulated lp problem."""
             raise PulpSolverError("CyLP: Not Available")
 
     else:
@@ -962,7 +939,7 @@ class CYLP(LpSolver):
             self.gapRel = gapRel
             self.threads = threads
 
-        def actualSolve(self, lp, **kwargs):  # type: ignore[misc]
+        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
             self.buildSolverModel(lp)
             self.callSolver(lp)
             # get the solution information

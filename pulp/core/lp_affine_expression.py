@@ -139,12 +139,7 @@ class LpAffineExpression:
         return self._expr.num_terms()
 
     def __getitem__(self, key: LpVariable) -> float:
-        if isinstance(key, LpVariable):
-            return self._expr.get_coeff(key._var)
-        for v, c in self.items():
-            if v is key or v.name == key.name:
-                return c
-        raise KeyError(key)
+        return self._expr.get_coeff(key._var)
 
     def __setitem__(self, key: LpVariable, value: float | int):
         if not isinstance(key, LpVariable):
@@ -152,12 +147,8 @@ class LpAffineExpression:
         old = self._expr.get_coeff(key._var)
         self._expr.add_term(key._var, float(value) - old)
 
-    def __contains__(self, key: object) -> bool:
-        if isinstance(key, LpVariable):
-            return self._expr.get_coeff(key._var) != 0
-        if isinstance(key, str):
-            return any(v.name == key for v, _ in self.items())
-        return any(v is key for v, _ in self.items())
+    def __contains__(self, key: LpVariable) -> bool:
+        return key in self.keys()
 
     def get(self, key: LpVariable, default: float | None = None) -> float | None:
         try:
@@ -279,10 +270,6 @@ class LpAffineExpression:
         elif isinstance(other, LpAffineExpression):
             self._expr.add_expr(other._expr, sign)
             self._expr.combine_sense(other._expr.sense, float(sign))
-        elif isinstance(other, LpConstraint):
-            raise TypeError(
-                "Cannot add or subtract an LpConstraint; use .copy() for a pending expression"
-            )
         elif isinstance(other, dict):
             for e in other.values():
                 self.addInPlace(e, sign=sign)  # type: ignore[arg-type]
@@ -474,8 +461,4 @@ class LpAffineExpression:
         return [{"name": k.name, "value": v} for k, v in self.items()]
 
     def to_dict(self) -> list[dict[str, Any]]:
-        warnings.warn(
-            "LpAffineExpression.to_dict is deprecated, use LpAffineExpression.toDict instead",
-            category=DeprecationWarning,
-        )
         return self.toDict()

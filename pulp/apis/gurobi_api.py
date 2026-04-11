@@ -28,13 +28,13 @@ from __future__ import annotations
 
 import math
 import os
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from .. import constants
 from .core import LpSolver, LpSolver_CMD, PulpSolverError, clock, log, subprocess
 
 if TYPE_CHECKING:
-    pass
+    from ..core.lp_problem import LpProblem
 
 import warnings
 
@@ -57,15 +57,15 @@ class GUROBI(LpSolver):
     try:
         # to import the name into the module scope
         global gp
-        import gurobipy as gp  # type: ignore[import-not-found, import-untyped, unused-ignore]
+        import gurobipy as gp  # type: ignore[import-not-found, import-untyped]
     except Exception:  # FIXME: Bug because gurobi returns
         #  a gurobi exception on failed imports
         def available(self):
             """True if the solver is available"""
             return False
 
-        def actualSolve(self, lp, callback=None):
-            """Solve a well formulated lp problem"""
+        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+            """Solve a well formulated lp problem."""
             raise PulpSolverError("GUROBI: Not Available")
 
     else:
@@ -183,7 +183,7 @@ class GUROBI(LpSolver):
             if self.manage_env:
                 self.env.dispose()
 
-        def findSolutionValues(self, lp):
+        def findSolutionValues(self, lp, var_handles, constr_handles):
             model = lp.solverModel
             solutionStatus = model.Status
             GRB = gp.GRB
@@ -205,27 +205,39 @@ class GUROBI(LpSolver):
             status = gurobiLpStatus.get(solutionStatus, constants.LpStatusUndefined)
             lp.assignStatus(status)
             if model.SolCount >= 1:
-                # populate pulp solution values (lp.variables() is in id order)
+                # populate pulp solution values; lp.variables() matches id order
                 for var, value in zip(
-                    lp.variables(), model.getAttr(GRB.Attr.X, model.getVars())
+                    lp.variables(),
+                    model.getAttr(
+                        GRB.Attr.X, [var_handles[v.id] for v in lp.variables()]
+                    ),
                 ):
                     var.varValue = value
                 # populate pulp constraints slack (constraints.items() in id order)
                 for constr, value in zip(
-                    lp.constraints,
-                    model.getAttr(GRB.Attr.Slack, model.getConstrs()),
+                    lp.constraints(),
+                    model.getAttr(
+                        GRB.Attr.Slack,
+                        [constr_handles[c.id] for c in lp.constraints()],
+                    ),
                 ):
                     constr.slack = value
                 # put pi and slack variables against the constraints
                 if not model.IsMIP:
                     for var, value in zip(
-                        lp.variables(), model.getAttr(GRB.Attr.RC, model.getVars())
+                        lp.variables(),
+                        model.getAttr(
+                            GRB.Attr.RC, [var_handles[v.id] for v in lp.variables()]
+                        ),
                     ):
                         var.dj = value
 
                     for constr, value in zip(
-                        lp.constraints,
-                        model.getAttr(GRB.Attr.Pi, model.getConstrs()),
+                        lp.constraints(),
+                        model.getAttr(
+                            GRB.Attr.Pi,
+                            [constr_handles[c.id] for c in lp.constraints()],
+                        ),
                     ):
                         constr.pi = value
             return status
@@ -291,8 +303,8 @@ class GUROBI(LpSolver):
             log.debug("add the variables to the problem")
             lp.solverModel.update()
             nvars = lp.solverModel.NumVars
-            lp._solver_var_handles = []
-            lp._solver_constr_handles = []
+            var_handles = []
+            constr_handles = []
             if nvars == 0:
                 for var in lp.variables():
                     lowBound = var.lowBound
@@ -308,27 +320,25 @@ class GUROBI(LpSolver):
                     gvar = lp.solverModel.addVar(
                         lowBound, upBound, vtype=varType, obj=obj, name=var.name
                     )
-                    lp._solver_var_handles.append(gvar)
+                    var_handles.append(gvar)
             else:
-                lp._solver_var_handles = list(lp.solverModel.getVars())
-                lp._solver_constr_handles = list(lp.solverModel.getConstrs())
+                var_handles = list(lp.solverModel.getVars())
+                constr_handles = list(lp.solverModel.getConstrs())
                 # Update objective (e.g. after sequentialSolve changes it)
                 for var in lp.variables():
-                    lp._solver_var_handles[var.id].Obj = lp.objective.get(var, 0.0)
+                    var_handles[var.id].Obj = lp.objective.get(var, 0.0)
             if self.optionsDict.get("warmStart", False):
                 for var in lp.variables():
                     if var.varValue is not None:
-                        lp._solver_var_handles[var.id].start = var.varValue
+                        var_handles[var.id].start = var.varValue
 
             lp.solverModel.update()
             if nvars == 0:
                 log.debug("add the Constraints to the problem")
-                for constraint in lp.constraints:
-                    # build the expression (id = index in _solver_var_handles)
+                for constraint in lp.constraints():
+                    # build the expression (id = index in var_handles)
                     name = constraint.name
-                    solver_vars = [
-                        lp._solver_var_handles[v.id] for v in constraint.keys()
-                    ]
+                    solver_vars = [var_handles[v.id] for v in constraint.keys()]
                     expr = gp.LinExpr(list(constraint.values()), solver_vars)
                     if constraint.sense == constants.LpConstraintLE:
                         gconstr = lp.solverModel.addConstr(
@@ -344,15 +354,13 @@ class GUROBI(LpSolver):
                         )
                     else:
                         raise PulpSolverError("Detected an invalid constraint type")
-                    lp._solver_constr_handles.append(gconstr)
+                    constr_handles.append(gconstr)
             else:
                 # Add any new constraints (e.g. added by sequentialSolve)
-                nconstr_in_model = len(lp._solver_constr_handles)
-                for constraint in lp.constraints[nconstr_in_model:]:
+                nconstr_in_model = len(constr_handles)
+                for constraint in lp.constraints()[nconstr_in_model:]:
                     name = constraint.name
-                    solver_vars = [
-                        lp._solver_var_handles[v.id] for v in constraint.keys()
-                    ]
+                    solver_vars = [var_handles[v.id] for v in constraint.keys()]
                     expr = gp.LinExpr(list(constraint.values()), solver_vars)
                     if constraint.sense == constants.LpConstraintLE:
                         gconstr = lp.solverModel.addConstr(
@@ -368,40 +376,24 @@ class GUROBI(LpSolver):
                         )
                     else:
                         raise PulpSolverError("Detected an invalid constraint type")
-                    lp._solver_constr_handles.append(gconstr)
+                    constr_handles.append(gconstr)
             lp.solverModel.update()
+            return var_handles, constr_handles
 
-        def actualSolve(self, lp, callback=None):
+        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
             """
             Solve a well formulated lp problem
 
             creates a gurobi model, variables and constraints and attaches
             them to the lp model which it then solves
             """
-            self.buildSolverModel(lp)
+            callback = kwargs.get("callback")
+            var_handles, constr_handles = self.buildSolverModel(lp)
             # set the initial solution
             log.debug("Solve the Model using gurobi")
             self.callSolver(lp, callback=callback)
             # get the solution information
-            solutionStatus = self.findSolutionValues(lp)
-            return solutionStatus
-
-        def actualResolve(self, lp, callback=None):
-            """
-            Solve a well formulated lp problem
-
-            uses the old solver and modifies the rhs of the modified constraints
-            """
-            log.debug("Resolve the Model using gurobi")
-            for constraint in lp.constraints:
-                if constraint.modified:
-                    lp._solver_constr_handles[constraint.id].setAttr(
-                        gp.GRB.Attr.RHS, -constraint.constant
-                    )
-            lp.solverModel.update()
-            self.callSolver(lp, callback=callback)
-            # get the solution information
-            solutionStatus = self.findSolutionValues(lp)
+            solutionStatus = self.findSolutionValues(lp, var_handles, constr_handles)
             return solutionStatus
 
 
@@ -474,8 +466,8 @@ class GUROBI_CMD(LpSolver_CMD):
             warnings.warn(f"GUROBI error: {out}.")
         return False
 
-    def actualSolve(self, lp):
-        """Solve a well formulated lp problem"""
+    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+        """Solve a well formulated lp problem."""
 
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute " + self.path)
@@ -518,10 +510,14 @@ class GUROBI_CMD(LpSolver_CMD):
             status, values, reducedCosts, shadowPrices, slacks = self.readsol(tmpSol)
         self.delete_tmp_files(tmpLp, tmpMst, tmpSol, "gurobi.log")
         if status != constants.LpStatusInfeasible:
-            lp.assignVarsVals(values)
-            lp.assignVarsDj(reducedCosts)
-            lp.assignConsPi(shadowPrices)
-            lp.assignConsSlack(slacks)
+            if values is not None:
+                lp.assignVarsVals(values)
+            if reducedCosts is not None:
+                lp.assignVarsDj(reducedCosts)
+            if shadowPrices is not None:
+                lp.assignConsPi(shadowPrices)
+            if slacks is not None:
+                lp.assignConsSlack(slacks)
         lp.assignStatus(status)
         return status
 

@@ -38,6 +38,12 @@ import os
 import platform
 import shutil
 import sys
+from time import time
+
+
+def clock() -> float:
+    """Wall-clock seconds (for solver timing)."""
+    return time()
 
 
 def get_operating_system() -> str:
@@ -68,7 +74,7 @@ from .. import constants as const
 from .. import sparse
 
 if TYPE_CHECKING:
-    from ..core import LpProblem
+    from ..pulp import LpProblem
 
 try:
     import ujson as json  # type: ignore[import-untyped]
@@ -78,12 +84,12 @@ except ImportError:
 log = logging.getLogger(__name__)
 
 import subprocess
-from time import perf_counter as clock  # noqa: E402, F401, I001
 
 devnull = subprocess.DEVNULL
 
 
-def to_string(_obj):
+def to_string(_obj: Any) -> bytes:
+    """Return UTF-8 bytes for ``str(_obj)`` (used for C API string arguments)."""
     return str(_obj).encode()
 
 
@@ -140,14 +146,6 @@ class LpSolver:
         """Solve a well formulated lp problem"""
         raise NotImplementedError
 
-    def actualResolve(self, lp: LpProblem, **kwargs: Any) -> int:
-        """
-        uses existing problem information and solves the problem
-        If it is not implemented in the solver
-        just solve again
-        """
-        return self.actualSolve(lp, **kwargs)
-
     def copy(self) -> LpSolver:
         """Make a copy of self"""
 
@@ -163,10 +161,14 @@ class LpSolver:
 
     # TODO: Not sure if this code should be here or in a child class
     def getCplexStyleArrays(
-        self, lp, senseDict=None, LpVarCategories=None, LpObjSenses=None, infBound=1e20
-    ):
-        """returns the arrays suitable to pass to a cdll Cplex
-        or other solvers that are similar
+        self,
+        lp: LpProblem,
+        senseDict: dict[int, str] | None = None,
+        LpVarCategories: dict[str, str] | None = None,
+        LpObjSenses: dict[int, int] | None = None,
+        infBound: float = 1e20,
+    ) -> tuple[Any, ...]:
+        """Return arrays suitable for a CDLL CPLEX-style API or similar solvers.
 
         Copyright (c) Stuart Mitchell 2007
         """
@@ -218,7 +220,7 @@ class LpSolver:
             else:
                 upperBounds[i] = infBound
         # values for constraints
-        numRows = len(lp.constraints)
+        numRows = len(lp.constraints())
         NumRowDoubleArray = ctypes.c_double * numRows
         NumRowStrArray = ctypes.c_char_p * numRows
         NumRowCharArray = ctypes.c_char * numRows
@@ -229,15 +231,14 @@ class LpSolver:
         self.c2n = {}
         self.n2c = {}
         i = 0
-        for constr in lp.constraints:
-            rhsValues[i] = -constr.constant
+        for c in lp.constraints():
+            rhsValues[i] = -c.constant
             # for ranged constraints a<= constraint >=b
             rangeValues[i] = 0.0
-            row_key = constr.name
-            rowNames[i] = to_string(row_key)
-            rowType[i] = to_string(senseDict[constr.sense])
-            self.c2n[row_key] = i
-            self.n2c[i] = row_key
+            rowNames[i] = to_string(c.name)
+            rowType[i] = to_string(senseDict[c.sense])
+            self.c2n[c.name] = i
+            self.n2c[i] = c.name
             i = i + 1
         # return the coefficient matrix as a series of vectors
         coeffs = lp.coefficients()

@@ -3,7 +3,9 @@ import random
 from pulp import *
 
 
-def _bin_packing_instance(bins: int, seed: int=0) -> tuple[tuple[int, ...], tuple[int, ...], int]:
+def _bin_packing_instance(
+    bins: int, seed: int = 0
+) -> tuple[tuple[int, ...], tuple[int, ...], int]:
     packed_bins: list[list[int]] = [[] for _ in range(bins)]
     bin_size = bins * 100
     random.seed(seed)
@@ -23,7 +25,7 @@ def _bin_packing_instance(bins: int, seed: int=0) -> tuple[tuple[int, ...], tupl
     return items, packing, bin_size
 
 
-def create_bin_packing_problem(bins: int, seed: int=0) -> LpProblem:
+def create_bin_packing_problem(bins: int, seed: int = 0) -> LpProblem:
     items, packing, bin_size = _bin_packing_instance(bins=bins, seed=seed)
 
     prob = LpProblem("bin_packing", LpMinimize)
@@ -40,7 +42,10 @@ def create_bin_packing_problem(bins: int, seed: int=0) -> LpProblem:
 
     # pack every item
     for i in item_indices:
-        prob += lpSum_vars([items_packed[i, b] for b in bin_indices]) == 1, f"pack_item_{i}"
+        prob += (
+            lpSum_vars([items_packed[i, b] for b in bin_indices]) == 1,
+            f"pack_item_{i}",
+        )
 
     # no bin overfilled
     for b in bin_indices:

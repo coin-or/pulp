@@ -14,7 +14,7 @@ from .lp_variable import LpVariable
 class LpConstraint:
     """LP constraint backed by Rust for a row already stored in the model.
 
-    Instances appear in :attr:`LpProblem.constraints` as a list in model order; they are not
+    Instances appear in :meth:`LpProblem.constraints` as a list in model order; they are not
     pending expressions and must not be combined with ``+`` / ``-`` on affine
     expressions. Use :meth:`copy` to obtain a pending :class:`LpAffineExpression`.
     """

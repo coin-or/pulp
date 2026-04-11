@@ -24,11 +24,18 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."""
 
+from __future__ import annotations
+
 import os
+import subprocess
 import warnings
+from typing import TYPE_CHECKING, Any
 
 from .. import constants
-from .core import LpSolver_CMD, PulpSolverError, subprocess
+from .core import LpSolver_CMD, PulpSolverError
+
+if TYPE_CHECKING:
+    from ..core.lp_problem import LpProblem
 
 
 class MIPCL_CMD(LpSolver_CMD):
@@ -38,13 +45,13 @@ class MIPCL_CMD(LpSolver_CMD):
 
     def __init__(
         self,
-        path=None,
-        keepFiles=False,
-        mip=True,
-        msg=True,
-        options=None,
-        timeLimit=None,
-    ):
+        path: str | None = None,
+        keepFiles: bool = False,
+        mip: bool = True,
+        msg: bool = True,
+        options: list[str] | None = None,
+        timeLimit: float | None = None,
+    ) -> None:
         """
         :param bool mip: if False, assume LP even if integer variables
         :param bool msg: if False, no log is shown
@@ -63,21 +70,23 @@ class MIPCL_CMD(LpSolver_CMD):
             keepFiles=keepFiles,
         )
 
-    def defaultPath(self):
+    def defaultPath(self) -> str:
         return self.executableExtension("mps_mipcl")
 
-    def available(self):
+    def available(self) -> bool:
         """True if the solver is available"""
         return self.executable(self.path)
 
-    def actualSolve(self, lp):
-        """Solve a well formulated lp problem"""
+    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+        """Solve a well formulated lp problem."""
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute " + self.path)
         tmpMps, tmpSol = self.create_tmp_files(lp.name, "mps", "sol")
         if lp.sense == constants.LpMaximize:
             # we swap the objectives
             # because it does not handle maximization.
+            if lp.objective is None:
+                raise PulpSolverError("MIPCL_CMD: no objective set")
             warnings.warn(
                 "MIPCL_CMD does not allow maximization, "
                 "we will minimize the inverse of the objective function."
@@ -110,7 +119,7 @@ class MIPCL_CMD(LpSolver_CMD):
 
         return_code = subprocess.call(cmd.split(), stdout=pipe, stderr=pipe)
         # We need to undo the objective swap before finishing
-        if lp.sense == constants.LpMaximize:
+        if lp.sense == constants.LpMaximize and lp.objective is not None:
             lp += -lp.objective
         if return_code != 0:
             raise PulpSolverError("PuLP: Error while trying to execute " + self.path)
@@ -122,13 +131,16 @@ class MIPCL_CMD(LpSolver_CMD):
             status, values, status_sol = self.readsol(tmpSol)
         self.delete_tmp_files(tmpMps, tmpSol)
         lp.assignStatus(status, status_sol)
-        if status not in [constants.LpStatusInfeasible, constants.LpStatusNotSolved]:
+        if values is not None and status not in (
+            constants.LpStatusInfeasible,
+            constants.LpStatusNotSolved,
+        ):
             lp.assignVarsVals(values)
 
         return status
 
     @staticmethod
-    def readsol(filename):
+    def readsol(filename: str) -> tuple[int, dict[str, float], int]:
         """Read a MIPCL solution file"""
         with open(filename) as f:
             content = f.readlines()

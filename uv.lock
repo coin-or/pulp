@@ -930,7 +930,7 @@ wheels = [
 
 [[package]]
 name = "pulp"
-version = "4.0.0a2"
+version = "4.0.0a3"
 source = { editable = "." }
 
 [package.optional-dependencies]

@@ -216,7 +216,7 @@ def writeLP(
     objName = lp.objective.name or "OBJ"
 
     # Ensure dummy variable exists if any constraint is empty
-    has_empty = any(len(c) == 0 for c in lp.constraints)
+    has_empty = any(len(c) == 0 for c in lp.constraints())
     if has_empty:
         lp.get_dummyVar()
     dummy_var_name = ""

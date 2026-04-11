@@ -53,6 +53,8 @@ class LpProblem:
         self.dummyVar = None
         self.solutionTime = 0
         self.solutionCpuTime = 0
+        # Set by some MIP solvers (e.g. COINMP_DLL) after solve when applicable.
+        self.bestBound: float | None = None
 
         self._model: _rustcore.Model = _rustcore.Model(self.name)
         self._model.set_sense(
@@ -144,11 +146,11 @@ class LpProblem:
     def add_variable_dict(
         self,
         name: str,
-        indices,
+        indices: tuple[Iterable[Any], ...] | Iterable[Any] | None,
         lowBound: Optional[float] = None,
         upBound: Optional[float] = None,
         cat: str = const.LpContinuous,
-    ) -> dict:
+    ) -> dict[Any, LpVariable]:
         """Create a dictionary of variables with Cartesian product of indices."""
         if not isinstance(indices, tuple):
             indices = (indices,)
@@ -236,7 +238,6 @@ class LpProblem:
             for i in index
         ]
 
-    @property
     def constraints(self) -> list[LpConstraint]:
         """Constraints from the Rust model, in insertion / id order."""
         return [LpConstraint(v) for v in self._model.list_constraints()]
@@ -280,9 +281,9 @@ class LpProblem:
             s += "MAXIMIZE\n"
         s += repr(self.objective) + "\n"
 
-        if self.constraints:
+        if self.constraints():
             s += "SUBJECT TO\n"
-            for c in self.constraints:
+            for c in self.constraints():
                 n = c.name or ""
                 s += c.asCplexLpConstraint(n) + "\n"
         s += "VARIABLES\n"
@@ -290,10 +291,10 @@ class LpProblem:
             s += v.asCplexLpVariable() + " " + const.LpCategories[v.cat] + "\n"
         return s
 
-    def __getstate__(self):
+    def __getstate__(self) -> dict[str, Any]:
         return self.__dict__.copy()
 
-    def __setstate__(self, state):
+    def __setstate__(self, state: dict[str, Any]) -> None:
         self.__dict__.update(state)
 
     @classmethod
@@ -351,7 +352,7 @@ class LpProblem:
             objective=mpslp.MPSObjective(
                 name=self.objective.name, coefficients=self.objective.toDataclass()
             ),
-            constraints=[v.toDataclass() for v in self.constraints],
+            constraints=[v.toDataclass() for v in self.constraints()],
             variables=[v.toDataclass() for v in variables],
             parameters=mpslp.MPSParameters(
                 name=self.name,
@@ -444,7 +445,7 @@ class LpProblem:
         )
         return cls.fromDict(data)
 
-    def toJson(self, filename: str, *args: Any, **kwargs: Any):
+    def toJson(self, filename: str, *args: Any, **kwargs: Any) -> None:
         """
         Creates a json file from the LpProblem information
 
@@ -456,7 +457,7 @@ class LpProblem:
         with open(filename, "w") as f:
             json.dump(self.toDict(), f, *args, **kwargs)
 
-    def to_json(self, filename: str, *args: Any, **kwargs: Any):
+    def to_json(self, filename: str, *args: Any, **kwargs: Any) -> None:
         warnings.warn(
             "LpProblem.to_json is deprecated, use LpProblem.toJson instead",
             category=DeprecationWarning,
@@ -510,7 +511,7 @@ class LpProblem:
         for v in self.variables():
             if not v.valid(eps):
                 return False
-        for c in self.constraints:
+        for c in self.constraints():
             if not c.valid(eps):
                 return False
         else:
@@ -520,7 +521,7 @@ class LpProblem:
         gap: float = 0
         for v in self.variables():
             gap = max(abs(v.infeasibilityGap(mip)), gap)
-        for c in self.constraints:
+        for c in self.constraints():
             if not c.valid(0):
                 cv = c.value()
                 if cv is not None:
@@ -528,11 +529,11 @@ class LpProblem:
         return gap
 
     def variables(self) -> list[LpVariable]:
-        """Returns the problem variables from the Rust model."""
+        """Problem variables from the Rust model, in id order (same order as :meth:`constraints`)."""
         return [LpVariable(v) for v in self._model.list_variables()]
 
     def variablesDict(self) -> dict[str, LpVariable]:
-        """Dict of variable name -> LpVariable, using same order as variables()."""
+        """Dict of variable name -> LpVariable, using same order as :meth:`variables`."""
         return {v.name: v for v in self.variables()}
 
     def add(self, constraint: LpAffineExpression, name: str | None = None) -> None:
@@ -648,7 +649,7 @@ class LpProblem:
         self, translation: dict[str, str] | None = None
     ) -> list[tuple[str, str, float]]:
         coefs: list[tuple[str, str, float]] = []
-        for cst in self.constraints:
+        for cst in self.constraints():
             row = cst.name
             if translation is None:
                 coefs.extend([(v.name, row, cst[v]) for v in cst])
@@ -921,7 +922,7 @@ class LpProblem:
 
         :return: number of constraints in model
         """
-        return len(self.constraints)
+        return len(self.constraints())
 
     def getSense(self) -> int:
         return self.sense

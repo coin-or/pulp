@@ -24,15 +24,21 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."""
 
+from __future__ import annotations
+
 import os
 import sys
 import warnings
 from contextlib import redirect_stdout
 from io import StringIO
+from typing import TYPE_CHECKING, Any
 from uuid import uuid4
 
 from .. import constants
 from .core import LpSolver_CMD, PulpSolverError, log
+
+if TYPE_CHECKING:
+    from ..core.lp_problem import LpProblem
 
 # The maximum length of the names of variables and constraints.
 MAX_NAME_LENGTH = 256
@@ -175,7 +181,7 @@ class SAS94(SASsolver):
 
     try:
         global saspy
-        import saspy  # type: ignore[import-not-found, import-untyped, unused-ignore]
+        import saspy  # type: ignore[import-not-found, import-untyped]
 
     except Exception:
 
@@ -183,7 +189,7 @@ class SAS94(SASsolver):
             """True if SAS94 is available."""
             return False
 
-        def actualSolve(self, lp, callback=None):
+        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
             """Solves a well-formulated lp problem."""
             raise PulpSolverError("SAS94 : Not Available")
 
@@ -245,8 +251,8 @@ class SAS94(SASsolver):
             else:
                 return False
 
-        def actualSolve(self, lp):  # type: ignore[misc]
-            """Solve a well formulated lp problem"""
+        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+            """Solve a well formulated lp problem."""
             log.debug("Running SAS")
 
             if not self.sas:
@@ -485,7 +491,7 @@ class SASCAS(SASsolver):
 
     try:
         global swat
-        import swat  # type: ignore[import-not-found, import-untyped, unused-ignore]
+        import swat  # type: ignore[import-not-found, import-untyped]
 
     except ImportError:
 
@@ -493,7 +499,7 @@ class SASCAS(SASsolver):
             """True if SASCAS is available."""
             return False
 
-        def actualSolve(self, lp, callback=None):
+        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
             """Solves a well-formulated lp problem."""
             raise PulpSolverError("SASCAS : Not Available")
 
@@ -557,8 +563,8 @@ class SASCAS(SASsolver):
             else:
                 return True
 
-        def actualSolve(self, lp):  # type: ignore[misc]
-            """Solve a well formulated lp problem"""
+        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+            """Solve a well formulated lp problem."""
             log.debug("Running SAS")
 
             if not self.cas:

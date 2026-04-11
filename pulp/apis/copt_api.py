@@ -1,11 +1,16 @@
+from __future__ import annotations
+
 import ctypes
 import math
 import os
 import subprocess
 import sys
 import warnings
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from uuid import uuid4
+
+if TYPE_CHECKING:
+    from ..core.lp_problem import LpProblem
 
 from ..constants import (
     LpBinary,
@@ -87,7 +92,7 @@ class COPT_CMD(LpSolver_CMD):
         """
         return self.executable(self.path)
 
-    def actualSolve(self, lp):
+    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
         """
         Solve a well formulated LP problem
 
@@ -299,8 +304,8 @@ class COPT_DLL(LpSolver):
             """True if the solver is available"""
             return False
 
-        def actualSolve(self, lp):
-            """Solve a well formulated lp problem"""
+        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+            """Solve a well formulated lp problem."""
             raise PulpSolverError(f"COPT_DLL: Not Available:\n{self.err}")
 
     else:
@@ -376,7 +381,7 @@ class COPT_DLL(LpSolver):
             """
             return True
 
-        def actualSolve(self, lp):
+        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
             """
             Solve a well formulated LP/MIP problem
 
@@ -431,7 +436,7 @@ class COPT_DLL(LpSolver):
                 # Load MIP start information
                 if self.mipstart:
                     mstdict = {
-                        self.v2n[v]: v.value()
+                        self.vname2n[v.name]: v.value()
                         for v in lp.variables()
                         if v.value() is not None
                     }
@@ -479,7 +484,7 @@ class COPT_DLL(LpSolver):
             """
             cols = list(lp.variables())
             ncol = len(cols)
-            nrow = len(lp.constraints)
+            nrow = len(lp.constraints())
 
             collb = (ctypes.c_double * ncol)()
             colub = (ctypes.c_double * ncol)()
@@ -533,7 +538,7 @@ class COPT_DLL(LpSolver):
 
             # Extract constraint rhs, senses and names
             idx = 0
-            for constr in lp.constraints:
+            for constr in lp.constraints():
                 row_key = constr.name
                 rowrhs[idx] = -constr.constant
                 rowsense[idx] = coptrsense[constr.sense]
@@ -865,15 +870,15 @@ class COPT(LpSolver):
 
     try:
         global coptpy
-        import coptpy  # type: ignore[import-not-found, import-untyped, unused-ignore]
+        import coptpy  # type: ignore[import-not-found, import-untyped]
     except Exception:
 
         def available(self):
             """True if the solver is available"""
             return False
 
-        def actualSolve(self, lp, callback=None):
-            """Solve a well formulated lp problem"""
+        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+            """Solve a well formulated lp problem."""
             raise PulpSolverError("COPT: Not available")
 
     else:
@@ -948,7 +953,7 @@ class COPT(LpSolver):
                 try:
                     # NOTE: slacks in COPT are activities of rows
                     slacks = model.getInfo("Slack", model.getConstrs())
-                    for constr, value in zip(lp.constraints, slacks):
+                    for constr, value in zip(lp.constraints(), slacks):
                         constr.slack = value
 
                     redcosts = model.getInfo("RedCost", model.getVars())
@@ -956,7 +961,7 @@ class COPT(LpSolver):
                         var.dj = value
 
                     duals = model.getInfo("Dual", model.getConstrs())
-                    for constr, value in zip(lp.constraints, duals):
+                    for constr, value in zip(lp.constraints(), duals):
                         constr.pi = value
                 except coptpy.CoptError:
                     # sometimes the model is not solved, and thus these infos are not available
@@ -997,8 +1002,7 @@ class COPT(LpSolver):
             if logPath:
                 lp.solverModel.setLogFile(logPath)
 
-            lp._solver_var_handles = []
-            lp._solver_constr_handles = []
+            var_handles = []
             for var in lp.variables():
                 lowBound = var.lowBound
                 if not math.isfinite(lowBound):
@@ -1013,19 +1017,17 @@ class COPT(LpSolver):
                 cvar = lp.solverModel.addVar(
                     lowBound, upBound, vtype=varType, obj=obj, name=var.name
                 )
-                lp._solver_var_handles.append(cvar)
+                var_handles.append(cvar)
 
             if self.optionsDict.get("warmStart", False):
                 for var in lp.variables():
                     if var.varValue is not None:
-                        lp.solverModel.setMipStart(
-                            lp._solver_var_handles[var.id], var.varValue
-                        )
+                        lp.solverModel.setMipStart(var_handles[var.id], var.varValue)
                 lp.solverModel.loadMipStart()
 
-            for constraint in lp.constraints:
+            for constraint in lp.constraints():
                 name = constraint.name
-                solver_vars = [lp._solver_var_handles[v.id] for v in constraint.keys()]
+                solver_vars = [var_handles[v.id] for v in constraint.keys()]
                 expr = coptpy.LinExpr(solver_vars, list(constraint.values()))
                 if constraint.sense == LpConstraintLE:
                     relation = coptpy.COPT.LESS_EQUAL
@@ -1035,41 +1037,17 @@ class COPT(LpSolver):
                     relation = coptpy.COPT.EQUAL
                 else:
                     raise PulpSolverError("Detected an invalid constraint type")
-                ccon = lp.solverModel.addConstr(
-                    expr, relation, -constraint.constant, name
-                )
-                lp._solver_constr_handles.append(ccon)
+                lp.solverModel.addConstr(expr, relation, -constraint.constant, name)
 
-        def actualSolve(self, lp, callback=None):
+        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
             """
             Solve a well formulated lp problem
 
             creates a COPT model, variables and constraints and attaches
             them to the lp model which it then solves
             """
+            callback = kwargs.get("callback")
             self.buildSolverModel(lp)
-            self.callSolver(lp, callback=callback)
-
-            solutionStatus = self.findSolutionValues(lp)
-            return solutionStatus
-
-        def actualResolve(self, lp, callback=None):
-            """
-            Solve a well formulated lp problem
-
-            uses the old solver and modifies the rhs of the modified constraints
-            """
-            for constraint in lp.constraints:
-                if constraint.modified:
-                    handle = lp._solver_constr_handles[constraint.id]
-                    if constraint.sense == LpConstraintLE:
-                        handle.ub = -constraint.constant
-                    elif constraint.sense == LpConstraintGE:
-                        handle.lb = -constraint.constant
-                    else:
-                        handle.lb = -constraint.constant
-                        handle.ub = -constraint.constant
-
             self.callSolver(lp, callback=callback)
 
             solutionStatus = self.findSolutionValues(lp)

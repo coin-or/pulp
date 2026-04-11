@@ -24,20 +24,26 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."""
 
+from __future__ import annotations
+
 import math
 import re
 import sys
+from typing import TYPE_CHECKING, Any
 
 from .. import constants
 from .core import LpSolver, LpSolver_CMD, PulpSolverError, subprocess
 
+if TYPE_CHECKING:
+    from ..core.lp_problem import LpProblem
 
-def _ismip(lp):
+
+def _ismip(lp: LpProblem) -> bool:
     """Check whether lp is a MIP.
 
     From an XPRESS point of view, a problem is also a MIP if it contains
     SOS constraints."""
-    return lp.isMIP() or len(lp.sos1) or len(lp.sos2)
+    return bool(lp.isMIP() or len(lp.sos1) or len(lp.sos2))
 
 
 class XPRESS(LpSolver_CMD):
@@ -100,8 +106,8 @@ class XPRESS(LpSolver_CMD):
         """True if the solver is available"""
         return self.executable(self.path)
 
-    def actualSolve(self, lp):
-        """Solve a well formulated lp problem"""
+    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+        """Solve a well formulated lp problem."""
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute " + self.path)
         tmpLp, tmpSol, tmpCmd, tmpAttr, tmpStart = self.create_tmp_files(
@@ -382,7 +388,7 @@ class XPRESS_PY(LpSolver):
         if self._available is None:
             try:
                 global xpress
-                import xpress  # type: ignore[import-not-found, import-untyped, unused-ignore]
+                import xpress  # type: ignore[import-not-found, import-untyped]
 
                 # Always disable the global output. We only want output if
                 # we install callbacks explicitly
@@ -393,7 +399,7 @@ class XPRESS_PY(LpSolver):
         return self._available
 
     def callSolver(self, lp, prepare=None):
-        """Perform the actual solve from actualSolve() or actualResolve().
+        """Run the low-level XPRESS solve (used from :meth:`actualSolve`).
 
         :param prepare:  a function that is called with `lp` as argument
                          and allows final tweaks to `lp.solverModel` before
@@ -401,8 +407,6 @@ class XPRESS_PY(LpSolver):
         """
         try:
             model = lp.solverModel
-            # Mark all variables and constraints as unmodified so that
-            # actualResolve will do the correct thing.
             if self._export is not None:
                 if self._export.lower().endswith(".lp"):
                     model.write(self._export, "l")
@@ -422,16 +426,22 @@ class XPRESS_PY(LpSolver):
     def findSolutionValues(self, lp):
         try:
             model = lp.solverModel
+            if model is None:
+                raise PulpSolverError(
+                    "XPRESS_PY: no solver model; call buildSolverModel first"
+                )
+            var_handles = list(model.getVariable())
+            constr_handles = list(model.getConstraint())
 
             # Build ordered lists of solver vars/cons (id = index in handle lists)
-            xpress_vars = [(v, lp._solver_var_handles[v.id]) for v in lp.variables()]
+            xpress_vars = [(v, var_handles[v.id]) for v in lp.variables()]
             xpress_cons = [
                 (
                     c.name,
                     c,
-                    lp._solver_constr_handles[c.id],
+                    constr_handles[c.id],
                 )
-                for c in lp.constraints
+                for c in lp.constraints()
             ]
 
             if _ismip(lp) and self.mip:
@@ -541,8 +551,9 @@ class XPRESS_PY(LpSolver):
         except (xpress.ModelError, xpress.InterfaceError, xpress.SolverError) as err:
             raise PulpSolverError(str(err))
 
-    def actualSolve(self, lp, prepare=None):
-        """Solve a well formulated lp problem"""
+    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+        """Solve a well formulated lp problem."""
+        prepare = kwargs.get("prepare")
         if not self.available():
             # Import again to get a more verbose error message
             message = "XPRESS Python API not available"
@@ -569,9 +580,8 @@ class XPRESS_PY(LpSolver):
             #   self.buildSolverModel()
             #   self.callSolver()
             #   self.findSolutionValues()
-            # This also avoids setting warmstart information passed to the
-            # constructor from actualResolve(), which would almost certainly
-            # be unintended.
+            # This also avoids unintended warmstart side effects when callers
+            # build and solve in separate steps.
             model = lp.solverModel
             # Apply controls that were passed to the constructor
             for key, name in [
@@ -638,52 +648,10 @@ class XPRESS_PY(LpSolver):
         except (xpress.ModelError, xpress.InterfaceError, xpress.SolverError) as err:
             raise PulpSolverError(str(err))
 
-    def actualResolve(self, lp, prepare=None):
-        """Resolve a problem that was previously solved by actualSolve()."""
-        try:
-            rhsind = list()
-            rhsval = list()
-            for con in lp.constraints:
-                if not con.modified:
-                    continue
-                rhsind.append(con.id)
-                rhsval.append(-con.constant)
-            if len(rhsind) > 0:
-                lp.solverModel.chgrhs(rhsind, rhsval)
-
-            bndind = list()
-            bndtype = list()
-            bndval = list()
-            for v in lp.variables():
-                if not v.modified:
-                    continue
-                bndind.append(v.id)
-                bndtype.append("L")
-                bndval.append(
-                    -xpress.infinity if not math.isfinite(v.lowBound) else v.lowBound
-                )
-                bndind.append(v.id)
-                bndtype.append("G")
-                bndval.append(
-                    xpress.infinity if not math.isfinite(v.upBound) else v.upBound
-                )
-            if len(bndtype) > 0:
-                lp.solverModel.chgbounds(bndind, bndtype, bndval)
-
-            self.callSolver(lp, prepare)
-            return self.findSolutionValues(lp)
-        except (xpress.ModelError, xpress.InterfaceError, xpress.SolverError) as err:
-            raise PulpSolverError(str(err))
-
-    @staticmethod
-    def _reset(lp):
+    def _reset(self, lp):
         """Reset any XPRESS specific information in lp."""
         if hasattr(lp, "solverModel"):
             delattr(lp, "solverModel")
-        if hasattr(lp, "_solver_var_handles"):
-            delattr(lp, "_solver_var_handles")
-        if hasattr(lp, "_solver_constr_handles"):
-            delattr(lp, "_solver_constr_handles")
 
     def _extract(self, lp):
         """Extract a given model to an XPRESS Python API instance.
@@ -740,8 +708,7 @@ class XPRESS_PY(LpSolver):
             if lp.sense == constants.LpMaximize:
                 model.chgobjsense(xpress.maximize)
 
-            lp._solver_var_handles = []
-            lp._solver_constr_handles = []
+            var_handles = []
 
             # Create variables (id = position in lp.variables()).
             obj = list()
@@ -766,13 +733,13 @@ class XPRESS_PY(LpSolver):
                 names.append(v.name)
             model.addcols(obj, [0] * (len(obj) + 1), [], [], lb, ub, names, ctype)
             for v, x in zip(lp.variables(), model.getVariable()):
-                lp._solver_var_handles.append(x)
+                var_handles.append(x)
 
-            # Generate constraints in model order (same as lp.constraints list).
+            # Generate constraints in model order (same as lp.constraints() list).
             cons = list()
-            for con in lp.constraints:
+            for con in lp.constraints():
                 lhs = xpress.Sum(
-                    a * lp._solver_var_handles[x.id]
+                    a * var_handles[x.id]
                     for x, a in sorted(con.items(), key=lambda item: item[0].name)
                 )
                 rhs = -con.constant
@@ -790,8 +757,6 @@ class XPRESS_PY(LpSolver):
                     cons = list()
             if len(cons) > 0:
                 model.addConstraint(cons)
-
-            lp._solver_constr_handles = list(model.getConstraint())
 
             # SOS constraints (variable index = var.id)
             def addsos(m, sosdict, sostype):

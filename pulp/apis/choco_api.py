@@ -24,11 +24,17 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."""
 
+from __future__ import annotations
+
 import os
 import warnings
+from typing import TYPE_CHECKING, Any
 
 from .. import constants
 from .core import LpSolver_CMD, PulpSolverError, subprocess
+
+if TYPE_CHECKING:
+    from ..core.lp_problem import LpProblem
 
 
 class CHOCO_CMD(LpSolver_CMD):
@@ -71,8 +77,8 @@ class CHOCO_CMD(LpSolver_CMD):
         java_path = self.executableExtension("java")
         return self.executable(self.path) and self.executable(java_path)
 
-    def actualSolve(self, lp):
-        """Solve a well formulated lp problem"""
+    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+        """Solve a well formulated lp problem."""
         java_path = self.executableExtension("java")
         if not self.executable(java_path):
             raise PulpSolverError(
@@ -118,7 +124,10 @@ class CHOCO_CMD(LpSolver_CMD):
         self.delete_tmp_files(tmpMps, tmpLp, tmpSol)
 
         lp.assignStatus(status, status_sol)
-        if status not in [constants.LpStatusInfeasible, constants.LpStatusNotSolved]:
+        if values is not None and status not in (
+            constants.LpStatusInfeasible,
+            constants.LpStatusNotSolved,
+        ):
             lp.assignVarsVals(values)
 
         return status
