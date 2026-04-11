@@ -75,7 +75,7 @@ class MIPCL_CMD(LpSolver_CMD):
 
     def available(self) -> bool:
         """True if the solver is available"""
-        return self.executable(self.path)
+        return self.executable(self.path) is not None
 
     def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
         """Solve a well formulated lp problem."""

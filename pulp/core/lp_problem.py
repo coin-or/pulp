@@ -5,7 +5,7 @@ import math
 import warnings
 from collections.abc import Iterable
 from time import time
-from typing import Any, Optional
+from typing import Any, Optional, cast
 
 try:
     import ujson as json  # type: ignore[import-untyped]
@@ -174,7 +174,7 @@ class LpProblem:
                 lists = lists[:-1]
             index = [tuple(r) for r in res]
         elif len(indices) == 1:
-            index = list(indices[0])
+            index = list(cast(Iterable[Any], indices[0]))
         else:
             return {}
         names = [name % (i if isinstance(i, tuple) else (i,)) for i in index]
