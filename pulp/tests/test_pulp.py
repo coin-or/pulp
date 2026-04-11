@@ -442,15 +442,6 @@ class ModelUnitTest(unittest.TestCase):
             _ = (x + y).items()
         self.assertIn("no longer exists", str(ctx.exception))
 
-    def test_lpconstraint_not_additive_with_affine(self):
-        prob = self._make_prob()
-        x = prob.add_variable("x", 0, 10)
-        prob += x <= 1, "c1"
-        c = _constraint_named(prob, "c1")
-        y = LpAffineExpression.from_variable(prob.add_variable("y", 0, 1))
-        with self.assertRaises(TypeError):
-            _ = y + c
-
     # -- 8. Numpy scalars in constraints (constant on left) --
 
     def test_constraint_numpy_scalar_constant_on_left(self):

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import math
-import warnings
 from collections.abc import Iterable, Iterator
 from typing import Any, Literal
 
@@ -261,7 +260,6 @@ class LpAffineExpression:
         | None,
         sign: Literal[+1, -1] = 1,
     ) -> LpAffineExpression:
-        from .lp_constraint import LpConstraint
 
         if other is None or (isinstance(other, int) and other == 0):
             return self
