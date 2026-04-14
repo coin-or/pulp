@@ -72,7 +72,7 @@ prob = LpProblem("The Whiskas Problem", LpMinimize)
 
 # BEGIN ingredient_vars
 # A dictionary called 'ingredient_vars' is created to contain the referenced Variables
-ingredient_vars = LpVariable.dicts("Ingr", Ingredients, 0)
+ingredient_vars = prob.add_variable_dict("Ingr", (Ingredients,), 0, None, LpContinuous)
 # END ingredient_vars
 
 # BEGIN obj_function

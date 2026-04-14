@@ -6,16 +6,16 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>How to debug most errors during solving &mdash; PuLP 3.3.0 documentation</title>
+  <title>How to debug most errors during solving &mdash; PuLP 4.0.0a3 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=3eb8911e"></script>
-      <script src="../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/documentation_options.js?v=665135b5"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -48,7 +48,6 @@
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">User Guides</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="how_to_configure_solvers.html">How to configure a solver in PuLP</a></li>
 <li class="toctree-l2"><a class="reference internal" href="how_to_mip_start.html">How to warm-start a solver</a></li>
-<li class="toctree-l2"><a class="reference internal" href="how_to_elastic_constraints.html">Elastic Constraints</a></li>
 <li class="toctree-l2"><a class="reference internal" href="how_to_export_models.html">How to import and export models in PuLP</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">How to debug most errors during solving</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#giving-feedback-and-asking-for-help">Giving feedback and asking for help</a></li>
@@ -108,7 +107,7 @@ General pointers (that are nonetheless, very important):</p>
 </ol>
 <p>Now, specifically to PuLP:</p>
 <ol class="arabic simple">
-<li><p>Pass the <cite>msg=1</cite> argument to the solver, i.e., <cite>prob.solve(PULP_CBC_CMD(msg=1))</cite>. This will give you more information on the error. Share this information when asking for help.</p></li>
+<li><p>Pass <code class="docutils literal notranslate"><span class="pre">msg=True</span></code> to the solver, e.g. <code class="docutils literal notranslate"><span class="pre">prob.solve(pulp.COIN_CMD(msg=True))</span></code>. This will give you more information on the error. Share this information when asking for help.</p></li>
 <li><p>If possible, share an export version of the model. Check <a class="reference external" href="https://coin-or.github.io/pulp/guides/how_to_export_models.html">here</a> how to export one.</p></li>
 <li><p>Alternatively, share a <cite>mps</cite> version of your model. To produce one, use <a class="reference internal" href="../technical/pulp.html#pulp.LpProblem.writeMPS" title="pulp.LpProblem.writeMPS"><code class="xref py py-meth docutils literal notranslate"><span class="pre">writeMPS()</span></code></a>.</p></li>
 </ol>
@@ -123,7 +122,7 @@ General pointers (that are nonetheless, very important):</p>
 <section id="error-while-trying-to-execute-cbc-exe">
 <h2>Error while trying to execute cbc.exe<a class="headerlink" href="#error-while-trying-to-execute-cbc-exe" title="Link to this heading"></a></h2>
 <p>The complete message is usually something like <cite>pulp.solvers.PulpSolverError: Pulp: Error while trying to execute PATH_TO_CBC/cbc.exe</cite>.</p>
-<p>The default solver is CBC and is run via the command line.</p>
+<p>CBC is normally used through <code class="docutils literal notranslate"><span class="pre">COIN_CMD</span></code> (install <code class="docutils literal notranslate"><span class="pre">pulp[cbc]</span></code> or put <code class="docutils literal notranslate"><span class="pre">cbc</span></code> on <code class="docutils literal notranslate"><span class="pre">PATH</span></code>).</p>
 <ol class="arabic simple">
 <li><p>First of all, pass the <cite>msg=1</cite> argument to the solver, to get more information.</p></li>
 <li><p><strong>Check the precision of the numbers</strong>. If you have very big numbers (with a high precision), this generally causes problems with solvers. For example, never use a parameter that is <cite>100000000000</cite> inside your problem. Specially if you then have another one that has <cite>1200.09123642123</cite>. If you do not need decimals, round your values when building the model.</p></li>
@@ -159,7 +158,8 @@ General pointers (that are nonetheless, very important):</p>
 <p>This could be caused by a combination of the following:</p>
 <ul class="simple">
 <li><p>the conda / anaconda installation of PuLP is not supported and thus may bring its own problems. Try installing pulp as documented in the documentation.</p></li>
-<li><p>Apparently Jupyter notebooks sometimes run in user sessions that do not have access to the PuLP installation folder. This makes it impossible to access the default solver binary. To fix this, try installing pulp in the user’s directory or giving sufficient permissions to the jupyter notebook when launching it.</p></li>
+<li><p>Apparently Jupyter notebooks sometimes run in user sessions with a reduced <code class="docutils literal notranslate"><span class="pre">PATH</span></code>.
+Install <code class="docutils literal notranslate"><span class="pre">pulp[cbc]</span></code> or ensure <code class="docutils literal notranslate"><span class="pre">cbc</span></code> is visible from the notebook kernel’s environment.</p></li>
 </ul>
 <p>Examples of these situations, some fixed are:</p>
 <ul class="simple">

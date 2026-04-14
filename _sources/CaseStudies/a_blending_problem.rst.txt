@@ -124,13 +124,13 @@ are ignored (as shown), they take their default values. However, if you
 wish to specify the third parameter, but you want the second to be the
 default value, you will need to specifically set the second parameter as
 it's default value. i.e you cannot leave a parameter entry blank.
-e.g::
+e.g (variables are created from a problem)::
 
-    LpVariable("example", None, 100)
+    prob.add_variable("example", None, 100)
 
 or::
 
-    LpVariable("example", upBound = 100)
+    prob.add_variable("example", upBound=100)
 
 To explicitly create the two variables needed for this problem:
 

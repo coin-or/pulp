@@ -6,17 +6,17 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>A Blending Problem &mdash; PuLP 3.3.0 documentation</title>
+  <title>A Blending Problem &mdash; PuLP 4.0.0a3 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=3eb8911e"></script>
-      <script src="../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
-      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="../_static/documentation_options.js?v=665135b5"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -240,18 +240,18 @@ are ignored (as shown), they take their default values. However, if you
 wish to specify the third parameter, but you want the second to be the
 default value, you will need to specifically set the second parameter as
 it’s default value. i.e you cannot leave a parameter entry blank.
-e.g:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">LpVariable</span><span class="p">(</span><span class="s2">&quot;example&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+e.g (variables are created from a problem):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">&quot;example&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>or:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">LpVariable</span><span class="p">(</span><span class="s2">&quot;example&quot;</span><span class="p">,</span> <span class="n">upBound</span> <span class="o">=</span> <span class="mi">100</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">&quot;example&quot;</span><span class="p">,</span> <span class="n">upBound</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>To explicitly create the two variables needed for this problem:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># The 2 variables Beef and Chicken are created with a lower limit of zero</span>
-<span class="n">x1</span> <span class="o">=</span> <span class="n">LpVariable</span><span class="p">(</span><span class="s2">&quot;ChickenPercent&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">LpInteger</span><span class="p">)</span>
-<span class="n">x2</span> <span class="o">=</span> <span class="n">LpVariable</span><span class="p">(</span><span class="s2">&quot;BeefPercent&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">x1</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">&quot;ChickenPercent&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">LpInteger</span><span class="p">)</span>
+<span class="n">x2</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">&quot;BeefPercent&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">LpContinuous</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The variable <code class="docutils literal notranslate"><span class="pre">prob</span></code> now begins collecting problem data with the
@@ -486,7 +486,7 @@ the LP variables, with their defined lower bound of zero. The reference
 keys to the dictionary are the Ingredient names, and the data is
 <code class="docutils literal notranslate"><span class="pre">Ingr_IngredientName</span></code>. (e.g. MUTTON: Ingr_MUTTON)</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># A dictionary called &#39;ingredient_vars&#39; is created to contain the referenced Variables</span>
-<span class="n">ingredient_vars</span> <span class="o">=</span> <span class="n">LpVariable</span><span class="o">.</span><span class="n">dicts</span><span class="p">(</span><span class="s2">&quot;Ingr&quot;</span><span class="p">,</span> <span class="n">Ingredients</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">ingredient_vars</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable_dict</span><span class="p">(</span><span class="s2">&quot;Ingr&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">Ingredients</span><span class="p">,),</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">LpContinuous</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Since <code class="docutils literal notranslate"><span class="pre">costs</span></code> and <code class="docutils literal notranslate"><span class="pre">ingredient_vars</span></code> are now dictionaries with the

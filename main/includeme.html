@@ -6,16 +6,16 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>pulp &mdash; PuLP 3.3.0 documentation</title>
+  <title>pulp &mdash; PuLP 4.0.0a3 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=3eb8911e"></script>
-      <script src="../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/documentation_options.js?v=665135b5"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -61,6 +61,7 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#more-examples">More Examples</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#for-developers">For Developers</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#building-from-source">Building from source</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#building-the-documentation">Building the documentation</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#contributing-to-pulp">Contributing to PuLP</a></li>
 </ul>
@@ -113,17 +114,39 @@
 <p>PuLP is an linear and mixed integer programming modeler written in Python. With PuLP, it is simple to create MILP optimisation problems and solve them with the latest open-source (or proprietary) solvers.  PuLP can generate MPS or LP files and call solvers such as <a class="reference external" href="http://www.gnu.org/software/glpk/glpk.html">GLPK</a>, COIN-OR CLP/<a class="reference external" href="https://github.com/coin-or/Cbc">CBC</a>, <a class="reference external" href="http://www.cplex.com/">CPLEX</a>, <a class="reference external" href="http://www.gurobi.com/">GUROBI</a>, <a class="reference external" href="https://www.mosek.com/">MOSEK</a>, <a class="reference external" href="https://www.fico.com/es/products/fico-xpress-solver">XPRESS</a>, <a class="reference external" href="https://choco-solver.org/">CHOCO</a>, <a class="reference external" href="http://mipcl-cpp.appspot.com/">MIPCL</a>, <a class="reference external" href="https://highs.dev">HiGHS</a>, <a class="reference external" href="https://www.scipopt.org/">SCIP</a>/<a class="reference external" href="https://ug.zib.de">FSCIP</a>.</p>
 <p>The documentation for PuLP can be <a class="reference external" href="https://coin-or.github.io/pulp/">found here</a>.</p>
 <p>PuLP is part of the <a class="reference external" href="https://www.coin-or.org/">COIN-OR project</a>.</p>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p><strong>CBC is not shipped inside the PuLP package.</strong> Older releases bundled a CBC
+binary and exposed it as <code class="docutils literal notranslate"><span class="pre">PULP_CBC_CMD</span></code>; that API and the bundled solver are
+<strong>removed</strong>. To solve models with CBC through PuLP you should:</p>
+<ul class="simple">
+<li><p>install PuLP with the optional CBC extra: <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">pulp[cbc]</span></code>
+(this installs the <a class="reference external" href="https://pypi.org/project/cbcbox/">cbcbox</a> wheel, which
+provides a CBC executable PuLP can find automatically), <strong>or</strong></p></li>
+<li><p>install a CBC build yourself and ensure the <code class="docutils literal notranslate"><span class="pre">cbc</span></code> (or <code class="docutils literal notranslate"><span class="pre">cbc.exe</span></code> on
+Windows) executable is on your <code class="docutils literal notranslate"><span class="pre">PATH</span></code>,</p></li>
+</ul>
+<p>then use the <code class="docutils literal notranslate"><span class="pre">COIN_CMD</span></code> solver (or call <code class="docutils literal notranslate"><span class="pre">prob.solve()</span></code> with no arguments
+when CBC is available; otherwise install another solver such as GLPK or pass
+an explicit solver). Without CBC or another available solver, the default
+solve path will raise <code class="docutils literal notranslate"><span class="pre">PulpError:</span> <span class="pre">No</span> <span class="pre">solver</span> <span class="pre">available</span></code>.</p>
+</div>
 <section id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h2>
 <p>PuLP requires Python 3.9 or newer.</p>
-<p>The easiest way to install PuLP is with <code class="docutils literal notranslate"><span class="pre">pip</span></code>. If <code class="docutils literal notranslate"><span class="pre">pip</span></code> is available on your system, type:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">pulp</span>
+<p><strong>Recommended:</strong> install with CBC support:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">pulp</span><span class="p">[</span><span class="n">cbc</span><span class="p">]</span>
 </pre></div>
 </div>
+<p>Plain <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">pulp</span></code> installs only the modeler; you must then
+supply your own CBC on <code class="docutils literal notranslate"><span class="pre">PATH</span></code> or another solver.</p>
 <p>Otherwise follow the download instructions on the <a class="reference external" href="https://pypi.python.org/pypi/PuLP">PyPi page</a>.</p>
 <section id="installing-solvers">
 <h3>Installing solvers<a class="headerlink" href="#installing-solvers" title="Link to this heading"></a></h3>
-<p>PuLP can use a variety of solvers. The default solver is the COIN-OR CBC solver, which is included with PuLP. If you want to use other solvers, PuLP offers a quick way to install most solvers via their pypi package (some require a commercial license for running or for running large models):</p>
+<p>PuLP can use a variety of solvers. When CBC is available (via <code class="docutils literal notranslate"><span class="pre">pulp[cbc]</span></code> or
+<code class="docutils literal notranslate"><span class="pre">cbc</span></code> on <code class="docutils literal notranslate"><span class="pre">PATH</span></code>), <code class="docutils literal notranslate"><span class="pre">COIN_CMD</span></code> is the usual open-source MIP/LP choice and is
+selected as the default ahead of GLPK. PuLP can also install other solvers via
+optional PyPI extras (some require a commercial license for running or for large models):</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">pulp</span><span class="p">[</span><span class="n">gurobi</span><span class="p">]</span>
 <span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">pulp</span><span class="p">[</span><span class="n">cplex</span><span class="p">]</span>
 <span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">pulp</span><span class="p">[</span><span class="n">xpress</span><span class="p">]</span>
@@ -132,10 +155,11 @@
 <span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">pulp</span><span class="p">[</span><span class="n">copt</span><span class="p">]</span>
 <span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">pulp</span><span class="p">[</span><span class="n">mosek</span><span class="p">]</span>
 <span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">pulp</span><span class="p">[</span><span class="n">cylp</span><span class="p">]</span>
+<span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">pulp</span><span class="p">[</span><span class="n">cbc</span><span class="p">]</span>
 </pre></div>
 </div>
 <dl class="simple">
-<dt>If you want to install all open source solvers (scip, highs, cylp), you can use the shortcut::</dt><dd><p>python -m pip install pulp[open_py]</p>
+<dt>If you want to install all open source solvers (scip, highs, cbc), you can use the shortcut::</dt><dd><p>python -m pip install pulp[open_py]</p>
 </dd>
 </dl>
 <p>For more information on how to install solvers, see the <a class="reference external" href="https://coin-or.github.io/pulp/guides/how_to_configure_solvers.html">guide on configuring solvers</a>.</p>
@@ -143,20 +167,17 @@
 </section>
 <section id="quickstart">
 <h2>Quickstart<a class="headerlink" href="#quickstart" title="Link to this heading"></a></h2>
-<p>Use <code class="docutils literal notranslate"><span class="pre">LpVariable</span></code> to create new variables. To create a variable x with 0  ≤  x  ≤  3:</p>
+<p>Use <code class="docutils literal notranslate"><span class="pre">LpProblem</span></code> to create a problem, then add variables with <code class="docutils literal notranslate"><span class="pre">add_variable</span></code>. Create a problem called “myProblem” and a variable x with 0 ≤ x ≤ 3:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pulp</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">LpVariable</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="n">prob</span> <span class="o">=</span> <span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;myProblem&quot;</span><span class="p">,</span> <span class="n">LpMinimize</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>To create a binary variable, y, with values either 0 or 1:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">y</span> <span class="o">=</span> <span class="n">LpVariable</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="n">cat</span><span class="o">=</span><span class="s2">&quot;Binary&quot;</span><span class="p">)</span>
+<p>To create a binary variable y (values 0 or 1):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">y</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="n">cat</span><span class="o">=</span><span class="s2">&quot;Binary&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Use <code class="docutils literal notranslate"><span class="pre">LpProblem</span></code> to create new problems. Create a problem called “myProblem” like so:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">prob</span> <span class="o">=</span> <span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;myProblem&quot;</span><span class="p">,</span> <span class="n">LpMinimize</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>Combine variables in order to create expressions and constraints, and then add them to the problem.:</p>
+<p>Combine variables to create expressions and constraints and add them to the problem:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="mi">2</span>
 </pre></div>
 </div>
@@ -164,7 +185,8 @@
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">prob</span> <span class="o">+=</span> <span class="o">-</span><span class="mi">4</span><span class="o">*</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span>
 </pre></div>
 </div>
-<p>To solve the problem  with the default included solver:</p>
+<p>To solve the problem with the default solver (CBC when installed via <code class="docutils literal notranslate"><span class="pre">pulp[cbc]</span></code>
+or <code class="docutils literal notranslate"><span class="pre">cbc</span></code> on <code class="docutils literal notranslate"><span class="pre">PATH</span></code>, otherwise another available backend):</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">status</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -192,7 +214,6 @@
 <div><p>a1x1 + a2x2 + … + anxn (&lt;=, =, &gt;=) b</p>
 </div></blockquote>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">LpConstraintVar</span></code> – A special type of constraint for constructing column of the model in column-wise modelling</p></li>
 </ul>
 </section>
 <section id="useful-functions">
@@ -207,31 +228,52 @@
 <section id="more-examples">
 <h2>More Examples<a class="headerlink" href="#more-examples" title="Link to this heading"></a></h2>
 <p>Several tutorial are given in <a class="reference external" href="https://coin-or.github.io/pulp/CaseStudies/index.html">documentation</a> and pure code examples are available in <a class="reference external" href="https://github.com/coin-or/pulp/tree/master/examples">examples/ directory</a> .</p>
-<p>The examples use the default solver (CBC). To use other solvers they must be available (installed and accessible). For more information on how to do that, see the <a class="reference external" href="https://coin-or.github.io/pulp/guides/how_to_configure_solvers.html">guide on configuring solvers</a>.</p>
+<p>The examples assume CBC is available (for example after <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">pulp[cbc]</span></code>).
+To use other solvers they must be available (installed and accessible). For more
+information, see the <a class="reference external" href="https://coin-or.github.io/pulp/guides/how_to_configure_solvers.html">guide on configuring solvers</a>.</p>
 </section>
 <section id="for-developers">
 <h2>For Developers<a class="headerlink" href="#for-developers" title="Link to this heading"></a></h2>
 <p>If you want to install the latest version from GitHub you can run:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">U</span> <span class="n">git</span><span class="o">+</span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">coin</span><span class="o">-</span><span class="ow">or</span><span class="o">/</span><span class="n">pulp</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">U</span> <span class="s2">&quot;pulp[cbc] @ git+https://github.com/coin-or/pulp.git&quot;</span>
 </pre></div>
 </div>
-<p>On Linux and MacOS systems, you must run the tests to make the default solver executable:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">pulptest</span>
+<section id="building-from-source">
+<h3>Building from source<a class="headerlink" href="#building-from-source" title="Link to this heading"></a></h3>
+<p>This version of PuLP includes a Rust extension (<code class="docutils literal notranslate"><span class="pre">pulp._rustcore</span></code>) that provides the core model, variables, constraints, and expressions. The build uses <a class="reference external" href="https://github.com/PyO3/maturin">maturin</a> and requires a Rust toolchain in addition to Python.</p>
+<p><strong>Requirements</strong></p>
+<ul class="simple">
+<li><p><strong>Python</strong> 3.9 or newer</p></li>
+<li><p><strong>Rust</strong> (latest stable). Install from <a class="reference external" href="https://rustup.rs/">https://rustup.rs/</a></p></li>
+<li><p><strong>uv</strong> (recommended for install and dev). Install with: <code class="docutils literal notranslate"><span class="pre">curl</span> <span class="pre">-LsSf</span> <span class="pre">https://astral.sh/uv/install.sh</span> <span class="pre">|</span> <span class="pre">sh</span></code> (Linux/macOS) or <code class="docutils literal notranslate"><span class="pre">powershell</span> <span class="pre">-c</span> <span class="pre">&quot;irm</span> <span class="pre">https://astral.sh/uv/install.ps1</span> <span class="pre">|</span> <span class="pre">iex&quot;</span></code> (Windows)</p></li>
+<li><p><strong>OS</strong>: Windows, macOS (x86_64, arm64), or Linux (x86_64, arm64). The Rust extension is built for the host platform.</p></li>
+</ul>
+<p><strong>Build steps</strong></p>
+<p>From the PuLP root directory, create a virtual environment and install the package in editable mode with dev dependencies:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">uv</span> <span class="n">venv</span>
+<span class="n">uv</span> <span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">group</span> <span class="n">dev</span> <span class="o">-</span><span class="n">e</span> <span class="o">.</span><span class="p">[</span><span class="n">cbc</span><span class="p">]</span>
 </pre></div>
 </div>
+<p>Or with plain pip (maturin will be used automatically by the build backend):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">venv</span> <span class="o">.</span><span class="n">venv</span>
+<span class="n">source</span> <span class="o">.</span><span class="n">venv</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">activate</span>   <span class="c1"># Windows: .venv\Scripts\activate</span>
+<span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">upgrade</span> <span class="n">pip</span>
+<span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">e</span> <span class="s2">&quot;.[cbc]&quot;</span>
+</pre></div>
+</div>
+<p><strong>Running tests</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">uv</span> <span class="n">run</span> <span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">unittest</span> <span class="n">discover</span> <span class="o">-</span><span class="n">s</span> <span class="n">pulp</span><span class="o">/</span><span class="n">tests</span> <span class="o">-</span><span class="n">v</span>
+</pre></div>
+</div>
+</section>
 <section id="building-the-documentation">
 <h3>Building the documentation<a class="headerlink" href="#building-the-documentation" title="Link to this heading"></a></h3>
-<p>The PuLP documentation is built with <a class="reference external" href="https://www.sphinx-doc.org">Sphinx</a>.  We recommended using a
-<a class="reference external" href="https://docs.python.org/3/library/venv.html">virtual environment</a> to build the documentation locally.</p>
-<p>To build, run the following in a terminal window, in the PuLP root directory</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python3</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">upgrade</span> <span class="n">pip</span>
-<span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">group</span><span class="o">=</span><span class="n">dev</span> <span class="o">.</span>
-<span class="n">cd</span> <span class="n">doc</span>
+<p>The PuLP documentation is built with <a class="reference external" href="https://www.sphinx-doc.org">Sphinx</a>. Use a virtual environment and the dev install above, then:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">doc</span>
 <span class="n">make</span> <span class="n">html</span>
 </pre></div>
 </div>
-<p>A folder named html will be created inside the <code class="docutils literal notranslate"><span class="pre">build/</span></code> directory.
-The home page for the documentation is <code class="docutils literal notranslate"><span class="pre">doc/build/html/index.html</span></code> which can be opened in a browser.</p>
+<p>A folder named <code class="docutils literal notranslate"><span class="pre">html</span></code> will be created inside <code class="docutils literal notranslate"><span class="pre">doc/build/</span></code>. Open <code class="docutils literal notranslate"><span class="pre">doc/build/html/index.html</span></code> in a browser.</p>
 </section>
 <section id="contributing-to-pulp">
 <h3>Contributing to PuLP<a class="headerlink" href="#contributing-to-pulp" title="Link to this heading"></a></h3>

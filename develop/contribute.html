@@ -6,16 +6,16 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>How to contribute to PuLP &mdash; PuLP 3.3.0 documentation</title>
+  <title>How to contribute to PuLP &mdash; PuLP 4.0.0a3 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=3eb8911e"></script>
-      <script src="../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/documentation_options.js?v=665135b5"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -53,8 +53,8 @@
 <li class="toctree-l3"><a class="reference internal" href="#installing-from-source">Installing from source</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#running-tests">Running tests</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#creating-a-test">Creating a test</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#applying-the-black-linter-formatter">Applying the black linter / formatter</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#checking-types-with-mypy">Checking types with mypy</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#applying-the-ruff-linter-formatter">Applying the ruff linter / formatter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#checking-types">Checking types</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#building-the-documentation">Building the documentation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#making-a-pull-request">Making a Pull Request</a></li>
 </ul>
@@ -102,7 +102,7 @@
 <li><p>Make your changes.</p></li>
 <li><p>Create a test for your changes if needed.</p></li>
 <li><p>Make sure all the tests pass.</p></li>
-<li><p>Lint your code with black.</p></li>
+<li><p>Lint and format your code with ruff.</p></li>
 <li><p>Ensure the docs are accurate.</p></li>
 <li><p>Submit a Pull Request.</p></li>
 </ol>
@@ -124,57 +124,70 @@ We will use plain git through the command line but feel free to use the git clie
 </section>
 <section id="installing-from-source">
 <h2>Installing from source<a class="headerlink" href="#installing-from-source" title="Link to this heading"></a></h2>
-<p>To build pulp from source we wil get inside the pulp directory, then we will create a virtual environment and install dependencies. I assume Linux / Mac. Windows has very similar commands:</p>
+<p>PuLP includes a Rust extension (<code class="docutils literal notranslate"><span class="pre">pulp._rustcore</span></code>), so building from source requires:</p>
+<ul class="simple">
+<li><p><strong>Python</strong> 3.9 or newer</p></li>
+<li><p><strong>Rust</strong> (latest stable). Install from <a class="reference external" href="https://rustup.rs/">https://rustup.rs/</a></p></li>
+<li><p><strong>uv</strong> (recommended) or <strong>pip</strong></p></li>
+</ul>
+<p>From the pulp directory, create a virtual environment and install the package in editable mode with dev dependencies.</p>
+<p>With <strong>uv</strong> (recommended):</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">pulp</span>
-<span class="n">python3</span> <span class="o">-</span><span class="n">m</span> <span class="n">venv</span> <span class="n">venv</span>
-<span class="n">source</span> <span class="n">venv</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">activate</span>
-<span class="n">python3</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">upgrade</span> <span class="n">pip</span>
-<span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">group</span><span class="o">=</span><span class="n">dev</span> <span class="o">--</span><span class="n">editable</span> <span class="o">.</span>
+<span class="n">uv</span> <span class="n">venv</span>
+<span class="n">uv</span> <span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">group</span> <span class="n">dev</span> <span class="o">-</span><span class="n">e</span> <span class="o">.</span>
 </pre></div>
 </div>
-<p>This will link the pulp version on your virtual environment with the source files in the pulp directory. You can now use pulp from that virtual environment and you will be using the files in the pulp directory. We assume you have run this successfully for all further steps.</p>
+<p>With <strong>pip</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">pulp</span>
+<span class="n">python3</span> <span class="o">-</span><span class="n">m</span> <span class="n">venv</span> <span class="o">.</span><span class="n">venv</span>
+<span class="n">source</span> <span class="o">.</span><span class="n">venv</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">activate</span>   <span class="c1"># Windows: .venv\Scripts\activate</span>
+<span class="n">python3</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">upgrade</span> <span class="n">pip</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">group</span> <span class="n">dev</span> <span class="o">-</span><span class="n">e</span> <span class="o">.</span>
+</pre></div>
+</div>
+<p>This links the pulp package in your environment with the source files. The Rust extension is built automatically by maturin during install.</p>
 </section>
 <section id="running-tests">
 <h2>Running tests<a class="headerlink" href="#running-tests" title="Link to this heading"></a></h2>
-<p>To run tests of pulp you need to run:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python3</span> <span class="n">pulp</span><span class="o">/</span><span class="n">tests</span><span class="o">/</span><span class="n">run_tests</span><span class="o">.</span><span class="n">py</span>
+<p>Run the unit tests with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">uv</span> <span class="n">run</span> <span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">unittest</span> <span class="n">discover</span> <span class="o">-</span><span class="n">s</span> <span class="n">pulp</span><span class="o">/</span><span class="n">tests</span> <span class="o">-</span><span class="n">v</span>
 </pre></div>
 </div>
-<p>It will detect the solvers in your system and test all of the ones it finds.</p>
+<p>The test runner will detect solvers on your system and run tests for each one found.</p>
 </section>
 <section id="creating-a-test">
 <h2>Creating a test<a class="headerlink" href="#creating-a-test" title="Link to this heading"></a></h2>
 <p>When you fix an issue in pulp or add a functionality, you should add a test to the repository. For this you should go to the file <cite>tests/test_pulp.py</cite> and add a new method that tests your change.</p>
 </section>
-<section id="applying-the-black-linter-formatter">
-<h2>Applying the black linter / formatter<a class="headerlink" href="#applying-the-black-linter-formatter" title="Link to this heading"></a></h2>
-<p>We use <a class="reference external" href="https://black.readthedocs.io/en/stable/">the black formatter</a>. Before sending your changes, be sure to execute the black package to style the resulting files.
-The quickest way to do this is to run:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">black</span> <span class="n">pulp</span>
+<section id="applying-the-ruff-linter-formatter">
+<h2>Applying the ruff linter / formatter<a class="headerlink" href="#applying-the-ruff-linter-formatter" title="Link to this heading"></a></h2>
+<p>We use <a class="reference external" href="https://docs.astral.sh/ruff/">ruff</a> for linting and formatting. Before sending your changes, run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">uv</span> <span class="n">run</span> <span class="n">ruff</span> <span class="n">check</span> <span class="n">pulp</span>
+<span class="n">uv</span> <span class="n">run</span> <span class="n">ruff</span> <span class="nb">format</span> <span class="n">pulp</span>
 </pre></div>
 </div>
-<p>And it will do the changes directly on the files.</p>
-<p>The easiest way is to integrate it inside your IDE so it runs every time you save a file. Learn how to do that <a class="reference external" href="https://black.readthedocs.io/en/stable/integrations/editors.html">in the black integration docs</a>.</p>
+<p>To check without modifying files (e.g. in CI):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">uv</span> <span class="n">run</span> <span class="n">ruff</span> <span class="n">check</span> <span class="n">pulp</span> <span class="o">&amp;&amp;</span> <span class="n">uv</span> <span class="n">run</span> <span class="n">ruff</span> <span class="nb">format</span> <span class="n">pulp</span> <span class="o">--</span><span class="n">check</span>
+</pre></div>
+</div>
+<p>You can integrate ruff in your IDE so it runs on save; see the <a class="reference external" href="https://docs.astral.sh/ruff/integration/">ruff editor docs</a>.</p>
 </section>
-<section id="checking-types-with-mypy">
-<h2>Checking types with mypy<a class="headerlink" href="#checking-types-with-mypy" title="Link to this heading"></a></h2>
-<p>We use <a class="reference external" href="https://mypy.readthedocs.io/en/stable/index.html">the mypy type checker</a>. Before sending your changes, be sure to execute the mypy package to check the types.
-The quickest way to do this is to run:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">mypy</span> <span class="o">./</span>
+<section id="checking-types">
+<h2>Checking types<a class="headerlink" href="#checking-types" title="Link to this heading"></a></h2>
+<p>We use the <strong>ty</strong> type checker. Before sending your changes, run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">uv</span> <span class="n">run</span> <span class="n">ty</span> <span class="n">check</span> <span class="n">pulp</span>
 </pre></div>
 </div>
-<p>Fix all the errors you see before pushing the changes.</p>
+<p>Fix any reported errors before pushing.</p>
 </section>
 <section id="building-the-documentation">
 <h2>Building the documentation<a class="headerlink" href="#building-the-documentation" title="Link to this heading"></a></h2>
-<p>The documentation is based in <a class="reference external" href="https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html">Sphinx and reStructuredText</a>.</p>
-<p>To build the documentation:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">pulp</span><span class="o">/</span><span class="n">doc</span>
+<p>The documentation is built with <a class="reference external" href="https://www.sphinx-doc.org/">Sphinx</a> and reStructuredText. From the project root (with the dev environment activated):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">doc</span>
 <span class="n">make</span> <span class="n">html</span>
 </pre></div>
 </div>
-<p>A folder named html will be created inside the <code class="docutils literal notranslate"><span class="pre">build/</span></code> directory. The home page for the documentation is <code class="docutils literal notranslate"><span class="pre">doc/build/html/index.html</span></code> which can be opened in a browser.
-You only need to execute <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">html</span></code> to rebuild the docs each time.</p>
+<p>A folder named <code class="docutils literal notranslate"><span class="pre">html</span></code> will be created inside <code class="docutils literal notranslate"><span class="pre">doc/build/</span></code>. Open <code class="docutils literal notranslate"><span class="pre">doc/build/html/index.html</span></code> in a browser. Rerun <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">html</span></code> to rebuild after changes.</p>
 </section>
 <section id="making-a-pull-request">
 <h2>Making a Pull Request<a class="headerlink" href="#making-a-pull-request" title="Link to this heading"></a></h2>

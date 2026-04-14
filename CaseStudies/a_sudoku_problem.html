@@ -6,16 +6,16 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>A Sudoku Problem formulated as an LP &mdash; PuLP 3.3.0 documentation</title>
+  <title>A Sudoku Problem formulated as an LP &mdash; PuLP 4.0.0a3 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=3eb8911e"></script>
-      <script src="../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/documentation_options.js?v=665135b5"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -193,7 +193,7 @@ number of feasible solutions, instead of just one).</p></li>
 </div>
 <p>The 729 problem variables are created since the <cite>(Vals,Rows,Cols)</cite> creates a variable for each combination of value, row and column. An example variable would be: Choice_4_2_9, and it is defined to be a binary variable (able to take only the integers 1 or 0. If Choice_4_2_9 was 1, it would mean the number 4 was present in the square situated in row 2, column 9. (If it was 0, it would mean there was not a 4 there)</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># The decision variables are created</span>
-<span class="n">choices</span> <span class="o">=</span> <span class="n">LpVariable</span><span class="o">.</span><span class="n">dicts</span><span class="p">(</span><span class="s2">&quot;Choice&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">VALS</span><span class="p">,</span> <span class="n">ROWS</span><span class="p">,</span> <span class="n">COLS</span><span class="p">),</span> <span class="n">cat</span><span class="o">=</span><span class="s2">&quot;Binary&quot;</span><span class="p">)</span>
+<span class="n">choices</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable_dict</span><span class="p">(</span><span class="s2">&quot;Choice&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">VALS</span><span class="p">,</span> <span class="n">ROWS</span><span class="p">,</span> <span class="n">COLS</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">LpBinary</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>As explained above, we don’t define an objective function since we are only concerned with any variable combination that can satisfy the constraints.</p>
@@ -204,20 +204,20 @@ number of feasible solutions, instead of just one).</p></li>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># A constraint ensuring that only one value can be in each square is created</span>
 <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">ROWS</span><span class="p">:</span>
     <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">COLS</span><span class="p">:</span>
-        <span class="n">prob</span> <span class="o">+=</span> <span class="n">lpSum</span><span class="p">([</span><span class="n">choices</span><span class="p">[</span><span class="n">v</span><span class="p">][</span><span class="n">r</span><span class="p">][</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">VALS</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span>
+        <span class="n">prob</span> <span class="o">+=</span> <span class="n">lpSum</span><span class="p">([</span><span class="n">choices</span><span class="p">[</span><span class="n">v</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">VALS</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span>
 </pre></div>
 </div>
 <p>These constraints ensure that each number (value) can only occur once in each row, column and box.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># The row, column and box constraints are added for each value</span>
 <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">VALS</span><span class="p">:</span>
     <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">ROWS</span><span class="p">:</span>
-        <span class="n">prob</span> <span class="o">+=</span> <span class="n">lpSum</span><span class="p">([</span><span class="n">choices</span><span class="p">[</span><span class="n">v</span><span class="p">][</span><span class="n">r</span><span class="p">][</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">COLS</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span>
+        <span class="n">prob</span> <span class="o">+=</span> <span class="n">lpSum</span><span class="p">([</span><span class="n">choices</span><span class="p">[</span><span class="n">v</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">COLS</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span>
 
     <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">COLS</span><span class="p">:</span>
-        <span class="n">prob</span> <span class="o">+=</span> <span class="n">lpSum</span><span class="p">([</span><span class="n">choices</span><span class="p">[</span><span class="n">v</span><span class="p">][</span><span class="n">r</span><span class="p">][</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">ROWS</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span>
+        <span class="n">prob</span> <span class="o">+=</span> <span class="n">lpSum</span><span class="p">([</span><span class="n">choices</span><span class="p">[</span><span class="n">v</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">ROWS</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span>
 
     <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">Boxes</span><span class="p">:</span>
-        <span class="n">prob</span> <span class="o">+=</span> <span class="n">lpSum</span><span class="p">([</span><span class="n">choices</span><span class="p">[</span><span class="n">v</span><span class="p">][</span><span class="n">r</span><span class="p">][</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span> <span class="ow">in</span> <span class="n">b</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span>
+        <span class="n">prob</span> <span class="o">+=</span> <span class="n">lpSum</span><span class="p">([</span><span class="n">choices</span><span class="p">[</span><span class="n">v</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span> <span class="ow">in</span> <span class="n">b</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span>
 </pre></div>
 </div>
 <p>The starting numbers are entered as constraints i.e a 5 in row 1 column 1 is true.</p>
@@ -255,7 +255,7 @@ number of feasible solutions, instead of just one).</p></li>
 <span class="p">]</span>
 
 <span class="k">for</span> <span class="n">v</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">input_data</span><span class="p">:</span>
-    <span class="n">prob</span> <span class="o">+=</span> <span class="n">choices</span><span class="p">[</span><span class="n">v</span><span class="p">][</span><span class="n">r</span><span class="p">][</span><span class="n">c</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span>
+    <span class="n">prob</span> <span class="o">+=</span> <span class="n">choices</span><span class="p">[</span><span class="n">v</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">c</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span>
 </pre></div>
 </div>
 <p>The problem is written to an LP file, solved using PuLP’s choice of solver and the solution status is printed to the screen</p>
@@ -279,7 +279,7 @@ number of feasible solutions, instead of just one).</p></li>
         <span class="n">sudokuout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;+-------+-------+-------+</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">COLS</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">VALS</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">value</span><span class="p">(</span><span class="n">choices</span><span class="p">[</span><span class="n">v</span><span class="p">][</span><span class="n">r</span><span class="p">][</span><span class="n">c</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">value</span><span class="p">(</span><span class="n">choices</span><span class="p">[</span><span class="n">v</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">c</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">7</span><span class="p">]:</span>
                     <span class="n">sudokuout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;| &quot;</span><span class="p">)</span>
                 <span class="n">sudokuout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span><span class="p">)</span>
@@ -314,7 +314,7 @@ The final solution should be the following:</p>
                 <span class="n">sudokuout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;+-------+-------+-------+</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">COLS</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">VALS</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="n">value</span><span class="p">(</span><span class="n">choices</span><span class="p">[</span><span class="n">v</span><span class="p">][</span><span class="n">r</span><span class="p">][</span><span class="n">c</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">value</span><span class="p">(</span><span class="n">choices</span><span class="p">[</span><span class="n">v</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">c</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
                         <span class="k">if</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">7</span><span class="p">]:</span>
                             <span class="n">sudokuout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;| &quot;</span><span class="p">)</span>
                         <span class="n">sudokuout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span><span class="p">)</span>
@@ -325,11 +325,11 @@ The final solution should be the following:</p>
         <span class="n">prob</span> <span class="o">+=</span> <span class="p">(</span>
             <span class="n">lpSum</span><span class="p">(</span>
                 <span class="p">[</span>
-                    <span class="n">choices</span><span class="p">[</span><span class="n">v</span><span class="p">][</span><span class="n">r</span><span class="p">][</span><span class="n">c</span><span class="p">]</span>
+                    <span class="n">choices</span><span class="p">[</span><span class="n">v</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">c</span><span class="p">]</span>
                     <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">VALS</span>
                     <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">ROWS</span>
                     <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">COLS</span>
-                    <span class="k">if</span> <span class="n">value</span><span class="p">(</span><span class="n">choices</span><span class="p">[</span><span class="n">v</span><span class="p">][</span><span class="n">r</span><span class="p">][</span><span class="n">c</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">value</span><span class="p">(</span><span class="n">choices</span><span class="p">[</span><span class="n">v</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">c</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span>
                 <span class="p">]</span>
             <span class="p">)</span>
             <span class="o">&lt;=</span> <span class="mi">80</span>

@@ -6,16 +6,16 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>How to add a new solver to PuLP &mdash; PuLP 3.3.0 documentation</title>
+  <title>How to add a new solver to PuLP &mdash; PuLP 4.0.0a3 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=3eb8911e"></script>
-      <script src="../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/documentation_options.js?v=665135b5"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -151,7 +151,7 @@
 <section id="actualsolve-method">
 <h2><code class="docutils literal notranslate"><span class="pre">actualSolve</span></code> method<a class="headerlink" href="#actualsolve-method" title="Link to this heading"></a></h2>
 <p>Required by <a class="reference internal" href="../technical/solvers.html#pulp.apis.LpSolver" title="pulp.apis.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.LpSolver</span></code></a> and <a class="reference internal" href="../technical/solvers.html#pulp.apis.LpSolver_CMD" title="pulp.apis.LpSolver_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.LpSolver_CMD</span></code></a>.</p>
-<p>Takes an <a class="reference internal" href="../technical/pulp.html#pulp.LpProblem" title="pulp.pulp.LpProblem"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.pulp.LpProblem</span></code></a> as argument, solves it, stores the solution, and returns a status code:</p>
+<p>Takes an <code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.pulp.LpProblem</span></code> as argument, solves it, stores the solution, and returns a status code:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">actualSolve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lp</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Solve a well formulated lp problem&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">executable</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">):</span>
@@ -166,6 +166,7 @@
         <span class="p">)</span>
         <span class="n">lp</span> <span class="o">+=</span> <span class="o">-</span><span class="n">lp</span><span class="o">.</span><span class="n">objective</span>
     <span class="n">lp</span><span class="o">.</span><span class="n">checkDuplicateVars</span><span class="p">()</span>
+    <span class="n">lp</span><span class="o">.</span><span class="n">checkDuplicateConstraints</span><span class="p">()</span>
     <span class="n">lp</span><span class="o">.</span><span class="n">checkLengthVars</span><span class="p">(</span><span class="mi">52</span><span class="p">)</span>
     <span class="n">lp</span><span class="o">.</span><span class="n">writeMPS</span><span class="p">(</span><span class="n">tmpMps</span><span class="p">,</span> <span class="n">mpsSense</span><span class="o">=</span><span class="n">lp</span><span class="o">.</span><span class="n">sense</span><span class="p">)</span>
 

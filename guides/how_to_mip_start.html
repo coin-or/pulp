@@ -6,20 +6,20 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>How to warm-start a solver &mdash; PuLP 3.3.0 documentation</title>
+  <title>How to warm-start a solver &mdash; PuLP 4.0.0a3 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=3eb8911e"></script>
-      <script src="../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/documentation_options.js?v=665135b5"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Elastic Constraints" href="how_to_elastic_constraints.html" />
+    <link rel="next" title="How to import and export models in PuLP" href="how_to_export_models.html" />
     <link rel="prev" title="How to configure a solver in PuLP" href="how_to_configure_solvers.html" /> 
 </head>
 
@@ -56,7 +56,6 @@
 <li class="toctree-l3"><a class="reference internal" href="#whole-example">Whole Example</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="how_to_elastic_constraints.html">Elastic Constraints</a></li>
 <li class="toctree-l2"><a class="reference internal" href="how_to_export_models.html">How to import and export models in PuLP</a></li>
 <li class="toctree-l2"><a class="reference internal" href="how_to_debug.html">How to debug most errors during solving</a></li>
 </ul>
@@ -96,7 +95,7 @@
 <p>Many solvers permit the possibility of giving a valid (or partially valid in some cases) solution so the solver can start from that solution. This can lead to performance gains.</p>
 <section id="supported-solver-apis">
 <h2>Supported solver APIs<a class="headerlink" href="#supported-solver-apis" title="Link to this heading"></a></h2>
-<p>The present solver APIs that work with PuLP warm-start are the following: <code class="docutils literal notranslate"><span class="pre">CPLEX_CMD</span></code>, <code class="docutils literal notranslate"><span class="pre">GUROBI_CMD</span></code>, <code class="docutils literal notranslate"><span class="pre">PULP_CBC_CMD</span></code>, <code class="docutils literal notranslate"><span class="pre">CBC_CMD</span></code>, <code class="docutils literal notranslate"><span class="pre">CPLEX_PY</span></code>, <code class="docutils literal notranslate"><span class="pre">GUROBI</span></code>, <code class="docutils literal notranslate"><span class="pre">XPRESS</span></code>, <code class="docutils literal notranslate"><span class="pre">XPRESS_PY</span></code>.</p>
+<p>The present solver APIs that work with PuLP warm-start include: <code class="docutils literal notranslate"><span class="pre">CPLEX_CMD</span></code>, <code class="docutils literal notranslate"><span class="pre">GUROBI_CMD</span></code>, <code class="docutils literal notranslate"><span class="pre">COIN_CMD</span></code> (CBC), <code class="docutils literal notranslate"><span class="pre">CPLEX_PY</span></code>, <code class="docutils literal notranslate"><span class="pre">GUROBI</span></code>, <code class="docutils literal notranslate"><span class="pre">XPRESS</span></code>, <code class="docutils literal notranslate"><span class="pre">XPRESS_PY</span></code>.</p>
 </section>
 <section id="example-problem">
 <h2>Example problem<a class="headerlink" href="#example-problem" title="Link to this heading"></a></h2>
@@ -121,7 +120,7 @@
 <h2>Activating MIP start<a class="headerlink" href="#activating-mip-start" title="Link to this heading"></a></h2>
 <p>Once we have assigned values to all variables and we want to run a model while reusing those values, we just need to pass the <code class="docutils literal notranslate"><span class="pre">warmStart=True</span></code> argument to the solver when initiating it.</p>
 <p>For example, using the default PuLP solver we would do:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">seating_model</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">pulp</span><span class="o">.</span><span class="n">PULP_CBC_CMD</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">warmStart</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">seating_model</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">pulp</span><span class="o">.</span><span class="n">COIN_CMD</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">warmStart</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
 </pre></div>
 </div>
 <p>I usually turn <code class="docutils literal notranslate"><span class="pre">msg=True</span></code> so I can see the messages from the solver confirming it loaded the solution correctly.</p>
@@ -142,7 +141,7 @@
 <p>If you want to see the complete code of the warm start version of the example, <a class="reference download internal" download="" href="../_downloads/4de01d450895a988bf8d1ae0c3407a00/wedding_initial.py"><code class="xref download docutils literal notranslate"><span class="pre">click</span> <span class="pre">here</span></code></a> or see below.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">A set partitioning model of a wedding seating problem</span>
-<span class="sd">Adaptation where an initial solution is given to solvers: CPLEX_CMD, GUROBI_CMD, PULP_CBC_CMD</span>
+<span class="sd">Adaptation where an initial solution is given to solvers: CPLEX_CMD, GUROBI_CMD, COIN_CMD</span>
 
 <span class="sd">Authors: Stuart Mitchell 2009, Franco Peschiera 2019</span>
 <span class="sd">&quot;&quot;&quot;</span>
@@ -171,12 +170,14 @@
 <span class="c1"># create list of all possible tables</span>
 <span class="n">possible_tables</span> <span class="o">=</span> <span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">pulp</span><span class="o">.</span><span class="n">allcombinations</span><span class="p">(</span><span class="n">guests</span><span class="p">,</span> <span class="n">max_table_size</span><span class="p">)]</span>
 
-<span class="c1"># create a binary variable to state that a table setting is used</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpVariable</span><span class="o">.</span><span class="n">dicts</span><span class="p">(</span>
-    <span class="s2">&quot;table&quot;</span><span class="p">,</span> <span class="n">possible_tables</span><span class="p">,</span> <span class="n">lowBound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upBound</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">cat</span><span class="o">=</span><span class="n">pulp</span><span class="o">.</span><span class="n">LpInteger</span>
-<span class="p">)</span>
-
 <span class="n">seating_model</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;Wedding Seating Model&quot;</span><span class="p">,</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
+
+<span class="c1"># create a binary variable to state that a table setting is used</span>
+<span class="n">_table_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">possible_tables</span><span class="p">]</span>
+<span class="n">vars_by_key</span> <span class="o">=</span> <span class="n">seating_model</span><span class="o">.</span><span class="n">add_variable_dict</span><span class="p">(</span>
+    <span class="s2">&quot;table_</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">_table_keys</span><span class="p">,),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpInteger</span>
+<span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="p">{</span><span class="n">t</span><span class="p">:</span> <span class="n">vars_by_key</span><span class="p">[</span><span class="s2">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">t</span><span class="p">)]</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">possible_tables</span><span class="p">}</span>
 
 <span class="n">seating_model</span> <span class="o">+=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">lpSum</span><span class="p">([</span><span class="n">happiness</span><span class="p">(</span><span class="n">table</span><span class="p">)</span> <span class="o">*</span> <span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span><span class="p">])</span>
 
@@ -204,7 +205,7 @@
 <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">solution</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
     <span class="n">x</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">setInitialValue</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
 
-<span class="n">solver</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">PULP_CBC_CMD</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">warmStart</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">solver</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">COIN_CMD</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">warmStart</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="c1"># solver = pulp.CPLEX_CMD(msg=True, warmStart=True)</span>
 <span class="c1"># solver = pulp.GUROBI_CMD(msg=True, warmStart=True)</span>
 <span class="c1"># solver = pulp.CPLEX_PY(msg=True, warmStart=True)</span>
@@ -226,7 +227,7 @@
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="how_to_configure_solvers.html" class="btn btn-neutral float-left" title="How to configure a solver in PuLP" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="how_to_elastic_constraints.html" class="btn btn-neutral float-right" title="Elastic Constraints" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="how_to_export_models.html" class="btn btn-neutral float-right" title="How to import and export models in PuLP" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

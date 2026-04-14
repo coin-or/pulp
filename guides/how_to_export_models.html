@@ -6,21 +6,21 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>How to import and export models in PuLP &mdash; PuLP 3.3.0 documentation</title>
+  <title>How to import and export models in PuLP &mdash; PuLP 4.0.0a3 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=3eb8911e"></script>
-      <script src="../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/documentation_options.js?v=665135b5"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="How to debug most errors during solving" href="how_to_debug.html" />
-    <link rel="prev" title="Elastic Constraints" href="how_to_elastic_constraints.html" /> 
+    <link rel="prev" title="How to warm-start a solver" href="how_to_mip_start.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -48,7 +48,6 @@
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">User Guides</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="how_to_configure_solvers.html">How to configure a solver in PuLP</a></li>
 <li class="toctree-l2"><a class="reference internal" href="how_to_mip_start.html">How to warm-start a solver</a></li>
-<li class="toctree-l2"><a class="reference internal" href="how_to_elastic_constraints.html">Elastic Constraints</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">How to import and export models in PuLP</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#considerations">Considerations</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#example-1-json">Example 1: json</a></li>
@@ -114,9 +113,9 @@ PuLP offers two ways to export a model: to an mps file or to a dictionary /json 
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pulp</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
 
 <span class="n">prob</span> <span class="o">=</span> <span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;test_export_dict_MIP&quot;</span><span class="p">,</span> <span class="n">LpMinimize</span><span class="p">)</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">LpVariable</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
-<span class="n">y</span> <span class="o">=</span> <span class="n">LpVariable</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-<span class="n">z</span> <span class="o">=</span> <span class="n">LpVariable</span><span class="p">(</span><span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">LpInteger</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">z</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">LpInteger</span><span class="p">)</span>
 <span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span> <span class="o">+</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">y</span> <span class="o">+</span> <span class="mi">9</span> <span class="o">*</span> <span class="n">z</span><span class="p">,</span> <span class="s2">&quot;obj&quot;</span>
 <span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">&quot;c1&quot;</span>
 <span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">z</span> <span class="o">&gt;=</span> <span class="mi">10</span><span class="p">,</span> <span class="s2">&quot;c2&quot;</span>
@@ -209,9 +208,9 @@ PuLP offers two ways to export a model: to an mps file or to a dictionary /json 
 <p>The same model:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pulp</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
 <span class="n">prob</span> <span class="o">=</span> <span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;test_export_dict_MIP&quot;</span><span class="p">,</span> <span class="n">LpMinimize</span><span class="p">)</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">LpVariable</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
-<span class="n">y</span> <span class="o">=</span> <span class="n">LpVariable</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-<span class="n">z</span> <span class="o">=</span> <span class="n">LpVariable</span><span class="p">(</span><span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">LpInteger</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">z</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">LpInteger</span><span class="p">)</span>
 <span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span> <span class="o">+</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">y</span> <span class="o">+</span> <span class="mi">9</span> <span class="o">*</span> <span class="n">z</span><span class="p">,</span> <span class="s2">&quot;obj&quot;</span>
 <span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">&quot;c1&quot;</span>
 <span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">z</span> <span class="o">&gt;=</span> <span class="mi">10</span><span class="p">,</span> <span class="s2">&quot;c2&quot;</span>
@@ -262,13 +261,10 @@ PuLP offers two ways to export a model: to an mps file or to a dictionary /json 
 <span class="n">possible_tables</span> <span class="o">=</span> <span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">pulp</span><span class="o">.</span><span class="n">allcombinations</span><span class="p">(</span><span class="n">guests</span><span class="p">,</span>
                                         <span class="n">max_table_size</span><span class="p">)]</span>
 
-<span class="c1">#create a binary variable to state that a table setting is used</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpVariable</span><span class="o">.</span><span class="n">dicts</span><span class="p">(</span><span class="s1">&#39;table&#39;</span><span class="p">,</span> <span class="n">possible_tables</span><span class="p">,</span>
-                            <span class="n">lowBound</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
-                            <span class="n">upBound</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-                            <span class="n">cat</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpInteger</span><span class="p">)</span>
-
 <span class="n">seating_model</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;Wedding_Seating_Model&quot;</span><span class="p">,</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
+<span class="c1"># create a binary variable to state that a table setting is used</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">seating_model</span><span class="o">.</span><span class="n">add_variable_dict</span><span class="p">(</span><span class="s1">&#39;table&#39;</span><span class="p">,</span> <span class="n">possible_tables</span><span class="p">,</span>
+                                    <span class="n">lowBound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upBound</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">cat</span><span class="o">=</span><span class="n">pulp</span><span class="o">.</span><span class="n">LpInteger</span><span class="p">)</span>
 
 <span class="n">seating_model</span> <span class="o">+=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">lpSum</span><span class="p">([</span><span class="n">happiness</span><span class="p">(</span><span class="n">table</span><span class="p">)</span> <span class="o">*</span> <span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span><span class="p">])</span>
 
@@ -341,7 +337,7 @@ PuLP offers two ways to export a model: to an mps file or to a dictionary /json 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="how_to_elastic_constraints.html" class="btn btn-neutral float-left" title="Elastic Constraints" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="how_to_mip_start.html" class="btn btn-neutral float-left" title="How to warm-start a solver" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="how_to_debug.html" class="btn btn-neutral float-right" title="How to debug most errors during solving" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

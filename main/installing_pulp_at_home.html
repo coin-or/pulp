@@ -6,16 +6,16 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Installing PuLP at Home &mdash; PuLP 3.3.0 documentation</title>
+  <title>Installing PuLP at Home &mdash; PuLP 4.0.0a3 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=3eb8911e"></script>
-      <script src="../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/documentation_options.js?v=665135b5"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -47,7 +47,12 @@
 <li class="toctree-l2"><a class="reference internal" href="the_optimisation_process.html">The Optimisation Process</a></li>
 <li class="toctree-l2"><a class="reference internal" href="optimisation_concepts.html">Optimisation Concepts</a></li>
 <li class="toctree-l2"><a class="reference internal" href="basic_python_coding.html">Basic Python Coding</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Installing PuLP at Home</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Installing PuLP at Home</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#installing-from-pypi">Installing from PyPI</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#building-from-source">Building from source</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#installing-solvers">Installing solvers</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="amply.html">Amply</a></li>
 <li class="toctree-l2"><a class="reference internal" href="includeme.html">README</a></li>
 </ul>
@@ -88,8 +93,84 @@
 <span id="installation"></span><h1>Installing PuLP at Home<a class="headerlink" href="#installing-pulp-at-home" title="Link to this heading"></a></h1>
 <p>PuLP is a free open source software written in Python. It is used to describe
 optimisation problems as mathematical models. PuLP can then call any of numerous
-external LP solvers (CBC, GLPK, CPLEX, Gurobi etc) to solve this model and then
-use python commands to manipulate and display the solution.</p>
+external LP solvers (CBC, GLPK, CPLEX, Gurobi, etc.) to solve this model and then
+use Python commands to manipulate and display the solution.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p><strong>CBC is not included inside the PuLP wheel.</strong> The legacy <code class="docutils literal notranslate"><span class="pre">PULP_CBC_CMD</span></code>
+solver (which pointed at a CBC binary shipped inside the package) has been
+<strong>removed</strong>. To use CBC with PuLP:</p>
+<ul class="simple">
+<li><p>run <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">pulp[cbc]</span></code> so the optional <code class="docutils literal notranslate"><span class="pre">cbcbox</span></code>
+dependency is installed (PuLP will locate its CBC automatically), <strong>or</strong></p></li>
+<li><p>install CBC yourself and put <code class="docutils literal notranslate"><span class="pre">cbc</span></code> (Linux/macOS) or <code class="docutils literal notranslate"><span class="pre">cbc.exe</span></code> (Windows)
+on your <code class="docutils literal notranslate"><span class="pre">PATH</span></code>,</p></li>
+</ul>
+<p>then use <code class="docutils literal notranslate"><span class="pre">COIN_CMD</span></code> or call <code class="docutils literal notranslate"><span class="pre">prob.solve()</span></code> when CBC is the default
+available backend. Without any solver, you will get <code class="docutils literal notranslate"><span class="pre">PulpError:</span> <span class="pre">No</span> <span class="pre">solver</span> <span class="pre">available</span></code>.</p>
+</div>
+<section id="installing-from-pypi">
+<h2>Installing from PyPI<a class="headerlink" href="#installing-from-pypi" title="Link to this heading"></a></h2>
+<p>PuLP requires <strong>Python 3.9 or newer</strong>.</p>
+<p><strong>Recommended</strong> install (PuLP <strong>and</strong> CBC via <code class="docutils literal notranslate"><span class="pre">cbcbox</span></code>):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">pulp</span><span class="p">[</span><span class="n">cbc</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>With <code class="docutils literal notranslate"><span class="pre">uv</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">uv</span> <span class="n">pip</span> <span class="n">install</span> <span class="s2">&quot;pulp[cbc]&quot;</span>
+</pre></div>
+</div>
+<p>Installing only <code class="docutils literal notranslate"><span class="pre">pulp</span></code> (no extras) gives the modeler only; you must provide
+your own <code class="docutils literal notranslate"><span class="pre">cbc</span></code> on <code class="docutils literal notranslate"><span class="pre">PATH</span></code> or install another solver and pass it explicitly.</p>
+</section>
+<section id="building-from-source">
+<h2>Building from source<a class="headerlink" href="#building-from-source" title="Link to this heading"></a></h2>
+<p>This version of PuLP includes a <strong>Rust extension</strong> (<code class="docutils literal notranslate"><span class="pre">pulp._rustcore</span></code>) that
+implements the core model, variables, constraints, and affine expressions. The
+build uses <a class="reference external" href="https://github.com/PyO3/maturin">maturin</a>, which is invoked
+automatically when you install the package from source.</p>
+<p><strong>Requirements for building</strong></p>
+<ul class="simple">
+<li><p><strong>Python</strong> 3.9 or newer</p></li>
+<li><p><strong>Rust</strong> (latest stable). Install from <a class="reference external" href="https://rustup.rs/">https://rustup.rs/</a></p></li>
+<li><p><strong>uv</strong> (recommended) or <strong>pip</strong> for installing the package</p></li>
+<li><p><strong>OS</strong>: Windows, macOS (x86_64, arm64), or Linux (x86_64, arm64). The Rust
+extension is compiled for your host platform.</p></li>
+</ul>
+<p><strong>Steps</strong></p>
+<ol class="arabic simple">
+<li><p>Clone the repository (or download and extract the source).</p></li>
+<li><p>From the project root, create a virtual environment and install in editable
+mode with dev dependencies <strong>and</strong> the CBC extra (needed for most tests and
+examples).</p></li>
+</ol>
+<p>With <strong>uv</strong> (recommended):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">uv</span> <span class="n">venv</span>
+<span class="n">uv</span> <span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">group</span> <span class="n">dev</span> <span class="o">-</span><span class="n">e</span> <span class="s2">&quot;.[cbc]&quot;</span>
+</pre></div>
+</div>
+<p>With <strong>pip</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">venv</span> <span class="o">.</span><span class="n">venv</span>
+<span class="n">source</span> <span class="o">.</span><span class="n">venv</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">activate</span>   <span class="c1"># On Windows: .venv\Scripts\activate</span>
+<span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">upgrade</span> <span class="n">pip</span>
+<span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">e</span> <span class="s2">&quot;.[cbc]&quot;</span>
+</pre></div>
+</div>
+<ol class="arabic" start="3">
+<li><p>Run tests to confirm the build:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">uv</span> <span class="n">run</span> <span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">unittest</span> <span class="n">discover</span> <span class="o">-</span><span class="n">s</span> <span class="n">pulp</span><span class="o">/</span><span class="n">tests</span> <span class="o">-</span><span class="n">v</span>
+</pre></div>
+</div>
+</li>
+</ol>
+</section>
+<section id="installing-solvers">
+<h2>Installing solvers<a class="headerlink" href="#installing-solvers" title="Link to this heading"></a></h2>
+<p>PuLP can use a variety of solvers. CBC is typically used through <code class="docutils literal notranslate"><span class="pre">COIN_CMD</span></code>
+after <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">pulp[cbc]</span></code> or when <code class="docutils literal notranslate"><span class="pre">cbc</span></code> is on <code class="docutils literal notranslate"><span class="pre">PATH</span></code>. For other
+solvers and configuration, see the
+<span class="xref std std-ref">guide on configuring solvers</span>.</p>
+</section>
 </section>
 
 

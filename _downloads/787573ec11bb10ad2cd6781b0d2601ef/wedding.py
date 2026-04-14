@@ -30,15 +30,17 @@ def happiness(
 possible_tables = [tuple(c) for c in pulp.allcombinations(guests, max_table_size)]
 # END possible_tables
 
-# BEGIN define_x
-# create a binary variable to state that a table setting is used
-x = pulp.LpVariable.dicts(
-    "table", possible_tables, lowBound=0, upBound=1, cat=pulp.LpInteger
-)
-# END define_x
-
 # BEGIN class_and_obj_fn
 seating_model = pulp.LpProblem("Wedding Seating Model", pulp.LpMinimize)
+
+# BEGIN define_x
+# create a binary variable to state that a table setting is used
+_table_keys = ["_".join(t) for t in possible_tables]
+vars_by_key = seating_model.add_variable_dict(
+    "table_%s", (_table_keys,), 0, 1, pulp.LpInteger
+)
+x = {t: vars_by_key["_".join(t)] for t in possible_tables}
+# END define_x
 
 seating_model += pulp.lpSum([happiness(table) * x[table] for table in possible_tables])
 # END class_and_obj_fn

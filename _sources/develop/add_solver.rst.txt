@@ -84,6 +84,7 @@ Takes an :py:class:`pulp.pulp.LpProblem` as argument, solves it, stores the solu
             )
             lp += -lp.objective
         lp.checkDuplicateVars()
+        lp.checkDuplicateConstraints()
         lp.checkLengthVars(52)
         lp.writeMPS(tmpMps, mpsSense=lp.sense)
 

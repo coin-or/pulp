@@ -57,20 +57,20 @@ steel_dict = dict(zip(products, steel))
 molding_dict = dict(zip(products, molding))
 assembly_dict = dict(zip(products, assembly))
 
-# Create variables and parameters as dictionaries
-production_vars = pulp.LpVariable.dicts(
-    "production", (scenarios, products), lowBound=0, cat="Continuous"
-)
-steelpurchase = pulp.LpVariable("steelpurchase", lowBound=0, cat="Continuous")
-
 # Create the 'gemstoneprob' variable to specify
 gemstoneprob = pulp.LpProblem("The Gemstone Tool Problem", pulp.LpMaximize)
+
+# Create variables and parameters as dictionaries
+production_vars = gemstoneprob.add_variable_dict(
+    "production", (scenarios, products), 0, None, pulp.LpContinuous
+)
+steelpurchase = gemstoneprob.add_variable("steelpurchase", 0, None, pulp.LpContinuous)
 
 # The objective function is added to 'gemstoneprob' first
 gemstoneprob += (
     pulp.lpSum(
         [
-            pscenario[j] * (price_dict[(j, i)] * production_vars[j][i])
+            pscenario[j] * (price_dict[(j, i)] * production_vars[j, i])
             for (j, i) in production
         ]
         - steelpurchase * steelprice
@@ -80,16 +80,16 @@ gemstoneprob += (
 
 for j in scenarios:
     gemstoneprob += pulp.lpSum(
-        [steel_dict[i] * production_vars[j][i] for i in products]
+        [steel_dict[i] * production_vars[j, i] for i in products]
     ) - steelpurchase <= 0, ("Steel capacity" + str(j))
     gemstoneprob += pulp.lpSum(
-        [molding_dict[i] * production_vars[j][i] for i in products]
+        [molding_dict[i] * production_vars[j, i] for i in products]
     ) <= capmolding, ("molding capacity" + str(j))
     gemstoneprob += pulp.lpSum(
-        [assembly_dict[i] * production_vars[j][i] for i in products]
+        [assembly_dict[i] * production_vars[j, i] for i in products]
     ) <= capassembly[j], ("assembly capacity" + str(j))
     for i in products:
-        gemstoneprob += production_vars[j][i] <= capacity_dict[i], (
+        gemstoneprob += production_vars[j, i] <= capacity_dict[i], (
             "capacity " + str(i) + str(j)
         )
 

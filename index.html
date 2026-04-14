@@ -6,16 +6,16 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Optimization with PuLP &mdash; PuLP 3.3.0 documentation</title>
+  <title>Optimization with PuLP &mdash; PuLP 4.0.0a3 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=3eb8911e"></script>
-      <script src="_static/doctools.js?v=9bcbadda"></script>
-      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/documentation_options.js?v=665135b5"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -76,6 +76,14 @@
              
   <section id="optimization-with-pulp">
 <h1>Optimization with PuLP<a class="headerlink" href="#optimization-with-pulp" title="Link to this heading"></a></h1>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p><strong>CBC is not bundled with PuLP.</strong> Install PuLP with CBC support using
+<code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">pulp[cbc]</span></code>, or install a <code class="docutils literal notranslate"><span class="pre">cbc</span></code> / <code class="docutils literal notranslate"><span class="pre">cbc.exe</span></code>
+binary and add it to your <code class="docutils literal notranslate"><span class="pre">PATH</span></code>. PuLP uses the <code class="docutils literal notranslate"><span class="pre">COIN_CMD</span></code> interface to
+run CBC; there is no longer a separate <code class="docutils literal notranslate"><span class="pre">PULP_CBC_CMD</span></code> solver. See
+<a class="reference internal" href="main/installing_pulp_at_home.html#installation"><span class="std std-ref">Installing PuLP at Home</span></a>.</p>
+</div>
 <p>PuLP is an linear and mixed integer programming modeler written in Python.</p>
 <p>With PuLP, it is simple to create MILP optimisation problems and solve them with the
 latest open-source (or proprietary) solvers.  PuLP can generate MPS or LP files and
@@ -114,7 +122,6 @@ relevant information you will need.</p>
 <li class="toctree-l1"><a class="reference internal" href="guides/index.html">User Guides</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="guides/how_to_configure_solvers.html">How to configure a solver in PuLP</a></li>
 <li class="toctree-l2"><a class="reference internal" href="guides/how_to_mip_start.html">How to warm-start a solver</a></li>
-<li class="toctree-l2"><a class="reference internal" href="guides/how_to_elastic_constraints.html">Elastic Constraints</a></li>
 <li class="toctree-l2"><a class="reference internal" href="guides/how_to_export_models.html">How to import and export models in PuLP</a></li>
 <li class="toctree-l2"><a class="reference internal" href="guides/how_to_debug.html">How to debug most errors during solving</a></li>
 </ul>
@@ -125,6 +132,7 @@ relevant information you will need.</p>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="technical/index.html">PuLP Internal Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="technical/build.html">Build architecture</a></li>
 <li class="toctree-l2"><a class="reference internal" href="technical/constants.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp.constants</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="technical/pulp.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp</span></code>:  Pulp classes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="technical/solvers.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp.apis</span></code> Interface to Solvers</a></li>
