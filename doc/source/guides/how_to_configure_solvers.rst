@@ -13,14 +13,14 @@ PuLP has some helper functions that permit a user to query which solvers are ava
     import pulp as pl
     solver_list = pl.listSolvers()
     print(solver_list)
-    # ['GLPK_CMD', 'PYGLPK', 'CPLEX_CMD', 'CPLEX_PY', 'CPLEX_DLL', 'GUROBI', 'GUROBI_CMD', 'MOSEK', 'XPRESS', 'PULP_CBC_CMD', 'COIN_CMD', 'COINMP_DLL', 'CHOCO_CMD', 'MIPCL_CMD', 'SCIP_CMD']
+    # ['GLPK_CMD', 'PYGLPK', 'CPLEX_CMD', 'CPLEX_PY', 'CPLEX_DLL', 'GUROBI', 'GUROBI_CMD', 'MOSEK', 'XPRESS', 'COIN_CMD', 'COINMP_DLL', 'CHOCO_CMD', 'MIPCL_CMD', 'SCIP_CMD']
 
 If passed the `onlyAvailable=True` argument, PuLP lists the solvers that are currently available::
 
     import pulp as pl
     solver_list = pl.listSolvers(onlyAvailable=True)
     print(solver_list)
-    # ['GLPK_CMD', 'CPLEX_CMD', 'CPLEX_PY', 'GUROBI', 'GUROBI_CMD', 'PULP_CBC_CMD', 'COIN_CMD']
+    # ['GLPK_CMD', 'CPLEX_CMD', 'CPLEX_PY', 'GUROBI', 'GUROBI_CMD', 'COIN_CMD']
 
 Also, it's possible to get a solver object by using the name of the solver. Any arguments passed to this function are passed to the constructor:
 
@@ -51,7 +51,24 @@ API means "Application Programming Interface". PuLP has usually several ways to 
 * Using the command line interface of the solver.
 * Using the python library of the solver.
 
-Not all solvers have a python library, but most have a command line interface. If you want to know which one are you using it's easy. If the name of the solver API ends with ``CMD`` (such as ``PULP_CBC_CMD``, ``CPLEX_CMD``, ``GUROBI_CMD``, etc.) it's the former. Otherwise, it is the latter.
+Not all solvers have a python library, but most have a command line interface. If you want to know which one are you using it's easy. If the name of the solver API ends with ``CMD`` (such as ``COIN_CMD``, ``CPLEX_CMD``, ``GUROBI_CMD``, etc.) it's the former. Otherwise, it is the latter.
+
+COIN-OR CBC (``COIN_CMD``)
+----------------------------
+
+PuLP no longer ships a CBC executable or the ``PULP_CBC_CMD`` class. CBC is used
+through ``COIN_CMD``, which resolves the ``cbc`` / ``cbc.exe`` binary in this
+order:
+
+1. If the optional ``cbcbox`` package is installed (``python -m pip install pulp[cbc]``),
+   PuLP uses the CBC binary bundled in that wheel.
+2. Otherwise, PuLP looks for ``cbc`` / ``cbc.exe`` on your ``PATH`` (same as any
+   other command-line tool).
+
+You can always pass an explicit path::
+
+    import pulp as pl
+    solver = pl.COIN_CMD(path=r"C:\path\to\cbc.exe")
 
 Configuring the path to the solver
 --------------------------------------------
@@ -155,7 +172,7 @@ By default, PuLP does not keep the intermediary files (the \*.mps, \*.lp, \*.mst
     _var = model.add_variable('a')
     _var2 = model.add_variable('a2')
     model += _var + _var2 == 1 
-    solver = pl.PULP_CBC_CMD()
+    solver = pl.COIN_CMD()
     result = model.solve(solver)
 
 Another option, is passing the argument `keepFiles=True` to the solver. With this, the solver creates the files in the current directory and they are not deleted (although they will be overwritten if you re-execute).
@@ -167,7 +184,7 @@ Another option, is passing the argument `keepFiles=True` to the solver. With thi
     _var = model.add_variable('a')
     _var2 = model.add_variable('a2')
     model += _var + _var2 == 1 
-    solver = pl.PULP_CBC_CMD(keepFiles=True)
+    solver = pl.COIN_CMD(keepFiles=True)
     result = model.solve(solver)
 
 Finally, one can manually edit the tmpDir attribute of the solver object before actually solving.
@@ -179,7 +196,7 @@ Finally, one can manually edit the tmpDir attribute of the solver object before 
     _var = model.add_variable('a')
     _var2 = model.add_variable('a2')
     model += _var + _var2 == 1 
-    solver = pl.PULP_CBC_CMD()
+    solver = pl.COIN_CMD()
     solver.tmpDir = 'PUT_SOME_ALTERNATIVE_PATH_HERE'
     result = model.solve(solver)
 
@@ -279,7 +296,7 @@ Exporting a solver can be useful to backup the configuration that was used to so
 In order to export it one needs can export it to a dictionary or a json file::
 
     import pulp
-    solver = pulp.PULP_CBC_CMD()
+    solver = pulp.COIN_CMD()
     solver_dict = solver.toDict()
 
 The structure of the returned dictionary is quite simple::
@@ -288,7 +305,7 @@ The structure of the returned dictionary is quite simple::
      'mip': True,
      'msg': True,
      'options': [],
-     'solver': 'PULP_CBC_CMD',
+     'solver': 'COIN_CMD',
      'timeLimit': None,
      'warmStart': False}
 

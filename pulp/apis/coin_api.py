@@ -34,7 +34,6 @@ from .core import (
     LpSolver,
     LpSolver_CMD,
     PulpSolverError,
-    arch,
     clock,
     devnull,
     log,
@@ -50,27 +49,37 @@ import tempfile
 import warnings
 
 cbc_path = "cbc"
-if operating_system == "win":
-    cbc_path += ".exe"
 
 coinMP_path = ["libCoinMP.so"]
-# workaround for (https://github.com/coin-or/pulp/issues/802)
-if operating_system == "osx":
-    arch = "i64"
-pulp_cbc_path = os.path.join(
-    os.path.dirname(__file__), f"../solverdir/cbc/{operating_system}/{arch}/{cbc_path}"
-)
+
+
+def _default_cbc_executable() -> str:
+    """CBC binary from the optional ``cbcbox`` wheel, else ``cbc`` / ``cbc.exe`` on PATH."""
+    try:
+        import cbcbox  # type: ignore[import-not-found]
+    except ImportError:
+        return LpSolver_CMD.executableExtension(cbc_path)
+    try:
+        candidate = cbcbox.cbc_bin_path()
+    except Exception:
+        return LpSolver_CMD.executableExtension(cbc_path)
+    if os.path.isfile(candidate):
+        return candidate
+    return LpSolver_CMD.executableExtension(cbc_path)
 
 
 class COIN_CMD(LpSolver_CMD):
-    """The COIN CLP/CBC LP solver
-    now only uses cbc
+    """COIN-OR CBC invoked as a command-line executable.
+
+    The default binary is resolved from the optional ``cbcbox`` package (install
+    ``pulp[cbc]``) when present, otherwise from ``cbc`` / ``cbc.exe`` on ``PATH``.
+    Pass ``path=`` to use a specific CBC binary.
     """
 
     name = "COIN_CMD"
 
     def defaultPath(self):
-        return self.executableExtension(cbc_path)
+        return _default_cbc_executable()
 
     def __init__(
         self,
@@ -190,7 +199,7 @@ class COIN_CMD(LpSolver_CMD):
         for option in options:
             cmds += "-" + option + " "
         if self.mip:
-            cmds += "-branch "
+            cmds += "-solve "
         else:
             cmds += "-initialSolve "
         cmds += "-printingOptions all "
@@ -386,77 +395,6 @@ class COIN_CMD(LpSolver_CMD):
 
 
 COIN = COIN_CMD
-
-
-class PULP_CBC_CMD(COIN_CMD):
-    """
-    This solver uses a precompiled version of cbc provided with the package
-    """
-
-    name = "PULP_CBC_CMD"
-    pulp_cbc_path = pulp_cbc_path
-    try:
-        if os.name != "nt":
-            if not os.access(pulp_cbc_path, os.X_OK):
-                import stat
-
-                os.chmod(pulp_cbc_path, stat.S_IXUSR + stat.S_IXOTH)
-    except Exception:  # probably due to incorrect permissions
-
-        def available(self):
-            """True if the solver is available"""
-            return False
-
-        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
-            """Solve a well formulated lp problem."""
-            raise PulpSolverError(
-                "PULP_CBC_CMD: Not Available (check permissions on %s)"
-                % self.pulp_cbc_path
-            )
-
-    else:
-
-        def __init__(
-            self,
-            mip=True,
-            msg=True,
-            timeLimit=None,
-            gapRel=None,
-            gapAbs=None,
-            presolve=None,
-            cuts=None,
-            strong=None,
-            options=None,
-            warmStart=False,
-            keepFiles=False,
-            path=None,
-            threads=None,
-            logPath=None,
-            timeMode="elapsed",
-            maxNodes=None,
-        ):
-            if path is not None:
-                raise PulpSolverError("Use COIN_CMD if you want to set a path")
-            # check that the file is executable
-            COIN_CMD.__init__(
-                self,
-                path=self.pulp_cbc_path,
-                mip=mip,
-                msg=msg,
-                timeLimit=timeLimit,
-                gapRel=gapRel,
-                gapAbs=gapAbs,
-                presolve=presolve,
-                cuts=cuts,
-                strong=strong,
-                options=options,
-                warmStart=warmStart,
-                keepFiles=keepFiles,
-                threads=threads,
-                logPath=logPath,
-                timeMode=timeMode,
-                maxNodes=maxNodes,
-            )
 
 
 def COINMP_DLL_load_dll(path: list[str]):

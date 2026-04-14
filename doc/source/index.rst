@@ -6,6 +6,14 @@
 Optimization with PuLP
 ----------------------
 
+.. warning::
+
+   **CBC is not bundled with PuLP.** Install PuLP with CBC support using
+   ``python -m pip install pulp[cbc]``, or install a ``cbc`` / ``cbc.exe``
+   binary and add it to your ``PATH``. PuLP uses the ``COIN_CMD`` interface to
+   run CBC; there is no longer a separate ``PULP_CBC_CMD`` solver. See
+   :ref:`installation`.
+
 PuLP is an linear and mixed integer programming modeler written in Python.
 
 With PuLP, it is simple to create MILP optimisation problems and solve them with the

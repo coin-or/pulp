@@ -47,7 +47,6 @@ pub struct VariableData {
     pub lb: f64,
     pub ub: f64,
     pub category: Category,
-    pub obj_coeff: f64,
     pub value: Option<f64>,
     pub dj: Option<f64>,
 }
@@ -99,7 +98,6 @@ impl ModelCore {
             lb,
             ub,
             category,
-            obj_coeff: 0.0,
             value: None,
             dj: None,
         });

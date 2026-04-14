@@ -2,6 +2,11 @@
 #       Copyright S.A.Mitchell (s.mitchell@auckland.ac.nz), 2007-
 #       Copyright F.Peschiera (pchtsp@gmail.com), 2019-
 # See the LICENSE file for copyright information.
+4.0.0a3 2026-04-13
+    removed bundled CBC binaries and the ``PULP_CBC_CMD`` solver; CBC is used via
+        ``COIN_CMD`` with optional ``pip install pulp[cbc]`` (cbcbox) or a ``cbc``
+        executable on PATH
+
 4.0.0a1 2026-04-05
     first alpha of the 4.x line; Rust-backed core (PyO3 0.28) is now used for
         much of MPS and LP import/export and related model logic

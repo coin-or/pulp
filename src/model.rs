@@ -90,11 +90,9 @@ impl Model {
     ) -> Vec<Variable> {
         let n = names.len();
         let start_id = self.core.borrow().vars.len();
-        {
-            let mut core = self.core.borrow_mut();
-            for name in names {
-                core.add_variable(name, lb, ub, category);
-            }
+        let mut core = self.core.borrow_mut();
+        for name in names {
+            core.add_variable(name, lb, ub, category);
         }
         (start_id..start_id + n)
             .map(|id| Variable {

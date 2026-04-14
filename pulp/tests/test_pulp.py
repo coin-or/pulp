@@ -518,7 +518,7 @@ class BaseSolverTest:
             prob += -y + z == 7, "c3"
             prob += w >= 0, "c4"
             # this was a problem with use_mps=false
-            if self.solver.name in ["PULP_CBC_CMD", "COIN_CMD"]:
+            if self.solver.name == "COIN_CMD":
                 pulpTestCheck(
                     prob,
                     self.solver,
@@ -732,7 +732,6 @@ class BaseSolverTest:
             if self.solver.name in [
                 "COIN_CMD",
                 "COINMP_DLL",
-                "PULP_CBC_CMD",
                 "CPLEX_CMD",
                 "CPLEX_PY",
                 "GLPK_CMD",
@@ -822,7 +821,7 @@ class BaseSolverTest:
             prob += x + z >= 10, "c2"
             prob += -y + z == 7, "c3"
             prob += w >= 0, "c4"
-            if self.solver.name in ["PULP_CBC_CMD", "COIN_CMD"]:
+            if self.solver.name == "COIN_CMD":
                 pulpTestCheck(
                     prob,
                     self.solver,
@@ -897,7 +896,7 @@ class BaseSolverTest:
                 "HiGHS_CMD",
                 "SAS94",
                 "SASCAS",
-                "PULP_CBC_CMD",
+                "COIN_CMD",
             ]:
                 self.solver.optionsDict["warmStart"] = True
             pulpTestCheck(
@@ -983,7 +982,7 @@ class BaseSolverTest:
             prob += x + y <= 5.2, "c1"
             prob += x + z >= 10.3, "c2"
             prob += -y + z == 7.4, "c3"
-            if self.solver.name in ["GLPK_CMD", "COIN_CMD", "PULP_CBC_CMD", "MOSEK"]:
+            if self.solver.name in ["GLPK_CMD", "COIN_CMD", "MOSEK"]:
                 # GLPK_CMD returns InfeasibleOrUnbounded
                 pulpTestCheck(
                     prob,
@@ -1040,8 +1039,8 @@ class BaseSolverTest:
 
             if self.solver.name in [
                 "CPLEX_CMD",
+                "COIN_CMD",
                 "COINMP_DLL",
-                "PULP_CBC_CMD",
                 "YAPOSIB",
                 "PYGLPK",
                 "HiGHS",
@@ -1250,7 +1249,7 @@ class BaseSolverTest:
                     logPath=logFilename,
                     warmStart=True,
                 )
-            elif self.solver.name in ["GUROBI_CMD", "COIN_CMD", "PULP_CBC_CMD"]:
+            elif self.solver.name in ["GUROBI_CMD", "COIN_CMD"]:
                 self.solver.optionsDict = dict(
                     gapRel=0.1, gapAbs=1, threads=1, logPath=logFilename, warmStart=True
                 )
@@ -1312,7 +1311,6 @@ class BaseSolverTest:
                 "CPLEX_CMD",
                 "GUROBI",
                 "GUROBI_CMD",
-                "PULP_CBC_CMD",
                 "COIN_CMD",
             ]:
                 pulpTestCheck(
@@ -1513,7 +1511,7 @@ class BaseSolverTest:
         # def test_measuring_solving_time(self):
         #     time_limit = 10
         #     solver_settings = dict(
-        #         PULP_CBC_CMD=30,
+        #         COIN_CMD=30,
         #         COIN_CMD=30,
         #         SCIP_PY=30,
         #         SCIP_CMD=30,
@@ -1533,7 +1531,7 @@ class BaseSolverTest:
 
         #     delta = 20
         #     reported_time = prob.solutionTime
-        #     if self.solver.name in ["PULP_CBC_CMD", "COIN_CMD"]:
+        #     if self.solver.name == "COIN_CMD":
         #         reported_time = prob.solutionCpuTime
 
         #     self.assertAlmostEqual(
@@ -1551,7 +1549,7 @@ class BaseSolverTest:
         # @gurobi_test
         # def test_time_limit_no_solution(self):
         #     time_limit = 1
-        #     solver_settings = dict(HiGHS_CMD=60, HiGHS=60, PULP_CBC_CMD=60, COIN_CMD=60)
+        #     solver_settings = dict(HiGHS_CMD=60, HiGHS=60, COIN_CMD=60)
         #     bins = solver_settings.get(self.solver.name)
         #     if bins is None:
         #         # not all solvers have timeLimit support
@@ -2151,8 +2149,8 @@ class BaseSolverTest:
             )
 
 
-class PULP_CBC_CMDTest(BaseSolverTest.PuLPTest):
-    solveInst = solvers.PULP_CBC_CMD
+class COIN_CMD_CBCOptionsTest(BaseSolverTest.PuLPTest):
+    solveInst = solvers.COIN_CMD
 
     @staticmethod
     def read_command_line_from_log_file(logPath):
@@ -2182,11 +2180,11 @@ class PULP_CBC_CMDTest(BaseSolverTest.PuLPTest):
         example:
 
         >>> cmd = "cbc model.mps -presolve off -timeMode elapsed -branch"
-        >>> PULP_CBC_CMDTest.extract_option_from_command_line(cmd, "presolve")
+        >>> COIN_CMD_CBCOptionsTest.extract_option_from_command_line(cmd, "presolve")
         'off'
 
         >>> cmd = "cbc model.mps -strong 101 -timeMode elapsed -branch"
-        >>> PULP_CBC_CMDTest.extract_option_from_command_line(cmd, "strong", grp_pattern="\\d+")
+        >>> COIN_CMD_CBCOptionsTest.extract_option_from_command_line(cmd, "strong", grp_pattern="\\d+")
         '101'
         """
         pattern = re.compile(rf"{prefix}{option}\s+({grp_pattern})\s*")
@@ -2199,7 +2197,7 @@ class PULP_CBC_CMDTest(BaseSolverTest.PuLPTest):
 
     def test_presolve_off(self):
         """
-        Test if setting presolve=False in PULP_CBC_CMD adds presolve off to the
+        Test if setting presolve=False in COIN_CMD adds presolve off to the
         command line.
         """
         name = self._testMethodName
@@ -2227,15 +2225,17 @@ class PULP_CBC_CMDTest(BaseSolverTest.PuLPTest):
         if not os.path.getsize(logFilename):
             raise PulpError(f"Test failed for solver: {self.solver}")
         # Extract option_value from command line
-        command_line = PULP_CBC_CMDTest.read_command_line_from_log_file(logFilename)
-        option_value = PULP_CBC_CMDTest.extract_option_from_command_line(
+        command_line = COIN_CMD_CBCOptionsTest.read_command_line_from_log_file(
+            logFilename
+        )
+        option_value = COIN_CMD_CBCOptionsTest.extract_option_from_command_line(
             command_line, option="presolve"
         )
         self.assertEqual("off", option_value)
 
     def test_cuts_on(self):
         """
-        Test if setting cuts=True in PULP_CBC_CMD adds "gomory on knapsack on
+        Test if setting cuts=True in COIN_CMD adds "gomory on knapsack on
         probing on" to the command line.
         """
         name = self._testMethodName
@@ -2263,14 +2263,16 @@ class PULP_CBC_CMDTest(BaseSolverTest.PuLPTest):
         if not os.path.getsize(logFilename):
             raise PulpError(f"Test failed for solver: {self.solver}")
         # Extract option values from command line
-        command_line = PULP_CBC_CMDTest.read_command_line_from_log_file(logFilename)
-        gomory_value = PULP_CBC_CMDTest.extract_option_from_command_line(
+        command_line = COIN_CMD_CBCOptionsTest.read_command_line_from_log_file(
+            logFilename
+        )
+        gomory_value = COIN_CMD_CBCOptionsTest.extract_option_from_command_line(
             command_line, option="gomory"
         )
-        knapsack_value = PULP_CBC_CMDTest.extract_option_from_command_line(
+        knapsack_value = COIN_CMD_CBCOptionsTest.extract_option_from_command_line(
             command_line, option="knapsack", prefix=""
         )
-        probing_value = PULP_CBC_CMDTest.extract_option_from_command_line(
+        probing_value = COIN_CMD_CBCOptionsTest.extract_option_from_command_line(
             command_line, option="probing", prefix=""
         )
         self.assertListEqual(
@@ -2306,8 +2308,10 @@ class PULP_CBC_CMDTest(BaseSolverTest.PuLPTest):
         if not os.path.getsize(logFilename):
             raise PulpError(f"Test failed for solver: {self.solver}")
         # Extract option value from the command line
-        command_line = PULP_CBC_CMDTest.read_command_line_from_log_file(logFilename)
-        option_value = PULP_CBC_CMDTest.extract_option_from_command_line(
+        command_line = COIN_CMD_CBCOptionsTest.read_command_line_from_log_file(
+            logFilename
+        )
+        option_value = COIN_CMD_CBCOptionsTest.extract_option_from_command_line(
             command_line, option="cuts"
         )
         self.assertEqual("off", option_value)
@@ -2341,8 +2345,10 @@ class PULP_CBC_CMDTest(BaseSolverTest.PuLPTest):
         if not os.path.getsize(logFilename):
             raise PulpError(f"Test failed for solver: {self.solver}")
         # Extract option value from command line
-        command_line = PULP_CBC_CMDTest.read_command_line_from_log_file(logFilename)
-        option_value = PULP_CBC_CMDTest.extract_option_from_command_line(
+        command_line = COIN_CMD_CBCOptionsTest.read_command_line_from_log_file(
+            logFilename
+        )
+        option_value = COIN_CMD_CBCOptionsTest.extract_option_from_command_line(
             command_line, option="strong", grp_pattern="\\d+"
         )
         self.assertEqual("10", option_value)

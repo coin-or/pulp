@@ -2,7 +2,7 @@ import json
 from typing import Dict, List, Optional, Type, Union
 
 from .choco_api import CHOCO_CMD
-from .coin_api import COIN_CMD, COINMP_DLL, CYLP, PULP_CBC_CMD, YAPOSIB
+from .coin_api import COIN_CMD, COINMP_DLL, CYLP, YAPOSIB
 from .copt_api import COPT, COPT_CMD, COPT_DLL
 from .core import LpSolver, LpSolver_CMD, PulpSolverError
 from .cplex_api import CPLEX, CPLEX_CMD, CPLEX_PY
@@ -21,7 +21,6 @@ __all__ = [
     "COIN_CMD",
     "COINMP_DLL",
     "CYLP",
-    "PULP_CBC_CMD",
     "YAPOSIB",
     "COPT",
     "COPT_CMD",
@@ -72,7 +71,6 @@ _all_solvers: List[Type[LpSolver]] = [
     XPRESS,
     XPRESS_CMD,
     XPRESS_PY,
-    PULP_CBC_CMD,
     COIN_CMD,
     COINMP_DLL,
     CHOCO_CMD,
@@ -90,14 +88,12 @@ _all_solvers: List[Type[LpSolver]] = [
     CUOPT,
 ]
 
-LpSolverDefault: Optional[Union[PULP_CBC_CMD, GLPK_CMD, COIN_CMD]] = None
-# Default solver selection
-if PULP_CBC_CMD().available():
-    LpSolverDefault = PULP_CBC_CMD()
+LpSolverDefault: Optional[Union[COIN_CMD, GLPK_CMD]] = None
+# Default solver selection: CBC via COIN_CMD (cbcbox extra or ``cbc`` on PATH), else GLPK.
+if COIN_CMD().available():
+    LpSolverDefault = COIN_CMD()
 elif GLPK_CMD().available():
     LpSolverDefault = GLPK_CMD()
-elif COIN_CMD().available():
-    LpSolverDefault = COIN_CMD()
 
 
 def getSolver(solver: str, *args, **kwargs) -> LpSolver:

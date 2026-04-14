@@ -47,6 +47,18 @@ wheels = [
 ]
 
 [[package]]
+name = "cbcbox"
+version = "2.929"
+source = { registry = "https://pypi.org/simple" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/6a/9e/c41844f3a746500b88982817233f3f2f4fa6d3a554cedb9222bac9efcbea/cbcbox-2.929-py3-none-macosx_15_0_arm64.whl", hash = "sha256:610fd250f737b19f599d56cca299682a4519472b3ff6a13044502eb71e03931e", size = 59626733, upload-time = "2026-03-23T15:28:20.758Z" },
+    { url = "https://files.pythonhosted.org/packages/3f/08/172af0d618ede8668862ae9c83ffcd929bc966610c1ce357b268edb33645/cbcbox-2.929-py3-none-macosx_15_0_x86_64.whl", hash = "sha256:b369071081176fd55ba9d104c2f2330133c36f0264ebe0215c50a366f290a050", size = 87883726, upload-time = "2026-03-23T15:28:24.874Z" },
+    { url = "https://files.pythonhosted.org/packages/d4/c7/a57493dd959a57dcb8dc31aeef468c0e95d066d4bbf8fc59f9dda3a1fd97/cbcbox-2.929-py3-none-manylinux2014_aarch64.whl", hash = "sha256:62841ab4ed4e1c368bcba8d62c66cd7dd03f3dfaf1ecf4a01c6385a122d1946e", size = 145740150, upload-time = "2026-03-23T15:28:29.617Z" },
+    { url = "https://files.pythonhosted.org/packages/4c/86/502b81d060603e1016a8cb471064e4e65d8009c2feed60ea878b8513a728/cbcbox-2.929-py3-none-manylinux2014_x86_64.whl", hash = "sha256:a57a403cc44fb2af0aa53cb790a7642390f1836a5ff6a7a0b31b30eb6597e3e0", size = 181208771, upload-time = "2026-03-23T15:28:35.544Z" },
+    { url = "https://files.pythonhosted.org/packages/0c/85/2fef9c7c3054ebfb9b0e84fabbeac776a18514b025efa5abd768c889f560/cbcbox-2.929-py3-none-win_amd64.whl", hash = "sha256:0a91420befb965ec1763aab62d7908d3a89a51af845e2a4e05c09d99a67f1151", size = 135305901, upload-time = "2026-03-23T15:28:42.021Z" },
+]
+
+[[package]]
 name = "certifi"
 version = "2026.2.25"
 source = { registry = "https://pypi.org/simple" }
@@ -390,6 +402,18 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/9f/6b/56939031627076c2df54685e652a5a7a41b56112c0aa67fb2bcc8f8d5190/gurobipy-13.0.1-cp314-cp314t-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:f7e556a4e7dd077a53fa6a683805e409ce66bae33b9b2af2122e81432d32b02a", size = 14738383, upload-time = "2026-01-21T10:42:34.24Z" },
     { url = "https://files.pythonhosted.org/packages/d9/67/c8e65fef49bbbfd0f526d90713b49e61c7df8f4e302df4868efe5544e98d/gurobipy-13.0.1-cp314-cp314t-manylinux_2_26_aarch64.whl", hash = "sha256:81405565946d7e212890884c7569e0af4183178d67dfcadaec861b16172012eb", size = 87122127, upload-time = "2026-01-21T10:43:36.176Z" },
     { url = "https://files.pythonhosted.org/packages/9d/6b/b5a10633dc2bf62c8e15c0f114e064b68a7cc0b147f800d630d02830b09d/gurobipy-13.0.1-cp314-cp314t-win_amd64.whl", hash = "sha256:70348777693ed8b7348fe43db4444151d49ab7dec7d46b959fb98c2c1e557028", size = 11879457, upload-time = "2026-01-21T10:43:48.059Z" },
+]
+
+[[package]]
+name = "highsbox"
+version = "1.13.1"
+source = { registry = "https://pypi.org/simple" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/13/61/225d35cdc557ecba663adb60853a2b7fea19de4ce74863ec2dce375ed2a3/highsbox-1.13.1-py3-none-macosx_10_13_x86_64.whl", hash = "sha256:b7558e615730bb60a84c85cffe016065280259ab58193c979b239498438f1d0d", size = 8975731, upload-time = "2026-02-12T10:03:51.392Z" },
+    { url = "https://files.pythonhosted.org/packages/c2/da/dd2f75df9580c25197bd022ae1dd5af0e42bcd96e662b69dcf19af47f219/highsbox-1.13.1-py3-none-macosx_11_0_arm64.whl", hash = "sha256:b0567cea1b50095dd6de807d123a627067aa053b511dbf2f7cd320c53c26d430", size = 7381077, upload-time = "2026-02-12T10:03:54.37Z" },
+    { url = "https://files.pythonhosted.org/packages/5c/8c/bd55e74a95bf2c9abb835b320ff4178f2e90cd8993de373f72e0d8e93396/highsbox-1.13.1-py3-none-manylinux2014_aarch64.whl", hash = "sha256:dfd7f8e4a6c8c95527e3d30ce11434c86c5b777f3f2ced2a249fc1870e2b93f2", size = 8619313, upload-time = "2026-02-12T10:03:56.041Z" },
+    { url = "https://files.pythonhosted.org/packages/67/a0/a6313238b6221310b1accb304aa3374bac832bc058c04208ee5b3e653172/highsbox-1.13.1-py3-none-manylinux2014_x86_64.whl", hash = "sha256:891e9b433042c73dc6c9970706142d9f6478e2503a416129708561ad6662798c", size = 10536102, upload-time = "2026-02-12T10:03:58.941Z" },
+    { url = "https://files.pythonhosted.org/packages/15/c0/fee1c5e58a66e00a611cc2aa1f38324545f712260d5949b45ecc32bde2f1/highsbox-1.13.1-py3-none-win_amd64.whl", hash = "sha256:b2c05e4ba031cb32f3b928939cefb04ee6f804f2b1f11f4dfe09ecc182de3393", size = 8246241, upload-time = "2026-02-12T10:04:01.395Z" },
 ]
 
 [[package]]
@@ -934,6 +958,9 @@ version = "4.0.0a3"
 source = { editable = "." }
 
 [package.optional-dependencies]
+cbc = [
+    { name = "cbcbox" },
+]
 copt = [
     { name = "coptpy" },
 ]
@@ -947,10 +974,14 @@ gurobi = [
 highs = [
     { name = "highspy" },
 ]
+highs-cmd = [
+    { name = "highsbox" },
+]
 mosek = [
     { name = "mosek" },
 ]
 open-py = [
+    { name = "cbcbox" },
     { name = "highspy" },
     { name = "pyscipopt" },
 ]
@@ -985,12 +1016,15 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "cbcbox", marker = "extra == 'cbc'" },
+    { name = "cbcbox", marker = "extra == 'open-py'" },
     { name = "coptpy", marker = "extra == 'copt'" },
     { name = "coptpy", marker = "extra == 'public-py'" },
     { name = "cplex", marker = "(python_full_version < '3.12' and extra == 'cplex') or (sys_platform != 'darwin' and extra == 'cplex')" },
     { name = "cplex", marker = "(python_full_version < '3.12' and extra == 'public-py') or (sys_platform != 'darwin' and extra == 'public-py')" },
     { name = "gurobipy", marker = "extra == 'gurobi'" },
     { name = "gurobipy", marker = "extra == 'public-py'" },
+    { name = "highsbox", marker = "extra == 'highs-cmd'" },
     { name = "highspy", marker = "extra == 'highs'" },
     { name = "highspy", marker = "extra == 'open-py'" },
     { name = "mosek", marker = "extra == 'mosek'" },
@@ -999,7 +1033,7 @@ requires-dist = [
     { name = "xpress", marker = "extra == 'public-py'" },
     { name = "xpress", marker = "extra == 'xpress'" },
 ]
-provides-extras = ["open-py", "public-py", "highs", "scip", "gurobi", "xpress", "copt", "cplex", "mosek"]
+provides-extras = ["open-py", "public-py", "highs", "highs-cmd", "cbc", "scip", "gurobi", "xpress", "copt", "cplex", "mosek"]
 
 [package.metadata.requires-dev]
 dev = [

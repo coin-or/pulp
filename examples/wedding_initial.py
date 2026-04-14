@@ -1,6 +1,6 @@
 """
 A set partitioning model of a wedding seating problem
-Adaptation where an initial solution is given to solvers: CPLEX_CMD, GUROBI_CMD, PULP_CBC_CMD
+Adaptation where an initial solution is given to solvers: CPLEX_CMD, GUROBI_CMD, COIN_CMD
 
 Authors: Stuart Mitchell 2009, Franco Peschiera 2019
 """
@@ -64,7 +64,7 @@ solution = {
 for k, v in solution.items():
     x[k].setInitialValue(v)
 
-solver = pulp.PULP_CBC_CMD(msg=True, warmStart=True)
+solver = pulp.COIN_CMD(msg=True, warmStart=True)
 # solver = pulp.CPLEX_CMD(msg=True, warmStart=True)
 # solver = pulp.GUROBI_CMD(msg=True, warmStart=True)
 # solver = pulp.CPLEX_PY(msg=True, warmStart=True)
