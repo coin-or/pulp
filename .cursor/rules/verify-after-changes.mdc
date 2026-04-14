@@ -1,0 +1,14 @@
+---
+description: Run unit tests, ty, and ruff checks after every code change
+alwaysApply: true
+---
+
+# Verify After Every Change
+
+After making any code change to the repo, run all three checks before considering the task done:
+
+1. **Unit tests**: `uv run python -m unittest discover -s pulp/tests`
+2. **Type checking**: `uv run ty check pulp`
+3. **Linting and formatting**: `uv run ruff check pulp` and `uv run ruff format pulp --check`
+
+If any check fails, fix the issues before proceeding. If Rust source files (`src/`) were modified, run `uv run cargo check` and rebuild with `uv run maturin develop`.

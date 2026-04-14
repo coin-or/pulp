@@ -1,19 +1,63 @@
-from typing import Dict, Optional, Type, Union, List
 import json
+from typing import Dict, List, Optional, Type, Union
+
 from .choco_api import CHOCO_CMD
-from .coin_api import CYLP, PULP_CBC_CMD, COIN_CMD, COINMP_DLL, YAPOSIB
-from .copt_api import COPT, COPT_DLL, COPT_CMD
+from .coin_api import COIN_CMD, COINMP_DLL, CYLP, YAPOSIB
+from .copt_api import COPT, COPT_CMD, COPT_DLL
 from .core import LpSolver, LpSolver_CMD, PulpSolverError
-from .cplex_api import CPLEX_PY, CPLEX_CMD, CPLEX
-from .glpk_api import GLPK_CMD, PYGLPK, GLPK
+from .cplex_api import CPLEX, CPLEX_CMD, CPLEX_PY
+from .cuopt_api import CUOPT
+from .glpk_api import GLPK, GLPK_CMD, PYGLPK
 from .gurobi_api import GUROBI, GUROBI_CMD
 from .highs_api import HiGHS, HiGHS_CMD
 from .mipcl_api import MIPCL_CMD
 from .mosek_api import MOSEK
 from .sas_api import SAS94, SASCAS, SASsolver
-from .scip_api import SCIP, SCIP_CMD, SCIP_PY, FSCIP_CMD, FSCIP
-from .xpress_api import XPRESS_CMD, XPRESS_PY, XPRESS
-from .cuopt_api import CUOPT
+from .scip_api import FSCIP, FSCIP_CMD, SCIP, SCIP_CMD, SCIP_PY
+from .xpress_api import XPRESS, XPRESS_CMD, XPRESS_PY
+
+__all__ = [
+    "CHOCO_CMD",
+    "COIN_CMD",
+    "COINMP_DLL",
+    "CYLP",
+    "YAPOSIB",
+    "COPT",
+    "COPT_CMD",
+    "COPT_DLL",
+    "LpSolver",
+    "LpSolver_CMD",
+    "PulpSolverError",
+    "CPLEX",
+    "CPLEX_CMD",
+    "CPLEX_PY",
+    "CUOPT",
+    "GLPK",
+    "GLPK_CMD",
+    "PYGLPK",
+    "GUROBI",
+    "GUROBI_CMD",
+    "HiGHS",
+    "HiGHS_CMD",
+    "MIPCL_CMD",
+    "MOSEK",
+    "SAS94",
+    "SASCAS",
+    "SASsolver",
+    "FSCIP",
+    "FSCIP_CMD",
+    "SCIP",
+    "SCIP_CMD",
+    "SCIP_PY",
+    "XPRESS",
+    "XPRESS_CMD",
+    "XPRESS_PY",
+    "LpSolverDefault",
+    "getSolver",
+    "getSolverFromDict",
+    "getSolverFromJson",
+    "listSolvers",
+]
 
 _all_solvers: List[Type[LpSolver]] = [
     CYLP,
@@ -27,7 +71,6 @@ _all_solvers: List[Type[LpSolver]] = [
     XPRESS,
     XPRESS_CMD,
     XPRESS_PY,
-    PULP_CBC_CMD,
     COIN_CMD,
     COINMP_DLL,
     CHOCO_CMD,
@@ -45,14 +88,12 @@ _all_solvers: List[Type[LpSolver]] = [
     CUOPT,
 ]
 
-LpSolverDefault: Optional[Union[PULP_CBC_CMD, GLPK_CMD, COIN_CMD]] = None
-# Default solver selection
-if PULP_CBC_CMD().available():
-    LpSolverDefault = PULP_CBC_CMD()
+LpSolverDefault: Optional[Union[COIN_CMD, GLPK_CMD]] = None
+# Default solver selection: CBC via COIN_CMD (cbcbox extra or ``cbc`` on PATH), else GLPK.
+if COIN_CMD().available():
+    LpSolverDefault = COIN_CMD()
 elif GLPK_CMD().available():
     LpSolverDefault = GLPK_CMD()
-elif COIN_CMD().available():
-    LpSolverDefault = COIN_CMD()
 
 
 def getSolver(solver: str, *args, **kwargs) -> LpSolver:

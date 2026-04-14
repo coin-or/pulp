@@ -30,14 +30,23 @@ Note that the solvers that require a compiled extension may not work in
 the current version
 """
 
+from __future__ import annotations
+
 import ctypes
+import math
 import os
 import platform
 import shutil
 import sys
+from time import time
 
 
-def get_operating_system():
+def clock() -> float:
+    """Wall-clock seconds (for solver timing)."""
+    return time()
+
+
+def get_operating_system() -> str:
     if sys.platform in ["win32", "cli"]:
         return "win"
     if sys.platform in ["darwin"]:
@@ -45,7 +54,7 @@ def get_operating_system():
     return "linux"
 
 
-def get_arch():
+def get_arch() -> str:
     is_64bits = sys.maxsize > 2**32
     if is_64bits:
         if platform.machine().lower() in ["aarch64", "arm64"]:
@@ -58,11 +67,14 @@ operating_system = get_operating_system()
 arch = get_arch()
 
 import logging
-from time import monotonic as clock
-from typing import Union
+from collections.abc import Iterator
+from typing import TYPE_CHECKING, Any, Union
 
 from .. import constants as const
 from .. import sparse
+
+if TYPE_CHECKING:
+    from ..pulp import LpProblem
 
 try:
     import ujson as json  # type: ignore[import-untyped]
@@ -74,7 +86,12 @@ log = logging.getLogger(__name__)
 import subprocess
 
 devnull = subprocess.DEVNULL
-to_string = lambda _obj: str(_obj).encode()
+
+
+def to_string(_obj: Any) -> bytes:
+    """Return UTF-8 bytes for ``str(_obj)`` (used for C API string arguments)."""
+    return str(_obj).encode()
+
 
 from uuid import uuid4
 
@@ -93,8 +110,14 @@ class LpSolver:
     name = "LpSolver"
 
     def __init__(
-        self, mip=True, msg=True, options=None, timeLimit=None, *args, **kwargs
-    ):
+        self,
+        mip: bool = True,
+        msg: bool = True,
+        options: list[str] | None = None,
+        timeLimit: float | None = None,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
         """
         :param bool mip: if False, assume LP even if integer variables
         :param bool msg: if False, no log is shown
@@ -115,23 +138,15 @@ class LpSolver:
         # gapRel, gapAbs, maxMemory, maxNodes, threads, logPath, timeMode
         self.optionsDict = {k: v for k, v in kwargs.items() if v is not None}
 
-    def available(self):
+    def available(self) -> bool:
         """True if the solver is available"""
         raise NotImplementedError
 
-    def actualSolve(self, lp):
+    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
         """Solve a well formulated lp problem"""
         raise NotImplementedError
 
-    def actualResolve(self, lp, **kwargs):
-        """
-        uses existing problem information and solves the problem
-        If it is not implemented in the solver
-        just solve again
-        """
-        self.actualSolve(lp, **kwargs)
-
-    def copy(self):
+    def copy(self) -> LpSolver:
         """Make a copy of self"""
 
         aCopy = self.__class__()
@@ -140,17 +155,20 @@ class LpSolver:
         aCopy.options = self.options
         return aCopy
 
-    def solve(self, lp):
+    def solve(self, lp: LpProblem) -> int:
         """Solve the problem lp"""
-        # Always go through the solve method of LpProblem
         return lp.solve(self)
 
     # TODO: Not sure if this code should be here or in a child class
     def getCplexStyleArrays(
-        self, lp, senseDict=None, LpVarCategories=None, LpObjSenses=None, infBound=1e20
-    ):
-        """returns the arrays suitable to pass to a cdll Cplex
-        or other solvers that are similar
+        self,
+        lp: LpProblem,
+        senseDict: dict[int, str] | None = None,
+        LpVarCategories: dict[str, str] | None = None,
+        LpObjSenses: dict[int, int] | None = None,
+        infBound: float = 1e20,
+    ) -> tuple[Any, ...]:
+        """Return arrays suitable for a CDLL CPLEX-style API or similar solvers.
 
         Copyright (c) Stuart Mitchell 2007
         """
@@ -168,19 +186,20 @@ class LpSolver:
         import ctypes
 
         rangeCount = 0
+
         variables = list(lp.variables())
         numVars = len(variables)
-        # associate each variable with a ordinal
-        self.v2n = {variables[i]: i for i in range(numVars)}
+        # associate each variable with an ordinal (key by name; variables are not hashable)
         self.vname2n = {variables[i].name: i for i in range(numVars)}
+        self.v2n = self.vname2n  # alias for code that uses v2n[v.name]
         self.n2v = {i: variables[i] for i in range(numVars)}
         # objective values
         objSense = LpObjSenses[lp.sense]
         NumVarDoubleArray = ctypes.c_double * numVars
         objectCoeffs = NumVarDoubleArray()
-        # print "Get objective Values"
-        for v, val in lp.objective.items():
-            objectCoeffs[self.v2n[v]] = val
+        if lp.objective is not None:
+            for v, val in lp.objective.items():
+                objectCoeffs[self.vname2n[v.name]] = val
         # values for variables
         objectConst = ctypes.c_double(0.0)
         NumVarStrArray = ctypes.c_char_p * numVars
@@ -189,18 +208,19 @@ class LpSolver:
         upperBounds = NumVarDoubleArray()
         initValues = NumVarDoubleArray()
         for v in lp.variables():
-            colNames[self.v2n[v]] = to_string(v.name)
-            initValues[self.v2n[v]] = 0.0
-            if v.lowBound != None:
-                lowerBounds[self.v2n[v]] = v.lowBound
+            i = self.vname2n[v.name]
+            colNames[i] = to_string(v.name)
+            initValues[i] = 0.0
+            if math.isfinite(v.lowBound):
+                lowerBounds[i] = v.lowBound
             else:
-                lowerBounds[self.v2n[v]] = -infBound
-            if v.upBound != None:
-                upperBounds[self.v2n[v]] = v.upBound
+                lowerBounds[i] = -infBound
+            if math.isfinite(v.upBound):
+                upperBounds[i] = v.upBound
             else:
-                upperBounds[self.v2n[v]] = infBound
+                upperBounds[i] = infBound
         # values for constraints
-        numRows = len(lp.constraints)
+        numRows = len(lp.constraints())
         NumRowDoubleArray = ctypes.c_double * numRows
         NumRowStrArray = ctypes.c_char_p * numRows
         NumRowCharArray = ctypes.c_char * numRows
@@ -211,14 +231,14 @@ class LpSolver:
         self.c2n = {}
         self.n2c = {}
         i = 0
-        for c in lp.constraints:
-            rhsValues[i] = -lp.constraints[c].constant
+        for c in lp.constraints():
+            rhsValues[i] = -c.constant
             # for ranged constraints a<= constraint >=b
             rangeValues[i] = 0.0
-            rowNames[i] = to_string(c)
-            rowType[i] = to_string(senseDict[lp.constraints[c].sense])
-            self.c2n[c] = i
-            self.n2c[i] = c
+            rowNames[i] = to_string(c.name)
+            rowType[i] = to_string(senseDict[c.sense])
+            self.c2n[c.name] = i
+            self.n2c[i] = c.name
             i = i + 1
         # return the coefficient matrix as a series of vectors
         coeffs = lp.coefficients()
@@ -241,7 +261,7 @@ class LpSolver:
         columnType = NumVarCharArray()
         if lp.isMIP():
             for v in lp.variables():
-                columnType[self.v2n[v]] = to_string(LpVarCategories[v.cat])
+                columnType[self.vname2n[v.name]] = to_string(LpVarCategories[v.cat])
         self.addedVars = numVars
         self.addedRows = numRows
         return (
@@ -269,8 +289,8 @@ class LpSolver:
             self.n2c,
         )
 
-    def toDict(self):
-        data = dict(solver=self.name)
+    def toDict(self) -> dict[str, Any]:
+        data: dict[str, Any] = dict(solver=self.name)
         for k in ["mip", "msg", "keepFiles"]:
             try:
                 data[k] = getattr(self, k)
@@ -289,7 +309,7 @@ class LpSolver:
 
     to_dict = toDict
 
-    def toJson(self, filename, *args, **kwargs):
+    def toJson(self, filename: str, *args: Any, **kwargs: Any) -> None:
         with open(filename, "w") as f:
             json.dump(self.toDict(), f, *args, **kwargs)
 
@@ -301,7 +321,13 @@ class LpSolver_CMD(LpSolver):
 
     name = "LpSolver_CMD"
 
-    def __init__(self, path=None, keepFiles=False, *args, **kwargs):
+    def __init__(
+        self,
+        path: str | None = None,
+        keepFiles: bool = False,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
         """
 
         :param bool mip: if False, assume LP even if integer variables
@@ -321,16 +347,19 @@ class LpSolver_CMD(LpSolver):
         self.keepFiles = keepFiles
         self.setTmpDir()
 
-    def copy(self):
+    def copy(self) -> LpSolver_CMD:
         """Make a copy of self"""
 
-        aCopy = LpSolver.copy(self)
+        aCopy: LpSolver_CMD = self.__class__()
+        aCopy.mip = self.mip
+        aCopy.msg = self.msg
+        aCopy.options = self.options
         aCopy.path = self.path
         aCopy.keepFiles = self.keepFiles
         aCopy.tmpDir = self.tmpDir
         return aCopy
 
-    def setTmpDir(self):
+    def setTmpDir(self) -> None:
         """Set the tmpDir attribute to a reasonnable location for a temporary
         directory"""
         if os.name != "nt":
@@ -347,7 +376,7 @@ class LpSolver_CMD(LpSolver):
         elif not os.access(self.tmpDir, os.F_OK + os.W_OK):
             self.tmpDir = ""
 
-    def create_tmp_files(self, name, *args):
+    def create_tmp_files(self, name: str, *args: str) -> Iterator[str]:
         if self.keepFiles:
             prefix = name
         else:
@@ -360,35 +389,35 @@ class LpSolver_CMD(LpSolver):
         except FileNotFoundError:
             pass
 
-    def delete_tmp_files(self, *args):
+    def delete_tmp_files(self, *args: str) -> None:
         if self.keepFiles:
             return
         for file in args:
             self.silent_remove(file)
 
-    def defaultPath(self):
+    def defaultPath(self) -> str:
         raise NotImplementedError
 
     @staticmethod
-    def executableExtension(name):
+    def executableExtension(name: str) -> str:
         if os.name != "nt":
             return name
         else:
             return name + ".exe"
 
     @staticmethod
-    def executable(command):
+    def executable(command: str) -> str | None:
         """Checks that the solver command is executable,
         And returns the actual path to it."""
         return shutil.which(command)
 
-    def get_pipe(self):
+    def get_pipe(self) -> Any:
         if self.msg:
             return None
         return open(os.devnull, "w")
 
 
-def ctypesArrayFill(myList, type=ctypes.c_double):
+def ctypesArrayFill(myList: list[Any], type: Any = ctypes.c_double) -> Any:
     """
     Creates a c array with ctypes from a python list
     type is the type of the c array

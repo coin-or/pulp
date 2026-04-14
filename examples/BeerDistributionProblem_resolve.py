@@ -43,18 +43,18 @@ prob = LpProblem("Beer Distribution Problem", LpMinimize)
 Routes = [(w, b) for w in Warehouses for b in Bars]
 
 # A dictionary called 'Vars' is created to contain the referenced variables(the routes)
-vars = LpVariable.dicts("Route", (Warehouses, Bars), 0, None, LpInteger)
+vars = prob.add_variable_dict("Route", (Warehouses, Bars), 0, None, LpInteger)
 
 # The objective function is added to 'prob' first
 prob += (
-    lpSum([vars[w][b] * costs_dict[w][b] for (w, b) in Routes]),
+    lpSum([vars[w, b] * costs_dict[w][b] for (w, b) in Routes]),
     "Sum_of_Transporting_Costs",
 )
 
 # The supply maximum constraints are added to prob for each supply node (warehouse)
 for w in Warehouses:
     prob += (
-        lpSum([vars[w][b] for b in Bars]) <= supply[w],
+        lpSum([vars[w, b] for b in Bars]) <= supply[w],
         f"Sum_of_Products_out_of_Warehouse_{w}",
     )
 
@@ -62,7 +62,7 @@ for w in Warehouses:
 # These constraints are stored for resolve later
 bar_demand_constraint = {}
 for b in Bars:
-    constraint = lpSum([vars[w][b] for w in Warehouses]) >= demand[b]
+    constraint = lpSum([vars[w, b] for w in Warehouses]) >= demand[b]
     prob += constraint, f"Sum_of_Products_into_Bar_{b}"
     bar_demand_constraint[b] = constraint
 
@@ -73,7 +73,7 @@ for demand_value in range(500, 601, 10):
     # note the constant is stored as the LHS constant not the RHS of the constraint
     bar_demand_constraint["1"].constant = -demand_value
     # or alternatively,
-    # prob.constraints["Sum_of_Products_into_Bar_1"].constant = - demand
+    # prob.constraints()["Sum_of_Products_into_Bar_1"].constant = - demand
 
     # The problem is solved using PuLP's choice of Solver
     prob.solve()

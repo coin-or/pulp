@@ -71,15 +71,15 @@ arcData = {  #      ARC                Cost Min Max
 (supply, demand) = splitDict(nodeData)
 (costs, mins, maxs) = splitDict(arcData)
 
-# Creates the boundless Variables as Integers
-vars = LpVariable.dicts("Route", Arcs, None, None, LpInteger)
+# Creates the 'prob' variable to contain the problem data
+prob = LpProblem("American Steel Problem", LpMinimize)
+
+# Creates the boundless Variables as Integers (per-arc bounds set below)
+vars = prob.add_variable_dict("Route_%s_%s", (Arcs,), None, None, LpInteger)
 
 # Creates the upper and lower bounds on the variables
 for a in Arcs:
     vars[a].bounds(mins[a], maxs[a])
-
-# Creates the 'prob' variable to contain the problem data
-prob = LpProblem("American Steel Problem", LpMinimize)
 
 # Creates the objective function
 prob += lpSum([vars[a] * costs[a] for a in Arcs]), "Total Cost of Transport"

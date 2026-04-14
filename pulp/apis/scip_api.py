@@ -24,14 +24,18 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."""
 
+from __future__ import annotations
+
 import operator
 import os
-import sys
 import warnings
-from typing import Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Dict, Optional, Tuple
 
 from .. import constants
 from .core import LpSolver, LpSolver_CMD, PulpSolverError, subprocess
+
+if TYPE_CHECKING:
+    from ..core.lp_problem import LpProblem
 
 scip_path = "scip"
 fscip_path = "fscip"
@@ -114,15 +118,15 @@ class SCIP_CMD(LpSolver_CMD):
         """True if the solver is available"""
         return self.executable(self.path)
 
-    def actualSolve(self, lp):
-        """Solve a well formulated lp problem"""
+    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+        """Solve a well formulated lp problem."""
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute " + self.path)
 
         tmpLp, tmpSol, tmpOptions = self.create_tmp_files(lp.name, "lp", "sol", "set")
         lp.writeLP(tmpLp)
 
-        file_options: List[str] = []  # type: ignore[annotation-unchecked]
+        file_options: list[str] = []
         if self.timeLimit is not None:
             file_options.append(f"limits/time={self.timeLimit}")
         if "gapRel" in self.optionsDict:
@@ -138,7 +142,7 @@ class SCIP_CMD(LpSolver_CMD):
         if not self.mip:
             warnings.warn(f"{self.name} does not allow a problem to be relaxed")
 
-        command: List[str] = []  # type: ignore[annotation-unchecked]
+        command: list[str] = []
         command.append(self.path)
         command.extend(["-s", tmpOptions])
         if not self.msg:
@@ -223,7 +227,7 @@ class SCIP_CMD(LpSolver_CMD):
                 try:
                     comps = line.split()
                     values[comps[0]] = float(comps[1])
-                except:
+                except Exception:
                     raise PulpSolverError(f"Can't read SCIP solver output: {line!r}")
 
             # if we have a solution, we should change status to Optimal by conventio
@@ -299,8 +303,8 @@ class FSCIP_CMD(LpSolver_CMD):
         """True if the solver is available"""
         return self.executable(self.path)
 
-    def actualSolve(self, lp):
-        """Solve a well formulated lp problem"""
+    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+        """Solve a well formulated lp problem."""
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute " + self.path)
 
@@ -309,7 +313,7 @@ class FSCIP_CMD(LpSolver_CMD):
         )
         lp.writeLP(tmpLp)
 
-        file_options: List[str] = []  # type: ignore[annotation-unchecked]
+        file_options: list[str] = []
         if self.timeLimit is not None:
             file_options.append(f"limits/time={self.timeLimit}")
         if "gapRel" in self.optionsDict:
@@ -321,11 +325,11 @@ class FSCIP_CMD(LpSolver_CMD):
         if not self.mip:
             warnings.warn(f"{self.name} does not allow a problem to be relaxed")
 
-        file_parameters: List[str] = []  # type: ignore[annotation-unchecked]
+        file_parameters: list[str] = []
         # disable presolving in the LoadCoordinator to make sure a solution file is always written
         file_parameters.append("NoPreprocessingInLC = TRUE")
 
-        command: List[str] = []  # type: ignore[annotation-unchecked]
+        command: list[str] = []
         command.append(self.path)
         command.append(tmpParams)
         command.append(tmpLp)
@@ -467,17 +471,17 @@ class SCIP_PY(LpSolver):
     """
     The SCIP Optimization Suite (via its python interface)
 
-    The SCIP internals are available after calling solve as:
-    - each variable in variable.solverVar
-    - each constraint in constraint.solverConstraint
-    - the model in problem.solverModel
+    After calling solve, the model is in ``problem.solverModel``. PySCIPOpt
+    variable and constraint objects returned from :meth:`buildSolverModel`
+    are indexed by ``var.id`` and ``constraint.id`` when reading the solution
+    in :meth:`findSolutionValues`.
     """
 
     name = "SCIP_PY"
 
     try:
         global scip
-        import pyscipopt as scip  # type: ignore[import-not-found, import-untyped, unused-ignore]
+        import pyscipopt as scip  # type: ignore[import-not-found, import-untyped]
 
     except ImportError:
 
@@ -485,8 +489,8 @@ class SCIP_PY(LpSolver):
             """True if the solver is available"""
             return False
 
-        def actualSolve(self, lp):
-            """Solve a well formulated lp problem"""
+        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+            """Solve a well formulated lp problem."""
             raise PulpSolverError(f"The {self.name} solver is not available")
 
     else:
@@ -529,9 +533,7 @@ class SCIP_PY(LpSolver):
                 warmStart=warmStart,
             )
 
-        def findSolutionValues(self, lp):
-            lp.resolveOK = True
-
+        def findSolutionValues(self, lp, var_handles, constr_handles):
             solutionStatus = lp.solverModel.getStatus()
             scip_to_pulp_status = {
                 "optimal": constants.LpStatusOptimal,
@@ -565,18 +567,18 @@ class SCIP_PY(LpSolver):
             if solutionStatus in possible_solution_found_statuses:
                 try:  # Feasible solution found
                     solution = lp.solverModel.getBestSol()
-                    for variable in lp._variables:
-                        variable.varValue = solution[variable.solverVar]
-                    for constraint in lp.constraints.values():
+                    for var in lp.variables():
+                        var.varValue = solution[var_handles[var.id]]
+                    for constraint in lp.constraints():
                         constraint.slack = lp.solverModel.getSlack(
-                            constraint.solverConstraint, solution
+                            constr_handles[constraint.id], solution
                         )
                     if status == constants.LpStatusOptimal:
                         lp.assignStatus(status, constants.LpSolutionOptimal)
                     else:
                         status = constants.LpStatusOptimal
                         lp.assignStatus(status, constants.LpSolutionIntegerFeasible)
-                except:  # No solution found
+                except Exception:  # No solution found
                     lp.assignStatus(status, constants.LpSolutionNoSolutionFound)
             else:
                 lp.assignStatus(status)
@@ -585,7 +587,7 @@ class SCIP_PY(LpSolver):
                 # if :
                 #     for variable in lp._variables:
                 #         variable.dj = lp.solverModel.getVarRedcost(variable.solverVar)
-                #     for constraint in lp.constraints.values():
+                #     for constraint in lp.constraints().values():
                 #         constraint.pi = lp.solverModel.getDualSolVal(constraint.solverConstraint)
 
             return status
@@ -646,19 +648,22 @@ class SCIP_PY(LpSolver):
             ##################################################
             # add variables
             ##################################################
+            var_handles = []
+            constr_handles = []
             category_to_vtype = {
                 constants.LpBinary: "B",
                 constants.LpContinuous: "C",
                 constants.LpInteger: "I",
             }
             for var in lp.variables():
-                var.solverVar = lp.solverModel.addVar(
+                svar = lp.solverModel.addVar(
                     name=var.name,
                     vtype=category_to_vtype[var.cat],
                     lb=var.lowBound,  # a lower bound of None represents -infinity
                     ub=var.upBound,  # an upper bound of None represents +infinity
                     obj=lp.objective.get(var, 0.0),
                 )
+                var_handles.append(svar)
 
             ##################################################
             # add constraints
@@ -668,17 +673,19 @@ class SCIP_PY(LpSolver):
                 constants.LpConstraintGE: operator.ge,
                 constants.LpConstraintEQ: operator.eq,
             }
-            for name, constraint in lp.constraints.items():
-                constraint.solverConstraint = lp.solverModel.addCons(
+            for constraint in lp.constraints():
+                name = constraint.name
+                ccon = lp.solverModel.addCons(
                     cons=sense_to_operator[constraint.sense](
                         scip.quicksum(
-                            coefficient * variable.solverVar
+                            coefficient * var_handles[variable.id]
                             for variable, coefficient in constraint.items()
                         ),
                         -constraint.constant,
                     ),
                     name=name,
                 )
+                constr_handles.append(ccon)
 
             ##################################################
             # add warm start
@@ -687,35 +694,18 @@ class SCIP_PY(LpSolver):
                 s = lp.solverModel.createPartialSol()
                 for var in lp.variables():
                     if var.varValue is not None:
-                        # Warm start variables having an initial value
-                        lp.solverModel.setSolVal(s, var.solverVar, var.varValue)
+                        lp.solverModel.setSolVal(s, var_handles[var.id], var.varValue)
                 lp.solverModel.addSol(s)
+            return var_handles, constr_handles
 
-        def actualSolve(self, lp):
+        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
             """
             Solve a well formulated lp problem
 
             creates a scip model, variables and constraints and attaches
             them to the lp model which it then solves
             """
-            self.buildSolverModel(lp)
+            var_handles, constr_handles = self.buildSolverModel(lp)
             self.callSolver(lp)
-            solutionStatus = self.findSolutionValues(lp)
-            for variable in lp._variables:
-                variable.modified = False
-            for constraint in lp.constraints.values():
-                constraint.modified = False
+            solutionStatus = self.findSolutionValues(lp, var_handles, constr_handles)
             return solutionStatus
-
-        def actualResolve(self, lp):
-            """
-            Solve a well formulated lp problem
-
-            uses the old solver and modifies the rhs of the modified constraints
-            """
-            # TODO: add ability to resolve pysciptopt models
-            # - http://listserv.zib.de/pipermail/scip/2020-May/003977.html
-            # - https://scipopt.org/doc-8.0.0/html/REOPT.php
-            raise PulpSolverError(
-                f"The {self.name} solver does not implement resolving"
-            )

@@ -1,11 +1,11 @@
 import unittest
 
-from pulp import GUROBI, LpProblem, LpVariable, const
+from pulp import GUROBI, LpProblem, const
 
 try:
-    import gurobipy as gp  # type: ignore[import-not-found, import-untyped, unused-ignore]
+    import gurobipy as gp  # type: ignore[import-not-found, import-untyped]
 except ImportError:
-    gp = None  # type: ignore[assignment, unused-ignore]
+    gp = None  # type: ignore[assignment]
 
 
 def check_dummy_env():
@@ -18,8 +18,8 @@ def is_single_use_license() -> bool:
         # no gurobi license
         return False
     try:
-        with gp.Env() as env1:
-            with gp.Env() as env2:
+        with gp.Env():
+            with gp.Env():
                 pass
     except gp.GurobiError as ge:
         if ge.errno == gp.GRB.Error.NO_LICENSE:
@@ -31,9 +31,9 @@ def is_single_use_license() -> bool:
 
 def generate_lp() -> LpProblem:
     prob = LpProblem("test", const.LpMaximize)
-    x = LpVariable("x", 0, 1)
-    y = LpVariable("y", 0, 1)
-    z = LpVariable("z", 0, 1)
+    x = prob.add_variable("x", 0, 1)
+    y = prob.add_variable("y", 0, 1)
+    z = prob.add_variable("z", 0, 1)
     prob += x + y + z, "obj"
     prob += x + y + z <= 1, "c1"
     return prob
@@ -136,7 +136,6 @@ class GurobiEnvTests(unittest.TestCase):
         prob = generate_lp()
         prob.solve(solver)
 
-        tmp = solver.model
         solver.close()
 
         solver2 = GUROBI(msg=False, **self.options)

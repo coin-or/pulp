@@ -24,11 +24,17 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."""
 
+from __future__ import annotations
+
 import os
 import warnings
+from typing import TYPE_CHECKING, Any
 
 from .. import constants
 from .core import LpSolver_CMD, PulpSolverError, subprocess
+
+if TYPE_CHECKING:
+    from ..core.lp_problem import LpProblem
 
 
 class CHOCO_CMD(LpSolver_CMD):
@@ -71,8 +77,8 @@ class CHOCO_CMD(LpSolver_CMD):
         java_path = self.executableExtension("java")
         return self.executable(self.path) and self.executable(java_path)
 
-    def actualSolve(self, lp):
-        """Solve a well formulated lp problem"""
+    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+        """Solve a well formulated lp problem."""
         java_path = self.executableExtension("java")
         if not self.executable(java_path):
             raise PulpSolverError(
@@ -83,11 +89,12 @@ class CHOCO_CMD(LpSolver_CMD):
         tmpMps, tmpLp, tmpSol = self.create_tmp_files(lp.name, "mps", "lp", "sol")
         # just to report duplicated variables:
         lp.checkDuplicateVars()
+        lp.checkDuplicateConstraints()
 
         lp.writeMPS(tmpMps, mpsSense=lp.sense)
         try:
             os.remove(tmpSol)
-        except:
+        except Exception:
             pass
         cmd = java_path + ' -cp "' + self.path + '" org.chocosolver.parser.mps.ChocoMPS'
         if self.timeLimit is not None:
@@ -117,7 +124,10 @@ class CHOCO_CMD(LpSolver_CMD):
         self.delete_tmp_files(tmpMps, tmpLp, tmpSol)
 
         lp.assignStatus(status, status_sol)
-        if status not in [constants.LpStatusInfeasible, constants.LpStatusNotSolved]:
+        if values is not None and status not in (
+            constants.LpStatusInfeasible,
+            constants.LpStatusNotSolved,
+        ):
             lp.assignVarsVals(values)
 
         return status
@@ -145,7 +155,7 @@ class CHOCO_CMD(LpSolver_CMD):
         values = {}
         with open(filename) as f:
             content = f.readlines()
-        content = [l.strip() for l in content if l[:2] not in ["o ", "c "]]
+        content = [line.strip() for line in content if line[:2] not in ["o ", "c "]]
         if not len(content):
             return status, values, sol_status
         if content[0][:2] == "s ":

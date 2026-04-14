@@ -2,6 +2,22 @@
 #       Copyright S.A.Mitchell (s.mitchell@auckland.ac.nz), 2007-
 #       Copyright F.Peschiera (pchtsp@gmail.com), 2019-
 # See the LICENSE file for copyright information.
+4.0.0a3 2026-04-13
+    removed bundled CBC binaries and the ``PULP_CBC_CMD`` solver; CBC is used via
+        ``COIN_CMD`` with optional ``pip install pulp[cbc]`` (cbcbox) or a ``cbc``
+        executable on PATH
+
+4.0.0a1 2026-04-05
+    first alpha of the 4.x line; Rust-backed core (PyO3 0.28) is now used for
+        much of MPS and LP import/export and related model logic
+    LpVariable and modelling API adjustments (variables without requiring a
+        model up front); examples, tests, and solver glue updated accordingly
+    simplified structure returned from MPS reading; clearer errors from the
+        native layer
+    typing and internal cleanups; direct access paths for Rust-backed model data
+    work around highspy / Rust extension interaction (RTLD_GLOBAL preload) and
+        HiGHS_CMD fixes; GLPK API fixes alongside the Rust paths
+    CI uses maturin-action for multi-platform wheels and PyPI publishing
 3.3.0 2025-09-18
     fixed some docs
     changes to unit tests
@@ -11,6 +27,8 @@
     fixes to CUOPT API
     compatibility with new XPRESS_PY API
     allow joint installation of python-based APIs
+    initial experimental Rust core (crate pulp-rust-core) and optional
+        pulp._rustcore extension exposed via LpProblem.toRustModel
 3.2.0 2025-05-29
     Callbacks in HiGHS solver
     Added CuOpt solver

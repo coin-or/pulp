@@ -19,8 +19,8 @@ prob = LpProblem("The Whiskas Problem", LpMinimize)
 
 # BEGIN chicken_beef_vars
 # The 2 variables Beef and Chicken are created with a lower limit of zero
-x1 = LpVariable("ChickenPercent", 0, None, LpInteger)
-x2 = LpVariable("BeefPercent", 0)
+x1 = prob.add_variable("ChickenPercent", 0, None, LpInteger)
+x2 = prob.add_variable("BeefPercent", 0, None, LpContinuous)
 # END chicken_beef_vars
 
 # BEGIN obj_func

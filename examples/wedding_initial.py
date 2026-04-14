@@ -1,6 +1,6 @@
 """
 A set partitioning model of a wedding seating problem
-Adaptation where an initial solution is given to solvers: CPLEX_CMD, GUROBI_CMD, PULP_CBC_CMD
+Adaptation where an initial solution is given to solvers: CPLEX_CMD, GUROBI_CMD, COIN_CMD
 
 Authors: Stuart Mitchell 2009, Franco Peschiera 2019
 """
@@ -29,12 +29,14 @@ def happiness(
 # create list of all possible tables
 possible_tables = [tuple(c) for c in pulp.allcombinations(guests, max_table_size)]
 
-# create a binary variable to state that a table setting is used
-x = pulp.LpVariable.dicts(
-    "table", possible_tables, lowBound=0, upBound=1, cat=pulp.LpInteger
-)
-
 seating_model = pulp.LpProblem("Wedding Seating Model", pulp.LpMinimize)
+
+# create a binary variable to state that a table setting is used
+_table_keys = ["_".join(t) for t in possible_tables]
+vars_by_key = seating_model.add_variable_dict(
+    "table_%s", (_table_keys,), 0, 1, pulp.LpInteger
+)
+x = {t: vars_by_key["_".join(t)] for t in possible_tables}
 
 seating_model += pulp.lpSum([happiness(table) * x[table] for table in possible_tables])
 
@@ -62,7 +64,7 @@ solution = {
 for k, v in solution.items():
     x[k].setInitialValue(v)
 
-solver = pulp.PULP_CBC_CMD(msg=True, warmStart=True)
+solver = pulp.COIN_CMD(msg=True, warmStart=True)
 # solver = pulp.CPLEX_CMD(msg=True, warmStart=True)
 # solver = pulp.GUROBI_CMD(msg=True, warmStart=True)
 # solver = pulp.CPLEX_PY(msg=True, warmStart=True)

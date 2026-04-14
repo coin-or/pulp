@@ -21,23 +21,17 @@ jobs:
         uses: astral-sh/setup-uv@v7
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Code Quality
-        run: uv run black pulp/ --check
+      - name: Lint and format
+        run: uv run ruff check pulp && uv run ruff format pulp --check
       - name: Type Check
-        run: uv run mypy ./
+        run: uv run ty check pulp
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
       - name: install ubuntu-only solvers
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt update -qq
           sudo apt install -qq glpk-utils
-      - name: Install highspy cmd
-        if: matrix.os == 'ubuntu-latest'
-        uses: supplypike/setup-bin@v5
-        with:
-          uri: 'https://github.com/JuliaBinaryWrappers/HiGHSstatic_jll.jl/releases/download/HiGHSstatic-v1.7.1%2B0/HiGHSstatic.v1.7.1.x86_64-linux-gnu-cxx11.tar.gz'
-          subPath: 'bin'
-          name: 'highs'
-          version: '1.7.1'
       - name: Install SCIP_CMD
         if: matrix.os == 'ubuntu-latest'
         uses: supplypike/setup-bin@v5

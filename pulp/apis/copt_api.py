@@ -1,9 +1,16 @@
+from __future__ import annotations
+
 import ctypes
+import math
 import os
 import subprocess
 import sys
 import warnings
+from typing import TYPE_CHECKING, Any
 from uuid import uuid4
+
+if TYPE_CHECKING:
+    from ..core.lp_problem import LpProblem
 
 from ..constants import (
     LpBinary,
@@ -31,11 +38,19 @@ from .core import (
 
 # COPT string convention
 if sys.version_info >= (3, 0):
-    coptstr = lambda x: bytes(x, "utf-8")
+
+    def coptstr(x):
+        return bytes(x, "utf-8")
 else:
-    coptstr = lambda x: x
+
+    def coptstr(x):
+        return x
+
 
 byref = ctypes.byref
+
+# Set by COPT class when coptpy import succeeds; used for type checker.
+coptpy: Any = None
 
 
 class COPT_CMD(LpSolver_CMD):
@@ -59,7 +74,7 @@ class COPT_CMD(LpSolver_CMD):
         """
         Initialize command-line solver
         """
-        LpSolver_CMD.__init__(self, path, keepFiles, mip, msg, [])
+        LpSolver_CMD.__init__(self, path, bool(keepFiles), mip, msg, [])
 
         self.mipstart = warmStart
         self.logfile = logfile
@@ -77,7 +92,7 @@ class COPT_CMD(LpSolver_CMD):
         """
         return self.executable(self.path)
 
-    def actualSolve(self, lp):
+    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
         """
         Solve a well formulated LP problem
 
@@ -129,7 +144,7 @@ class COPT_CMD(LpSolver_CMD):
 
         try:
             os.remove(tmpSol)
-        except:
+        except Exception:
             pass
 
         if self.msg:
@@ -155,7 +170,7 @@ class COPT_CMD(LpSolver_CMD):
             for oldfile in [tmpLp, tmpSol, tmpMst]:
                 try:
                     os.remove(oldfile)
-                except:
+                except Exception:
                     pass
 
         if status == LpStatusOptimal:
@@ -210,6 +225,8 @@ def COPT_DLL_loadlib():
     libfile = None
     libpath = None
     libhome = os.getenv("COPT_HOME")
+    if libhome is None:
+        libhome = ""
 
     if sys.platform == "win32":
         libfile = glob(os.path.join(libhome, "bin", "copt.dll"))
@@ -287,8 +304,8 @@ class COPT_DLL(LpSolver):
             """True if the solver is available"""
             return False
 
-        def actualSolve(self, lp):
-            """Solve a well formulated lp problem"""
+        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+            """Solve a well formulated lp problem."""
             raise PulpSolverError(f"COPT_DLL: Not Available:\n{self.err}")
 
     else:
@@ -364,7 +381,7 @@ class COPT_DLL(LpSolver):
             """
             return True
 
-        def actualSolve(self, lp):
+        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
             """
             Solve a well formulated LP/MIP problem
 
@@ -419,7 +436,7 @@ class COPT_DLL(LpSolver):
                 # Load MIP start information
                 if self.mipstart:
                     mstdict = {
-                        self.v2n[v]: v.value()
+                        self.vname2n[v.name]: v.value()
                         for v in lp.variables()
                         if v.value() is not None
                     }
@@ -456,10 +473,6 @@ class COPT_DLL(LpSolver):
             # Get problem status and solution
             status = self.getsolution(lp, ncol, nrow)
 
-            # Reset attributes
-            for var in lp.variables():
-                var.modified = False
-
             return status
 
         def extract(self, lp):
@@ -471,7 +484,7 @@ class COPT_DLL(LpSolver):
             """
             cols = list(lp.variables())
             ncol = len(cols)
-            nrow = len(lp.constraints)
+            nrow = len(lp.constraints())
 
             collb = (ctypes.c_double * ncol)()
             colub = (ctypes.c_double * ncol)()
@@ -506,12 +519,12 @@ class COPT_DLL(LpSolver):
             for col in lp.variables():
                 colname[self.v2n[col]] = coptstr(col.name)
 
-                if col.lowBound is not None:
+                if math.isfinite(col.lowBound):
                     collb[self.v2n[col]] = col.lowBound
                 else:
                     collb[self.v2n[col]] = -1e30
 
-                if col.upBound is not None:
+                if math.isfinite(col.upBound):
                     colub[self.v2n[col]] = col.upBound
                 else:
                     colub[self.v2n[col]] = 1e30
@@ -525,13 +538,14 @@ class COPT_DLL(LpSolver):
 
             # Extract constraint rhs, senses and names
             idx = 0
-            for row in lp.constraints:
-                rowrhs[idx] = -lp.constraints[row].constant
-                rowsense[idx] = coptrsense[lp.constraints[row].sense]
-                rowname[idx] = coptstr(row)
+            for constr in lp.constraints():
+                row_key = constr.name
+                rowrhs[idx] = -constr.constant
+                rowsense[idx] = coptrsense[constr.sense]
+                rowname[idx] = coptstr(row_key)
 
-                self.c2n[row] = idx
-                self.n2c[idx] = row
+                self.c2n[row_key] = idx
+                self.n2c[idx] = row_key
                 idx += 1
 
             # Extract coefficient matrix and generate CSC-format matrix
@@ -688,11 +702,6 @@ class COPT_DLL(LpSolver):
                 lp.assignVarsDj(var_dj)
                 lp.assignConsPi(con_pi)
                 lp.assignConsSlack(con_slack)
-
-            # Reset attributes
-            lp.resolveOK = True
-            for var in lp.variables():
-                var.isModified = False
 
             lp.status = coptlpstat.get(status.value, LpStatusUndefined)
             return lp.status
@@ -861,15 +870,15 @@ class COPT(LpSolver):
 
     try:
         global coptpy
-        import coptpy  # type: ignore[import-not-found, import-untyped, unused-ignore]
-    except:
+        import coptpy  # type: ignore[import-not-found, import-untyped]
+    except Exception:
 
         def available(self):
             """True if the solver is available"""
             return False
 
-        def actualSolve(self, lp, callback=None):
-            """Solve a well formulated lp problem"""
+        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+            """Solve a well formulated lp problem."""
             raise PulpSolverError("COPT: Not available")
 
     else:
@@ -930,17 +939,13 @@ class COPT(LpSolver):
             if self.msg:
                 print("COPT status=", solutionStatus)
 
-            lp.resolveOK = True
-            for var in lp._variables:
-                var.isModified = False
-
             status = CoptLpStatus.get(solutionStatus, LpStatusUndefined)
             lp.assignStatus(status)
             if status != LpStatusOptimal:
                 return status
 
             values = model.getInfo("Value", model.getVars())
-            for var, value in zip(lp._variables, values):
+            for var, value in zip(lp.variables(), values):
                 var.varValue = value
 
             if not model.ismip:
@@ -948,15 +953,15 @@ class COPT(LpSolver):
                 try:
                     # NOTE: slacks in COPT are activities of rows
                     slacks = model.getInfo("Slack", model.getConstrs())
-                    for constr, value in zip(lp.constraints.values(), slacks):
+                    for constr, value in zip(lp.constraints(), slacks):
                         constr.slack = value
 
                     redcosts = model.getInfo("RedCost", model.getVars())
-                    for var, value in zip(lp._variables, redcosts):
+                    for var, value in zip(lp.variables(), redcosts):
                         var.dj = value
 
                     duals = model.getInfo("Dual", model.getConstrs())
-                    for constr, value in zip(lp.constraints.values(), duals):
+                    for constr, value in zip(lp.constraints(), duals):
                         constr.pi = value
                 except coptpy.CoptError:
                     # sometimes the model is not solved, and thus these infos are not available
@@ -997,31 +1002,33 @@ class COPT(LpSolver):
             if logPath:
                 lp.solverModel.setLogFile(logPath)
 
+            var_handles = []
             for var in lp.variables():
                 lowBound = var.lowBound
-                if lowBound is None:
+                if not math.isfinite(lowBound):
                     lowBound = -coptpy.COPT.INFINITY
                 upBound = var.upBound
-                if upBound is None:
+                if not math.isfinite(upBound):
                     upBound = coptpy.COPT.INFINITY
                 obj = lp.objective.get(var, 0.0)
                 varType = coptpy.COPT.CONTINUOUS
                 if var.cat == LpInteger and self.mip:
                     varType = coptpy.COPT.INTEGER
-                var.solverVar = lp.solverModel.addVar(
+                cvar = lp.solverModel.addVar(
                     lowBound, upBound, vtype=varType, obj=obj, name=var.name
                 )
+                var_handles.append(cvar)
 
             if self.optionsDict.get("warmStart", False):
-                for var in lp._variables:
+                for var in lp.variables():
                     if var.varValue is not None:
-                        lp.solverModel.setMipStart(var.solverVar, var.varValue)
+                        lp.solverModel.setMipStart(var_handles[var.id], var.varValue)
                 lp.solverModel.loadMipStart()
 
-            for name, constraint in lp.constraints.items():
-                expr = coptpy.LinExpr(
-                    [v.solverVar for v in constraint.keys()], list(constraint.values())
-                )
+            for constraint in lp.constraints():
+                name = constraint.name
+                solver_vars = [var_handles[v.id] for v in constraint.keys()]
+                expr = coptpy.LinExpr(solver_vars, list(constraint.values()))
                 if constraint.sense == LpConstraintLE:
                     relation = coptpy.COPT.LESS_EQUAL
                 elif constraint.sense == LpConstraintGE:
@@ -1030,48 +1037,18 @@ class COPT(LpSolver):
                     relation = coptpy.COPT.EQUAL
                 else:
                     raise PulpSolverError("Detected an invalid constraint type")
-                constraint.solverConstraint = lp.solverModel.addConstr(
-                    expr, relation, -constraint.constant, name
-                )
+                lp.solverModel.addConstr(expr, relation, -constraint.constant, name)
 
-        def actualSolve(self, lp, callback=None):
+        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
             """
             Solve a well formulated lp problem
 
             creates a COPT model, variables and constraints and attaches
             them to the lp model which it then solves
             """
+            callback = kwargs.get("callback")
             self.buildSolverModel(lp)
             self.callSolver(lp, callback=callback)
 
             solutionStatus = self.findSolutionValues(lp)
-            for var in lp._variables:
-                var.modified = False
-            for constraint in lp.constraints.values():
-                constraint.modified = False
-            return solutionStatus
-
-        def actualResolve(self, lp, callback=None):
-            """
-            Solve a well formulated lp problem
-
-            uses the old solver and modifies the rhs of the modified constraints
-            """
-            for constraint in lp.constraints.values():
-                if constraint.modified:
-                    if constraint.sense == LpConstraintLE:
-                        constraint.solverConstraint.ub = -constraint.constant
-                    elif constraint.sense == LpConstraintGE:
-                        constraint.solverConstraint.lb = -constraint.constant
-                    else:
-                        constraint.solverConstraint.lb = -constraint.constant
-                        constraint.solverConstraint.ub = -constraint.constant
-
-            self.callSolver(lp, callback=callback)
-
-            solutionStatus = self.findSolutionValues(lp)
-            for var in lp._variables:
-                var.modified = False
-            for constraint in lp.constraints.values():
-                constraint.modified = False
             return solutionStatus

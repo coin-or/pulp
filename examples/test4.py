@@ -31,14 +31,14 @@ q = [[randint(ai, ai + bi) for ai, bi in ab] for ab in interval]
 # Second year resources
 delta = [[randint(ai, ai + bi) for ai, bi in ab] for ab in interval]
 
-# Variables
-# x : Whether or not to start a project
-x = LpVariable.matrix("x", (N,), 0, 1, LpInteger)
-# y : Whether or not to finish it, in each scenario
-y = LpVariable.matrix("y", (S, N), 0, 1, LpInteger)
-
 # Problem
 lp = LpProblem("Planification", LpMinimize)
+
+# Variables
+# x : Whether or not to start a project
+x = lp.add_variable_matrix("x", (N,), 0, 1, LpInteger)
+# y : Whether or not to finish it, in each scenario
+y = lp.add_variable_matrix("y", (S, N), 0, 1, LpInteger)
 
 # Objective: expected earnings
 lp += lpDot(x, c) - lpDot(q, y) / float(s)

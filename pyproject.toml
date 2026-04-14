@@ -1,6 +1,6 @@
 [project]
 name = "PuLP"
-dynamic = ["version"]
+version = "4.0.0a3"
 description = "PuLP is an LP modeler written in python. PuLP can generate MPS or LP files and call GLPK, COIN CLP/CBC, CPLEX, and GUROBI to solve linear problems."
 authors = [
     {name = 'J.S. Roy'},
@@ -24,66 +24,86 @@ classifiers=[
 urls= {source= "https://github.com/coin-or/pulp", download="https://github.com/coin-or/pulp/archive/master.zip"}
 keywords=["Optimization", "Linear Programming", "Operations Research"]
 
-[tool.mypy]
-exclude = [
-    "pulp/solverdir/",
-    ".venv/.*",
-    "build/",
-]
-warn_unused_ignores = true
-
-[[tool.mypy.overrides]]
-module = [
-  "pulp.*",
-]
-follow_imports = "skip"
-
 [build-system]
-requires = ["setuptools>=77"]
-build-backend = "setuptools.build_meta"
+requires = ["maturin>=1.4,<2.0"]
+build-backend = "maturin"
 
 [dependency-groups]
 dev = [
-    "black",
-    "mypy",
     "pre-commit==2.12.0",
+    "ruff",
     "sphinx",
     "sphinx-rtd-theme",
+    "ty",
     "numpy",
 ]
 
 [tool.setuptools]
 packages = [
         "pulp",
-        "pulp.solverdir",
-        "pulp.solverdir.cbc.linux.i32",
-        "pulp.solverdir.cbc.linux.i64",
-        "pulp.solverdir.cbc.linux.arm64",
-        "pulp.solverdir.cbc.win.i32",
-        "pulp.solverdir.cbc.win.i64",
-        "pulp.solverdir.cbc.osx.i64",
         "pulp.apis",
         "pulp.tests"]
 
-[tool.setuptools.dynamic]
-version = {attr = "pulp.__version__"}
-
-[tool.setuptools.package-data]
-"pulp.solverdir.cbc.linux.i32"= ["*", "*.*"]
-"pulp.solverdir.cbc.linux.i64"= ["*", "*.*"]
-"pulp.solverdir.cbc.linux.arm64"= ["*", "*.*"]
-"pulp.solverdir.cbc.win.i32"= ["*", "*.*"]
-"pulp.solverdir.cbc.win.i64"= ["*", "*.*"]
-"pulp.solverdir.cbc.osx.i64"= ["*", "*.*"]
+[tool.maturin]
+bindings = "pyo3"
+module-name = "pulp._rustcore"
+python-packages = ["pulp"]
 
 [project.scripts]
 pulptest = "pulp.tests.run_tests:pulpTestAll"
 
-[tool.black]
+[tool.ruff]
 line-length = 88
-target-version = ['py37']
-include = '\.pyi?$'
-exclude = '/(\.eggs|\.git|\.hg|\.mypy_cache|\.tox|\.venv|_build|buck-out|build|dist)/'
+target-version = "py39"
+exclude = [".eggs", ".git", ".venv", "_build", "build", "dist", "target"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
+# N (naming) omitted: ignore naming convention rules
+ignore = [
+    "E501",   # line length — fix incrementally
+    "E402",   # import not at top — used for optional/solver imports
+    "F403",   # star import — used by design in pulp/__init__.py
+    "F405",   # name from star import — used by design in tests and __init__
+]
+
+[tool.ty]
+terminal = { error-on-warning = false }
+[tool.ty.analysis]
+allowed-unresolved-imports = [
+    "cbcbox", "cbcbox.**",
+    "cylp", "cylp.**",
+    "cplex", "cplex.**",
+    "cuopt", "cuopt.**",
+    "xpress", "xpress.**",
+    "gurobipy", "gurobipy.**",
+    "elementtree.ElementTree", "elementtree.**",
+]
+[tool.ty.rules]
+possibly-missing-attribute = "warn"
+invalid-method-override = "warn"
+unresolved-attribute = "warn"
+unused-type-ignore-comment = "warn"
+deprecated = "warn"
+[[tool.ty.overrides]]
+include = ["pulp/apis/*.py"]
+[tool.ty.overrides.rules]
+unresolved-reference = "warn"
+[[tool.ty.overrides]]
+include = ["pulp/tests/**"]
+[tool.ty.overrides.rules]
+unresolved-import = "warn"
+unresolved-attribute = "warn"
+unresolved-reference = "warn"
+invalid-argument-type = "warn"
+unsupported-operator = "warn"
+no-matching-overload = "warn"
+too-many-positional-arguments = "warn"
+missing-argument = "warn"
+unknown-argument = "warn"
+call-non-callable = "warn"
+invalid-assignment = "warn"
+not-iterable = "warn"
 
 [tool.uv]
 required-environments = [
@@ -92,9 +112,11 @@ required-environments = [
 
 
 [project.optional-dependencies]
-open_py = ["cylp", "highspy", "pyscipopt"]
+open_py = ["highspy", "pyscipopt", "cbcbox"]
 public_py = ["gurobipy", "coptpy", 'xpress', "cplex; sys_platform != 'darwin' or python_full_version < '3.12'"]
 highs = ["highspy"]
+highs_cmd = ["highsbox"]
+cbc = ["cbcbox"]
 scip = ["pyscipopt"]
 gurobi = ["gurobipy"]
 xpress = ["xpress"]

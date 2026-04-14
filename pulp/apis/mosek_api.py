@@ -24,11 +24,16 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."""
 
+from __future__ import annotations
+
 import sys
-from typing import Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 from .. import constants
 from .core import LpSolver, PulpSolverError
+
+if TYPE_CHECKING:
+    from ..core.lp_problem import LpProblem
 
 
 class MOSEK(LpSolver):
@@ -37,7 +42,7 @@ class MOSEK(LpSolver):
     name = "MOSEK"
     try:
         global mosek
-        import mosek  # type: ignore[import-not-found, import-untyped, unused-ignore]
+        import mosek  # type: ignore[import-not-found, import-untyped]
 
         env = mosek.Env()  # type: ignore[name-defined]
     except ImportError:
@@ -46,7 +51,7 @@ class MOSEK(LpSolver):
             """True if Mosek is available."""
             return False
 
-        def actualSolve(self, lp, callback=None):
+        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
             """Solves a well-formulated lp problem."""
             raise PulpSolverError("MOSEK : Not Available")
 
@@ -95,7 +100,7 @@ class MOSEK(LpSolver):
             self.solution_type = sol_type
             if options is None:
                 options = {}
-            self.options = options
+            self.options: dict = options
             if self.timeLimit is not None:
                 timeLimit_keys = {"MSK_DPAR_MIO_MAX_TIME", mosek.dparam.mio_max_time}  # type: ignore[name-defined]
                 if not timeLimit_keys.isdisjoint(self.options.keys()):
@@ -115,18 +120,18 @@ class MOSEK(LpSolver):
 
         def buildSolverModel(self, lp, inf=1e20):
             """Translate the problem into a Mosek task object."""
-            self.cons = lp.constraints
+            self.cons = lp.constraints()
             self.numcons = len(self.cons)
             self.cons_dict = {}
-            i = 0
-            for c in self.cons:
-                self.cons_dict[c] = i
-                i = i + 1
+            for i, constr in enumerate(self.cons):
+                row = constr.name
+                self.cons_dict[row] = i
             self.vars = list(lp.variables())
             self.numvars = len(self.vars)
             self.var_dict = {}
             # Checking for repeated names
             lp.checkDuplicateVars()
+            lp.checkDuplicateConstraints()
             self.task = MOSEK.env.Task()
             self.task.appendcons(self.numcons)
             self.task.appendvars(self.numvars)
@@ -145,14 +150,14 @@ class MOSEK(LpSolver):
                 vbkey = mosek.boundkey.fr
                 vup = inf
                 vlow = -inf
-                if self.vars[i].lowBound != None:
+                if self.vars[i].lowBound is not None:
                     vlow = self.vars[i].lowBound
-                    if self.vars[i].upBound != None:
+                    if self.vars[i].upBound is not None:
                         vup = self.vars[i].upBound
                         vbkey = mosek.boundkey.ra
                     else:
                         vbkey = mosek.boundkey.lo
-                elif self.vars[i].upBound != None:
+                elif self.vars[i].upBound is not None:
                     vup = self.vars[i].upBound
                     vbkey = mosek.boundkey.up
                 self.task.putvarbound(i, vbkey, vlow, vup)
@@ -168,14 +173,15 @@ class MOSEK(LpSolver):
             self.task.putaijlist(self.A_rows, self.A_cols, self.A_vals)
             # Constraints
             self.constraint_data_list = []
-            for c in self.cons:
-                cname = self.cons[c].name
-                if cname != None:
-                    self.task.putconname(self.cons_dict[c], cname)
+            for i, constr in enumerate(self.cons):
+                cname = constr.name
+                row_key = cname if cname is not None else ""
+                if cname is not None:
+                    self.task.putconname(i, cname)
                 else:
-                    self.task.putconname(self.cons_dict[c], c)
-                csense = self.cons[c].sense
-                cconst = -self.cons[c].constant
+                    self.task.putconname(i, row_key)
+                csense = constr.sense
+                cconst = -constr.constant
                 clow = -inf
                 cup = inf
                 # Constraint bounds
@@ -191,7 +197,7 @@ class MOSEK(LpSolver):
                     cup = cconst
                 else:
                     raise PulpSolverError("Invalid constraint type.")
-                self.constraint_data_list.append([self.cons_dict[c], cbkey, clow, cup])
+                self.constraint_data_list.append([i, cbkey, clow, cup])
             self.cons_id_list, self.cbkey_list, self.clow_list, self.cup_list = zip(
                 *self.constraint_data_list
             )
@@ -236,10 +242,8 @@ class MOSEK(LpSolver):
             try:
                 self.xc = [0.0] * self.numcons
                 self.task.getxc(self.solution_type, self.xc)
-                for con in lp.constraints:
-                    lp.constraints[con].slack = -(
-                        self.cons[con].constant + self.xc[self.cons_dict[con]]
-                    )
+                for i, constr in enumerate(lp.constraints()):
+                    constr.slack = -(constr.constant + self.xc[i])
             except mosek.Error:
                 pass
             # Reduced costs.
@@ -257,8 +261,8 @@ class MOSEK(LpSolver):
                 try:
                     self.y = [0.0] * self.numcons
                     self.task.gety(self.solution_type, self.y)
-                    for con in lp.constraints:
-                        lp.constraints[con].pi = self.y[self.cons_dict[con]]
+                    for i, constr in enumerate(lp.constraints()):
+                        constr.pi = self.y[i]
                 except mosek.Error:
                     pass
 
@@ -286,7 +290,7 @@ class MOSEK(LpSolver):
                         )
                     )
 
-        def actualSolve(self, lp):  # type: ignore[misc]
+        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
             """
             Solve a well-formulated lp problem.
             """
@@ -304,42 +308,4 @@ class MOSEK(LpSolver):
                 self.task.solutionsummary(mosek.streamtype.msg)
             self.findSolutionValues(lp)
             lp.assignStatus(self.solution_status_dict[self.solsta])
-            for var in lp.variables():
-                var.modified = False
-            for con in lp.constraints.values():
-                con.modified = False
-            return lp.status
-
-        def actualResolve(self, lp, inf=1e20, **kwargs):
-            """
-            Modify constraints and re-solve an lp. The Mosek task object created in the first solve is used.
-            """
-            for c in self.cons:
-                if self.cons[c].modified:
-                    csense = self.cons[c].sense
-                    cconst = -self.cons[c].constant
-                    clow = -inf
-                    cup = inf
-                    # Constraint bounds
-                    if csense == constants.LpConstraintEQ:
-                        cbkey = mosek.boundkey.fx
-                        clow = cconst
-                        cup = cconst
-                    elif csense == constants.LpConstraintGE:
-                        cbkey = mosek.boundkey.lo
-                        clow = cconst
-                    elif csense == constants.LpConstraintLE:
-                        cbkey = mosek.boundkey.up
-                        cup = cconst
-                    else:
-                        raise PulpSolverError("Invalid constraint type.")
-                    self.task.putconbound(self.cons_dict[c], cbkey, clow, cup)
-            # Re-solve
-            self.task.optimize()
-            self.findSolutionValues(lp)
-            lp.assignStatus(self.solution_status_dict[self.solsta])
-            for var in lp.variables():
-                var.modified = False
-            for con in lp.constraints.values():
-                con.modified = False
             return lp.status

@@ -11,7 +11,7 @@ The quick summary is:
 #. Make your changes.
 #. Create a test for your changes if needed.
 #. Make sure all the tests pass.
-#. Lint your code with black.
+#. Lint and format your code with ruff.
 #. Ensure the docs are accurate.
 #. Submit a Pull Request.
 
@@ -41,64 +41,76 @@ That's it, you will download the whole project.
 Installing from source
 ----------------------------
 
-To build pulp from source we wil get inside the pulp directory, then we will create a virtual environment and install dependencies. I assume Linux / Mac. Windows has very similar commands::
+PuLP includes a Rust extension (``pulp._rustcore``), so building from source requires:
+
+* **Python** 3.9 or newer
+* **Rust** (latest stable). Install from https://rustup.rs/
+* **uv** (recommended) or **pip**
+
+From the pulp directory, create a virtual environment and install the package in editable mode with dev dependencies.
+
+With **uv** (recommended)::
 
     cd pulp
-    python3 -m venv venv
-    source venv/bin/activate
-    python3 -m pip install --upgrade pip
-    pip install --group=dev --editable .
+    uv venv
+    uv pip install --group dev -e .
 
-This will link the pulp version on your virtual environment with the source files in the pulp directory. You can now use pulp from that virtual environment and you will be using the files in the pulp directory. We assume you have run this successfully for all further steps.
+With **pip**::
+
+    cd pulp
+    python3 -m venv .venv
+    source .venv/bin/activate   # Windows: .venv\Scripts\activate
+    python3 -m pip install --upgrade pip
+    pip install --group dev -e .
+
+This links the pulp package in your environment with the source files. The Rust extension is built automatically by maturin during install.
 
 Running tests
 ----------------
 
-To run tests of pulp you need to run::
+Run the unit tests with::
 
-    python3 pulp/tests/run_tests.py
+    uv run python -m unittest discover -s pulp/tests -v
 
-It will detect the solvers in your system and test all of the ones it finds.
+The test runner will detect solvers on your system and run tests for each one found.
 
 Creating a test
 -----------------
 
 When you fix an issue in pulp or add a functionality, you should add a test to the repository. For this you should go to the file `tests/test_pulp.py` and add a new method that tests your change.
 
-Applying the black linter / formatter
+Applying the ruff linter / formatter
 -----------------------------------------------------
 
-We use `the black formatter <https://black.readthedocs.io/en/stable/>`_. Before sending your changes, be sure to execute the black package to style the resulting files.
-The quickest way to do this is to run::
+We use `ruff <https://docs.astral.sh/ruff/>`_ for linting and formatting. Before sending your changes, run::
 
-    python -m black pulp
+    uv run ruff check pulp
+    uv run ruff format pulp
 
-And it will do the changes directly on the files.
+To check without modifying files (e.g. in CI)::
 
-The easiest way is to integrate it inside your IDE so it runs every time you save a file. Learn how to do that `in the black integration docs <https://black.readthedocs.io/en/stable/integrations/editors.html>`_.
+    uv run ruff check pulp && uv run ruff format pulp --check
 
-Checking types with mypy
+You can integrate ruff in your IDE so it runs on save; see the `ruff editor docs <https://docs.astral.sh/ruff/integration/>`_.
+
+Checking types
 -------------------------------------
 
-We use `the mypy type checker <https://mypy.readthedocs.io/en/stable/index.html>`_. Before sending your changes, be sure to execute the mypy package to check the types.
-The quickest way to do this is to run::
+We use the **ty** type checker. Before sending your changes, run::
 
-    python -m mypy ./
+    uv run ty check pulp
 
-Fix all the errors you see before pushing the changes.
+Fix any reported errors before pushing.
 
 Building the documentation
 ----------------------------
 
-The documentation is based in `Sphinx and reStructuredText <https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html>`_.
+The documentation is built with `Sphinx <https://www.sphinx-doc.org/>`_ and reStructuredText. From the project root (with the dev environment activated)::
 
-To build the documentation::
-
-    cd pulp/doc
+    cd doc
     make html
 
-A folder named html will be created inside the ``build/`` directory. The home page for the documentation is ``doc/build/html/index.html`` which can be opened in a browser.
-You only need to execute ``make html`` to rebuild the docs each time.
+A folder named ``html`` will be created inside ``doc/build/``. Open ``doc/build/html/index.html`` in a browser. Rerun ``make html`` to rebuild after changes.
 
 Making a Pull Request
 ----------------------------

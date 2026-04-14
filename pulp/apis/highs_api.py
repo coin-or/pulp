@@ -1,12 +1,17 @@
 # PuLP : Python LP Modeler
 # Version 2.4.1
+from __future__ import annotations
+
 import os
 import subprocess
 from math import inf
-from typing import List, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 from .. import constants
 from .core import LpSolver, LpSolver_CMD, PulpSolverError
+
+if TYPE_CHECKING:
+    from ..core.lp_problem import LpProblem
 
 # Copyright (c) 2002-2005, Jean-Sebastien Roy (js@jeannot.org)
 # Modifications Copyright (c) 2007- Stuart Anthony Mitchell (s.mitchell@auckland.ac.nz)
@@ -92,18 +97,19 @@ class HiGHS_CMD(LpSolver_CMD):
         """True if the solver is available"""
         return self.executable(self.path)
 
-    def actualSolve(self, lp):
-        """Solve a well formulated lp problem"""
+    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+        """Solve a well formulated lp problem."""
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute " + self.path)
         lp.checkDuplicateVars()
+        lp.checkDuplicateConstraints()
 
         tmpMps, tmpSol, tmpOptions, tmpLog, tmpMst = self.create_tmp_files(
             lp.name, "mps", "sol", "HiGHS", "HiGHS_log", "mst"
         )
         lp.writeMPS(tmpMps, with_objsense=True)
 
-        file_options: List[str] = []  # type: ignore[annotation-unchecked]
+        file_options: list[str] = []
         file_options.append(f"solution_file={tmpSol}")
         file_options.append("write_solution_to_file=true")
         file_options.append(f"write_solution_style={HiGHS_CMD.SOLUTION_STYLE}")
@@ -121,7 +127,7 @@ class HiGHS_CMD(LpSolver_CMD):
             highs_log_file = tmpLog
         file_options.append(f"log_file={highs_log_file}")
 
-        command: List[str] = []  # type: ignore[annotation-unchecked]
+        command: list[str] = []
         command.append(self.path)
         command.append(tmpMps)
         command.append(f"--options_file={tmpOptions}")
@@ -223,7 +229,7 @@ class HiGHS_CMD(LpSolver_CMD):
         self.delete_tmp_files(tmpMps, tmpSol, tmpOptions, tmpLog, tmpMst)
         lp.assignStatus(status, status_sol)
 
-        if status == constants.LpStatusOptimal:
+        if status == constants.LpStatusOptimal and values is not None:
             lp.assignVarsVals(values)
 
         return status
@@ -279,20 +285,20 @@ class HiGHS(LpSolver):
 
     try:
         global highspy
-        import highspy  # type: ignore[import-not-found, import-untyped, unused-ignore]
-    except:
+        import highspy  # type: ignore[import-not-found, import-untyped]
+    except Exception:
         hscb = None
 
         def available(self):
             """True if the solver is available"""
             return False
 
-        def actualSolve(self, lp, callback=None):
-            """Solve a well formulated lp problem"""
+        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+            """Solve a well formulated lp problem."""
             raise PulpSolverError("HiGHS: Not Available")
 
     else:
-        hscb = highspy.cb  # type: ignore[attr-defined, unused-ignore]
+        hscb = highspy.cb  # type: ignore[attr-defined]
 
         def __init__(
             self,
@@ -303,7 +309,7 @@ class HiGHS(LpSolver):
             gapRel=None,
             threads=None,
             timeLimit=None,
-            callbacksToActivate: Optional[List[highspy.cb.HighsCallbackType]] = None,
+            callbacksToActivate: Optional[list[highspy.cb.HighsCallbackType]] = None,
             **solverParams,
         ):
             """
@@ -364,7 +370,7 @@ class HiGHS(LpSolver):
 
             obj_mult = -1 if lp.sense == constants.LpMaximize else 1
 
-            for i, var in enumerate(lp.variables()):
+            for var in lp.variables():
                 lb = var.lowBound
                 ub = var.upBound
                 lp.solverModel.addCol(
@@ -375,16 +381,15 @@ class HiGHS(LpSolver):
                     [],
                     [],
                 )
-                var.index = i
 
                 if var.cat == constants.LpInteger and self.mip:
                     lp.solverModel.changeColIntegrality(
-                        var.index, highspy.HighsVarType.kInteger
+                        var.id, highspy.HighsVarType.kInteger
                     )
 
-            for i, constraint in enumerate(lp.constraints.values()):
+            for constraint in lp.constraints():
                 non_zero_constraint_items = [
-                    (var.index, coefficient)
+                    (var.id, coefficient)
                     for var, coefficient in constraint.items()
                     if coefficient != 0
                 ]
@@ -393,8 +398,6 @@ class HiGHS(LpSolver):
                     indices, coefficients = [], []
                 else:
                     indices, coefficients = zip(*non_zero_constraint_items)
-
-                constraint.index = i
 
                 lb = constraint.getLb()
                 ub = constraint.getUb()
@@ -487,23 +490,23 @@ class HiGHS(LpSolver):
             col_duals = list(solution.col_dual)
 
             # Assign values to the variables as with lp.assignVarsVals()
-            lp_variables = lp.variables()
-            for var in lp_variables:
-                var.varValue = col_values[var.index]
-                var.dj = col_duals[var.index]
+            for var in lp.variables():
+                idx = var.id
+                var.varValue = col_values[idx]
+                var.dj = col_duals[idx]
 
-            constraints_list = list(lp.constraints.values())
             row_values = list(solution.row_value)
             row_duals = list(solution.row_dual)
-            for constraint in constraints_list:
+            for constraint in lp.constraints():
                 # PuLP returns LpConstraint.constant as if it were on the
                 # left-hand side, which means the signs on the following line
                 # are correct
                 # We need to flip the sign for slacks for LE constraints
-                constraint.slack = constraint.constant + row_values[constraint.index]
+                row_idx = constraint.id
+                constraint.slack = constraint.constant + row_values[row_idx]
                 if constraint.sense == constants.LpConstraintLE:
                     constraint.slack *= -1.0
-                constraint.pi = row_duals[constraint.index]
+                constraint.pi = row_duals[row_idx]
 
             if obj_value == float(inf) and status in (
                 HighsModelStatus.kTimeLimit,
@@ -516,22 +519,12 @@ class HiGHS(LpSolver):
             else:
                 return status_dict[status]
 
-        def actualSolve(self, lp):  # type: ignore[misc]
+        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
             self.createAndConfigureSolver(lp)
             self.buildSolverModel(lp)
             self.callSolver(lp)
 
             status, sol_status = self.findSolutionValues(lp)
-
-            for var in lp.variables():
-                var.modified = False
-
-            for constraint in lp.constraints.values():
-                constraint.modifier = False
-
             lp.assignStatus(status, sol_status)
 
             return status
-
-        def actualResolve(self, lp, **kwargs):
-            raise PulpSolverError("HiGHS: Resolving is not supported")

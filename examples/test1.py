@@ -9,12 +9,12 @@ prob = LpProblem("test1", LpMinimize)
 
 # Variables
 # 0 <= x <= 4
-x = LpVariable("x", 0, 4)
+x = prob.add_variable("x", 0, 4)
 # -1 <= y <= 1
-y = LpVariable("y", -1, 1)
+y = prob.add_variable("y", -1, 1)
 # 0 <= z
-z = LpVariable("z", 0)
-# Use None for +/- Infinity, i.e. z <= 0 -> LpVariable("z", None, 0)
+z = prob.add_variable("z", 0, None)
+# Use None for +/- Infinity, i.e. z <= 0 -> prob.add_variable("z", None, 0)
 
 # Objective
 prob += x + 4 * y + 9 * z, "obj"

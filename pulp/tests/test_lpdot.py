@@ -1,8 +1,9 @@
-from pulp import lpDot, LpVariable
+from pulp import LpProblem, lpDot
 
 
 def test_lpdot():
-    x = LpVariable(name="x")
+    prob = LpProblem("test")
+    x = prob.add_variable("x")
 
     product = lpDot(1, 2 * x)
     assert product.toDict() == [{"name": "x", "value": 2}]
@@ -12,9 +13,10 @@ def test_pulp_002():
     """
     Test the lpDot operation
     """
-    x = LpVariable("x")
-    y = LpVariable("y")
-    z = LpVariable("z")
+    prob = LpProblem("test")
+    x = prob.add_variable("x")
+    y = prob.add_variable("y")
+    z = prob.add_variable("z")
     a = [1, 2, 3]
     assert dict(lpDot([x, y, z], a)) == {x: 1, y: 2, z: 3}
     assert dict(lpDot([2 * x, 2 * y, 2 * z], a)) == {x: 2, y: 4, z: 6}
