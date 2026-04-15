@@ -380,7 +380,7 @@ class CPLEX_PY(LpSolver):
         """
         Takes the pulp lp model and translates it into a cplex model.
         """
-        model_variables = lp.variables()
+        model_variables = lp.exported_variables()
         self.n2v = {var.name: var for var in model_variables}
         if len(self.n2v) != len(model_variables):
             raise PulpSolverError("Variables must have unique names for cplex solver")
@@ -574,7 +574,7 @@ class CPLEX_PY(LpSolver):
 
     @check_solverModel
     def findSolutionValues(self, lp: LpProblem) -> int:
-        model_variables = lp.variables()
+        model_variables = lp.exported_variables()
         var_names = [var.name for var in model_variables]
         con_names = [c.name for c in lp.constraints()]
         my_solution: cplex_t.solution.Solution = lp.solverModel.solution

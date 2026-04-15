@@ -1,15 +1,16 @@
 //! I/O functions for writing LP and MPS files, and reading MPS files.
 //! These operate directly on ModelCore data for performance.
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
+use indexmap::IndexMap;
 use pyo3::exceptions::{PyRuntimeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::{PyAny, PyFloat, PyList, PyString};
 
 use crate::format;
 use crate::model::Model;
-use crate::types::{Category, ObjSense, Sense};
+use crate::types::{Category, ModelCore, ObjSense, Sense, SosKind, VarId};
 use crate::variable::Variable;
 
 macro_rules! writeln_mps {
@@ -30,9 +31,27 @@ macro_rules! write_mps {
 
 // ── writeLP ──
 
-/// Write an LP file from the Model.
+fn format_sos_lp_section(core: &ModelCore) -> String {
+    let mut out = String::new();
+    for g in &core.sos {
+        let header = match g.kind {
+            SosKind::Sos1 => "S1::",
+            SosKind::Sos2 => "S2::",
+        };
+        out.push_str(header);
+        out.push_str(" \n");
+        for &(vid, w) in &g.weights {
+            if let Some(vd) = core.vars.get(vid) {
+                out.push_str(&format!(" {}: {}\n", vd.name, format::fmt_g12(w)));
+            }
+        }
+    }
+    out
+}
+
+/// Write an LP file from the Model (only variables used in objective, constraints, or SOS).
 #[pyfunction]
-#[pyo3(signature = (model, filename, mip, max_length, obj_name, dummy_var_name, sos_lines))]
+#[pyo3(signature = (model, filename, mip, max_length, obj_name, dummy_var_name))]
 pub fn write_lp(
     model: &Model,
     filename: &str,
@@ -40,13 +59,15 @@ pub fn write_lp(
     max_length: usize,
     obj_name: &str,
     dummy_var_name: &str,
-    sos_lines: &str,
 ) -> PyResult<Vec<Variable>> {
     let core = model.core.borrow();
 
     core.check_duplicate_var_names()?;
     core.check_duplicate_constraint_names()?;
     core.check_var_name_lengths(max_length)?;
+
+    let used = core.used_var_ids();
+    let used_set: HashSet<VarId> = used.iter().copied().collect();
 
     let mut f = std::fs::File::create(filename)
         .map_err(|e| PyRuntimeError::new_err(format!("Cannot create file: {}", e)))?;
@@ -60,12 +81,18 @@ pub fn write_lp(
     };
     writeln_mps!(f, "{}", sense_str);
 
-    // Objective
+    // Objective (only used variables)
     let obj_expr = core
         .objective
         .as_ref()
         .ok_or_else(|| PyValueError::new_err("No objective set"))?;
-    let sorted = format::sorted_pairs_from_coeffs(&obj_expr.terms, &core);
+    let filtered_terms: IndexMap<VarId, f64> = obj_expr
+        .terms
+        .iter()
+        .filter(|(vid, _)| used_set.contains(vid))
+        .map(|(&k, &v)| (k, v))
+        .collect();
+    let sorted = format::sorted_pairs_from_coeffs(&filtered_terms, &core);
     let obj_str = format::cplex_lp_affine_expression(&sorted, obj_expr.constant, obj_name, false);
     write_mps!(f, "{}", obj_str);
 
@@ -94,16 +121,21 @@ pub fn write_lp(
             );
             continue;
         }
-        let sorted = format::sorted_pairs_from_coeffs(&cd.coeffs, &core);
+        let filtered: IndexMap<VarId, f64> = cd
+            .coeffs
+            .iter()
+            .filter(|(vid, _)| used_set.contains(vid))
+            .map(|(&k, &v)| (k, v))
+            .collect();
+        let sorted = format::sorted_pairs_from_coeffs(&filtered, &core);
         let rhs = if cd.rhs == 0.0 { 0.0 } else { cd.rhs };
         let s = format::cplex_lp_constraint(&sorted, cd.sense, rhs, &cd.name, false);
         write_mps!(f, "{}", s);
     }
 
-    // Bounds
-    let vars: Vec<usize> = (0..core.vars.len()).collect();
+    // Bounds (used variables only)
     let mut bounds_vars: Vec<usize> = Vec::new();
-    for &vi in &vars {
+    for &vi in &used {
         let vd = &core.vars[vi];
         if mip {
             let is_pos_cont =
@@ -126,7 +158,7 @@ pub fn write_lp(
 
     // Generals (integer non-binary)
     if mip {
-        let generals: Vec<&str> = vars
+        let generals: Vec<&str> = used
             .iter()
             .filter(|&&vi| {
                 let vd = &core.vars[vi];
@@ -141,7 +173,7 @@ pub fn write_lp(
             }
         }
 
-        let binaries: Vec<&str> = vars
+        let binaries: Vec<&str> = used
             .iter()
             .filter(|&&vi| core.vars[vi].is_binary())
             .map(|&vi| core.vars[vi].name.as_str())
@@ -154,16 +186,18 @@ pub fn write_lp(
         }
     }
 
-    // SOS (pre-formatted from Python)
-    if !sos_lines.is_empty() {
-        write_mps!(f, "{}", sos_lines);
+    let sos_block = format_sos_lp_section(&core);
+    if !sos_block.is_empty() {
+        writeln_mps!(f, "SOS");
+        write_mps!(f, "{}", sos_block);
     }
 
     writeln_mps!(f, "End");
 
     drop(core);
     let weak = std::rc::Rc::downgrade(&model.core);
-    let result: Vec<Variable> = (0..model.core.borrow().vars.len())
+    let result: Vec<Variable> = used
+        .into_iter()
         .map(|id| Variable {
             id,
             model: weak.clone(),
@@ -174,9 +208,10 @@ pub fn write_lp(
 
 // ── writeMPS ──
 
-/// Write an MPS file from the Model.
-/// Objective is read from the model; when mps_sense == -1 (maximize), coefficients are negated when writing.
-/// Returns (variable_names, constraint_names, objective_name) as Vec<String> and String; PyO3 converts to Python tuple of (list, list, str).
+/// Write an MPS file from the Model (only used variable columns).
+/// Returns `(variable_names, constraint_names, objective_name, pulp_names_in_column_order)`:
+/// `variable_names` are file tokens (`X0000000` when `rename`); `pulp_names_in_column_order`
+/// are the original PuLP variable names in the same column order (for solution readback).
 #[pyfunction]
 #[pyo3(signature = (model, filename, mps_sense, mip, with_objsense, rename, model_name, obj_name))]
 pub fn write_mps(
@@ -188,10 +223,16 @@ pub fn write_mps(
     rename: bool,
     model_name: &str,
     obj_name: &str,
-) -> PyResult<(Vec<String>, Vec<String>, String)> {
+) -> PyResult<(Vec<String>, Vec<String>, String, Vec<String>)> {
     let core = model.core.borrow();
     core.check_duplicate_var_names()?;
     core.check_duplicate_constraint_names()?;
+
+    let used = core.used_var_ids();
+    let pulp_names: Vec<String> = used
+        .iter()
+        .map(|&vid| core.vars[vid].name.clone())
+        .collect();
 
     let sense_label = if mps_sense == -1 {
         "Maximize"
@@ -201,10 +242,6 @@ pub fn write_mps(
     let sense_mps = if mps_sense == -1 { "MAX" } else { "MIN" };
 
     // Build objective map from core.
-    // When with_objsense is false, negate coefficients for maximize so the
-    // file is always a minimization problem (legacy MPS convention).
-    // When with_objsense is true, the OBJSENSE header tells the solver the
-    // direction, so coefficients must remain as-is.
     let mut obj_map: HashMap<usize, f64> = HashMap::new();
     if let Some(ref expr) = core.objective {
         let sign = if !with_objsense && mps_sense == -1 { -1.0 } else { 1.0 };
@@ -217,11 +254,11 @@ pub fn write_mps(
     let file_obj_name = if rename { "OBJ" } else { obj_name };
 
     let var_names: Vec<String> = if rename {
-        (0..core.vars.len())
-            .map(|i| format!("X{:07}", i))
+        (0..used.len())
+            .map(|j| format!("X{:07}", j))
             .collect()
     } else {
-        core.vars.iter().map(|vd| vd.name.clone()).collect()
+        pulp_names.clone()
     };
     let constr_names: Vec<String> = if rename {
         (0..core.constraints.len())
@@ -255,7 +292,7 @@ pub fn write_mps(
         );
     }
 
-    // COLUMNS
+    // COLUMNS (full coef matrix by global var index, then emit only used columns)
     let mut coefs: Vec<Vec<(usize, f64)>> = vec![Vec::new(); core.vars.len()];
     for (ci, cd) in core.constraints.iter().enumerate() {
         for (&vid, &coeff) in &cd.coeffs {
@@ -264,9 +301,10 @@ pub fn write_mps(
     }
 
     writeln_mps!(f, "{}", MpsSection::Columns.as_token());
-    for (vi, vd) in core.vars.iter().enumerate() {
+    for (j, &vi) in used.iter().enumerate() {
+        let vd = &core.vars[vi];
         let cat = vd.category;
-        let vname = &var_names[vi];
+        let vname = &var_names[j];
         if mip && (cat == Category::Integer || cat == Category::Binary) {
             writeln_mps!(
                 f,
@@ -317,8 +355,9 @@ pub fn write_mps(
 
     // BOUNDS
     writeln_mps!(f, "{}", MpsSection::Bounds.as_token());
-    for (vi, vd) in core.vars.iter().enumerate() {
-        let vname = &var_names[vi];
+    for (j, &vi) in used.iter().enumerate() {
+        let vd = &core.vars[vi];
+        let vname = &var_names[j];
         let lb = if vd.lb.is_finite() {
             Some(vd.lb)
         } else {
@@ -343,6 +382,7 @@ pub fn write_mps(
         var_names,
         constr_names,
         file_obj_name.to_string(),
+        pulp_names,
     ))
 }
 

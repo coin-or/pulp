@@ -284,7 +284,6 @@ class PYGLPK(LpSolver):
 
         def findSolutionValues(self, lp):
             prob = lp.solverModel
-            var_handles = self._var_handles
             constr_handles = self._constr_handles
             if self.mip and self.hasMIPConstraints(lp.solverModel):
                 solutionStatus = glpk.glp_mip_status(prob)
@@ -298,9 +297,8 @@ class PYGLPK(LpSolver):
                 glpk.GLP_NOFEAS: constants.LpStatusInfeasible,
                 glpk.GLP_UNBND: constants.LpStatusUnbounded,
             }
-            # populate pulp solution values
-            for var in lp.variables():
-                col = var_handles[var.id]
+            exported_vars = lp.exported_variables()
+            for var, col in zip(exported_vars, self._var_handles):
                 if self.mip and self.hasMIPConstraints(lp.solverModel):
                     var.varValue = glpk.glp_mip_col_val(prob, col)
                 else:
@@ -376,8 +374,10 @@ class PYGLPK(LpSolver):
                     raise PulpSolverError("Detected an invalid constraint type")
                 constr_handles.append(i)
             log.debug("add the variables to the problem")
-            glpk.glp_add_cols(prob, len(lp.variables()))
-            for j, var in enumerate(lp.variables(), start=1):
+            exported_vars = lp.exported_variables()
+            id_to_col = {v.id: j for j, v in enumerate(exported_vars, start=1)}
+            glpk.glp_add_cols(prob, len(exported_vars))
+            for j, var in enumerate(exported_vars, start=1):
                 glpk.glp_set_col_name(prob, j, var.name)
                 lb = 0.0
                 ub = 0.0
@@ -399,17 +399,17 @@ class PYGLPK(LpSolver):
                     assert glpk.glp_get_col_kind(prob, j) == glpk.GLP_IV
                 var_handles.append(j)
             log.debug("set the objective function")
-            for var in lp.variables():
+            for var in exported_vars:
                 value = lp.objective.get(var)
                 if value:
-                    glpk.glp_set_obj_coef(prob, var_handles[var.id], value)
+                    glpk.glp_set_obj_coef(prob, id_to_col[var.id], value)
             log.debug("set the problem matrix")
             for constraint in lp.constraints():
                 n = len(list(constraint.items()))
                 ind = glpk.intArray(n + 1)
                 val = glpk.doubleArray(n + 1)
                 for j, (var, value) in enumerate(constraint.items(), start=1):
-                    ind[j] = var_handles[var.id]
+                    ind[j] = id_to_col[var.id]
                     val[j] = value
                 glpk.glp_set_mat_row(prob, constr_handles[constraint.id], n, ind, val)
             lp.solverModel = prob

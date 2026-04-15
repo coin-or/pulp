@@ -104,7 +104,7 @@ impl Variable {
         let core_rc = upgrade_model(&self.model)?;
         let mut core = core_rc.borrow_mut();
         if let Some(var) = core.vars.get_mut(self.id) {
-            var.name = name;
+            var.name = name.replace(' ', "_");
         }
         Ok(())
     }

@@ -167,14 +167,18 @@ class COIN_CMD(LpSolver_CMD):
             lp.name, "lp", "mps", "sol", "mst"
         )
         if use_mps:
-            var_names_list, constr_names_list, objectiveName = lp.writeMPS(
-                tmpMps, rename=True
-            )
+            (
+                var_names_list,
+                constr_names_list,
+                objectiveName,
+                pulp_names_in_column_order,
+            ) = lp.writeMPS(tmpMps, rename=True)
             cmds = " " + tmpMps + " "
         else:
-            lp.writeLP(tmpLp)
-            var_names_list = [v.name for v in lp.variables()]
+            written_vars = lp.writeLP(tmpLp)
+            var_names_list = [v.name for v in written_vars]
             constr_names_list = [c.name for c in lp.constraints()]
+            pulp_names_in_column_order = None
             cmds = " " + tmpLp + " "
         if self.optionsDict.get("warmStart", False):
             self.writesol(tmpMst, lp, var_names_list, constr_names_list)
@@ -247,7 +251,13 @@ class COIN_CMD(LpSolver_CMD):
             shadowPrices,
             slacks,
             sol_status,
-        ) = self.readsol_MPS(tmpSol, lp, var_names_list, constr_names_list)
+        ) = self.readsol_MPS(
+            tmpSol,
+            lp,
+            var_names_list,
+            constr_names_list,
+            pulp_names_in_column_order=pulp_names_in_column_order,
+        )
         lp.assignVarsVals(values)
         lp.assignVarsDj(reducedCosts)
         lp.assignConsPi(shadowPrices)
@@ -279,6 +289,7 @@ class COIN_CMD(LpSolver_CMD):
         variableNames: list[str],
         constraintNames: list[str],
         objectiveName: str | None = None,
+        pulp_names_in_column_order: list[str] | None = None,
     ) -> tuple[
         int,
         dict[str, float],
@@ -289,11 +300,23 @@ class COIN_CMD(LpSolver_CMD):
     ]:
         """
         Read a CBC solution file generated from an mps or lp file (possible different names).
-        variableNames and constraintNames are lists in the same order as lp.variables() and lp.constraints().
+
+        ``variableNames`` are names as they appear in the solution file (column order).
+        When ``rename=True`` on ``writeMPS``, pass ``pulp_names_in_column_order`` from
+        ``writeMPS`` so file tokens map back to PuLP variable names.
         """
-        vs = lp.variables()
-        values = {v.name: 0.0 for v in vs}
-        reverseVn = {variableNames[i]: vs[i].name for i in range(len(vs))}
+        if pulp_names_in_column_order is not None and len(
+            pulp_names_in_column_order
+        ) == len(variableNames):
+            reverseVn = {
+                variableNames[i]: pulp_names_in_column_order[i]
+                for i in range(len(variableNames))
+            }
+        else:
+            reverseVn = {
+                variableNames[i]: variableNames[i] for i in range(len(variableNames))
+            }
+        values: dict[str, float] = {}
         reverseCn = {constraintNames[i]: c.name for i, c in enumerate(lp.constraints())}
 
         reducedCosts: dict[str, float] = {}
@@ -328,13 +351,19 @@ class COIN_CMD(LpSolver_CMD):
     ) -> bool:
         """
         Writes a CBC solution file generated from an mps / lp file (possible different names).
-        variableNames and constraintNames are lists in the same order as lp.variables() and lp.constraints().
+
+        ``variableNames`` must be in the same column order as the model file (exported columns).
         Returns True on success.
         """
-        vs = lp.variables()
-        values = {v.name: v.value() if v.value() is not None else 0 for v in vs}
+        exported = lp.exported_variables()
+        if len(variableNames) != len(exported):
+            raise PulpSolverError(
+                "COIN warm start: variableNames length does not match exported_variables()"
+            )
+        values = {v.name: v.value() if v.value() is not None else 0 for v in exported}
         value_lines = [
-            (i, variableNames[i], values[vs[i].name], 0) for i in range(len(vs))
+            (i, variableNames[i], values[exported[i].name], 0)
+            for i in range(len(exported))
         ]
         lines = ["Stopped on time - objective value 0\n"]
         lines += ["{:>7} {} {:>15} {:>23}\n".format(*tup) for tup in value_lines]
@@ -358,7 +387,8 @@ class COIN_CMD(LpSolver_CMD):
         Read a CBC solution file generated from an lp (good names).
         Returns status, values, reducedCosts, shadowPrices, slacks, sol_status.
         """
-        variableNames = [v.name for v in lp.variables()]
+        exported = lp.exported_variables()
+        variableNames = [v.name for v in exported]
         constraintNames = [c.name for c in lp.constraints()]
         return self.readsol_MPS(filename, lp, variableNames, constraintNames)
 
@@ -727,7 +757,7 @@ class YAPOSIB(LpSolver):
                 "limitreached": constants.LpStatusInfeasible,
             }
             # populate pulp solution values
-            for var in lp.variables():
+            for var in lp.exported_variables():
                 var.varValue = var.solverVar.solution
                 var.dj = var.solverVar.reducedcost
             # put pi and slack variables against the constraints
@@ -780,7 +810,8 @@ class YAPOSIB(LpSolver):
             if lp.sense == constants.LpMaximize:
                 prob.obj.maximize = True
             log.debug("add the variables to the problem")
-            for var in lp.variables():
+            exported_vars = lp.exported_variables()
+            for var in exported_vars:
                 col = prob.cols.add(yaposib.vec([]))
                 col.name = var.name
                 if math.isfinite(var.lowBound):
@@ -896,7 +927,7 @@ class CYLP(LpSolver):
             return my_map_2.get(sol_stats, constants.LpStatusUndefined)
 
         def findSolutionValues(self, lp):
-            my_vars = lp.variables()
+            my_vars = lp.exported_variables()
             my_values = lp.solverModel.primalVariableSolution
             for var, value in zip(my_vars, my_values):
                 var.varValue = value

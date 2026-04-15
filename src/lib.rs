@@ -15,7 +15,7 @@ mod io;
 use affine_expr::AffineExpr;
 use constraint::Constraint;
 use model::Model;
-use types::{Category, ObjSense, Sense};
+use types::{Category, ObjSense, Sense, SosKind};
 use variable::Variable;
 
 /// Python module definition. This will be exposed as `pulp._rustcore`.
@@ -28,6 +28,7 @@ fn _rustcore(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<Category>()?;
     m.add_class::<Sense>()?;
     m.add_class::<ObjSense>()?;
+    m.add_class::<SosKind>()?;
     m.add_class::<io::MpsParameters>()?;
     m.add_class::<io::MpsCoefficient>()?;
     m.add_class::<io::MpsObjective>()?;

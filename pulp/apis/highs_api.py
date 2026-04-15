@@ -238,7 +238,7 @@ class HiGHS_CMD(LpSolver_CMD):
         """Writes a HiGHS solution file"""
 
         variable_rows = []
-        for var in lp.variables():  # zero variables must be included
+        for var in lp.exported_variables():
             variable_rows.append(f"{var.name} {var.varValue or 0}")
 
         # Required preamble for HiGHS to accept a solution
@@ -370,7 +370,10 @@ class HiGHS(LpSolver):
 
             obj_mult = -1 if lp.sense == constants.LpMaximize else 1
 
-            for var in lp.variables():
+            exported_vars = lp.exported_variables()
+            id_to_col = {v.id: j for j, v in enumerate(exported_vars)}
+
+            for j, var in enumerate(exported_vars):
                 lb = var.lowBound
                 ub = var.upBound
                 lp.solverModel.addCol(
@@ -384,12 +387,12 @@ class HiGHS(LpSolver):
 
                 if var.cat == constants.LpInteger and self.mip:
                     lp.solverModel.changeColIntegrality(
-                        var.id, highspy.HighsVarType.kInteger
+                        j, highspy.HighsVarType.kInteger
                     )
 
             for constraint in lp.constraints():
                 non_zero_constraint_items = [
-                    (var.id, coefficient)
+                    (id_to_col[var.id], coefficient)
                     for var, coefficient in constraint.items()
                     if coefficient != 0
                 ]
@@ -489,11 +492,10 @@ class HiGHS(LpSolver):
             col_values = list(solution.col_value)
             col_duals = list(solution.col_dual)
 
-            # Assign values to the variables as with lp.assignVarsVals()
-            for var in lp.variables():
-                idx = var.id
-                var.varValue = col_values[idx]
-                var.dj = col_duals[idx]
+            exported_vars = lp.exported_variables()
+            for j, var in enumerate(exported_vars):
+                var.varValue = col_values[j]
+                var.dj = col_duals[j]
 
             row_values = list(solution.row_value)
             row_duals = list(solution.row_dual)

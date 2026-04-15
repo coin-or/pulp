@@ -183,10 +183,9 @@ class SCIP_CMD(LpSolver_CMD):
         if not os.path.exists(tmpSol):
             raise PulpSolverError("PuLP: Error while executing " + self.path)
         status, values = self.readsol(tmpSol)
-        # Make sure to add back in any 0-valued variables SCIP leaves out.
-        finalVals = {}
-        for v in lp.variables():
-            finalVals[v.name] = values.get(v.name, 0.0)
+        # SCIP may omit zero-valued columns; only fill exported (solver) variables.
+        exported = lp.exported_variables()
+        finalVals = {v.name: values.get(v.name, 0.0) for v in exported}
 
         lp.assignVarsVals(finalVals)
         lp.assignStatus(status)
@@ -379,10 +378,8 @@ class FSCIP_CMD(LpSolver_CMD):
         if not os.path.exists(tmpSol):
             raise PulpSolverError("PuLP: Error while executing " + self.path)
         status, values = self.readsol(tmpSol)
-        # Make sure to add back in any 0-valued variables SCIP leaves out.
-        finalVals = {}
-        for v in lp.variables():
-            finalVals[v.name] = values.get(v.name, 0.0)
+        exported = lp.exported_variables()
+        finalVals = {v.name: values.get(v.name, 0.0) for v in exported}
 
         lp.assignVarsVals(finalVals)
         lp.assignStatus(status)
@@ -533,7 +530,7 @@ class SCIP_PY(LpSolver):
                 warmStart=warmStart,
             )
 
-        def findSolutionValues(self, lp, var_handles, constr_handles):
+        def findSolutionValues(self, lp, var_handles, constr_handles, exported_vars):
             solutionStatus = lp.solverModel.getStatus()
             scip_to_pulp_status = {
                 "optimal": constants.LpStatusOptimal,
@@ -567,8 +564,8 @@ class SCIP_PY(LpSolver):
             if solutionStatus in possible_solution_found_statuses:
                 try:  # Feasible solution found
                     solution = lp.solverModel.getBestSol()
-                    for var in lp.variables():
-                        var.varValue = solution[var_handles[var.id]]
+                    for j, var in enumerate(exported_vars):
+                        var.varValue = solution[var_handles[j]]
                     for constraint in lp.constraints():
                         constraint.slack = lp.solverModel.getSlack(
                             constr_handles[constraint.id], solution
@@ -655,7 +652,9 @@ class SCIP_PY(LpSolver):
                 constants.LpContinuous: "C",
                 constants.LpInteger: "I",
             }
-            for var in lp.variables():
+            exported_vars = lp.exported_variables()
+            id_to_col = {v.id: j for j, v in enumerate(exported_vars)}
+            for var in exported_vars:
                 svar = lp.solverModel.addVar(
                     name=var.name,
                     vtype=category_to_vtype[var.cat],
@@ -678,7 +677,7 @@ class SCIP_PY(LpSolver):
                 ccon = lp.solverModel.addCons(
                     cons=sense_to_operator[constraint.sense](
                         scip.quicksum(
-                            coefficient * var_handles[variable.id]
+                            coefficient * var_handles[id_to_col[variable.id]]
                             for variable, coefficient in constraint.items()
                         ),
                         -constraint.constant,
@@ -692,11 +691,13 @@ class SCIP_PY(LpSolver):
             ##################################################
             if self.optionsDict.get("warmStart", False):
                 s = lp.solverModel.createPartialSol()
-                for var in lp.variables():
+                for var in exported_vars:
                     if var.varValue is not None:
-                        lp.solverModel.setSolVal(s, var_handles[var.id], var.varValue)
+                        lp.solverModel.setSolVal(
+                            s, var_handles[id_to_col[var.id]], var.varValue
+                        )
                 lp.solverModel.addSol(s)
-            return var_handles, constr_handles
+            return var_handles, constr_handles, exported_vars
 
         def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
             """
@@ -705,7 +706,9 @@ class SCIP_PY(LpSolver):
             creates a scip model, variables and constraints and attaches
             them to the lp model which it then solves
             """
-            var_handles, constr_handles = self.buildSolverModel(lp)
+            var_handles, constr_handles, exported_vars = self.buildSolverModel(lp)
             self.callSolver(lp)
-            solutionStatus = self.findSolutionValues(lp, var_handles, constr_handles)
+            solutionStatus = self.findSolutionValues(
+                lp, var_handles, constr_handles, exported_vars
+            )
             return solutionStatus

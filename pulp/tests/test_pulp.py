@@ -2445,6 +2445,40 @@ class XPRESS_PyTest(BaseSolverTest.PuLPTest):
 class COIN_CMDTest(BaseSolverTest.PuLPTest):
     solveInst = solvers.COIN_CMD
 
+    def test_add_variable_dicts_tuple_indices_mps_path(self):
+        """Tuple keys from a list of indices build names with punctuation/spaces; CBC MPS path must run."""
+        prob = LpProblem(self._testMethodName, const.LpMinimize)
+        keys = [(0, 0), (0, 1), (1, 0)]
+        x = prob.add_variable_dicts("flow", keys, lowBound=0, cat=const.LpContinuous)
+        prob += lpSum(x[k] for k in keys)
+        prob += lpSum(x[k] for k in keys) >= 1, "cover"
+        pulpTestCheck(
+            prob,
+            self.solver,
+            [const.LpStatusOptimal],
+            {
+                x[(0, 0)]: 1.0,
+                x[(0, 1)]: 0.0,
+                x[(1, 0)]: 0.0,
+            },
+            objective=1.0,
+        )
+
+    def test_add_variable_dicts_tuple_indices_mip_mps_path(self):
+        """Integer variables with tuple-index dicts use MPS integer markers; COIN_CMD must accept."""
+        prob = LpProblem(self._testMethodName, const.LpMinimize)
+        keys = [(1, "east"), (2, "west")]
+        y = prob.add_variable_dicts("open", keys, cat=const.LpBinary)
+        prob += y[(1, "east")] + 2 * y[(2, "west")]
+        prob += y[(1, "east")] + y[(2, "west")] >= 1, "pick_one"
+        pulpTestCheck(
+            prob,
+            self.solver,
+            [const.LpStatusOptimal],
+            {y[(1, "east")]: 1.0, y[(2, "west")]: 0.0},
+            objective=1.0,
+        )
+
 
 class COINMP_DLLTest(BaseSolverTest.PuLPTest):
     solveInst = solvers.COINMP_DLL

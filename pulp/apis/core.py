@@ -187,7 +187,7 @@ class LpSolver:
 
         rangeCount = 0
 
-        variables = list(lp.variables())
+        variables = list(lp.exported_variables())
         numVars = len(variables)
         # associate each variable with an ordinal (key by name; variables are not hashable)
         self.vname2n = {variables[i].name: i for i in range(numVars)}
@@ -207,7 +207,7 @@ class LpSolver:
         lowerBounds = NumVarDoubleArray()
         upperBounds = NumVarDoubleArray()
         initValues = NumVarDoubleArray()
-        for v in lp.variables():
+        for v in variables:
             i = self.vname2n[v.name]
             colNames[i] = to_string(v.name)
             initValues[i] = 0.0
@@ -260,7 +260,7 @@ class LpSolver:
         NumVarCharArray = ctypes.c_char * numVars
         columnType = NumVarCharArray()
         if lp.isMIP():
-            for v in lp.variables():
+            for v in variables:
                 columnType[self.vname2n[v.name]] = to_string(LpVarCategories[v.cat])
         self.addedVars = numVars
         self.addedRows = numRows

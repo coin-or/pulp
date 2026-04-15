@@ -437,7 +437,7 @@ class COPT_DLL(LpSolver):
                 if self.mipstart:
                     mstdict = {
                         self.vname2n[v.name]: v.value()
-                        for v in lp.variables()
+                        for v in lp.exported_variables()
                         if v.value() is not None
                     }
 
@@ -482,7 +482,7 @@ class COPT_DLL(LpSolver):
             This function borrowed implementation of LpSolver.getCplexStyleArrays,
             with some modifications.
             """
-            cols = list(lp.variables())
+            cols = list(lp.exported_variables())
             ncol = len(cols)
             nrow = len(lp.constraints())
 
@@ -516,7 +516,7 @@ class COPT_DLL(LpSolver):
                 colcost[self.v2n[col]] = val
 
             # Extract variable types, names and lower/upper bounds
-            for col in lp.variables():
+            for col in cols:
                 colname[self.v2n[col]] = coptstr(col.name)
 
                 if math.isfinite(col.lowBound):
@@ -531,7 +531,7 @@ class COPT_DLL(LpSolver):
 
             # Extract column types
             if lp.isMIP():
-                for var in lp.variables():
+                for var in cols:
                     coltype[self.v2n[var]] = coptctype[var.cat]
             else:
                 coltype = None
@@ -945,7 +945,8 @@ class COPT(LpSolver):
                 return status
 
             values = model.getInfo("Value", model.getVars())
-            for var, value in zip(lp.variables(), values):
+            exported_vars = lp.exported_variables()
+            for var, value in zip(exported_vars, values):
                 var.varValue = value
 
             if not model.ismip:
@@ -957,7 +958,7 @@ class COPT(LpSolver):
                         constr.slack = value
 
                     redcosts = model.getInfo("RedCost", model.getVars())
-                    for var, value in zip(lp.variables(), redcosts):
+                    for var, value in zip(exported_vars, redcosts):
                         var.dj = value
 
                     duals = model.getInfo("Dual", model.getConstrs())
@@ -1003,7 +1004,9 @@ class COPT(LpSolver):
                 lp.solverModel.setLogFile(logPath)
 
             var_handles = []
-            for var in lp.variables():
+            exported_vars = lp.exported_variables()
+            id_to_col = {v.id: j for j, v in enumerate(exported_vars)}
+            for var in exported_vars:
                 lowBound = var.lowBound
                 if not math.isfinite(lowBound):
                     lowBound = -coptpy.COPT.INFINITY
@@ -1020,14 +1023,16 @@ class COPT(LpSolver):
                 var_handles.append(cvar)
 
             if self.optionsDict.get("warmStart", False):
-                for var in lp.variables():
+                for var in exported_vars:
                     if var.varValue is not None:
-                        lp.solverModel.setMipStart(var_handles[var.id], var.varValue)
+                        lp.solverModel.setMipStart(
+                            var_handles[id_to_col[var.id]], var.varValue
+                        )
                 lp.solverModel.loadMipStart()
 
             for constraint in lp.constraints():
                 name = constraint.name
-                solver_vars = [var_handles[v.id] for v in constraint.keys()]
+                solver_vars = [var_handles[id_to_col[v.id]] for v in constraint.keys()]
                 expr = coptpy.LinExpr(solver_vars, list(constraint.values()))
                 if constraint.sense == LpConstraintLE:
                     relation = coptpy.COPT.LESS_EQUAL

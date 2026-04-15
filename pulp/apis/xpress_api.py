@@ -43,7 +43,7 @@ def _ismip(lp: LpProblem) -> bool:
 
     From an XPRESS point of view, a problem is also a MIP if it contains
     SOS constraints."""
-    return bool(lp.isMIP() or len(lp.sos1) or len(lp.sos2))
+    return bool(lp.isMIP() or lp.has_sos())
 
 
 class XPRESS(LpSolver_CMD):
@@ -433,8 +433,9 @@ class XPRESS_PY(LpSolver):
             var_handles = list(model.getVariable())
             constr_handles = list(model.getConstraint())
 
-            # Build ordered lists of solver vars/cons (id = index in handle lists)
-            xpress_vars = [(v, var_handles[v.id]) for v in lp.variables()]
+            exported_vars = lp.exported_variables()
+            id_to_col = {v.id: j for j, v in enumerate(exported_vars)}
+            xpress_vars = [(v, var_handles[id_to_col[v.id]]) for v in exported_vars]
             xpress_cons = [
                 (
                     c.name,
@@ -623,10 +624,12 @@ class XPRESS_PY(LpSolver):
             if self.optionsDict.get("warmStart", False):
                 solval = list()
                 colind = list()
-                for v in lp.variables():
+                exported_vars = lp.exported_variables()
+                id_to_col = {v.id: j for j, v in enumerate(exported_vars)}
+                for v in exported_vars:
                     if v.value() is not None:
                         solval.append(v.value())
-                        colind.append(v.id)
+                        colind.append(id_to_col[v.id])
                 if _ismip(lp) and self.mip:
                     # If we have a value for every variable then use
                     # loadmipsol(), which requires a dense solution. Otherwise
@@ -716,7 +719,9 @@ class XPRESS_PY(LpSolver):
             ub = list()
             ctype = list()
             names = list()
-            for v in lp.variables():
+            exported_vars = lp.exported_variables()
+            id_to_col = {v.id: j for j, v in enumerate(exported_vars)}
+            for v in exported_vars:
                 lb.append(
                     -xpress.infinity if not math.isfinite(v.lowBound) else v.lowBound
                 )
@@ -732,14 +737,14 @@ class XPRESS_PY(LpSolver):
                     ctype.append("C")
                 names.append(v.name)
             model.addcols(obj, [0] * (len(obj) + 1), [], [], lb, ub, names, ctype)
-            for v, x in zip(lp.variables(), model.getVariable()):
+            for v, x in zip(exported_vars, model.getVariable()):
                 var_handles.append(x)
 
             # Generate constraints in model order (same as lp.constraints() list).
             cons = list()
             for con in lp.constraints():
                 lhs = xpress.Sum(
-                    a * var_handles[x.id]
+                    a * var_handles[id_to_col[x.id]]
                     for x, a in sorted(con.items(), key=lambda item: item[0].name)
                 )
                 rhs = -con.constant
@@ -758,18 +763,18 @@ class XPRESS_PY(LpSolver):
             if len(cons) > 0:
                 model.addConstraint(cons)
 
-            # SOS constraints (variable index = var.id)
             def addsos(m, sosdict, sostype):
                 soslist = []
                 for name in sorted(sosdict):
-                    indices = [v.id for v, _ in sosdict[name].items()]
+                    indices = [id_to_col[v.id] for v, _ in sosdict[name].items()]
                     weights = [val for _, val in sosdict[name].items()]
                     soslist.append(xpress.sos(indices, weights, sostype, str(name)))
                 if len(soslist):
                     m.addSOS(soslist)
 
-            addsos(model, lp.sos1, 1)
-            addsos(model, lp.sos2, 2)
+            sos1, sos2 = lp._sos_dicts_for_xpress()
+            addsos(model, sos1, 1)
+            addsos(model, sos2, 2)
 
             lp.solverModel = model
         except (xpress.ModelError, xpress.InterfaceError, xpress.SolverError) as err:

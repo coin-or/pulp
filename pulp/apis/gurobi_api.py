@@ -205,11 +205,11 @@ class GUROBI(LpSolver):
             status = gurobiLpStatus.get(solutionStatus, constants.LpStatusUndefined)
             lp.assignStatus(status)
             if model.SolCount >= 1:
-                # populate pulp solution values; lp.variables() matches id order
+                exported_vars = lp.exported_variables()
                 for var, value in zip(
-                    lp.variables(),
+                    exported_vars,
                     model.getAttr(
-                        GRB.Attr.X, [var_handles[v.id] for v in lp.variables()]
+                        GRB.Attr.X, [var_handles[j] for j in range(len(exported_vars))]
                     ),
                 ):
                     var.varValue = value
@@ -225,9 +225,10 @@ class GUROBI(LpSolver):
                 # put pi and slack variables against the constraints
                 if not model.IsMIP:
                     for var, value in zip(
-                        lp.variables(),
+                        exported_vars,
                         model.getAttr(
-                            GRB.Attr.RC, [var_handles[v.id] for v in lp.variables()]
+                            GRB.Attr.RC,
+                            [var_handles[j] for j in range(len(exported_vars))],
                         ),
                     ):
                         var.dj = value
@@ -305,8 +306,32 @@ class GUROBI(LpSolver):
             nvars = lp.solverModel.NumVars
             var_handles = []
             constr_handles = []
+            exported_vars = lp.exported_variables()
+            id_to_col = {v.id: j for j, v in enumerate(exported_vars)}
+            if nvars > 0:
+                # Variable compression changes column order vs. var.id; rebuild from scratch.
+                lp.solverModel.dispose()
+                self.init_gurobi = False
+                self.initGurobi()
+                assert self.model is not None
+                self.model.ModelName = lp.name
+                lp.solverModel = self.model
+                if not self.msg:
+                    lp.solverModel.setParam("OutputFlag", 0)
+                if lp.sense == constants.LpMaximize:
+                    lp.solverModel.setAttr("ModelSense", -1)
+                if self.timeLimit:
+                    lp.solverModel.setParam("TimeLimit", self.timeLimit)
+                gapRel = self.optionsDict.get("gapRel")
+                logPath = self.optionsDict.get("logPath")
+                if gapRel:
+                    lp.solverModel.setParam("MIPGap", gapRel)
+                if logPath:
+                    lp.solverModel.setParam("LogFile", logPath)
+                nvars = 0
+
             if nvars == 0:
-                for var in lp.variables():
+                for var in exported_vars:
                     lowBound = var.lowBound
                     if not math.isfinite(lowBound):
                         lowBound = -gp.GRB.INFINITY
@@ -321,16 +346,10 @@ class GUROBI(LpSolver):
                         lowBound, upBound, vtype=varType, obj=obj, name=var.name
                     )
                     var_handles.append(gvar)
-            else:
-                var_handles = list(lp.solverModel.getVars())
-                constr_handles = list(lp.solverModel.getConstrs())
-                # Update objective (e.g. after sequentialSolve changes it)
-                for var in lp.variables():
-                    var_handles[var.id].Obj = lp.objective.get(var, 0.0)
             if self.optionsDict.get("warmStart", False):
-                for var in lp.variables():
+                for var in exported_vars:
                     if var.varValue is not None:
-                        var_handles[var.id].start = var.varValue
+                        var_handles[id_to_col[var.id]].start = var.varValue
 
             lp.solverModel.update()
             if nvars == 0:
@@ -338,29 +357,9 @@ class GUROBI(LpSolver):
                 for constraint in lp.constraints():
                     # build the expression (id = index in var_handles)
                     name = constraint.name
-                    solver_vars = [var_handles[v.id] for v in constraint.keys()]
-                    expr = gp.LinExpr(list(constraint.values()), solver_vars)
-                    if constraint.sense == constants.LpConstraintLE:
-                        gconstr = lp.solverModel.addConstr(
-                            expr <= -constraint.constant, name=name
-                        )
-                    elif constraint.sense == constants.LpConstraintGE:
-                        gconstr = lp.solverModel.addConstr(
-                            expr >= -constraint.constant, name=name
-                        )
-                    elif constraint.sense == constants.LpConstraintEQ:
-                        gconstr = lp.solverModel.addConstr(
-                            expr == -constraint.constant, name=name
-                        )
-                    else:
-                        raise PulpSolverError("Detected an invalid constraint type")
-                    constr_handles.append(gconstr)
-            else:
-                # Add any new constraints (e.g. added by sequentialSolve)
-                nconstr_in_model = len(constr_handles)
-                for constraint in lp.constraints()[nconstr_in_model:]:
-                    name = constraint.name
-                    solver_vars = [var_handles[v.id] for v in constraint.keys()]
+                    solver_vars = [
+                        var_handles[id_to_col[v.id]] for v in constraint.keys()
+                    ]
                     expr = gp.LinExpr(list(constraint.values()), solver_vars)
                     if constraint.sense == constants.LpConstraintLE:
                         gconstr = lp.solverModel.addConstr(

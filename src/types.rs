@@ -1,7 +1,7 @@
 //! Shared types and model core used by Variable, Constraint, AffineExpr, and Model.
 
 use std::cell::RefCell;
-use std::collections::HashMap;
+use std::collections::{BTreeSet, HashMap};
 use std::rc::{Rc, Weak};
 
 use indexmap::IndexMap;
@@ -14,6 +14,22 @@ use crate::affine_expr::AffineExpr;
 pub type VarId = usize;
 /// Unique identifier for a constraint within a model.
 pub type ConstrId = usize;
+
+/// SOS type (CPLEX LP `S1::` / `S2::`).
+#[pyclass(eq, eq_int, frozen, from_py_object)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum SosKind {
+    Sos1,
+    Sos2,
+}
+
+/// One SOS group: kind, optional label key, ordered (variable id, weight) pairs.
+#[derive(Clone, Debug)]
+pub struct SosGroup {
+    pub kind: SosKind,
+    pub key: Option<String>,
+    pub weights: Vec<(VarId, f64)>,
+}
 
 /// Variable category: continuous, integer, or binary.
 #[pyclass(from_py_object)]
@@ -71,6 +87,8 @@ pub struct ModelCore {
     pub sense: ObjSense,
     /// Counter for auto-generated constraint names (`_C1`, ...); shared by all `Model` handles.
     pub next_auto_constraint_id: usize,
+    /// Special ordered sets (SOS1 / SOS2) in CPLEX LP sense.
+    pub sos: Vec<SosGroup>,
 }
 
 impl ModelCore {
@@ -82,7 +100,37 @@ impl ModelCore {
             objective: None,
             sense: ObjSense::Minimize,
             next_auto_constraint_id: 0,
+            sos: Vec::new(),
         }
+    }
+
+    /// Variable ids that appear in the objective, any constraint, or any SOS group (sorted, unique).
+    pub fn used_var_ids(&self) -> Vec<VarId> {
+        let mut ids = BTreeSet::new();
+        if let Some(ref obj) = self.objective {
+            for &vid in obj.terms.keys() {
+                ids.insert(vid);
+            }
+        }
+        for cd in &self.constraints {
+            for &vid in cd.coeffs.keys() {
+                ids.insert(vid);
+            }
+        }
+        for g in &self.sos {
+            for &(vid, _) in &g.weights {
+                ids.insert(vid);
+            }
+        }
+        ids.into_iter().collect()
+    }
+
+    pub fn clear_sos(&mut self) {
+        self.sos.clear();
+    }
+
+    pub fn push_sos_group(&mut self, group: SosGroup) {
+        self.sos.push(group);
     }
 
     pub fn add_variable(
@@ -92,6 +140,8 @@ impl ModelCore {
         ub: f64,
         category: Category,
     ) -> VarId {
+        // CPLEX LP (and many solvers): spaces in identifiers are invalid; normalize at creation.
+        let name = name.replace(' ', "_");
         let id = self.vars.len();
         self.vars.push(VariableData {
             name,

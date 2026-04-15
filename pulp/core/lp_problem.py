@@ -44,8 +44,6 @@ class LpProblem:
             name = name.replace(" ", "_")
         self.name = name
         self._sense = sense
-        self.sos1 = {}
-        self.sos2 = {}
         self.status = const.LpStatusNotSolved
         self.sol_status = const.LpSolutionNoSolutionFound
         self.solver = None
@@ -62,6 +60,59 @@ class LpProblem:
             if sense == const.LpMinimize
             else _rustcore.ObjSense.Maximize
         )
+
+    def has_sos(self) -> bool:
+        """True if the model has any SOS1/SOS2 groups (stored in the Rust core)."""
+        return bool(self._model.sos_export())
+
+    def clear_sos(self) -> None:
+        """Remove all SOS groups from the model."""
+        self._model.clear_sos()
+
+    def add_sos_group(
+        self,
+        kind: _rustcore.SosKind,
+        key: str | None,
+        members: dict[LpVariable, float],
+    ) -> None:
+        """Add one SOS group. ``members`` maps each variable to its SOS weight."""
+        self._model.add_sos_group(
+            kind, key, [(v._var, float(w)) for v, w in members.items()]
+        )
+
+    def exported_variables(self) -> list[LpVariable]:
+        """Variables that appear in the objective, a constraint, or an SOS group (solver column order)."""
+        ids = self._model.used_variable_ids()
+        rvs = self._model.list_variables_by_ids(ids)
+        return [LpVariable(v) for v in rvs]
+
+    def _sos_lists_for_mps_dataclass(self) -> tuple[list[Any], list[Any]]:
+        vs = self.variables()
+        s1: list[Any] = []
+        s2: list[Any] = []
+        for t, _key, pairs in self._model.sos_export():
+            d = {vs[vid].name: float(w) for vid, w in pairs}
+            if t == 1:
+                s1.append(d)
+            else:
+                s2.append(d)
+        return s1, s2
+
+    def _sos_dicts_for_xpress(
+        self,
+    ) -> tuple[dict[str, dict[LpVariable, float]], dict[str, dict[LpVariable, float]]]:
+        """XPRESS ``addSOS`` expects ``{group_name: {LpVariable: weight}}`` per SOS type."""
+        vs = self.variables()
+        d1: dict[str, dict[LpVariable, float]] = {}
+        d2: dict[str, dict[LpVariable, float]] = {}
+        for t, key, pairs in self._model.sos_export():
+            name = key if key is not None else str(len(d1) + len(d2))
+            m = {vs[vid]: float(w) for vid, w in pairs}
+            if t == 1:
+                d1[name] = m
+            else:
+                d2[name] = m
+        return d1, d2
 
     def add_variable(
         self,
@@ -304,8 +355,6 @@ class LpProblem:
         p.name = source.name
         p._sense = source._sense
         p._model = source._model.copy_model()
-        p.sos1 = source.sos1.copy()
-        p.sos2 = source.sos2.copy()
         p.status = source.status
         p.sol_status = source.sol_status
         p.solver = source.solver
@@ -348,6 +397,7 @@ class LpProblem:
         self.fixObjective()
         assert self.objective is not None
         variables = self.variables()
+        s1, s2 = self._sos_lists_for_mps_dataclass()
         return mpslp.MPS(
             objective=mpslp.MPSObjective(
                 name=self.objective.name, coefficients=self.objective.toDataclass()
@@ -360,8 +410,8 @@ class LpProblem:
                 status=self.status,
                 sol_status=self.sol_status,
             ),
-            sos1=list(self.sos1.values()),
-            sos2=list(self.sos2.values()),
+            sos1=s1,
+            sos2=s2,
         )
 
     def toRustModel(self) -> _rustcore.Model:
@@ -415,9 +465,19 @@ class LpProblem:
         for c in mps.constraints:
             pb._addConstraintFromDataclass(c, var)
 
-        # last, parameters, other options
-        pb.sos1 = dict(enumerate(mps.sos1))
-        pb.sos2 = dict(enumerate(mps.sos2))
+        pb._model.clear_sos()
+        for i, group in enumerate(mps.sos1):
+            members: dict[LpVariable, float] = {}
+            for k, w in group.items():
+                vk = var[k] if isinstance(k, str) else k
+                members[vk] = float(w)
+            pb.add_sos_group(_rustcore.SosKind.Sos1, str(i), members)
+        for i, group in enumerate(mps.sos2):
+            members = {}
+            for k, w in group.items():
+                vk = var[k] if isinstance(k, str) else k
+                members[vk] = float(w)
+            pb.add_sos_group(_rustcore.SosKind.Sos2, str(i), members)
 
         return var, pb
 
@@ -665,7 +725,7 @@ class LpProblem:
         rename: bool = False,
         mip: bool = True,
         with_objsense: bool = False,
-    ) -> tuple[list[str], list[str], str]:
+    ) -> tuple[list[str], list[str], str, list[str]]:
         """
         Writes an mps file from the problem information.
 
@@ -674,7 +734,7 @@ class LpProblem:
         :param rename: if True, normalized names (X0000000, C0000000) are used in the file
         :param mip: include integer/binary markers
         :param with_objsense: write OBJSENSE section
-        :return: (variable_names, constraint_names, objective_name) as lists in model order (original or MPS names depending on rename)
+        :return: ``(variable_names, constraint_names, objective_name, pulp_names_in_column_order)``
         """
         return mpslp.writeMPS(
             self,

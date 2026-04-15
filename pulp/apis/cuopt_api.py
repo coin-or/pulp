@@ -119,14 +119,15 @@ class CUOPT(LpSolver):
 
             values = solution.get_primal_solution()
 
-            for var, value in zip(lp.variables(), values):
+            exported_vars = lp.exported_variables()
+            for var, value in zip(exported_vars, values):
                 var.varValue = value
 
             if not solution.get_problem_category():
                 # TODO: Compute Slack
 
                 redcosts = solution.get_reduced_cost()
-                for var, value in zip(lp.variables(), redcosts):
+                for var, value in zip(exported_vars, redcosts):
                     var.dj = value
 
                 duals = solution.get_dual_solution()
@@ -180,7 +181,10 @@ class CUOPT(LpSolver):
             var_lb, var_ub, var_type, var_name = [], [], [], []
             obj_coeff = []
 
-            for var in lp.variables():
+            exported_vars = lp.exported_variables()
+            id_to_col = {v.id: j for j, v in enumerate(exported_vars)}
+
+            for var in exported_vars:
                 obj_coeff.append(lp.objective.get(var, 0.0))
                 lowBound = var.lowBound
                 if not math.isfinite(lowBound):
@@ -209,7 +213,7 @@ class CUOPT(LpSolver):
 
             for constraint in lp.constraints():
                 matrix_data.extend(list(constraint.values()))
-                matrix_indices.extend([v.id for v in constraint.keys()])
+                matrix_indices.extend([id_to_col[v.id] for v in constraint.keys()])
                 matrix_indptr.append(len(matrix_data))
                 try:
                     c_sense = sense_conv[constraint.sense]

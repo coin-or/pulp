@@ -176,8 +176,13 @@ def writeMPS(
     rename: int | bool = False,
     mip: bool = True,
     with_objsense: bool = False,
-) -> tuple[list[str], list[str], str]:
-    """Write MPS file via Rust core. Returns (variable_names, constraint_names, objective_name) in list form."""
+) -> tuple[list[str], list[str], str, list[str]]:
+    """Write MPS file via Rust core.
+
+    Returns ``(variable_names, constraint_names, objective_name, pulp_names_in_column_order)``.
+    ``pulp_names_in_column_order`` lists each PuLP variable name in the same order as columns
+    in the file (needed when ``rename=True`` for solution readback).
+    """
     wasNone, dummyVar = lp.fixObjective()
     try:
         if mpsSense == 0:
@@ -211,6 +216,7 @@ def writeLP(
     mip: bool = True,
     max_length: int = 100,
 ) -> list[LpVariable]:
+    """Write CPLEX LP format via Rust. SOS is read from the Rust model (``writeSOS`` is ignored)."""
     wasNone, objectiveDummyVar = lp.fixObjective()
     assert lp.objective is not None
     objName = lp.objective.name or "OBJ"
@@ -223,22 +229,6 @@ def writeLP(
     if lp.dummyVar is not None:
         dummy_var_name = lp.dummyVar.name
 
-    # Build SOS lines
-    sos_lines = ""
-    if writeSOS and (lp.sos1 or lp.sos2):
-        parts = ["SOS\n"]
-        if lp.sos1:
-            for sos in lp.sos1.values():
-                parts.append("S1:: \n")
-                for v, val in sos.items():
-                    parts.append(f" {v.name}: {val:.12g}\n")
-        if lp.sos2:
-            for sos in lp.sos2.values():
-                parts.append("S2:: \n")
-                for v, val in sos.items():
-                    parts.append(f" {v.name}: {val:.12g}\n")
-        sos_lines = "".join(parts)
-
     try:
         rust_vars = _rustcore.write_lp(
             lp._model,
@@ -247,7 +237,6 @@ def writeLP(
             max_length,
             objName,
             dummy_var_name,
-            sos_lines,
         )
     except RuntimeError as e:
         raise const.PulpError(str(e)) from None

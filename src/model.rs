@@ -7,7 +7,10 @@ use pyo3::prelude::*;
 
 use crate::affine_expr::AffineExpr;
 use crate::constraint::Constraint;
-use crate::types::{get_model_optional, Category, ConstrId, ModelCore, ObjSense, VarId};
+use crate::types::{
+    get_model_optional, upgrade_model, Category, ConstrId, ModelCore, ObjSense, SosGroup, SosKind,
+    VarId,
+};
 use crate::variable::Variable;
 
 /// High-level model handle exposed to Python.
@@ -117,6 +120,80 @@ impl Model {
                 model: Rc::downgrade(&self.core),
             })
             .collect()
+    }
+
+    /// Sorted unique variable ids referenced by objective, constraints, and SOS.
+    fn used_variable_ids(&self) -> Vec<VarId> {
+        self.core.borrow().used_var_ids()
+    }
+
+    /// `Variable` handles for each id returned by [`used_variable_ids`](Self::used_variable_ids).
+    fn list_variables_by_ids(&self, ids: Vec<VarId>) -> PyResult<Vec<Variable>> {
+        let n = self.core.borrow().vars.len();
+        let weak = Rc::downgrade(&self.core);
+        ids.into_iter()
+            .map(|id| {
+                if id >= n {
+                    return Err(pyo3::exceptions::PyIndexError::new_err(format!(
+                        "variable id {id} out of range (model has {n} variables)"
+                    )));
+                }
+                Ok(Variable {
+                    id,
+                    model: weak.clone(),
+                })
+            })
+            .collect()
+    }
+
+    fn clear_sos(&mut self) {
+        self.core.borrow_mut().clear_sos();
+    }
+
+    /// Append one SOS group. Each `Variable` must belong to this model.
+    /// `(sos_type, optional_key, list of (var_id, weight))` with `sos_type` 1 = SOS1, 2 = SOS2.
+    fn sos_export(&self) -> Vec<(i32, Option<String>, Vec<(VarId, f64)>)> {
+        self.core
+            .borrow()
+            .sos
+            .iter()
+            .map(|g| {
+                let t = match g.kind {
+                    SosKind::Sos1 => 1,
+                    SosKind::Sos2 => 2,
+                };
+                (t, g.key.clone(), g.weights.clone())
+            })
+            .collect()
+    }
+
+    fn add_sos_group(
+        &mut self,
+        kind: SosKind,
+        key: Option<String>,
+        members: Vec<(Variable, f64)>,
+    ) -> PyResult<()> {
+        let mut weights = Vec::with_capacity(members.len());
+        for (v, w) in members {
+            let core_rc = upgrade_model(&v.model)?;
+            if !Rc::ptr_eq(&core_rc, &self.core) {
+                return Err(pyo3::exceptions::PyValueError::new_err(
+                    "SOS member variable belongs to a different model",
+                ));
+            }
+            if !w.is_finite() {
+                return Err(pyo3::exceptions::PyValueError::new_err(
+                    "SOS weight must be finite",
+                ));
+            }
+            weights.push((v.id, w));
+        }
+        self.core.borrow_mut().push_sos_group(SosGroup {
+            kind,
+            key,
+            weights,
+        });
+        Ok(())
     }
 
     fn list_constraints(&self) -> Vec<Constraint> {
@@ -353,6 +430,7 @@ impl Model {
             objective: core.objective.clone(),
             sense: core.sense,
             next_auto_constraint_id: core.next_auto_constraint_id,
+            sos: core.sos.clone(),
         };
         let new_rc = Rc::new(RefCell::new(new_core));
         {

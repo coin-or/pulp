@@ -126,7 +126,7 @@ class MOSEK(LpSolver):
             for i, constr in enumerate(self.cons):
                 row = constr.name
                 self.cons_dict[row] = i
-            self.vars = list(lp.variables())
+            self.vars = list(lp.exported_variables())
             self.numvars = len(self.vars)
             self.var_dict = {}
             # Checking for repeated names
@@ -234,7 +234,7 @@ class MOSEK(LpSolver):
             try:
                 self.xx = [0.0] * self.numvars
                 self.task.getxx(self.solution_type, self.xx)
-                for var in lp.variables():
+                for var in self.vars:
                     var.varValue = self.xx[self.var_dict[var.name]]
             except mosek.Error:
                 pass
@@ -253,7 +253,7 @@ class MOSEK(LpSolver):
                     self.task.getreducedcosts(
                         self.solution_type, 0, self.numvars, self.x_rc
                     )
-                    for var in lp.variables():
+                    for var in self.vars:
                         var.dj = self.x_rc[self.var_dict[var.name]]
                 except mosek.Error:
                     pass

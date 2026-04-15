@@ -261,7 +261,7 @@ class SAS94(SASsolver):
                 )
 
             sas = self.sas
-            if len(lp.sos1) or len(lp.sos2):
+            if lp.has_sos():
                 raise PulpSolverError(
                     "SAS94: Currently SAS doesn't support SOS1 and SOS2."
                 )
@@ -275,7 +275,7 @@ class SAS94(SASsolver):
             remoteMst = f"/tmp/{mstName}"  # Remote machine is always Linux
 
             lp.writeMPS(localMps, with_objsense=False)
-            vs = lp.variables()
+            vs = lp.exported_variables()
 
             nameLen = self._get_max_upload_len(localMps)
             if nameLen > MAX_NAME_LENGTH:
@@ -573,7 +573,7 @@ class SASCAS(SASsolver):
                 )
 
             s = self.cas
-            if len(lp.sos1) or len(lp.sos2):
+            if lp.has_sos():
                 raise PulpSolverError(
                     "SASCAS: Currently SAS doesn't support SOS1 and SOS2."
                 )
@@ -615,7 +615,7 @@ class SASCAS(SASsolver):
                     lp.name, "mps", "mps.csv", "mst.csv"
                 )
                 lp.writeMPS(tmpMps, with_objsense=False)
-                vs = lp.variables()
+                vs = lp.exported_variables()
 
                 nameLen = self._get_max_upload_len(tmpMps)
                 if nameLen > MAX_NAME_LENGTH:
