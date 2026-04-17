@@ -561,6 +561,27 @@ class BaseSolverTest:
                 prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0}
             )
 
+        def test_continuous_with_spaces_in_path(self):
+            with tempfile.TemporaryDirectory() as tmpdir:
+                prob = LpProblem(self._testMethodName, const.LpMinimize)
+                prob.tmpDir = tmpdir + "/folder with spaces"
+                x = LpVariable("x", 0, 4)
+                y = LpVariable("y", -1, 1)
+                z = LpVariable("z", 0)
+                w = LpVariable("w", 0)
+                prob += x + 4 * y + 9 * z, "obj"
+                prob += x + y <= 5, "c1"
+                prob += x + z >= 10, "c2"
+                prob += -y + z == 7, "c3"
+                prob += w >= 0, "c4"
+
+                pulpTestCheck(
+                    prob,
+                    self.solver,
+                    [const.LpStatusOptimal],
+                    {x: 4, y: -1, z: 6, w: 0},
+                )
+
         def test_NAN_const(self):
             prob = LpProblem("test", const.LpMinimize)
             my_var = prob.add_variable(

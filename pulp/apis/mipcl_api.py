@@ -102,13 +102,13 @@ class MIPCL_CMD(LpSolver_CMD):
             os.remove(tmpSol)
         except Exception:
             pass
-        cmd = self.path
-        cmd += f" {tmpMps}"
-        cmd += f" -solfile {tmpSol}"
+        cmd = [self.path]
+        cmd.append(tmpMps)
+        cmd.extend(["-solfile", tmpSol])
         if self.timeLimit is not None:
-            cmd += f" -time {self.timeLimit}"
+            cmd.extend(["-time", f"{self.timeLimit}"])
         for option in self.options:
-            cmd += " " + option
+            cmd.append(option)
         if lp.isMIP():
             if not self.mip:
                 warnings.warn("MIPCL_CMD cannot solve the relaxation of a problem")
@@ -117,7 +117,7 @@ class MIPCL_CMD(LpSolver_CMD):
         else:
             pipe = open(os.devnull, "w")
 
-        return_code = subprocess.call(cmd.split(), stdout=pipe, stderr=pipe)
+        return_code = subprocess.call(cmd, stdout=pipe, stderr=pipe)
         # We need to undo the objective swap before finishing
         if lp.sense == constants.LpMaximize and lp.objective is not None:
             lp += -lp.objective
