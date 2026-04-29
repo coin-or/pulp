@@ -656,6 +656,14 @@ class BaseSolverTest:
                     self.solver,
                     [const.LpStatusInfeasible, const.LpStatusUnbounded],
                 )
+            elif self.solver.name == "CUOPT":
+                # cuOpt reports UnboundedOrInfeasible (mapped to Undefined)
+                # for problems where its presolver cannot disambiguate.
+                pulpTestCheck(
+                    prob,
+                    self.solver,
+                    [const.LpStatusUnbounded, const.LpStatusUndefined],
+                )
             elif self.solver.name in ["COINMP_DLL", "MIPCL_CMD"]:
                 # COINMP_DLL is just plain wrong
                 # also MIPCL_CMD
@@ -1010,8 +1018,9 @@ class BaseSolverTest:
             prob += c1 <= 0
             if self.solver.name in ["GUROBI_CMD", "SCIP_CMD", "FSCIP_CMD", "SCIP_PY"]:
                 pulpTestCheck(prob, self.solver, [const.LpStatusNotSolved])
-            elif self.solver.name in ["GLPK_CMD"]:
-                # GLPK_CMD returns InfeasibleOrUnbounded
+            elif self.solver.name in ["GLPK_CMD", "CUOPT"]:
+                # These solvers may return InfeasibleOrUnbounded (reported as
+                # Undefined) rather than proving infeasibility.
                 pulpTestCheck(
                     prob,
                     self.solver,
