@@ -1,7 +1,6 @@
 //! Python-exposed AffineExpr (sum of coeff * variable + constant).
 
-use std::cell::RefCell;
-use std::rc::{Rc, Weak};
+use std::sync::Arc;
 
 use indexmap::IndexMap;
 use pyo3::buffer::PyBuffer;
@@ -10,20 +9,20 @@ use pyo3::prelude::*;
 
 use crate::format;
 use crate::model::Model;
-use crate::types::{get_model_optional, ModelCore, Sense, VarId};
+use crate::types::{get_model_optional, lock_model, Sense, VarId, WeakModelCore};
 use crate::variable::Variable;
 
 /// Affine expression: sum_i coeff_i * x_i + constant.
 /// Optionally carries sense (for pending constraints) and name.
 /// Holds a weak model ref acquired automatically from the first variable.
-#[pyclass(unsendable, from_py_object)]
+#[pyclass(from_py_object)]
 #[derive(Clone, Debug)]
 pub struct AffineExpr {
     pub terms: IndexMap<VarId, f64>,
     pub constant: f64,
     pub sense: Option<Sense>,
     pub name: Option<String>,
-    pub model: Option<Weak<RefCell<ModelCore>>>,
+    pub model: Option<WeakModelCore>,
 }
 
 #[pymethods]
@@ -58,7 +57,7 @@ impl AffineExpr {
         if self.model.is_some() && other.model.is_some() {
             let self_rc = get_model_optional(&self.model)?;
             let other_rc = get_model_optional(&other.model)?;
-            if !Rc::ptr_eq(&self_rc, &other_rc) {
+            if !Arc::ptr_eq(&self_rc, &other_rc) {
                 return Err(PyValueError::new_err("Models are not the same"));
             }
         }
@@ -99,16 +98,16 @@ impl AffineExpr {
             )));
         }
         if self.model.is_none() {
-            self.model = Some(Rc::downgrade(&model.core));
+            self.model = Some(Arc::downgrade(&model.core));
         } else {
             let self_rc = get_model_optional(&self.model)?;
-            if !Rc::ptr_eq(&self_rc, &model.core) {
+            if !Arc::ptr_eq(&self_rc, &model.core) {
                 return Err(PyValueError::new_err(
                     "expression is already bound to a different model than the given Model",
                 ));
             }
         }
-        let num_vars = model.core.borrow().vars.len();
+        let num_vars = lock_model(&model.core).vars.len();
         let ids_vec: Vec<u64> = ids_buf.to_vec(py)?;
         let coeffs_vec: Vec<f64> = coeffs_buf.to_vec(py)?;
         if self.terms.is_empty() && n > 0 {
@@ -248,7 +247,7 @@ impl AffineExpr {
             });
         }
         let core_rc = get_model_optional(&self.model)?;
-        let core = core_rc.borrow();
+        let core = lock_model(&core_rc);
         let mut total = self.constant;
         for (var_id, coeff) in &self.terms {
             let val = match core.vars.get(*var_id).and_then(|vd| vd.value) {
@@ -266,7 +265,7 @@ impl AffineExpr {
             return Ok(Vec::new());
         }
         let core_rc = get_model_optional(&self.model)?;
-        let core = core_rc.borrow();
+        let core = lock_model(&core_rc);
         Ok(self
             .terms
             .iter()
@@ -334,7 +333,7 @@ impl AffineExpr {
             return Ok(self.constant);
         }
         let core_rc = get_model_optional(&self.model)?;
-        let core = core_rc.borrow();
+        let core = lock_model(&core_rc);
         let mut total = self.constant;
         for (var_id, coeff) in &self.terms {
             if let Some(vd) = core.vars.get(*var_id) {
@@ -424,7 +423,7 @@ impl AffineExpr {
 
         let names: Vec<(String, f64)> = if let Some(_) = &self.model {
             let core_rc = get_model_optional(&self.model)?;
-            let core = core_rc.borrow();
+            let core = lock_model(&core_rc);
             self.terms
                 .iter()
                 .map(|(var_id, coeff)| {
@@ -479,7 +478,7 @@ impl AffineExpr {
             return Ok(Vec::new());
         }
         let core_rc = get_model_optional(&self.model)?;
-        let core = core_rc.borrow();
+        let core = lock_model(&core_rc);
         Ok(format::sorted_pairs_from_coeffs(&self.terms, &core))
     }
 }

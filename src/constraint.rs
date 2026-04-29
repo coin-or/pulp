@@ -1,19 +1,17 @@
 //! Constraint handle (constraint stored in a ModelCore). Only created by Model.
 
 use pyo3::prelude::*;
-use std::cell::RefCell;
-use std::rc::Weak;
 
 use crate::format;
-use crate::types::{upgrade_model, ConstrId, ModelCore, Sense};
+use crate::types::{lock_model, upgrade_model, ConstrId, Sense, WeakModelCore};
 use crate::variable::Variable;
 
 /// Handle to a constraint stored inside a `ModelCore`. Only created by the model.
-#[pyclass(unsendable, from_py_object)]
+#[pyclass(from_py_object)]
 #[derive(Clone)]
 pub struct Constraint {
     pub id: ConstrId,
-    pub model: Weak<RefCell<ModelCore>>,
+    pub model: WeakModelCore,
 }
 
 #[pymethods]
@@ -25,7 +23,7 @@ impl Constraint {
     #[getter]
     fn name(&self) -> PyResult<String> {
         let core_rc = upgrade_model(&self.model)?;
-        let core = core_rc.borrow();
+        let core = lock_model(&core_rc);
         Ok(core
             .constraints
             .get(self.id)
@@ -35,7 +33,7 @@ impl Constraint {
 
     fn set_name(&self, name: String) -> PyResult<()> {
         let core_rc = upgrade_model(&self.model)?;
-        let mut core = core_rc.borrow_mut();
+        let mut core = lock_model(&core_rc);
         if let Some(c) = core.constraints.get_mut(self.id) {
             c.name = name;
         }
@@ -45,13 +43,13 @@ impl Constraint {
     #[getter]
     fn pi(&self) -> PyResult<Option<f64>> {
         let core_rc = upgrade_model(&self.model)?;
-        let core = core_rc.borrow();
+        let core = lock_model(&core_rc);
         Ok(core.constraints[self.id].pi)
     }
 
     fn set_pi(&self, v: f64) -> PyResult<()> {
         let core_rc = upgrade_model(&self.model)?;
-        let mut core = core_rc.borrow_mut();
+        let mut core = lock_model(&core_rc);
         if let Some(c) = core.constraints.get_mut(self.id) {
             c.pi = Some(v);
         }
@@ -61,13 +59,13 @@ impl Constraint {
     #[getter]
     fn slack(&self) -> PyResult<Option<f64>> {
         let core_rc = upgrade_model(&self.model)?;
-        let core = core_rc.borrow();
+        let core = lock_model(&core_rc);
         Ok(core.constraints[self.id].slack)
     }
 
     fn set_slack(&self, v: f64) -> PyResult<()> {
         let core_rc = upgrade_model(&self.model)?;
-        let mut core = core_rc.borrow_mut();
+        let mut core = lock_model(&core_rc);
         if let Some(c) = core.constraints.get_mut(self.id) {
             c.slack = Some(v);
         }
@@ -77,20 +75,20 @@ impl Constraint {
     #[getter]
     fn sense(&self) -> PyResult<Sense> {
         let core_rc = upgrade_model(&self.model)?;
-        let core = core_rc.borrow();
+        let core = lock_model(&core_rc);
         Ok(core.constraints[self.id].sense)
     }
 
     #[getter]
     fn rhs(&self) -> PyResult<f64> {
         let core_rc = upgrade_model(&self.model)?;
-        let core = core_rc.borrow();
+        let core = lock_model(&core_rc);
         Ok(core.constraints[self.id].rhs)
     }
 
     fn items(&self) -> PyResult<Vec<(Variable, f64)>> {
         let core_rc = upgrade_model(&self.model)?;
-        let core = core_rc.borrow();
+        let core = lock_model(&core_rc);
         let c = &core.constraints[self.id];
         Ok(c.coeffs
             .iter()
@@ -110,7 +108,7 @@ impl Constraint {
 
     fn value(&self) -> PyResult<Option<f64>> {
         let core_rc = upgrade_model(&self.model)?;
-        let core = core_rc.borrow();
+        let core = lock_model(&core_rc);
         let cd = &core.constraints[self.id];
         let constant = if cd.rhs == 0.0 { 0.0 } else { -cd.rhs };
         let mut total = constant;
@@ -125,7 +123,7 @@ impl Constraint {
 
     fn value_or_default(&self) -> PyResult<f64> {
         let core_rc = upgrade_model(&self.model)?;
-        let core = core_rc.borrow();
+        let core = lock_model(&core_rc);
         let cd = &core.constraints[self.id];
         let constant = if cd.rhs == 0.0 { 0.0 } else { -cd.rhs };
         let mut total = constant;
@@ -145,7 +143,7 @@ impl Constraint {
             None => return Ok(false),
         };
         let core_rc = upgrade_model(&self.model)?;
-        let core = core_rc.borrow();
+        let core = lock_model(&core_rc);
         let cd = &core.constraints[self.id];
         Ok(match cd.sense {
             Sense::Equal => val.abs() <= eps,
@@ -158,7 +156,7 @@ impl Constraint {
 
     fn as_cplex_lp_constraint(&self, name: &str) -> PyResult<String> {
         let core_rc = upgrade_model(&self.model)?;
-        let core = core_rc.borrow();
+        let core = lock_model(&core_rc);
         let cd = &core.constraints[self.id];
         let sorted = format::sorted_pairs_from_coeffs(&cd.coeffs, &core);
         let rhs = if cd.rhs == 0.0 { 0.0 } else { cd.rhs };
@@ -174,7 +172,7 @@ impl Constraint {
     #[pyo3(signature = (name, include_constant=true))]
     fn as_cplex_lp_affine_expression(&self, name: &str, include_constant: bool) -> PyResult<String> {
         let core_rc = upgrade_model(&self.model)?;
-        let core = core_rc.borrow();
+        let core = lock_model(&core_rc);
         let cd = &core.constraints[self.id];
         let sorted = format::sorted_pairs_from_coeffs(&cd.coeffs, &core);
         let constant = if cd.rhs == 0.0 { 0.0 } else { -cd.rhs };
@@ -188,7 +186,7 @@ impl Constraint {
 
     fn str_repr(&self) -> PyResult<String> {
         let core_rc = upgrade_model(&self.model)?;
-        let core = core_rc.borrow();
+        let core = lock_model(&core_rc);
         let cd = &core.constraints[self.id];
         let sorted = format::sorted_pairs_from_coeffs(&cd.coeffs, &core);
         Ok(format::str_constraint(&sorted, cd.sense, -cd.rhs))
@@ -196,7 +194,7 @@ impl Constraint {
 
     fn repr_str(&self) -> PyResult<String> {
         let core_rc = upgrade_model(&self.model)?;
-        let core = core_rc.borrow();
+        let core = lock_model(&core_rc);
         let cd = &core.constraints[self.id];
         let sorted = format::sorted_pairs_from_coeffs(&cd.coeffs, &core);
         let constant = if cd.rhs == 0.0 { 0.0 } else { -cd.rhs };

@@ -1,19 +1,18 @@
 //! Variable handle (variable stored in a ModelCore). Only created by Model.
 
 use pyo3::prelude::*;
-use std::cell::RefCell;
-use std::rc::{Rc, Weak};
+use std::sync::Arc;
 
 use crate::format;
 use crate::model::Model;
-use crate::types::{upgrade_model, Category, ModelCore, VarId};
+use crate::types::{lock_model, upgrade_model, Category, VarId, WeakModelCore};
 
 /// Handle to a variable stored inside a `ModelCore`. Only created by the model.
-#[pyclass(unsendable, from_py_object)]
+#[pyclass(from_py_object)]
 #[derive(Clone)]
 pub struct Variable {
     pub id: VarId,
-    pub model: Weak<RefCell<ModelCore>>,
+    pub model: WeakModelCore,
 }
 
 #[pymethods]
@@ -25,7 +24,7 @@ impl Variable {
     /// Opaque identity of the owning model (pointer to `ModelCore`); for same-model checks in Python.
     fn model_identity(&self) -> PyResult<usize> {
         let core_rc = upgrade_model(&self.model)?;
-        Ok(Rc::as_ptr(&core_rc) as usize)
+        Ok(Arc::as_ptr(&core_rc) as usize)
     }
 
     /// `Model` handle sharing this variable's core (any such handle is equivalent for batch APIs).
@@ -37,7 +36,7 @@ impl Variable {
     #[getter]
     fn name(&self) -> PyResult<String> {
         let core_rc = upgrade_model(&self.model)?;
-        let core = core_rc.borrow();
+        let core = lock_model(&core_rc);
         Ok(core
             .vars
             .get(self.id)
@@ -48,34 +47,34 @@ impl Variable {
     #[getter]
     fn lb(&self) -> PyResult<f64> {
         let core_rc = upgrade_model(&self.model)?;
-        let core = core_rc.borrow();
+        let core = lock_model(&core_rc);
         Ok(core.vars[self.id].lb)
     }
 
     #[getter]
     fn ub(&self) -> PyResult<f64> {
         let core_rc = upgrade_model(&self.model)?;
-        let core = core_rc.borrow();
+        let core = lock_model(&core_rc);
         Ok(core.vars[self.id].ub)
     }
 
     #[getter]
     fn category(&self) -> PyResult<Category> {
         let core_rc = upgrade_model(&self.model)?;
-        let core = core_rc.borrow();
+        let core = lock_model(&core_rc);
         Ok(core.vars[self.id].category)
     }
 
     #[getter]
     fn value(&self) -> PyResult<Option<f64>> {
         let core_rc = upgrade_model(&self.model)?;
-        let core = core_rc.borrow();
+        let core = lock_model(&core_rc);
         Ok(core.vars[self.id].value)
     }
 
     fn set_value(&self, v: f64) -> PyResult<()> {
         let core_rc = upgrade_model(&self.model)?;
-        let mut core = core_rc.borrow_mut();
+        let mut core = lock_model(&core_rc);
         if let Some(var) = core.vars.get_mut(self.id) {
             var.value = Some(v);
         }
@@ -84,7 +83,7 @@ impl Variable {
 
     fn set_lb(&self, lb: f64) -> PyResult<()> {
         let core_rc = upgrade_model(&self.model)?;
-        let mut core = core_rc.borrow_mut();
+        let mut core = lock_model(&core_rc);
         if let Some(var) = core.vars.get_mut(self.id) {
             var.lb = lb;
         }
@@ -93,7 +92,7 @@ impl Variable {
 
     fn set_ub(&self, ub: f64) -> PyResult<()> {
         let core_rc = upgrade_model(&self.model)?;
-        let mut core = core_rc.borrow_mut();
+        let mut core = lock_model(&core_rc);
         if let Some(var) = core.vars.get_mut(self.id) {
             var.ub = ub;
         }
@@ -102,7 +101,7 @@ impl Variable {
 
     fn set_name(&self, name: String) -> PyResult<()> {
         let core_rc = upgrade_model(&self.model)?;
-        let mut core = core_rc.borrow_mut();
+        let mut core = lock_model(&core_rc);
         if let Some(var) = core.vars.get_mut(self.id) {
             var.name = name.replace(' ', "_");
         }
@@ -112,13 +111,13 @@ impl Variable {
     #[getter]
     fn dj(&self) -> PyResult<Option<f64>> {
         let core_rc = upgrade_model(&self.model)?;
-        let core = core_rc.borrow();
+        let core = lock_model(&core_rc);
         Ok(core.vars[self.id].dj)
     }
 
     fn set_dj(&self, v: f64) -> PyResult<()> {
         let core_rc = upgrade_model(&self.model)?;
-        let mut core = core_rc.borrow_mut();
+        let mut core = lock_model(&core_rc);
         if let Some(var) = core.vars.get_mut(self.id) {
             var.dj = Some(v);
         }
@@ -129,38 +128,38 @@ impl Variable {
 
     fn is_binary(&self) -> PyResult<bool> {
         let core_rc = upgrade_model(&self.model)?;
-        let core = core_rc.borrow();
+        let core = lock_model(&core_rc);
         Ok(core.vars[self.id].is_binary())
     }
 
     fn is_integer(&self) -> PyResult<bool> {
         let core_rc = upgrade_model(&self.model)?;
-        let core = core_rc.borrow();
+        let core = lock_model(&core_rc);
         Ok(core.vars[self.id].is_integer())
     }
 
     fn is_free(&self) -> PyResult<bool> {
         let core_rc = upgrade_model(&self.model)?;
-        let core = core_rc.borrow();
+        let core = lock_model(&core_rc);
         Ok(core.vars[self.id].is_free())
     }
 
     fn is_constant(&self) -> PyResult<bool> {
         let core_rc = upgrade_model(&self.model)?;
-        let core = core_rc.borrow();
+        let core = lock_model(&core_rc);
         Ok(core.vars[self.id].is_constant())
     }
 
     fn is_positive(&self) -> PyResult<bool> {
         let core_rc = upgrade_model(&self.model)?;
-        let core = core_rc.borrow();
+        let core = lock_model(&core_rc);
         Ok(core.vars[self.id].is_positive())
     }
 
     /// CPLEX LP bounds string for this variable.
     fn as_cplex_lp_variable(&self) -> PyResult<String> {
         let core_rc = upgrade_model(&self.model)?;
-        let core = core_rc.borrow();
+        let core = lock_model(&core_rc);
         Ok(format::cplex_lp_variable(&core.vars[self.id]))
     }
 
@@ -168,7 +167,7 @@ impl Variable {
     #[pyo3(signature = (eps=1e-7))]
     fn valid(&self, eps: f64) -> PyResult<bool> {
         let core_rc = upgrade_model(&self.model)?;
-        let core = core_rc.borrow();
+        let core = lock_model(&core_rc);
         let vd = &core.vars[self.id];
         if vd.name == "__dummy" && vd.value.is_none() {
             return Ok(true);
@@ -193,7 +192,7 @@ impl Variable {
     #[pyo3(signature = (mip=true))]
     fn infeasibility_gap(&self, mip: bool) -> PyResult<f64> {
         let core_rc = upgrade_model(&self.model)?;
-        let core = core_rc.borrow();
+        let core = lock_model(&core_rc);
         let vd = &core.vars[self.id];
         let val = vd
             .value
@@ -214,7 +213,7 @@ impl Variable {
     #[pyo3(signature = (eps_int=1e-5, eps=1e-7))]
     fn round_value(&self, eps_int: f64, eps: f64) -> PyResult<()> {
         let core_rc = upgrade_model(&self.model)?;
-        let mut core = core_rc.borrow_mut();
+        let mut core = lock_model(&core_rc);
         let vd = &mut core.vars[self.id];
         if let Some(val) = vd.value {
             let mut v = val;
@@ -234,7 +233,7 @@ impl Variable {
     /// Value or default from bounds (used when no solution exists).
     fn value_or_default(&self) -> PyResult<f64> {
         let core_rc = upgrade_model(&self.model)?;
-        let core = core_rc.borrow();
+        let core = lock_model(&core_rc);
         let vd = &core.vars[self.id];
         if let Some(v) = vd.value {
             return Ok(v);
@@ -264,7 +263,7 @@ impl Variable {
     #[pyo3(signature = (eps=1e-5))]
     fn rounded_value(&self, eps: f64) -> PyResult<Option<f64>> {
         let core_rc = upgrade_model(&self.model)?;
-        let core = core_rc.borrow();
+        let core = lock_model(&core_rc);
         let vd = &core.vars[self.id];
         Ok(match vd.value {
             Some(v) if vd.category == Category::Integer && (v - v.round()).abs() <= eps => {

@@ -2,6 +2,7 @@
 //! These operate directly on ModelCore data for performance.
 
 use std::collections::{HashMap, HashSet};
+use std::sync::Arc;
 
 use indexmap::IndexMap;
 use pyo3::exceptions::{PyRuntimeError, PyValueError};
@@ -10,7 +11,7 @@ use pyo3::types::{PyAny, PyFloat, PyList, PyString};
 
 use crate::format;
 use crate::model::Model;
-use crate::types::{Category, ModelCore, ObjSense, Sense, SosKind, VarId};
+use crate::types::{lock_model, Category, ModelCore, ObjSense, Sense, SosKind, VarId};
 use crate::variable::Variable;
 
 macro_rules! writeln_mps {
@@ -60,7 +61,7 @@ pub fn write_lp(
     obj_name: &str,
     dummy_var_name: &str,
 ) -> PyResult<Vec<Variable>> {
-    let core = model.core.borrow();
+    let core = lock_model(&model.core);
 
     core.check_duplicate_var_names()?;
     core.check_duplicate_constraint_names()?;
@@ -195,7 +196,7 @@ pub fn write_lp(
     writeln_mps!(f, "End");
 
     drop(core);
-    let weak = std::rc::Rc::downgrade(&model.core);
+    let weak = Arc::downgrade(&model.core);
     let result: Vec<Variable> = used
         .into_iter()
         .map(|id| Variable {
@@ -224,7 +225,7 @@ pub fn write_mps(
     model_name: &str,
     obj_name: &str,
 ) -> PyResult<(Vec<String>, Vec<String>, String, Vec<String>)> {
-    let core = model.core.borrow();
+    let core = lock_model(&model.core);
     core.check_duplicate_var_names()?;
     core.check_duplicate_constraint_names()?;
 

@@ -1,8 +1,7 @@
 //! Shared types and model core used by Variable, Constraint, AffineExpr, and Model.
 
-use std::cell::RefCell;
 use std::collections::{BTreeSet, HashMap};
-use std::rc::{Rc, Weak};
+use std::sync::{Arc, Mutex, MutexGuard, Weak};
 
 use indexmap::IndexMap;
 use pyo3::exceptions::{PyRuntimeError, PyValueError};
@@ -276,7 +275,18 @@ impl ModelCore {
     }
 }
 
-pub fn upgrade_model(weak: &Weak<RefCell<ModelCore>>) -> PyResult<Rc<RefCell<ModelCore>>> {
+/// Shared owning handle to [`ModelCore`] (see [`crate::model::Model`]).
+pub type SharedModelCore = Arc<Mutex<ModelCore>>;
+/// Weak handle to [`ModelCore`] for [`crate::variable::Variable`], etc.
+pub type WeakModelCore = Weak<Mutex<ModelCore>>;
+
+/// Lock [`ModelCore`]; recovers from poison so a panicked peer does not wedge the mutex forever.
+#[inline]
+pub fn lock_model(core: &SharedModelCore) -> MutexGuard<'_, ModelCore> {
+    core.lock().unwrap_or_else(|e| e.into_inner())
+}
+
+pub fn upgrade_model(weak: &WeakModelCore) -> PyResult<SharedModelCore> {
     weak.upgrade().ok_or_else(|| {
         PyValueError::new_err(
             "The model this variable/constraint belongs to no longer exists. \
@@ -288,8 +298,8 @@ pub fn upgrade_model(weak: &Weak<RefCell<ModelCore>>) -> PyResult<Rc<RefCell<Mod
 /// Get the model from an optional weak ref. Use for AffineExpr and anywhere the model
 /// may be missing or dropped. Returns a friendly error instead of panicking.
 pub fn get_model_optional(
-    opt_weak: &Option<Weak<RefCell<ModelCore>>>,
-) -> PyResult<Rc<RefCell<ModelCore>>> {
+    opt_weak: &Option<WeakModelCore>,
+) -> PyResult<SharedModelCore> {
     let weak = opt_weak.as_ref().ok_or_else(|| {
         PyValueError::new_err(
             "This expression has no associated model. Use variables from an existing LpProblem.",
