@@ -200,7 +200,7 @@ class LpSolver:
             else:
                 upperBounds[self.v2n[v]] = infBound
         # values for constraints
-        numRows = len(lp.constraints)
+        numRows = len(lp._constraints)
         NumRowDoubleArray = ctypes.c_double * numRows
         NumRowStrArray = ctypes.c_char_p * numRows
         NumRowCharArray = ctypes.c_char * numRows
@@ -211,12 +211,12 @@ class LpSolver:
         self.c2n = {}
         self.n2c = {}
         i = 0
-        for c in lp.constraints:
-            rhsValues[i] = -lp.constraints[c].constant
+        for c in lp._constraints:
+            rhsValues[i] = -lp._constraints[c].constant
             # for ranged constraints a<= constraint >=b
             rangeValues[i] = 0.0
             rowNames[i] = to_string(c)
-            rowType[i] = to_string(senseDict[lp.constraints[c].sense])
+            rowType[i] = to_string(senseDict[lp._constraints[c].sense])
             self.c2n[c] = i
             self.n2c[i] = c
             i = i + 1

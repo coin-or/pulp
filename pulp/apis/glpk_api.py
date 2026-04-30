@@ -188,7 +188,6 @@ class GLPK_CMD(LpSolver_CMD):
 
         # now actually read column values
         with open(solFile) as f:
-
             values = []
             status2 = constants.LpStatusUndefined
             vpos = 2
@@ -291,7 +290,7 @@ class PYGLPK(LpSolver):
                     var.varValue = glpk.glp_get_col_prim(prob, var.glpk_index)
                 var.dj = glpk.glp_get_col_dual(prob, var.glpk_index)
             # put pi and slack variables against the constraints
-            for constr in lp.constraints.values():
+            for constr in lp._constraints.values():
                 if self.mip and self.hasMIPConstraints(lp.solverModel):
                     row_val = glpk.glp_mip_row_val(prob, constr.glpk_index)
                 else:
@@ -337,8 +336,8 @@ class PYGLPK(LpSolver):
             if lp.sense == constants.LpMaximize:
                 glpk.glp_set_obj_dir(prob, glpk.GLP_MAX)
             log.debug("add the constraints to the problem")
-            glpk.glp_add_rows(prob, len(list(lp.constraints.keys())))
-            for i, v in enumerate(lp.constraints.items(), start=1):
+            glpk.glp_add_rows(prob, len(list(lp._constraints.keys())))
+            for i, v in enumerate(lp._constraints.items(), start=1):
                 name, constraint = v
                 glpk.glp_set_row_name(prob, i, name)
                 if constraint.sense == constants.LpConstraintLE:
@@ -385,7 +384,7 @@ class PYGLPK(LpSolver):
                 if value:
                     glpk.glp_set_obj_coef(prob, var.glpk_index, value)
             log.debug("set the problem matrix")
-            for constraint in lp.constraints.values():
+            for constraint in lp._constraints.values():
                 l = len(list(constraint.items()))
                 ind = glpk.intArray(l + 1)
                 val = glpk.doubleArray(l + 1)
@@ -412,7 +411,7 @@ class PYGLPK(LpSolver):
             solutionStatus = self.findSolutionValues(lp)
             for var in lp.variables():
                 var.modified = False
-            for constraint in lp.constraints.values():
+            for constraint in lp._constraints.values():
                 constraint.modified = False
             return solutionStatus
 
@@ -425,7 +424,7 @@ class PYGLPK(LpSolver):
             """
             prob = lp.solverModel
             log.debug("Resolve the Model using glpk")
-            for constraint in lp.constraints.values():
+            for constraint in lp._constraints.values():
                 i = constraint.glpk_index
                 if constraint.modified:
                     if constraint.sense == constants.LpConstraintLE:
@@ -451,6 +450,6 @@ class PYGLPK(LpSolver):
             solutionStatus = self.findSolutionValues(lp)
             for var in lp.variables():
                 var.modified = False
-            for constraint in lp.constraints.values():
+            for constraint in lp._constraints.values():
                 constraint.modified = False
             return solutionStatus

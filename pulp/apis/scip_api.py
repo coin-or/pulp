@@ -567,7 +567,7 @@ class SCIP_PY(LpSolver):
                     solution = lp.solverModel.getBestSol()
                     for variable in lp._variables:
                         variable.varValue = solution[variable.solverVar]
-                    for constraint in lp.constraints.values():
+                    for constraint in lp._constraints.values():
                         constraint.slack = lp.solverModel.getSlack(
                             constraint.solverConstraint, solution
                         )
@@ -585,7 +585,7 @@ class SCIP_PY(LpSolver):
                 # if :
                 #     for variable in lp._variables:
                 #         variable.dj = lp.solverModel.getVarRedcost(variable.solverVar)
-                #     for constraint in lp.constraints.values():
+                #     for constraint in lp._constraints.values():
                 #         constraint.pi = lp.solverModel.getDualSolVal(constraint.solverConstraint)
 
             return status
@@ -668,7 +668,7 @@ class SCIP_PY(LpSolver):
                 constants.LpConstraintGE: operator.ge,
                 constants.LpConstraintEQ: operator.eq,
             }
-            for name, constraint in lp.constraints.items():
+            for name, constraint in lp._constraints.items():
                 constraint.solverConstraint = lp.solverModel.addCons(
                     cons=sense_to_operator[constraint.sense](
                         scip.quicksum(
@@ -703,7 +703,7 @@ class SCIP_PY(LpSolver):
             solutionStatus = self.findSolutionValues(lp)
             for variable in lp._variables:
                 variable.modified = False
-            for constraint in lp.constraints.values():
+            for constraint in lp._constraints.values():
                 constraint.modified = False
             return solutionStatus
 

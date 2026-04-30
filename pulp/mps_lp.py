@@ -320,7 +320,7 @@ def writeMPS(
     else:
         vs = lp.variables()
         varNames = {v.name: v.name for v in vs}
-        constrNames = {c: c for c in lp.constraints}
+        constrNames = {c: c for c in lp._constraints}
     model_name = lp.name
     if rename:
         model_name = "MODEL"
@@ -331,12 +331,12 @@ def writeMPS(
     # constraints
     row_lines = [
         " " + const.LpConstraintTypeToMps[c.sense] + "  " + constrNames[k] + "\n"
-        for k, c in lp.constraints.items()
+        for k, c in lp._constraints.items()
     ]
     # Creation of a dict of dict:
     # coefs[variable_name][constraint_name] = coefficient
     coefs: dict[str, dict[str, Union[int, float]]] = {varNames[v.name]: {} for v in vs}
-    for k, c in lp.constraints.items():
+    for k, c in lp._constraints.items():
         k = constrNames[k]
         for v, value in c.items():
             coefs[varNames[v.name]][k] = value
@@ -353,7 +353,7 @@ def writeMPS(
     rhs_lines = [
         "    RHS       %-8s  % .12e\n"
         % (constrNames[k], -c.constant if c.constant != 0 else 0)
-        for k, c in lp.constraints.items()
+        for k, c in lp._constraints.items()
     ]
     # bounds
     bound_lines: list[str] = []
@@ -461,11 +461,11 @@ def writeLP(
         objName = "OBJ"
     f.write(lp.objective.asCplexLpAffineExpression(objName, include_constant=False))
     f.write("Subject To\n")
-    ks = list(lp.constraints.keys())
+    ks = list(lp._constraints.keys())
     ks.sort()
     dummyWritten = False
     for k in ks:
-        constraint = lp.constraints[k]
+        constraint = lp._constraints[k]
         if not list(constraint.keys()):
             # empty constraint add the dummyVar
             dummyVar = lp.get_dummyVar()

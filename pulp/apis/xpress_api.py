@@ -404,7 +404,7 @@ class XPRESS_PY(LpSolver):
             # actualResolve will do the correct thing.
             for v in lp.variables():
                 v.modified = False
-            for c in lp.constraints.values():
+            for c in lp._constraints.values():
                 c.modified = False
 
             if self._export is not None:
@@ -439,7 +439,7 @@ class XPRESS_PY(LpSolver):
                 xpress_vars.append((v, h))
 
             xpress_cons = []
-            for n, c in lp.constraints.items():
+            for n, c in lp._constraints.items():
                 h = (
                     c._xprs[1]
                     if isinstance(c._xprs, (list, tuple)) and len(c._xprs) > 1
@@ -657,8 +657,8 @@ class XPRESS_PY(LpSolver):
         try:
             rhsind = list()
             rhsval = list()
-            for name in sorted(lp.constraints):
-                con = lp.constraints[name]
+            for name in sorted(lp._constraints):
+                con = lp._constraints[name]
                 if not con.modified:
                     continue
                 if not hasattr(con, "_xprs"):
@@ -702,7 +702,7 @@ class XPRESS_PY(LpSolver):
         for v in lp.variables():
             if hasattr(v, "_xprs"):
                 delattr(v, "_xprs")
-        for c in lp.constraints.values():
+        for c in lp._constraints.values():
             if hasattr(c, "_xprs"):
                 delattr(c, "_xprs")
 
@@ -780,8 +780,8 @@ class XPRESS_PY(LpSolver):
             # Constraints are generated in blocks of 100 constraints to speed
             # up things a bit but still keep memory usage small.
             cons = list()
-            for i, name in enumerate(sorted(lp.constraints)):
-                con = lp.constraints[name]
+            for i, name in enumerate(sorted(lp._constraints)):
+                con = lp._constraints[name]
                 # Sort the variables by index to get deterministic
                 # ordering of variables in the row.
                 lhs = xpress.Sum(

@@ -7,6 +7,7 @@ import os
 import re
 import tempfile
 import unittest
+import warnings
 from decimal import Decimal
 from typing import Union, Optional, Type
 
@@ -20,6 +21,7 @@ from pulp import (
     LpProblem,
     LpVariable,
     PulpSolverError,
+    set_v4_migration_warnings,
 )
 from pulp import constants as const
 from pulp import lpSum
@@ -216,7 +218,7 @@ class BaseSolverTest:
             }
             prob += lpSum(x_vars[i] for i in range(3)) >= 2
             prob += lpSum(x_vars[i] for i in range(3)) <= 5
-            for elem in prob.constraints.values():
+            for elem in prob._constraints.values():
                 self.assertIn(elem.constant, [-2, -5])
 
         def test_intermediate_var(self):
@@ -228,7 +230,7 @@ class BaseSolverTest:
             x = lpSum(x_vars[i] for i in range(3))
             prob += x >= 2
             prob += x <= 5
-            for elem in prob.constraints.values():
+            for elem in prob._constraints.values():
                 self.assertIn(elem.constant, [-2, -5])
 
         def test_comparison(self):
@@ -867,8 +869,10 @@ class BaseSolverTest:
 
             prob.extend(sub_prob)
 
-            elastic_constraint1 = sub_prob.constraints["_Constraint"]
-            elastic_constraint2 = prob.constraints["None_elastic_SubProblem_Constraint"]
+            elastic_constraint1 = sub_prob._constraints["_Constraint"]
+            elastic_constraint2 = prob._constraints[
+                "None_elastic_SubProblem_Constraint"
+            ]
             self.assertEqual(str(elastic_constraint1), str(elastic_constraint2))
 
             if self.solver.name in [
@@ -1247,7 +1251,7 @@ class BaseSolverTest:
                 h.write(str.encode(EXAMPLE_MPS_RHS56))
             _, problem = LpProblem.fromMPS(h.name)
             os.unlink(h.name)
-            self.assertEqual(problem.constraints["LIM2"].constant, -10)
+            self.assertEqual(problem._constraints["LIM2"].constant, -10)
 
         def test_importMPS_PL_bound(self):
             """Import MPS file with PL bound type."""
@@ -1819,10 +1823,12 @@ class BaseSolverTest:
 
                 # First stock item is an int, subsequent are LpVariables
                 if t == 1:
-                    self.assertEqual(str(rhs), f"x_{t} + {stock[t-1] - demands[t-1]}")
+                    self.assertEqual(
+                        str(rhs), f"x_{t} + {stock[t - 1] - demands[t - 1]}"
+                    )
                     self.assertEqual(expr.constant, -rhs.constant + lhs)
                 else:
-                    self.assertEqual(str(rhs), f"s_{t-1} + x_{t} - {demands[t-1]}")
+                    self.assertEqual(str(rhs), f"s_{t - 1} + x_{t} - {demands[t - 1]}")
                     self.assertEqual(expr.constant, -rhs.constant)
 
         def test_regression_805(self):
@@ -2353,7 +2359,6 @@ class CUOPTTest(BaseSolverTest.PuLPTest):
 
 
 class SASTest:
-
     def test_sas_with_option(self):
         prob = LpProblem("test", const.LpMinimize)
         X = LpVariable.dicts("x", [1, 2, 3], lowBound=0.0, cat="Integer")
@@ -2428,7 +2433,7 @@ def pulpTestCheck(
                 )
     if duals:
         for cname, p in duals.items():
-            c = prob.constraints[cname]
+            c = prob._constraints[cname]
             if abs(c.pi - p) > eps:
                 dumpTestProblem(prob)
                 raise PulpError(
@@ -2438,7 +2443,7 @@ def pulpTestCheck(
                 )
     if slacks:
         for cname, slack in slacks.items():
-            c = prob.constraints[cname]
+            c = prob._constraints[cname]
             if abs(c.slack - slack) > eps:
                 dumpTestProblem(prob)
                 raise PulpError(
@@ -2453,6 +2458,59 @@ def pulpTestCheck(
             raise PulpError(
                 f"Tests failed for solver {solver}:\nobjective {z} != {objective}"
             )
+
+
+class PuLP4MigrationTests(unittest.TestCase):
+    def test_add_variable_avoids_deprecation(self) -> None:
+        prob = LpProblem("m")
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", DeprecationWarning)
+            x = prob.add_variable("x", 0, 3)
+        self.assertEqual(x.name, "x")
+
+    def test_constraints_call_returns_list(self) -> None:
+        prob = LpProblem("m")
+        x = LpVariable("x", _skip_v4_deprecation=True)
+        prob += x <= 1, "c1"
+        prob += x >= 0, "c2"
+        clist = prob.constraints()
+        self.assertIsInstance(clist, list)
+        self.assertEqual(len(clist), 2)
+        self.assertCountEqual(
+            [c.name for c in clist if c.name is not None], ("c1", "c2")
+        )
+
+    def test_get_constraint_by_name(self) -> None:
+        prob = LpProblem("m")
+        x = LpVariable("x", _skip_v4_deprecation=True)
+        prob += x <= 1, "c1"
+        c = prob.get_constraint_by_name("c1")
+        self.assertIsNotNone(c)
+        assert c is not None
+        self.assertEqual(c.name, "c1")
+
+    def test_constraints_dict_access_warns(self) -> None:
+        set_v4_migration_warnings(True)
+        try:
+            prob = LpProblem("m")
+            x = LpVariable("x", _skip_v4_deprecation=True)
+            prob += x <= 1, "c1"
+            with self.assertWarns(DeprecationWarning):
+                _ = prob.constraints["c1"]
+        finally:
+            set_v4_migration_warnings(True)
+
+    def test_set_v4_migration_warnings_disables(self) -> None:
+        set_v4_migration_warnings(False)
+        try:
+            prob = LpProblem("m")
+            x = LpVariable("x", _skip_v4_deprecation=True)
+            prob += x <= 1, "c1"
+            with warnings.catch_warnings():
+                warnings.simplefilter("error", DeprecationWarning)
+                _ = prob.constraints["c1"]
+        finally:
+            set_v4_migration_warnings(True)
 
 
 def getSortedDict(prob, keyCons="name", keyVars="name"):

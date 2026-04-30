@@ -115,7 +115,7 @@ class MOSEK(LpSolver):
 
         def buildSolverModel(self, lp, inf=1e20):
             """Translate the problem into a Mosek task object."""
-            self.cons = lp.constraints
+            self.cons = lp._constraints
             self.numcons = len(self.cons)
             self.cons_dict = {}
             i = 0
@@ -236,8 +236,8 @@ class MOSEK(LpSolver):
             try:
                 self.xc = [0.0] * self.numcons
                 self.task.getxc(self.solution_type, self.xc)
-                for con in lp.constraints:
-                    lp.constraints[con].slack = -(
+                for con in lp._constraints:
+                    lp._constraints[con].slack = -(
                         self.cons[con].constant + self.xc[self.cons_dict[con]]
                     )
             except mosek.Error:
@@ -257,8 +257,8 @@ class MOSEK(LpSolver):
                 try:
                     self.y = [0.0] * self.numcons
                     self.task.gety(self.solution_type, self.y)
-                    for con in lp.constraints:
-                        lp.constraints[con].pi = self.y[self.cons_dict[con]]
+                    for con in lp._constraints:
+                        lp._constraints[con].pi = self.y[self.cons_dict[con]]
                 except mosek.Error:
                     pass
 
@@ -306,7 +306,7 @@ class MOSEK(LpSolver):
             lp.assignStatus(self.solution_status_dict[self.solsta])
             for var in lp.variables():
                 var.modified = False
-            for con in lp.constraints.values():
+            for con in lp._constraints.values():
                 con.modified = False
             return lp.status
 
@@ -340,6 +340,6 @@ class MOSEK(LpSolver):
             lp.assignStatus(self.solution_status_dict[self.solsta])
             for var in lp.variables():
                 var.modified = False
-            for con in lp.constraints.values():
+            for con in lp._constraints.values():
                 con.modified = False
             return lp.status

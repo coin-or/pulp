@@ -130,7 +130,7 @@ import sys
 import warnings
 import math
 from time import time
-from typing import Any, Literal, Optional
+from typing import Any, Dict, Literal, Optional, Union, cast, overload
 
 from .apis import LpSolverDefault, PULP_CBC_CMD
 from .apis.core import clock
@@ -150,6 +150,20 @@ except ImportError:
     import json
 
 import re
+
+V4_MIGRATION_WARNINGS = True
+
+
+def set_v4_migration_warnings(enabled: bool) -> None:
+    """Enable or disable PuLP 4.0 migration DeprecationWarnings (default: enabled)."""
+
+    global V4_MIGRATION_WARNINGS
+    V4_MIGRATION_WARNINGS = enabled
+
+
+def _v4_deprecation(message: str, stacklevel: int = 2) -> None:
+    if V4_MIGRATION_WARNINGS:
+        warnings.warn(message, category=DeprecationWarning, stacklevel=stacklevel)
 
 
 class LpElement:
@@ -274,6 +288,8 @@ class LpVariable(LpElement):
         upBound: Optional[float] = None,
         cat: str = const.LpContinuous,
         e=None,
+        *,
+        _skip_v4_deprecation: bool = False,
     ):
         LpElement.__init__(self, name)
         self._lowbound_original = self.lowBound = lowBound
@@ -299,6 +315,18 @@ class LpVariable(LpElement):
                         self.upBound
                     )
                 )
+        if not _skip_v4_deprecation:
+            msg = (
+                "Constructing LpVariable(name, ...) directly is deprecated; in PuLP 4.0 "
+                "use prob.add_variable(name, lowBound, upBound, cat=...). Variables are "
+                "then attached to the model when created."
+            )
+            if e is not None:
+                msg += (
+                    " The column-generation / 'e' parameter has no direct equivalent in "
+                    "PuLP 4.0; see the migration guide."
+                )
+            _v4_deprecation(msg, stacklevel=2)
         # Code to add a variable to constraints for column based
         # modelling.
         if e:
@@ -320,23 +348,49 @@ class LpVariable(LpElement):
             name=self.name,
         )
 
+    @overload
     @classmethod
-    def fromDataclass(cls, mps: mpslp.MPSVariable):
-        """
-        Initializes a variable object from information that comes from a dataclass
+    def fromDataclass(cls, mps: mpslp.MPSVariable) -> LpVariable: ...
 
-        :param mps: a :py:class:`mpslp.MPSVariable` with the variable information
-        :return: a :py:class:`LpVariable`
-        :rtype: :LpVariable
+    @overload
+    @classmethod
+    def fromDataclass(
+        cls, problem: "LpProblem", mps: mpslp.MPSVariable
+    ) -> LpVariable: ...
+
+    @classmethod
+    def fromDataclass(
+        cls,
+        problem_or_mps: Union["LpProblem", mpslp.MPSVariable],
+        mps: mpslp.MPSVariable | None = None,
+    ) -> LpVariable:
         """
+        Initializes a variable object from information that comes from a dataclass.
+
+        PuLP 4.0 uses ``fromDataclass(problem, mps)`` so the variable is created in the
+        context of a problem.
+        """
+        if mps is None:
+            _v4_deprecation(
+                "LpVariable.fromDataclass(mps) with a single argument is deprecated; "
+                "for PuLP 4.0 use LpVariable.fromDataclass(problem, mps).",
+                stacklevel=2,
+            )
+            mps_d = cast(mpslp.MPSVariable, problem_or_mps)
+        else:
+            mps_d = mps
         var = cls(
-            name=mps.name, lowBound=mps.lowBound, upBound=mps.upBound, cat=mps.cat
+            name=mps_d.name,
+            lowBound=mps_d.lowBound,
+            upBound=mps_d.upBound,
+            cat=mps_d.cat,
+            _skip_v4_deprecation=True,
         )
-        var.dj = mps.dj
-        var.varValue = mps.varValue
+        var.dj = mps_d.dj
+        var.varValue = mps_d.varValue
         return var
 
-    def toDict(self) -> dict[str, Any]:
+    def toDict(self) -> Dict[str, Any]:
         """
         Exports a variable into a dict with its relevant information.
 
@@ -345,7 +399,7 @@ class LpVariable(LpElement):
         """
         return dataclasses.asdict(self.toDataclass())
 
-    def to_dict(self) -> dict[str, Any]:
+    def to_dict(self) -> Dict[str, Any]:
         """
         Exports a variable into a dict with its relevant information.
 
@@ -360,19 +414,40 @@ class LpVariable(LpElement):
         )
         return self.toDict()
 
+    @overload
     @classmethod
-    def fromDict(cls, data: dict[str, Any]):
+    def fromDict(cls, data: Dict[str, Any]) -> LpVariable: ...
+
+    @overload
+    @classmethod
+    def fromDict(cls, problem: "LpProblem", data: Dict[str, Any]) -> LpVariable: ...
+
+    @classmethod
+    def fromDict(
+        cls,
+        problem_or_data: Union["LpProblem", Dict[str, Any]],
+        data: Dict[str, Any] | None = None,
+    ) -> LpVariable:
         """
         Initializes a variable object from information that comes from a dict.
 
-        :param data: a dict with the variable information
-        :return: a :py:class:`LpVariable`
-        :rtype: :LpVariable
+        PuLP 4.0 uses ``fromDict(problem, data)``.
         """
-        return cls.fromDataclass(mpslp.MPSVariable.fromDict(data))
+        if data is None:
+            _v4_deprecation(
+                "LpVariable.fromDict(data) with a single argument is deprecated; "
+                "for PuLP 4.0 use LpVariable.fromDict(problem, data).",
+                stacklevel=2,
+            )
+            d = cast(Dict[str, Any], problem_or_data)
+            return cls.fromDataclass(mpslp.MPSVariable.fromDict(d))
+        return cls.fromDataclass(
+            cast("LpProblem", problem_or_data),
+            mpslp.MPSVariable.fromDict(data),
+        )
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]):
+    def from_dict(cls, data: Dict[str, Any]):
         """
         Initializes a variable object from information that comes from a dict.
 
@@ -400,24 +475,46 @@ class LpVariable(LpElement):
         lowBound=None,
         upBound=None,
         cat=const.LpContinuous,
-        indexStart=[],
+        indexStart=None,
+        *,
+        _skip_v4_deprecation: bool = False,
     ):
+        if indexStart is None:
+            indexStart = []
+        if not _skip_v4_deprecation:
+            _v4_deprecation(
+                "LpVariable.matrix is deprecated; use prob.add_variable_matrix(...) "
+                "for PuLP 4.0 compatibility.",
+                stacklevel=2,
+            )
         if not isinstance(indices, tuple):
             indices = (indices,)
         if "%" not in name:
             name += "_%s" * len(indices)
 
-        index = indices[0]
+        index = cast(Iterable[Any], indices[0])
         indices = indices[1:]
         if len(indices) == 0:
             return [
-                LpVariable(name % tuple(indexStart + [i]), lowBound, upBound, cat)
+                LpVariable(
+                    name % tuple(indexStart + [i]),
+                    lowBound,
+                    upBound,
+                    cat,
+                    _skip_v4_deprecation=True,
+                )
                 for i in index
             ]
         else:
             return [
                 LpVariable.matrix(
-                    name, indices, lowBound, upBound, cat, indexStart + [i]
+                    name,
+                    indices,
+                    lowBound,
+                    upBound,
+                    cat,
+                    indexStart + [i],
+                    _skip_v4_deprecation=True,
                 )
                 for i in index
             ]
@@ -430,7 +527,9 @@ class LpVariable(LpElement):
         lowBound=None,
         upBound=None,
         cat=const.LpContinuous,
-        indexStart=[],
+        indexStart=None,
+        *,
+        _skip_v4_deprecation: bool = False,
     ):
         """
         This function creates a dictionary of :py:class:`LpVariable` with the specified associated parameters.
@@ -447,35 +546,67 @@ class LpVariable(LpElement):
 
         :return: A dictionary of :py:class:`LpVariable`
         """
-
+        if indexStart is None:
+            indexStart = []
+        if not _skip_v4_deprecation:
+            _v4_deprecation(
+                "LpVariable.dicts is deprecated; use prob.add_variable_dicts(...) "
+                "for PuLP 4.0 compatibility.",
+                stacklevel=2,
+            )
         if not isinstance(indices, tuple):
             indices = (indices,)
         if "%" not in name:
             name += "_%s" * len(indices)
 
-        index = indices[0]
+        index = cast(Iterable[Any], indices[0])
         indices = indices[1:]
         d = {}
         if len(indices) == 0:
             for i in index:
                 d[i] = LpVariable(
-                    name % tuple(indexStart + [str(i)]), lowBound, upBound, cat
+                    name % tuple(indexStart + [str(i)]),
+                    lowBound,
+                    upBound,
+                    cat,
+                    _skip_v4_deprecation=True,
                 )
         else:
             for i in index:
                 d[i] = LpVariable.dicts(
-                    name, indices, lowBound, upBound, cat, indexStart + [i]
+                    name,
+                    indices,
+                    lowBound,
+                    upBound,
+                    cat,
+                    indexStart + [i],
+                    _skip_v4_deprecation=True,
                 )
         return d
 
     @classmethod
-    def dict(cls, name, indices, lowBound=None, upBound=None, cat=const.LpContinuous):
+    def dict(
+        cls,
+        name,
+        indices,
+        lowBound=None,
+        upBound=None,
+        cat=const.LpContinuous,
+        *,
+        _skip_v4_deprecation: bool = False,
+    ):
+        if not _skip_v4_deprecation:
+            _v4_deprecation(
+                "LpVariable.dict is deprecated; use prob.add_variable_dict(...) "
+                "for PuLP 4.0 compatibility.",
+                stacklevel=2,
+            )
         if not isinstance(indices, tuple):
             indices = (indices,)
         if "%" not in name:
             name += "_%s" * len(indices)
 
-        lists = indices
+        lists = list(indices)
 
         if len(indices) > 1:
             # Cartesian product
@@ -501,7 +632,7 @@ class LpVariable(LpElement):
 
         d = {}
         for i in index:
-            d[i] = cls(name % i, lowBound, upBound, cat)
+            d[i] = cls(name % i, lowBound, upBound, cat, _skip_v4_deprecation=True)
         return d
 
     def getLb(self):
@@ -1456,6 +1587,11 @@ class LpConstraintVar(LpElement):
     """
 
     def __init__(self, name=None, sense=None, rhs=None, e=None):
+        _v4_deprecation(
+            "LpConstraintVar is deprecated and removed in PuLP 4.0; column-wise modelling "
+            "APIs are changing.",
+            stacklevel=2,
+        )
         LpElement.__init__(self, name)
         self.constraint = LpConstraint(name=self.name, sense=sense, rhs=rhs, e=e)
 
@@ -1468,6 +1604,92 @@ class LpConstraintVar(LpElement):
 
     def value(self):
         return self.constraint.value()
+
+
+class _DeprecatedConstraintsMapping:
+    """Dict-like view over ``LpProblem._constraints``. Prefer ``prob.constraints()`` for PuLP 4.0."""
+
+    __slots__ = ("_problem",)
+
+    def __init__(self, problem: "LpProblem") -> None:
+        self._problem = problem
+
+    def __call__(self) -> list[LpConstraint]:
+        """Return constraints in insertion order (PuLP 4.0 API)."""
+        return list(self._problem._constraints.values())
+
+    def _warn_mapping(self) -> None:
+        _v4_deprecation(
+            "Using LpProblem.constraints as a dict mapping is deprecated; in PuLP 4.0 "
+            "constraints are returned by prob.constraints() as a list. Use "
+            "get_constraint_by_name(name) or iterate prob.constraints() and compare "
+            "constraint names.",
+            stacklevel=3,
+        )
+
+    def __getitem__(self, key: str) -> LpConstraint:
+        self._warn_mapping()
+        return self._problem._constraints[key]
+
+    def __setitem__(self, key: str, value: LpConstraint) -> None:
+        self._warn_mapping()
+        self._problem._constraints[key] = value
+
+    def __delitem__(self, key: str) -> None:
+        self._warn_mapping()
+        del self._problem._constraints[key]
+
+    def __iter__(self):
+        self._warn_mapping()
+        return iter(self._problem._constraints)
+
+    def __len__(self) -> int:
+        self._warn_mapping()
+        return len(self._problem._constraints)
+
+    def __bool__(self) -> bool:
+        self._warn_mapping()
+        return bool(self._problem._constraints)
+
+    def __contains__(self, key: object) -> bool:
+        self._warn_mapping()
+        return key in self._problem._constraints
+
+    def keys(self):
+        self._warn_mapping()
+        return self._problem._constraints.keys()
+
+    def values(self):
+        self._warn_mapping()
+        return self._problem._constraints.values()
+
+    def items(self):
+        self._warn_mapping()
+        return self._problem._constraints.items()
+
+    def get(self, key: str, default: Any = None) -> Any:
+        self._warn_mapping()
+        return self._problem._constraints.get(key, default)
+
+    def pop(self, key: str, default: Any = None) -> Any:
+        self._warn_mapping()
+        return self._problem._constraints.pop(key, default)
+
+    def setdefault(self, key: str, default: Any = None) -> Any:
+        self._warn_mapping()
+        return self._problem._constraints.setdefault(key, default)
+
+    def update(self, *args: Any, **kwargs: Any) -> None:
+        self._warn_mapping()
+        self._problem._constraints.update(*args, **kwargs)
+
+    def clear(self) -> None:
+        self._warn_mapping()
+        self._problem._constraints.clear()
+
+    def copy(self) -> dict[str, LpConstraint]:
+        self._warn_mapping()
+        return self._problem._constraints.copy()
 
 
 class LpProblem:
@@ -1489,7 +1711,7 @@ class LpProblem:
             warnings.warn("Spaces are not permitted in the name. Converted to '_'")
             name = name.replace(" ", "_")
         self.objective: None | LpAffineExpression = None  # type: ignore[annotation-unchecked]
-        self.constraints: dict[str, LpConstraint] = {}  # type: ignore[annotation-unchecked]
+        self._constraints: dict[str, LpConstraint] = {}  # type: ignore[annotation-unchecked]
         self.name = name
         self.sense = sense
         self.sos1 = {}
@@ -1513,6 +1735,84 @@ class LpProblem:
         # locals
         self.lastUnused = 0
 
+    @property
+    def constraints(self) -> _DeprecatedConstraintsMapping:
+        """Deprecated dict-like access; call ``constraints()`` for a list (PuLP 4.0)."""
+
+        return _DeprecatedConstraintsMapping(self)
+
+    def get_constraint_by_name(self, name: str) -> LpConstraint | None:
+        """Return the constraint with the given name, or None (PuLP 4.0 helper)."""
+
+        return self._constraints.get(name)
+
+    def add_variable(
+        self,
+        name: str,
+        lowBound: Optional[float] = None,
+        upBound: Optional[float] = None,
+        cat: str = const.LpContinuous,
+    ) -> LpVariable:
+        """
+        Create a variable for this problem. PuLP 4.0 equivalent; variables are owned by
+        the model when created.
+        """
+        return LpVariable(name, lowBound, upBound, cat, _skip_v4_deprecation=True)
+
+    def add_variable_dicts(
+        self,
+        name: str,
+        indices=None,
+        lowBound=None,
+        upBound=None,
+        cat=const.LpContinuous,
+        indexStart=None,
+    ) -> dict[Any, Any]:
+        if indexStart is None:
+            indexStart = []
+        return LpVariable.dicts(
+            name,
+            indices,
+            lowBound,
+            upBound,
+            cat,
+            indexStart,
+            _skip_v4_deprecation=True,
+        )
+
+    def add_variable_dict(
+        self,
+        name: str,
+        indices,
+        lowBound=None,
+        upBound=None,
+        cat=const.LpContinuous,
+    ) -> dict[Any, LpVariable]:
+        return LpVariable.dict(
+            name, indices, lowBound, upBound, cat, _skip_v4_deprecation=True
+        )
+
+    def add_variable_matrix(
+        self,
+        name: str,
+        indices=None,
+        lowBound=None,
+        upBound=None,
+        cat=const.LpContinuous,
+        indexStart=None,
+    ) -> list[Any]:
+        if indexStart is None:
+            indexStart = []
+        return LpVariable.matrix(
+            name,
+            indices,
+            lowBound,
+            upBound,
+            cat,
+            indexStart,
+            _skip_v4_deprecation=True,
+        )
+
     def __repr__(self):
         s = self.name + ":\n"
         if self.sense == 1:
@@ -1521,9 +1821,9 @@ class LpProblem:
             s += "MAXIMIZE\n"
         s += repr(self.objective) + "\n"
 
-        if self.constraints:
+        if self._constraints:
             s += "SUBJECT TO\n"
-            for n, c in self.constraints.items():
+            for n, c in self._constraints.items():
                 s += c.asCplexLpConstraint(n) + "\n"
         s += "VARIABLES\n"
         for v in self.variables():
@@ -1538,6 +1838,8 @@ class LpProblem:
 
     def __setstate__(self, state):
         # Update transient data prior to unpickling.
+        if "constraints" in state and "_constraints" not in state:
+            state["_constraints"] = state.pop("constraints")
         self.__dict__.update(state)
         self._variable_ids = {}
         for v in self._variables:
@@ -1547,7 +1849,7 @@ class LpProblem:
         """Make a copy of self. Expressions are copied by reference"""
         lpcopy = LpProblem(name=self.name, sense=self.sense)
         lpcopy.objective = self.objective
-        lpcopy.constraints = self.constraints.copy()
+        lpcopy._constraints = self._constraints.copy()
         lpcopy.sos1 = self.sos1.copy()
         lpcopy.sos2 = self.sos2.copy()
         return lpcopy
@@ -1557,9 +1859,9 @@ class LpProblem:
         lpcopy = LpProblem(name=self.name, sense=self.sense)
         if self.objective is not None:
             lpcopy.objective = self.objective.copy()
-        lpcopy.constraints = {}
-        for k, v in self.constraints.items():
-            lpcopy.constraints[k] = v.copy()
+        lpcopy._constraints = {}
+        for k, v in self._constraints.items():
+            lpcopy._constraints[k] = v.copy()
         lpcopy.sos1 = self.sos1.copy()
         lpcopy.sos2 = self.sos2.copy()
         return lpcopy
@@ -1586,7 +1888,7 @@ class LpProblem:
             objective=mpslp.MPSObjective(
                 name=self.objective.name, coefficients=self.objective.toDataclass()
             ),
-            constraints=[v.toDataclass() for v in self.constraints.values()],
+            constraints=[v.toDataclass() for v in self._constraints.values()],
             variables=[v.toDataclass() for v in variables],
             parameters=mpslp.MPSParameters(
                 name=self.name,
@@ -1615,7 +1917,7 @@ class LpProblem:
 
         # recreate the variables.
         var: dict[str, LpVariable] = {
-            v.name: LpVariable.fromDataclass(v) for v in mps.variables
+            v.name: LpVariable.fromDataclass(pb, v) for v in mps.variables
         }
 
         # objective function.
@@ -1703,7 +2005,7 @@ class LpProblem:
         return cls.fromDataclass(data)
 
     def normalisedNames(self):
-        constraintsNames = {k: "C%07d" % i for i, k in enumerate(self.constraints)}
+        constraintsNames = {k: "C%07d" % i for i, k in enumerate(self._constraints)}
         _variables = self.variables()
         variablesNames = {k.name: "X%07d" % i for i, k in enumerate(_variables)}
         return constraintsNames, variablesNames, "OBJ"
@@ -1731,7 +2033,7 @@ class LpProblem:
         self.lastUnused += 1
         while True:
             s = "_C%d" % self.lastUnused
-            if s not in self.constraints:
+            if s not in self._constraints:
                 break
             self.lastUnused += 1
         return s
@@ -1740,7 +2042,7 @@ class LpProblem:
         for v in self.variables():
             if not v.valid(eps):
                 return False
-        for c in self.constraints.values():
+        for c in self._constraints.values():
             if not c.valid(eps):
                 return False
         else:
@@ -1750,10 +2052,19 @@ class LpProblem:
         gap = 0
         for v in self.variables():
             gap = max(abs(v.infeasibilityGap(mip)), gap)
-        for c in self.constraints.values():
+        for c in self._constraints.values():
             if not c.valid(0):
                 gap = max(abs(c.value()), gap)
         return gap
+
+    def _register_variable(self, variable: LpVariable) -> None:
+        if variable.hash not in self._variable_ids:
+            self._variables.append(variable)
+            self._variable_ids[variable.hash] = variable
+
+    def _add_variables(self, variables: Iterable[LpVariable]) -> None:
+        for v in variables:
+            self._register_variable(v)
 
     def addVariable(self, variable: LpVariable):
         """
@@ -1761,9 +2072,12 @@ class LpProblem:
 
         :param variable: the variable to be added
         """
-        if variable.hash not in self._variable_ids:
-            self._variables.append(variable)
-            self._variable_ids[variable.hash] = variable
+        _v4_deprecation(
+            "LpProblem.addVariable is deprecated; in PuLP 4.0 variables are attached to the "
+            "model when created with prob.add_variable(...).",
+            stacklevel=2,
+        )
+        self._register_variable(variable)
 
     def addVariables(self, variables: Iterable[LpVariable]):
         """
@@ -1771,8 +2085,12 @@ class LpProblem:
 
         :param variables: the variables to be added
         """
-        for v in variables:
-            self.addVariable(v)
+        _v4_deprecation(
+            "LpProblem.addVariables is deprecated; in PuLP 4.0 variables are attached to the "
+            "model when created with prob.add_variable(...).",
+            stacklevel=2,
+        )
+        self._add_variables(variables)
 
     def variables(self) -> list[LpVariable]:
         """
@@ -1782,9 +2100,9 @@ class LpProblem:
         :rtype: (list, :py:class:`LpVariable`)
         """
         if self.objective:
-            self.addVariables(self.objective.keys())
-        for c in self.constraints.values():
-            self.addVariables(c.keys())
+            self._add_variables(self.objective.keys())
+        for c in self._constraints.values():
+            self._add_variables(c.keys())
         self._variables.sort(key=lambda v: v.name)
         return self._variables
 
@@ -1793,7 +2111,7 @@ class LpProblem:
         if self.objective:
             for v in self.objective:
                 variables[v.name] = v
-        for c in self.constraints.values():
+        for c in self._constraints.values():
             for v in c:
                 variables[v.name] = v
         return variables
@@ -1817,14 +2135,14 @@ class LpProblem:
         #        if len(constraint) == 0:
         #            if not constraint.valid():
         #                raise ValueError, "Cannot add false constraints"
-        if name in self.constraints:
+        if name in self._constraints:
             if self.noOverlap:
                 raise const.PulpError("overlapping constraint names: " + name)
             else:
                 print("Warning: overlapping constraint names:", name)
-        self.constraints[name] = constraint
+        self._constraints[name] = constraint
         self.modifiedConstraints.append(constraint)
-        self.addVariables(constraint.keys())
+        self._add_variables(constraint.keys())
 
     def setObjective(self, obj):
         """
@@ -1901,11 +2219,11 @@ class LpProblem:
         """
         if isinstance(other, dict):
             for name, constraint in other.items():
-                self.constraints[name] = constraint
+                self._constraints[name] = constraint
         elif isinstance(other, LpProblem):
             for v in set(other.variables()).difference(self.variables()):
                 v.name = other.name + v.name
-            for name, c in other.constraints.items():
+            for name, c in other._constraints.items():
                 c.name = other.name + name
                 self.addConstraint(c)
             if use_objective:
@@ -1923,18 +2241,18 @@ class LpProblem:
                     name = c.name
                 if not name:
                     name = self.unusedConstraintName()
-                self.constraints[name] = c
+                self._constraints[name] = c
 
     def coefficients(self, translation=None):
         coefs = []
         if translation is None:
-            for c in self.constraints:
-                cst = self.constraints[c]
+            for c in self._constraints:
+                cst = self._constraints[c]
                 coefs.extend([(v.name, c, cst[v]) for v in cst])
         else:
-            for c in self.constraints:
+            for c in self._constraints:
                 ctr = translation[c]
-                cst = self.constraints[c]
+                cst = self._constraints[c]
                 coefs.extend([(translation[v.name], ctr, cst[v]) for v in cst])
         return coefs
 
@@ -2024,7 +2342,7 @@ class LpProblem:
     def assignConsPi(self, values):
         for name in values:
             try:
-                self.constraints[name].pi = values[name]
+                self._constraints[name].pi = values[name]
             except KeyError:
                 pass
 
@@ -2033,17 +2351,17 @@ class LpProblem:
             try:
                 if activity:
                     # reports the activity not the slack
-                    self.constraints[name].slack = -1 * (
-                        self.constraints[name].constant + float(values[name])
+                    self._constraints[name].slack = -1 * (
+                        self._constraints[name].constant + float(values[name])
                     )
                 else:
-                    self.constraints[name].slack = float(values[name])
+                    self._constraints[name].slack = float(values[name])
             except KeyError:
                 pass
 
     def get_dummyVar(self):
         if self.dummyVar is None:
-            self.dummyVar = LpVariable("__dummy", 0, 0)
+            self.dummyVar = LpVariable("__dummy", 0, 0, _skip_v4_deprecation=True)
         return self.dummyVar
 
     def fixObjective(self):
@@ -2180,7 +2498,7 @@ class LpProblem:
 
         :return: number of constraints in model
         """
-        return len(self.constraints)
+        return len(self._constraints)
 
     def getSense(self):
         return self.sense
@@ -2236,9 +2554,15 @@ class FixedElasticSubProblem(LpProblem):
         self.RHS = -constraint.constant
         self += constraint, "_Constraint"
         # create and add these variables but disabled
-        self.freeVar = LpVariable("_free_bound", upBound=0, lowBound=0)
-        self.upVar = LpVariable("_pos_penalty_var", upBound=0, lowBound=0)
-        self.lowVar = LpVariable("_neg_penalty_var", upBound=0, lowBound=0)
+        self.freeVar = LpVariable(
+            "_free_bound", upBound=0, lowBound=0, _skip_v4_deprecation=True
+        )
+        self.upVar = LpVariable(
+            "_pos_penalty_var", upBound=0, lowBound=0, _skip_v4_deprecation=True
+        )
+        self.lowVar = LpVariable(
+            "_neg_penalty_var", upBound=0, lowBound=0, _skip_v4_deprecation=True
+        )
         constraint.addInPlace(self.freeVar + self.lowVar + self.upVar)
         if proportionFreeBound:
             proportionFreeBoundList = (proportionFreeBound, proportionFreeBound)
@@ -2377,9 +2701,15 @@ class FractionElasticSubProblem(FixedElasticSubProblem):
         self.RHS = RHS
         self.lowTarget = self.upTarget = None
         LpProblem.__init__(self, subProblemName, const.LpMinimize)
-        self.freeVar = LpVariable("_free_bound", upBound=0, lowBound=0)
-        self.upVar = LpVariable("_pos_penalty_var", upBound=0, lowBound=0)
-        self.lowVar = LpVariable("_neg_penalty_var", upBound=0, lowBound=0)
+        self.freeVar = LpVariable(
+            "_free_bound", upBound=0, lowBound=0, _skip_v4_deprecation=True
+        )
+        self.upVar = LpVariable(
+            "_pos_penalty_var", upBound=0, lowBound=0, _skip_v4_deprecation=True
+        )
+        self.lowVar = LpVariable(
+            "_neg_penalty_var", upBound=0, lowBound=0, _skip_v4_deprecation=True
+        )
         if proportionFreeBound:
             proportionFreeBoundList = [proportionFreeBound, proportionFreeBound]
         if proportionFreeBoundList:

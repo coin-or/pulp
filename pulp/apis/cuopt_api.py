@@ -135,7 +135,7 @@ class CUOPT(LpSolver):
                     var.dj = value
 
                 duals = solution.get_dual_solution()
-                for constr, value in zip(lp.constraints.values(), duals):
+                for constr, value in zip(lp._constraints.values(), duals):
                     constr.pi = value
 
             return status
@@ -214,7 +214,7 @@ class CUOPT(LpSolver):
             rhs, sense = [], []
             matrix_data, matrix_indices, matrix_indptr = [], [], [0]
 
-            for name, constraint in lp.constraints.items():
+            for name, constraint in lp._constraints.items():
                 row_coeffs = []
                 matrix_data.extend(list(constraint.values()))
                 matrix_indices.extend([var_dict[v.name] for v in constraint.keys()])
@@ -247,7 +247,7 @@ class CUOPT(LpSolver):
             solutionStatus = self.findSolutionValues(lp, solution)
             for var in lp._variables:
                 var.modified = False
-            for constraint in lp.constraints.values():
+            for constraint in lp._constraints.values():
                 constraint.modified = False
             return solutionStatus
 
@@ -260,7 +260,7 @@ class CUOPT(LpSolver):
             rhs = lp.solverModel.get_constraint_bounds()
             sense = lp.solverModel.get_row_types()
 
-            for i, name, constraint in enumerate(lp.constraints.items()):
+            for i, name, constraint in enumerate(lp._constraints.items()):
                 if constraint.modified:
                     sense[i] = sense_conv[constraint.sense]
                     rhs[i] = -constraint.constant
@@ -274,6 +274,6 @@ class CUOPT(LpSolver):
             solutionStatus = self.findSolutionValues(lp)
             for var in lp._variables:
                 var.modified = False
-            for constraint in lp.constraints.values():
+            for constraint in lp._constraints.values():
                 constraint.modified = False
             return solutionStatus

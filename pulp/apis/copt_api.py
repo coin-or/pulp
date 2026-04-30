@@ -471,7 +471,7 @@ class COPT_DLL(LpSolver):
             """
             cols = list(lp.variables())
             ncol = len(cols)
-            nrow = len(lp.constraints)
+            nrow = len(lp._constraints)
 
             collb = (ctypes.c_double * ncol)()
             colub = (ctypes.c_double * ncol)()
@@ -525,9 +525,9 @@ class COPT_DLL(LpSolver):
 
             # Extract constraint rhs, senses and names
             idx = 0
-            for row in lp.constraints:
-                rowrhs[idx] = -lp.constraints[row].constant
-                rowsense[idx] = coptrsense[lp.constraints[row].sense]
+            for row in lp._constraints:
+                rowrhs[idx] = -lp._constraints[row].constant
+                rowsense[idx] = coptrsense[lp._constraints[row].sense]
                 rowname[idx] = coptstr(row)
 
                 self.c2n[row] = idx
@@ -946,7 +946,7 @@ class COPT(LpSolver):
             if not model.ismip:
                 # NOTE: slacks in COPT are activities of rows
                 slacks = model.getInfo("Slack", model.getConstrs())
-                for constr, value in zip(lp.constraints.values(), slacks):
+                for constr, value in zip(lp._constraints.values(), slacks):
                     constr.slack = value
 
                 redcosts = model.getInfo("RedCost", model.getVars())
@@ -954,7 +954,7 @@ class COPT(LpSolver):
                     var.dj = value
 
                 duals = model.getInfo("Dual", model.getConstrs())
-                for constr, value in zip(lp.constraints.values(), duals):
+                for constr, value in zip(lp._constraints.values(), duals):
                     constr.pi = value
 
             return status
@@ -1013,7 +1013,7 @@ class COPT(LpSolver):
                         self.coptmdl.setMipStart(var.solverVar, var.varValue)
                 self.coptmdl.loadMipStart()
 
-            for name, constraint in lp.constraints.items():
+            for name, constraint in lp._constraints.items():
                 expr = coptpy.LinExpr(
                     [v.solverVar for v in constraint.keys()], list(constraint.values())
                 )
@@ -1042,7 +1042,7 @@ class COPT(LpSolver):
             solutionStatus = self.findSolutionValues(lp)
             for var in lp._variables:
                 var.modified = False
-            for constraint in lp.constraints.values():
+            for constraint in lp._constraints.values():
                 constraint.modified = False
             return solutionStatus
 
@@ -1052,7 +1052,7 @@ class COPT(LpSolver):
 
             uses the old solver and modifies the rhs of the modified constraints
             """
-            for constraint in lp.constraints.values():
+            for constraint in lp._constraints.values():
                 if constraint.modified:
                     if constraint.sense == LpConstraintLE:
                         constraint.solverConstraint.ub = -constraint.constant
@@ -1067,6 +1067,6 @@ class COPT(LpSolver):
             solutionStatus = self.findSolutionValues(lp)
             for var in lp._variables:
                 var.modified = False
-            for constraint in lp.constraints.values():
+            for constraint in lp._constraints.values():
                 constraint.modified = False
             return solutionStatus

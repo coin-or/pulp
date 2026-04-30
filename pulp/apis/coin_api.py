@@ -167,7 +167,7 @@ class COIN_CMD(LpSolver_CMD):
             vs = lp.writeLP(tmpLp)
             # In the Lp we do not create new variable or constraint names:
             variablesNames = {v.name: v.name for v in vs}
-            constraintsNames = {c: c for c in lp.constraints}
+            constraintsNames = {c: c for c in lp._constraints}
             cmds = " " + tmpLp + " "
         if self.optionsDict.get("warmStart", False):
             self.writesol(tmpMst, lp, vs, variablesNames, constraintsNames)
@@ -323,7 +323,7 @@ class COIN_CMD(LpSolver_CMD):
         returns status, values, reducedCosts, shadowPrices, slacks, sol_status
         """
         variablesNames = {v.name: v.name for v in vs}
-        constraintsNames = {c: c for c in lp.constraints}
+        constraintsNames = {c: c for c in lp._constraints}
         return self.readsol_MPS(filename, lp, vs, variablesNames, constraintsNames)
 
     def get_status(self, filename):
@@ -758,7 +758,7 @@ class YAPOSIB(LpSolver):
                 var.varValue = var.solverVar.solution
                 var.dj = var.solverVar.reducedcost
             # put pi and slack variables against the constraints
-            for constr in lp.constraints.values():
+            for constr in lp._constraints.values():
                 constr.pi = constr.solverConstraint.dual
                 constr.slack = -constr.constant - constr.solverConstraint.activity
             if self.msg:
@@ -817,7 +817,7 @@ class YAPOSIB(LpSolver):
                 prob.obj[col.index] = lp.objective.get(var, 0.0)
                 var.solverVar = col
             log.debug("add the Constraints to the problem")
-            for name, constraint in lp.constraints.items():
+            for name, constraint in lp._constraints.items():
                 row = prob.rows.add(
                     yaposib.vec(
                         [
@@ -853,7 +853,7 @@ class YAPOSIB(LpSolver):
             solutionStatus = self.findSolutionValues(lp)
             for var in lp.variables():
                 var.modified = False
-            for constraint in lp.constraints.values():
+            for constraint in lp._constraints.values():
                 constraint.modified = False
             return solutionStatus
 
@@ -865,7 +865,7 @@ class YAPOSIB(LpSolver):
             constraints
             """
             log.debug("Resolve the model using yaposib")
-            for constraint in lp.constraints.values():
+            for constraint in lp._constraints.values():
                 row = constraint.solverConstraint
                 if constraint.modified:
                     if constraint.sense == constants.LpConstraintLE:
@@ -882,7 +882,7 @@ class YAPOSIB(LpSolver):
             solutionStatus = self.findSolutionValues(lp)
             for var in lp.variables():
                 var.modified = False
-            for constraint in lp.constraints.values():
+            for constraint in lp._constraints.values():
                 constraint.modified = False
             return solutionStatus
 

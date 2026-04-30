@@ -215,7 +215,7 @@ class GUROBI(LpSolver):
                     var.varValue = value
                 # populate pulp constraints slack
                 for constr, value in zip(
-                    lp.constraints.values(),
+                    lp._constraints.values(),
                     model.getAttr(GRB.Attr.Slack, model.getConstrs()),
                 ):
                     constr.slack = value
@@ -227,7 +227,7 @@ class GUROBI(LpSolver):
                         var.dj = value
 
                     for constr, value in zip(
-                        lp.constraints.values(),
+                        lp._constraints.values(),
                         model.getAttr(GRB.Attr.Pi, model.getConstrs()),
                     ):
                         constr.pi = value
@@ -316,7 +316,7 @@ class GUROBI(LpSolver):
 
             lp.solverModel.update()
             log.debug("add the Constraints to the problem")
-            for name, constraint in lp.constraints.items():
+            for name, constraint in lp._constraints.items():
                 # build the expression
                 expr = gp.LinExpr(
                     list(constraint.values()), [v.solverVar for v in constraint.keys()]
@@ -352,7 +352,7 @@ class GUROBI(LpSolver):
             solutionStatus = self.findSolutionValues(lp)
             for var in lp._variables:
                 var.modified = False
-            for constraint in lp.constraints.values():
+            for constraint in lp._constraints.values():
                 constraint.modified = False
             return solutionStatus
 
@@ -363,7 +363,7 @@ class GUROBI(LpSolver):
             uses the old solver and modifies the rhs of the modified constraints
             """
             log.debug("Resolve the Model using gurobi")
-            for constraint in lp.constraints.values():
+            for constraint in lp._constraints.values():
                 if constraint.modified:
                     constraint.solverConstraint.setAttr(
                         gp.GRB.Attr.RHS, -constraint.constant
@@ -374,7 +374,7 @@ class GUROBI(LpSolver):
             solutionStatus = self.findSolutionValues(lp)
             for var in lp._variables:
                 var.modified = False
-            for constraint in lp.constraints.values():
+            for constraint in lp._constraints.values():
                 constraint.modified = False
             return solutionStatus
 

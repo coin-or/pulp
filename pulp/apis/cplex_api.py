@@ -330,7 +330,11 @@ class CPLEX_PY(LpSolver):
             """True if the solver is available"""
             return True
 
-        def actualSolve(self, lp, callback: Optional[Iterable[type[cplex.callbacks.Callback]]] = None):  # type: ignore[misc]
+        def actualSolve(
+            self,
+            lp,
+            callback: Optional[Iterable[type[cplex.callbacks.Callback]]] = None,
+        ):  # type: ignore[misc]
             """
             Solve a well formulated lp problem
 
@@ -347,7 +351,7 @@ class CPLEX_PY(LpSolver):
             solutionStatus = self.findSolutionValues(lp)
             for var in lp._variables:
                 var.modified = False
-            for constraint in lp.constraints.values():
+            for constraint in lp._constraints.values():
                 constraint.modified = False
             return solutionStatus
 
@@ -406,8 +410,8 @@ class CPLEX_PY(LpSolver):
             rows = []
             senses = []
             rhs = []
-            rownames = list(lp.constraints.keys())
-            for constraint in lp.constraints.values():
+            rownames = list(lp._constraints.keys())
+            for constraint in lp._constraints.values():
                 # build the expression
                 if len(constraint) == 0:
                     # if the constraint is empty
@@ -583,7 +587,7 @@ class CPLEX_PY(LpSolver):
             sol_status = CplexSolStatus.get(lp.cplex_status)
             lp.assignStatus(status, sol_status)
             var_names = [var.name for var in lp._variables]
-            con_names = [con for con in lp.constraints]
+            con_names = [con for con in lp._constraints]
             try:
                 objectiveValue = lp.solverModel.solution.get_objective_value()
                 variablevalues = dict(
