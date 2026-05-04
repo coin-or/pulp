@@ -39,7 +39,6 @@ PuLP can use a variety of solvers. The default solver is the COIN-OR CBC solver,
     python -m pip install pulp[highs]
     python -m pip install pulp[copt]
     python -m pip install pulp[mosek]
-    python -m pip install pulp[cylp]
 
 
 If you want to install all open source solvers (scip, highs, cylp), you can use the shortcut::
