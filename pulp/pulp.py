@@ -350,12 +350,14 @@ class LpVariable(LpElement):
 
     @overload
     @classmethod
-    def fromDataclass(cls, mps: mpslp.MPSVariable) -> LpVariable: ...
+    def fromDataclass(
+        cls, problem_or_mps: mpslp.MPSVariable, mps: None = None
+    ) -> LpVariable: ...
 
     @overload
     @classmethod
     def fromDataclass(
-        cls, problem: "LpProblem", mps: mpslp.MPSVariable
+        cls, problem_or_mps: "LpProblem", mps: mpslp.MPSVariable
     ) -> LpVariable: ...
 
     @classmethod
@@ -416,11 +418,15 @@ class LpVariable(LpElement):
 
     @overload
     @classmethod
-    def fromDict(cls, data: Dict[str, Any]) -> LpVariable: ...
+    def fromDict(
+        cls, problem_or_data: Dict[str, Any], data: None = None
+    ) -> LpVariable: ...
 
     @overload
     @classmethod
-    def fromDict(cls, problem: "LpProblem", data: Dict[str, Any]) -> LpVariable: ...
+    def fromDict(
+        cls, problem_or_data: "LpProblem", data: Dict[str, Any]
+    ) -> LpVariable: ...
 
     @classmethod
     def fromDict(
@@ -610,7 +616,7 @@ class LpVariable(LpElement):
 
         if len(indices) > 1:
             # Cartesian product
-            res = []
+            res: list[list[Any]] = []
             while len(lists):
                 first = lists[-1]
                 nres = []

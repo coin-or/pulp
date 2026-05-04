@@ -1,6 +1,6 @@
 import os
 import warnings
-from typing import Iterable, Optional
+from typing import Any, Iterable, Optional
 
 from .. import constants
 from .core import LpSolver, LpSolver_CMD, PulpSolverError, clock, log, subprocess
@@ -277,7 +277,11 @@ class CPLEX_PY(LpSolver):
             """True if the solver is available"""
             return False
 
-        def actualSolve(self, lp):
+        def actualSolve(
+            self,
+            lp: Any,
+            callback: Optional[Iterable[type[Any]]] = None,
+        ) -> Any:
             """Solve a well formulated lp problem"""
             raise PulpSolverError(f"CPLEX_PY: Not Available:\n{self.err}")
 
@@ -332,9 +336,9 @@ class CPLEX_PY(LpSolver):
 
         def actualSolve(
             self,
-            lp,
+            lp: Any,
             callback: Optional[Iterable[type[cplex.callbacks.Callback]]] = None,
-        ):  # type: ignore[misc]
+        ) -> Any:
             """
             Solve a well formulated lp problem
 
