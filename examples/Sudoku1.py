@@ -22,7 +22,7 @@ Boxes = [
 prob = LpProblem("Sudoku Problem")
 
 # The decision variables are created
-choices = LpVariable.dicts("Choice", (VALS, ROWS, COLS), cat="Binary")
+choices = prob.add_variable_dicts("Choice", (VALS, ROWS, COLS), cat="Binary")
 
 # We do not define an objective function since none is needed
 

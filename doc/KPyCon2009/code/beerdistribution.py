@@ -42,7 +42,7 @@ prob = pulp.LpProblem("Beer Distribution Problem", pulp.LpMinimize)
 routes = [(w, b) for w in warehouses for b in bars]
 
 # A dictionary called x is created to contain quantity shipped on the routes
-x = pulp.LpVariable.dicts("route", (warehouses, bars), lowBound=0, cat=pulp.LpInteger)
+x = prob.add_variable_dicts("route", (warehouses, bars), lowBound=0, cat=pulp.LpInteger)
 
 # The objective function is added to 'prob' first
 prob += (

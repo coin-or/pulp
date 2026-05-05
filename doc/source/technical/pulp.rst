@@ -30,8 +30,11 @@ The LpProblem Class
 
    .. attribute:: constraints
 
-      An :class:`ordered dictionary<odict.OrderedDict>` of
-      :class:`constraints<LpConstraint>` of the problem - indexed by their names.
+      Provides access to the problem's constraints. Dict-like indexing is
+      deprecated; use :py:meth:`~pulp.LpProblem.get_constraint_by_name` to fetch
+      a constraint by name, or call ``constraints()`` (i.e. invoke the object
+      returned by this attribute) to get a list of all constraints in insertion
+      order for analysis.
 
    .. attribute:: status 
 
@@ -62,8 +65,9 @@ Variables and Expressions
 
 Example:
 
->>> x = LpVariable('x',lowBound = 0, cat='Continuous')
->>> y = LpVariable('y', upBound = 5, cat='Integer')
+>>> prob = LpProblem('ex', LpMinimize)
+>>> x = prob.add_variable('x', lowBound = 0, cat='Continuous')
+>>> y = prob.add_variable('y', upBound = 5, cat='Integer')
 
 gives  :math:`x \in [0,\infty)`, :math:`y \in (-\infty, 5]`, an
 integer.

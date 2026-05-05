@@ -7,11 +7,11 @@ from pulp import *
 # A new LP problem
 prob = LpProblem("test7", LpMinimize)
 
-x = LpVariable("x", 0, 4)
+x = prob.add_variable("x", 0, 4)
 
-y = LpVariable("y", -1, 1)
+y = prob.add_variable("y", -1, 1)
 
-z = LpVariable("z", 0)
+z = prob.add_variable("z", 0)
 
 prob += x + 4 * y + 9 * z, "obj"
 
@@ -31,5 +31,6 @@ for v in prob.variables():
 print("objective=", value(prob.objective))
 
 print("\nSensitivity Analysis\nConstraint\t\tShadow Price\tSlack")
-for name, c in list(prob.constraints.items()):
+for c in prob.constraints():
+    name = c.name
     print(name, ":", c, "\t", c.pi, "\t\t", c.slack)

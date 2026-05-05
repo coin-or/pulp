@@ -28,9 +28,9 @@ A very simple example taken from the internal tests. Imagine the following probl
     from pulp import *
 
     prob = LpProblem("test_export_dict_MIP", LpMinimize)
-    x = LpVariable("x", 0, 4)
-    y = LpVariable("y", -1, 1)
-    z = LpVariable("z", 0, None, LpInteger)
+    x = prob.add_variable("x", 0, 4)
+    y = prob.add_variable("y", -1, 1)
+    z = prob.add_variable("z", 0, None, LpInteger)
     prob += x + 4 * y + 9 * z, "obj"
     prob += x + y <= 5, "c1"
     prob += x + z >= 10, "c2"
@@ -38,7 +38,7 @@ A very simple example taken from the internal tests. Imagine the following probl
 
 We can now export the problem into a dictionary::
 
-    data = prob.to_dict()
+    data = prob.toDict()
 
 We now have a dictionary with a lot of data::
 
@@ -91,7 +91,7 @@ We now have a dictionary with a lot of data::
 
 We can now import this dictionary::
 
-    var1, prob1 = LpProblem.from_dict(data)
+    var1, prob1 = LpProblem.fromDict(data)
     var1
     # {'x': x, 'y': y, 'z': z}
     prob1
@@ -124,9 +124,9 @@ The same model::
 
     from pulp import *
     prob = LpProblem("test_export_dict_MIP", LpMinimize)
-    x = LpVariable("x", 0, 4)
-    y = LpVariable("y", -1, 1)
-    z = LpVariable("z", 0, None, LpInteger)
+    x = prob.add_variable("x", 0, 4)
+    y = prob.add_variable("y", -1, 1)
+    z = prob.add_variable("z", 0, None, LpInteger)
     prob += x + 4 * y + 9 * z, "obj"
     prob += x + y <= 5, "c1"
     prob += x + z >= 10, "c2"
@@ -178,13 +178,13 @@ We will use as example the model in :ref:`set-partitioning-problem`::
     possible_tables = [tuple(c) for c in pulp.allcombinations(guests, 
                                             max_table_size)]
 
+    seating_model = pulp.LpProblem("Wedding_Seating_Model", pulp.LpMinimize)
+
     #create a binary variable to state that a table setting is used
-    x = pulp.LpVariable.dicts('table', possible_tables, 
+    x = seating_model.add_variable_dicts('table', possible_tables, 
                                 lowBound = 0,
                                 upBound = 1,
                                 cat = pulp.LpInteger)
-
-    seating_model = pulp.LpProblem("Wedding_Seating_Model", pulp.LpMinimize)
 
     seating_model += pulp.lpSum([happiness(table) * x[table] for table in possible_tables])
 
@@ -203,11 +203,11 @@ We *could* directly solve the model doing::
 
 Instead, we are going to export it to a json file::
 
-    seating_model.to_json("seating_model.json")
+    seating_model.toJson("seating_model.json")
 
 And re-import it::
 
-    wedding_vars, wedding_model = LpProblem.from_json("seating_model.json")
+    wedding_vars, wedding_model = LpProblem.fromJson("seating_model.json")
 
 We inspect the variables::
 
@@ -249,6 +249,6 @@ The `json` module in python has some issues transforming numpy data types (e.g.,
             else:
                 return super(NpEncoder, self).default(obj)
 
-    wedding_model.to_json("seating_model.json", cls=NpEncoder)
+    wedding_model.toJson("seating_model.json", cls=NpEncoder)
 
 Note that this custom encoding class may not work with the `ujson` package. An alternative is to cast all values using `int()` or `float()` before using them in `pulp`.

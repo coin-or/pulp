@@ -109,28 +109,19 @@ type of LP you are trying to solve:
     :start-after: # BEGIN define_prob
     :end-before: # END define_prob
 
-The problem variables ``x1`` and ``x2`` are created using the
-:class:`~pulp.LpVariable` class. It has four parameters, the first is the
-arbitrary name of what this variable represents, the second is the lower
-bound on this variable, the third is the upper bound, and the fourth
-is essentially the type of data (discrete or continuous). The options
-for the fourth parameter are ``LpContinuous`` or ``LpInteger``, with the
-default as ``LpContinuous``. If we were modelling the number of cans
-to produce, we would need to input ``LpInteger`` since it is discrete
-data. The bounds can be entered directly as a number, or ``None`` to
-represent no bound (i.e. positive or negative infinity), with ``None``
-as the default. If the first few parameters are entered and the rest
-are ignored (as shown), they take their default values. However, if you
-wish to specify the third parameter, but you want the second to be the
-default value, you will need to specifically set the second parameter as
-it's default value. i.e you cannot leave a parameter entry blank.
+The problem variables ``x1`` and ``x2`` are created with
+:meth:`~pulp.LpProblem.add_variable` on ``prob``, after the model exists. The
+positional arguments are the name, lower bound, upper bound, and category
+(``LpContinuous`` or ``LpInteger``). Bounds may be ``None`` for no finite
+limit. If you specify only some arguments, use keyword parameters for the rest
+(e.g. ``upBound=100`` with default lower bound).
 e.g::
 
-    LpVariable("example", None, 100)
+    prob.add_variable("example", None, 100)
 
 or::
 
-    LpVariable("example", upBound = 100)
+    prob.add_variable("example", upBound = 100)
 
 To explicitly create the two variables needed for this problem:
 

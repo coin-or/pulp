@@ -41,7 +41,7 @@ prob = LpProblem("Beer Distribution Problem", LpMinimize)
 Routes = [(w, b) for w in Warehouses for b in Bars]
 
 # A dictionary called 'Vars' is created to contain the referenced variables(the routes)
-vars = LpVariable.dicts("Route", (Warehouses, Bars), 0, None, LpInteger)
+vars = prob.add_variable_dicts("Route", (Warehouses, Bars), 0, None, LpInteger)
 
 # The objective function is added to 'prob' first
 prob += (

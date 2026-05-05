@@ -2,6 +2,7 @@
 ======================================================
 
 It's just PuLP under the hood: LpVariable, LpAffineExpression and LpConstraint do the heavy lifting.
+Applications should construct variables via :meth:`pulp.LpProblem.add_variable` and related helpers so models own their variables.
 All the power of numpy for your linear variable sets: broadcasting, reshaping and indexing tricks galore. Never see a for or indexing variable ever again.
 Special support functions that allow efficient linearization of useful operations like min/max, abs, clip-to-binary, boolean operators, and more. Wide support for the axis keyword.
 

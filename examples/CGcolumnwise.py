@@ -2,6 +2,11 @@
 Columnwise Column Generation Functions
 
 Authors: Antony Phillips,  Dr Stuart Mitchell  2008
+
+This file demonstrates column-wise modelling with :class:`~pulp.LpConstraintVar` and
+``LpVariable(..., e=...)``. Those APIs are deprecated pending a PuLP 4.0 replacement;
+the examples are kept for reference. Variable construction and constraint lookups
+elsewhere use the current model-attached APIs where possible.
 """
 
 from typing import Any, Dict, List, Optional, Tuple, Union
@@ -128,7 +133,9 @@ def masterSolve(
         # A dictionary of dual variable values is returned
         duals = {}
         for i, name in zip(Pattern.lenOpts, ["Min5", "Min7", "Min9"]):
-            duals[i] = prob.constraints[name].pi
+            c = prob.get_constraint_by_name(name)
+            assert c is not None
+            duals[i] = c.pi
         return duals
     else:
         # A dictionary of variable values and the objective value are returned
@@ -147,9 +154,9 @@ def subSolve(duals: Dict[str, Optional[float]]) -> List[Union[Any, List[int]]]:
     prob = LpProblem("SubProb", LpMinimize)
 
     # The problem variables are created
-    vars = LpVariable.dicts("Roll Length", Pattern.lenOpts, 0, None, LpInteger)
+    vars = prob.add_variable_dicts("Roll Length", Pattern.lenOpts, 0, None, LpInteger)
 
-    trim = LpVariable("Trim", 0, None, LpInteger)
+    trim = prob.add_variable("Trim", 0, None, LpInteger)
 
     # The objective function is entered: the reduced cost of a new pattern
     prob += (Pattern.cost - Pattern.trimValue * trim) - lpSum(

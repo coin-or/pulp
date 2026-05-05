@@ -53,24 +53,19 @@ is done so that we can refer to parameters by meaningful names.
 .. literalinclude:: ../../../examples/Two_stage_Stochastic_GemstoneTools.py
     :lines: 54-58
 
-To define our decision variables, we use the function `pulp.LpVariable.dicts()`,
-which creates dictionaries with associated indexing values.
+To define our decision variables, we first create an
+:class:`~pulp.LpProblem`, then call ``add_variable_dicts`` and ``add_variable``
+so each variable is attached to the model (PuLP 4.0 style).
 
 .. literalinclude:: ../../../examples/Two_stage_Stochastic_GemstoneTools.py
-    :lines: 61-64
-
-
-We create the :class:`~pulp.LpProblem` and then make the objective function.
-Note that this is a maximization problem, as the goal is to maximize net revenue.
-
-.. literalinclude:: ../../../examples/Two_stage_Stochastic_GemstoneTools.py
-    :lines: 67
+    :lines: 60-67
 
 The objective function is specified using the `pulp.lpSum()` function. Note
-that it is added to the problem using `+=`.
+that this is a maximization problem, as the goal is to maximize net revenue, and
+the objective is added to the problem using `+=`.
 
 .. literalinclude:: ../../../examples/Two_stage_Stochastic_GemstoneTools.py
-    :lines: 70-79
+    :lines: 69-79
 
 We then add in constraints.  Constraints here in sets based on scenarios
 and products and are specified using the `for i in list:` notation.
@@ -85,5 +80,3 @@ scenario or product the constraint applies to.
 
 
 The full file can be found here :download:`Two_stage_Stochastic_GemstoneTools.py <../../../examples/Two_stage_Stochastic_GemstoneTools.py>`
-
-.. literalinclude:: ../../../examples/Two_stage_Stochastic_GemstoneTools.py

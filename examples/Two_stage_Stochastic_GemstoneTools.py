@@ -57,14 +57,14 @@ steel_dict = dict(zip(products, steel))
 molding_dict = dict(zip(products, molding))
 assembly_dict = dict(zip(products, assembly))
 
-# Create variables and parameters as dictionaries
-production_vars = pulp.LpVariable.dicts(
-    "production", (scenarios, products), lowBound=0, cat="Continuous"
-)
-steelpurchase = pulp.LpVariable("steelpurchase", lowBound=0, cat="Continuous")
-
 # Create the 'gemstoneprob' variable to specify
 gemstoneprob = pulp.LpProblem("The Gemstone Tool Problem", pulp.LpMaximize)
+
+# Create variables and parameters as dictionaries
+production_vars = gemstoneprob.add_variable_dicts(
+    "production", (scenarios, products), lowBound=0, cat="Continuous"
+)
+steelpurchase = gemstoneprob.add_variable("steelpurchase", lowBound=0, cat="Continuous")
 
 # The objective function is added to 'gemstoneprob' first
 gemstoneprob += (

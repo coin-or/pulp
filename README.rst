@@ -49,18 +49,12 @@ For more information on how to install solvers, see the `guide on configuring so
 Quickstart 
 ===============
 
-Use ``LpVariable`` to create new variables. To create a variable x with 0  ≤  x  ≤  3::
+Create a problem first, then add variables with ``add_variable`` (variables are owned by the model). To create a variable ``x`` with 0  ≤  x  ≤  3 and a binary variable ``y``::
 
      from pulp import *
-     x = LpVariable("x", 0, 3)
-
-To create a binary variable, y, with values either 0 or 1::
-
-     y = LpVariable("y", cat="Binary")
-
-Use ``LpProblem`` to create new problems. Create a problem called "myProblem" like so::
-
      prob = LpProblem("myProblem", LpMinimize)
+     x = prob.add_variable("x", 0, 3)
+     y = prob.add_variable("y", cat="Binary")
 
 Combine variables in order to create expressions and constraints, and then add them to the problem.::
 

@@ -2,6 +2,9 @@
 # @(#) $Jeannot: test1.py,v 1.11 2005/01/06 21:22:39 js Exp $
 # Copywrite 2007 Stuart Mitchell
 # Columnwise modelling
+#
+# Uses LpConstraintVar and LpVariable(..., e=...), which are deprecated pending a
+# PuLP 4.0 column-generation replacement; kept as a minimal column-wise example.
 
 # Import PuLP modeler functions
 from pulp import *
@@ -32,7 +35,7 @@ x = LpVariable("x", 0, 4, LpContinuous, obj + a + b)
 y = LpVariable("y", -1, 1, LpContinuous, 4 * obj + a - c)
 # 0 <= z
 z = LpVariable("z", 0, None, LpContinuous, 9 * obj + b + c)
-# Use None for +/- Infinity, i.e. z <= 0 -> LpVariable("z", None, 0)
+# Use None for +/- Infinity, i.e. z <= 0 -> prob.add_variable("z", None, 0) in row-wise models
 
 
 # Write the problem as an LP file

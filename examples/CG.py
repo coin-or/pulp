@@ -2,6 +2,10 @@
 Column Generation Functions
 
 Authors: Antony Phillips,  Dr Stuart Mitchell  2008
+
+This module uses the row-oriented master/subproblem split. Non-legacy APIs are used
+for variables and constraint lookups; the overall column-generation workflow remains
+the standard approach for cutting stock.
 """
 
 from typing import Dict, List, Optional, Tuple, Union
@@ -51,8 +55,8 @@ def masterSolve(
         vartype = LpInteger
 
     # The problem variables are created
-    pattVars = LpVariable.dicts("Pattern", Patterns, 0, None, vartype)
-    surplusVars = LpVariable.dicts("Surplus", Pattern.lenOpts, 0, None, vartype)
+    pattVars = prob.add_variable_dicts("Pattern", Patterns, 0, None, vartype)
+    surplusVars = prob.add_variable_dicts("Surplus", Pattern.lenOpts, 0, None, vartype)
 
     # The objective function is entered: (the total number of large rolls used * the cost of each) -
     # (the value of the surplus stock) - (the value of the trim)
@@ -80,7 +84,9 @@ def masterSolve(
         # Creates a dual variables list
         duals = {}
         for name, i in zip(["Min5", "Min7", "Min9"], Pattern.lenOpts):
-            duals[i] = prob.constraints[name].pi
+            c = prob.get_constraint_by_name(name)
+            assert c is not None
+            duals[i] = c.pi
 
         return duals
 
@@ -107,9 +113,9 @@ def subSolve(
     prob = LpProblem("SubProb", LpMinimize)
 
     # The problem variables are created
-    _vars = LpVariable.dicts("Roll Length", Pattern.lenOpts, 0, None, LpInteger)
+    _vars = prob.add_variable_dicts("Roll Length", Pattern.lenOpts, 0, None, LpInteger)
 
-    trim = LpVariable("Trim", 0, None, LpInteger)
+    trim = prob.add_variable("Trim", 0, None, LpInteger)
 
     # The objective function is entered: the reduced cost of a new pattern
     prob += (Pattern.cost - Pattern.trimValue * trim) - lpSum(
