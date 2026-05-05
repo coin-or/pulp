@@ -68,8 +68,8 @@ arcData = {  #      ARC                Cost Min Max
 }
 
 # Splits the dictionaries to be more understandable
-(supply, demand) = splitDict(nodeData)
-(costs, mins, maxs) = splitDict(arcData)
+supply, demand = splitDict(nodeData)
+costs, mins, maxs = splitDict(arcData)
 
 # Creates the 'prob' variable to contain the problem data
 prob = LpProblem("American Steel Problem", LpMinimize)

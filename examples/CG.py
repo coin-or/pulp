@@ -43,7 +43,7 @@ def masterSolve(
     relax: bool = True,
 ) -> Union[Dict[str, Optional[float]], Tuple[float, Dict[str, int]]]:
     # The rollData is made into separate dictionaries
-    (rollDemand, surplusPrice) = splitDict(rollData)
+    rollDemand, surplusPrice = splitDict(rollData)
 
     # The variable 'prob' is created
     prob = LpProblem("Cutting Stock Problem", LpMinimize)

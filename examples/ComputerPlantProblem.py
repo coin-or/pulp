@@ -43,7 +43,7 @@ costs = [  # Stores
 Routes = [(p, s) for p in Plants for s in Stores]
 
 # Splits the dictionaries to be more understandable
-(supply, fixedCost) = splitDict(supplyData)
+supply, fixedCost = splitDict(supplyData)
 
 # The cost data is made into a dictionary
 costs_dict = makeDict([Plants, Stores], costs, 0)

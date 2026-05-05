@@ -32,7 +32,7 @@ cost = 1
 trimValue = 0.04
 
 # The rollData is made into separate dictionaries
-(rollDemand, surplusPrice) = splitDict(rollData)
+rollDemand, surplusPrice = splitDict(rollData)
 
 # The pattern data is made into a dictionary
 patterns_dict = makeDict([LenOpts, PatternNames], patterns, 0)

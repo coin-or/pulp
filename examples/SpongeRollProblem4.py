@@ -106,7 +106,7 @@ rollData = {5: [150, 0.25], 7: [200, 0.33], 9: [300, 0.40]}  # Length Demand Sal
 Patterns = makePatterns(Pattern.totalRollLength, Pattern.lenOpts)
 
 # The rollData is made into separate dictionaries
-(rollDemand, surplusPrice) = splitDict(rollData)
+rollDemand, surplusPrice = splitDict(rollData)
 
 # The variable 'prob' is created
 prob = LpProblem("Cutting Stock Problem", LpMinimize)

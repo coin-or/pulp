@@ -102,12 +102,10 @@ rollData = {  # Length Demand SalePrice
 # The pattern names and the patterns are created as lists, and the associated trim with each pattern
 # is created as a dictionary. The inputs are the total roll length and the list (as integers) of
 # cutting options.
-(PatternNames, patterns, trim) = makePatterns(
-    totalRollLength, [int(l) for l in LenOpts]
-)
+PatternNames, patterns, trim = makePatterns(totalRollLength, [int(l) for l in LenOpts])
 
 # The RollData is made into separate dictionaries
-(rollDemand, surplusPrice) = splitDict(rollData)
+rollDemand, surplusPrice = splitDict(rollData)
 
 # The pattern data  is made into a dictionary so it can be called by patterns["7"]["P3"] for example.
 # This will return the number of rolls of length "7" in pattern "P3"

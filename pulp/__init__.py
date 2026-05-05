@@ -30,7 +30,6 @@ Module file that imports all of the pulp functions
 Copyright 2007- Stuart Mitchell (s.mitchell@auckland.ac.nz)
 """
 
-
 # Pre-load highspy's C extension with RTLD_GLOBAL before any other imports.
 # highspy._core uses C++ exception handling (__cxa_throw etc.) that must be globally
 # visible when pulp._rustcore (a Rust/pyo3 extension) is later loaded into the same

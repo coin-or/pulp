@@ -48,7 +48,7 @@ def createMaster() -> Tuple[LpProblem, LpConstraintVar, Dict[str, LpConstraintVa
         "9": [300, 0.40],
     }
 
-    (rollDemand, surplusPrice) = splitDict(rollData)
+    rollDemand, surplusPrice = splitDict(rollData)
 
     # The variable 'prob' is created
     prob = LpProblem("MasterSpongeRollProblem", LpMinimize)
