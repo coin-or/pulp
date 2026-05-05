@@ -29,8 +29,8 @@ def create_bin_packing_problem(bins, seed=0):
     bin_indices = [i for i in range(len(items))]
     item_indices = [i for i in range(len(items))]
 
-    using_bin = LpVariable.dicts("y", bin_indices, cat=LpBinary)
-    items_packed = LpVariable.dicts(
+    using_bin = prob.add_variable_dicts("y", bin_indices, cat=LpBinary)
+    items_packed = prob.add_variable_dicts(
         "x", indices=product(item_indices, bin_indices), cat=LpBinary
     )
 

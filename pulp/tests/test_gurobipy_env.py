@@ -1,6 +1,6 @@
 import unittest
 
-from pulp import GUROBI, LpProblem, LpVariable, const
+from pulp import GUROBI, LpProblem, const
 
 try:
     import gurobipy as gp  # type: ignore[import-not-found, import-untyped, unused-ignore]
@@ -31,9 +31,9 @@ def is_single_use_license() -> bool:
 
 def generate_lp() -> LpProblem:
     prob = LpProblem("test", const.LpMaximize)
-    x = LpVariable("x", 0, 1)
-    y = LpVariable("y", 0, 1)
-    z = LpVariable("z", 0, 1)
+    x = prob.add_variable("x", 0, 1)
+    y = prob.add_variable("y", 0, 1)
+    z = prob.add_variable("z", 0, 1)
     prob += x + y + z, "obj"
     prob += x + y + z <= 1, "c1"
     return prob
