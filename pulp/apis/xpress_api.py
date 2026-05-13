@@ -107,17 +107,12 @@ class XPRESS(LpSolver_CMD):
         """True if the solver is available"""
         if self.executable(self.path):
             return True
-        try:
-            import xpress  # noqa: F401
-
-            warnings.warn(
-                "Xpress optimizer binary not found. "
-                "Consider using XPRESS_PY instead: pip install xpress",
-                UserWarning,
-                stacklevel=2,
-            )
-        except ImportError:
-            pass
+        warnings.warn(
+            "Xpress optimizer binary not found. "
+            "Consider using XPRESS_PY instead: pip install xpress",
+            UserWarning,
+            stacklevel=2,
+        )
         return False
 
     def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
