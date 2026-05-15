@@ -456,8 +456,8 @@ class HiGHS(LpSolver):
                     constants.LpSolutionInfeasible,
                 ),
                 HighsModelStatus.kUnboundedOrInfeasible: (
-                    constants.LpStatusInfeasible,
-                    constants.LpSolutionInfeasible,
+                    constants.LpStatusUndefined,
+                    constants.LpSolutionNoSolutionFound,
                 ),
                 HighsModelStatus.kUnbounded: (
                     constants.LpStatusUnbounded,

@@ -928,7 +928,7 @@ class COPT(LpSolver):
                 coptpy.COPT.OPTIMAL: LpStatusOptimal,
                 coptpy.COPT.INFEASIBLE: LpStatusInfeasible,
                 coptpy.COPT.UNBOUNDED: LpStatusUnbounded,
-                coptpy.COPT.INF_OR_UNB: LpStatusInfeasible,
+                coptpy.COPT.INF_OR_UNB: LpStatusUndefined,
                 coptpy.COPT.NUMERICAL: LpStatusNotSolved,
                 coptpy.COPT.NODELIMIT: LpStatusNotSolved,
                 coptpy.COPT.IMPRECISE: LpStatusNotSolved,
