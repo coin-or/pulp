@@ -60,7 +60,9 @@ def lpSum_vars_coefs(pairs: Iterable[tuple[LpVariable, float]]) -> LpAffineExpre
     plist = list(pairs)
     if not plist:
         return LpAffineExpression.empty()
-    ptr = plist[0][0]._var.model_identity()
+    my_var = plist[0][0]._var
+    ptr = my_var.model_identity()
+    model = my_var.containing_model()
     ids = array.array("Q")
     coeffs = array.array("d")
     for v, c in plist:
@@ -74,7 +76,7 @@ def lpSum_vars_coefs(pairs: Iterable[tuple[LpVariable, float]]) -> LpAffineExpre
             )
         ids.append(v.id)
         coeffs.append(float(c))
-    model = plist[0][0]._var.containing_model()
+
     e = LpAffineExpression.empty()
     e._expr.add_term_ids_coeffs(model, ids, coeffs)
     return e

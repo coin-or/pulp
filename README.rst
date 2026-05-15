@@ -114,10 +114,15 @@ You can get the value of the variables using ``value``. ex::
 Essential Classes
 ------------------
 
+These types form the usual modelling workflow: create an ``LpProblem``, attach
+``LpVariable`` instances with ``add_variable``, build linear expressions (often
+with ``lpSum`` / ``lpDot`` / ``lpSum_vars`` / ``lpSum_vars_coefs``), combine them
+into ``LpConstraint`` rows, and call ``solve``.
 
-* ``LpProblem`` -- Container class for a Linear or Integer programming problem
-* ``LpVariable`` -- Variables that are added into constraints in the LP problem
-* ``LpConstraint`` -- Constraints of the general form
+* ``LpProblem`` -- Container for an LP or MIP: variables, objective, constraints, and solve API
+* ``LpVariable`` -- A decision variable belonging to one problem; used inside expressions and constraints
+* ``LpAffineExpression`` -- A linear combination of variables and a constant (objectives, constraint bodies, intermediate terms)
+* ``LpConstraint`` -- A single row relating an affine expression to a bound with ``<=``, ``=``, or ``>=``:
 
       a1x1 + a2x2 + ... + anxn (<=, =, >=) b
 
@@ -127,6 +132,8 @@ Useful Functions
 * ``value()`` -- Finds the value of a variable or expression
 * ``lpSum()`` -- Given a list of the form [a1*x1, a2*x2, ..., an*xn] will construct a linear expression to be used as a constraint or variable
 * ``lpDot()`` -- Given two lists of the form [a1, a2, ..., an] and [x1, x2, ..., xn] will construct a linear expression to be used as a constraint or variable
+* ``lpSum_vars()`` -- Sum of variables with coefficient 1 each (batch construction)
+* ``lpSum_vars_coefs()`` -- Sum of ``coeff * var`` pairs from an iterable of ``(variable, coefficient)`` (batch construction)
 
 More Examples
 ================
@@ -154,7 +161,7 @@ This version of PuLP includes a Rust extension (``pulp._rustcore``) that provide
 
 * **Python** 3.9 or newer
 * **Rust** (latest stable). Install from https://rustup.rs/
-* **uv** (recommended for install and dev). Install with: ``curl -LsSf https://astral.sh/uv/install.sh | sh`` (Linux/macOS) or ``powershell -c "irm https://astral.sh/uv/install.ps1 | iex"`` (Windows)
+* **uv** (recommended for install and dev). See the `uv documentation <https://docs.astral.sh/uv/>`_ for installation.
 * **OS**: Windows, macOS (x86_64, arm64), or Linux (x86_64, arm64). The Rust extension is built for the host platform.
 
 **Build steps**
