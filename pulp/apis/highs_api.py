@@ -483,6 +483,14 @@ class HiGHS(LpSolver):
                     constants.LpStatusOptimal,
                     constants.LpSolutionIntegerFeasible,
                 ),
+                HighsModelStatus.kSolutionLimit: (
+                    constants.LpStatusOptimal,
+                    constants.LpSolutionIntegerFeasible,
+                ),
+                HighsModelStatus.kMemoryLimit: (
+                    constants.LpStatusNotSolved,
+                    constants.LpSolutionNoSolutionFound,
+                ),
                 HighsModelStatus.kUnknown: (
                     constants.LpStatusNotSolved,
                     constants.LpSolutionNoSolutionFound,
@@ -513,6 +521,7 @@ class HiGHS(LpSolver):
             if obj_value == float(inf) and status in (
                 HighsModelStatus.kTimeLimit,
                 HighsModelStatus.kIterationLimit,
+                HighsModelStatus.kSolutionLimit,
             ):
                 return (
                     constants.LpStatusNotSolved,
