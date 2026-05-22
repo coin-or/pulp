@@ -191,7 +191,7 @@ class GUROBI(LpSolver):
             gurobiLpStatus = {
                 GRB.OPTIMAL: constants.LpStatusOptimal,
                 GRB.INFEASIBLE: constants.LpStatusInfeasible,
-                GRB.INF_OR_UNBD: constants.LpStatusInfeasible,
+                GRB.INF_OR_UNBD: constants.LpStatusUndefined,
                 GRB.UNBOUNDED: constants.LpStatusUnbounded,
                 GRB.ITERATION_LIMIT: constants.LpStatusNotSolved,
                 GRB.NODE_LIMIT: constants.LpStatusNotSolved,

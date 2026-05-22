@@ -54,7 +54,7 @@ SOLSTATUS_TO_STATUS = {
     "FEASIBLE": constants.LpStatusNotSolved,
     "INFEASIBLE": constants.LpStatusInfeasible,
     "UNBOUNDED": constants.LpStatusUnbounded,
-    "INFEASIBLE_OR_UNBOUNDED": constants.LpStatusUnbounded,
+    "INFEASIBLE_OR_UNBOUNDED": constants.LpStatusUndefined,
     "SOLUTION_LIM": constants.LpStatusNotSolved,
     "NODE_LIM_SOL": constants.LpStatusNotSolved,
     "NODE_LIM_NOSOL": constants.LpStatusNotSolved,

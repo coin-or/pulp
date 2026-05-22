@@ -782,7 +782,19 @@ class BaseSolverTest:
                 pulpTestCheck(
                     prob,
                     self.solver,
-                    [const.LpStatusInfeasible, const.LpStatusUnbounded],
+                    [
+                        const.LpStatusInfeasible,
+                        const.LpStatusUnbounded,
+                        const.LpStatusUndefined,
+                    ],
+                )
+            elif self.solver.name == "CUOPT":
+                # cuOpt reports UnboundedOrInfeasible (mapped to Undefined)
+                # for problems where its presolver cannot disambiguate.
+                pulpTestCheck(
+                    prob,
+                    self.solver,
+                    [const.LpStatusUnbounded, const.LpStatusUndefined],
                 )
             elif self.solver.name in ["COINMP_DLL", "MIPCL_CMD"]:
                 # COINMP_DLL is just plain wrong
@@ -793,14 +805,22 @@ class BaseSolverTest:
                 pulpTestCheck(prob, self.solver, [const.LpStatusUndefined])
             elif self.solver.name in ["GUROBI_CMD", "SCIP_CMD", "SCIP_PY"]:
                 # GUROBI_CMD has a very simple interface
-                pulpTestCheck(prob, self.solver, [const.LpStatusNotSolved])
+                pulpTestCheck(
+                    prob,
+                    self.solver,
+                    [const.LpStatusNotSolved, const.LpStatusUndefined],
+                )
             elif self.solver.name in ["CHOCO_CMD", "HiGHS_CMD", "FSCIP_CMD"]:
                 # choco bounds all variables. Would not return unbounded status
                 # highs_cmd is inconsistent
                 # FSCIP_CMD is inconsistent
                 pass
             else:
-                pulpTestCheck(prob, self.solver, [const.LpStatusUnbounded])
+                pulpTestCheck(
+                    prob,
+                    self.solver,
+                    [const.LpStatusUnbounded, const.LpStatusUndefined],
+                )
 
         def test_long_var_name(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
@@ -1137,16 +1157,25 @@ class BaseSolverTest:
             prob += c1 + c2 == 2
             prob += c1 <= 0
             if self.solver.name in ["GUROBI_CMD", "SCIP_CMD", "FSCIP_CMD", "SCIP_PY"]:
-                pulpTestCheck(prob, self.solver, [const.LpStatusNotSolved])
-            elif self.solver.name in ["GLPK_CMD"]:
-                # GLPK_CMD returns InfeasibleOrUnbounded
+                pulpTestCheck(
+                    prob,
+                    self.solver,
+                    [const.LpStatusNotSolved, const.LpStatusUndefined],
+                )
+            elif self.solver.name in ["GLPK_CMD", "CUOPT"]:
+                # These solvers may return InfeasibleOrUnbounded (reported as
+                # Undefined) rather than proving infeasibility.
                 pulpTestCheck(
                     prob,
                     self.solver,
                     [const.LpStatusInfeasible, const.LpStatusUndefined],
                 )
             else:
-                pulpTestCheck(prob, self.solver, [const.LpStatusInfeasible])
+                pulpTestCheck(
+                    prob,
+                    self.solver,
+                    [const.LpStatusInfeasible, const.LpStatusUndefined],
+                )
 
         def test_dual_variables_reduced_costs(self):
             """

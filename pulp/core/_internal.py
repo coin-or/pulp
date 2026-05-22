@@ -28,6 +28,14 @@ def _rust_cat_to_const(rust_cat: _rustcore.Category) -> str:
     return const.LpContinuous
 
 
+def _const_to_rust_cat(const_str: str) -> _rustcore.Category:
+    if const_str == const.LpBinary:
+        return _rustcore.Category.Binary
+    if const_str == const.LpInteger:
+        return _rustcore.Category.Integer
+    return _rustcore.Category.Continuous
+
+
 def _rust_sense_to_const(rsense: _rustcore.Sense) -> int:
     if rsense == _rustcore.Sense.LessEqual:
         return const.LpConstraintLE

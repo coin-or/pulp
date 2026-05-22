@@ -112,6 +112,12 @@ class CUOPT(LpSolver):
                 7: LpStatusNotSolved,  # Primal Feasible
                 8: LpStatusNotSolved,  # Feasible Found
                 9: LpStatusNotSolved,  # Concurrent Limit
+                10: LpStatusNotSolved,  # Work Limit
+                # cuOpt returns UnboundedOrInfeasible when the presolver
+                # detects one of the two but cannot disambiguate. PuLP has
+                # no combined status, so map to Undefined (matches how
+                # GLPK_CMD reports the same situation).
+                11: LpStatusUndefined,  # Unbounded or Infeasible
             }
 
             status = CuoptStatus.get(solutionStatus, LpStatusUndefined)

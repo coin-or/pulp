@@ -456,8 +456,8 @@ class HiGHS(LpSolver):
                     constants.LpSolutionInfeasible,
                 ),
                 HighsModelStatus.kUnboundedOrInfeasible: (
-                    constants.LpStatusInfeasible,
-                    constants.LpSolutionInfeasible,
+                    constants.LpStatusUndefined,
+                    constants.LpSolutionNoSolutionFound,
                 ),
                 HighsModelStatus.kUnbounded: (
                     constants.LpStatusUnbounded,
@@ -482,6 +482,14 @@ class HiGHS(LpSolver):
                 HighsModelStatus.kIterationLimit: (
                     constants.LpStatusOptimal,
                     constants.LpSolutionIntegerFeasible,
+                ),
+                HighsModelStatus.kSolutionLimit: (
+                    constants.LpStatusOptimal,
+                    constants.LpSolutionIntegerFeasible,
+                ),
+                HighsModelStatus.kMemoryLimit: (
+                    constants.LpStatusNotSolved,
+                    constants.LpSolutionNoSolutionFound,
                 ),
                 HighsModelStatus.kUnknown: (
                     constants.LpStatusNotSolved,
@@ -513,6 +521,7 @@ class HiGHS(LpSolver):
             if obj_value == float(inf) and status in (
                 HighsModelStatus.kTimeLimit,
                 HighsModelStatus.kIterationLimit,
+                HighsModelStatus.kSolutionLimit,
             ):
                 return (
                     constants.LpStatusNotSolved,

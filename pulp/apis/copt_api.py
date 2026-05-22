@@ -928,9 +928,10 @@ class COPT(LpSolver):
                 coptpy.COPT.OPTIMAL: LpStatusOptimal,
                 coptpy.COPT.INFEASIBLE: LpStatusInfeasible,
                 coptpy.COPT.UNBOUNDED: LpStatusUnbounded,
-                coptpy.COPT.INF_OR_UNB: LpStatusInfeasible,
+                coptpy.COPT.INF_OR_UNB: LpStatusUndefined,
                 coptpy.COPT.NUMERICAL: LpStatusNotSolved,
                 coptpy.COPT.NODELIMIT: LpStatusNotSolved,
+                coptpy.COPT.IMPRECISE: LpStatusNotSolved,
                 coptpy.COPT.TIMEOUT: LpStatusNotSolved,
                 coptpy.COPT.UNFINISHED: LpStatusNotSolved,
                 coptpy.COPT.INTERRUPTED: LpStatusNotSolved,
@@ -941,7 +942,8 @@ class COPT(LpSolver):
 
             status = CoptLpStatus.get(solutionStatus, LpStatusUndefined)
             lp.assignStatus(status)
-            if status != LpStatusOptimal:
+            hasMipSol = model.ismip and model.getAttr("HasMipSol")
+            if status != LpStatusOptimal and not hasMipSol:
                 return status
 
             values = model.getInfo("Value", model.getVars())

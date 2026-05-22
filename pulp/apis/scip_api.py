@@ -103,7 +103,7 @@ class SCIP_CMD(LpSolver_CMD):
         "optimal solution found": constants.LpStatusOptimal,
         "infeasible": constants.LpStatusInfeasible,
         "unbounded": constants.LpStatusUnbounded,
-        "infeasible or unbounded": constants.LpStatusNotSolved,
+        "infeasible or unbounded": constants.LpStatusUndefined,
     }
     NO_SOLUTION_STATUSES = {
         constants.LpStatusInfeasible,
@@ -536,7 +536,7 @@ class SCIP_PY(LpSolver):
                 "optimal": constants.LpStatusOptimal,
                 "unbounded": constants.LpStatusUnbounded,
                 "infeasible": constants.LpStatusInfeasible,
-                "inforunbd": constants.LpStatusNotSolved,
+                "inforunbd": constants.LpStatusUndefined,
                 "timelimit": constants.LpStatusNotSolved,
                 "userinterrupt": constants.LpStatusNotSolved,
                 "nodelimit": constants.LpStatusNotSolved,

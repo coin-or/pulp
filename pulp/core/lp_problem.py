@@ -18,7 +18,7 @@ from .. import mps_lp as mpslp
 from ..apis import LpSolverDefault
 from ..apis.core import LpSolver, clock
 from ..utilities import value
-from ._internal import _const_to_rust_sense, _is_numpy_bool
+from ._internal import _const_to_rust_cat, _const_to_rust_sense, _is_numpy_bool
 from .lp_affine_expression import LpAffineExpression
 from .lp_constraint import LpConstraint
 from .lp_variable import LpVariable
@@ -139,15 +139,7 @@ class LpProblem:
             lb = lowBound
         if upBound is not None and math.isfinite(upBound):
             ub = upBound
-        rcat = (
-            _rustcore.Category.Binary
-            if cat == const.LpBinary
-            else (
-                _rustcore.Category.Integer
-                if cat == const.LpInteger
-                else _rustcore.Category.Continuous
-            )
-        )
+        rcat = _const_to_rust_cat(cat)
         rvar = self._model.add_variable(name, lb, ub, rcat)
         return LpVariable(rvar)
 
@@ -174,15 +166,7 @@ class LpProblem:
         if cat == const.LpBinary:
             lb, ub = 0.0, 1.0
             cat = const.LpInteger
-        rcat = (
-            _rustcore.Category.Binary
-            if cat == const.LpBinary
-            else (
-                _rustcore.Category.Integer
-                if cat == const.LpInteger
-                else _rustcore.Category.Continuous
-            )
-        )
+        rcat = _const_to_rust_cat(cat)
         if len(indices_rest) == 0:
             names = [name % tuple(indexStart + [str(i)]) for i in index]
             vars_ = self._model.add_variables_batch(names, lb, ub, rcat)
@@ -234,15 +218,7 @@ class LpProblem:
         if cat == const.LpBinary:
             lb, ub = 0.0, 1.0
             cat = const.LpInteger
-        rcat = (
-            _rustcore.Category.Binary
-            if cat == const.LpBinary
-            else (
-                _rustcore.Category.Integer
-                if cat == const.LpInteger
-                else _rustcore.Category.Continuous
-            )
-        )
+        rcat = _const_to_rust_cat(cat)
         vars_ = self._model.add_variables_batch(names, lb, ub, rcat)
         return {i: LpVariable(v) for i, v in zip(index, vars_)}
 
@@ -269,15 +245,7 @@ class LpProblem:
         if cat == const.LpBinary:
             lb, ub = 0.0, 1.0
             cat = const.LpInteger
-        rcat = (
-            _rustcore.Category.Binary
-            if cat == const.LpBinary
-            else (
-                _rustcore.Category.Integer
-                if cat == const.LpInteger
-                else _rustcore.Category.Continuous
-            )
-        )
+        rcat = _const_to_rust_cat(cat)
         if len(indices_rest) == 0:
             names = [name % tuple(indexStart + [i]) for i in index]
             vars_ = self._model.add_variables_batch(names, lb, ub, rcat)
