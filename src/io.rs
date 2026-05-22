@@ -1,7 +1,8 @@
 //! I/O functions for writing LP and MPS files, and reading MPS files.
 //! These operate directly on ModelCore data for performance.
 
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
+use std::io::{BufWriter, Write};
 use std::sync::Arc;
 
 use indexmap::IndexMap;
@@ -15,10 +16,8 @@ use crate::types::{lock_model, Category, ModelCore, ObjSense, Sense, SosKind, Va
 use crate::variable::Variable;
 
 macro_rules! writeln_mps {
-    ($f:expr, $($arg:tt)*) => {{
-        std::io::Write::write_fmt(&mut $f, format_args!($($arg)*))
-            .map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
-        std::io::Write::write_fmt(&mut $f, format_args!("\n"))
+    ($f:expr, $fmt:literal $(, $arg:expr)* $(,)?) => {{
+        std::io::Write::write_fmt(&mut $f, format_args!(concat!($fmt, "\n") $(, $arg)*))
             .map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
     }};
 }
@@ -209,6 +208,282 @@ pub fn write_lp(
 
 // ── writeMPS ──
 
+const MPS_BUFWRITER_CAPACITY: usize = 1 << 20;
+
+pub(crate) struct MpsWriter<W: Write> {
+    out: W,
+}
+
+impl<W: Write> MpsWriter<W> {
+    fn new(out: W) -> Self {
+        Self { out }
+    }
+
+    fn write_column_entry(&mut self, vname: &str, row: &str, coeff: f64) -> PyResult<()> {
+        self.out
+            .write_fmt(format_args!("    {:<8}  {:<8}  ", vname, row))
+            .map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+        format::write_mps_float(&mut self.out, coeff)
+            .map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+        self.out
+            .write_all(b"\n")
+            .map_err(|e| PyRuntimeError::new_err(e.to_string()))
+    }
+
+    fn finish(mut self) -> PyResult<()> {
+        self.out
+            .flush()
+            .map_err(|e| PyRuntimeError::new_err(e.to_string()))
+    }
+}
+
+impl<W: Write> Write for MpsWriter<W> {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        self.out.write(buf)
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        self.out.flush()
+    }
+}
+
+impl MpsWriter<BufWriter<std::fs::File>> {
+    fn create(path: &str) -> PyResult<Self> {
+        let f = std::fs::File::create(path)
+            .map_err(|e| PyRuntimeError::new_err(format!("Cannot create file: {}", e)))?;
+        Ok(Self::new(BufWriter::with_capacity(
+            MPS_BUFWRITER_CAPACITY,
+            f,
+        )))
+    }
+}
+
+#[cfg(test)]
+impl MpsWriter<Vec<u8>> {
+    fn in_memory() -> Self {
+        Self::new(Vec::with_capacity(64 * 1024))
+    }
+
+    fn into_bytes(self) -> Vec<u8> {
+        self.out
+    }
+}
+
+struct MpsWriteParams<'a> {
+    mps_sense: i32,
+    mip: bool,
+    with_objsense: bool,
+    rename: bool,
+    model_name: &'a str,
+    obj_name: &'a str,
+}
+
+fn build_mps_names(
+    core: &ModelCore,
+    used: &[VarId],
+    pulp_names: &[String],
+    rename: bool,
+    obj_name: &str,
+) -> (Vec<String>, Vec<String>, String) {
+    let file_obj_name = if rename {
+        "OBJ".to_string()
+    } else {
+        obj_name.to_string()
+    };
+    let var_names: Vec<String> = if rename {
+        (0..used.len()).map(|j| format!("X{:07}", j)).collect()
+    } else {
+        pulp_names.to_vec()
+    };
+    let constr_names: Vec<String> = if rename {
+        (0..core.constraints.len())
+            .map(|i| format!("C{:07}", i))
+            .collect()
+    } else {
+        core.constraints.iter().map(|cd| cd.name.clone()).collect()
+    };
+    (var_names, constr_names, file_obj_name)
+}
+
+fn emit_mps_into<W: Write>(
+    w: &mut MpsWriter<W>,
+    core: &ModelCore,
+    used: &[VarId],
+    var_names: &[String],
+    constr_names: &[String],
+    obj_map: &[Option<f64>],
+    params: &MpsWriteParams<'_>,
+) -> PyResult<()> {
+    let sense_label = if params.mps_sense == -1 {
+        "Maximize"
+    } else {
+        "Minimize"
+    };
+    let sense_mps = if params.mps_sense == -1 { "MAX" } else { "MIN" };
+    let file_obj_name = if params.rename {
+        "OBJ"
+    } else {
+        params.obj_name
+    };
+
+    if params.with_objsense {
+        writeln_mps!(&mut *w, "OBJSENSE");
+        writeln_mps!(&mut *w, " {}", sense_mps);
+    } else {
+        writeln_mps!(&mut *w, "*SENSE:{}", sense_label);
+    }
+    writeln_mps!(
+        &mut *w,
+        "{}          {}",
+        MpsSection::Name.as_token(),
+        params.model_name
+    );
+
+    writeln_mps!(&mut *w, "{}", MpsSection::Rows.as_token());
+    writeln_mps!(
+        &mut *w,
+        " {}  {}",
+        MpsRowType::Objective.as_token(),
+        file_obj_name
+    );
+    for (ci, cd) in core.constraints.iter().enumerate() {
+        writeln_mps!(
+            &mut *w,
+            " {}  {}",
+            sense_to_mps_row_type(cd.sense).as_token(),
+            constr_names[ci]
+        );
+    }
+
+    let mut coefs: Vec<Vec<(usize, f64)>> = vec![Vec::new(); core.vars.len()];
+    for (ci, cd) in core.constraints.iter().enumerate() {
+        for (&vid, &coeff) in &cd.coeffs {
+            coefs[vid].push((ci, coeff));
+        }
+    }
+
+    writeln_mps!(&mut *w, "{}", MpsSection::Columns.as_token());
+    for (j, &vi) in used.iter().enumerate() {
+        let vd = &core.vars[vi];
+        let cat = vd.category;
+        let vname = &var_names[j];
+        if params.mip && (cat == Category::Integer || cat == Category::Binary) {
+            writeln_mps!(
+                &mut *w,
+                "    MARK      {}                 {}",
+                MPS_COLUMNS_MARKER,
+                MpsMarker::IntOrg.as_token()
+            );
+        }
+        for &(ci, coeff) in &coefs[vi] {
+            let constr_name = constr_names[ci].as_str();
+            w.write_column_entry(vname, constr_name, coeff)?;
+        }
+        if let Some(obj_coeff) = obj_map[vi] {
+            w.write_column_entry(vname, file_obj_name, obj_coeff)?;
+        }
+        if params.mip && (cat == Category::Integer || cat == Category::Binary) {
+            writeln_mps!(
+                &mut *w,
+                "    MARK      {}                 {}",
+                MPS_COLUMNS_MARKER,
+                MpsMarker::IntEnd.as_token()
+            );
+        }
+    }
+
+    writeln_mps!(&mut *w, "{}", MpsSection::Rhs.as_token());
+    for (ci, cd) in core.constraints.iter().enumerate() {
+        let rhs = if cd.rhs == 0.0 { 0.0 } else { cd.rhs };
+        let constr_name = constr_names[ci].as_str();
+        w.out
+            .write_fmt(format_args!("    RHS       {:<8}  ", constr_name))
+            .map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+        format::write_mps_float(&mut w.out, rhs)
+            .map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+        w.out
+            .write_all(b"\n")
+            .map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+    }
+
+    writeln_mps!(&mut *w, "{}", MpsSection::Bounds.as_token());
+    for (j, &vi) in used.iter().enumerate() {
+        let vd = &core.vars[vi];
+        let vname = &var_names[j];
+        let lb = if vd.lb.is_finite() {
+            Some(vd.lb)
+        } else {
+            None
+        };
+        let ub = if vd.ub.is_finite() {
+            Some(vd.ub)
+        } else {
+            None
+        };
+        format::write_mps_bound_lines(&mut w.out, vname, lb, ub, vd.category, params.mip)
+            .map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+    }
+
+    writeln_mps!(&mut *w, "{}", MpsSection::Endata.as_token());
+    Ok(())
+}
+
+#[cfg(test)]
+pub(crate) fn write_mps_buffer(
+    core: &ModelCore,
+    mps_sense: i32,
+    mip: bool,
+    with_objsense: bool,
+    rename: bool,
+    model_name: &str,
+    obj_name: &str,
+) -> PyResult<Vec<u8>> {
+    core.check_duplicate_var_names()?;
+    core.check_duplicate_constraint_names()?;
+
+    let used = core.used_var_ids();
+    let pulp_names: Vec<String> = used
+        .iter()
+        .map(|&vid| core.vars[vid].name.clone())
+        .collect();
+
+    let mut obj_map: Vec<Option<f64>> = vec![None; core.vars.len()];
+    if let Some(ref expr) = core.objective {
+        let sign = if !with_objsense && mps_sense == -1 {
+            -1.0
+        } else {
+            1.0
+        };
+        for (&vid, &coeff) in &expr.terms {
+            obj_map[vid] = Some(coeff * sign);
+        }
+    }
+
+    let (var_names, constr_names, _file_obj_name) =
+        build_mps_names(core, &used, &pulp_names, rename, obj_name);
+
+    let params = MpsWriteParams {
+        mps_sense,
+        mip,
+        with_objsense,
+        rename,
+        model_name: if rename { "MODEL" } else { model_name },
+        obj_name,
+    };
+
+    let mut w = MpsWriter::in_memory();
+    emit_mps_into(
+        &mut w,
+        core,
+        &used,
+        &var_names,
+        &constr_names,
+        &obj_map,
+        &params,
+    )?;
+    Ok(w.into_bytes())
+}
+
 /// Write an MPS file from the Model (only used variable columns).
 /// Returns `(variable_names, constraint_names, objective_name, pulp_names_in_column_order)`:
 /// `variable_names` are file tokens (`X0000000` when `rename`); `pulp_names_in_column_order`
@@ -235,154 +510,48 @@ pub fn write_mps(
         .map(|&vid| core.vars[vid].name.clone())
         .collect();
 
-    let sense_label = if mps_sense == -1 {
-        "Maximize"
-    } else {
-        "Minimize"
-    };
-    let sense_mps = if mps_sense == -1 { "MAX" } else { "MIN" };
-
-    // Build objective map from core.
-    let mut obj_map: HashMap<usize, f64> = HashMap::new();
+    let mut obj_map: Vec<Option<f64>> = vec![None; core.vars.len()];
     if let Some(ref expr) = core.objective {
-        let sign = if !with_objsense && mps_sense == -1 { -1.0 } else { 1.0 };
+        let sign = if !with_objsense && mps_sense == -1 {
+            -1.0
+        } else {
+            1.0
+        };
         for (&vid, &coeff) in &expr.terms {
-            obj_map.insert(vid, coeff * sign);
+            obj_map[vid] = Some(coeff * sign);
         }
     }
 
-    let file_model_name = if rename { "MODEL" } else { model_name };
-    let file_obj_name = if rename { "OBJ" } else { obj_name };
+    let (var_names, constr_names, file_obj_name) =
+        build_mps_names(&core, &used, &pulp_names, rename, obj_name);
 
-    let var_names: Vec<String> = if rename {
-        (0..used.len())
-            .map(|j| format!("X{:07}", j))
-            .collect()
-    } else {
-        pulp_names.clone()
-    };
-    let constr_names: Vec<String> = if rename {
-        (0..core.constraints.len())
-            .map(|i| format!("C{:07}", i))
-            .collect()
-    } else {
-        core.constraints.iter().map(|cd| cd.name.clone()).collect()
+    let params = MpsWriteParams {
+        mps_sense,
+        mip,
+        with_objsense,
+        rename,
+        model_name: if rename { "MODEL" } else { model_name },
+        obj_name,
     };
 
-    let mut f = std::fs::File::create(filename)
-        .map_err(|e| PyRuntimeError::new_err(format!("Cannot create file: {}", e)))?;
-
-    // Header
-    if with_objsense {
-        writeln_mps!(f, "OBJSENSE");
-        writeln_mps!(f, " {}", sense_mps);
-    } else {
-        writeln_mps!(f, "*SENSE:{}", sense_label);
-    }
-    writeln_mps!(f, "{}          {}", MpsSection::Name.as_token(), file_model_name);
-
-    // ROWS
-    writeln_mps!(f, "{}", MpsSection::Rows.as_token());
-    writeln_mps!(f, " {}  {}", MpsRowType::Objective.as_token(), file_obj_name);
-    for (ci, cd) in core.constraints.iter().enumerate() {
-        writeln_mps!(
-            f,
-            " {}  {}",
-            sense_to_mps_row_type(cd.sense).as_token(),
-            constr_names[ci]
-        );
-    }
-
-    // COLUMNS (full coef matrix by global var index, then emit only used columns)
-    let mut coefs: Vec<Vec<(usize, f64)>> = vec![Vec::new(); core.vars.len()];
-    for (ci, cd) in core.constraints.iter().enumerate() {
-        for (&vid, &coeff) in &cd.coeffs {
-            coefs[vid].push((ci, coeff));
-        }
-    }
-
-    writeln_mps!(f, "{}", MpsSection::Columns.as_token());
-    for (j, &vi) in used.iter().enumerate() {
-        let vd = &core.vars[vi];
-        let cat = vd.category;
-        let vname = &var_names[j];
-        if mip && (cat == Category::Integer || cat == Category::Binary) {
-            writeln_mps!(
-                f,
-                "    MARK      {}                 {}",
-                MPS_COLUMNS_MARKER,
-                MpsMarker::IntOrg.as_token()
-            );
-        }
-        for &(ci, coeff) in &coefs[vi] {
-            writeln_mps!(
-                f,
-                "    {:<8}  {:<8}  {}",
-                vname,
-                constr_names[ci],
-                format::mps_float(coeff)
-            );
-        }
-        if let Some(&obj_coeff) = obj_map.get(&vi) {
-            writeln_mps!(
-                f,
-                "    {:<8}  {:<8}  {}",
-                vname,
-                file_obj_name,
-                format::mps_float(obj_coeff)
-            );
-        }
-        if mip && (cat == Category::Integer || cat == Category::Binary) {
-            writeln_mps!(
-                f,
-                "    MARK      {}                 {}",
-                MPS_COLUMNS_MARKER,
-                MpsMarker::IntEnd.as_token()
-            );
-        }
-    }
-
-    // RHS
-    writeln_mps!(f, "{}", MpsSection::Rhs.as_token());
-    for (ci, cd) in core.constraints.iter().enumerate() {
-        let rhs = if cd.rhs == 0.0 { 0.0 } else { cd.rhs };
-        writeln_mps!(
-            f,
-            "    RHS       {:<8}  {}",
-            constr_names[ci],
-            format::mps_float(rhs)
-        );
-    }
-
-    // BOUNDS
-    writeln_mps!(f, "{}", MpsSection::Bounds.as_token());
-    for (j, &vi) in used.iter().enumerate() {
-        let vd = &core.vars[vi];
-        let vname = &var_names[j];
-        let lb = if vd.lb.is_finite() {
-            Some(vd.lb)
-        } else {
-            None
-        };
-        let ub = if vd.ub.is_finite() {
-            Some(vd.ub)
-        } else {
-            None
-        };
-        let lines = format::mps_bound_lines(vname, lb, ub, vd.category, mip);
-        for line in lines {
-            write_mps!(f, "{}", line);
-        }
-    }
-
-    writeln_mps!(f, "{}", MpsSection::Endata.as_token());
+    let mut w = MpsWriter::create(filename)?;
+    emit_mps_into(
+        &mut w,
+        &core,
+        &used,
+        &var_names,
+        &constr_names,
+        &obj_map,
+        &params,
+    )?;
+    w.finish()?;
 
     drop(core);
 
     Ok((
         var_names,
         constr_names,
-        file_obj_name.to_string(),
+        file_obj_name,
         pulp_names,
     ))
 }
@@ -1091,4 +1260,272 @@ fn set_bounds(
         }
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod write_mps_buffer_tests {
+    use indexmap::IndexMap;
+
+    use super::*;
+    use crate::affine_expr::AffineExpr;
+    use crate::types::{Category, ConstraintData, ObjSense, Sense};
+
+    fn constraint(
+        terms: Vec<(VarId, f64)>,
+        constant: f64,
+        sense: Sense,
+        name: &str,
+    ) -> AffineExpr {
+        AffineExpr {
+            terms: terms.into_iter().collect(),
+            constant,
+            sense: Some(sense),
+            name: Some(name.to_string()),
+            model: None,
+        }
+    }
+
+    fn objective(terms: Vec<(VarId, f64)>) -> AffineExpr {
+        AffineExpr {
+            terms: terms.into_iter().collect(),
+            constant: 0.0,
+            sense: None,
+            name: Some("obj".to_string()),
+            model: None,
+        }
+    }
+
+    fn build_continuous_core() -> ModelCore {
+        let mut core = ModelCore::new("continuous".to_string());
+        let x = core.add_variable("x".to_string(), 0.0, 4.0, Category::Continuous);
+        let y = core.add_variable("y".to_string(), -1.0, 1.0, Category::Continuous);
+        let z = core.add_variable("z".to_string(), 0.0, f64::INFINITY, Category::Continuous);
+        core.set_objective(objective(vec![(x, 1.0), (y, 4.0), (z, 9.0)]));
+        core.add_constraint(&constraint(
+            vec![(x, 1.0), (y, 1.0)],
+            -5.0,
+            Sense::LessEqual,
+            "c1",
+        ))
+        .unwrap();
+        core.add_constraint(&constraint(
+            vec![(x, 1.0), (z, 1.0)],
+            -10.0,
+            Sense::GreaterEqual,
+            "c2",
+        ))
+        .unwrap();
+        core.add_constraint(&constraint(
+            vec![(y, -1.0), (z, 1.0)],
+            -7.0,
+            Sense::Equal,
+            "c3",
+        ))
+        .unwrap();
+        core
+    }
+
+    fn build_integer_core() -> ModelCore {
+        let mut core = ModelCore::new("integer".to_string());
+        let x = core.add_variable("x".to_string(), 0.0, 4.0, Category::Continuous);
+        let y = core.add_variable("y".to_string(), -1.0, 1.0, Category::Continuous);
+        let z = core.add_variable("z".to_string(), 0.0, f64::INFINITY, Category::Integer);
+        core.set_objective(objective(vec![(x, 1.1), (y, 4.1), (z, 9.1)]));
+        core.add_constraint(&constraint(
+            vec![(x, 1.0), (y, 1.0)],
+            -5.0,
+            Sense::LessEqual,
+            "c1",
+        ))
+        .unwrap();
+        core.add_constraint(&constraint(
+            vec![(x, 1.0), (z, 1.0)],
+            -10.0,
+            Sense::GreaterEqual,
+            "c2",
+        ))
+        .unwrap();
+        core.add_constraint(&constraint(
+            vec![(y, -1.0), (z, 1.0)],
+            -7.5,
+            Sense::Equal,
+            "c3",
+        ))
+        .unwrap();
+        core
+    }
+
+    fn build_binary_core() -> ModelCore {
+        let mut core = ModelCore::new("binary".to_string());
+        core.sense = ObjSense::Maximize;
+        let dummy = core.add_variable(
+            "dummy".to_string(),
+            f64::NEG_INFINITY,
+            f64::INFINITY,
+            Category::Continuous,
+        );
+        let c1 = core.add_variable("c1".to_string(), 0.0, 1.0, Category::Binary);
+        let c2 = core.add_variable("c2".to_string(), 0.0, 1.0, Category::Binary);
+        core.set_objective(AffineExpr {
+            terms: IndexMap::from([(dummy, 1.0)]),
+            constant: 0.0,
+            sense: None,
+            name: Some("OBJ".to_string()),
+            model: None,
+        });
+        core.constraints.push(ConstraintData {
+            name: "_C1".to_string(),
+            coeffs: IndexMap::from([(c1, 1.0), (c2, 1.0)]),
+            rhs: 2.0,
+            sense: Sense::Equal,
+            pi: None,
+            slack: None,
+        });
+        core.constraints.push(ConstraintData {
+            name: "_C2".to_string(),
+            coeffs: IndexMap::from([(c1, 1.0)]),
+            rhs: 0.0,
+            sense: Sense::LessEqual,
+            pi: None,
+            slack: None,
+        });
+        core
+    }
+
+    fn build_rename_core() -> ModelCore {
+        let mut core = ModelCore::new("rename".to_string());
+        let x = core.add_variable("x".to_string(), 0.0, 1.0, Category::Integer);
+        let y = core.add_variable("y".to_string(), 0.0, 1.0, Category::Integer);
+        core.set_objective(objective(vec![(x, 1.0), (y, 2.0)]));
+        core.add_constraint(&constraint(
+            vec![(x, 1.0), (y, 1.0)],
+            -1.0,
+            Sense::LessEqual,
+            "c1",
+        ))
+        .unwrap();
+        core.add_constraint(&constraint(
+            vec![(x, 1.0), (y, -1.0)],
+            0.0,
+            Sense::GreaterEqual,
+            "c2",
+        ))
+        .unwrap();
+        core
+    }
+
+    fn build_objsense_max_core() -> ModelCore {
+        let mut core = ModelCore::new("objsense_max".to_string());
+        core.sense = ObjSense::Maximize;
+        let x = core.add_variable("x".to_string(), 0.0, 4.0, Category::Continuous);
+        let y = core.add_variable("y".to_string(), -1.0, 1.0, Category::Continuous);
+        core.set_objective(objective(vec![(x, 1.0), (y, 4.0)]));
+        core.add_constraint(&constraint(
+            vec![(x, 1.0), (y, 1.0)],
+            -5.0,
+            Sense::LessEqual,
+            "c1",
+        ))
+        .unwrap();
+        core.add_constraint(&constraint(vec![(x, 1.0)], 0.0, Sense::GreaterEqual, "c2"))
+            .unwrap();
+        core
+    }
+
+    macro_rules! golden_test {
+        ($name:ident, $builder:ident, $fixture:literal, $mps_sense:expr, $mip:expr, $with_objsense:expr, $rename:expr, $model_name:literal, $obj_name:literal) => {
+            #[test]
+            fn $name() {
+                let core = $builder();
+                let got = write_mps_buffer(
+                    &core,
+                    $mps_sense,
+                    $mip,
+                    $with_objsense,
+                    $rename,
+                    $model_name,
+                    $obj_name,
+                )
+                .unwrap();
+                let want = include_bytes!(concat!(
+                    env!("CARGO_MANIFEST_DIR"),
+                    "/pulp/tests/fixtures/mps/",
+                    $fixture
+                ));
+                assert_eq!(
+                    got.as_slice(),
+                    want.as_slice(),
+                    "golden mismatch for {}",
+                    $fixture
+                );
+            }
+        };
+    }
+
+    golden_test!(
+        write_mps_buffer_matches_golden_continuous,
+        build_continuous_core,
+        "continuous.mps",
+        1,
+        false,
+        false,
+        false,
+        "continuous",
+        "obj"
+    );
+    golden_test!(
+        write_mps_buffer_matches_golden_integer,
+        build_integer_core,
+        "integer.mps",
+        1,
+        true,
+        false,
+        false,
+        "integer",
+        "obj"
+    );
+    golden_test!(
+        write_mps_buffer_matches_golden_binary,
+        build_binary_core,
+        "binary.mps",
+        -1,
+        true,
+        false,
+        false,
+        "binary",
+        "OBJ"
+    );
+    golden_test!(
+        write_mps_buffer_matches_golden_rename,
+        build_rename_core,
+        "rename.mps",
+        1,
+        true,
+        false,
+        true,
+        "rename",
+        "obj"
+    );
+    golden_test!(
+        write_mps_buffer_matches_golden_objsense_max,
+        build_objsense_max_core,
+        "objsense_max.mps",
+        -1,
+        false,
+        true,
+        false,
+        "objsense_max",
+        "obj"
+    );
+
+    #[test]
+    fn write_mps_buffer_roundtrip_read_mps() {
+        let core = build_continuous_core();
+        let bytes = write_mps_buffer(&core, 1, false, false, false, "continuous", "obj")
+            .unwrap();
+        let text = std::str::from_utf8(&bytes).unwrap();
+        assert!(text.contains("NAME          continuous"));
+        assert!(text.contains("COLUMNS"));
+        assert!(text.contains("ENDATA"));
+    }
 }

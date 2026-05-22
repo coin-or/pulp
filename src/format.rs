@@ -3,6 +3,8 @@
 //! All functions operate on plain data (`&[(String, f64)]`, `f64`, `Sense`, etc.)
 //! so callers only need to resolve VarId -> name once, then delegate here.
 
+use std::io::Write;
+
 use indexmap::IndexMap;
 
 use crate::types::{Category, ModelCore, Sense, VarId, VariableData, LP_CPLEX_LP_LINE_SIZE};
@@ -74,7 +76,17 @@ pub fn format_number(c: f64) -> String {
     }
 }
 
+/// Append a float in MPS exponent format (leading space for non-negative, `-` for negative).
+pub fn write_mps_float<W: Write>(buf: &mut W, v: f64) -> std::io::Result<()> {
+    if v < 0.0 {
+        write!(buf, "{:.12e}", v)
+    } else {
+        write!(buf, " {:.12e}", v)
+    }
+}
+
 /// Format a float like Python's `% .12e`: leading space for positive, minus for negative.
+#[allow(dead_code)]
 pub fn mps_float(v: f64) -> String {
     if v < 0.0 {
         format!("{:.12e}", v)
@@ -300,17 +312,20 @@ pub fn cplex_lp_variable(vd: &VariableData) -> String {
     s
 }
 
-/// MPS BOUNDS section lines for a single variable.
-pub fn mps_bound_lines(
+/// Append MPS BOUNDS section lines for a single variable.
+pub fn write_mps_bound_lines<W: Write>(
+    buf: &mut W,
     name: &str,
     lb: Option<f64>,
     ub: Option<f64>,
     category: Category,
     mip: bool,
-) -> Vec<String> {
+) -> std::io::Result<()> {
     if let (Some(low), Some(up)) = (lb, ub) {
         if low == up {
-            return vec![format!(" FX BND       {:<8}  {}\n", name, mps_float(low))];
+            write!(buf, " FX BND       {:<8}  ", name)?;
+            write_mps_float(buf, low)?;
+            return writeln!(buf);
         }
     }
     if lb == Some(0.0)
@@ -318,9 +333,8 @@ pub fn mps_bound_lines(
         && mip
         && (category == Category::Integer || category == Category::Binary)
     {
-        return vec![format!(" BV BND       {:<8}\n", name)];
+        return writeln!(buf, " BV BND       {:<8}", name);
     }
-    let mut lines = Vec::new();
     match lb {
         Some(low) => {
             if low != 0.0
@@ -328,27 +342,100 @@ pub fn mps_bound_lines(
                     && (category == Category::Integer || category == Category::Binary)
                     && ub.is_none())
             {
-                lines.push(format!(
-                    " LO BND       {:<8}  {}\n",
-                    name,
-                    mps_float(low)
-                ));
+                write!(buf, " LO BND       {:<8}  ", name)?;
+                write_mps_float(buf, low)?;
+                writeln!(buf)?;
             }
         }
         None => {
             if ub.is_some() {
-                lines.push(format!(" MI BND       {:<8}\n", name));
+                writeln!(buf, " MI BND       {:<8}", name)?;
             } else {
-                lines.push(format!(" FR BND       {:<8}\n", name));
+                writeln!(buf, " FR BND       {:<8}", name)?;
             }
         }
     }
     if let Some(up) = ub {
-        lines.push(format!(" UP BND       {:<8}  {}\n", name, mps_float(up)));
+        write!(buf, " UP BND       {:<8}  ", name)?;
+        write_mps_float(buf, up)?;
+        writeln!(buf)?;
     }
-    lines
+    Ok(())
+}
+
+/// MPS BOUNDS section lines for a single variable.
+#[allow(dead_code)]
+pub fn mps_bound_lines(
+    name: &str,
+    lb: Option<f64>,
+    ub: Option<f64>,
+    category: Category,
+    mip: bool,
+) -> Vec<String> {
+    let mut buf = Vec::new();
+    write_mps_bound_lines(&mut buf, name, lb, ub, category, mip).unwrap();
+    let s = String::from_utf8(buf).unwrap();
+    s.split_inclusive('\n').map(str::to_string).collect()
 }
 
 fn line_len(line: &[String]) -> usize {
     line.iter().map(|t| t.len()).sum()
+}
+
+#[cfg(test)]
+mod write_mps_format_tests {
+    use super::*;
+    use crate::types::Category;
+
+    #[test]
+    fn write_mps_float_matches_legacy_format() {
+        let values = [
+            0.0,
+            1.0,
+            -1.0,
+            1e-10,
+            -1e-10,
+            1e12,
+            -1e12,
+            1.1,
+            4.1,
+            7.5,
+            9.1,
+            1.23456789,
+            f64::INFINITY.recip(),
+        ];
+        for v in values {
+            let mut buf = Vec::new();
+            write_mps_float(&mut buf, v).unwrap();
+            assert_eq!(buf, mps_float(v).into_bytes(), "mismatch for v={v}");
+        }
+    }
+
+    #[test]
+    fn write_mps_bound_lines_matches_legacy() {
+        let scenarios: [(&str, Option<f64>, Option<f64>, Category, bool); 10] = [
+            ("x", Some(2.0), Some(2.0), Category::Continuous, false),
+            ("b", Some(0.0), Some(1.0), Category::Binary, true),
+            ("i", Some(0.0), Some(1.0), Category::Integer, true),
+            ("y", Some(-1.0), Some(1.0), Category::Continuous, false),
+            ("z", Some(0.0), None, Category::Integer, true),
+            ("w", None, Some(5.0), Category::Continuous, false),
+            ("f", None, None, Category::Continuous, false),
+            ("d", Some(0.0), None, Category::Continuous, false),
+            ("u", Some(0.0), Some(4.0), Category::Continuous, false),
+            ("m", Some(0.0), Some(1.0), Category::Continuous, true),
+        ];
+        for (name, lb, ub, category, mip) in scenarios {
+            let mut buf = Vec::new();
+            write_mps_bound_lines(&mut buf, name, lb, ub, category, mip).unwrap();
+            let legacy = mps_bound_lines(name, lb, ub, category, mip)
+                .concat()
+                .into_bytes();
+            assert_eq!(
+                buf,
+                legacy,
+                "mismatch for name={name} lb={lb:?} ub={ub:?} category={category:?} mip={mip}"
+            );
+        }
+    }
 }

@@ -1,0 +1,20 @@
+*SENSE:Minimize
+NAME          MODEL
+ROWS
+ N  OBJ
+ L  C0000000
+COLUMNS
+    MARK      'MARKER'                 'INTORG'
+    X0000000  C0000000   1.000000000000e0
+    X0000000  OBJ        1.000000000000e0
+    MARK      'MARKER'                 'INTEND'
+    MARK      'MARKER'                 'INTORG'
+    X0000001  C0000000   1.000000000000e0
+    X0000001  OBJ        1.000000000000e0
+    MARK      'MARKER'                 'INTEND'
+RHS
+    RHS       C0000000   1.000000000000e0
+BOUNDS
+ BV BND       X0000000
+ BV BND       X0000001
+ENDATA
