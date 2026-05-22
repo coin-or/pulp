@@ -159,6 +159,7 @@ jobs:
     needs: [linux, musllinux, windows, macos, sdist]
     permissions:
       contents: read
+      id-token: write
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v8
