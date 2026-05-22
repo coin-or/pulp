@@ -55,12 +55,14 @@
 <li class="toctree-l3"><a class="reference internal" href="#additional-environment-variables-per-solver">Additional environment variables per solver</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#cplex">CPLEX</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#gurobi">GUROBI</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#xpress">XPRESS</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#configuring-where-the-cmd-solvers-write-their-temporary-files">Configuring where the CMD solvers write their temporary files</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#using-the-official-solver-api">Using the official solver API</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#installing-cplex-py">Installing CPLEX_PY</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#installing-gurobi">Installing GUROBI</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#installing-xpress-py">Installing XPRESS_PY</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#using-solver-specific-functionality">Using solver-specific functionality</a></li>
 </ul>
 </li>
@@ -237,6 +239,21 @@ other command-line tool).</p></li>
 </pre></div>
 </div>
 </section>
+<section id="xpress">
+<h3>XPRESS<a class="headerlink" href="#xpress" title="Link to this heading"></a></h3>
+<p><strong>Linux / Mac</strong>: add the following lines to the ~.bashrc (or ~.profile or /etc/profile or /etc/bash.bashrc) file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">export</span> <span class="n">XPRESSDIR</span><span class="o">=</span><span class="s2">&quot;/opt/xpressmp&quot;</span>
+<span class="n">export</span> <span class="n">PATH</span><span class="o">=</span><span class="s2">&quot;$</span><span class="si">{PATH}</span><span class="s2">:$</span><span class="si">{XPRESSDIR}</span><span class="s2">/bin&quot;</span>
+<span class="n">export</span> <span class="n">XPAUTH_PATH</span><span class="o">=</span><span class="s2">&quot;$</span><span class="si">{XPRESSDIR}</span><span class="s2">/bin/xpauth.xpr&quot;</span>
+</pre></div>
+</div>
+<p><strong>Windows</strong>: add the following environment variables (via the command line or graphical user interface):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">set</span> <span class="n">XPRESSDIR</span><span class="o">=</span><span class="n">C</span><span class="p">:</span><span class="o">/</span><span class="n">xpressmp</span>
+<span class="nb">set</span> <span class="n">PATH</span><span class="o">=%</span><span class="n">PATH</span><span class="o">%</span><span class="p">;</span><span class="o">%</span><span class="n">XPRESSDIR</span><span class="o">%/</span><span class="nb">bin</span>
+<span class="nb">set</span> <span class="n">XPAUTH_PATH</span><span class="o">=%</span><span class="n">XPRESSDIR</span><span class="o">%/</span><span class="nb">bin</span><span class="o">/</span><span class="n">xpauth</span><span class="o">.</span><span class="n">xpr</span>
+</pre></div>
+</div>
+</section>
 </section>
 <section id="configuring-where-the-cmd-solvers-write-their-temporary-files">
 <h2>Configuring where the CMD solvers write their temporary files<a class="headerlink" href="#configuring-where-the-cmd-solvers-write-their-temporary-files" title="Link to this heading"></a></h2>
@@ -309,6 +326,28 @@ other command-line tool).</p></li>
 </pre></div>
 </div>
 <p>As you can see, it is necessary to have admin rights to install it.</p>
+</section>
+<section id="installing-xpress-py">
+<h3>Installing XPRESS_PY<a class="headerlink" href="#installing-xpress-py" title="Link to this heading"></a></h3>
+<p>This solver works by installing the <cite>xpress</cite> Python package, which includes a runtime distribution of the Xpress Optimizer libraries, and a Community License (free of charge, problem size limits apply).</p>
+<dl class="simple">
+<dt>To install the Xpress Python package:</dt><dd><ul class="simple">
+<li><p>PYPI: <cite>pip install xpress</cite></p></li>
+<li><p>CONDA: <cite>conda install -c fico-xpress xpress</cite></p></li>
+</ul>
+</dd>
+</dl>
+<p>If you plan to work with larger models and acquire an Academic or Commercial License, contact FICO support to obtain a license file, and then set the <cite>XPAUTH_PATH</cite> environment variable to the location of your license file.</p>
+<p><strong>Linux / Mac</strong>: add the following line to the ~.bashrc (or ~.profile or /etc/profile or /etc/bash.bashrc) file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">export</span> <span class="n">XPAUTH_PATH</span><span class="o">=</span><span class="s2">&quot;/path/to/your/xpauth.xpr&quot;</span>
+</pre></div>
+</div>
+<p><strong>Windows</strong>: add the following environment variable (via the command line or graphical user interface):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">set</span> <span class="n">XPAUTH_PATH</span><span class="o">=</span><span class="n">C</span><span class="p">:</span><span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">your</span><span class="o">/</span><span class="n">xpauth</span><span class="o">.</span><span class="n">xpr</span>
+</pre></div>
+</div>
+<p><em>Even though the XPRESS_PY solver interface in PuLP works for Xpress versions 9.0+, it has been updated and tested using Xpress version 9.8. If you have an older version of Xpress, please consider updating to this version.</em></p>
+<p><strong>License tokens:</strong> <code class="docutils literal notranslate"><span class="pre">XPRESS</span></code> (CMD) acquires and releases a license token per subprocess - once per <code class="docutils literal notranslate"><span class="pre">model.solve()</span></code> call. <code class="docutils literal notranslate"><span class="pre">XPRESS_PY</span></code> holds a token for the lifetime of the Python process from the moment <code class="docutils literal notranslate"><span class="pre">xpress</span></code> is imported. In batch environments where license tokens are shared across jobs, use <code class="docutils literal notranslate"><span class="pre">xp.init()</span></code> as a context manager around each job to scope the token lifetime and release it between solves.</p>
 </section>
 <section id="using-solver-specific-functionality">
 <span id="solver-specific-config"></span><h3>Using solver-specific functionality<a class="headerlink" href="#using-solver-specific-functionality" title="Link to this heading"></a></h3>
