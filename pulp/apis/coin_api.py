@@ -203,7 +203,7 @@ class COIN_CMD(LpSolver_CMD):
         for option in options:
             cmds += "-" + option + " "
         if self.mip:
-            cmds += "-branch "
+            cmds += "-solve "
         else:
             cmds += "-initialSolve "
         cmds += "-printingOptions all "
