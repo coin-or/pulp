@@ -36,7 +36,7 @@ PuLP is part of the `COIN-OR project <https://www.coin-or.org/>`_.
 Installation
 ================
 
-PuLP requires Python 3.9 or newer.
+PuLP requires Python 3.10 or newer.
 
 **Recommended:** install with CBC support::
 

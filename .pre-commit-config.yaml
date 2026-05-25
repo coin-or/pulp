@@ -7,4 +7,4 @@ repos:
     rev: v3.1.0
     hooks:
     -   id: pyupgrade
-        args: [--py37-plus]
+        args: [--py310-plus]
