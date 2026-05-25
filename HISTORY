@@ -2,12 +2,14 @@
 #       Copyright S.A.Mitchell (s.mitchell@auckland.ac.nz), 2007-
 #       Copyright F.Peschiera (pchtsp@gmail.com), 2019-
 # See the LICENSE file for copyright information.
-3.3.1 2026-04-30
-    PuLP 4.0 migration helpers: ``LpProblem.add_variable*``, ``constraints()`` as list, ``get_constraint_by_name``
-    deprecations for legacy ``LpVariable`` construction, dict-like ``prob.constraints``, ``addVariable`` / ``addVariables``, ``LpConstraintVar``
+3.3.2 2026-05-25
     ``PULP_CBC_CMD`` deprecated (removed in PuLP 4.0); use ``pip install pulp[cbc]`` and ``COIN_CMD`` instead
     default solver prefers ``COIN_CMD`` when CBC is available on ``PATH``
     ``set_v4_migration_warnings(False)`` silences migration warnings
+    compatible with Python 3.10 and up
+3.3.1 2026-04-30
+    PuLP 4.0 migration helpers: ``LpProblem.add_variable*``, ``constraints()`` as list, ``get_constraint_by_name``
+    deprecations for legacy ``LpVariable`` construction, dict-like ``prob.constraints``, ``addVariable`` / ``addVariables``, ``LpConstraintVar``
 3.3.0 2025-09-18
     fixed some docs
     changes to unit tests

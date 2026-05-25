@@ -39,11 +39,10 @@ The info below often helps, please fill it out if you're able to. :)
 
 #### I'm using python version:
 
-- [ ] 3.7
-- [ ] 3.8
-- [ ] 3.9
 - [ ] 3.10
 - [ ] 3.11
+- [ ] 3.12
+- [ ] 3.13
 - [ ] Other: ___
 
 #### I installed PuLP via:

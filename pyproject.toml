@@ -9,7 +9,7 @@ authors = [
 ]
 maintainers= [{name= "Franco Peschiera", email= "pchtsp@gmail.com"}]
 dependencies = []
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 readme = "README.rst"
 license = "MIT"
 license-files = ["LICENSE"]
@@ -80,7 +80,7 @@ pulptest = "pulp.tests.run_tests:pulpTestAll"
 
 [tool.black]
 line-length = 88
-target-version = ['py37']
+target-version = ['py310']
 include = '\.pyi?$'
 exclude = '/(\.eggs|\.git|\.hg|\.mypy_cache|\.tox|\.venv|_build|buck-out|build|dist)/'
 
