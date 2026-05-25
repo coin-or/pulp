@@ -56,6 +56,7 @@ except Exception:
 
 from .constants import VERSION
 
+from .v4_migration import set_v4_migration_warnings
 from .pulp import *
 from .apis import *
 from .utilities import *

@@ -7,7 +7,7 @@ Many solvers permit the possibility of giving a valid (or parcially valid in som
 Supported solver APIs
 -----------------------
 
-The present solver APIs that work with PuLP warm-start are the following: ``CPLEX_CMD``, ``GUROBI_CMD``, ``PULP_CBC_CMD``, ``CBC_CMD``, ``CPLEX_PY``, ``GUROBI``, ``XPRESS``, ``XPRESS_PY``.
+The present solver APIs that work with PuLP warm-start are the following: ``CPLEX_CMD``, ``GUROBI_CMD``, ``COIN_CMD``, ``CPLEX_PY``, ``GUROBI``, ``XPRESS``, ``XPRESS_PY``.
 
 Example problem
 ----------------
@@ -42,11 +42,11 @@ Activating MIP start
 
 Once we have assigned values to all variables and we want to run a model while reusing those values, we just need to pass the ``warmStart=True`` argument to the solver when initiating it.
 
-For example, using the default PuLP solver we would do:
+For example, using the default PuLP CBC solver we would do:
 
 .. code-block:: python
 
-    seating_model.solve(pulp.PULP_CBC_CMD(msg=True, warmStart=True))
+    seating_model.solve(pulp.COIN_CMD(msg=True, warmStart=True))
 
 I usually turn ``msg=True`` so I can see the messages from the solver confirming it loaded the solution correctly.
 

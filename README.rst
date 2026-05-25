@@ -30,8 +30,15 @@ Otherwise follow the download instructions on the `PyPi page <https://pypi.pytho
 Installing solvers
 ----------------------
 
-PuLP can use a variety of solvers. The default solver is the COIN-OR CBC solver, which is included with PuLP. If you want to use other solvers, PuLP offers a quick way to install most solvers via their pypi package (some require a commercial license for running or for running large models)::
+PuLP can use a variety of solvers. The default solver is the COIN-OR CBC solver via the ``COIN_CMD`` API. Install CBC with::
 
+    python -m pip install pulp[cbc]
+
+If CBC is not available on your system, PuLP falls back to other solvers such as the legacy bundled CBC (``PULP_CBC_CMD``) or GLPK.
+
+To install other solvers, PuLP offers a quick way to install most solvers via their pypi package (some require a commercial license for running or for running large models)::
+
+    python -m pip install pulp[cbc]
     python -m pip install pulp[gurobi]
     python -m pip install pulp[cplex]
     python -m pip install pulp[xpress]
@@ -64,9 +71,13 @@ An expression is a constraint without a right-hand side (RHS) sense (one of ``=`
 
      prob += -4*x + y
 
-To solve the problem  with the default included solver::
+To solve the problem with the default solver (CBC via ``COIN_CMD`` when installed with ``pulp[cbc]``)::
 
      status = prob.solve()
+
+To solve explicitly with CBC::
+
+     status = prob.solve(COIN_CMD(msg=0))
 
 If you want to try another solver to solve the problem::
 
@@ -107,7 +118,7 @@ More Examples
 
 Several tutorial are given in `documentation <https://coin-or.github.io/pulp/CaseStudies/index.html>`_ and pure code examples are available in `examples/ directory <https://github.com/coin-or/pulp/tree/master/examples>`_ .
 
-The examples use the default solver (CBC). To use other solvers they must be available (installed and accessible). For more information on how to do that, see the `guide on configuring solvers <https://coin-or.github.io/pulp/guides/how_to_configure_solvers.html>`_.
+The examples use the default solver (CBC via ``COIN_CMD`` when available). To use other solvers they must be available (installed and accessible). For more information on how to do that, see the `guide on configuring solvers <https://coin-or.github.io/pulp/guides/how_to_configure_solvers.html>`_.
 
 
 For Developers 
@@ -117,12 +128,6 @@ For Developers
 If you want to install the latest version from GitHub you can run::
 
     python -m pip install -U git+https://github.com/coin-or/pulp
-
-
-On Linux and MacOS systems, you must run the tests to make the default solver executable::
-
-     sudo pulptest
-
 
 
 

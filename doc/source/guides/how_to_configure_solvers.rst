@@ -51,7 +51,25 @@ API means "Application Programming Interface". PuLP has usually several ways to 
 * Using the command line interface of the solver.
 * Using the python library of the solver.
 
-Not all solvers have a python library, but most have a command line interface. If you want to know which one are you using it's easy. If the name of the solver API ends with ``CMD`` (such as ``PULP_CBC_CMD``, ``CPLEX_CMD``, ``GUROBI_CMD``, etc.) it's the former. Otherwise, it is the latter.
+Not all solvers have a python library, but most have a command line interface. If you want to know which one are you using it's easy. If the name of the solver API ends with ``CMD`` (such as ``COIN_CMD``, ``CPLEX_CMD``, ``GUROBI_CMD``, etc.) it's the former. Otherwise, it is the latter.
+
+Installing CBC (COIN_CMD)
+--------------------------------
+
+The recommended way to use CBC with PuLP is via the ``COIN_CMD`` solver API. Install CBC with::
+
+    pip install pulp[cbc]
+
+This installs the ``cbcbox`` package, which provides the ``cbc`` executable on your ``PATH``. PuLP uses ``COIN_CMD`` as the default solver when CBC is available this way.
+
+The legacy ``PULP_CBC_CMD`` API (which bundled a CBC binary inside PuLP) is deprecated and will be removed in PuLP 4.0. Migrate to ``COIN_CMD``::
+
+    import pulp as pl
+    solver = pl.COIN_CMD()
+
+If you have a custom CBC installation, pass the path explicitly::
+
+    solver = pl.COIN_CMD(path=r'C:\path\to\cbc.exe')
 
 Configuring the path to the solver
 --------------------------------------------
@@ -155,7 +173,7 @@ By default, PuLP does not keep the intermediary files (the \*.mps, \*.lp, \*.mst
     _var = model.add_variable('a')
     _var2 = model.add_variable('a2')
     model += _var + _var2 == 1 
-    solver = pl.PULP_CBC_CMD()
+    solver = pl.COIN_CMD()
     result = model.solve(solver)
 
 Another option, is passing the argument `keepFiles=True` to the solver. With this, the solver creates the files in the current directory and they are not deleted (although they will be overwritten if you re-execute).
@@ -167,7 +185,7 @@ Another option, is passing the argument `keepFiles=True` to the solver. With thi
     _var = model.add_variable('a')
     _var2 = model.add_variable('a2')
     model += _var + _var2 == 1 
-    solver = pl.PULP_CBC_CMD(keepFiles=True)
+    solver = pl.COIN_CMD(keepFiles=True)
     result = model.solve(solver)
 
 Finally, one can manually edit the tmpDir attribute of the solver object before actually solving.
@@ -179,7 +197,7 @@ Finally, one can manually edit the tmpDir attribute of the solver object before 
     _var = model.add_variable('a')
     _var2 = model.add_variable('a2')
     model += _var + _var2 == 1 
-    solver = pl.PULP_CBC_CMD()
+    solver = pl.COIN_CMD()
     solver.tmpDir = 'PUT_SOME_ALTERNATIVE_PATH_HERE'
     result = model.solve(solver)
 
@@ -279,7 +297,7 @@ Exporting a solver can be useful to backup the configuration that was used to so
 In order to export it one needs can export it to a dictionary or a json file::
 
     import pulp
-    solver = pulp.PULP_CBC_CMD()
+    solver = pulp.COIN_CMD()
     solver_dict = solver.toDict()
 
 The structure of the returned dictionary is quite simple::
@@ -288,7 +306,7 @@ The structure of the returned dictionary is quite simple::
      'mip': True,
      'msg': True,
      'options': [],
-     'solver': 'PULP_CBC_CMD',
+     'solver': 'COIN_CMD',
      'timeLimit': None,
      'warmStart': False}
 

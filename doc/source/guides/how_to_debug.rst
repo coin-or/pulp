@@ -21,7 +21,7 @@ General pointers (that are nonetheless, very important):
 
 Now, specifically to PuLP:
 
-1. Pass the `msg=1` argument to the solver, i.e., `prob.solve(PULP_CBC_CMD(msg=1))`. This will give you more information on the error. Share this information when asking for help.
+1. Pass the `msg=1` argument to the solver, i.e., `prob.solve(COIN_CMD(msg=1))`. This will give you more information on the error. Share this information when asking for help.
 2. If possible, share an export version of the model. Check `here <https://coin-or.github.io/pulp/guides/how_to_export_models.html>`_ how to export one.
 3. Alternatively, share a `mps` version of your model. To produce one, use :meth:`~pulp.LpProblem.writeMPS`.
 
@@ -38,7 +38,7 @@ Error while trying to execute cbc.exe
 
 The complete message is usually something like `pulp.solvers.PulpSolverError: Pulp: Error while trying to execute PATH_TO_CBC/cbc.exe`.
 
-The default solver is CBC and is run via the command line.
+The default solver is CBC via ``COIN_CMD`` (install with ``pip install pulp[cbc]``) and is run via the command line.
 
 1. First of all, pass the `msg=1` argument to the solver, to get more information.
 2. **Check the precision of the numbers**. If you have very big numbers (with a high precision), this generally causes problems with solvers. For example, never use a parameter that is `100000000000` inside your problem. Specially if you then have another one that has `1200.09123642123`. If you do not need decimals, round your values when building the model.
@@ -54,7 +54,7 @@ The default solver is CBC and is run via the command line.
 
 And see what message you get.
 
-7. Finally, sometimes you may want to try PuLP with a more recent version of CBC. To do this, download the CBC binary and pass the path to it to PuLP.
+7. Finally, sometimes you may want to try PuLP with a more recent version of CBC. To do this, download the CBC binary and pass the path to it to PuLP via ``COIN_CMD(path=...)``.
 
 Infeasible problems
 ----------------------------------------
@@ -79,7 +79,8 @@ or
 This could be caused by a combination of the following:
 
 * the conda / anaconda installation of PuLP is not supported and thus may bring its own problems. Try installing pulp as documented in the documentation.
-* Apparently Jupyter notebooks sometimes run in user sessions that do not have access to the PuLP installation folder. This makes it impossible to access the default solver binary. To fix this, try installing pulp in the user's directory or giving sufficient permissions to the jupyter notebook when launching it.
+* install CBC with ``pip install pulp[cbc]`` so PuLP can find ``cbc`` on ``PATH`` via the ``COIN_CMD`` API.
+* Apparently Jupyter notebooks sometimes run in user sessions that do not have access to the PuLP installation folder. When using the legacy bundled CBC (``PULP_CBC_CMD``), this makes it impossible to access the solver binary. To fix this, install ``pulp[cbc]``, install pulp in the user's directory, or give sufficient permissions to the jupyter notebook when launching it.
 
 Examples of these situations, some fixed are:
 

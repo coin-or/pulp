@@ -45,14 +45,14 @@ _all_solvers: List[Type[LpSolver]] = [
     CUOPT,
 ]
 
-LpSolverDefault: Optional[Union[PULP_CBC_CMD, GLPK_CMD, COIN_CMD]] = None
+LpSolverDefault: Optional[Union[COIN_CMD, PULP_CBC_CMD, GLPK_CMD]] = None
 # Default solver selection
-if PULP_CBC_CMD().available():
-    LpSolverDefault = PULP_CBC_CMD()
+if COIN_CMD().available():
+    LpSolverDefault = COIN_CMD()
+elif PULP_CBC_CMD(_skip_v4_deprecation=True).available():
+    LpSolverDefault = PULP_CBC_CMD(_skip_v4_deprecation=True)
 elif GLPK_CMD().available():
     LpSolverDefault = GLPK_CMD()
-elif COIN_CMD().available():
-    LpSolverDefault = COIN_CMD()
 
 
 def getSolver(solver: str, *args, **kwargs) -> LpSolver:
@@ -116,7 +116,10 @@ def listSolvers(onlyAvailable: bool = False) -> List[str]:
     """
     result = []
     for s in _all_solvers:
-        solver = s(msg=False)
+        kwargs: Dict[str, Union[str, bool, float, int]] = {"msg": False}
+        if s is PULP_CBC_CMD:
+            kwargs["_skip_v4_deprecation"] = True
+        solver = s(**kwargs)
         if (not onlyAvailable) or solver.available():
             result.append(solver.name)
         del solver

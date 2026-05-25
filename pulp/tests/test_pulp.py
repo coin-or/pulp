@@ -10,6 +10,7 @@ import unittest
 import warnings
 from decimal import Decimal
 from typing import Union, Optional, Type
+from unittest.mock import patch
 
 
 from pulp import (
@@ -1901,6 +1902,11 @@ class BaseSolverTest:
 class PULP_CBC_CMDTest(BaseSolverTest.PuLPTest):
     solveInst = solvers.PULP_CBC_CMD
 
+    def setUp(self):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", DeprecationWarning)
+            super().setUp()
+
     @staticmethod
     def read_command_line_from_log_file(logPath):
         """
@@ -2530,6 +2536,49 @@ class PuLP4MigrationTests(unittest.TestCase):
             with warnings.catch_warnings():
                 warnings.simplefilter("error", DeprecationWarning)
                 _ = prob.constraints["c1"]
+        finally:
+            set_v4_migration_warnings(True)
+
+
+class PULP_CBC_CMDDeprecationTest(unittest.TestCase):
+    def test_pulp_cbc_cmd_deprecation_warns(self) -> None:
+        set_v4_migration_warnings(True)
+        try:
+            with self.assertWarns(DeprecationWarning):
+                solvers.PULP_CBC_CMD()
+        finally:
+            set_v4_migration_warnings(True)
+
+    def test_pulp_cbc_cmd_deprecation_respects_v4_flag(self) -> None:
+        set_v4_migration_warnings(False)
+        try:
+            with warnings.catch_warnings():
+                warnings.simplefilter("error", DeprecationWarning)
+                solvers.PULP_CBC_CMD()
+        finally:
+            set_v4_migration_warnings(True)
+
+    def test_pulp_cbc_cmd_skip_v4_deprecation(self) -> None:
+        set_v4_migration_warnings(True)
+        try:
+            with warnings.catch_warnings():
+                warnings.simplefilter("error", DeprecationWarning)
+                solvers.PULP_CBC_CMD(_skip_v4_deprecation=True)
+        finally:
+            set_v4_migration_warnings(True)
+
+    def test_solve_with_pulp_cbc_default_warns(self) -> None:
+        set_v4_migration_warnings(True)
+        default_solver = solvers.PULP_CBC_CMD(_skip_v4_deprecation=True)
+        prob = LpProblem("m")
+        prob.add_variable("x")
+        try:
+            with patch("pulp.pulp.LpSolverDefault", default_solver):
+                with patch.object(
+                    default_solver, "actualSolve", return_value=const.LpStatusOptimal
+                ):
+                    with self.assertWarns(DeprecationWarning):
+                        prob.solve()
         finally:
             set_v4_migration_warnings(True)
 

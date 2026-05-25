@@ -133,6 +133,7 @@ from time import time
 from typing import Any, Dict, Literal, Optional, Union, cast, overload
 
 from .apis import LpSolverDefault, PULP_CBC_CMD
+from .apis.coin_api import warn_pulp_cbc_cmd_deprecated
 from .apis.core import clock
 from .utilities import value
 from . import constants as const
@@ -151,19 +152,7 @@ except ImportError:
 
 import re
 
-V4_MIGRATION_WARNINGS = True
-
-
-def set_v4_migration_warnings(enabled: bool) -> None:
-    """Enable or disable PuLP 4.0 migration DeprecationWarnings (default: enabled)."""
-
-    global V4_MIGRATION_WARNINGS
-    V4_MIGRATION_WARNINGS = enabled
-
-
-def _v4_deprecation(message: str, stacklevel: int = 2) -> None:
-    if V4_MIGRATION_WARNINGS:
-        warnings.warn(message, category=DeprecationWarning, stacklevel=stacklevel)
+from .v4_migration import v4_deprecation as _v4_deprecation
 
 
 class LpElement:
@@ -2410,6 +2399,8 @@ class LpProblem:
             solver = self.solver
         if not (solver):
             solver = LpSolverDefault
+            if isinstance(solver, PULP_CBC_CMD):
+                warn_pulp_cbc_cmd_deprecated(stacklevel=3)
         wasNone, dummyVar = self.fixObjective()
         # time it
         self.startClock()
@@ -2452,6 +2443,8 @@ class LpProblem:
             solver = self.solver
         if not (solver):
             solver = LpSolverDefault
+            if isinstance(solver, PULP_CBC_CMD):
+                warn_pulp_cbc_cmd_deprecated(stacklevel=3)
         if not (absoluteTols):
             absoluteTols = [0] * len(objectives)
         if not (relativeTols):

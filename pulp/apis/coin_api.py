@@ -48,6 +48,8 @@ import ctypes
 import warnings
 from tempfile import mktemp
 
+from ..v4_migration import v4_deprecation
+
 cbc_path = "cbc"
 if operating_system == "win":
     cbc_path += ".exe"
@@ -59,6 +61,15 @@ if operating_system == "osx":
 pulp_cbc_path = os.path.join(
     os.path.dirname(__file__), f"../solverdir/cbc/{operating_system}/{arch}/{cbc_path}"
 )
+
+PULP_CBC_CMD_DEPRECATION_MSG = (
+    "PULP_CBC_CMD is deprecated and will be removed in PuLP 4.0. "
+    "Install CBC with `pip install pulp[cbc]` and use COIN_CMD instead."
+)
+
+
+def warn_pulp_cbc_cmd_deprecated(*, stacklevel: int = 2) -> None:
+    v4_deprecation(PULP_CBC_CMD_DEPRECATION_MSG, stacklevel=stacklevel)
 
 
 class COIN_CMD(LpSolver_CMD):
@@ -363,11 +374,15 @@ COIN = COIN_CMD
 
 class PULP_CBC_CMD(COIN_CMD):
     """
-    This solver uses a precompiled version of cbc provided with the package
+    Legacy solver that uses a precompiled version of cbc bundled with PuLP.
+
+    Deprecated: will be removed in PuLP 4.0. Install CBC with
+    ``pip install pulp[cbc]`` and use :class:`COIN_CMD` instead.
     """
 
     name = "PULP_CBC_CMD"
     pulp_cbc_path = pulp_cbc_path
+    _permissions_ok = True
     try:
         if os.name != "nt":
             if not os.access(pulp_cbc_path, os.X_OK):
@@ -375,61 +390,66 @@ class PULP_CBC_CMD(COIN_CMD):
 
                 os.chmod(pulp_cbc_path, stat.S_IXUSR + stat.S_IXOTH)
     except:  # probably due to incorrect permissions
+        _permissions_ok = False
 
-        def available(self):
-            """True if the solver is available"""
+    def available(self):
+        """True if the solver is available"""
+        if not self._permissions_ok:
             return False
+        return super().available()
 
-        def actualSolve(self, lp, callback=None):
-            """Solve a well formulated lp problem"""
+    def actualSolve(self, lp, **kwargs):
+        """Solve a well formulated lp problem"""
+        if not self._permissions_ok:
             raise PulpSolverError(
                 "PULP_CBC_CMD: Not Available (check permissions on %s)"
                 % self.pulp_cbc_path
             )
+        return super().actualSolve(lp, **kwargs)
 
-    else:
-
-        def __init__(
+    def __init__(
+        self,
+        mip=True,
+        msg=True,
+        timeLimit=None,
+        gapRel=None,
+        gapAbs=None,
+        presolve=None,
+        cuts=None,
+        strong=None,
+        options=None,
+        warmStart=False,
+        keepFiles=False,
+        path=None,
+        threads=None,
+        logPath=None,
+        timeMode="elapsed",
+        maxNodes=None,
+        _skip_v4_deprecation: bool = False,
+    ):
+        if not _skip_v4_deprecation:
+            warn_pulp_cbc_cmd_deprecated(stacklevel=2)
+        if path is not None:
+            raise PulpSolverError("Use COIN_CMD if you want to set a path")
+        COIN_CMD.__init__(
             self,
-            mip=True,
-            msg=True,
-            timeLimit=None,
-            gapRel=None,
-            gapAbs=None,
-            presolve=None,
-            cuts=None,
-            strong=None,
-            options=None,
-            warmStart=False,
-            keepFiles=False,
-            path=None,
-            threads=None,
-            logPath=None,
-            timeMode="elapsed",
-            maxNodes=None,
-        ):
-            if path is not None:
-                raise PulpSolverError("Use COIN_CMD if you want to set a path")
-            # check that the file is executable
-            COIN_CMD.__init__(
-                self,
-                path=self.pulp_cbc_path,
-                mip=mip,
-                msg=msg,
-                timeLimit=timeLimit,
-                gapRel=gapRel,
-                gapAbs=gapAbs,
-                presolve=presolve,
-                cuts=cuts,
-                strong=strong,
-                options=options,
-                warmStart=warmStart,
-                keepFiles=keepFiles,
-                threads=threads,
-                logPath=logPath,
-                timeMode=timeMode,
-                maxNodes=maxNodes,
-            )
+            path=self.pulp_cbc_path,
+            mip=mip,
+            msg=msg,
+            timeLimit=timeLimit,
+            gapRel=gapRel,
+            gapAbs=gapAbs,
+            presolve=presolve,
+            cuts=cuts,
+            strong=strong,
+            options=options,
+            warmStart=warmStart,
+            keepFiles=keepFiles,
+            threads=threads,
+            logPath=logPath,
+            timeMode=timeMode,
+            maxNodes=maxNodes,
+        )
 
 
 def COINMP_DLL_load_dll(path: list[str]):
