@@ -1343,7 +1343,7 @@ class BaseSolverTest:
             time_limit = 10
             solver_settings = dict(
                 PULP_CBC_CMD=30,
-                COIN_CMD=30,
+                COIN_CMD=20,
                 SCIP_PY=30,
                 SCIP_CMD=30,
                 GUROBI_CMD=50,

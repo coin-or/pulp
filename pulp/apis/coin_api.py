@@ -51,8 +51,6 @@ from tempfile import mktemp
 from ..v4_migration import v4_deprecation
 
 cbc_path = "cbc"
-if operating_system == "win":
-    cbc_path += ".exe"
 
 coinMP_path = ["libCoinMP.so"]
 # workaround for (https://github.com/coin-or/pulp/issues/802)
