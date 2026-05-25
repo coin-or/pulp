@@ -379,7 +379,7 @@ class PULP_CBC_CMD(COIN_CMD):
     """
 
     name = "PULP_CBC_CMD"
-    pulp_cbc_path = pulp_cbc_path
+    pulp_cbc_path = COIN_CMD.executableExtension(pulp_cbc_path)
     _permissions_ok = True
     try:
         if os.name != "nt":
