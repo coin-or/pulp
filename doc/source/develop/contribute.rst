@@ -77,7 +77,7 @@ The test runner will detect solvers on your system and run tests for each one fo
 Creating a test
 -----------------
 
-When you fix an issue in pulp or add a functionality, you should add a test to the repository. For this you should go to the file `tests/test_pulp.py` and add a new method that tests your change.
+When you fix an issue in pulp or add functionality, add a test under ``pulp/tests/``: model or I/O tests go in ``test_pulp.py`` (``PuLPModelTest``); shared solve tests go in ``solver_common.py``; solver-specific overrides go in ``test_<solver>.py``.
 
 Applying the ruff linter / formatter
 -----------------------------------------------------

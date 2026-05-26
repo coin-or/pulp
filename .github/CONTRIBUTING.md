@@ -12,7 +12,10 @@ In order to sign the contribution agreement, we use [cla-assistant](_cla_assista
 1. Create a Fork of the project to your own repository.
 1. Create a Branch in your Fork.
 3. Do the changes in your Branch.
-3. Add a Test that checks the change you did. This is done by adding a test function to the test file: `pulp/tests/test_pulp.py` (the function needs to start with `test_`). 
+3. Add a test that checks the change you made (the method name must start with `test_`):
+   - Model, expression, MPS I/O, or serialization tests that do not target a specific solver: add to `PuLPModelTest` in `pulp/tests/test_pulp.py`.
+   - Shared solve behaviour for all solvers: add to `BaseSolverTest.PuLPTest` in `pulp/tests/solver_common.py` and set defaults in `DEFAULT_PULP_TEST_CONFIGS`.
+   - Solver-specific status or behaviour: add `pulp_test_overrides` (or a dedicated test method) in `pulp/tests/test_<solver>.py`. 
 4. If you have added a new solver API, please provide instructions on how to obtain the solver and, in case it's a commercial solver, also how to get a test or academic license to test the API ourselves.
 5. Create some bigger problems in a separate file where you can time the solution process to see if you are making changes that are more efficient, also use CProfile can help.
 6. Create a Pull Request (PR) when you're done so we can review it.

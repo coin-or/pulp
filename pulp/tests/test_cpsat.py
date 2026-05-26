@@ -1,7 +1,62 @@
-import unittest
+"""Unit tests for the CPSAT solver."""
 
+import unittest
+from typing import ClassVar
+
+import pulp.apis as solvers
 from pulp import CPSAT, LpMaximize, LpMinimize, LpProblem, LpStatusOptimal, const
 from pulp.apis.core import PulpSolverError
+from pulp.tests.solver_common import BaseSolverTest, PulpTestConfig
+
+_CPSAT_SKIP = PulpTestConfig(
+    skip=True, skip_reason="CPSAT requires finite bounds on all variables"
+)
+
+
+class CPSATTest(BaseSolverTest.PuLPTest):
+    solveInst = solvers.CPSAT
+
+    def setUp(self):
+        cfg = self.pulp_test_overrides.get(self._testMethodName)
+        if cfg is not None and cfg.skip:
+            self.skipTest(cfg.skip_reason or self._testMethodName)
+        super().setUp()
+
+    pulp_test_overrides: ClassVar[dict[str, PulpTestConfig]] = {
+        "test_continuous": _CPSAT_SKIP,
+        "test_continuous_max": _CPSAT_SKIP,
+        "test_decimal_815": _CPSAT_SKIP,
+        "test_divide": _CPSAT_SKIP,
+        "test_empty": _CPSAT_SKIP,
+        "test_feasibility_only": _CPSAT_SKIP,
+        "test_fixed_value": _CPSAT_SKIP,
+        "test_infeasible": _CPSAT_SKIP,
+        "test_infeasible_2": _CPSAT_SKIP,
+        "test_infeasible_problem__is_not_valid": _CPSAT_SKIP,
+        "test_initial_value": _CPSAT_SKIP,
+        "test_integer_infeasible": _CPSAT_SKIP,
+        "test_integer_infeasible_2": _CPSAT_SKIP,
+        "test_invalid_var_names": _CPSAT_SKIP,
+        "test_long_var_name": _CPSAT_SKIP,
+        "test_longname_lp": _CPSAT_SKIP,
+        "test_mip": _CPSAT_SKIP,
+        "test_mip_floats_objective": _CPSAT_SKIP,
+        "test_msg_arg": _CPSAT_SKIP,
+        "test_no_objective": _CPSAT_SKIP,
+        "test_relaxed_mip": _CPSAT_SKIP,
+        "test_unbounded": _CPSAT_SKIP,
+        "test_unset_objective_value__is_valid": _CPSAT_SKIP,
+        "test_variable_as_objective": _CPSAT_SKIP,
+        "test_zero_constraint": _CPSAT_SKIP,
+    }
+
+    def test_repeated_name(self):
+        prob = LpProblem(self._testMethodName, const.LpMinimize)
+        x1 = prob.add_variable("x", 0, 4)
+        x2 = prob.add_variable("x", -1, 1)
+        prob += x1 + x2
+        with self.assertRaises(PulpSolverError):
+            prob.solve(self.solver)
 
 
 class CPSATUnitTest(unittest.TestCase):
