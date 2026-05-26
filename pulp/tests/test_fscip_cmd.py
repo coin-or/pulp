@@ -35,6 +35,7 @@ class FSCIP_CMDTest(BaseSolverTest.PuLPTest):
             skip_reason="FSCIP_CMD unbounded handling is inconsistent",
         ),
     }
+
     def test_relaxed_mip(self):
         prob = LpProblem(self._testMethodName, const.LpMinimize)
         x = prob.add_variable("x", 0, 4)
