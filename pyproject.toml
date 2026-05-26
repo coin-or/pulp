@@ -9,7 +9,7 @@ authors = [
 ]
 maintainers= [{name= "Franco Peschiera", email= "pchtsp@gmail.com"}]
 dependencies = []
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 readme = "README.rst"
 license = "MIT"
 license-files = ["LICENSE"]
@@ -77,7 +77,17 @@ allowed-unresolved-imports = [
     "cuopt", "cuopt.**",
     "xpress", "xpress.**",
     "gurobipy", "gurobipy.**",
+    "ortools", "ortools.**",
     "elementtree.ElementTree", "elementtree.**",
+    "yaposib", "yaposib.**",
+    "ujson", "ujson.**",
+    "glpk.glpkpi", "glpk.**",
+    "mosek", "mosek.**",
+    "saspy", "saspy.**",
+    "swat", "swat.**",
+    "coptpy", "coptpy.**",
+    "highspy", "highspy.**",
+    "pyscipopt", "pyscipopt.**",
 ]
 [tool.ty.rules]
 possibly-missing-attribute = "warn"
@@ -112,9 +122,9 @@ required-environments = [
 
 
 [project.optional-dependencies]
-open_py = ["highspy", "pyscipopt", "cbcbox"]
+open_py = ["highspy<1.14", "pyscipopt", "cbcbox"]
 public_py = ["gurobipy", "coptpy", 'xpress', "cplex; sys_platform != 'darwin' or python_full_version < '3.12'"]
-highs = ["highspy"]
+highs = ["highspy<1.14"]
 highs_cmd = ["highsbox"]
 cbc = ["cbcbox"]
 scip = ["pyscipopt"]
@@ -123,3 +133,4 @@ xpress = ["xpress"]
 copt = ["coptpy"]
 cplex = ["cplex; sys_platform != 'darwin' or python_full_version < '3.12'"]
 mosek = ["mosek"]
+ortools = ["ortools"]

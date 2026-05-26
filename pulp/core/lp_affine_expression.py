@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import math
 from collections.abc import Iterable, Iterator
-from typing import Any, Literal
+from typing import Any, Literal, cast
 
 from .. import _rustcore
 from .. import constants as const
@@ -270,10 +270,10 @@ class LpAffineExpression:
             self._expr.combine_sense(other._expr.sense, float(sign))
         elif isinstance(other, dict):
             for e in other.values():
-                self.addInPlace(e, sign=sign)  # type: ignore[arg-type]
+                self.addInPlace(cast(Any, e), sign=sign)
         elif isinstance(other, Iterable) and not isinstance(other, str):
             for e in other:
-                self.addInPlace(e, sign=sign)  # type: ignore[arg-type]
+                self.addInPlace(cast(Any, e), sign=sign)
         elif isinstance(other, (int, float)):
             if not math.isfinite(other):
                 raise const.PulpError("Cannot add/subtract NaN/inf values")

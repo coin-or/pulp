@@ -9,7 +9,7 @@ General information on configuring solvers and how pulp finds solvers installed 
 Example
 ----------
 
-The smallest api for a solver can be found in the file :py:class:`pulp.apis.mipcl_api.MIPCL_CMD` located in ``pulp/apis/mipcl_api.py``. We will use it as an example to list all the changes that need to be done.
+The smallest api for a solver can be found in the file :py:class:`pulp.apis.mipcl.MIPCL_CMD` located in ``pulp/apis/mipcl.py``. We will use it as an example to list all the changes that need to be done.
 
 Inheriting base classes
 ------------------------------
@@ -141,7 +141,7 @@ Making the solver available to PuLP
 
 Modify the ``pulp/apis/__init__.py`` file to import your solver and add it to the ``_all_solvers`` list::
 
-    from .mipcl_api import MIPCL_CMD
+    from .mipcl import MIPCL_CMD
     _all_solvers = [
     # (...)
     MIPCL_CMD,

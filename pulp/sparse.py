@@ -1,4 +1,4 @@
-from typing import Dict, Generic, List, Tuple, TypeVar
+from typing import Dict, Generic, List, Tuple, TypeVar, cast
 
 # Sparse : Python basic dictionary sparse matrix
 
@@ -71,11 +71,13 @@ class Matrix(Generic[T], Dict[Tuple[int, int], T]):
         else:
             raise RuntimeError("col is not in the matrix columns")
 
-    def get(  # type: ignore[override]
+    def get(
         self,
         coords: Tuple[int, int],
-        default: T = 0,  # type: ignore[assignment]
+        default: T | None = None,
     ) -> T:
+        if default is None:
+            return dict.get(self, coords, cast(T, 0))
         return dict.get(self, coords, default)
 
     def col_based_arrays(

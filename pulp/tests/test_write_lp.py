@@ -222,7 +222,7 @@ class WriteLpTest(unittest.TestCase):
 
     def test_coin_readsol_mps_maps_lp_file_column_names_to_model_names(self) -> None:
         """CBC solution lines use names from the .lp file (escaped), not Python ``v.name``."""
-        from pulp.apis.coin_api import COIN_CMD
+        from pulp.apis.coin import COIN_CMD
 
         prob = LpProblem("cbc_map", const.LpMinimize)
         x = prob.add_variable("x y", 0, 1)
