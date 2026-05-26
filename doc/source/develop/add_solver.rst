@@ -150,11 +150,15 @@ Modify the ``pulp/apis/__init__.py`` file to import your solver and add it to th
 Including the solver in tests suite
 --------------------------------------------------
 
-Include the solver in PuLP's test suite by adding a couple of lines corresponding to your solver to the ``pulp/tests/test_pulp.py`` file::
+Include the solver in PuLP's test suite by creating ``pulp/tests/test_<solver>.py`` (for example ``pulp/tests/test_mipcl_cmd.py``)::
 
-    # (...)
+    from pulp.tests.solver_common import BaseSolverTest
+    import pulp.apis as solvers
+
     class MIPCL_CMDTest(BaseSolverTest.PuLPTest):
-        solveInst = MIPCL_CMD
+        solveInst = solvers.MIPCL_CMD
+
+Add ``pulp_test_overrides`` in that file when the solver's acceptable statuses or results differ from the defaults in ``solver_common.py``.
 
 
 Extra: adding a official solver API

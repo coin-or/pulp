@@ -1,0 +1,2 @@
+# MPS golden fixtures must use LF so they match Rust write_mps output on all platforms.
+pulp/tests/fixtures/mps/*.mps text eol=lf
