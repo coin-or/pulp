@@ -2709,6 +2709,55 @@ class SCIP_PYTest(BaseSolverTest.PuLPTest):
     solveInst = solvers.SCIP_PY
 
 
+class CPSATTest(BaseSolverTest.PuLPTest):
+    solveInst = solvers.CPSAT
+
+    _SKIP_TESTS = {
+        "test_continuous",
+        "test_continuous_max",
+        "test_decimal_815",
+        "test_decimal_815_addinplace",
+        "test_divide",
+        "test_export_dict_LP",
+        "test_export_dict_LP_no_obj",
+        "test_export_dict_MIP",
+        "test_export_dict_max",
+        "test_export_json_LP",
+        "test_export_solver_dict_LP",
+        "test_export_solver_json",
+        "test_feasibility_only",
+        "test_fixed_value",
+        "test_infeasible",
+        "test_infeasible_problem__is_not_valid",
+        "test_initial_value",
+        "test_integer_infeasible_2",
+        "test_invalid_var_names",
+        "test_long_var_name",
+        "test_mip",
+        "test_mip_floats_objective",
+        "test_msg_arg",
+        "test_no_objective",
+        "test_relaxed_mip",
+        "test_unbounded",
+        "test_unset_objective_value__is_valid",
+        "test_variable_as_objective",
+        "test_zero_constraint",
+    }
+
+    def setUp(self):
+        if self._testMethodName in self._SKIP_TESTS:
+            self.skipTest("CPSAT requires finite bounds on all variables")
+        super().setUp()
+
+    def test_repeated_name(self):
+        prob = LpProblem(self._testMethodName, const.LpMinimize)
+        x1 = prob.add_variable("x", 0, 4)
+        x2 = prob.add_variable("x", -1, 1)
+        prob += x1 + x2
+        with self.assertRaises(PulpSolverError):
+            prob.solve(self.solver)
+
+
 class HiGHS_PYTest(BaseSolverTest.PuLPTest):
     solveInst = solvers.HiGHS
 
