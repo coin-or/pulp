@@ -10,7 +10,7 @@ pulp
     :target: https://pypi.org/project/PuLP/
     :alt: PyPI - Downloads
 
-PuLP is an linear and mixed integer programming modeler written in Python. With PuLP, it is simple to create MILP optimisation problems and solve them with the latest open-source (or proprietary) solvers.  PuLP can generate MPS or LP files and call solvers such as GLPK_, COIN-OR CLP/`CBC`_, CPLEX_, GUROBI_, MOSEK_, XPRESS_, CHOCO_, MIPCL_, HiGHS_, SCIP_/FSCIP_.
+PuLP is an linear and mixed integer programming modeler written in Python. With PuLP, it is simple to create MILP optimisation problems and solve them with the latest open-source (or proprietary) solvers.  PuLP can generate MPS or LP files and call solvers such as GLPK_, COIN-OR CLP/`CBC`_, CPLEX_, GUROBI_, MOSEK_, XPRESS_, CHOCO_, MIPCL_, HiGHS_, SCIP_/FSCIP_, and OR-Tools `CP-SAT`_ (via the ``CPSAT`` API).
 
 The documentation for PuLP can be `found here <https://coin-or.github.io/pulp/>`_.
 
@@ -62,6 +62,7 @@ optional PyPI extras (some require a commercial license for running or for large
     python -m pip install pulp[highs]
     python -m pip install pulp[copt]
     python -m pip install pulp[mosek]
+    python -m pip install pulp[ortools]
     python -m pip install pulp[cylp]
     python -m pip install pulp[cbc]
 
@@ -99,6 +100,13 @@ or ``cbc`` on ``PATH``, otherwise another available backend)::
 If you want to try another solver to solve the problem::
 
      status = prob.solve(GLPK(msg = 0))
+
+To use the OR-Tools CP-SAT solver (install with ``python -m pip install pulp[ortools]``).
+Every variable must have finite lower and upper bounds; continuous variables are
+solved on their integer-rounded domain::
+
+     from pulp import CPSAT
+     status = prob.solve(CPSAT(msg=False))
 
 Display the status of the solution::
 
@@ -226,3 +234,4 @@ PuLP is distributed under an MIT license.
 .. _SCIP: https://www.scipopt.org/
 .. _HiGHS: https://highs.dev
 .. _FSCIP: https://ug.zib.de
+.. _CP-SAT: https://developers.google.com/optimization/cp/cp_solver

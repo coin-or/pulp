@@ -13,7 +13,7 @@ PuLP has some helper functions that permit a user to query which solvers are ava
     import pulp as pl
     solver_list = pl.listSolvers()
     print(solver_list)
-    # ['GLPK_CMD', 'PYGLPK', 'CPLEX_CMD', 'CPLEX_PY', 'CPLEX_DLL', 'GUROBI', 'GUROBI_CMD', 'MOSEK', 'XPRESS', 'COIN_CMD', 'COINMP_DLL', 'CHOCO_CMD', 'MIPCL_CMD', 'SCIP_CMD']
+    # ['GLPK_CMD', 'PYGLPK', 'CPLEX_CMD', 'CPLEX_PY', 'CPLEX_DLL', 'GUROBI', 'GUROBI_CMD', 'MOSEK', 'XPRESS', 'COIN_CMD', 'COINMP_DLL', 'CHOCO_CMD', 'MIPCL_CMD', 'SCIP_CMD', 'CPSAT', ...]
 
 If passed the `onlyAvailable=True` argument, PuLP lists the solvers that are currently available::
 
@@ -229,11 +229,48 @@ PuLP has the integrations with the official python API solvers for the following
 * SCIP (SCIP_PY)
 * XPRESS (XPRESS_PY)
 * COPT (COPT)
+* OR-Tools CP-SAT (CPSAT)
 
 These API offer a series of advantages over using the command line option:
 
 * They are usually faster to initialize a problem (they do not involve writing files to disk).
 * They offer a lot more functionality and information (extreme rays, dual prices, reduced costs).
+
+Installing CPSAT (OR-Tools CP-SAT)
+*************************************
+
+The ``CPSAT`` solver uses the `ortools <https://pypi.org/project/ortools/>`_
+Python package (``ortools.sat.python.cp_model``). Install PuLP with the optional
+extra::
+
+    python -m pip install pulp[ortools]
+
+No separate executable or license file is required. CP-SAT is a constraint
+programming / MIP-style solver that works on discrete models only:
+
+* Every variable must have **finite** lower and upper bounds (unbounded variables
+  raise ``PulpSolverError``).
+* Variable names must be **unique** within the problem.
+* ``LpContinuous`` variables are converted to integers on
+  ``[ceil(lowBound), floor(upBound)]``.
+* After solving, the underlying ``CpModel`` is available as ``prob.solverModel``.
+
+Example::
+
+    import pulp as pl
+
+    prob = pl.LpProblem("cpsat_example", pl.LpMinimize)
+    x = prob.add_variable("x", 0, 10, cat=pl.LpInteger)
+    y = prob.add_variable("y", 0, 10, cat=pl.LpInteger)
+    prob += x + 2 * y
+    prob += x + y >= 7
+
+    status = prob.solve(pl.CPSAT(msg=False, timeLimit=60))
+    print(pl.LpStatus[status], x.value(), y.value())
+
+Optional arguments include ``warmStart=True`` (pass current ``varValue`` hints),
+``timeLimit`` (seconds), and any ``CpSolver.parameters`` names as keyword
+arguments (for example ``num_search_workers=8``).
 
 Installing CPLEX_PY
 ***********************
@@ -287,6 +324,19 @@ Using solver-specific functionality
 
 
 In order to access this functionality, the user needs to use the solver object included inside the PuLP problem. PuLP uses the ``solverModel`` attribute on the problem object. This attribute is created and filled when the method ``buildSolverModel()`` is executed.
+
+For example, using the ``CPSAT`` API we can access the OR-Tools ``CpModel`` after solving:
+
+.. code-block:: python
+
+    import pulp
+
+    prob = pulp.LpProblem("name", pulp.LpMinimize)
+    x = prob.add_variable("x", 0, 10, cat=pulp.LpInteger)
+    prob += x
+
+    status = prob.solve(pulp.CPSAT(msg=False))
+    prob.solverModel  # ortools.sat.python.cp_model.CpModel
 
 For example, using the ``CPLEX_PY`` API we can access the api object after the solving is done:
 
