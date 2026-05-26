@@ -16,5 +16,4 @@ class SAS94Test(BaseSolverTest.PuLPTest, SASTest):
         "test_dual_variables_reduced_costs": PulpTestConfig(skip=False),
         "test_initial_value": PulpTestConfig(warm_start=True),
         "test_long_var_name": PulpTestConfig(allow_pulp_error=True),
-        "test_repeated_name": PulpTestConfig(expect_pulp_error=True),
     }

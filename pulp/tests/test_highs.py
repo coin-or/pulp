@@ -1,14 +1,21 @@
 """Unit tests for highs solver."""
 
+from typing import ClassVar
+
 import pulp.apis as solvers
 from pulp.tests.bin_packing_problem import create_bin_packing_problem
 from pulp.tests.solver_common import (
+    ALLOW_REPEATED_VAR_NAMES,
     BaseSolverTest,
+    PulpTestConfig,
 )
 
 
 class HiGHS_PYTest(BaseSolverTest.PuLPTest):
     solveInst = solvers.HiGHS
+    pulp_test_overrides: ClassVar[dict[str, PulpTestConfig]] = {
+        "test_repeated_name": ALLOW_REPEATED_VAR_NAMES,
+    }
 
     def test_callback(self):
         prob = create_bin_packing_problem(bins=40, seed=99)

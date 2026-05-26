@@ -16,7 +16,6 @@ class MOSEKTest(BaseSolverTest.PuLPTest):
         "test_integer_infeasible": PulpTestConfig(
             okstatus=_status("LpStatusInfeasible", "LpStatusUndefined")
         ),
-        "test_repeated_name": PulpTestConfig(expect_pulp_error=True),
         "test_unbounded": PulpTestConfig(
             okstatus=_status(
                 "LpStatusInfeasible", "LpStatusUnbounded", "LpStatusUndefined"

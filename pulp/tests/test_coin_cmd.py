@@ -18,9 +18,6 @@ from pulp.tests.solver_common import (
 
 class COIN_CMD_CBCOptionsTest(BaseSolverTest.PuLPTest):
     solveInst = solvers.COIN_CMD
-    pulp_test_overrides: ClassVar[dict[str, PulpTestConfig]] = {
-        "test_repeated_name": PulpTestConfig(expect_pulp_error=True),
-    }
 
     @staticmethod
     def read_command_line_from_log_file(logPath):
@@ -238,7 +235,6 @@ class COIN_CMDTest(BaseSolverTest.PuLPTest):
         "test_integer_infeasible": PulpTestConfig(
             okstatus=_status("LpStatusInfeasible", "LpStatusUndefined")
         ),
-        "test_repeated_name": PulpTestConfig(expect_pulp_error=True),
     }
 
     def test_infeasible(self):
@@ -252,7 +248,7 @@ class COIN_CMDTest(BaseSolverTest.PuLPTest):
         prob += x + z >= 10, "c2"
         prob += -y + z == 7, "c3"
         prob += w >= 0, "c4"
-        self._apply_pulp_check("test_infeasible", prob, sol={x: 4, y: -1, z: 6, w: 0})
+        self._apply_pulp_check(prob, sol={x: 4, y: -1, z: 6, w: 0})
 
     def test_add_variable_dicts_tuple_indices_mps_path(self):
         """Tuple keys from a list of indices build names with punctuation/spaces; CBC MPS path must run."""

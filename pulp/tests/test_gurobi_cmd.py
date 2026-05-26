@@ -31,7 +31,6 @@ class GUROBI_CMDTest(BaseSolverTest.PuLPTest):
         "test_invalid_var_names": PulpTestConfig(skip=True),
         "test_logPath": PulpTestConfig(skip=False, check_log_path=True),
         "test_long_var_name": PulpTestConfig(allow_pulp_error=True),
-        "test_repeated_name": PulpTestConfig(expect_pulp_error=True),
         "test_unbounded": PulpTestConfig(
             okstatus=_status("LpStatusNotSolved", "LpStatusUndefined")
         ),
@@ -47,4 +46,4 @@ class GUROBI_CMDTest(BaseSolverTest.PuLPTest):
         prob += x + z >= 10, "c2"
         prob += -y + z == 7.5, "c3"
         self.solver.mip = 0
-        self._apply_pulp_check("test_relaxed_mip", prob, sol={x: 3.0, y: -0.5, z: 7})
+        self._apply_pulp_check(prob, sol={x: 3.0, y: -0.5, z: 7})

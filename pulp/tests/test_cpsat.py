@@ -50,14 +50,6 @@ class CPSATTest(BaseSolverTest.PuLPTest):
         "test_zero_constraint": _CPSAT_SKIP,
     }
 
-    def test_repeated_name(self):
-        prob = LpProblem(self._testMethodName, const.LpMinimize)
-        x1 = prob.add_variable("x", 0, 4)
-        x2 = prob.add_variable("x", -1, 1)
-        prob += x1 + x2
-        with self.assertRaises(PulpSolverError):
-            prob.solve(self.solver)
-
 
 class CPSATUnitTest(unittest.TestCase):
     def setUp(self):

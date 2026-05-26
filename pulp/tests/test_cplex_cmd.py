@@ -17,7 +17,6 @@ class CPLEX_CMDTest(BaseSolverTest.PuLPTest):
         "test_initial_value": PulpTestConfig(warm_start=True),
         "test_logPath": PulpTestConfig(skip=False, check_log_path=True),
         "test_long_var_name": PulpTestConfig(allow_pulp_error=True),
-        "test_repeated_name": PulpTestConfig(expect_pulp_error=True),
         "test_unbounded": PulpTestConfig(
             okstatus=_status(
                 "LpStatusInfeasible", "LpStatusUnbounded", "LpStatusUndefined"

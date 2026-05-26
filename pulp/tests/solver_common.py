@@ -105,8 +105,8 @@ class PulpTestConfig:
     slacks: Any = None
     objective: float | None = None
     solve_kwargs: dict[str, Any] = field(default_factory=dict)
-    expect_pulp_error: bool = False
-    allow_pulp_error: bool = False
+    expect_pulp_error: bool | None = None
+    allow_pulp_error: bool | None = None
     check_log_path: bool = False
     warm_start: bool = False
     set_mip_zero: bool = False
@@ -122,11 +122,11 @@ class PulpTestConfig:
                 merged[f] = ov
             elif f == "skip" and ov:
                 merged[f] = True
+            elif f in ("expect_pulp_error", "allow_pulp_error"):
+                merged[f] = ov if ov is not None else dv
             elif (
                 f
                 in (
-                    "expect_pulp_error",
-                    "allow_pulp_error",
                     "check_log_path",
                     "warm_start",
                     "set_mip_zero",
@@ -137,6 +137,10 @@ class PulpTestConfig:
             else:
                 merged[f] = dv
         return PulpTestConfig(**merged)
+
+
+# CMD/API backends that export duplicate names (e.g. last wins in MPS) without raising.
+ALLOW_REPEATED_VAR_NAMES = PulpTestConfig(expect_pulp_error=False)
 
 
 def _status(*names: str) -> tuple[int, ...]:
@@ -168,10 +172,7 @@ DEFAULT_PULP_TEST_CONFIGS: dict[str, PulpTestConfig] = {
         okstatus=_status("LpStatusOptimal"),
         sol="std_lp",
     ),
-    "test_repeated_name": PulpTestConfig(
-        okstatus=_status("LpStatusOptimal"),
-        sol="std_lp",
-    ),
+    "test_repeated_name": PulpTestConfig(expect_pulp_error=True),
     "test_zero_constraint": PulpTestConfig(
         okstatus=_status("LpStatusOptimal"), sol="std_lp"
     ),
@@ -343,13 +344,14 @@ class BaseSolverTest:
 
         def _apply_pulp_check(
             self,
-            method: str,
             prob: LpProblem,
             *,
+            method: str | None = None,
             sol: dict | None = None,
             okstatus: list[int] | None = None,
             **extra,
         ) -> None:
+            method = self._testMethodName if method is None else method
             cfg = self._config(method)
             if cfg.skip:
                 self.skipTest(cfg.skip_reason or method)
@@ -378,7 +380,7 @@ class BaseSolverTest:
             duals = check_extra.pop("duals", cfg.duals)
             slacks = check_extra.pop("slacks", cfg.slacks)
             solve_kwargs = {**cfg.solve_kwargs, **check_extra}
-            if cfg.expect_pulp_error:
+            if cfg.expect_pulp_error is True:
 
                 def _run():
                     pulpTestCheck(
@@ -395,7 +397,7 @@ class BaseSolverTest:
 
                 self.assertRaises((PulpError, PulpSolverError), _run)
                 return
-            if cfg.allow_pulp_error:
+            if cfg.allow_pulp_error is True:
                 try:
                     pulpTestCheck(
                         prob,
@@ -529,7 +531,6 @@ class BaseSolverTest:
             prob += c2, "c2"
             prob += c3, "c3"
             self._apply_pulp_check(
-                "test_dual_variables_reduced_costs",
                 prob,
                 sol={x: 4, y: -1, z: 6},
                 reducedcosts={x: 0, y: 12, z: 0},
@@ -583,7 +584,7 @@ class BaseSolverTest:
             prob += x + z >= 10, "c2"
             prob += -y + z == 7, "c3"
             prob += w >= 0, "c4"
-            self._apply_pulp_check("test_infeasible", prob)
+            self._apply_pulp_check(prob)
 
         def test_infeasible_2(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
@@ -593,7 +594,7 @@ class BaseSolverTest:
             prob += x + y <= 5.2, "c1"
             prob += x + z >= 10.3, "c2"
             prob += -y + z == 17.5, "c3"
-            self._apply_pulp_check("test_infeasible_2", prob)
+            self._apply_pulp_check(prob)
 
         def test_infeasible_problem__is_not_valid(self):
             """Given a problem where x cannot converge to any value
@@ -603,7 +604,7 @@ class BaseSolverTest:
             prob += 1 * x
             prob += x >= 2
             prob += x <= 1
-            self._apply_pulp_check("test_infeasible_problem__is_not_valid", prob)
+            self._apply_pulp_check(prob)
             self.assertFalse(prob.valid())
 
         def test_initial_value(self):
@@ -618,9 +619,7 @@ class BaseSolverTest:
             x.setInitialValue(3)
             y.setInitialValue(-0.5)
             z.setInitialValue(7)
-            self._apply_pulp_check(
-                "test_initial_value", prob, sol={x: 3, y: -0.5, z: 7}
-            )
+            self._apply_pulp_check(prob, sol={x: 3, y: -0.5, z: 7})
 
         def test_integer_infeasible(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
@@ -630,7 +629,7 @@ class BaseSolverTest:
             prob += x + y <= 5.2, "c1"
             prob += x + z >= 10.3, "c2"
             prob += -y + z == 7.4, "c3"
-            self._apply_pulp_check("test_integer_infeasible", prob)
+            self._apply_pulp_check(prob)
 
         def test_integer_infeasible_2(self):
             prob = LpProblem(self._testMethodName, const.LpMaximize)
@@ -640,7 +639,7 @@ class BaseSolverTest:
             prob += dummy
             prob += c1 + c2 == 2
             prob += c1 <= 0
-            self._apply_pulp_check("test_integer_infeasible_2", prob)
+            self._apply_pulp_check(prob)
 
         def test_invalid_var_names(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
@@ -653,11 +652,7 @@ class BaseSolverTest:
             prob += x + z >= 10, "c2"
             prob += -y + z == 7, "c3"
             prob += w >= 0, "c4"
-            self._apply_pulp_check(
-                "test_invalid_var_names",
-                prob,
-                sol={x: 4, y: -1, z: 6, w: 0},
-            )
+            self._apply_pulp_check(prob, sol={x: 4, y: -1, z: 6, w: 0})
 
         def test_logPath(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
@@ -671,7 +666,7 @@ class BaseSolverTest:
             prob += -y + z == 7, "c3"
             prob += w >= 0, "c4"
             self.solver.optionsDict["logPath"] = self._testMethodName + ".log"
-            self._apply_pulp_check("test_logPath", prob, sol={x: 4, y: -1, z: 6, w: 0})
+            self._apply_pulp_check(prob, sol={x: 4, y: -1, z: 6, w: 0})
 
         def test_long_var_name(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
@@ -684,9 +679,7 @@ class BaseSolverTest:
             prob += x + z >= 10, "c2"
             prob += -y + z == 7, "c3"
             prob += w >= 0, "c4"
-            self._apply_pulp_check(
-                "test_long_var_name", prob, sol={x: 4, y: -1, z: 6, w: 0}
-            )
+            self._apply_pulp_check(prob, sol={x: 4, y: -1, z: 6, w: 0})
 
         def test_longname_lp(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
@@ -699,9 +692,7 @@ class BaseSolverTest:
             prob += x + z >= 10, "c2"
             prob += -y + z == 7, "c3"
             prob += w >= 0, "c4"
-            self._apply_pulp_check(
-                "test_longname_lp", prob, sol={x: 4, y: -1, z: 6, w: 0}
-            )
+            self._apply_pulp_check(prob, sol={x: 4, y: -1, z: 6, w: 0})
 
         def test_mip(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
@@ -781,11 +772,7 @@ class BaseSolverTest:
             prob += x + z >= 10, "c2"
             prob += -y + z == 7, "c3"
             prob += w >= 0, "c4"
-            self._apply_pulp_check(
-                "test_options_parsing_SCIP_HIGHS",
-                prob,
-                sol={x: 4, y: -1, z: 6, w: 0},
-            )
+            self._apply_pulp_check(prob, sol={x: 4, y: -1, z: 6, w: 0})
 
         def test_relaxed_mip(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
@@ -797,9 +784,7 @@ class BaseSolverTest:
             prob += x + z >= 10, "c2"
             prob += -y + z == 7.5, "c3"
             self.solver.mip = 0
-            self._apply_pulp_check(
-                "test_relaxed_mip", prob, sol={x: 3.5, y: -1, z: 6.5}
-            )
+            self._apply_pulp_check(prob, sol={x: 3.5, y: -1, z: 6.5})
 
         def test_repeated_name(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
@@ -812,9 +797,7 @@ class BaseSolverTest:
             prob += x + z >= 10, "c2"
             prob += -y + z == 7, "c3"
             prob += w >= 0, "c4"
-            self._apply_pulp_check(
-                "test_repeated_name", prob, sol={x: 4, y: -1, z: 6, w: 0}
-            )
+            self._apply_pulp_check(prob, sol={x: 4, y: -1, z: 6, w: 0})
 
         def test_sequential_solve(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
@@ -826,7 +809,6 @@ class BaseSolverTest:
             prob += x <= 1, "c1"
             status = prob.sequentialSolve([obj1, obj2], solver=self.solver)
             self._apply_pulp_check(
-                "test_sequential_solve",
                 prob,
                 sol={x: 0, y: 1},
                 okstatus=[[const.LpStatusOptimal, const.LpStatusOptimal]],
@@ -844,7 +826,7 @@ class BaseSolverTest:
             prob += x + z >= 10, "c2"
             prob += -y + z == 7, "c3"
             prob += w >= 0, "c4"
-            self._apply_pulp_check("test_unbounded", prob)
+            self._apply_pulp_check(prob)
 
         def test_unset_objective_value__is_valid(self):
             """Given a valid problem that does not converge,

@@ -20,7 +20,6 @@ class HiGHS_CMDTest(BaseSolverTest.PuLPTest):
             skip_reason="HiGHS_CMD unbounded handling is inconsistent",
         ),
         "test_long_var_name": PulpTestConfig(allow_pulp_error=True),
-        "test_repeated_name": PulpTestConfig(expect_pulp_error=True),
         "test_initial_value": PulpTestConfig(warm_start=True),
         "test_options_parsing_SCIP_HIGHS": PulpTestConfig(skip=False),
     }

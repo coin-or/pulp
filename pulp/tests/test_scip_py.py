@@ -6,6 +6,7 @@ import pulp.apis as solvers
 from pulp import LpProblem
 from pulp import constants as const
 from pulp.tests.solver_common import (
+    ALLOW_REPEATED_VAR_NAMES,
     BaseSolverTest,
     PulpTestConfig,
     _status,
@@ -15,6 +16,7 @@ from pulp.tests.solver_common import (
 class SCIP_PYTest(BaseSolverTest.PuLPTest):
     solveInst = solvers.SCIP_PY
     pulp_test_overrides: ClassVar[dict[str, PulpTestConfig]] = {
+        "test_repeated_name": ALLOW_REPEATED_VAR_NAMES,
         "test_integer_infeasible_2": PulpTestConfig(
             okstatus=_status("LpStatusNotSolved", "LpStatusUndefined")
         ),
@@ -33,4 +35,4 @@ class SCIP_PYTest(BaseSolverTest.PuLPTest):
         prob += x + z >= 10, "c2"
         prob += -y + z == 7.5, "c3"
         self.solver.mip = 0
-        self._apply_pulp_check("test_relaxed_mip", prob, sol={x: 3.0, y: -0.5, z: 7})
+        self._apply_pulp_check(prob, sol={x: 3.0, y: -0.5, z: 7})

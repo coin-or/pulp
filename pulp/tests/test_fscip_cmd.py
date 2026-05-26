@@ -28,7 +28,6 @@ class FSCIP_CMDTest(BaseSolverTest.PuLPTest):
         "test_invalid_var_names": PulpTestConfig(skip=True),
         "test_long_var_name": PulpTestConfig(allow_pulp_error=True),
         "test_options_parsing_SCIP_HIGHS": PulpTestConfig(skip=False),
-        "test_relaxed_mip": PulpTestConfig(okstatus=_status("LpStatusOptimal"), sol={}),
         "test_unbounded": PulpTestConfig(
             skip=True,
             skip_reason="FSCIP_CMD unbounded handling is inconsistent",

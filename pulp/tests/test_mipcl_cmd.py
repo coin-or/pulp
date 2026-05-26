@@ -19,6 +19,5 @@ class MIPCL_CMDTest(BaseSolverTest.PuLPTest):
         ),
         "test_long_var_name": PulpTestConfig(allow_pulp_error=True),
         "test_relaxed_mip": PulpTestConfig(okstatus=_status("LpStatusOptimal"), sol={}),
-        "test_repeated_name": PulpTestConfig(expect_pulp_error=True),
         "test_unbounded": PulpTestConfig(okstatus=_status("LpStatusOptimal")),
     }
