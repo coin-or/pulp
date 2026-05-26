@@ -183,7 +183,7 @@ class GUROBI(LpSolver):
             if self.manage_env:
                 self.env.dispose()
 
-        def findSolutionValues(self, lp, var_handles, constr_handles):
+        def findSolutionValues(self, lp: LpProblem, var_handles, constr_handles):
             model = lp.solverModel
             solutionStatus = model.Status
             GRB = gp.GRB
@@ -278,7 +278,7 @@ class GUROBI(LpSolver):
             lp.solverModel.optimize(callback=callback)
             self.solveTime += clock()
 
-        def buildSolverModel(self, lp):
+        def buildSolverModel(self, lp: LpProblem):
             """
             Takes the pulp lp model and translates it into a gurobi model
             """
