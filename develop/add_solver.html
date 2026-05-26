@@ -96,7 +96,7 @@
 <p>General information on configuring solvers and how pulp finds solvers installed in a system are in the <a class="reference internal" href="../guides/how_to_configure_solvers.html"><span class="doc">How to configure a solver in PuLP</span></a> section.</p>
 <section id="example">
 <h2>Example<a class="headerlink" href="#example" title="Link to this heading"></a></h2>
-<p>The smallest api for a solver can be found in the file <a class="reference internal" href="../technical/solvers.html#pulp.apis.MIPCL_CMD" title="pulp.apis.mipcl_api.MIPCL_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.mipcl_api.MIPCL_CMD</span></code></a> located in <code class="docutils literal notranslate"><span class="pre">pulp/apis/mipcl_api.py</span></code>. We will use it as an example to list all the changes that need to be done.</p>
+<p>The smallest api for a solver can be found in the file <a class="reference internal" href="../technical/solvers.html#pulp.apis.MIPCL_CMD" title="pulp.apis.mipcl.MIPCL_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.mipcl.MIPCL_CMD</span></code></a> located in <code class="docutils literal notranslate"><span class="pre">pulp/apis/mipcl.py</span></code>. We will use it as an example to list all the changes that need to be done.</p>
 </section>
 <section id="inheriting-base-classes">
 <h2>Inheriting base classes<a class="headerlink" href="#inheriting-base-classes" title="Link to this heading"></a></h2>
@@ -222,7 +222,7 @@
 <section id="making-the-solver-available-to-pulp">
 <h2>Making the solver available to PuLP<a class="headerlink" href="#making-the-solver-available-to-pulp" title="Link to this heading"></a></h2>
 <p>Modify the <code class="docutils literal notranslate"><span class="pre">pulp/apis/__init__.py</span></code> file to import your solver and add it to the <code class="docutils literal notranslate"><span class="pre">_all_solvers</span></code> list:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">.mipcl_api</span><span class="w"> </span><span class="kn">import</span> <span class="n">MIPCL_CMD</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">.mipcl</span><span class="w"> </span><span class="kn">import</span> <span class="n">MIPCL_CMD</span>
 <span class="n">_all_solvers</span> <span class="o">=</span> <span class="p">[</span>
 <span class="c1"># (...)</span>
 <span class="n">MIPCL_CMD</span><span class="p">,</span>

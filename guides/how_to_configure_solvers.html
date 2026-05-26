@@ -60,6 +60,7 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#configuring-where-the-cmd-solvers-write-their-temporary-files">Configuring where the CMD solvers write their temporary files</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#using-the-official-solver-api">Using the official solver API</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#installing-cpsat-or-tools-cp-sat">Installing CPSAT (OR-Tools CP-SAT)</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#installing-cplex-py">Installing CPLEX_PY</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#installing-gurobi">Installing GUROBI</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#installing-xpress-py">Installing XPRESS_PY</a></li>
@@ -113,7 +114,7 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pulp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
 <span class="n">solver_list</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">listSolvers</span><span class="p">()</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">solver_list</span><span class="p">)</span>
-<span class="c1"># [&#39;GLPK_CMD&#39;, &#39;PYGLPK&#39;, &#39;CPLEX_CMD&#39;, &#39;CPLEX_PY&#39;, &#39;CPLEX_DLL&#39;, &#39;GUROBI&#39;, &#39;GUROBI_CMD&#39;, &#39;MOSEK&#39;, &#39;XPRESS&#39;, &#39;COIN_CMD&#39;, &#39;COINMP_DLL&#39;, &#39;CHOCO_CMD&#39;, &#39;MIPCL_CMD&#39;, &#39;SCIP_CMD&#39;]</span>
+<span class="c1"># [&#39;GLPK_CMD&#39;, &#39;PYGLPK&#39;, &#39;CPLEX_CMD&#39;, &#39;CPLEX_PY&#39;, &#39;CPLEX_DLL&#39;, &#39;GUROBI&#39;, &#39;GUROBI_CMD&#39;, &#39;MOSEK&#39;, &#39;XPRESS&#39;, &#39;COIN_CMD&#39;, &#39;COINMP_DLL&#39;, &#39;CHOCO_CMD&#39;, &#39;MIPCL_CMD&#39;, &#39;SCIP_CMD&#39;, &#39;CPSAT&#39;, ...]</span>
 </pre></div>
 </div>
 <p>If passed the <cite>onlyAvailable=True</cite> argument, PuLP lists the solvers that are currently available:</p>
@@ -302,12 +303,48 @@ other command-line tool).</p></li>
 <li><p>SCIP (SCIP_PY)</p></li>
 <li><p>XPRESS (XPRESS_PY)</p></li>
 <li><p>COPT (COPT)</p></li>
+<li><p>OR-Tools CP-SAT (CPSAT)</p></li>
 </ul>
 <p>These API offer a series of advantages over using the command line option:</p>
 <ul class="simple">
 <li><p>They are usually faster to initialize a problem (they do not involve writing files to disk).</p></li>
 <li><p>They offer a lot more functionality and information (extreme rays, dual prices, reduced costs).</p></li>
 </ul>
+<section id="installing-cpsat-or-tools-cp-sat">
+<h3>Installing CPSAT (OR-Tools CP-SAT)<a class="headerlink" href="#installing-cpsat-or-tools-cp-sat" title="Link to this heading"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">CPSAT</span></code> solver uses the <a class="reference external" href="https://pypi.org/project/ortools/">ortools</a>
+Python package (<code class="docutils literal notranslate"><span class="pre">ortools.sat.python.cp_model</span></code>). Install PuLP with the optional
+extra:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">pulp</span><span class="p">[</span><span class="n">ortools</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>No separate executable or license file is required. CP-SAT is a constraint
+programming / MIP-style solver that works on discrete models only:</p>
+<ul class="simple">
+<li><p>Every variable must have <strong>finite</strong> lower and upper bounds (unbounded variables
+raise <code class="docutils literal notranslate"><span class="pre">PulpSolverError</span></code>).</p></li>
+<li><p>Variable names must be <strong>unique</strong> within the problem.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LpContinuous</span></code> variables are converted to integers on
+<code class="docutils literal notranslate"><span class="pre">[ceil(lowBound),</span> <span class="pre">floor(upBound)]</span></code>.</p></li>
+<li><p>After solving, the underlying <code class="docutils literal notranslate"><span class="pre">CpModel</span></code> is available as <code class="docutils literal notranslate"><span class="pre">prob.solverModel</span></code>.</p></li>
+</ul>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pulp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
+
+<span class="n">prob</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;cpsat_example&quot;</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="n">cat</span><span class="o">=</span><span class="n">pl</span><span class="o">.</span><span class="n">LpInteger</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="n">cat</span><span class="o">=</span><span class="n">pl</span><span class="o">.</span><span class="n">LpInteger</span><span class="p">)</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">y</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&gt;=</span> <span class="mi">7</span>
+
+<span class="n">status</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">CPSAT</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">timeLimit</span><span class="o">=</span><span class="mi">60</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">LpStatus</span><span class="p">[</span><span class="n">status</span><span class="p">],</span> <span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">(),</span> <span class="n">y</span><span class="o">.</span><span class="n">value</span><span class="p">())</span>
+</pre></div>
+</div>
+<p>Optional arguments include <code class="docutils literal notranslate"><span class="pre">warmStart=True</span></code> (pass current <code class="docutils literal notranslate"><span class="pre">varValue</span></code> hints),
+<code class="docutils literal notranslate"><span class="pre">timeLimit</span></code> (seconds), and any <code class="docutils literal notranslate"><span class="pre">CpSolver.parameters</span></code> names as keyword
+arguments (for example <code class="docutils literal notranslate"><span class="pre">num_search_workers=8</span></code>).</p>
+</section>
 <section id="installing-cplex-py">
 <h3>Installing CPLEX_PY<a class="headerlink" href="#installing-cplex-py" title="Link to this heading"></a></h3>
 <p>For this solver to work there are two options:</p>
@@ -352,6 +389,17 @@ other command-line tool).</p></li>
 <section id="using-solver-specific-functionality">
 <span id="solver-specific-config"></span><h3>Using solver-specific functionality<a class="headerlink" href="#using-solver-specific-functionality" title="Link to this heading"></a></h3>
 <p>In order to access this functionality, the user needs to use the solver object included inside the PuLP problem. PuLP uses the <code class="docutils literal notranslate"><span class="pre">solverModel</span></code> attribute on the problem object. This attribute is created and filled when the method <code class="docutils literal notranslate"><span class="pre">buildSolverModel()</span></code> is executed.</p>
+<p>For example, using the <code class="docutils literal notranslate"><span class="pre">CPSAT</span></code> API we can access the OR-Tools <code class="docutils literal notranslate"><span class="pre">CpModel</span></code> after solving:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pulp</span>
+
+<span class="n">prob</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="n">cat</span><span class="o">=</span><span class="n">pulp</span><span class="o">.</span><span class="n">LpInteger</span><span class="p">)</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span>
+
+<span class="n">status</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">pulp</span><span class="o">.</span><span class="n">CPSAT</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">solverModel</span>  <span class="c1"># ortools.sat.python.cp_model.CpModel</span>
+</pre></div>
+</div>
 <p>For example, using the <code class="docutils literal notranslate"><span class="pre">CPLEX_PY</span></code> API we can access the api object after the solving is done:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pulp</span>
 

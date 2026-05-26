@@ -139,6 +139,15 @@
 <li class="toctree-l4"><a class="reference internal" href="#pulp.apis.CPLEX_PY.setlogfile"><code class="docutils literal notranslate"><span class="pre">CPLEX_PY.setlogfile()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.apis.CPSAT"><code class="docutils literal notranslate"><span class="pre">CPSAT</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.CPSAT.actualSolve"><code class="docutils literal notranslate"><span class="pre">CPSAT.actualSolve()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.CPSAT.available"><code class="docutils literal notranslate"><span class="pre">CPSAT.available()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.CPSAT.buildSolverModel"><code class="docutils literal notranslate"><span class="pre">CPSAT.buildSolverModel()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.CPSAT.callSolver"><code class="docutils literal notranslate"><span class="pre">CPSAT.callSolver()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.CPSAT.findSolutionValues"><code class="docutils literal notranslate"><span class="pre">CPSAT.findSolutionValues()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.CPSAT.name"><code class="docutils literal notranslate"><span class="pre">CPSAT.name</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#pulp.apis.CUOPT"><code class="docutils literal notranslate"><span class="pre">CUOPT</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#pulp.apis.CUOPT.actualSolve"><code class="docutils literal notranslate"><span class="pre">CUOPT.actualSolve()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#pulp.apis.CUOPT.available"><code class="docutils literal notranslate"><span class="pre">CUOPT.available()</span></code></a></li>
@@ -730,7 +739,7 @@ e.g. gapRel=0.1, gapAbs=10, logPath=””,</p></li>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pulp.apis.CPLEX">
 <span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">CPLEX</span></span><a class="headerlink" href="#pulp.apis.CPLEX" title="Link to this definition"></a></dt>
-<dd><p>alias of <a class="reference internal" href="#pulp.apis.CPLEX_CMD" title="pulp.apis.cplex_api.CPLEX_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">CPLEX_CMD</span></code></a></p>
+<dd><p>alias of <a class="reference internal" href="#pulp.apis.CPLEX_CMD" title="pulp.apis.cplex.CPLEX_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">CPLEX_CMD</span></code></a></p>
 </dd></dl>
 
 <dl class="py class">
@@ -922,6 +931,60 @@ The ‘parameters.’ prefix is optional. For example:</p>
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="pulp.apis.CPSAT">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">CPSAT</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeLimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warmStart</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">solverParams</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPSAT" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pulp.apis.LpSolver" title="pulp.apis.core.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpSolver</span></code></a></p>
+<p>The OR-Tools CP-SAT solver (via its Python API).</p>
+<p>CP-SAT requires finite lower and upper bounds on every variable.
+Continuous variables are converted to integer variables on
+<code class="docutils literal notranslate"><span class="pre">[ceil(lowBound),</span> <span class="pre">floor(upBound)]</span></code>.</p>
+<p>The CP-SAT model is available (after a solve) in <code class="docutils literal notranslate"><span class="pre">prob.solverModel</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – ignored; CP-SAT always solves as a discrete model</p></li>
+<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – if False, no log is shown</p></li>
+<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
+<li><p><strong>warmStart</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – if True, pass current variable values as hints</p></li>
+<li><p><strong>solverParams</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a>) – additional parameters for <code class="docutils literal notranslate"><span class="pre">CpSolver.parameters</span></code></p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pulp.apis.CPSAT.actualSolve">
+<span class="sig-name descname"><span class="pre">actualSolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPSAT.actualSolve" title="Link to this definition"></a></dt>
+<dd><p>Solve a well formulated lp problem</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulp.apis.CPSAT.available">
+<span class="sig-name descname"><span class="pre">available</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span></span><a class="headerlink" href="#pulp.apis.CPSAT.available" title="Link to this definition"></a></dt>
+<dd><p>True if the solver is available</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulp.apis.CPSAT.buildSolverModel">
+<span class="sig-name descname"><span class="pre">buildSolverModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPSAT.buildSolverModel" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulp.apis.CPSAT.callSolver">
+<span class="sig-name descname"><span class="pre">callSolver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPSAT.callSolver" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulp.apis.CPSAT.findSolutionValues">
+<span class="sig-name descname"><span class="pre">findSolutionValues</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CPSAT.findSolutionValues" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulp.apis.CPSAT.name">
+<span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'CPSAT'</span></span><a class="headerlink" href="#pulp.apis.CPSAT.name" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="pulp.apis.CUOPT">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">CUOPT</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeLimit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CUOPT" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pulp.apis.LpSolver" title="pulp.apis.core.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpSolver</span></code></a></p>
@@ -997,7 +1060,7 @@ e.g. gapRel=0.1, gapAbs=10, logPath=””,</p></li>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pulp.apis.FSCIP">
 <span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">FSCIP</span></span><a class="headerlink" href="#pulp.apis.FSCIP" title="Link to this definition"></a></dt>
-<dd><p>alias of <a class="reference internal" href="#pulp.apis.FSCIP_CMD" title="pulp.apis.scip_api.FSCIP_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">FSCIP_CMD</span></code></a></p>
+<dd><p>alias of <a class="reference internal" href="#pulp.apis.FSCIP_CMD" title="pulp.apis.scip.FSCIP_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">FSCIP_CMD</span></code></a></p>
 </dd></dl>
 
 <dl class="py class">
@@ -1080,7 +1143,7 @@ e.g. gapRel=0.1, gapAbs=10, logPath=””,</p></li>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pulp.apis.GLPK">
 <span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">GLPK</span></span><a class="headerlink" href="#pulp.apis.GLPK" title="Link to this definition"></a></dt>
-<dd><p>alias of <a class="reference internal" href="#pulp.apis.GLPK_CMD" title="pulp.apis.glpk_api.GLPK_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">GLPK_CMD</span></code></a></p>
+<dd><p>alias of <a class="reference internal" href="#pulp.apis.GLPK_CMD" title="pulp.apis.glpk.GLPK_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">GLPK_CMD</span></code></a></p>
 </dd></dl>
 
 <dl class="py class">
@@ -1217,7 +1280,7 @@ them to the lp model which it then solves</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.GUROBI.buildSolverModel">
-<span class="sig-name descname"><span class="pre">buildSolverModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.GUROBI.buildSolverModel" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">buildSolverModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="pulp.html#pulp.LpProblem" title="pulp.LpProblem"><span class="pre">LpProblem</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.GUROBI.buildSolverModel" title="Link to this definition"></a></dt>
 <dd><p>Takes the pulp lp model and translates it into a gurobi model</p>
 </dd></dl>
 
@@ -1242,7 +1305,7 @@ disposed only if <code class="docutils literal notranslate"><span class="pre">ma
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.GUROBI.findSolutionValues">
-<span class="sig-name descname"><span class="pre">findSolutionValues</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var_handles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constr_handles</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.GUROBI.findSolutionValues" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">findSolutionValues</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="pulp.html#pulp.LpProblem" title="pulp.LpProblem"><span class="pre">LpProblem</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">var_handles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constr_handles</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.GUROBI.findSolutionValues" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -1772,7 +1835,7 @@ e.g. gapRel=0.1, gapAbs=10, logPath=””,</p></li>
 <dl class="py class">
 <dt class="sig sig-object py" id="pulp.apis.SAS94">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">SAS94</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warmStart</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepFiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeLimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">solverParams</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.SAS94" title="Link to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pulp.apis.SASsolver" title="pulp.apis.sas_api.SASsolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">SASsolver</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#pulp.apis.SASsolver" title="pulp.apis.sas.SASsolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">SASsolver</span></code></a></p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1806,7 +1869,7 @@ e.g. gapRel=0.1, gapAbs=10, logPath=””,</p></li>
 <dl class="py class">
 <dt class="sig sig-object py" id="pulp.apis.SASCAS">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">SASCAS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warmStart</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepFiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeLimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">solverParams</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.SASCAS" title="Link to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pulp.apis.SASsolver" title="pulp.apis.sas_api.SASsolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">SASsolver</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#pulp.apis.SASsolver" title="pulp.apis.sas.SASsolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">SASsolver</span></code></a></p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1867,7 +1930,7 @@ e.g. gapRel=0.1, gapAbs=10, logPath=””,</p></li>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pulp.apis.SCIP">
 <span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">SCIP</span></span><a class="headerlink" href="#pulp.apis.SCIP" title="Link to this definition"></a></dt>
-<dd><p>alias of <a class="reference internal" href="#pulp.apis.SCIP_CMD" title="pulp.apis.scip_api.SCIP_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">SCIP_CMD</span></code></a></p>
+<dd><p>alias of <a class="reference internal" href="#pulp.apis.SCIP_CMD" title="pulp.apis.scip.SCIP_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">SCIP_CMD</span></code></a></p>
 </dd></dl>
 
 <dl class="py class">
@@ -2079,7 +2142,7 @@ where N is the index of the solution in the list.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pulp.apis.XPRESS_CMD">
 <span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">XPRESS_CMD</span></span><a class="headerlink" href="#pulp.apis.XPRESS_CMD" title="Link to this definition"></a></dt>
-<dd><p>alias of <a class="reference internal" href="#pulp.apis.XPRESS" title="pulp.apis.xpress_api.XPRESS"><code class="xref py py-class docutils literal notranslate"><span class="pre">XPRESS</span></code></a></p>
+<dd><p>alias of <a class="reference internal" href="#pulp.apis.XPRESS" title="pulp.apis.xpress.XPRESS"><code class="xref py py-class docutils literal notranslate"><span class="pre">XPRESS</span></code></a></p>
 </dd></dl>
 
 <dl class="py class">
