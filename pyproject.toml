@@ -85,6 +85,9 @@ allowed-unresolved-imports = [
     "mosek", "mosek.**",
     "saspy", "saspy.**",
     "swat", "swat.**",
+    "coptpy", "coptpy.**",
+    "highspy", "highspy.**",
+    "pyscipopt", "pyscipopt.**",
 ]
 [tool.ty.rules]
 possibly-missing-attribute = "warn"
