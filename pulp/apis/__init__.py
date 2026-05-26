@@ -1,20 +1,20 @@
 import json
 from typing import Dict, List, Optional, Type, Union
 
-from .choco_api import CHOCO_CMD
-from .coin_api import COIN_CMD, COINMP_DLL, CYLP, YAPOSIB
-from .copt_api import COPT, COPT_CMD, COPT_DLL
+from .choco import CHOCO_CMD
+from .coin import COIN_CMD, COINMP_DLL, CYLP, YAPOSIB
+from .copt import COPT, COPT_CMD, COPT_DLL
 from .core import LpSolver, LpSolver_CMD, PulpSolverError
-from .cplex_api import CPLEX, CPLEX_CMD, CPLEX_PY
-from .cuopt_api import CUOPT
-from .glpk_api import GLPK, GLPK_CMD, PYGLPK
-from .gurobi_api import GUROBI, GUROBI_CMD
-from .highs_api import HiGHS, HiGHS_CMD
-from .mipcl_api import MIPCL_CMD
-from .mosek_api import MOSEK
-from .sas_api import SAS94, SASCAS, SASsolver
-from .scip_api import FSCIP, FSCIP_CMD, SCIP, SCIP_CMD, SCIP_PY
-from .xpress_api import XPRESS, XPRESS_CMD, XPRESS_PY
+from .cplex import CPLEX, CPLEX_CMD, CPLEX_PY
+from .cuopt import CUOPT
+from .glpk import GLPK, GLPK_CMD, PYGLPK
+from .gurobi import GUROBI, GUROBI_CMD
+from .highs import HiGHS, HiGHS_CMD
+from .mipcl import MIPCL_CMD
+from .mosek import MOSEK
+from .sas import SAS94, SASCAS, SASsolver
+from .scip import FSCIP, FSCIP_CMD, SCIP, SCIP_CMD, SCIP_PY
+from .xpress import XPRESS, XPRESS_CMD, XPRESS_PY
 
 __all__ = [
     "CHOCO_CMD",
