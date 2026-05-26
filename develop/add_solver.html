@@ -232,12 +232,15 @@
 </section>
 <section id="including-the-solver-in-tests-suite">
 <h2>Including the solver in tests suite<a class="headerlink" href="#including-the-solver-in-tests-suite" title="Link to this heading"></a></h2>
-<p>Include the solver in PuLP’s test suite by adding a couple of lines corresponding to your solver to the <code class="docutils literal notranslate"><span class="pre">pulp/tests/test_pulp.py</span></code> file:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># (...)</span>
+<p>Include the solver in PuLP’s test suite by creating <code class="docutils literal notranslate"><span class="pre">pulp/tests/test_&lt;solver&gt;.py</span></code> (for example <code class="docutils literal notranslate"><span class="pre">pulp/tests/test_mipcl_cmd.py</span></code>):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pulp.tests.solver_common</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseSolverTest</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pulp.apis</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">solvers</span>
+
 <span class="k">class</span><span class="w"> </span><span class="nc">MIPCL_CMDTest</span><span class="p">(</span><span class="n">BaseSolverTest</span><span class="o">.</span><span class="n">PuLPTest</span><span class="p">):</span>
-    <span class="n">solveInst</span> <span class="o">=</span> <span class="n">MIPCL_CMD</span>
+    <span class="n">solveInst</span> <span class="o">=</span> <span class="n">solvers</span><span class="o">.</span><span class="n">MIPCL_CMD</span>
 </pre></div>
 </div>
+<p>Add <code class="docutils literal notranslate"><span class="pre">pulp_test_overrides</span></code> in that file when the solver’s acceptable statuses or results differ from the defaults in <code class="docutils literal notranslate"><span class="pre">solver_common.py</span></code>.</p>
 </section>
 <section id="extra-adding-a-official-solver-api">
 <h2>Extra: adding a official solver API<a class="headerlink" href="#extra-adding-a-official-solver-api" title="Link to this heading"></a></h2>

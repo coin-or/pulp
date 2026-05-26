@@ -157,7 +157,7 @@ We will use plain git through the command line but feel free to use the git clie
 </section>
 <section id="creating-a-test">
 <h2>Creating a test<a class="headerlink" href="#creating-a-test" title="Link to this heading"></a></h2>
-<p>When you fix an issue in pulp or add a functionality, you should add a test to the repository. For this you should go to the file <cite>tests/test_pulp.py</cite> and add a new method that tests your change.</p>
+<p>When you fix an issue in pulp or add functionality, add a test under <code class="docutils literal notranslate"><span class="pre">pulp/tests/</span></code>: model or I/O tests go in <code class="docutils literal notranslate"><span class="pre">test_pulp.py</span></code> (<code class="docutils literal notranslate"><span class="pre">PuLPModelTest</span></code>); shared solve tests go in <code class="docutils literal notranslate"><span class="pre">solver_common.py</span></code>; solver-specific overrides go in <code class="docutils literal notranslate"><span class="pre">test_&lt;solver&gt;.py</span></code>.</p>
 </section>
 <section id="applying-the-ruff-linter-formatter">
 <h2>Applying the ruff linter / formatter<a class="headerlink" href="#applying-the-ruff-linter-formatter" title="Link to this heading"></a></h2>
