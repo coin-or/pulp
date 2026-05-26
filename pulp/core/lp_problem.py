@@ -159,7 +159,7 @@ class LpProblem:
             indices = (indices,)
         if "%" not in name:
             name += "_%s" * len(indices)
-        index = list(indices[0])  # type: ignore[arg-type]
+        index = list(cast(Iterable[Any], indices[0]))
         indices_rest = indices[1:]
         lb = float("-inf") if lowBound is None else lowBound
         ub = float("inf") if upBound is None else upBound
@@ -195,7 +195,7 @@ class LpProblem:
         if len(indices) > 1:
             res = []
             while lists:
-                first = lists[-1]
+                first = cast(Iterable[Any], lists[-1])
                 nres = []
                 if res:
                     if first:
@@ -238,7 +238,7 @@ class LpProblem:
             indices = (indices,)
         if "%" not in name:
             name += "_%s" * len(indices)
-        index = list(indices[0])  # type: ignore[arg-type]
+        index = list(cast(Iterable[Any], indices[0]))
         indices_rest = indices[1:]
         lb = float("-inf") if lowBound is None else lowBound
         ub = float("inf") if upBound is None else upBound
@@ -640,7 +640,10 @@ class LpProblem:
         if isinstance(other, tuple):
             other_val = other[0]
             name = str(other[1]) if other[1] is not None else None
-            other = other_val  # type: ignore[assignment]
+            other = cast(
+                LpAffineExpression | LpVariable | int | float | tuple[Any, str | None],
+                other_val,
+            )
         if other is True:
             return self
         elif other is False:

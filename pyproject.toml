@@ -79,6 +79,12 @@ allowed-unresolved-imports = [
     "gurobipy", "gurobipy.**",
     "ortools", "ortools.**",
     "elementtree.ElementTree", "elementtree.**",
+    "yaposib", "yaposib.**",
+    "ujson", "ujson.**",
+    "glpk.glpkpi", "glpk.**",
+    "mosek", "mosek.**",
+    "saspy", "saspy.**",
+    "swat", "swat.**",
 ]
 [tool.ty.rules]
 possibly-missing-attribute = "warn"

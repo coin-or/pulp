@@ -401,7 +401,7 @@ class XPRESS_PY(LpSolver):
 
                 # Always disable the global output. We only want output if
                 # we install callbacks explicitly
-                xpress.setOutputEnabled(False)
+                xpress.setOutputEnabled(False)  # ty: ignore[missing-argument]
                 self._available = True
             except Exception:
                 self._available = False

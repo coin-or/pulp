@@ -221,7 +221,10 @@ class CPLEX_CMD(LpSolver_CMD):
                     continue
                 try:
                     # See issue #508
-                    shadowPrices[name] = float(shadowPrice)  # type: ignore[arg-type]
+                    if shadowPrice is not None:
+                        shadowPrices[name] = float(shadowPrice)
+                    else:
+                        shadowPrices[name] = None
                 except (TypeError, ValueError):
                     shadowPrices[name] = None
                 slacks[name] = float(slack)
@@ -239,7 +242,10 @@ class CPLEX_CMD(LpSolver_CMD):
                 reducedCost = variable.get("reducedCost")
                 try:
                     # See issue #508
-                    reducedCosts[name] = float(reducedCost)  # type: ignore[arg-type]
+                    if reducedCost is not None:
+                        reducedCosts[name] = float(reducedCost)
+                    else:
+                        reducedCosts[name] = None
                 except (TypeError, ValueError):
                     reducedCosts[name] = None
 
