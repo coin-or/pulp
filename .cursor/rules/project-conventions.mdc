@@ -34,3 +34,7 @@ alwaysApply: true
 - Check Rust code: `uv run cargo check`
 - Build: `uv run cargo build`
 - Other subcommands: `uv run cargo <subcommand>`
+
+## Commands
+
+- Do not start commands with `cd` to move to the root directory of this project, you're already there.

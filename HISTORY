@@ -2,11 +2,31 @@
 #       Copyright S.A.Mitchell (s.mitchell@auckland.ac.nz), 2007-
 #       Copyright F.Peschiera (pchtsp@gmail.com), 2019-
 # See the LICENSE file for copyright information.
-4.0.0a3 2026-04-13
+4.0.0a9 2026-05-27
+    new solver: CPSAT
+    refactor unit tests
+4.0.0a8 2026-05-22
+    much faster MPS write in the Rust path (large models, order-of-magnitude speedup)
+    HiGHS API: ``kSolutionLimit`` and ``kMemoryLimit`` statuses; best MIP solution returned
+        when status is not optimal
+    ``LpStatusUndefined`` for infeasible or unbounded problems
+    cuOpt handles UnboundedOrInfeasible status; variable category mapping via Rust helper
+    ``XPRESS_PY`` updated for Xpress 9.8 with backward compatibility
+    MPS round-trip tests and fixtures; CI and solver documentation updates
+4.0.0a6 2026-04-29
+    Rust core uses ``Arc``/``Mutex`` instead of ``Rc``/``Weak`` so Python debuggers do not
+        crash the extension
+4.0.0a5 2026-04-15
+    solvers receive only variables used in the model; SOS constraints moved to ModelCore in
+        Rust
+4.0.0a4 2026-04-14
     removed bundled CBC binaries and the ``PULP_CBC_CMD`` solver; CBC is used via
         ``COIN_CMD`` with optional ``pip install pulp[cbc]`` (cbcbox) or a ``cbc``
         executable on PATH
-
+4.0.0a3 2026-04-13
+    modelling API split into ``pulp/core/``; faster ``lpSum`` for variables
+    type stubs for ``_rustcore``; solvers use direct Rust model access without Python-side
+        handles
 4.0.0a1 2026-04-05
     first alpha of the 4.x line; Rust-backed core (PyO3 0.28) is now used for
         much of MPS and LP import/export and related model logic
