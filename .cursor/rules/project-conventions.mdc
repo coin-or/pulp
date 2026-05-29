@@ -30,10 +30,11 @@ alwaysApply: true
 
 ## Rust / Cargo
 
+- Rust sources live under `pulp/rust/` (`Cargo.toml`, `src/`).
 - Always run Cargo through **uv** (do not invoke `cargo` directly).
-- Check Rust code: `uv run cargo check`
-- Build: `uv run cargo build`
-- Other subcommands: `uv run cargo <subcommand>`
+- Check Rust code: `uv run cargo check --manifest-path pulp/rust/Cargo.toml`
+- Build: `uv run cargo build --manifest-path pulp/rust/Cargo.toml`
+- Other subcommands: append `--manifest-path pulp/rust/Cargo.toml` to `uv run cargo <subcommand>`
 
 ## Commands
 
