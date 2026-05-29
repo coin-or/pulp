@@ -60,6 +60,7 @@ class LpProblem:
             if sense == const.LpMinimize
             else _rustcore.ObjSense.Maximize
         )
+        self.solverModel: Any | None = None
 
     def has_sos(self) -> bool:
         """True if the model has any SOS1/SOS2 groups (stored in the Rust core)."""

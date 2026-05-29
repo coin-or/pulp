@@ -219,10 +219,11 @@ class CPSAT(LpSolver):
     def callSolver(self, lp: LpProblem) -> tuple[Any, Any]:
         """Solves the problem with CP-SAT and returns the solver and status."""
         solver = cp_model_mod.CpSolver()
-        if not self.msg:
-            solver.parameters.log_search_progress = False
+        solver.parameters.log_search_progress = bool(self.msg)
         if self.timeLimit is not None:
             solver.parameters.max_time_in_seconds = float(self.timeLimit)
+        if "threads" in self.optionsDict:
+            solver.parameters.num_search_workers = int(self.optionsDict["threads"])
         for param, value in self.solver_params.items():
             if hasattr(solver.parameters, param):
                 setattr(solver.parameters, param, value)

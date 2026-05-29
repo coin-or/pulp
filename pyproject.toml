@@ -38,12 +38,6 @@ dev = [
     "numpy",
 ]
 
-[tool.setuptools]
-packages = [
-        "pulp",
-        "pulp.apis",
-        "pulp.tests"]
-
 [tool.maturin]
 bindings = "pyo3"
 module-name = "pulp._rustcore"
@@ -95,10 +89,12 @@ invalid-method-override = "warn"
 unresolved-attribute = "warn"
 unused-type-ignore-comment = "warn"
 deprecated = "warn"
+
 [[tool.ty.overrides]]
 include = ["pulp/apis/*.py"]
 [tool.ty.overrides.rules]
 unresolved-reference = "warn"
+
 [[tool.ty.overrides]]
 include = ["pulp/tests/**"]
 [tool.ty.overrides.rules]
