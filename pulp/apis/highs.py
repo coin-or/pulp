@@ -309,6 +309,7 @@ class HiGHS(LpSolver):
             gapRel=None,
             threads=None,
             timeLimit=None,
+            logPath=None,
             callbacksToActivate: Optional[list[highspy.cb.HighsCallbackType]] = None,
             **solverParams,
         ):
@@ -319,11 +320,14 @@ class HiGHS(LpSolver):
             :param float gapRel: relative gap tolerance for the solver to stop (in fraction)
             :param float gapAbs: absolute gap tolerance for the solver to stop
             :param int threads: sets the maximum number of threads
+            :param str logPath: path to the log file
             :param float timeLimit: maximum time for solver (in seconds)
             :param dict solverParams: list of named options to pass directly to the HiGHS solver
             :param callbacksToActivate: list of callback types to start
             """
-            super().__init__(mip=mip, msg=msg, timeLimit=timeLimit, **solverParams)
+            super().__init__(
+                mip=mip, msg=msg, timeLimit=timeLimit, logPath=logPath, **solverParams
+            )
             self.callbackTuple = callbackTuple
             self.callbacksToActivate = callbacksToActivate
             self.gapAbs = gapAbs
@@ -360,6 +364,10 @@ class HiGHS(LpSolver):
 
             if self.timeLimit is not None:
                 lp.solverModel.setOptionValue("time_limit", float(self.timeLimit))
+
+            logPath = self.optionsDict.get("logPath")
+            if logPath is not None:
+                lp.solverModel.setOptionValue("log_file", logPath)
 
             # set remaining parameter values
             for key, value in self.optionsDict.items():
