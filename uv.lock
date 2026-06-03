@@ -948,7 +948,7 @@ wheels = [
 
 [[package]]
 name = "pulp"
-version = "4.0.0a9"
+version = "4.0.0a10"
 source = { editable = "." }
 
 [package.optional-dependencies]
