@@ -53,9 +53,13 @@ try:
 except Exception:
     pass
 
-from importlib.metadata import version
+from importlib.metadata import PackageNotFoundError, version
 
-__version__ = version("PuLP")
+try:
+    __version__ = version("PuLP")
+except PackageNotFoundError:
+    # Package metadata is not available when running from a source checkout
+    __version__ = "0+local"
 
 from .apis import *
 from .constants import *

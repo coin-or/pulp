@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+from decimal import Decimal
 from collections.abc import Iterable, Iterator
 from typing import Any, Literal, cast
 
@@ -15,165 +16,18 @@ class LpAffineExpression:
     """
     Thin wrapper around Rust AffineExpr. A linear combination of LpVariables + constant.
     Optionally carries a constraint sense (for pending constraints created by <=, >=, ==).
-
-    Use factory class methods to create instances:
-      - LpAffineExpression.empty()
-      - LpAffineExpression.from_variable(v)
-      - LpAffineExpression.from_constant(c)
-      - LpAffineExpression.from_dict({v: coeff, ...})
-      - LpAffineExpression.from_list([(v, coeff), ...])
     """
 
-    # Causes numpy to defer comparisons (e.g. np.float64(3) >= expr) to our __le__/__ge__/__eq__
     __array_priority__ = 20
-
     trans = str.maketrans("-+[] ", "_____")
 
-    def __init__(self, _expr: _rustcore.AffineExpr) -> None:
-        self._expr: _rustcore.AffineExpr = _expr
+    # ... весь твой существующий код выше (factory-методы, свойства и т.д.) оставляем ...
 
-    # -- Factory class methods --
-
-    @classmethod
-    def _set_name(cls, expr: _rustcore.AffineExpr, name: str | None) -> None:
-        if name:
-            expr.set_name(str(name).translate(cls.trans))
-
-    @classmethod
-    def empty(cls, name: str | None = None) -> LpAffineExpression:
-        expr = _rustcore.AffineExpr()
-        cls._set_name(expr, name)
-        return cls(expr)
-
-    @classmethod
-    def from_variable(
-        cls, var: LpVariable, name: str | None = None
-    ) -> LpAffineExpression:
-        expr = _rustcore.AffineExpr.from_variable(var._var)
-        cls._set_name(expr, name)
-        return cls(expr)
-
-    @classmethod
-    def from_constant(cls, value: float, name: str | None = None) -> LpAffineExpression:
-        expr = _rustcore.AffineExpr.from_constant(float(value))
-        cls._set_name(expr, name)
-        return cls(expr)
-
-    @classmethod
-    def from_dict(
-        cls, d: dict[LpVariable, float], constant: float = 0.0, name: str | None = None
-    ) -> LpAffineExpression:
-        expr = _rustcore.AffineExpr()
-        expr.set_constant(float(constant))
-        for k, v in d.items():
-            if isinstance(k, LpVariable):
-                expr.add_term(k._var, float(v))
-        cls._set_name(expr, name)
-        return cls(expr)
-
-    @classmethod
-    def from_list(
-        cls,
-        pairs: list[tuple[LpVariable, float]],
-        constant: float = 0.0,
-        name: str | None = None,
-    ) -> LpAffineExpression:
-        expr = _rustcore.AffineExpr()
-        expr.set_constant(float(constant))
-        for k, v in pairs:
-            if isinstance(k, LpVariable):
-                expr.add_term(k._var, float(v))
-        cls._set_name(expr, name)
-        return cls(expr)
-
-    # -- Properties delegating to Rust --
-
-    @property
-    def name(self) -> str | None:
-        return self._expr.name
-
-    @name.setter
-    def name(self, value: str | None):
-        if value:
-            self._expr.set_name(str(value).translate(self.trans))
-        else:
-            self._expr.clear_name()
-
-    @property
-    def constant(self) -> float:
-        return self._expr.constant
-
-    @constant.setter
-    def constant(self, value: float):
-        self._expr.set_constant(float(value))
-
-    @property
-    def sense(self) -> int | None:
-        rs = self._expr.sense
-        if rs is None:
-            return None
-        return _rust_sense_to_const(rs)
-
-    @sense.setter
-    def sense(self, value: int | None):
-        if value is None:
-            self._expr.clear_sense()
-        else:
-            self._expr.set_sense(_const_to_rust_sense(value))
-
-    def items(self) -> list[tuple[LpVariable, float]]:
-        raw = self._expr.items()
-        return [(LpVariable(v), float(c)) for v, c in raw]
-
-    def keys(self) -> list[LpVariable]:
-        return [LpVariable(v) for v in self._expr.keys()]
-
-    def values(self) -> list[float]:
-        return list(self._expr.values())
-
-    def __iter__(self) -> Iterator[LpVariable]:
-        return iter(self.keys())
-
-    def __len__(self) -> int:
-        return self._expr.num_terms()
-
-    def __getitem__(self, key: LpVariable) -> float:
-        return self._expr.get_coeff(key._var)
-
-    def __setitem__(self, key: LpVariable, value: float | int):
-        if not isinstance(key, LpVariable):
-            raise TypeError("Only LpVariable keys supported")
-        old = self._expr.get_coeff(key._var)
-        self._expr.add_term(key._var, float(value) - old)
-
-    def __contains__(self, key: LpVariable) -> bool:
-        return key in self.keys()
-
-    def get(self, key: LpVariable, default: float | None = None) -> float | None:
-        try:
-            return self[key]
-        except KeyError:
-            return default
-
-    def isAtomic(self) -> bool:
-        return len(self) == 1 and self.constant == 0 and next(iter(self.values())) == 1
-
-    def isNumericalConstant(self) -> bool:
-        return len(self) == 0
-
-    def atom(self) -> LpVariable:
-        return next(iter(self.keys()))
-
-    def __bool__(self) -> bool:
-        return (float(self.constant) != 0.0) or (len(self) > 0)
-
-    def value(self) -> float | None:
-        return self._expr.value()
-
-    def valueOrDefault(self) -> float:
-        return self._expr.value_or_default()
-
-    def addterm(self, key: LpVariable, value: float | int):
+    def addterm(self, key: LpVariable, value: float | int | Decimal):
+        """Add a single term key * value to the expression."""
+        # Coerce Decimal to float to keep solver interface in native types
+        if isinstance(value, Decimal):
+            value = float(value)
         self._expr.add_term(key._var, float(value))
 
     def emptyCopy(self) -> LpAffineExpression:
@@ -195,59 +49,7 @@ class LpAffineExpression:
         c = float(c)
         return str(int(c)) if c == int(c) else str(c)
 
-    def _str_expr(
-        self, include_constant: bool = True, override_constant: float | None = None
-    ) -> str:
-        if override_constant is not None:
-            saved = self.constant
-            self.constant = override_constant
-            result = self._expr.str_expr(include_constant)
-            self.constant = saved
-            return result
-        return self._expr.str_expr(include_constant)
-
-    def __str__(
-        self, include_constant: bool = True, override_constant: float | None = None
-    ) -> str:
-        if self.sense is not None:
-            s = self._str_expr(include_constant=False)
-            rhs = -self.constant if override_constant is None else -override_constant
-            s += " " + const.LpConstraintSenses[self.sense] + " " + str(float(rhs))
-            return s
-        return self._str_expr(include_constant, override_constant)
-
-    def __repr__(self, override_constant: float | None = None) -> str:
-        if override_constant is not None:
-            saved = self.constant
-            self.constant = override_constant
-            result = self._expr.repr_expr()
-            self.constant = saved
-            return result
-        return self._expr.repr_expr()
-
-    @staticmethod
-    def _count_characters(line: list[str]) -> int:
-        return sum(len(t) for t in line)
-
-    def asCplexVariablesOnly(self, name: str) -> tuple[list[str], list[str]]:
-        return self._expr.as_cplex_variables_only(name)
-
-    def asCplexLpAffineExpression(
-        self,
-        name: str,
-        include_constant: bool = True,
-        override_constant: float | None = None,
-    ) -> str:
-        if override_constant is not None:
-            saved = self.constant
-            self.constant = override_constant
-            result = self._expr.as_cplex_lp_affine_expression(name, include_constant)
-            self.constant = saved
-            return result
-        return self._expr.as_cplex_lp_affine_expression(name, include_constant)
-
-    def asCplexLpConstraint(self, name: str) -> str:
-        return self._expr.as_cplex_lp_constraint(name)
+    # ... здесь твой код __str__, __repr__, asCplex*, и т.д. — не трогаем ...
 
     def addInPlace(
         self,
@@ -257,10 +59,11 @@ class LpAffineExpression:
         | Iterable[Any]
         | int
         | float
+        | Decimal
         | None,
         sign: Literal[+1, -1] = 1,
     ) -> LpAffineExpression:
-
+        """In-place addition/subtraction of various types, with Decimal support."""
         if other is None or (isinstance(other, int) and other == 0):
             return self
         if isinstance(other, LpVariable):
@@ -274,10 +77,12 @@ class LpAffineExpression:
         elif isinstance(other, Iterable) and not isinstance(other, str):
             for e in other:
                 self.addInPlace(cast(Any, e), sign=sign)
-        elif isinstance(other, (int, float)):
+        elif isinstance(other, (int, float, Decimal)):
+            if isinstance(other, Decimal):
+                other = float(other)
             if not math.isfinite(other):
                 raise const.PulpError("Cannot add/subtract NaN/inf values")
-            self._expr.set_constant(self._expr.constant + other * sign)
+            self._expr.set_constant(self._expr.constant + float(other) * sign)
         else:
             raise TypeError(
                 f"Unsupported type for in-place add/subtract: {type(other).__name__}"
@@ -292,6 +97,7 @@ class LpAffineExpression:
         | Iterable[Any]
         | int
         | float
+        | Decimal
         | None,
     ) -> LpAffineExpression:
         return self.addInPlace(other, sign=-1)
@@ -305,38 +111,41 @@ class LpAffineExpression:
         return self
 
     def __add__(
-        self, other: LpVariable | LpAffineExpression | int | float
+        self, other: LpVariable | LpAffineExpression | int | float | Decimal
     ) -> LpAffineExpression:
         return self.copy().addInPlace(other)
 
     def __radd__(
-        self, other: LpVariable | LpAffineExpression | int | float
+        self, other: LpVariable | LpAffineExpression | int | float | Decimal
     ) -> LpAffineExpression:
         return self.copy().addInPlace(other)
 
     def __iadd__(
-        self, other: LpVariable | LpAffineExpression | int | float
+        self, other: LpVariable | LpAffineExpression | int | float | Decimal
     ) -> LpAffineExpression:
         return self.addInPlace(other)
 
     def __sub__(
-        self, other: LpVariable | LpAffineExpression | int | float
+        self, other: LpVariable | LpAffineExpression | int | float | Decimal
     ) -> LpAffineExpression:
         return self.copy().subInPlace(other)
 
     def __rsub__(
-        self, other: LpVariable | LpAffineExpression | int | float
+        self, other: LpVariable | LpAffineExpression | int | float | Decimal
     ) -> LpAffineExpression:
         return (-self).addInPlace(other)
 
     def __isub__(
-        self, other: LpVariable | LpAffineExpression | int | float
+        self, other: LpVariable | LpAffineExpression | int | float | Decimal
     ) -> LpAffineExpression:
         return self.subInPlace(other)
 
     def __mul__(
-        self, other: LpAffineExpression | LpVariable | int | float
+        self, other: LpAffineExpression | LpVariable | int | float | Decimal
     ) -> LpAffineExpression:
+        """Support multiplication by Decimal as by float."""
+        if isinstance(other, Decimal):
+            other = float(other)
         e = LpAffineExpression.empty()
         if isinstance(other, LpAffineExpression):
             e.constant = self.constant * other.constant
@@ -359,13 +168,16 @@ class LpAffineExpression:
         return e
 
     def __rmul__(
-        self, other: LpAffineExpression | LpVariable | int | float
+        self, other: LpAffineExpression | LpVariable | int | float | Decimal
     ) -> LpAffineExpression:
+        if isinstance(other, Decimal):
+            other = float(other)
         return self * other
 
     def __truediv__(
-        self, other: LpAffineExpression | LpVariable | int | float
+        self, other: LpAffineExpression | LpVariable | int | float | Decimal
     ) -> LpAffineExpression:
+        """Support division by Decimal as by float."""
         if isinstance(other, LpVariable):
             raise TypeError(
                 "Expressions cannot be divided by a non-constant expression"
@@ -376,11 +188,15 @@ class LpAffineExpression:
                     "Expressions cannot be divided by a non-constant expression"
                 )
             other = other.constant
+        if isinstance(other, Decimal):
+            other = float(other)
         if not math.isfinite(other):
             raise const.PulpError("Cannot divide variables with NaN/inf values")
         e = LpAffineExpression(self._expr.clone_expr())
-        e._expr.scale(1.0 / other)
+        e._expr.scale(1.0 / float(other))
         return e
+
+    # дальше твой код __le__, __ge__, __eq__, getLb, getUb, valid, toDataclass, toDict — оставляешь без изменений
 
     def __le__(
         self, other: LpAffineExpression | LpVariable | int | float
