@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import math
-from decimal import Decimal
 from collections.abc import Iterable, Iterator
+from decimal import Decimal
 from typing import Any, Literal, cast
 
 from .. import _rustcore
