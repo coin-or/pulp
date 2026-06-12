@@ -1,4 +1,5 @@
 import json
+import warnings
 from typing import Dict, List, Optional, Type, Union
 
 from .choco import CHOCO_CMD
@@ -97,6 +98,16 @@ if COIN_CMD().available():
     LpSolverDefault = COIN_CMD()
 elif GLPK_CMD().available():
     LpSolverDefault = GLPK_CMD()
+
+
+def addSolver(*solvers: Type[LpSolver]) -> None:
+    for new in solvers:
+        for old in _all_solvers:
+            if new.name == old.name:
+                warnings.warn(
+                    f"Adding solver {new.name} ({new.__name__}) shadows existing solver ({old.__name__})"
+                )
+    _all_solvers.extend(solvers)
 
 
 def getSolver(solver: str, *args, **kwargs) -> LpSolver:
