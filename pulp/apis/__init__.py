@@ -1,6 +1,6 @@
 import json
 import warnings
-from typing import Dict, List, Optional, Type, Union
+from typing import Type
 
 from .choco import CHOCO_CMD
 from .coin import COIN_CMD, COINMP_DLL, CYLP, YAPOSIB
@@ -62,7 +62,7 @@ __all__ = [
     "listSolvers",
 ]
 
-_all_solvers: List[Type[LpSolver]] = [
+_all_solvers: list[Type[LpSolver]] = [
     CYLP,
     GLPK_CMD,
     PYGLPK,
@@ -92,7 +92,7 @@ _all_solvers: List[Type[LpSolver]] = [
     CUOPT,
 ]
 
-LpSolverDefault: Optional[Union[COIN_CMD, GLPK_CMD]] = None
+LpSolverDefault: COIN_CMD | GLPK_CMD | None = None
 # Default solver selection: CBC via COIN_CMD (cbcbox extra or ``cbc`` on PATH), else GLPK.
 if COIN_CMD().available():
     LpSolverDefault = COIN_CMD()
@@ -130,7 +130,7 @@ def getSolver(solver: str, *args, **kwargs) -> LpSolver:
         )
 
 
-def getSolverFromDict(data: Dict[str, Union[str, bool, float, int]]) -> LpSolver:
+def getSolverFromDict(data: dict[str, str | bool | float | int]) -> LpSolver:
     """
     Instantiates a solver from a dictionary with its data
 
@@ -161,7 +161,7 @@ def getSolverFromJson(filename: str) -> LpSolver:
     return getSolverFromDict(data)
 
 
-def listSolvers(onlyAvailable: bool = False) -> List[str]:
+def listSolvers(onlyAvailable: bool = False) -> list[str]:
     """
     List the names of all the existing solvers in PuLP
 

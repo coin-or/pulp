@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 import subprocess
 from math import inf
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 
 from .. import constants
 from .core import LpSolver, LpSolver_CMD, PulpSolverError
@@ -310,7 +310,7 @@ class HiGHS(LpSolver):
             threads=None,
             timeLimit=None,
             logPath=None,
-            callbacksToActivate: Optional[list[highspy.cb.HighsCallbackType]] = None,
+            callbacksToActivate: list[highspy.cb.HighsCallbackType] | None = None,
             **solverParams,
         ):
             """

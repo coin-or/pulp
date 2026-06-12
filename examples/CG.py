@@ -4,8 +4,6 @@ Column Generation Functions
 Authors: Antony Phillips,  Dr Stuart Mitchell  2008
 """
 
-from typing import Dict, List, Optional, Tuple, Union
-
 # Import PuLP modeler functions
 from pulp import *
 
@@ -20,7 +18,7 @@ class Pattern:
     totalRollLength = 20
     lenOpts = ["5", "7", "9"]
 
-    def __init__(self, name: str, lengths: List[int]) -> None:
+    def __init__(self, name: str, lengths: list[int]) -> None:
         self.name = name
         self.lengthsdict = dict(zip(self.lenOpts, lengths))
 
@@ -34,10 +32,10 @@ class Pattern:
 
 
 def masterSolve(
-    Patterns: List[Pattern],
-    rollData: Dict[str, List[Union[float, int]]],
+    Patterns: list[Pattern],
+    rollData: dict[str, list[float | int]],
     relax: bool = True,
-) -> Union[Dict[str, Optional[float]], Tuple[float, Dict[str, int]]]:
+) -> dict[str, float | None] | tuple[float, dict[str, int]]:
     # The rollData is made into separate dictionaries
     (rollDemand, surplusPrice) = splitDict(rollData)
 
@@ -52,7 +50,9 @@ def masterSolve(
 
     # The problem variables are created
     pattVars = prob.add_variable_dict("Pattern", (Patterns,), 0, None, vartype)
-    surplusVars = prob.add_variable_dict("Surplus", (Pattern.lenOpts,), 0, None, vartype)
+    surplusVars = prob.add_variable_dict(
+        "Surplus", (Pattern.lenOpts,), 0, None, vartype
+    )
 
     # The objective function is entered: (the total number of large rolls used * the cost of each) -
     # (the value of the surplus stock) - (the value of the trim)
@@ -106,20 +106,24 @@ def masterSolve(
 
 
 def subSolve(
-    Patterns: List[Pattern], duals: Dict[str, Optional[float]]
-) -> Tuple[List[Pattern], bool]:
+    Patterns: list[Pattern], duals: dict[str, float | None]
+) -> tuple[list[Pattern], bool]:
     # The variable 'prob' is created
     prob = LpProblem("SubProb", LpMinimize)
 
     # The problem variables are created
-    _vars = prob.add_variable_dict("Roll_Length_%s", (Pattern.lenOpts,), 0, None, LpInteger)
+    _vars = prob.add_variable_dict(
+        "Roll_Length_%s", (Pattern.lenOpts,), 0, None, LpInteger
+    )
 
     trim = prob.add_variable("Trim", 0, None, LpInteger)
 
     # The objective function is entered: the reduced cost of a new pattern
-    prob += (Pattern.cost - Pattern.trimValue * trim) - lpSum(
-        [_vars[i] * duals[i] for i in Pattern.lenOpts]
-    ), "Objective"
+    prob += (
+        (Pattern.cost - Pattern.trimValue * trim)
+        - lpSum([_vars[i] * duals[i] for i in Pattern.lenOpts]),
+        "Objective",
+    )
 
     # The conservation of length constraint is entered
     prob += (

@@ -5,7 +5,7 @@ import math
 import warnings
 from collections.abc import Iterable
 from time import time
-from typing import Any, Optional, cast
+from typing import Any, cast
 
 try:
     import ujson as json  # type: ignore[import-untyped]
@@ -117,8 +117,8 @@ class LpProblem:
     def add_variable(
         self,
         name: str,
-        lowBound: Optional[float] = None,
-        upBound: Optional[float] = None,
+        lowBound: float | None = None,
+        upBound: float | None = None,
         cat: str = const.LpContinuous,
     ) -> LpVariable:
         """Add a variable to the problem. Returns LpVariable wrapping the Rust variable."""
@@ -147,8 +147,8 @@ class LpProblem:
         self,
         name: str,
         indices: tuple[Iterable[Any], ...] | Iterable[Any] | None = None,
-        lowBound: Optional[float] = None,
-        upBound: Optional[float] = None,
+        lowBound: float | None = None,
+        upBound: float | None = None,
         cat: str = const.LpContinuous,
         indexStart: list[Any] | None = None,
     ) -> dict[Any, Any]:
@@ -182,8 +182,8 @@ class LpProblem:
         self,
         name: str,
         indices: tuple[Iterable[Any], ...] | Iterable[Any] | None,
-        lowBound: Optional[float] = None,
-        upBound: Optional[float] = None,
+        lowBound: float | None = None,
+        upBound: float | None = None,
         cat: str = const.LpContinuous,
     ) -> dict[Any, LpVariable]:
         """Create a dictionary of variables with Cartesian product of indices."""
@@ -226,8 +226,8 @@ class LpProblem:
         self,
         name: str,
         indices: tuple[Iterable[Any], ...] | Iterable[Any] | None = None,
-        lowBound: Optional[float] = None,
-        upBound: Optional[float] = None,
+        lowBound: float | None = None,
+        upBound: float | None = None,
         cat: str = const.LpContinuous,
         indexStart: list[Any] | None = None,
     ) -> list[Any]:

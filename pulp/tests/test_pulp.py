@@ -7,7 +7,6 @@ import os
 import tempfile
 import unittest
 from decimal import Decimal
-from typing import Optional, Union
 
 import pulp.apis as solvers
 import pulp.mps_lp as mps_lp
@@ -409,7 +408,7 @@ class VariableIndirectionTest(unittest.TestCase):
     expected behavior.
     """
 
-    def _make_prob(self, name: Optional[str] = None) -> LpProblem:
+    def _make_prob(self, name: str | None = None) -> LpProblem:
         return LpProblem(name or self._testMethodName, const.LpMinimize)
 
     @staticmethod
@@ -1146,7 +1145,7 @@ class PuLPModelTest(unittest.TestCase):
                 variable = prob.add_variable(f"x_{t}", cat="Integer", lowBound=0)
                 supply.append(variable)
 
-            stock: list[Union[LpVariable, int]] = [initial_stock]  # stock[t] = s_t
+            stock: list[LpVariable | int] = [initial_stock]  # stock[t] = s_t
             for t in range(1, max_periods + 1):
                 variable = prob.add_variable(f"s_{t}", cat="Integer", lowBound=0)
                 stock.append(variable)
