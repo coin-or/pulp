@@ -716,9 +716,7 @@ class PuLPModelTest(unittest.TestCase):
         prob += c1 <= 0
         filename = name + ".mps"
         prob.writeMPS(filename)
-        _vars, prob2 = LpProblem.fromMPS(
-            filename, sense=prob.sense, dropConsNames=True
-        )
+        _vars, prob2 = LpProblem.fromMPS(filename, sense=prob.sense, dropConsNames=True)
         _dict1 = getSortedDict(prob, keyCons="constant")
         _dict2 = getSortedDict(prob2, keyCons="constant")
         self.assertDictEqual(_dict1, _dict2)
@@ -830,9 +828,7 @@ class PuLPModelTest(unittest.TestCase):
         agents = ["A", "B", "C"]
 
         # explicit param creates a dict of type LpVariable
-        assign_vars = prob.add_variable_dicts(
-            name="test", indices=(customers, agents)
-        )
+        assign_vars = prob.add_variable_dicts(name="test", indices=(customers, agents))
         for k, v in assign_vars.items():
             for a, b in v.items():
                 self.assertIsInstance(b, LpVariable)
@@ -866,9 +862,7 @@ class PuLPModelTest(unittest.TestCase):
         agents = ["A", "B", "C"]
 
         # explicit param creates a dict of type LpVariable
-        assign_vars = prob.add_variable_dicts(
-            name="test", indices=(customers, agents)
-        )
+        assign_vars = prob.add_variable_dicts(name="test", indices=(customers, agents))
         for k, v in assign_vars.items():
             for a, b in v.items():
                 self.assertIsInstance(b, LpVariable)
@@ -1164,9 +1158,7 @@ class PuLPModelTest(unittest.TestCase):
             self.assertIsNotNone(expr.sense)
 
             if t == 1:
-                self.assertEqual(
-                    str(rhs), f"x_{t} + {stock[t - 1] - demands[t - 1]}"
-                )
+                self.assertEqual(str(rhs), f"x_{t} + {stock[t - 1] - demands[t - 1]}")
                 self.assertEqual(expr.constant, -rhs.constant + lhs)
             else:
                 self.assertEqual(str(rhs), f"s_{t - 1} + x_{t} - {demands[t - 1]}")
@@ -1224,9 +1216,7 @@ class PuLPModelTest(unittest.TestCase):
         y = prob.add_variable("y", lowBound=None, upBound=10)
         prob += x + y, "obj"
         prob += x + y >= 1, "c1"
-        with tempfile.NamedTemporaryFile(
-            mode="r", suffix=".mps", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="r", suffix=".mps", delete=False) as f:
             mps_path = f.name
         try:
             prob.writeMPS(mps_path)
