@@ -27,7 +27,7 @@
 from __future__ import annotations
 
 import sys
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 
 from .. import constants
 from .core import LpSolver, PulpSolverError
@@ -61,8 +61,8 @@ class MOSEK(LpSolver):
             self,
             mip=True,
             msg=True,
-            timeLimit: Optional[float] = None,
-            options: Optional[dict] = None,
+            timeLimit: float | None = None,
+            options: dict | None = None,
             task_file_name="",
             sol_type=mosek.soltype.bas,  # type: ignore[name-defined]
         ):

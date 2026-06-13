@@ -4,8 +4,6 @@ The Full Sponge Roll Problem using Classes for the PuLP Modeller
 Authors: Antony Phillips, Dr Stuart Mitchell    2007
 """
 
-from typing import List, Optional
-
 
 def calculatePatterns(totalRollLength, lenOpts, head):
     """
@@ -48,7 +46,7 @@ class Pattern:
     totalRollLength = 20
     lenOpts = [5, 7, 9]
 
-    def __init__(self, name: str, lengths: List[int]) -> None:
+    def __init__(self, name: str, lengths: list[int]) -> None:
         self.name = name
         self.lengthsdict = dict(zip(self.lenOpts, lengths))
 
@@ -61,7 +59,7 @@ class Pattern:
         )
 
 
-def makePatterns(totalRollLength: int, lenOpts: List[int]) -> List[Pattern]:
+def makePatterns(totalRollLength: int, lenOpts: list[int]) -> list[Pattern]:
     """
     Makes the different cutting patterns for a cutting stock problem.
 

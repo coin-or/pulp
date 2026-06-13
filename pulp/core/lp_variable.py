@@ -3,7 +3,7 @@ from __future__ import annotations
 import dataclasses
 import math
 import re
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 
 from .. import _rustcore
 from .. import mps_lp as mpslp
@@ -172,20 +172,20 @@ class LpVariable:
         return _rust_cat_to_const(self._var.category)
 
     @property
-    def varValue(self) -> Optional[float]:
+    def varValue(self) -> float | None:
         return self._var.value
 
     @varValue.setter
-    def varValue(self, v: Optional[float]) -> None:
+    def varValue(self, v: float | None) -> None:
         if v is not None:
             self._var.set_value(v)
 
     @property
-    def _lowbound_original(self) -> Optional[float]:
+    def _lowbound_original(self) -> float | None:
         return self.lowBound
 
     @property
-    def _upbound_original(self) -> Optional[float]:
+    def _upbound_original(self) -> float | None:
         return self.upBound
 
     @property

@@ -7,7 +7,7 @@ import os
 import unittest
 from dataclasses import dataclass, field
 from decimal import Decimal
-from typing import Any, ClassVar, Optional, Type
+from typing import Any, ClassVar, Type
 
 import pulp.apis as solvers
 from pulp import (
@@ -294,7 +294,7 @@ def pulpTestCheck(
 
 class BaseSolverTest:
     class PuLPTest(unittest.TestCase):
-        solveInst: Optional[Type[solvers.LpSolver]] = None
+        solveInst: Type[solvers.LpSolver] | None = None
         solver: solvers.LpSolver
         pulp_test_overrides: ClassVar[dict[str, PulpTestConfig]] = {}
 

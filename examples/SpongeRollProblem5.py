@@ -21,7 +21,7 @@ morePatterns = True
 patternslist = [[4, 0, 0], [0, 2, 0], [0, 0, 2]]
 
 # The starting patterns are instantiated with the Pattern class
-Patterns: List[Pattern] = []
+Patterns: list[Pattern] = []
 for i in patternslist:
     Patterns += [Pattern("P" + str(len(Patterns)), i)]
 
