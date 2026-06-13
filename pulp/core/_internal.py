@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from typing import Literal
 
 from .. import _rustcore
 from .. import constants as const
@@ -18,7 +19,9 @@ def _is_numpy_bool(obj: object) -> bool:
     ).startswith("numpy")
 
 
-def _rust_cat_to_const(rust_cat: _rustcore.Category) -> str:
+def _rust_cat_to_const(
+    rust_cat: _rustcore.Category,
+) -> Literal["Continuous", "Integer"]:
     if rust_cat == _rustcore.Category.Continuous:
         return const.LpContinuous
     if rust_cat == _rustcore.Category.Integer:
