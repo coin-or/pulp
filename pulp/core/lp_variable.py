@@ -3,7 +3,7 @@ from __future__ import annotations
 import dataclasses
 import math
 import re
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal
 
 from .. import _rustcore
 from .. import mps_lp as mpslp
@@ -168,7 +168,7 @@ class LpVariable:
         self._var.set_ub(float("inf") if value is None else value)
 
     @property
-    def cat(self) -> str:
+    def cat(self) -> Literal["Continuous", "Integer"]:
         return _rust_cat_to_const(self._var.category)
 
     @property

@@ -5,7 +5,7 @@ import math
 import warnings
 from collections.abc import Iterable
 from time import time
-from typing import Any, cast
+from typing import Any, Literal, cast
 
 try:
     import ujson as json  # type: ignore[import-untyped]
@@ -119,7 +119,7 @@ class LpProblem:
         name: str,
         lowBound: float | None = None,
         upBound: float | None = None,
-        cat: str = const.LpContinuous,
+        cat: Literal["Continuous", "Integer", "Binary"] = const.LpContinuous,
     ) -> LpVariable:
         """Add a variable to the problem. Returns LpVariable wrapping the Rust variable."""
         if lowBound is not None and not math.isfinite(lowBound):
@@ -149,7 +149,7 @@ class LpProblem:
         indices: tuple[Iterable[Any], ...] | Iterable[Any] | None = None,
         lowBound: float | None = None,
         upBound: float | None = None,
-        cat: str = const.LpContinuous,
+        cat: Literal["Continuous", "Integer", "Binary"] = const.LpContinuous,
         indexStart: list[Any] | None = None,
     ) -> dict[Any, Any]:
         """Create a dictionary of variables; names built from name + indices."""
@@ -184,7 +184,7 @@ class LpProblem:
         indices: tuple[Iterable[Any], ...] | Iterable[Any] | None,
         lowBound: float | None = None,
         upBound: float | None = None,
-        cat: str = const.LpContinuous,
+        cat: Literal["Continuous", "Integer", "Binary"] = const.LpContinuous,
     ) -> dict[Any, LpVariable]:
         """Create a dictionary of variables with Cartesian product of indices."""
         if not isinstance(indices, tuple):
@@ -228,7 +228,7 @@ class LpProblem:
         indices: tuple[Iterable[Any], ...] | Iterable[Any] | None = None,
         lowBound: float | None = None,
         upBound: float | None = None,
-        cat: str = const.LpContinuous,
+        cat: Literal["Continuous", "Integer", "Binary"] = const.LpContinuous,
         indexStart: list[Any] | None = None,
     ) -> list[Any]:
         """Create a list or nested list of variables; names built from name + indices."""
