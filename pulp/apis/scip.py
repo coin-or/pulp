@@ -29,7 +29,7 @@ from __future__ import annotations
 import operator
 import os
 import warnings
-from typing import TYPE_CHECKING, Any, Dict, Optional, Tuple
+from typing import TYPE_CHECKING, Any
 
 from .. import constants
 from .core import LpSolver, LpSolver_CMD, PulpSolverError, subprocess
@@ -387,14 +387,14 @@ class FSCIP_CMD(LpSolver_CMD):
         return status
 
     @staticmethod
-    def parse_status(string: str) -> Optional[int]:
+    def parse_status(string: str) -> int | None:
         for fscip_status, pulp_status in FSCIP_CMD.FSCIP_STATUSES.items():
             if fscip_status in string:
                 return pulp_status
         return None
 
     @staticmethod
-    def parse_objective(string: str) -> Optional[float]:
+    def parse_objective(string: str) -> float | None:
         fields = string.split(":")
         if len(fields) != 2:
             return None
@@ -412,7 +412,7 @@ class FSCIP_CMD(LpSolver_CMD):
         return objective  # type: ignore[return-value]
 
     @staticmethod
-    def parse_variable(string: str) -> Optional[Tuple[str, float]]:
+    def parse_variable(string: str) -> tuple[str, float] | None:
         fields = string.split()
         if len(fields) < 2:
             return None
@@ -447,7 +447,7 @@ class FSCIP_CMD(LpSolver_CMD):
                 )
 
             # Parse the variable values.
-            variables: Dict[str, float] = {}  # type: ignore[annotation-unchecked]
+            variables: dict[str, float] = {}  # type: ignore[annotation-unchecked]
             for variable_line in file:
                 variable = FSCIP_CMD.parse_variable(variable_line)
                 if variable is None:

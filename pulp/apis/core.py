@@ -68,7 +68,7 @@ arch = get_arch()
 
 import logging
 from collections.abc import Iterator
-from typing import TYPE_CHECKING, Any, Union
+from typing import TYPE_CHECKING, Any
 
 from .. import constants as const
 from .. import sparse
@@ -383,7 +383,7 @@ class LpSolver_CMD(LpSolver):
             prefix = os.path.join(self.tmpDir, uuid4().hex)
         return (f"{prefix}-pulp.{n}" for n in args)
 
-    def silent_remove(self, file: Union[str, bytes, os.PathLike]) -> None:
+    def silent_remove(self, file: str | bytes | os.PathLike) -> None:
         try:
             os.remove(file)
         except FileNotFoundError:

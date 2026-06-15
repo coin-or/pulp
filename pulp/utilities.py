@@ -11,7 +11,7 @@ from typing import Any, Iterator
 def resource_clock() -> float:
     import resource  # noqa: I001
 
-    return resource.getrusage(resource.RUSAGE_CHILDREN).ru_utime  # ty: ignore[unresolved-attribute]
+    return resource.getrusage(resource.RUSAGE_CHILDREN).ru_utime
 
 
 def isNumber(x: object) -> bool:

@@ -7,7 +7,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, fields
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal
 
 from . import _rustcore
 from . import constants as const
@@ -65,7 +65,7 @@ class MPSObjective:
 @dataclass
 class MPSVariable:
     name: str
-    cat: str
+    cat: Literal["Continuous", "Integer", "Binary"]
     lowBound: float | None = 0
     upBound: float | None = None
     varValue: float | None = None

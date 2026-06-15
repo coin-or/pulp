@@ -3,7 +3,7 @@ from __future__ import annotations
 import math
 import os
 import warnings
-from typing import TYPE_CHECKING, Any, Iterable, Optional
+from typing import TYPE_CHECKING, Any, Iterable
 
 from .. import constants
 from .core import LpSolver, LpSolver_CMD, PulpSolverError, clock, log, subprocess
@@ -563,7 +563,7 @@ class CPLEX_PY(LpSolver):
     def callSolver(
         self,
         lp: LpProblem,
-        callback: Optional[Iterable[type[cplex_t.callbacks.Callback]]] = None,
+        callback: Iterable[type[cplex_t.callbacks.Callback]] | None = None,
     ):
         """
         Solves the problem with cplex

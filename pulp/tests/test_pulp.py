@@ -2,12 +2,13 @@
 Tests for pulp
 """
 
+from __future__ import annotations
+
 import array
 import os
 import tempfile
 import unittest
 from decimal import Decimal
-from typing import Optional, Union
 
 import pulp.apis as solvers
 import pulp.mps_lp as mps_lp
@@ -409,7 +410,7 @@ class VariableIndirectionTest(unittest.TestCase):
     expected behavior.
     """
 
-    def _make_prob(self, name: Optional[str] = None) -> LpProblem:
+    def _make_prob(self, name: str | None = None) -> LpProblem:
         return LpProblem(name or self._testMethodName, const.LpMinimize)
 
     @staticmethod
@@ -539,721 +540,711 @@ class PuLPModelTest(unittest.TestCase):
             self.skipTest("Default solver not available for export test validation")
         return prob.solve()
 
-        def test_variable_0_is_deleted(self):
-            """
-            Test that a variable is deleted when it is subtracted to 0
-            """
-            prob = LpProblem(self._testMethodName, const.LpMinimize)
-            x = prob.add_variable("x", 0, 4)
-            y = prob.add_variable("y", -1, 1)
-            z = prob.add_variable("z", 0)
-            c1 = x + y <= 5
-            c2 = c1 + z - z
-            assert str(c2)
-            assert c2[z] == 0
+    def test_variable_0_is_deleted(self):
+        """
+        Test that a variable is deleted when it is subtracted to 0
+        """
+        prob = LpProblem(self._testMethodName, const.LpMinimize)
+        x = prob.add_variable("x", 0, 4)
+        y = prob.add_variable("y", -1, 1)
+        z = prob.add_variable("z", 0)
+        c1 = x + y <= 5
+        c2 = c1 + z - z
+        assert str(c2)
+        assert c2[z] == 0
 
-        def test_NAN_const(self):
-            prob = LpProblem("test", const.LpMinimize)
-            my_var = prob.add_variable(
-                "my_var", lowBound=None, upBound=None, cat=const.LpContinuous
+    def test_NAN_const(self):
+        prob = LpProblem("test", const.LpMinimize)
+        my_var = prob.add_variable(
+            "my_var", lowBound=None, upBound=None, cat=const.LpContinuous
+        )
+
+        def gives_error():
+            prob = LpProblem("myProblem", const.LpMinimize)
+            prob += my_var == float("nan")
+            return prob
+
+        self.assertRaises(const.PulpError, gives_error)
+
+    def test_NAN_bound(self):
+        prob = LpProblem("test", const.LpMinimize)
+
+        def gives_error():
+            return prob.add_variable(
+                "my_var",
+                lowBound=float("nan"),
+                upBound=None,
+                cat=const.LpContinuous,
             )
 
-            def gives_error():
-                prob = LpProblem("myProblem", const.LpMinimize)
-                prob += my_var == float("nan")
-                return prob
+        self.assertRaises(const.PulpError, gives_error)
 
-            self.assertRaises(const.PulpError, gives_error)
+    def test_non_intermediate_var(self):
+        prob = LpProblem(self._testMethodName, const.LpMinimize)
+        x_vars = {
+            i: prob.add_variable(f"x{i}", lowBound=0, cat=const.LpContinuous)
+            for i in range(3)
+        }
+        prob += lpSum(x_vars[i] for i in range(3)) >= 2
+        prob += lpSum(x_vars[i] for i in range(3)) <= 5
+        for elem in prob.constraints():
+            self.assertIn(elem.constant, [-2, -5])
 
-        def test_NAN_bound(self):
-            prob = LpProblem("test", const.LpMinimize)
+    def test_intermediate_var(self):
+        prob = LpProblem(self._testMethodName, const.LpMinimize)
+        x_vars = {
+            i: prob.add_variable(f"x{i}", lowBound=0, cat=const.LpContinuous)
+            for i in range(3)
+        }
+        x = lpSum(x_vars[i] for i in range(3))
+        prob += x >= 2
+        prob += x <= 5
+        for elem in prob.constraints():
+            self.assertIn(elem.constant, [-2, -5])
 
-            def gives_error():
-                return prob.add_variable(
-                    "my_var",
-                    lowBound=float("nan"),
-                    upBound=None,
-                    cat=const.LpContinuous,
-                )
+    def test_comparison(self):
+        prob = LpProblem(self._testMethodName, const.LpMinimize)
+        x_vars = {
+            i: prob.add_variable(f"x{i}", lowBound=0, cat=const.LpContinuous)
+            for i in range(3)
+        }
+        x = lpSum(x_vars[i] for i in range(3))
 
-            self.assertRaises(const.PulpError, gives_error)
+        with self.assertRaises(TypeError):
+            prob += x > 2
+        with self.assertRaises(TypeError):
+            prob += x < 5
 
-        def test_non_intermediate_var(self):
-            prob = LpProblem(self._testMethodName, const.LpMinimize)
-            x_vars = {
-                i: prob.add_variable(f"x{i}", lowBound=0, cat=const.LpContinuous)
-                for i in range(3)
-            }
-            prob += lpSum(x_vars[i] for i in range(3)) >= 2
-            prob += lpSum(x_vars[i] for i in range(3)) <= 5
-            for elem in prob.constraints():
-                self.assertIn(elem.constant, [-2, -5])
+    def test_pulpTestAll(self):
+        """
+        Test the availability of the function pulpTestAll
+        """
 
-        def test_intermediate_var(self):
-            prob = LpProblem(self._testMethodName, const.LpMinimize)
-            x_vars = {
-                i: prob.add_variable(f"x{i}", lowBound=0, cat=const.LpContinuous)
-                for i in range(3)
-            }
-            x = lpSum(x_vars[i] for i in range(3))
-            prob += x >= 2
-            prob += x <= 5
-            for elem in prob.constraints():
-                self.assertIn(elem.constant, [-2, -5])
+    def test_assignInvalidStatus(self):
+        t = LpProblem("test")
+        Invalid = -100
+        self.assertRaises(const.PulpError, lambda: t.assignStatus(Invalid))
+        self.assertRaises(const.PulpError, lambda: t.assignStatus(0, Invalid))
 
-        def test_comparison(self):
-            prob = LpProblem(self._testMethodName, const.LpMinimize)
-            x_vars = {
-                i: prob.add_variable(f"x{i}", lowBound=0, cat=const.LpContinuous)
-                for i in range(3)
-            }
-            x = lpSum(x_vars[i] for i in range(3))
+    def test_makeDict_behavior(self):
+        """
+        Test if makeDict is returning the expected value.
+        """
+        headers = [["A", "B"], ["C", "D"]]
+        values = [[1, 2], [3, 4]]
+        target = {"A": {"C": 1, "D": 2}, "B": {"C": 3, "D": 4}}
+        dict_with_default = makeDict(headers, values, default=0)
+        dict_without_default = makeDict(headers, values)
+        self.assertEqual(dict_with_default, target)
+        self.assertEqual(dict_without_default, target)
 
-            with self.assertRaises(TypeError):
-                prob += x > 2
-            with self.assertRaises(TypeError):
-                prob += x < 5
+    def test_makeDict_default_value(self):
+        """
+        Test if makeDict is returning a default value when specified.
+        """
+        headers = [["A", "B"], ["C", "D"]]
+        values = [[1, 2], [3, 4]]
+        dict_with_default = makeDict(headers, values, default=0)
+        dict_without_default = makeDict(headers, values)
+        # Check if a default value is passed
+        self.assertEqual(dict_with_default["X"]["Y"], 0)
+        # Check if a KeyError is raised
+        with self.assertRaises(KeyError):
+            dict_without_default["X"]["Y"]
 
-        def test_pulpTestAll(self):
-            """
-            Test the availability of the function pulpTestAll
-            """
+    def test_importMPS_maximize(self):
+        name = self._testMethodName
+        prob = LpProblem(name, const.LpMaximize)
+        x = prob.add_variable("x", 0, 4)
+        y = prob.add_variable("y", -1, 1)
+        z = prob.add_variable("z", 0)
+        w = prob.add_variable("w", 0)
+        prob += x + 4 * y + 9 * z, "obj"
+        prob += x + y <= 5, "c1"
+        prob += x + z >= 10, "c2"
+        prob += -y + z == 7, "c3"
+        prob += w >= 0, "c4"
+        filename = name + ".mps"
+        prob.writeMPS(filename)
+        _vars, prob2 = LpProblem.fromMPS(filename, sense=prob.sense)
+        _dict1 = getSortedDict(prob)
+        _dict2 = getSortedDict(prob2)
+        self.assertDictEqual(_dict1, _dict2)
 
-        def test_assignInvalidStatus(self):
-            t = LpProblem("test")
-            Invalid = -100
-            self.assertRaises(const.PulpError, lambda: t.assignStatus(Invalid))
-            self.assertRaises(const.PulpError, lambda: t.assignStatus(0, Invalid))
+    def test_importMPS_noname(self):
+        name = self._testMethodName
+        prob = LpProblem("", const.LpMaximize)
+        x = prob.add_variable("x", 0, 4)
+        y = prob.add_variable("y", -1, 1)
+        z = prob.add_variable("z", 0)
+        w = prob.add_variable("w", 0)
+        prob += x + 4 * y + 9 * z, "obj"
+        prob += x + y <= 5, "c1"
+        prob += x + z >= 10, "c2"
+        prob += -y + z == 7, "c3"
+        prob += w >= 0, "c4"
+        filename = name + ".mps"
+        prob.writeMPS(filename)
+        _vars, prob2 = LpProblem.fromMPS(filename, sense=prob.sense)
+        _dict1 = getSortedDict(prob)
+        _dict2 = getSortedDict(prob2)
+        self.assertDictEqual(_dict1, _dict2)
 
-        def test_makeDict_behavior(self):
-            """
-            Test if makeDict is returning the expected value.
-            """
-            headers = [["A", "B"], ["C", "D"]]
-            values = [[1, 2], [3, 4]]
-            target = {"A": {"C": 1, "D": 2}, "B": {"C": 3, "D": 4}}
-            dict_with_default = makeDict(headers, values, default=0)
-            dict_without_default = makeDict(headers, values)
-            self.assertEqual(dict_with_default, target)
-            self.assertEqual(dict_without_default, target)
+    def test_importMPS_integer(self):
+        name = self._testMethodName
+        prob = LpProblem(name, const.LpMinimize)
+        x = prob.add_variable("x", 0, 4)
+        y = prob.add_variable("y", -1, 1)
+        z = prob.add_variable("z", 0, None, const.LpInteger)
+        prob += 1.1 * x + 4.1 * y + 9.1 * z, "obj"
+        prob += x + y <= 5, "c1"
+        prob += x + z >= 10, "c2"
+        prob += -y + z == 7.5, "c3"
+        filename = name + ".mps"
+        prob.writeMPS(filename)
+        _vars, prob2 = LpProblem.fromMPS(filename, sense=prob.sense)
+        _dict1 = getSortedDict(prob)
+        _dict2 = getSortedDict(prob2)
+        self.assertDictEqual(_dict1, _dict2)
 
-        def test_makeDict_default_value(self):
-            """
-            Test if makeDict is returning a default value when specified.
-            """
-            headers = [["A", "B"], ["C", "D"]]
-            values = [[1, 2], [3, 4]]
-            dict_with_default = makeDict(headers, values, default=0)
-            dict_without_default = makeDict(headers, values)
-            # Check if a default value is passed
-            self.assertEqual(dict_with_default["X"]["Y"], 0)
-            # Check if a KeyError is raised
-            with self.assertRaises(KeyError):
-                dict_without_default["X"]["Y"]
+    def test_importMPS_binary(self):
+        name = self._testMethodName
+        prob = LpProblem(name, const.LpMaximize)
+        dummy = prob.add_variable("dummy")
+        c1 = prob.add_variable("c1", 0, 1, const.LpBinary)
+        c2 = prob.add_variable("c2", 0, 1, const.LpBinary)
+        prob += dummy
+        prob += c1 + c2 == 2
+        prob += c1 <= 0
+        filename = name + ".mps"
+        prob.writeMPS(filename)
+        _vars, prob2 = LpProblem.fromMPS(filename, sense=prob.sense, dropConsNames=True)
+        _dict1 = getSortedDict(prob, keyCons="constant")
+        _dict2 = getSortedDict(prob2, keyCons="constant")
+        self.assertDictEqual(_dict1, _dict2)
 
-        def test_importMPS_maximize(self):
-            name = self._testMethodName
-            prob = LpProblem(name, const.LpMaximize)
-            x = prob.add_variable("x", 0, 4)
-            y = prob.add_variable("y", -1, 1)
-            z = prob.add_variable("z", 0)
-            w = prob.add_variable("w", 0)
-            prob += x + 4 * y + 9 * z, "obj"
-            prob += x + y <= 5, "c1"
-            prob += x + z >= 10, "c2"
-            prob += -y + z == 7, "c3"
-            prob += w >= 0, "c4"
-            filename = name + ".mps"
-            prob.writeMPS(filename)
-            _vars, prob2 = LpProblem.fromMPS(filename, sense=prob.sense)
-            _dict1 = getSortedDict(prob)
-            _dict2 = getSortedDict(prob2)
-            self.assertDictEqual(_dict1, _dict2)
+    def test_importMPS_RHS_fields56(self):
+        """Import MPS file with RHS definitions in fields 5 & 6."""
+        with tempfile.NamedTemporaryFile(delete=False) as h:
+            h.write(str.encode(EXAMPLE_MPS_RHS56))
+        _, problem = LpProblem.fromMPS(h.name)
+        os.unlink(h.name)
+        self.assertEqual(_constraint_named(problem, "LIM2").constant, -10)
 
-        def test_importMPS_noname(self):
-            name = self._testMethodName
-            prob = LpProblem("", const.LpMaximize)
-            x = prob.add_variable("x", 0, 4)
-            y = prob.add_variable("y", -1, 1)
-            z = prob.add_variable("z", 0)
-            w = prob.add_variable("w", 0)
-            prob += x + 4 * y + 9 * z, "obj"
-            prob += x + y <= 5, "c1"
-            prob += x + z >= 10, "c2"
-            prob += -y + z == 7, "c3"
-            prob += w >= 0, "c4"
-            filename = name + ".mps"
-            prob.writeMPS(filename)
-            _vars, prob2 = LpProblem.fromMPS(filename, sense=prob.sense)
-            _dict1 = getSortedDict(prob)
-            _dict2 = getSortedDict(prob2)
-            self.assertDictEqual(_dict1, _dict2)
+    def test_importMPS_PL_bound(self):
+        """Import MPS file with PL bound type."""
+        with tempfile.NamedTemporaryFile(delete=False) as h:
+            h.write(str.encode(EXAMPLE_MPS_PL_BOUNDS))
+        _, problem = LpProblem.fromMPS(h.name)
+        os.unlink(h.name)
+        self.assertIsInstance(problem, LpProblem)
 
-        def test_importMPS_integer(self):
-            name = self._testMethodName
-            prob = LpProblem(name, const.LpMinimize)
-            x = prob.add_variable("x", 0, 4)
-            y = prob.add_variable("y", -1, 1)
-            z = prob.add_variable("z", 0, None, const.LpInteger)
-            prob += 1.1 * x + 4.1 * y + 9.1 * z, "obj"
-            prob += x + y <= 5, "c1"
-            prob += x + z >= 10, "c2"
-            prob += -y + z == 7.5, "c3"
-            filename = name + ".mps"
-            prob.writeMPS(filename)
-            _vars, prob2 = LpProblem.fromMPS(filename, sense=prob.sense)
-            _dict1 = getSortedDict(prob)
-            _dict2 = getSortedDict(prob2)
-            self.assertDictEqual(_dict1, _dict2)
+    def test_importMPF_MI_bound(self):
+        """Import MPS file with MI bound type."""
+        with tempfile.NamedTemporaryFile(delete=False) as h:
+            h.write(str.encode(EXAMPLE_MPS_MI_BOUNDS))
+        vars, problem = LpProblem.fromMPS(h.name)
+        os.unlink(h.name)
+        self.assertIsInstance(problem, LpProblem)
+        mi_var = vars["YTWO"]
+        self.assertEqual(mi_var.lowBound, float("-inf"))
 
-        def test_importMPS_binary(self):
-            name = self._testMethodName
-            prob = LpProblem(name, const.LpMaximize)
-            dummy = prob.add_variable("dummy")
-            c1 = prob.add_variable("c1", 0, 1, const.LpBinary)
-            c2 = prob.add_variable("c2", 0, 1, const.LpBinary)
-            prob += dummy
-            prob += c1 + c2 == 2
-            prob += c1 <= 0
-            filename = name + ".mps"
-            prob.writeMPS(filename)
-            _vars, prob2 = LpProblem.fromMPS(
-                filename, sense=prob.sense, dropConsNames=True
-            )
-            _dict1 = getSortedDict(prob, keyCons="constant")
-            _dict2 = getSortedDict(prob2, keyCons="constant")
-            self.assertDictEqual(_dict1, _dict2)
+    def test_unbounded_problem__is_not_valid(self):
+        """Given an unbounded problem, where x will tend to infinity
+        to maximise the objective, assert that it is categorised
+        as invalid."""
+        name = self._testMethodName
+        prob = LpProblem(name, const.LpMaximize)
+        x = prob.add_variable("x")
+        prob += 1000 * x
+        prob += x >= 1
+        self.assertFalse(prob.valid())
 
-        def test_importMPS_RHS_fields56(self):
-            """Import MPS file with RHS definitions in fields 5 & 6."""
-            with tempfile.NamedTemporaryFile(delete=False) as h:
-                h.write(str.encode(EXAMPLE_MPS_RHS56))
-            _, problem = LpProblem.fromMPS(h.name)
-            os.unlink(h.name)
-            self.assertEqual(_constraint_named(problem, "LIM2").constant, -10)
+    def test_false_constraint(self):
+        prob = LpProblem(self._testMethodName, const.LpMinimize)
 
-        def test_importMPS_PL_bound(self):
-            """Import MPS file with PL bound type."""
-            with tempfile.NamedTemporaryFile(delete=False) as h:
-                h.write(str.encode(EXAMPLE_MPS_PL_BOUNDS))
-            _, problem = LpProblem.fromMPS(h.name)
-            os.unlink(h.name)
-            self.assertIsInstance(problem, LpProblem)
+        def add_const(prob):
+            prob += 0 - 3 == 0
 
-        def test_importMPF_MI_bound(self):
-            """Import MPS file with MI bound type."""
-            with tempfile.NamedTemporaryFile(delete=False) as h:
-                h.write(str.encode(EXAMPLE_MPS_MI_BOUNDS))
-            vars, problem = LpProblem.fromMPS(h.name)
-            os.unlink(h.name)
-            self.assertIsInstance(problem, LpProblem)
-            mi_var = vars["YTWO"]
-            self.assertEqual(mi_var.lowBound, float("-inf"))
+        self.assertRaises(TypeError, add_const, prob=prob)
 
-        def test_unbounded_problem__is_not_valid(self):
-            """Given an unbounded problem, where x will tend to infinity
-            to maximise the objective, assert that it is categorised
-            as invalid."""
-            name = self._testMethodName
-            prob = LpProblem(name, const.LpMaximize)
-            x = prob.add_variable("x")
-            prob += 1000 * x
-            prob += x >= 1
-            self.assertFalse(prob.valid())
+    # def test_measuring_solving_time(self):
+    #     time_limit = 10
+    #     solver_settings = dict(
+    #         COIN_CMD=30,
+    #         COIN_CMD=30,
+    #         SCIP_PY=30,
+    #         SCIP_CMD=30,
+    #         GUROBI_CMD=50,
+    #         CPLEX_CMD=50,
+    #         GUROBI=50,
+    #         HiGHS=50,
+    #         HiGHS_CMD=50,
+    #     )
+    #     bins = solver_settings.get(self.solver.name)
+    #     if bins is None:
+    #         # not all solvers have timeLimit support
+    #         return
+    #     prob = create_bin_packing_problem(bins=bins, seed=99)
+    #     self.solver.timeLimit = time_limit
+    #     status = prob.solve(self.solver)
 
-        def test_false_constraint(self):
-            prob = LpProblem(self._testMethodName, const.LpMinimize)
+    #     delta = 20
+    #     reported_time = prob.solutionTime
+    #     if self.solver.name == "COIN_CMD":
+    #         reported_time = prob.solutionCpuTime
 
-            def add_const(prob):
-                prob += 0 - 3 == 0
+    #     self.assertAlmostEqual(
+    #         reported_time,
+    #         time_limit,
+    #         delta=delta,
+    #         msg=f"optimization time for solver {self.solver.name}",
+    #     )
+    #     self.assertIsNotNone(prob.objective)
+    #     self.assertIsNotNone(prob.objective.value())
+    #     self.assertEqual(status, const.LpStatusOptimal)
+    #     for v in prob.variables():
+    #         self.assertIsNotNone(v.varValue)
 
-            self.assertRaises(TypeError, add_const, prob=prob)
+    # @gurobi_test
+    # def test_time_limit_no_solution(self):
+    #     time_limit = 1
+    #     solver_settings = dict(HiGHS_CMD=60, HiGHS=60, COIN_CMD=60)
+    #     bins = solver_settings.get(self.solver.name)
+    #     if bins is None:
+    #         # not all solvers have timeLimit support
+    #         return
+    #     prob = create_bin_packing_problem(bins=bins, seed=99)
+    #     self.solver.timeLimit = time_limit
+    #     status = prob.solve(self.solver)
+    #     self.assertEqual(prob.status, const.LpStatusNotSolved)
+    #     self.assertEqual(status, const.LpStatusNotSolved)
+    #     self.assertEqual(prob.sol_status, const.LpSolutionNoSolutionFound)
 
-        # def test_measuring_solving_time(self):
-        #     time_limit = 10
-        #     solver_settings = dict(
-        #         COIN_CMD=30,
-        #         COIN_CMD=30,
-        #         SCIP_PY=30,
-        #         SCIP_CMD=30,
-        #         GUROBI_CMD=50,
-        #         CPLEX_CMD=50,
-        #         GUROBI=50,
-        #         HiGHS=50,
-        #         HiGHS_CMD=50,
-        #     )
-        #     bins = solver_settings.get(self.solver.name)
-        #     if bins is None:
-        #         # not all solvers have timeLimit support
-        #         return
-        #     prob = create_bin_packing_problem(bins=bins, seed=99)
-        #     self.solver.timeLimit = time_limit
-        #     status = prob.solve(self.solver)
+    def test_LpVariable_indexs_param(self):
+        """
+        Test that 'indexs' param continues to work
+        """
+        prob = LpProblem(self._testMethodName, const.LpMinimize)
+        customers = [1, 2, 3]
+        agents = ["A", "B", "C"]
 
-        #     delta = 20
-        #     reported_time = prob.solutionTime
-        #     if self.solver.name == "COIN_CMD":
-        #         reported_time = prob.solutionCpuTime
+        # explicit param creates a dict of type LpVariable
+        assign_vars = prob.add_variable_dicts(name="test", indices=(customers, agents))
+        for k, v in assign_vars.items():
+            for a, b in v.items():
+                self.assertIsInstance(b, LpVariable)
 
-        #     self.assertAlmostEqual(
-        #         reported_time,
-        #         time_limit,
-        #         delta=delta,
-        #         msg=f"optimization time for solver {self.solver.name}",
-        #     )
-        #     self.assertIsNotNone(prob.objective)
-        #     self.assertIsNotNone(prob.objective.value())
-        #     self.assertEqual(status, const.LpStatusOptimal)
-        #     for v in prob.variables():
-        #         self.assertIsNotNone(v.varValue)
+        # param by position creates a dict of type LpVariable
+        assign_vars = prob.add_variable_dicts("test", (customers, agents))
+        for k, v in assign_vars.items():
+            for a, b in v.items():
+                self.assertIsInstance(b, LpVariable)
 
-        # @gurobi_test
-        # def test_time_limit_no_solution(self):
-        #     time_limit = 1
-        #     solver_settings = dict(HiGHS_CMD=60, HiGHS=60, COIN_CMD=60)
-        #     bins = solver_settings.get(self.solver.name)
-        #     if bins is None:
-        #         # not all solvers have timeLimit support
-        #         return
-        #     prob = create_bin_packing_problem(bins=bins, seed=99)
-        #     self.solver.timeLimit = time_limit
-        #     status = prob.solve(self.solver)
-        #     self.assertEqual(prob.status, const.LpStatusNotSolved)
-        #     self.assertEqual(status, const.LpStatusNotSolved)
-        #     self.assertEqual(prob.sol_status, const.LpSolutionNoSolutionFound)
+        # explicit param creates list of LpVariable
+        assign_vars_matrix = prob.add_variable_matrix(
+            name="test", indices=(customers, agents)
+        )
+        for a in assign_vars_matrix:
+            for b in a:
+                self.assertIsInstance(b, LpVariable)
 
-        def test_LpVariable_indexs_param(self):
-            """
-            Test that 'indexs' param continues to work
-            """
-            prob = LpProblem(self._testMethodName, const.LpMinimize)
-            customers = [1, 2, 3]
-            agents = ["A", "B", "C"]
+        # param by position creates list of list of LpVariable
+        assign_vars_matrix = prob.add_variable_matrix("test", (customers, agents))
+        for a in assign_vars_matrix:
+            for b in a:
+                self.assertIsInstance(b, LpVariable)
 
-            # explicit param creates a dict of type LpVariable
-            assign_vars = prob.add_variable_dicts(
-                name="test", indices=(customers, agents)
-            )
-            for k, v in assign_vars.items():
-                for a, b in v.items():
-                    self.assertIsInstance(b, LpVariable)
+    def test_LpVariable_indices_param(self):
+        """
+        Test that 'indices' argument works
+        """
+        prob = LpProblem(self._testMethodName, const.LpMinimize)
+        customers = [1, 2, 3]
+        agents = ["A", "B", "C"]
 
-            # param by position creates a dict of type LpVariable
-            assign_vars = prob.add_variable_dicts("test", (customers, agents))
-            for k, v in assign_vars.items():
-                for a, b in v.items():
-                    self.assertIsInstance(b, LpVariable)
+        # explicit param creates a dict of type LpVariable
+        assign_vars = prob.add_variable_dicts(name="test", indices=(customers, agents))
+        for k, v in assign_vars.items():
+            for a, b in v.items():
+                self.assertIsInstance(b, LpVariable)
 
-            # explicit param creates list of LpVariable
-            assign_vars_matrix = prob.add_variable_matrix(
-                name="test", indices=(customers, agents)
-            )
-            for a in assign_vars_matrix:
-                for b in a:
-                    self.assertIsInstance(b, LpVariable)
+        # explicit param creates list of list of LpVariable
+        assign_vars_matrix = prob.add_variable_matrix(
+            name="test", indices=(customers, agents)
+        )
+        for a in assign_vars_matrix:
+            for b in a:
+                self.assertIsInstance(b, LpVariable)
 
-            # param by position creates list of list of LpVariable
-            assign_vars_matrix = prob.add_variable_matrix("test", (customers, agents))
-            for a in assign_vars_matrix:
-                for b in a:
-                    self.assertIsInstance(b, LpVariable)
+    def test_sum_nan_values(self):
+        import math
 
-        def test_LpVariable_indices_param(self):
-            """
-            Test that 'indices' argument works
-            """
-            prob = LpProblem(self._testMethodName, const.LpMinimize)
-            customers = [1, 2, 3]
-            agents = ["A", "B", "C"]
+        prob = LpProblem(self._testMethodName, const.LpMinimize)
+        a = math.nan
+        x = prob.add_variable("x")
+        with self.assertRaises(PulpError):
+            x + a
 
-            # explicit param creates a dict of type LpVariable
-            assign_vars = prob.add_variable_dicts(
-                name="test", indices=(customers, agents)
-            )
-            for k, v in assign_vars.items():
-                for a, b in v.items():
-                    self.assertIsInstance(b, LpVariable)
+    def test_multiply_nan_values(self):
+        import math
 
-            # explicit param creates list of list of LpVariable
-            assign_vars_matrix = prob.add_variable_matrix(
-                name="test", indices=(customers, agents)
-            )
-            for a in assign_vars_matrix:
-                for b in a:
-                    self.assertIsInstance(b, LpVariable)
+        prob = LpProblem(self._testMethodName, const.LpMinimize)
+        a = math.nan
+        x = prob.add_variable("x")
+        with self.assertRaises(PulpError):
+            x * a
 
-        def test_sum_nan_values(self):
-            import math
+    def test_constraint_copy(self) -> None:
+        """
+        Comparison operators return LpAffineExpression with sense.
+        copy() preserves terms, constant, and sense.
+        """
+        prob = LpProblem(self._testMethodName, const.LpMinimize)
+        x = prob.add_variable("x")
+        y = prob.add_variable("y")
 
-            prob = LpProblem(self._testMethodName, const.LpMinimize)
-            a = math.nan
-            x = prob.add_variable("x")
-            with self.assertRaises(PulpError):
-                x + a
+        expr: LpAffineExpression = x + y + 1
+        self.assertIsInstance(expr, LpAffineExpression)
+        self.assertEqual(expr.constant, 1)
 
-        def test_multiply_nan_values(self):
-            import math
+        c = expr <= 5
+        self.assertIsInstance(c, LpAffineExpression)
+        self.assertIsNotNone(c.sense)
+        self.assertEqual(c.constant, -4)
 
-            prob = LpProblem(self._testMethodName, const.LpMinimize)
-            a = math.nan
-            x = prob.add_variable("x")
-            with self.assertRaises(PulpError):
-                x * a
+        c2 = c.copy()
+        self.assertIsInstance(c2, LpAffineExpression)
+        self.assertEqual(c2.constant, -4)
+        self.assertIsNotNone(c2.sense)
+        self.assertEqual(str(c), str(c2))
+        self.assertEqual(repr(c), repr(c2))
 
-        def test_constraint_copy(self) -> None:
-            """
-            Comparison operators return LpAffineExpression with sense.
-            copy() preserves terms, constant, and sense.
-            """
-            prob = LpProblem(self._testMethodName, const.LpMinimize)
-            x = prob.add_variable("x")
-            y = prob.add_variable("y")
+    def test_constraint_add(self) -> None:
+        """
+        __add__ operator on LpAffineExpression with sense (pending constraint)
+        """
+        prob = LpProblem(self._testMethodName, const.LpMinimize)
+        x = prob.add_variable("x")
+        y = prob.add_variable("y")
 
-            expr: LpAffineExpression = x + y + 1
+        expr: LpAffineExpression = x + y + 1
+        self.assertIsInstance(expr, LpAffineExpression)
+        self.assertEqual(expr.constant, 1)
+
+        c1 = x + y <= 5
+        self.assertIsInstance(c1, LpAffineExpression)
+        self.assertIsNotNone(c1.sense)
+        self.assertEqual(c1.constant, -5)
+        self.assertEqual(str(c1), "x + y <= 5.0")
+        self.assertEqual(repr(c1), "1.0*x + 1.0*y + -5.0 <= 0")
+
+        c1_int = c1 + 2
+        self.assertIsInstance(c1_int, LpAffineExpression)
+        self.assertEqual(c1_int.constant, -3)
+        self.assertEqual(str(c1_int), "x + y <= 3.0")
+        self.assertEqual(repr(c1_int), "1.0*x + 1.0*y + -3.0 <= 0")
+
+        c1_variable = c1 + x
+        self.assertIsInstance(c1_variable, LpAffineExpression)
+        self.assertEqual(str(c1_variable), str(2 * x + y <= 5))
+        self.assertEqual(repr(c1_variable), repr(2 * x + y <= 5))
+
+        expr = x + 1
+        self.assertIsInstance(expr, LpAffineExpression)
+        self.assertEqual(expr.constant, 1)
+        self.assertEqual(str(expr), "x + 1")
+
+        c1_expr = c1 + expr
+        self.assertIsInstance(c1_expr, LpAffineExpression)
+        self.assertEqual(c1_expr.constant, -4)
+        self.assertEqual(str(c1_expr), str(2 * x + y <= 4))
+        self.assertEqual(repr(c1_expr), repr(2 * x + y <= 4))
+
+        constraint = x <= 1
+        self.assertIsInstance(constraint, LpAffineExpression)
+        c1_constraint = c1 + constraint
+        self.assertEqual(str(c1_constraint), str(2 * x + y <= 6))
+        self.assertEqual(repr(c1_constraint), repr(2 * x + y <= 6))
+
+        constraint = x + 1 <= 2
+        self.assertIsInstance(constraint, LpAffineExpression)
+        self.assertEqual(constraint.constant, -1)
+        c1_constraint = c1 + constraint
+        self.assertEqual(str(c1_constraint), str(2 * x + y <= 6))
+        self.assertEqual(repr(c1_constraint), repr(2 * x + y <= 6))
+
+    def test_constraint_neg(self) -> None:
+        """
+        __neg__ operator on LpAffineExpression with sense
+        """
+        prob = LpProblem(self._testMethodName, const.LpMinimize)
+        x = prob.add_variable("x")
+        y = prob.add_variable("y")
+
+        c1 = x + y <= 5
+        self.assertIsInstance(c1, LpAffineExpression)
+        self.assertEqual(c1.constant, -5)
+
+        c1_neg = -c1
+        self.assertIsInstance(c1_neg, LpAffineExpression)
+        self.assertEqual(c1_neg.constant, 5)
+        self.assertEqual(str(c1_neg), str(-x + -y <= -5))
+        self.assertEqual(repr(c1_neg), repr(-x + -y <= -5))
+
+    def test_constraint_sub(self) -> None:
+        """
+        __sub__ operator on LpAffineExpression with sense
+        """
+        prob = LpProblem(self._testMethodName, const.LpMinimize)
+        x = prob.add_variable("x")
+        y = prob.add_variable("y")
+
+        expr0: LpAffineExpression = 0 * x
+        self.assertIsInstance(expr0, LpAffineExpression)
+        self.assertTrue(expr0.isNumericalConstant())
+
+        c1 = x + y <= 5
+        self.assertIsInstance(c1, LpAffineExpression)
+        self.assertEqual(c1.constant, -5)
+
+        c1_int = c1 - 2
+        self.assertIsInstance(c1_int, LpAffineExpression)
+        self.assertEqual(c1_int.constant, -7)
+
+        c1_variable = c1 - x
+        self.assertIsInstance(c1_variable, LpAffineExpression)
+        self.assertEqual(str(c1_variable), "0*x + y <= 5.0")
+        self.assertEqual(repr(c1_variable), "0.0*x + 1.0*y + -5.0 <= 0")
+
+        expr: LpAffineExpression = x + 1
+        self.assertIsInstance(expr, LpAffineExpression)
+        c1_expr = c1 - expr
+        self.assertIsInstance(c1_expr, LpAffineExpression)
+        self.assertEqual(str(c1_expr), "0*x + y <= 6.0")
+        self.assertEqual(repr(c1_expr), "0.0*x + 1.0*y + -6.0 <= 0")
+
+        constraint = x <= 1
+        self.assertIsInstance(constraint, LpAffineExpression)
+        c1_constraint = c1 - constraint
+        self.assertEqual(str(c1_constraint), "0*x + y <= 4.0")
+        self.assertEqual(repr(c1_constraint), "0.0*x + 1.0*y + -4.0 <= 0")
+
+        constraint = x + 1 <= 2
+        self.assertIsInstance(constraint, LpAffineExpression)
+        c1_constraint = c1 - constraint
+        self.assertEqual(str(c1_constraint), "0*x + y <= 4.0")
+        self.assertEqual(repr(c1_constraint), "0.0*x + 1.0*y + -4.0 <= 0")
+
+    def test_constraint_mul(self) -> None:
+        """
+        __mul__ operator on LpAffineExpression with sense
+        """
+        prob = LpProblem(self._testMethodName, const.LpMinimize)
+        x = prob.add_variable("x")
+        y = prob.add_variable("y")
+
+        c1 = x + y <= 5
+        self.assertIsInstance(c1, LpAffineExpression)
+        self.assertEqual(c1.constant, -5)
+
+        c2 = y <= 5
+        self.assertIsInstance(c2, LpAffineExpression)
+        self.assertEqual(c2.constant, -5)
+
+        c1_int = c1 * 2
+        self.assertIsInstance(c1_int, LpAffineExpression)
+        self.assertEqual(c1_int.constant, -10)
+        self.assertEqual(str(c1_int), "2*x + 2*y <= 10.0")
+        self.assertEqual(repr(c1_int), "2.0*x + 2.0*y + -10.0 <= 0")
+
+        c1_const_expr = c1 * LpAffineExpression.from_constant(2)
+        self.assertIsInstance(c1_const_expr, LpAffineExpression)
+        self.assertEqual(c1_const_expr.constant, -10)
+        self.assertEqual(str(c1_int), "2*x + 2*y <= 10.0")
+        self.assertEqual(repr(c1_int), "2.0*x + 2.0*y + -10.0 <= 0")
+
+        with self.assertRaises(TypeError):
+            c1 * x
+
+        with self.assertRaises(TypeError):
+            c2 * x
+
+        with self.assertRaises(TypeError):
+            c1 * (x + 1)
+
+        with self.assertRaises(TypeError):
+            c2 * (x + 1)
+
+    def test_constraint_div(self) -> None:
+        """
+        __div__ operator on LpAffineExpression with sense
+        """
+        prob = LpProblem(self._testMethodName, const.LpMinimize)
+        x = prob.add_variable("x")
+        y = prob.add_variable("y")
+
+        c1 = x + y <= 5
+        self.assertIsInstance(c1, LpAffineExpression)
+        self.assertEqual(c1.constant, -5)
+
+        c2 = y <= 5
+        self.assertIsInstance(c2, LpAffineExpression)
+        self.assertEqual(c2.constant, -5)
+
+        c1_int = c1 / 2.0
+        self.assertIsInstance(c1_int, LpAffineExpression)
+        self.assertEqual(c1_int.constant, -2.5)
+        self.assertEqual(str(c1_int), "0.5*x + 0.5*y <= 2.5")
+        self.assertEqual(repr(c1_int), "0.5*x + 0.5*y + -2.5 <= 0")
+
+        c1_const_expr = c1 / LpAffineExpression.from_constant(2)
+        self.assertIsInstance(c1_const_expr, LpAffineExpression)
+        self.assertEqual(c1_const_expr.constant, -2.5)
+        self.assertEqual(str(c1_const_expr), "0.5*x + 0.5*y <= 2.5")
+        self.assertEqual(repr(c1_const_expr), "0.5*x + 0.5*y + -2.5 <= 0")
+
+        with self.assertRaises(TypeError):
+            c1 / x
+
+        with self.assertRaises(TypeError):
+            c2 / x
+
+        with self.assertRaises(TypeError):
+            c1 / (x + 1)
+
+        with self.assertRaises(TypeError):
+            c2 / (x + 1)
+
+    def test_variable_div(self):
+        """
+        __div__ operator on LpVariable
+        """
+        prob = LpProblem(self._testMethodName, const.LpMinimize)
+        x = prob.add_variable("x")
+        x_div = x / 2
+        self.assertIsInstance(x_div, LpAffineExpression)
+        self.assertEqual(x_div[x], 0.5)
+
+        self.assertEqual(str(x_div), "0.5*x")
+
+    def test_regression_794(self) -> None:
+        # See: https://github.com/coin-or/pulp/issues/794#issuecomment-2671682768
+
+        initial_stock = 8  # s_0
+        demands = [5, 4, 8, 10, 4, 2, 1]  # demands[t] = d_t
+        max_periods = len(demands) - 1  # T
+        prob = LpProblem(self._testMethodName, const.LpMinimize)
+        # Create decision variables.
+        supply: list[LpVariable] = []  # supply[t] = x_t
+        for t in range(1, max_periods + 1):
+            variable = prob.add_variable(f"x_{t}", cat="Integer", lowBound=0)
+            supply.append(variable)
+
+        stock: list[LpVariable | int] = [initial_stock]  # stock[t] = s_t
+        for t in range(1, max_periods + 1):
+            variable = prob.add_variable(f"s_{t}", cat="Integer", lowBound=0)
+            stock.append(variable)
+
+        # Create the constraints.
+        for t in range(1, max_periods + 1):
+            lhs = stock[t]
+            rhs = stock[t - 1] + supply[t - 1] - demands[t - 1]
+            expr = lhs == rhs
+
+            self.assertIsInstance(lhs, LpVariable)
+            self.assertEqual(str(lhs), f"s_{t}")
+
+            self.assertIsInstance(rhs, LpAffineExpression)
             self.assertIsInstance(expr, LpAffineExpression)
-            self.assertEqual(expr.constant, 1)
+            self.assertIsNotNone(expr.sense)
 
-            c = expr <= 5
-            self.assertIsInstance(c, LpAffineExpression)
-            self.assertIsNotNone(c.sense)
-            self.assertEqual(c.constant, -4)
+            if t == 1:
+                self.assertEqual(str(rhs), f"x_{t} + {stock[t - 1] - demands[t - 1]}")
+                self.assertEqual(expr.constant, -rhs.constant + lhs)
+            else:
+                self.assertEqual(str(rhs), f"s_{t - 1} + x_{t} - {demands[t - 1]}")
+                self.assertEqual(expr.constant, -rhs.constant)
 
-            c2 = c.copy()
-            self.assertIsInstance(c2, LpAffineExpression)
-            self.assertEqual(c2.constant, -4)
-            self.assertIsNotNone(c2.sense)
-            self.assertEqual(str(c), str(c2))
-            self.assertEqual(repr(c), repr(c2))
+    def test_regression_805(self):
+        # See: https://github.com/coin-or/pulp/issues/805
 
-        def test_constraint_add(self) -> None:
-            """
-            __add__ operator on LpAffineExpression with sense (pending constraint)
-            """
-            prob = LpProblem(self._testMethodName, const.LpMinimize)
-            x = prob.add_variable("x")
-            y = prob.add_variable("y")
+        e = LpAffineExpression.from_constant(1)
+        self.assertIsNone(e.name)
 
-            expr: LpAffineExpression = x + y + 1
-            self.assertIsInstance(expr, LpAffineExpression)
-            self.assertEqual(expr.constant, 1)
+        e2 = e.copy()
+        e2.name = "Test2"
+        self.assertEqual(e2.name, "Test2")
+        self.assertIsNone(e.name)
 
-            c1 = x + y <= 5
-            self.assertIsInstance(c1, LpAffineExpression)
-            self.assertIsNotNone(c1.sense)
-            self.assertEqual(c1.constant, -5)
-            self.assertEqual(str(c1), "x + y <= 5.0")
-            self.assertEqual(repr(c1), "1.0*x + 1.0*y + -5.0 <= 0")
+        e = LpAffineExpression.from_constant(1, name="Test1")
+        self.assertEqual(e.name, "Test1")
 
-            c1_int = c1 + 2
-            self.assertIsInstance(c1_int, LpAffineExpression)
-            self.assertEqual(c1_int.constant, -3)
-            self.assertEqual(str(c1_int), "x + y <= 3.0")
-            self.assertEqual(repr(c1_int), "1.0*x + 1.0*y + -3.0 <= 0")
+        e2 = e.copy()
+        e2.name = "Test2"
+        self.assertEqual(e2.name, "Test2")
+        self.assertEqual(e.name, "Test1")
 
-            c1_variable = c1 + x
-            self.assertIsInstance(c1_variable, LpAffineExpression)
-            self.assertEqual(str(c1_variable), str(2 * x + y <= 5))
-            self.assertEqual(repr(c1_variable), repr(2 * x + y <= 5))
+    def test_decimal_815_addinplace(self):
+        # See: https://github.com/coin-or/pulp/issues/815
+        m1 = 3
+        m2 = Decimal("8.1")
+        extra = 5
+        prob = LpProblem(self._testMethodName, const.LpMinimize)
+        x = prob.add_variable("x", lowBound=0, upBound=50, cat=const.LpContinuous)
+        y = prob.add_variable(
+            "y", lowBound=0, upBound=Decimal("32.24"), cat=const.LpContinuous
+        )
+        include_extra = prob.add_variable("include_extra1", cat=const.LpBinary)
 
-            expr = x + 1
-            self.assertIsInstance(expr, LpAffineExpression)
-            self.assertEqual(expr.constant, 1)
-            self.assertEqual(str(expr), "x + 1")
+        expression = LpAffineExpression.empty()
+        expression += x * m1 + include_extra * extra - y
+        self.assertEqual(str(expression), "5*include_extra1 + 3*x - y")
 
-            c1_expr = c1 + expr
-            self.assertIsInstance(c1_expr, LpAffineExpression)
-            self.assertEqual(c1_expr.constant, -4)
-            self.assertEqual(str(c1_expr), str(2 * x + y <= 4))
-            self.assertEqual(repr(c1_expr), repr(2 * x + y <= 4))
+        second_expression = LpAffineExpression.empty()
+        second_expression += x * m2 - 6 - y
+        self.assertEqual(str(second_expression), "8.1*x - y - 6")
 
-            constraint = x <= 1
-            self.assertIsInstance(constraint, LpAffineExpression)
-            c1_constraint = c1 + constraint
-            self.assertEqual(str(c1_constraint), str(2 * x + y <= 6))
-            self.assertEqual(repr(c1_constraint), repr(2 * x + y <= 6))
+        second_expression = LpAffineExpression.from_constant(0.0)
+        second_expression += x * m2 - 6 - y
+        self.assertEqual(str(second_expression), "8.1*x - y - 6")
 
-            constraint = x + 1 <= 2
-            self.assertIsInstance(constraint, LpAffineExpression)
-            self.assertEqual(constraint.constant, -1)
-            c1_constraint = c1 + constraint
-            self.assertEqual(str(c1_constraint), str(2 * x + y <= 6))
-            self.assertEqual(repr(c1_constraint), repr(2 * x + y <= 6))
+        second_expression_2 = x * m2 - 6 - y
+        self.assertEqual(str(second_expression_2), "8.1*x - y - 6")
 
-        def test_constraint_neg(self) -> None:
-            """
-            __neg__ operator on LpAffineExpression with sense
-            """
-            prob = LpProblem(self._testMethodName, const.LpMinimize)
-            x = prob.add_variable("x")
-            y = prob.add_variable("y")
-
-            c1 = x + y <= 5
-            self.assertIsInstance(c1, LpAffineExpression)
-            self.assertEqual(c1.constant, -5)
-
-            c1_neg = -c1
-            self.assertIsInstance(c1_neg, LpAffineExpression)
-            self.assertEqual(c1_neg.constant, 5)
-            self.assertEqual(str(c1_neg), str(-x + -y <= -5))
-            self.assertEqual(repr(c1_neg), repr(-x + -y <= -5))
-
-        def test_constraint_sub(self) -> None:
-            """
-            __sub__ operator on LpAffineExpression with sense
-            """
-            prob = LpProblem(self._testMethodName, const.LpMinimize)
-            x = prob.add_variable("x")
-            y = prob.add_variable("y")
-
-            expr0: LpAffineExpression = 0 * x
-            self.assertIsInstance(expr0, LpAffineExpression)
-            self.assertTrue(expr0.isNumericalConstant())
-
-            c1 = x + y <= 5
-            self.assertIsInstance(c1, LpAffineExpression)
-            self.assertEqual(c1.constant, -5)
-
-            c1_int = c1 - 2
-            self.assertIsInstance(c1_int, LpAffineExpression)
-            self.assertEqual(c1_int.constant, -7)
-
-            c1_variable = c1 - x
-            self.assertIsInstance(c1_variable, LpAffineExpression)
-            self.assertEqual(str(c1_variable), "0*x + y <= 5.0")
-            self.assertEqual(repr(c1_variable), "0.0*x + 1.0*y + -5.0 <= 0")
-
-            expr: LpAffineExpression = x + 1
-            self.assertIsInstance(expr, LpAffineExpression)
-            c1_expr = c1 - expr
-            self.assertIsInstance(c1_expr, LpAffineExpression)
-            self.assertEqual(str(c1_expr), "0*x + y <= 6.0")
-            self.assertEqual(repr(c1_expr), "0.0*x + 1.0*y + -6.0 <= 0")
-
-            constraint = x <= 1
-            self.assertIsInstance(constraint, LpAffineExpression)
-            c1_constraint = c1 - constraint
-            self.assertEqual(str(c1_constraint), "0*x + y <= 4.0")
-            self.assertEqual(repr(c1_constraint), "0.0*x + 1.0*y + -4.0 <= 0")
-
-            constraint = x + 1 <= 2
-            self.assertIsInstance(constraint, LpAffineExpression)
-            c1_constraint = c1 - constraint
-            self.assertEqual(str(c1_constraint), "0*x + y <= 4.0")
-            self.assertEqual(repr(c1_constraint), "0.0*x + 1.0*y + -4.0 <= 0")
-
-        def test_constraint_mul(self) -> None:
-            """
-            __mul__ operator on LpAffineExpression with sense
-            """
-            prob = LpProblem(self._testMethodName, const.LpMinimize)
-            x = prob.add_variable("x")
-            y = prob.add_variable("y")
-
-            c1 = x + y <= 5
-            self.assertIsInstance(c1, LpAffineExpression)
-            self.assertEqual(c1.constant, -5)
-
-            c2 = y <= 5
-            self.assertIsInstance(c2, LpAffineExpression)
-            self.assertEqual(c2.constant, -5)
-
-            c1_int = c1 * 2
-            self.assertIsInstance(c1_int, LpAffineExpression)
-            self.assertEqual(c1_int.constant, -10)
-            self.assertEqual(str(c1_int), "2*x + 2*y <= 10.0")
-            self.assertEqual(repr(c1_int), "2.0*x + 2.0*y + -10.0 <= 0")
-
-            c1_const_expr = c1 * LpAffineExpression.from_constant(2)
-            self.assertIsInstance(c1_const_expr, LpAffineExpression)
-            self.assertEqual(c1_const_expr.constant, -10)
-            self.assertEqual(str(c1_int), "2*x + 2*y <= 10.0")
-            self.assertEqual(repr(c1_int), "2.0*x + 2.0*y + -10.0 <= 0")
-
-            with self.assertRaises(TypeError):
-                c1 * x
-
-            with self.assertRaises(TypeError):
-                c2 * x
-
-            with self.assertRaises(TypeError):
-                c1 * (x + 1)
-
-            with self.assertRaises(TypeError):
-                c2 * (x + 1)
-
-        def test_constraint_div(self) -> None:
-            """
-            __div__ operator on LpAffineExpression with sense
-            """
-            prob = LpProblem(self._testMethodName, const.LpMinimize)
-            x = prob.add_variable("x")
-            y = prob.add_variable("y")
-
-            c1 = x + y <= 5
-            self.assertIsInstance(c1, LpAffineExpression)
-            self.assertEqual(c1.constant, -5)
-
-            c2 = y <= 5
-            self.assertIsInstance(c2, LpAffineExpression)
-            self.assertEqual(c2.constant, -5)
-
-            c1_int = c1 / 2.0
-            self.assertIsInstance(c1_int, LpAffineExpression)
-            self.assertEqual(c1_int.constant, -2.5)
-            self.assertEqual(str(c1_int), "0.5*x + 0.5*y <= 2.5")
-            self.assertEqual(repr(c1_int), "0.5*x + 0.5*y + -2.5 <= 0")
-
-            c1_const_expr = c1 / LpAffineExpression.from_constant(2)
-            self.assertIsInstance(c1_const_expr, LpAffineExpression)
-            self.assertEqual(c1_const_expr.constant, -2.5)
-            self.assertEqual(str(c1_const_expr), "0.5*x + 0.5*y <= 2.5")
-            self.assertEqual(repr(c1_const_expr), "0.5*x + 0.5*y + -2.5 <= 0")
-
-            with self.assertRaises(TypeError):
-                c1 / x
-
-            with self.assertRaises(TypeError):
-                c2 / x
-
-            with self.assertRaises(TypeError):
-                c1 / (x + 1)
-
-            with self.assertRaises(TypeError):
-                c2 / (x + 1)
-
-        def test_variable_div(self):
-            """
-            __div__ operator on LpVariable
-            """
-            prob = LpProblem(self._testMethodName, const.LpMinimize)
-            x = prob.add_variable("x")
-            x_div = x / 2
-            self.assertIsInstance(x_div, LpAffineExpression)
-            self.assertEqual(x_div[x], 0.5)
-
-            self.assertEqual(str(x_div), "0.5*x")
-
-        def test_regression_794(self) -> None:
-            # See: https://github.com/coin-or/pulp/issues/794#issuecomment-2671682768
-
-            initial_stock = 8  # s_0
-            demands = [5, 4, 8, 10, 4, 2, 1]  # demands[t] = d_t
-            max_periods = len(demands) - 1  # T
-            prob = LpProblem(self._testMethodName, const.LpMinimize)
-            # Create decision variables.
-            supply: list[LpVariable] = []  # supply[t] = x_t
-            for t in range(1, max_periods + 1):
-                variable = prob.add_variable(f"x_{t}", cat="Integer", lowBound=0)
-                supply.append(variable)
-
-            stock: list[Union[LpVariable, int]] = [initial_stock]  # stock[t] = s_t
-            for t in range(1, max_periods + 1):
-                variable = prob.add_variable(f"s_{t}", cat="Integer", lowBound=0)
-                stock.append(variable)
-
-            # Create the constraints.
-            for t in range(1, max_periods + 1):
-                lhs = stock[t]
-                rhs = stock[t - 1] + supply[t - 1] - demands[t - 1]
-                expr = lhs == rhs
-
-                self.assertIsInstance(lhs, LpVariable)
-                self.assertEqual(str(lhs), f"s_{t}")
-
-                self.assertIsInstance(rhs, LpAffineExpression)
-                self.assertIsInstance(expr, LpAffineExpression)
-                self.assertIsNotNone(expr.sense)
-
-                if t == 1:
-                    self.assertEqual(
-                        str(rhs), f"x_{t} + {stock[t - 1] - demands[t - 1]}"
-                    )
-                    self.assertEqual(expr.constant, -rhs.constant + lhs)
-                else:
-                    self.assertEqual(str(rhs), f"s_{t - 1} + x_{t} - {demands[t - 1]}")
-                    self.assertEqual(expr.constant, -rhs.constant)
-
-        def test_regression_805(self):
-            # See: https://github.com/coin-or/pulp/issues/805
-
-            e = LpAffineExpression.from_constant(1)
-            self.assertIsNone(e.name)
-
-            e2 = e.copy()
-            e2.name = "Test2"
-            self.assertEqual(e2.name, "Test2")
-            self.assertIsNone(e.name)
-
-            e = LpAffineExpression.from_constant(1, name="Test1")
-            self.assertEqual(e.name, "Test1")
-
-            e2 = e.copy()
-            e2.name = "Test2"
-            self.assertEqual(e2.name, "Test2")
-            self.assertEqual(e.name, "Test1")
-
-        def test_decimal_815_addinplace(self):
-            # See: https://github.com/coin-or/pulp/issues/815
-            m1 = 3
-            m2 = Decimal("8.1")
-            extra = 5
-            prob = LpProblem(self._testMethodName, const.LpMinimize)
-            x = prob.add_variable("x", lowBound=0, upBound=50, cat=const.LpContinuous)
-            y = prob.add_variable(
-                "y", lowBound=0, upBound=Decimal("32.24"), cat=const.LpContinuous
-            )
-            include_extra = prob.add_variable("include_extra1", cat=const.LpBinary)
-
-            expression = LpAffineExpression.empty()
-            expression += x * m1 + include_extra * extra - y
-            self.assertEqual(str(expression), "5*include_extra1 + 3*x - y")
-
-            second_expression = LpAffineExpression.empty()
-            second_expression += x * m2 - 6 - y
-            self.assertEqual(str(second_expression), "8.1*x - y - 6")
-
-            second_expression = LpAffineExpression.from_constant(0.0)
-            second_expression += x * m2 - 6 - y
-            self.assertEqual(str(second_expression), "8.1*x - y - 6")
-
-            second_expression_2 = x * m2 - 6 - y
-            self.assertEqual(str(second_expression_2), "8.1*x - y - 6")
-
-        def test_mps_output_unbounded_variable(self):
-            prob = LpProblem(self._testMethodName, const.LpMinimize)
-            x = prob.add_variable("x", lowBound=0, upBound=None)
-            y = prob.add_variable("y", lowBound=None, upBound=10)
-            prob += x + y, "obj"
-            prob += x + y >= 1, "c1"
-            with tempfile.NamedTemporaryFile(
-                mode="r", suffix=".mps", delete=False
-            ) as f:
-                mps_path = f.name
+    def test_mps_output_unbounded_variable(self):
+        prob = LpProblem(self._testMethodName, const.LpMinimize)
+        x = prob.add_variable("x", lowBound=0, upBound=None)
+        y = prob.add_variable("y", lowBound=None, upBound=10)
+        prob += x + y, "obj"
+        prob += x + y >= 1, "c1"
+        with tempfile.NamedTemporaryFile(mode="r", suffix=".mps", delete=False) as f:
+            mps_path = f.name
+        try:
+            prob.writeMPS(mps_path)
+            with open(mps_path) as f:
+                content = f.read()
+            self.assertNotIn(" inf", content.lower())
+            self.assertNotIn("-inf", content.lower())
+        finally:
             try:
-                prob.writeMPS(mps_path)
-                with open(mps_path) as f:
-                    content = f.read()
-                self.assertNotIn(" inf", content.lower())
-                self.assertNotIn("-inf", content.lower())
-            finally:
-                try:
-                    os.remove(mps_path)
-                except OSError:
-                    pass
+                os.remove(mps_path)
+            except OSError:
+                pass
 
-        def test_numpy_float(self):
-            try:
-                import numpy as np
-            except ImportError:
-                self.skipTest("numpy not available")
+    def test_numpy_float(self):
+        try:
+            import numpy as np
+        except ImportError:
+            self.skipTest("numpy not available")
 
-            model = LpProblem("float_test", sense=const.LpMinimize)
+        model = LpProblem("float_test", sense=const.LpMinimize)
 
-            var = model.add_variable(name="var", lowBound=0, cat=const.LpContinuous)
-            model += np.float64(34.5) >= var
-            model += var <= np.float64(34.5)
+        var = model.add_variable(name="var", lowBound=0, cat=const.LpContinuous)
+        model += np.float64(34.5) >= var
+        model += var <= np.float64(34.5)
 
-            model.solve()
+        model.solve()
 
     def test_export_dict_LP(self):
         prob = LpProblem(self._testMethodName, const.LpMinimize)
