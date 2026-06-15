@@ -167,7 +167,7 @@ This version of PuLP includes a Rust extension (``pulp._rustcore``) that provide
 
 **Requirements**
 
-* **Python** 3.9 or newer
+* **Python** 3.10 or newer
 * **Rust** (latest stable). Install from https://rustup.rs/
 * **uv** (recommended for install and dev). See the `uv documentation <https://docs.astral.sh/uv/>`_ for installation.
 * **OS**: Windows, macOS (x86_64, arm64), or Linux (x86_64, arm64). The Rust extension is built for the host platform.

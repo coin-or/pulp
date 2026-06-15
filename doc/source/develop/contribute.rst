@@ -43,7 +43,7 @@ Installing from source
 
 PuLP includes a Rust extension (``pulp._rustcore``), so building from source requires:
 
-* **Python** 3.9 or newer
+* **Python** 3.10 or newer
 * **Rust** (latest stable). Install from https://rustup.rs/
 * **uv** (recommended) or **pip**
 

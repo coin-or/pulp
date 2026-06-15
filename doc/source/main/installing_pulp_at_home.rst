@@ -25,7 +25,7 @@ use Python commands to manipulate and display the solution.
 Installing from PyPI
 --------------------
 
-PuLP requires **Python 3.9 or newer**.
+PuLP requires **Python 3.10 or newer**.
 
 **Recommended** install (PuLP **and** CBC via ``cbcbox``)::
 
@@ -48,7 +48,7 @@ automatically when you install the package from source.
 
 **Requirements for building**
 
-* **Python** 3.9 or newer
+* **Python** 3.10 or newer
 * **Rust** (latest stable). Install from https://rustup.rs/
 * **uv** (recommended) or **pip** for installing the package
 * **OS**: Windows, macOS (x86_64, arm64), or Linux (x86_64, arm64). The Rust

@@ -24,6 +24,6 @@ Build system
 
 * **maturin** is the build backend (see ``pyproject.toml``). It compiles the Rust crate and produces a wheel that includes the extension.
 * **Rust** toolchain (stable) is required when building from source. Install via https://rustup.rs/.
-* **Python** 3.9+ is required. The wheel is built for the active Python version and platform (Windows, macOS, Linux; x86_64 and arm64 where applicable).
+* **Python** 3.10+ is required. The wheel is built for the active Python version and platform (Windows, macOS, Linux; x86_64 and arm64 where applicable).
 
 There is no need to run maturin manually when installing: ``pip install -e .`` or ``uv pip install -e .`` invokes the build backend, which runs maturin and compiles the Rust code.
