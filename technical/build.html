@@ -106,7 +106,7 @@
 <ul class="simple">
 <li><p><strong>maturin</strong> is the build backend (see <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code>). It compiles the Rust crate and produces a wheel that includes the extension.</p></li>
 <li><p><strong>Rust</strong> toolchain (stable) is required when building from source. Install via <a class="reference external" href="https://rustup.rs/">https://rustup.rs/</a>.</p></li>
-<li><p><strong>Python</strong> 3.9+ is required. The wheel is built for the active Python version and platform (Windows, macOS, Linux; x86_64 and arm64 where applicable).</p></li>
+<li><p><strong>Python</strong> 3.10+ is required. The wheel is built for the active Python version and platform (Windows, macOS, Linux; x86_64 and arm64 where applicable).</p></li>
 </ul>
 <p>There is no need to run maturin manually when installing: <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-e</span> <span class="pre">.</span></code> or <code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-e</span> <span class="pre">.</span></code> invokes the build backend, which runs maturin and compiles the Rust code.</p>
 </section>
