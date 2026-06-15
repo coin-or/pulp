@@ -1,6 +1,7 @@
 """
 Tests for pulp
 """
+
 from __future__ import annotations
 
 import array
