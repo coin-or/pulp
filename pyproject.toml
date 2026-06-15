@@ -1,6 +1,6 @@
 [project]
 name = "PuLP"
-version = "4.0.0a9"
+version = "4.0.0a10"
 description = "PuLP is an LP modeler written in python. PuLP can generate MPS or LP files and call GLPK, COIN CLP/CBC, CPLEX, and GUROBI to solve linear problems."
 authors = [
     {name = 'J.S. Roy'},
@@ -44,16 +44,11 @@ dev = [
     "numpy",
 ]
 
-[tool.setuptools]
-packages = [
-        "pulp",
-        "pulp.apis",
-        "pulp.tests"]
-
 [tool.maturin]
 bindings = "pyo3"
 module-name = "pulp._rustcore"
 python-packages = ["pulp"]
+manifest-path = "pulp/rust/Cargo.toml"
 
 [project.scripts]
 pulptest = "pulp.tests.run_tests:pulpTestAll"
@@ -101,10 +96,12 @@ invalid-method-override = "warn"
 unresolved-attribute = "warn"
 unused-type-ignore-comment = "warn"
 deprecated = "warn"
+
 [[tool.ty.overrides]]
 include = ["pulp/apis/*.py"]
 [tool.ty.overrides.rules]
 unresolved-reference = "warn"
+
 [[tool.ty.overrides]]
 include = ["pulp/tests/**"]
 [tool.ty.overrides.rules]
@@ -129,14 +126,14 @@ required-environments = [
 
 [project.optional-dependencies]
 open_py = ["highspy<1.14", "pyscipopt", "cbcbox"]
-public_py = ["gurobipy", "coptpy", 'xpress', "cplex; sys_platform != 'darwin' or python_full_version < '3.12'"]
+public_py = ["gurobipy", "coptpy; python_full_version < '3.14'", 'xpress', "cplex; sys_platform != 'darwin' or platform_machine == 'arm64'"]
 highs = ["highspy<1.14"]
 highs_cmd = ["highsbox"]
 cbc = ["cbcbox"]
 scip = ["pyscipopt"]
 gurobi = ["gurobipy"]
 xpress = ["xpress"]
-copt = ["coptpy"]
-cplex = ["cplex; sys_platform != 'darwin' or python_full_version < '3.12'"]
+copt = ["coptpy; python_full_version < '3.14'"]
+cplex = ["cplex; sys_platform != 'darwin' or platform_machine == 'arm64'"]
 mosek = ["mosek"]
 ortools = ["ortools"]
