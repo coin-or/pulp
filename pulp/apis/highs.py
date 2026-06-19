@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import subprocess
+import warnings
 from math import inf
 from typing import TYPE_CHECKING, Any
 
@@ -310,6 +311,7 @@ class HiGHS(LpSolver):
             threads=None,
             timeLimit=None,
             logPath=None,
+            warmStart=False,
             callbacksToActivate: list[highspy.cb.HighsCallbackType] | None = None,
             **solverParams,
         ):
@@ -322,11 +324,17 @@ class HiGHS(LpSolver):
             :param int threads: sets the maximum number of threads
             :param str logPath: path to the log file
             :param float timeLimit: maximum time for solver (in seconds)
+            :param bool warmStart: if True, the solver will use the current value of variables as a start
             :param dict solverParams: list of named options to pass directly to the HiGHS solver
             :param callbacksToActivate: list of callback types to start
             """
             super().__init__(
-                mip=mip, msg=msg, timeLimit=timeLimit, logPath=logPath, **solverParams
+                mip=mip,
+                msg=msg,
+                timeLimit=timeLimit,
+                logPath=logPath,
+                warmStart=warmStart,
+                **solverParams,
             )
             self.callbackTuple = callbackTuple
             self.callbacksToActivate = callbacksToActivate
@@ -371,6 +379,8 @@ class HiGHS(LpSolver):
 
             # set remaining parameter values
             for key, value in self.optionsDict.items():
+                if key == "warmStart":
+                    continue
                 lp.solverModel.setOptionValue(key, value)
 
         def buildSolverModel(self, lp):
@@ -397,6 +407,18 @@ class HiGHS(LpSolver):
                     lp.solverModel.changeColIntegrality(
                         j, highspy.HighsVarType.kInteger
                     )
+                    
+            if self.optionsDict.get("warmStart", False):
+                indices: list[int] = []
+                values: list[float] = []
+                for j, var in enumerate(exported_vars):
+                    if var.varValue is not None:
+                        indices.append(j)
+                        values.append(var.varValue)
+                if not indices:
+                    warnings.warn("No variable with value found: warmStart aborted")
+                    return
+                lp.solverModel.setSolution(len(indices), indices, values)
 
             for constraint in lp.constraints():
                 non_zero_constraint_items = [

@@ -2,6 +2,11 @@
 #       Copyright S.A.Mitchell (s.mitchell@auckland.ac.nz), 2007-
 #       Copyright F.Peschiera (pchtsp@gmail.com), 2019-
 # See the LICENSE file for copyright information.
+4.0.0a11 2026-06-19
+    HiGHS API accepts warmstarts
+4.0.0a10 2026-06-01
+    CPSAT has msg=True
+    silenced XPRESS warning at startup
 4.0.0a9 2026-05-27
     new solver: CPSAT
     refactor unit tests
