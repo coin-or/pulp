@@ -45,5 +45,5 @@ class GUROBI_CMDTest(BaseSolverTest.PuLPTest):
         prob += x + y <= 5, "c1"
         prob += x + z >= 10, "c2"
         prob += -y + z == 7.5, "c3"
-        self.solver.mip = 0
+        self.solver.mip = False
         self._apply_pulp_check(prob, sol={x: 3.0, y: -0.5, z: 7})

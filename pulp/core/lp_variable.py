@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any, Literal
 
 from .. import _rustcore
 from .. import mps_lp as mpslp
-from ._internal import _rust_cat_to_const
+from ._internal import LpBound, LpNumeric, _rust_cat_to_const
 
 if TYPE_CHECKING:
     from .lp_affine_expression import LpAffineExpression
@@ -78,55 +78,55 @@ class LpVariable:
         return bool(self.roundedValue())
 
     def __add__(
-        self, other: LpAffineExpression | LpVariable | int | float
+        self, other: LpAffineExpression | LpVariable | LpNumeric
     ) -> LpAffineExpression:
         AE = _affine_expr_cls()
         return AE.from_variable(self) + other
 
     def __radd__(
-        self, other: LpAffineExpression | LpVariable | int | float
+        self, other: LpAffineExpression | LpVariable | LpNumeric
     ) -> LpAffineExpression:
         AE = _affine_expr_cls()
         return AE.from_variable(self) + other
 
     def __sub__(
-        self, other: LpAffineExpression | LpVariable | int | float
+        self, other: LpAffineExpression | LpVariable | LpNumeric
     ) -> LpAffineExpression:
         AE = _affine_expr_cls()
         return AE.from_variable(self) - other
 
     def __rsub__(
-        self, other: LpAffineExpression | LpVariable | int | float
+        self, other: LpAffineExpression | LpVariable | LpNumeric
     ) -> LpAffineExpression:
         AE = _affine_expr_cls()
         return other - AE.from_variable(self)
 
     def __mul__(
-        self, other: LpAffineExpression | LpVariable | int | float
+        self, other: LpAffineExpression | LpVariable | LpNumeric
     ) -> LpAffineExpression:
         AE = _affine_expr_cls()
         return AE.from_variable(self) * other
 
     def __rmul__(
-        self, other: LpAffineExpression | LpVariable | int | float
+        self, other: LpAffineExpression | LpVariable | LpNumeric
     ) -> LpAffineExpression:
         AE = _affine_expr_cls()
         return AE.from_variable(self) * other
 
     def __truediv__(
-        self, other: LpAffineExpression | LpVariable | int | float
+        self, other: LpAffineExpression | LpVariable | LpNumeric
     ) -> LpAffineExpression:
         AE = _affine_expr_cls()
         return AE.from_variable(self) / other
 
     def __le__(
-        self, other: LpAffineExpression | LpVariable | int | float
+        self, other: LpAffineExpression | LpVariable | LpNumeric
     ) -> LpAffineExpression:
         AE = _affine_expr_cls()
         return AE.from_variable(self) <= other
 
     def __ge__(
-        self, other: LpAffineExpression | LpVariable | int | float
+        self, other: LpAffineExpression | LpVariable | LpNumeric
     ) -> LpAffineExpression:
         AE = _affine_expr_cls()
         return AE.from_variable(self) >= other
@@ -156,7 +156,7 @@ class LpVariable:
         return self._var.lb
 
     @lowBound.setter
-    def lowBound(self, value: float | None) -> None:
+    def lowBound(self, value: LpBound) -> None:
         self._var.set_lb(float("-inf") if value is None else value)
 
     @property
@@ -164,7 +164,7 @@ class LpVariable:
         return self._var.ub
 
     @upBound.setter
-    def upBound(self, value: float | None) -> None:
+    def upBound(self, value: LpBound) -> None:
         self._var.set_ub(float("inf") if value is None else value)
 
     @property

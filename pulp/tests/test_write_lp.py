@@ -210,7 +210,7 @@ class WriteLpTest(unittest.TestCase):
         self.assertEqual(x.name, "my_var")
         prob += x
         prob.assignVarsVals({"my_var": 0.75})
-        self.assertAlmostEqual(x.value(), 0.75)
+        self.assertAlmostEqual(x.value() or 0.0, 0.75)
 
     def test_assign_vars_dj_accepts_lp_escaped_variable_names(self) -> None:
         prob = LpProblem("assign_dj", const.LpMinimize)
@@ -218,7 +218,7 @@ class WriteLpTest(unittest.TestCase):
         self.assertEqual(x.name, "col_name")
         prob += x
         prob.assignVarsDj({"col_name": 0.25})
-        self.assertAlmostEqual(x.dj, 0.25)
+        self.assertAlmostEqual(x.dj or 0.0, 0.25)
 
     def test_coin_readsol_mps_maps_lp_file_column_names_to_model_names(self) -> None:
         """CBC solution lines use names from the .lp file (escaped), not Python ``v.name``."""

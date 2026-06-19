@@ -1,13 +1,19 @@
 from __future__ import annotations
 
-import math
 from collections.abc import Iterable, Iterator
 from typing import Any, Literal, cast
 
 from .. import _rustcore
 from .. import constants as const
 from .. import mps_lp as mpslp
-from ._internal import _const_to_rust_sense, _rust_sense_to_const
+from ._internal import (
+    LpNumeric,
+    _const_to_rust_sense,
+    _is_finite_numeric,
+    _is_numeric_scalar,
+    _numeric_to_float,
+    _rust_sense_to_const,
+)
 from .lp_variable import LpVariable
 
 
@@ -54,7 +60,9 @@ class LpAffineExpression:
         return cls(expr)
 
     @classmethod
-    def from_constant(cls, value: float, name: str | None = None) -> LpAffineExpression:
+    def from_constant(
+        cls, value: LpNumeric, name: str | None = None
+    ) -> LpAffineExpression:
         expr = _rustcore.AffineExpr.from_constant(float(value))
         cls._set_name(expr, name)
         return cls(expr)
@@ -255,8 +263,7 @@ class LpAffineExpression:
         | LpAffineExpression
         | dict[Any, Any]
         | Iterable[Any]
-        | int
-        | float
+        | LpNumeric
         | None,
         sign: Literal[+1, -1] = 1,
     ) -> LpAffineExpression:
@@ -274,10 +281,12 @@ class LpAffineExpression:
         elif isinstance(other, Iterable) and not isinstance(other, str):
             for e in other:
                 self.addInPlace(cast(Any, e), sign=sign)
-        elif isinstance(other, (int, float)):
-            if not math.isfinite(other):
+        elif _is_numeric_scalar(other):
+            if not _is_finite_numeric(other):
                 raise const.PulpError("Cannot add/subtract NaN/inf values")
-            self._expr.set_constant(self._expr.constant + other * sign)
+            self._expr.set_constant(
+                self._expr.constant + _numeric_to_float(other) * sign
+            )
         else:
             raise TypeError(
                 f"Unsupported type for in-place add/subtract: {type(other).__name__}"
@@ -290,8 +299,7 @@ class LpAffineExpression:
         | LpAffineExpression
         | dict[Any, Any]
         | Iterable[Any]
-        | int
-        | float
+        | LpNumeric
         | None,
     ) -> LpAffineExpression:
         return self.addInPlace(other, sign=-1)
@@ -305,37 +313,37 @@ class LpAffineExpression:
         return self
 
     def __add__(
-        self, other: LpVariable | LpAffineExpression | int | float
+        self, other: LpVariable | LpAffineExpression | LpNumeric
     ) -> LpAffineExpression:
         return self.copy().addInPlace(other)
 
     def __radd__(
-        self, other: LpVariable | LpAffineExpression | int | float
+        self, other: LpVariable | LpAffineExpression | LpNumeric
     ) -> LpAffineExpression:
         return self.copy().addInPlace(other)
 
     def __iadd__(
-        self, other: LpVariable | LpAffineExpression | int | float
+        self, other: LpVariable | LpAffineExpression | LpNumeric
     ) -> LpAffineExpression:
         return self.addInPlace(other)
 
     def __sub__(
-        self, other: LpVariable | LpAffineExpression | int | float
+        self, other: LpVariable | LpAffineExpression | LpNumeric
     ) -> LpAffineExpression:
         return self.copy().subInPlace(other)
 
     def __rsub__(
-        self, other: LpVariable | LpAffineExpression | int | float
+        self, other: LpVariable | LpAffineExpression | LpNumeric
     ) -> LpAffineExpression:
         return (-self).addInPlace(other)
 
     def __isub__(
-        self, other: LpVariable | LpAffineExpression | int | float
+        self, other: LpVariable | LpAffineExpression | LpNumeric
     ) -> LpAffineExpression:
         return self.subInPlace(other)
 
     def __mul__(
-        self, other: LpAffineExpression | LpVariable | int | float
+        self, other: LpAffineExpression | LpVariable | LpNumeric
     ) -> LpAffineExpression:
         e = LpAffineExpression.empty()
         if isinstance(other, LpAffineExpression):
@@ -351,20 +359,20 @@ class LpAffineExpression:
         elif isinstance(other, LpVariable):
             return self * LpAffineExpression.from_variable(other)
         else:
-            if not math.isfinite(other):
+            if not _is_finite_numeric(other):
                 raise const.PulpError("Cannot multiply variables with NaN/inf values")
             if other != 0:
                 e._expr = self._expr.clone_expr()
-                e._expr.scale(float(other))
+                e._expr.scale(_numeric_to_float(other))
         return e
 
     def __rmul__(
-        self, other: LpAffineExpression | LpVariable | int | float
+        self, other: LpAffineExpression | LpVariable | LpNumeric
     ) -> LpAffineExpression:
         return self * other
 
     def __truediv__(
-        self, other: LpAffineExpression | LpVariable | int | float
+        self, other: LpAffineExpression | LpVariable | LpNumeric
     ) -> LpAffineExpression:
         if isinstance(other, LpVariable):
             raise TypeError(
@@ -376,18 +384,18 @@ class LpAffineExpression:
                     "Expressions cannot be divided by a non-constant expression"
                 )
             other = other.constant
-        if not math.isfinite(other):
+        if not _is_finite_numeric(other):
             raise const.PulpError("Cannot divide variables with NaN/inf values")
         e = LpAffineExpression(self._expr.clone_expr())
-        e._expr.scale(1.0 / other)
+        e._expr.scale(1.0 / _numeric_to_float(other))
         return e
 
     def __le__(
-        self, other: LpAffineExpression | LpVariable | int | float
+        self, other: LpAffineExpression | LpVariable | LpNumeric
     ) -> LpAffineExpression:
-        if isinstance(other, (int, float)):
+        if _is_numeric_scalar(other):
             result = self.copy()
-            result.constant = result.constant - float(other)
+            result.constant = result.constant - _numeric_to_float(other)
             result.sense = const.LpConstraintLE
             return result
         elif isinstance(other, (LpAffineExpression, LpVariable)):
@@ -397,11 +405,11 @@ class LpAffineExpression:
         return NotImplemented
 
     def __ge__(
-        self, other: LpAffineExpression | LpVariable | int | float
+        self, other: LpAffineExpression | LpVariable | LpNumeric
     ) -> LpAffineExpression:
-        if isinstance(other, (int, float)):
+        if _is_numeric_scalar(other):
             result = self.copy()
-            result.constant = result.constant - float(other)
+            result.constant = result.constant - _numeric_to_float(other)
             result.sense = const.LpConstraintGE
             return result
         elif isinstance(other, (LpAffineExpression, LpVariable)):
@@ -410,10 +418,10 @@ class LpAffineExpression:
             return result
         return NotImplemented
 
-    def __eq__(self, other: object) -> LpAffineExpression:  # type: ignore[override]
-        if isinstance(other, (int, float)):
+    def __eq__(self, other: object) -> LpAffineExpression:  # type: ignore[override, ty:invalid-method-override]
+        if _is_numeric_scalar(other):
             result = self.copy()
-            result.constant = result.constant - float(other)
+            result.constant = result.constant - _numeric_to_float(other)
             result.sense = const.LpConstraintEQ
             return result
         elif isinstance(other, (LpAffineExpression, LpVariable)):

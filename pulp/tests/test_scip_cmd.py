@@ -27,7 +27,7 @@ class SCIP_CMDTest(BaseSolverTest.PuLPTest):
     }
 
     def setup_test_options_parsing_SCIP_HIGHS(self, prob: LpProblem) -> None:
-        self.solver.options = ["limits/time", 20]
+        self.solver.options = ["limits/time", 20]  # ty: ignore[invalid-assignment]
 
     def test_relaxed_mip(self):
         prob = LpProblem(self._testMethodName, const.LpMinimize)

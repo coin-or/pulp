@@ -407,7 +407,7 @@ class HiGHS(LpSolver):
                     lp.solverModel.changeColIntegrality(
                         j, highspy.HighsVarType.kInteger
                     )
-                    
+
             if self.optionsDict.get("warmStart", False):
                 indices: list[int] = []
                 values: list[float] = []
@@ -430,7 +430,7 @@ class HiGHS(LpSolver):
                 if len(non_zero_constraint_items) == 0:
                     indices, coefficients = [], []
                 else:
-                    indices, coefficients = zip(*non_zero_constraint_items)
+                    indices, coefficients = map(list, zip(*non_zero_constraint_items))
 
                 lb = constraint.getLb()
                 ub = constraint.getUb()

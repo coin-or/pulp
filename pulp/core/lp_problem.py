@@ -18,7 +18,13 @@ from .. import mps_lp as mpslp
 from ..apis import LpSolverDefault
 from ..apis.core import LpSolver, clock
 from ..utilities import value
-from ._internal import _const_to_rust_cat, _const_to_rust_sense, _is_numpy_bool
+from ._internal import (
+    LpBound,
+    _const_to_rust_cat,
+    _const_to_rust_sense,
+    _is_finite_numeric,
+    _is_numpy_bool,
+)
 from .lp_affine_expression import LpAffineExpression
 from .lp_constraint import LpConstraint
 from .lp_variable import LpVariable
@@ -118,16 +124,16 @@ class LpProblem:
     def add_variable(
         self,
         name: str,
-        lowBound: float | None = None,
-        upBound: float | None = None,
+        lowBound: LpBound = None,
+        upBound: LpBound = None,
         cat: Literal["Continuous", "Integer", "Binary"] = const.LpContinuous,
     ) -> LpVariable:
         """Add a variable to the problem. Returns LpVariable wrapping the Rust variable."""
-        if lowBound is not None and not math.isfinite(lowBound):
+        if lowBound is not None and not _is_finite_numeric(lowBound):
             raise const.PulpError(
                 "The lower bound of a variable must be finite, got {}".format(lowBound)
             )
-        if upBound is not None and not math.isfinite(upBound):
+        if upBound is not None and not _is_finite_numeric(upBound):
             raise const.PulpError(
                 "The upper bound of a variable must be finite, got {}".format(upBound)
             )
@@ -136,9 +142,9 @@ class LpProblem:
         if cat == const.LpBinary:
             lb, ub = 0.0, 1.0
             cat = const.LpInteger
-        if lowBound is not None and math.isfinite(lowBound):
+        if lowBound is not None and _is_finite_numeric(lowBound):
             lb = lowBound
-        if upBound is not None and math.isfinite(upBound):
+        if upBound is not None and _is_finite_numeric(upBound):
             ub = upBound
         rcat = _const_to_rust_cat(cat)
         rvar = self._model.add_variable(name, lb, ub, rcat)
@@ -148,8 +154,8 @@ class LpProblem:
         self,
         name: str,
         indices: tuple[Iterable[Any], ...] | Iterable[Any] | None = None,
-        lowBound: float | None = None,
-        upBound: float | None = None,
+        lowBound: LpBound = None,
+        upBound: LpBound = None,
         cat: Literal["Continuous", "Integer", "Binary"] = const.LpContinuous,
         indexStart: list[Any] | None = None,
     ) -> dict[Any, Any]:
@@ -183,8 +189,8 @@ class LpProblem:
         self,
         name: str,
         indices: tuple[Iterable[Any], ...] | Iterable[Any] | None,
-        lowBound: float | None = None,
-        upBound: float | None = None,
+        lowBound: LpBound = None,
+        upBound: LpBound = None,
         cat: Literal["Continuous", "Integer", "Binary"] = const.LpContinuous,
     ) -> dict[Any, LpVariable]:
         """Create a dictionary of variables with Cartesian product of indices."""
@@ -227,8 +233,8 @@ class LpProblem:
         self,
         name: str,
         indices: tuple[Iterable[Any], ...] | Iterable[Any] | None = None,
-        lowBound: float | None = None,
-        upBound: float | None = None,
+        lowBound: LpBound = None,
+        upBound: LpBound = None,
         cat: Literal["Continuous", "Integer", "Binary"] = const.LpContinuous,
         indexStart: list[Any] | None = None,
     ) -> list[Any]:
