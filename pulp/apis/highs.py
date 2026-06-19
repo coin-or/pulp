@@ -408,18 +408,6 @@ class HiGHS(LpSolver):
                         j, highspy.HighsVarType.kInteger
                     )
 
-            if self.optionsDict.get("warmStart", False):
-                indices: list[int] = []
-                values: list[float] = []
-                for j, var in enumerate(exported_vars):
-                    if var.varValue is not None:
-                        indices.append(j)
-                        values.append(var.varValue)
-                if not indices:
-                    warnings.warn("No variable with value found: warmStart aborted")
-                    return
-                lp.solverModel.setSolution(len(indices), indices, values)
-
             for constraint in lp.constraints():
                 non_zero_constraint_items = [
                     (id_to_col[var.id], coefficient)
@@ -441,6 +429,18 @@ class HiGHS(LpSolver):
                     indices,
                     coefficients,
                 )
+            if self.optionsDict.get("warmStart", False):
+                indices: list[int] = []
+                values: list[float] = []
+                for j, var in enumerate(exported_vars):
+                    if var.varValue is not None:
+                        indices.append(j)
+                        values.append(var.varValue)
+                if not indices:
+                    warnings.warn("No variable with value found: warmStart aborted")
+                    return
+                lp.solverModel.setSolution(len(indices), indices, values)
+
 
         def findSolutionValues(self, lp):
             status = lp.solverModel.getModelStatus()
