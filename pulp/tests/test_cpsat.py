@@ -89,7 +89,7 @@ class CPSATUnitTest(unittest.TestCase):
         prob += x <= 2
         status = prob.solve(self.solver)
         self.assertEqual(status, LpStatusOptimal)
-        self.assertGreaterEqual(x.value() + y.value(), 4)
+        self.assertGreaterEqual((x.value() or 0.0) + (y.value() or 0.0), 4)
 
     def test_unbounded_variable_raises(self):
         prob = LpProblem("unbounded", LpMinimize)
@@ -108,7 +108,7 @@ class CPSATUnitTest(unittest.TestCase):
         y.varValue = 3
         status = prob.solve(CPSAT(msg=False, warmStart=True))
         self.assertEqual(status, LpStatusOptimal)
-        self.assertEqual(x.value() + y.value(), 8)
+        self.assertEqual((x.value() or 0.0) + (y.value() or 0.0), 8)
 
     def test_repeated_name_raises(self):
         prob = LpProblem("repeated_name", LpMinimize)

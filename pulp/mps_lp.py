@@ -163,7 +163,7 @@ def readMPS(path: str, sense: int, dropConsNames: bool = False) -> MPS:
     :param dropConsNames: if True, do not store the names of constraints
     :return: a dataclass with all the problem data
     """
-    mps_result = _rustcore.read_mps(path, sense, dropConsNames)
+    mps_result: Any = _rustcore.read_mps(path, sense, dropConsNames)
     if isinstance(mps_result, dict):
         return MPS.fromDict(mps_result)
     return MPS.from_rust(mps_result)

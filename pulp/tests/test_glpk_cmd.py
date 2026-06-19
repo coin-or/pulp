@@ -70,4 +70,4 @@ class GLPK_CMDTest(BaseSolverTest.PuLPTest):
         self.solver.options.append("--interior")
         model.solve(self.solver)
         self.solver.options = self.solver.options[:-1]
-        assert abs(Q.value() - ub) / ub < 1e-9
+        assert abs((Q.value() or 0.0) - ub) / ub < 1e-9

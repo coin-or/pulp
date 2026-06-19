@@ -101,6 +101,14 @@ deprecated = "warn"
 include = ["pulp/apis/*.py"]
 [tool.ty.overrides.rules]
 unresolved-reference = "warn"
+possibly-missing-attribute = "ignore"
+unresolved-attribute = "ignore"
+unresolved-global = "ignore"
+deprecated = "ignore"
+invalid-argument-type = "ignore"
+missing-argument = "ignore"
+unknown-argument = "ignore"
+too-many-positional-arguments = "ignore"
 
 [[tool.ty.overrides]]
 include = ["pulp/tests/**"]

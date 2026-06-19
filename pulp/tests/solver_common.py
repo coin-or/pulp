@@ -19,10 +19,11 @@ from pulp import (
 from pulp import constants as const
 from pulp.constants import PulpError
 
+gp: Any = None
 try:
     import gurobipy as gp  # type: ignore[import-not-found, import-untyped]
 except ImportError:
-    gp = None  # type: ignore[assignment]
+    pass
 
 EXAMPLE_MPS_RHS56 = """NAME          TESTPROB
 ROWS
@@ -299,6 +300,7 @@ class BaseSolverTest:
         pulp_test_overrides: ClassVar[dict[str, PulpTestConfig]] = {}
 
         def setUp(self):
+            assert self.solveInst is not None
             if self.solveInst == solvers.CUOPT:
                 self.solver = self.solveInst(msg=False, timeLimit=120)
             else:
@@ -359,7 +361,7 @@ class BaseSolverTest:
             if setup_fn is not None:
                 setup_fn(prob)
             if cfg.set_mip_zero:
-                self.solver.mip = 0
+                self.solver.mip = False
             if cfg.warm_start:
                 self.solver.optionsDict["warmStart"] = True
             if sol is None and isinstance(cfg.sol, str):
@@ -741,6 +743,7 @@ class BaseSolverTest:
             data = prob.toDict()
             var1, prob1 = LpProblem.fromDict(data)
             x, y, z, w = (var1[name] for name in ["x", "y", "z", "w"])
+            assert self.solveInst is not None
             pulpTestCheck(
                 prob1,
                 self.solveInst(msg=True),
@@ -783,7 +786,7 @@ class BaseSolverTest:
             prob += x + y <= 5, "c1"
             prob += x + z >= 10, "c2"
             prob += -y + z == 7.5, "c3"
-            self.solver.mip = 0
+            self.solver.mip = False
             self._apply_pulp_check(prob, sol={x: 3.5, y: -1, z: 6.5})
 
         def test_repeated_name(self):
@@ -811,7 +814,7 @@ class BaseSolverTest:
             self._apply_pulp_check(
                 prob,
                 sol={x: 0, y: 1},
-                okstatus=[[const.LpStatusOptimal, const.LpStatusOptimal]],
+                okstatus=[[const.LpStatusOptimal, const.LpStatusOptimal]],  # ty: ignore[invalid-argument-type]
                 status=status,
             )
 
@@ -879,10 +882,10 @@ class SASTest:
         prob += -2 * X[2] - 3 * X[3] >= -5, "R1"
         prob += X[1] + X[2] + 2 * X[3] <= 4, "R2"
         prob += X[1] + 2 * X[2] + 3 * X[3] <= 7, "R3"
-        self.solver.optionsDict["with"] = "lp"
+        self.solver.optionsDict["with"] = "lp"  # ty: ignore[unresolved-attribute]
         pulpTestCheck(
             prob,
-            self.solver,
+            self.solver,  # ty: ignore[unresolved-attribute]
             [const.LpStatusOptimal],
             {X[1]: 0.0, X[2]: 2.5, X[3]: 0.0},
         )

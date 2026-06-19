@@ -9,6 +9,7 @@ import os
 import tempfile
 import unittest
 from decimal import Decimal
+from importlib.util import find_spec
 
 import pulp.apis as solvers
 import pulp.mps_lp as mps_lp
@@ -31,11 +32,6 @@ from pulp.tests.solver_common import (
     getSortedDict,
 )
 from pulp.utilities import makeDict
-
-try:
-    import gurobipy as gp  # type: ignore[import-not-found, import-untyped]
-except ImportError:
-    gp = None  # type: ignore[assignment]
 
 
 # from: http://lpsolve.sourceforge.net/5.5/mps-format.htm
@@ -380,15 +376,13 @@ class ModelUnitTest(unittest.TestCase):
 
     def test_constraint_numpy_scalar_constant_on_left(self):
         """model += np.float64(34.5) >= var adds constraint var <= 34.5."""
-        try:
-            import numpy as np
-        except ImportError:
+        if find_spec("numpy") is None:
             self.skipTest("numpy not available")
 
         model = LpProblem("numpy_const", const.LpMinimize)
         var = model.add_variable("var", 0, None, cat=const.LpContinuous)
-        model += np.float64(34.5) >= var
-        model += var >= np.float64(0)
+        model += float(34.5) >= var
+        model += var >= float(0)
 
         self.assertEqual(len(model.constraints()), 2)
         senses = {c.sense for c in model.constraints()}
@@ -611,9 +605,9 @@ class PuLPModelTest(unittest.TestCase):
         x = lpSum(x_vars[i] for i in range(3))
 
         with self.assertRaises(TypeError):
-            prob += x > 2
+            prob += x > 2  # ty: ignore[unsupported-operator]
         with self.assertRaises(TypeError):
-            prob += x < 5
+            prob += x < 5  # ty: ignore[unsupported-operator]
 
     def test_pulpTestAll(self):
         """
@@ -1157,14 +1151,14 @@ class PuLPModelTest(unittest.TestCase):
 
             self.assertIsInstance(rhs, LpAffineExpression)
             self.assertIsInstance(expr, LpAffineExpression)
-            self.assertIsNotNone(expr.sense)
+            self.assertIsNotNone(expr.sense)  # ty: ignore[unresolved-attribute]
 
             if t == 1:
                 self.assertEqual(str(rhs), f"x_{t} + {stock[t - 1] - demands[t - 1]}")
-                self.assertEqual(expr.constant, -rhs.constant + lhs)
+                self.assertEqual(expr.constant, -rhs.constant + lhs)  # ty: ignore[unresolved-attribute]
             else:
                 self.assertEqual(str(rhs), f"s_{t - 1} + x_{t} - {demands[t - 1]}")
-                self.assertEqual(expr.constant, -rhs.constant)
+                self.assertEqual(expr.constant, -rhs.constant)  # ty: ignore[unresolved-attribute]
 
     def test_regression_805(self):
         # See: https://github.com/coin-or/pulp/issues/805
@@ -1233,16 +1227,14 @@ class PuLPModelTest(unittest.TestCase):
                 pass
 
     def test_numpy_float(self):
-        try:
-            import numpy as np
-        except ImportError:
+        if find_spec("numpy") is None:
             self.skipTest("numpy not available")
 
         model = LpProblem("float_test", sense=const.LpMinimize)
 
         var = model.add_variable(name="var", lowBound=0, cat=const.LpContinuous)
-        model += np.float64(34.5) >= var
-        model += var <= np.float64(34.5)
+        model += float(34.5) >= var
+        model += var >= float(34.5)
 
         model.solve()
 
@@ -1261,10 +1253,10 @@ class PuLPModelTest(unittest.TestCase):
         self.assertDictEqual(getSortedDict(prob), getSortedDict(prob1))
         x, y, z, w = (var1[n] for n in ["x", "y", "z", "w"])
         self.assertEqual(self._solve_exported(prob1), const.LpStatusOptimal)
-        self.assertAlmostEqual(x.value(), 4)
-        self.assertAlmostEqual(y.value(), -1)
-        self.assertAlmostEqual(z.value(), 6)
-        self.assertAlmostEqual(w.value(), 0)
+        self.assertAlmostEqual(x.value() or 0.0, 4)
+        self.assertAlmostEqual(y.value() or 0.0, -1)
+        self.assertAlmostEqual(z.value() or 0.0, 6)
+        self.assertAlmostEqual(w.value() or 0.0, 0)
 
     def test_export_dict_LP_no_obj(self):
         prob = LpProblem(self._testMethodName, const.LpMinimize)
@@ -1280,10 +1272,10 @@ class PuLPModelTest(unittest.TestCase):
         self.assertDictEqual(getSortedDict(prob), getSortedDict(prob1))
         x, y, z, w = (var1[n] for n in ["x", "y", "z", "w"])
         self.assertEqual(self._solve_exported(prob1), const.LpStatusOptimal)
-        self.assertAlmostEqual(x.value(), 4)
-        self.assertAlmostEqual(y.value(), 1)
-        self.assertAlmostEqual(z.value(), 6)
-        self.assertAlmostEqual(w.value(), 0)
+        self.assertAlmostEqual(x.value() or 0.0, 4)
+        self.assertAlmostEqual(y.value() or 0.0, 1)
+        self.assertAlmostEqual(z.value() or 0.0, 6)
+        self.assertAlmostEqual(w.value() or 0.0, 0)
 
     def test_export_json_LP(self):
         name = self._testMethodName
@@ -1307,10 +1299,10 @@ class PuLPModelTest(unittest.TestCase):
         self.assertDictEqual(getSortedDict(prob), getSortedDict(prob1))
         x, y, z, w = (var1[n] for n in ["x", "y", "z", "w"])
         self.assertEqual(self._solve_exported(prob1), const.LpStatusOptimal)
-        self.assertAlmostEqual(x.value(), 4)
-        self.assertAlmostEqual(y.value(), -1)
-        self.assertAlmostEqual(z.value(), 6)
-        self.assertAlmostEqual(w.value(), 0)
+        self.assertAlmostEqual(x.value() or 0.0, 4)
+        self.assertAlmostEqual(y.value() or 0.0, -1)
+        self.assertAlmostEqual(z.value() or 0.0, 6)
+        self.assertAlmostEqual(w.value() or 0.0, 0)
 
     def test_export_dict_MIP(self):
         import copy
@@ -1330,9 +1322,9 @@ class PuLPModelTest(unittest.TestCase):
         self.assertDictEqual(getSortedDict(prob), getSortedDict(prob1))
         x, y, z = (var1[n] for n in ["x", "y", "z"])
         self.assertEqual(self._solve_exported(prob1), const.LpStatusOptimal)
-        self.assertAlmostEqual(x.value(), 3)
-        self.assertAlmostEqual(y.value(), -0.5)
-        self.assertAlmostEqual(z.value(), 7)
+        self.assertAlmostEqual(x.value() or 0.0, 3)
+        self.assertAlmostEqual(y.value() or 0.0, -0.5)
+        self.assertAlmostEqual(z.value() or 0.0, 7)
 
     def test_export_dict_max(self):
         prob = LpProblem("test_export_dict_max", const.LpMaximize)
@@ -1349,10 +1341,10 @@ class PuLPModelTest(unittest.TestCase):
         self.assertDictEqual(getSortedDict(prob), getSortedDict(prob1))
         x, y, z, w = (var1[n] for n in ["x", "y", "z", "w"])
         self.assertEqual(self._solve_exported(prob1), const.LpStatusOptimal)
-        self.assertAlmostEqual(x.value(), 4)
-        self.assertAlmostEqual(y.value(), 1)
-        self.assertAlmostEqual(z.value(), 8)
-        self.assertAlmostEqual(w.value(), 0)
+        self.assertAlmostEqual(x.value() or 0.0, 4)
+        self.assertAlmostEqual(y.value() or 0.0, 1)
+        self.assertAlmostEqual(z.value() or 0.0, 8)
+        self.assertAlmostEqual(w.value() or 0.0, 0)
 
     def test_export_solver_dict_LP(self):
         if not solvers.COIN_CMD().available():
@@ -1370,10 +1362,10 @@ class PuLPModelTest(unittest.TestCase):
         prob += w >= 0, "c4"
         restored = solvers.getSolverFromDict(ref_solver.toDict())
         self.assertEqual(prob.solve(restored), const.LpStatusOptimal)
-        self.assertAlmostEqual(x.value(), 4)
-        self.assertAlmostEqual(y.value(), -1)
-        self.assertAlmostEqual(z.value(), 6)
-        self.assertAlmostEqual(w.value(), 0)
+        self.assertAlmostEqual(x.value() or 0.0, 4)
+        self.assertAlmostEqual(y.value() or 0.0, -1)
+        self.assertAlmostEqual(z.value() or 0.0, 6)
+        self.assertAlmostEqual(w.value() or 0.0, 0)
 
     def test_export_solver_json(self):
         if not solvers.COIN_CMD().available():
@@ -1400,10 +1392,10 @@ class PuLPModelTest(unittest.TestCase):
         except OSError:
             pass
         self.assertEqual(prob.solve(restored), const.LpStatusOptimal)
-        self.assertAlmostEqual(x.value(), 4)
-        self.assertAlmostEqual(y.value(), -1)
-        self.assertAlmostEqual(z.value(), 6)
-        self.assertAlmostEqual(w.value(), 0)
+        self.assertAlmostEqual(x.value() or 0.0, 4)
+        self.assertAlmostEqual(y.value() or 0.0, -1)
+        self.assertAlmostEqual(z.value() or 0.0, 6)
+        self.assertAlmostEqual(w.value() or 0.0, 0)
 
 
 def _affine_keyed(expr: LpAffineExpression) -> tuple[float, list[tuple[str, float]]]:

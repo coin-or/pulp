@@ -25,7 +25,7 @@ class HiGHS_CMDTest(BaseSolverTest.PuLPTest):
     }
 
     def setup_test_options_parsing_SCIP_HIGHS(self, prob: LpProblem) -> None:
-        self.solver.options = ["time_limit", 20]
+        self.solver.options = ["time_limit", 20]  # ty: ignore[invalid-assignment]
 
     @unittest.skipIf(sys.platform == "win32", "Windows fails for whatever reason")
     def test_relaxed_mip(self):

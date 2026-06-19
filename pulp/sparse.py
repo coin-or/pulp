@@ -71,7 +71,7 @@ class Matrix(Generic[T], dict[tuple[int, int], T]):
         else:
             raise RuntimeError("col is not in the matrix columns")
 
-    def get(
+    def get(  # ty: ignore[invalid-method-override]
         self,
         coords: tuple[int, int],
         default: T | None = None,

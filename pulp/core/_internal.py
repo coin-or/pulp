@@ -3,12 +3,31 @@
 from __future__ import annotations
 
 import logging
-from typing import Literal
+import math
+from decimal import Decimal
+from typing import Literal, TypeGuard
 
 from .. import _rustcore
 from .. import constants as const
 
 log = logging.getLogger("pulp.pulp")
+
+LpNumeric = int | float | Decimal
+LpBound = LpNumeric | None
+
+
+def _is_numeric_scalar(value: object) -> TypeGuard[LpNumeric]:
+    return isinstance(value, (int, float, Decimal))
+
+
+def _is_finite_numeric(value: LpNumeric) -> bool:
+    if isinstance(value, Decimal):
+        return value.is_finite()
+    return math.isfinite(value)
+
+
+def _numeric_to_float(value: LpNumeric) -> float:
+    return float(value)
 
 
 def _is_numpy_bool(obj: object) -> bool:

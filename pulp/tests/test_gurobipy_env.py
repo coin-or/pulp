@@ -1,11 +1,13 @@
 import unittest
+from typing import Any
 
 from pulp import GUROBI, LpProblem, const
 
+gp: Any = None
 try:
     import gurobipy as gp  # type: ignore[import-not-found, import-untyped]
 except ImportError:
-    gp = None  # type: ignore[assignment]
+    pass
 
 
 def check_dummy_env():
@@ -43,14 +45,14 @@ class GurobiEnvTests(unittest.TestCase):
     def setUp(self):
         if gp is None:
             self.skipTest("Skipping all tests in test_gurobipy_env.py")
-        self.options = {"Method": 0}
-        self.env_options = {"MemLimit": 1, "OutputFlag": 0}
+        self.options: Any = {"Method": 0}
+        self.env_options: Any = {"MemLimit": 1, "OutputFlag": 0}
 
     def test_gp_env(self):
         # Using gp.Env within a context manager
         with gp.Env(params=self.env_options) as env:
             prob = generate_lp()
-            solver = GUROBI(msg=False, env=env, **self.options)
+            solver: Any = GUROBI(msg=False, env=env, **self.options)
             prob.solve(solver)
             solver.close()
         check_dummy_env()
@@ -63,19 +65,19 @@ class GurobiEnvTests(unittest.TestCase):
         # Not closing results in an error for a single use license.
         with gp.Env(params=self.env_options) as env:
             prob = generate_lp()
-            solver = GUROBI(msg=False, env=env, **self.options)
+            solver: Any = GUROBI(msg=False, env=env, **self.options)
             prob.solve(solver)
         self.assertRaises(gp.GurobiError, check_dummy_env)
 
     def test_multiple_gp_env(self):
         # Using the same env multiple times
         with gp.Env(params=self.env_options) as env:
-            solver = GUROBI(msg=False, env=env)
+            solver: Any = GUROBI(msg=False, env=env)
             prob = generate_lp()
             prob.solve(solver)
             solver.close()
 
-            solver2 = GUROBI(msg=False, env=env)
+            solver2: Any = GUROBI(msg=False, env=env)
             prob2 = generate_lp()
             prob2.solve(solver2)
             solver2.close()
@@ -92,7 +94,7 @@ class GurobiEnvTests(unittest.TestCase):
             raise unittest.SkipTest(
                 "this test is only expected to pass with a single-use license"
             )
-        solver = GUROBI(msg=False, **self.options)
+        solver: Any = GUROBI(msg=False, **self.options)
         prob = generate_lp()
         prob.solve(solver)
 
@@ -101,7 +103,7 @@ class GurobiEnvTests(unittest.TestCase):
         solver.close()
 
     def test_manage_env(self):
-        solver = GUROBI(msg=False, manageEnv=True, **self.options)
+        solver: Any = GUROBI(msg=False, manageEnv=True, **self.options)
         prob = generate_lp()
         prob.solve(solver)
 
@@ -109,14 +111,14 @@ class GurobiEnvTests(unittest.TestCase):
         check_dummy_env()
 
     def test_multiple_solves(self):
-        solver = GUROBI(msg=False, manageEnv=True, **self.options)
+        solver: Any = GUROBI(msg=False, manageEnv=True, **self.options)
         prob = generate_lp()
         prob.solve(solver)
 
         solver.close()
         check_dummy_env()
 
-        solver2 = GUROBI(msg=False, manageEnv=True, **self.options)
+        solver2: Any = GUROBI(msg=False, manageEnv=True, **self.options)
         prob.solve(solver2)
 
         solver2.close()
@@ -132,13 +134,13 @@ class GurobiEnvTests(unittest.TestCase):
             raise unittest.SkipTest(
                 "this test is only expected to pass with a single-use license"
             )
-        solver = GUROBI(msg=False, **self.options)
+        solver: Any = GUROBI(msg=False, **self.options)
         prob = generate_lp()
         prob.solve(solver)
 
         solver.close()
 
-        solver2 = GUROBI(msg=False, **self.options)
+        solver2: Any = GUROBI(msg=False, **self.options)
 
         prob2 = generate_lp()
         prob2.solve(solver2)
