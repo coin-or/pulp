@@ -441,7 +441,6 @@ class HiGHS(LpSolver):
                     return
                 lp.solverModel.setSolution(len(indices), indices, values)
 
-
         def findSolutionValues(self, lp):
             status = lp.solverModel.getModelStatus()
             obj_value = lp.solverModel.getObjectiveValue()
