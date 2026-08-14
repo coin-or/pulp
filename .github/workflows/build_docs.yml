@@ -11,7 +11,7 @@ jobs:
     steps:
     - uses: actions/checkout@v6
     - name: Set up Python 3.12
-      uses: actions/setup-python@v6
+      uses: actions/setup-python@v7
       with:
         python-version: "3.12"
     - name: Install uv and set the python version
