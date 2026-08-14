@@ -99,6 +99,7 @@ class COIN_CMD(LpSolver_CMD):
         logPath=None,
         timeMode="elapsed",
         maxNodes=None,
+        randomSeed=None,
     ):
         """
         :param bool mip: if False, assume LP even if integer variables
@@ -117,6 +118,7 @@ class COIN_CMD(LpSolver_CMD):
         :param int strong: number of variables to look at in strong branching (range is 0 to 2147483647)
         :param str timeMode: "elapsed": count wall-time to timeLimit; "cpu": count cpu-time
         :param int maxNodes: max number of nodes during branching. Stops the solving when reached.
+        :param int randomSeed: random seed passed to CBC (``-randomSeed``) for reproducible results
         """
         if warmStart and not keepFiles and operating_system == "win":
             warnings.warn(
@@ -141,6 +143,7 @@ class COIN_CMD(LpSolver_CMD):
             logPath=logPath,
             timeMode=timeMode,
             maxNodes=maxNodes,
+            randomSeed=randomSeed,
         )
 
     def copy(self):
@@ -274,6 +277,7 @@ class COIN_CMD(LpSolver_CMD):
             strong="strong {}",
             timeMode="timeMode {}",
             maxNodes="maxNodes {}",
+            randomSeed="randomSeed {}",
         )
 
         return [
