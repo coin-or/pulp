@@ -334,10 +334,10 @@ class FSCIP_CMD(LpSolver_CMD):
         command.append(tmpLp)
         command.extend(["-s", tmpOptions])
         command.extend(["-fsol", tmpSol])
-        if not self.msg:
+        if not self.msg and "logPath" not in self.optionsDict:
+            # fscip's -q suppresses all output, which would also leave the log
+            # file empty, so it is only used when no logPath is given
             command.append("-q")
-        if "logPath" in self.optionsDict:
-            command.extend(["-l", self.optionsDict["logPath"]])
         if "threads" in self.optionsDict:
             command.extend(["-sth", f"{self.optionsDict['threads']}"])
 
@@ -369,7 +369,18 @@ class FSCIP_CMD(LpSolver_CMD):
         with open(tmpParams, "w") as parameters_file:
             parameters_file.write("\n".join(file_parameters))
 
-        pipe = self.get_pipe()
+        # fscip's own -l flag appends the process rank to the log file name
+        # (e.g. fscip.log0), so the log is captured by redirecting the process
+        # output instead, as done by COIN_CMD
+        logPath = self.optionsDict.get("logPath")
+        if logPath:
+            if self.msg:
+                warnings.warn(
+                    "`logPath` argument replaces `msg=1`. The output will be redirected to the log file."
+                )
+            pipe = open(logPath, "w")
+        else:
+            pipe = self.get_pipe()
         subprocess.check_call(command, stdout=pipe, stderr=pipe)
 
         if pipe is not None:

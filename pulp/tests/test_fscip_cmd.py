@@ -1,5 +1,6 @@
 """Unit tests for fscip_cmd solver."""
 
+import os
 from typing import ClassVar
 
 import pulp.apis as solvers
@@ -47,3 +48,22 @@ class FSCIP_CMDTest(BaseSolverTest.PuLPTest):
         prob += -y + z == 7.5, "c3"
         self.solver.mip = False
         self._apply_pulp_check(prob, sol={x: 3.0, y: -0.5, z: 7})
+
+    def test_fscip_log_path(self):
+        # named differently from test_logPath because its default config is
+        # skipped and PulpTestConfig.merge cannot turn skip=True off
+        prob = LpProblem(self._testMethodName, const.LpMinimize)
+        x = prob.add_variable("x", 0, 4)
+        y = prob.add_variable("y", -1, 1)
+        z = prob.add_variable("z", 0)
+        w = prob.add_variable("w", 0)
+        prob += x + 4 * y + 9 * z, "obj"
+        prob += x + y <= 5, "c1"
+        prob += x + z >= 10, "c2"
+        prob += -y + z == 7, "c3"
+        prob += w >= 0, "c4"
+        self.solver.optionsDict["logPath"] = self._testMethodName + ".log"
+        self._apply_pulp_check(prob, sol={x: 4, y: -1, z: 6, w: 0})
+        log_filename = self._testMethodName + ".log"
+        self.assertTrue(os.path.exists(log_filename))
+        self.assertTrue(os.path.getsize(log_filename))
