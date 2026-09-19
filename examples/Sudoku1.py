@@ -85,7 +85,7 @@ prob.writeLP("Sudoku.lp")
 prob.solve()
 
 # The status of the solution is printed to the screen
-print("Status:", LpStatus[prob.status])
+print("Status:", LpStatus[prob.getSolverStatus()])
 
 # A file called sudokuout.txt is created/overwritten for writing to
 sudokuout = open("sudokuout.txt", "w")

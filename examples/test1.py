@@ -42,7 +42,7 @@ prob.solve()
 # two paths may be provided (one to clp, one to cbc).
 
 # Print the status of the solved LP
-print("Status:", LpStatus[prob.status])
+print("Status:", LpStatus[prob.getSolverStatus()])
 
 # Print the value of the variables at the optimum
 for v in prob.variables():

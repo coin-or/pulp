@@ -10,9 +10,11 @@ from ..constants import (
     LpConstraintLE,
     LpInteger,
     LpMaximize,
+    LpSolutionIntegerFeasible,
     LpStatusInfeasible,
     LpStatusNotSolved,
     LpStatusOptimal,
+    LpStatusTimeLimit,
     LpStatusUnbounded,
     LpStatusUndefined,
 )
@@ -107,7 +109,7 @@ class CUOPT(LpSolver):
                 2: LpStatusInfeasible,  # Infeasible
                 3: LpStatusUnbounded,  # Unbounded
                 4: LpStatusNotSolved,  # Iteration Limit
-                5: LpStatusNotSolved,  # Timelimit
+                5: LpStatusTimeLimit,  # Timelimit
                 6: LpStatusNotSolved,  # Numerical Error
                 7: LpStatusNotSolved,  # Primal Feasible
                 8: LpStatusNotSolved,  # Feasible Found
@@ -120,8 +122,13 @@ class CUOPT(LpSolver):
                 11: LpStatusUndefined,  # Unbounded or Infeasible
             }
 
+            CuoptSolStatus = {
+                7: LpSolutionIntegerFeasible,  # Primal Feasible
+                8: LpSolutionIntegerFeasible,  # Feasible Found
+            }
+
             status = CuoptStatus.get(solutionStatus, LpStatusUndefined)
-            lp.assignStatus(status)
+            lp.assignStatus(status, CuoptSolStatus.get(solutionStatus))
 
             values = solution.get_primal_solution()
 

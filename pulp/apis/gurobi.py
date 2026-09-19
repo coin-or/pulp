@@ -187,23 +187,27 @@ class GUROBI(LpSolver):
             model = lp.solverModel
             solutionStatus = model.Status
             GRB = gp.GRB
-            # TODO: check status for Integer Feasible
             gurobiLpStatus = {
                 GRB.OPTIMAL: constants.LpStatusOptimal,
                 GRB.INFEASIBLE: constants.LpStatusInfeasible,
                 GRB.INF_OR_UNBD: constants.LpStatusUndefined,
                 GRB.UNBOUNDED: constants.LpStatusUnbounded,
                 GRB.ITERATION_LIMIT: constants.LpStatusNotSolved,
-                GRB.NODE_LIMIT: constants.LpStatusNotSolved,
-                GRB.TIME_LIMIT: constants.LpStatusNotSolved,
+                GRB.NODE_LIMIT: constants.LpStatusNodeLimit,
+                GRB.TIME_LIMIT: constants.LpStatusTimeLimit,
                 GRB.SOLUTION_LIMIT: constants.LpStatusNotSolved,
                 GRB.INTERRUPTED: constants.LpStatusNotSolved,
                 GRB.NUMERIC: constants.LpStatusNotSolved,
+                # MEM_LIMIT arrived with Gurobi 10
+                getattr(GRB, "MEM_LIMIT", 17): constants.LpStatusMemoryLimit,
             }
             if self.msg:
                 print("Gurobi status=", solutionStatus)
             status = gurobiLpStatus.get(solutionStatus, constants.LpStatusUndefined)
-            lp.assignStatus(status)
+            sol_status = None
+            if status != constants.LpStatusOptimal and model.SolCount >= 1:
+                sol_status = constants.LpSolutionIntegerFeasible
+            lp.assignStatus(status, sol_status)
             if model.SolCount >= 1:
                 exported_vars = lp.exported_variables()
                 for var, value in zip(

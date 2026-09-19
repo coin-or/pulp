@@ -21,7 +21,7 @@ prob.writeLP("test7.lp")
 
 prob.solve()
 
-print("Status:", LpStatus[prob.status])
+print("Status:", LpStatus[prob.getSolverStatus()])
 
 for v in prob.variables():
     print(v.name, "=", v.varValue, "\tReduced Cost =", v.dj)

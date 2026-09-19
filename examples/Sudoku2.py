@@ -89,9 +89,9 @@ sudokuout = open("sudokuout.txt", "w")
 while True:
     prob.solve()
     # The status of the solution is printed to the screen
-    print("Status:", LpStatus[prob.status])
+    print("Status:", LpStatus[prob.getSolverStatus()])
     # The solution is printed if it was deemed "optimal" i.e met the constraints
-    if LpStatus[prob.status] == "Optimal":
+    if LpStatus[prob.getSolverStatus()] == "Optimal":
         # The solution is written to the sudokuout.txt file
         for r in ROWS:
             if r in [1, 4, 7]:

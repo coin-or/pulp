@@ -70,7 +70,7 @@ prob.writeLP("BeerDistributionProblem.lp")
 prob.solve()
 
 # The status of the solution is printed to the screen
-print("Status:", LpStatus[prob.status])
+print("Status:", LpStatus[prob.getSolverStatus()])
 
 # Each of the variables is printed with it's resolved optimum value
 for v in prob.variables():

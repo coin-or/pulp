@@ -244,7 +244,7 @@ class CPSAT(LpSolver):
         exported_vars = list(lp.exported_variables())
         cp_status = {
             cp_model_mod.OPTIMAL: constants.LpStatusOptimal,
-            cp_model_mod.FEASIBLE: constants.LpStatusOptimal,
+            cp_model_mod.FEASIBLE: constants.LpStatusNotSolved,
             cp_model_mod.INFEASIBLE: constants.LpStatusInfeasible,
             cp_model_mod.UNKNOWN: constants.LpStatusNotSolved,
             cp_model_mod.MODEL_INVALID: constants.LpStatusUndefined,

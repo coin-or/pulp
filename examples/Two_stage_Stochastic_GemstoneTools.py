@@ -101,7 +101,7 @@ gemstoneprob.writeLP("gemstoneprob.lp")
 # The problem is solved using PuLP's choice of Solver
 gemstoneprob.solve()
 # The status of the solution is printed to the screen
-print("Status:", pulp.LpStatus[gemstoneprob.status])
+print("Status:", pulp.LpStatus[gemstoneprob.getSolverStatus()])
 
 # OUTPUT
 

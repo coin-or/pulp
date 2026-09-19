@@ -397,34 +397,33 @@ class COIN_CMD(LpSolver_CMD):
         return self.readsol_MPS(filename, lp, variableNames, constraintNames)
 
     def get_status(self, filename):
-        cbcStatus = {
-            "Optimal": constants.LpStatusOptimal,
-            "Infeasible": constants.LpStatusInfeasible,
-            "Integer": constants.LpStatusInfeasible,
-            "Unbounded": constants.LpStatusUnbounded,
-            "Stopped": constants.LpStatusNotSolved,
-        }
-
-        cbcSolStatus = {
-            "Optimal": constants.LpSolutionOptimal,
-            "Infeasible": constants.LpSolutionInfeasible,
-            "Unbounded": constants.LpSolutionUnbounded,
-            "Stopped": constants.LpSolutionNoSolutionFound,
-        }
-
         with open(filename) as f:
-            statusstrs = f.readline().split()
+            return self.parse_status(f.readline())
 
-        status = cbcStatus.get(statusstrs[0], constants.LpStatusUndefined)
-        sol_status = cbcSolStatus.get(
-            statusstrs[0], constants.LpSolutionNoSolutionFound
-        )
-        # here we could use some regex expression.
-        # Not sure what's more desirable
-        if status == constants.LpStatusNotSolved and len(statusstrs) >= 5:
-            if statusstrs[4] == "objective":
-                status = constants.LpStatusOptimal
-                sol_status = constants.LpSolutionIntegerFeasible
+    @staticmethod
+    def parse_status(line: str) -> tuple[int, int]:
+        """Map the first line of a CBC solution file to (status, sol_status)."""
+        words = line.split()
+        header = words[0] if words else ""
+        if header == "Optimal":
+            return constants.LpStatusOptimal, constants.LpSolutionOptimal
+        if header in ("Infeasible", "Integer"):
+            return constants.LpStatusInfeasible, constants.LpSolutionInfeasible
+        if header == "Unbounded":
+            return constants.LpStatusUnbounded, constants.LpSolutionUnbounded
+        if header != "Stopped":
+            return constants.LpStatusUndefined, constants.LpSolutionNoSolutionFound
+        # "Stopped on time - objective value X" carries an integer solution,
+        # "Stopped on time (no integer solution - continuous used) - ..." does not.
+        # Node, gap and solution limits all print "Stopped on iterations".
+        if len(words) > 2 and words[2] == "time":
+            status = constants.LpStatusTimeLimit
+        else:
+            status = constants.LpStatusNotSolved
+        if len(words) > 4 and words[4] == "objective":
+            sol_status = constants.LpSolutionIntegerFeasible
+        else:
+            sol_status = constants.LpSolutionNoSolutionFound
         return status, sol_status
 
 
@@ -758,7 +757,7 @@ class YAPOSIB(LpSolver):
                 "undefined": constants.LpStatusUndefined,
                 "abandoned": constants.LpStatusInfeasible,
                 "infeasible": constants.LpStatusInfeasible,
-                "limitreached": constants.LpStatusInfeasible,
+                "limitreached": constants.LpStatusNotSolved,
             }
             # populate pulp solution values
             for var in lp.exported_variables():

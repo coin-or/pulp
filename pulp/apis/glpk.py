@@ -144,7 +144,7 @@ class GLPK_CMD(LpSolver_CMD):
         if not os.path.exists(tmpSol):
             raise PulpSolverError("PuLP: Error while executing " + self.path)
 
-        status, values = self.readsol(tmpOut, tmpSol)
+        status, values, sol_status = self.readsol(tmpOut, tmpSol)
 
         vars = dict([(var.name, var) for var in lp.variables()])
         for name, value in values.items():
@@ -157,7 +157,7 @@ class GLPK_CMD(LpSolver_CMD):
                 values[name] = float(value)
 
         lp.assignVarsVals(values)
-        lp.assignStatus(status)
+        lp.assignStatus(status, sol_status)
         self.delete_tmp_files(tmpLp, tmpSol)
         return status
 
@@ -173,7 +173,7 @@ class GLPK_CMD(LpSolver_CMD):
             statusString = f.readline()[12:-1]
             glpkStatus = {
                 "INTEGER OPTIMAL": constants.LpStatusOptimal,
-                "INTEGER NON-OPTIMAL": constants.LpStatusOptimal,
+                "INTEGER NON-OPTIMAL": constants.LpStatusNotSolved,
                 "OPTIMAL": constants.LpStatusOptimal,
                 "INFEASIBLE (FINAL)": constants.LpStatusInfeasible,
                 "INTEGER UNDEFINED": constants.LpStatusUndefined,
@@ -184,6 +184,10 @@ class GLPK_CMD(LpSolver_CMD):
             if statusString not in glpkStatus:
                 raise PulpSolverError("Unknown status returned by GLPK")
             status = glpkStatus[statusString]
+            # glpsol does not say why it stopped, only that the incumbent is not proven
+            sol_status = None
+            if statusString == "INTEGER NON-OPTIMAL":
+                sol_status = constants.LpSolutionIntegerFeasible
             names = []
             for i in range(4):
                 f.readline()
@@ -218,7 +222,7 @@ class GLPK_CMD(LpSolver_CMD):
                 if elems[0] == "s":
                     status2 = {
                         "o": constants.LpStatusOptimal,
-                        "f": constants.LpStatusOptimal,
+                        "f": constants.LpStatusNotSolved,
                         "n": constants.LpStatusInfeasible,
                         "u": constants.LpStatusUndefined,
                     }[elems[4]]
@@ -228,7 +232,7 @@ class GLPK_CMD(LpSolver_CMD):
 
             assert status == status2
 
-            return status, values
+            return status, values, sol_status
 
 
 GLPK = GLPK_CMD
@@ -292,7 +296,7 @@ class PYGLPK(LpSolver):
             glpkLpStatus = {
                 glpk.GLP_OPT: constants.LpStatusOptimal,
                 glpk.GLP_UNDEF: constants.LpStatusUndefined,
-                glpk.GLP_FEAS: constants.LpStatusOptimal,
+                glpk.GLP_FEAS: constants.LpStatusNotSolved,
                 glpk.GLP_INFEAS: constants.LpStatusInfeasible,
                 glpk.GLP_NOFEAS: constants.LpStatusInfeasible,
                 glpk.GLP_UNBND: constants.LpStatusUnbounded,
@@ -314,7 +318,10 @@ class PYGLPK(LpSolver):
                 constr.slack = -constr.constant - row_val
                 constr.pi = glpk.glp_get_row_dual(prob, row)
             status = glpkLpStatus.get(solutionStatus, constants.LpStatusUndefined)
-            lp.assignStatus(status)
+            sol_status = None
+            if solutionStatus == glpk.GLP_FEAS:
+                sol_status = constants.LpSolutionIntegerFeasible
+            lp.assignStatus(status, sol_status)
             return status
 
         def available(self):

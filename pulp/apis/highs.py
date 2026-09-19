@@ -42,6 +42,16 @@ if TYPE_CHECKING:
 # More instructions on: https://www.highs.dev
 
 
+def _stop_status(model_status: str) -> int:
+    """Map a HiGHS model status line to the reason the solver stopped."""
+    model_status = model_status.lower()
+    if "time limit" in model_status:
+        return constants.LpStatusTimeLimit
+    if "memory limit" in model_status:
+        return constants.LpStatusMemoryLimit
+    return constants.LpStatusNotSolved
+
+
 class HiGHS_CMD(LpSolver_CMD):
     """The HiGHS_CMD solver"""
 
@@ -193,10 +203,9 @@ class HiGHS_CMD(LpSolver_CMD):
                 constants.LpStatusOptimal,
                 constants.LpSolutionOptimal,
             )
-        elif sol_status.lower() == "feasible":  # feasible
-            # Following the PuLP convention
+        elif sol_status.lower() == "feasible":  # feasible, stopped by a limit
             status, status_sol = (
-                constants.LpStatusOptimal,
+                _stop_status(model_status),
                 constants.LpSolutionIntegerFeasible,
             )
         elif model_status.lower() == "infeasible":  # infeasible
@@ -211,7 +220,7 @@ class HiGHS_CMD(LpSolver_CMD):
             )
         else:  # no solution
             status, status_sol = (
-                constants.LpStatusNotSolved,
+                _stop_status(model_status),
                 constants.LpSolutionNoSolutionFound,
             )
 
@@ -230,7 +239,7 @@ class HiGHS_CMD(LpSolver_CMD):
         self.delete_tmp_files(tmpMps, tmpSol, tmpOptions, tmpLog, tmpMst)
         lp.assignStatus(status, status_sol)
 
-        if status == constants.LpStatusOptimal and values is not None:
+        if values is not None:
             lp.assignVarsVals(values)
 
         return status
@@ -493,32 +502,32 @@ class HiGHS(LpSolver):
                     constants.LpSolutionUnbounded,
                 ),
                 HighsModelStatus.kObjectiveBound: (
-                    constants.LpStatusOptimal,
+                    constants.LpStatusNotSolved,
                     constants.LpSolutionIntegerFeasible,
                 ),
                 HighsModelStatus.kObjectiveTarget: (
-                    constants.LpStatusOptimal,
+                    constants.LpStatusNotSolved,
                     constants.LpSolutionIntegerFeasible,
                 ),
                 HighsModelStatus.kInterrupt: (
-                    constants.LpStatusOptimal,
+                    constants.LpStatusNotSolved,
                     constants.LpSolutionIntegerFeasible,
                 ),
                 HighsModelStatus.kTimeLimit: (
-                    constants.LpStatusOptimal,
+                    constants.LpStatusTimeLimit,
                     constants.LpSolutionIntegerFeasible,
                 ),
                 HighsModelStatus.kIterationLimit: (
-                    constants.LpStatusOptimal,
+                    constants.LpStatusNotSolved,
                     constants.LpSolutionIntegerFeasible,
                 ),
                 HighsModelStatus.kSolutionLimit: (
-                    constants.LpStatusOptimal,
+                    constants.LpStatusNotSolved,
                     constants.LpSolutionIntegerFeasible,
                 ),
                 HighsModelStatus.kMemoryLimit: (
-                    constants.LpStatusNotSolved,
-                    constants.LpSolutionNoSolutionFound,
+                    constants.LpStatusMemoryLimit,
+                    constants.LpSolutionIntegerFeasible,
                 ),
                 HighsModelStatus.kUnknown: (
                     constants.LpStatusNotSolved,
@@ -547,17 +556,12 @@ class HiGHS(LpSolver):
                     constraint.slack *= -1.0
                 constraint.pi = row_duals[row_idx]
 
-            if obj_value == float(inf) and status in (
-                HighsModelStatus.kTimeLimit,
-                HighsModelStatus.kIterationLimit,
-                HighsModelStatus.kSolutionLimit,
-            ):
-                return (
-                    constants.LpStatusNotSolved,
-                    constants.LpSolutionNoSolutionFound,
-                )
-            else:
-                return status_dict[status]
+            status, sol_status = status_dict[status]
+            # a limit hit before the first incumbent leaves the objective infinite
+            if abs(obj_value) == float(inf):
+                if sol_status == constants.LpSolutionIntegerFeasible:
+                    sol_status = constants.LpSolutionNoSolutionFound
+            return status, sol_status
 
         def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
             self.createAndConfigureSolver(lp)

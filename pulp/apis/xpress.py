@@ -476,6 +476,9 @@ class XPRESS_PY(LpSolver):
             _SS_FEASIBLE = getattr(_SS, "FEASIBLE", 2) if _SS else 2
             _SS_INFEASIBLE = getattr(_SS, "INFEASIBLE", 3) if _SS else 3
             _SS_UNBOUNDED = getattr(_SS, "UNBOUNDED", 4) if _SS else 4
+            _ST = getattr(xpress, "StopStatus", None)
+            _ST_TIMELIMIT = getattr(_ST, "TIMELIMIT", 1) if _ST else 1
+            _ST_NODELIMIT = getattr(_ST, "NODELIMIT", 3) if _ST else 3
 
             # Map solstatus to (status, sol_status) tuples for detailed status reporting
             statusmap = {
@@ -488,7 +491,7 @@ class XPRESS_PY(LpSolver):
                     constants.LpSolutionOptimal,
                 ),
                 _SS_FEASIBLE: (
-                    constants.LpStatusUndefined,
+                    constants.LpStatusNotSolved,
                     constants.LpSolutionIntegerFeasible,
                 ),
                 _SS_INFEASIBLE: (
@@ -549,6 +552,13 @@ class XPRESS_PY(LpSolver):
                 solstatus,
                 (constants.LpStatusUndefined, constants.LpSolutionNoSolutionFound),
             )
+            if solstatus == _SS_FEASIBLE:
+                # solstatus only grades the solution, stopstatus says why it stopped
+                stopstatus = getattr(model.attributes, "stopstatus", None)
+                if stopstatus == _ST_TIMELIMIT:
+                    status = constants.LpStatusTimeLimit
+                elif stopstatus == _ST_NODELIMIT:
+                    status = constants.LpStatusNodeLimit
             lp.assignStatus(status, sol_status)
             return status
 

@@ -185,11 +185,12 @@ class CPLEX_CMD(LpSolver_CMD):
             "1": constants.LpStatusOptimal,  #  optimal
             "101": constants.LpStatusOptimal,  #  mip optimal
             "102": constants.LpStatusOptimal,  #  mip optimal tolerance
-            "104": constants.LpStatusOptimal,  #  max solution limit
-            "105": constants.LpStatusOptimal,  #  node limit feasible
-            "107": constants.LpStatusOptimal,  # time lim feasible
-            "109": constants.LpStatusOptimal,  #  fail but feasible
-            "113": constants.LpStatusOptimal,  # abort feasible
+            "104": constants.LpStatusNotSolved,  #  max solution limit
+            "105": constants.LpStatusNodeLimit,  #  node limit feasible
+            "107": constants.LpStatusTimeLimit,  # time lim feasible
+            "109": constants.LpStatusNotSolved,  #  fail but feasible
+            "111": constants.LpStatusMemoryLimit,  # memory limit feasible
+            "113": constants.LpStatusNotSolved,  # abort feasible
         }
         if statusValue not in cplexStatus:
             raise PulpSolverError(
@@ -599,11 +600,16 @@ class CPLEX_PY(LpSolver):
             cplexstatus.abort_iteration_limit: constants.LpStatusNotSolved,
             cplexstatus.abort_obj_limit: constants.LpStatusNotSolved,
             cplexstatus.abort_relaxed: constants.LpStatusNotSolved,
-            cplexstatus.abort_time_limit: constants.LpStatusNotSolved,
+            cplexstatus.abort_time_limit: constants.LpStatusTimeLimit,
             cplexstatus.abort_user: constants.LpStatusNotSolved,
-            cplexstatus.MIP_abort_feasible: constants.LpStatusOptimal,
-            cplexstatus.MIP_time_limit_feasible: constants.LpStatusOptimal,
-            cplexstatus.MIP_time_limit_infeasible: constants.LpStatusInfeasible,
+            cplexstatus.MIP_abort_feasible: constants.LpStatusNotSolved,
+            cplexstatus.MIP_abort_infeasible: constants.LpStatusNotSolved,
+            cplexstatus.MIP_time_limit_feasible: constants.LpStatusTimeLimit,
+            cplexstatus.MIP_time_limit_infeasible: constants.LpStatusTimeLimit,
+            cplexstatus.node_limit_feasible: constants.LpStatusNodeLimit,
+            cplexstatus.node_limit_infeasible: constants.LpStatusNodeLimit,
+            cplexstatus.mem_limit_feasible: constants.LpStatusMemoryLimit,
+            cplexstatus.mem_limit_infeasible: constants.LpStatusMemoryLimit,
         }
         cplex_status = my_solution.get_status()
         status = CplexLpStatus.get(cplex_status, constants.LpStatusUndefined)
@@ -611,8 +617,9 @@ class CPLEX_PY(LpSolver):
             cplexstatus.MIP_time_limit_feasible: constants.LpSolutionIntegerFeasible,
             cplexstatus.MIP_abort_feasible: constants.LpSolutionIntegerFeasible,
             cplexstatus.MIP_feasible: constants.LpSolutionIntegerFeasible,
+            cplexstatus.node_limit_feasible: constants.LpSolutionIntegerFeasible,
+            cplexstatus.mem_limit_feasible: constants.LpSolutionIntegerFeasible,
         }
-        # TODO: I did not find the following status: CPXMIP_NODE_LIM_FEAS, CPXMIP_MEM_LIM_FEAS
         sol_status = CplexSolStatus.get(cplex_status)
         lp.assignStatus(status, sol_status)
         try:

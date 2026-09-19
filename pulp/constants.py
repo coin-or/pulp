@@ -48,12 +48,18 @@ LpStatusOptimal = 1
 LpStatusInfeasible = -1
 LpStatusUnbounded = -2
 LpStatusUndefined = -3
+LpStatusTimeLimit = 2
+LpStatusMemoryLimit = 3
+LpStatusNodeLimit = 4
 LpStatus = {
     LpStatusNotSolved: "Not Solved",
     LpStatusOptimal: "Optimal",
     LpStatusInfeasible: "Infeasible",
     LpStatusUnbounded: "Unbounded",
     LpStatusUndefined: "Undefined",
+    LpStatusTimeLimit: "Time Limit",
+    LpStatusMemoryLimit: "Memory Limit",
+    LpStatusNodeLimit: "Node Limit",
 }
 
 # solution status
@@ -70,11 +76,14 @@ LpSolution = {
     LpSolutionUnbounded: "Solution is Unbounded",
 }
 LpStatusToSolution = {
-    LpStatusNotSolved: LpSolutionInfeasible,
+    LpStatusNotSolved: LpSolutionNoSolutionFound,
     LpStatusOptimal: LpSolutionOptimal,
     LpStatusInfeasible: LpSolutionInfeasible,
     LpStatusUnbounded: LpSolutionUnbounded,
-    LpStatusUndefined: LpSolutionInfeasible,
+    LpStatusUndefined: LpSolutionNoSolutionFound,
+    LpStatusTimeLimit: LpSolutionNoSolutionFound,
+    LpStatusMemoryLimit: LpSolutionNoSolutionFound,
+    LpStatusNodeLimit: LpSolutionNoSolutionFound,
 }
 
 # constraint sense

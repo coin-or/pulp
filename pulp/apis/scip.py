@@ -91,11 +91,11 @@ class SCIP_CMD(LpSolver_CMD):
     SCIP_STATUSES = {
         "unknown": constants.LpStatusUndefined,
         "user interrupt": constants.LpStatusNotSolved,
-        "node limit reached": constants.LpStatusNotSolved,
-        "total node limit reached": constants.LpStatusNotSolved,
-        "stall node limit reached": constants.LpStatusNotSolved,
-        "time limit reached": constants.LpStatusNotSolved,
-        "memory limit reached": constants.LpStatusNotSolved,
+        "node limit reached": constants.LpStatusNodeLimit,
+        "total node limit reached": constants.LpStatusNodeLimit,
+        "stall node limit reached": constants.LpStatusNodeLimit,
+        "time limit reached": constants.LpStatusTimeLimit,
+        "memory limit reached": constants.LpStatusMemoryLimit,
         "gap limit reached": constants.LpStatusOptimal,
         "solution limit reached": constants.LpStatusNotSolved,
         "solution improvement limit reached": constants.LpStatusNotSolved,
@@ -182,13 +182,13 @@ class SCIP_CMD(LpSolver_CMD):
 
         if not os.path.exists(tmpSol):
             raise PulpSolverError("PuLP: Error while executing " + self.path)
-        status, values = self.readsol(tmpSol)
+        status, values, sol_status = self.readsol(tmpSol)
         # SCIP may omit zero-valued columns; only fill exported (solver) variables.
         exported = lp.exported_variables()
         finalVals = {v.name: values.get(v.name, 0.0) for v in exported}
 
         lp.assignVarsVals(finalVals)
-        lp.assignStatus(status)
+        lp.assignStatus(status, sol_status)
         self.delete_tmp_files(tmpLp, tmpSol, tmpOptions)
         return status
 
@@ -219,7 +219,7 @@ class SCIP_CMD(LpSolver_CMD):
                 float(comps[1].strip())
             except Exception:
                 # we assume there was not solution found
-                return status, values
+                return status, values, None
 
             # Parse the variable values.
             for line in f:
@@ -229,10 +229,12 @@ class SCIP_CMD(LpSolver_CMD):
                 except Exception:
                     raise PulpSolverError(f"Can't read SCIP solver output: {line!r}")
 
-            # if we have a solution, we should change status to Optimal by conventio
-            status = constants.LpStatusOptimal
+            # a solution is only proven optimal when the status line says so
+            sol_status = None
+            if status != constants.LpStatusOptimal:
+                sol_status = constants.LpSolutionIntegerFeasible
 
-            return status, values
+            return status, values, sol_status
 
 
 SCIP = SCIP_CMD
@@ -537,13 +539,13 @@ class SCIP_PY(LpSolver):
                 "unbounded": constants.LpStatusUnbounded,
                 "infeasible": constants.LpStatusInfeasible,
                 "inforunbd": constants.LpStatusUndefined,
-                "timelimit": constants.LpStatusNotSolved,
+                "timelimit": constants.LpStatusTimeLimit,
                 "userinterrupt": constants.LpStatusNotSolved,
-                "nodelimit": constants.LpStatusNotSolved,
-                "totalnodelimit": constants.LpStatusNotSolved,
-                "stallnodelimit": constants.LpStatusNotSolved,
+                "nodelimit": constants.LpStatusNodeLimit,
+                "totalnodelimit": constants.LpStatusNodeLimit,
+                "stallnodelimit": constants.LpStatusNodeLimit,
                 "gaplimit": constants.LpStatusNotSolved,
-                "memlimit": constants.LpStatusNotSolved,
+                "memlimit": constants.LpStatusMemoryLimit,
                 "sollimit": constants.LpStatusNotSolved,
                 "bestsollimit": constants.LpStatusNotSolved,
                 "restartlimit": constants.LpStatusNotSolved,
@@ -573,7 +575,6 @@ class SCIP_PY(LpSolver):
                     if status == constants.LpStatusOptimal:
                         lp.assignStatus(status, constants.LpSolutionOptimal)
                     else:
-                        status = constants.LpStatusOptimal
                         lp.assignStatus(status, constants.LpSolutionIntegerFeasible)
                 except Exception:  # No solution found
                     lp.assignStatus(status, constants.LpSolutionNoSolutionFound)

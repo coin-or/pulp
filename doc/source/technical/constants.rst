@@ -22,7 +22,7 @@
 
 .. data:: LpStatus
   
-    Return status from solver:
+    Why the solver stopped, see :meth:`~pulp.pulp.LpProblem.getSolverStatus`:
   
       +-----------------------------+---------------+-----------------+
       |  LpStatus  key              | string value  | numerical value |
@@ -36,6 +36,12 @@
       |  :data:`LpStatusUnbounded`  | "Unbounded"   |          -2     |
       +-----------------------------+---------------+-----------------+
       |  :data:`LpStatusUndefined`  | "Undefined"   |          -3     |
+      +-----------------------------+---------------+-----------------+
+      |  :data:`LpStatusTimeLimit`  | "Time Limit"  |          2      |
+      +-----------------------------+---------------+-----------------+
+      |  :data:`LpStatusMemoryLimit`| "Memory Limit"|          3      |
+      +-----------------------------+---------------+-----------------+
+      |  :data:`LpStatusNodeLimit`  | "Node Limit"  |          4      |
       +-----------------------------+---------------+-----------------+
  
 .. data:: LpStatusOptimal 
@@ -58,9 +64,21 @@
 
     LpStatusUndefined = -3
 
+.. data:: LpStatusTimeLimit
+
+    LpStatusTimeLimit = 2
+
+.. data:: LpStatusMemoryLimit
+
+    LpStatusMemoryLimit = 3
+
+.. data:: LpStatusNodeLimit
+
+    LpStatusNodeLimit = 4
+
 .. data:: LpSolution
 
-Return solution status from solver:
+What the solver returned, see :meth:`~pulp.pulp.LpProblem.getSolutionStatus`:
 
   +----------------------------------------+------------------------------+-----------------+
   |  LpStatus  key                         | string value                 | numerical value |
@@ -69,9 +87,9 @@ Return solution status from solver:
   +----------------------------------------+------------------------------+-----------------+
   |  :data:`LpSolutionNoSolutionFound`     | "No Solution Found"          |          0      |
   +----------------------------------------+------------------------------+-----------------+
-  |  :data:`LpSolutionStatusInfeasible`    |"No Solution Exists"          |         -1      |
+  |  :data:`LpSolutionInfeasible`          |"No Solution Exists"          |         -1      |
   +----------------------------------------+------------------------------+-----------------+
-  |  :data:`LpSolutionStatusUnbounded`     | "Solution is Unbounded"      |          -2     |
+  |  :data:`LpSolutionUnbounded`           | "Solution is Unbounded"      |          -2     |
   +----------------------------------------+------------------------------+-----------------+
   |  :data:`LpSolutionIntegerFeasible`     | "Solution Found"             |          2      |
   +----------------------------------------+------------------------------+-----------------+

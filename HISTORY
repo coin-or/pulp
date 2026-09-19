@@ -2,6 +2,15 @@
 #       Copyright S.A.Mitchell (s.mitchell@auckland.ac.nz), 2007-
 #       Copyright F.Peschiera (pchtsp@gmail.com), 2019-
 # See the LICENSE file for copyright information.
+4.0.0a13 unreleased
+    ``LpProblem.getSolverStatus()`` says why the solver stopped and
+        ``LpProblem.getSolutionStatus()`` what it returned; reading ``LpProblem.status``
+        warns with ``DeprecationWarning``
+    new solver statuses ``LpStatusTimeLimit``, ``LpStatusNodeLimit`` and
+        ``LpStatusMemoryLimit``; a run stopped by a limit is no longer reported as
+        ``LpStatusOptimal``, its solution is ``LpSolutionIntegerFeasible``
+    ``LpStatusNotSolved`` and ``LpStatusUndefined`` default to
+        ``LpSolutionNoSolutionFound`` instead of ``LpSolutionInfeasible``
 4.0.0a11 2026-06-19
     HiGHS API accepts warmstarts
 4.0.0a10 2026-06-01

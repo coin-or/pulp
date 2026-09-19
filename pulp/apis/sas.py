@@ -56,21 +56,32 @@ SOLSTATUS_TO_STATUS = {
     "UNBOUNDED": constants.LpStatusUnbounded,
     "INFEASIBLE_OR_UNBOUNDED": constants.LpStatusUndefined,
     "SOLUTION_LIM": constants.LpStatusNotSolved,
-    "NODE_LIM_SOL": constants.LpStatusNotSolved,
-    "NODE_LIM_NOSOL": constants.LpStatusNotSolved,
+    "NODE_LIM_SOL": constants.LpStatusNodeLimit,
+    "NODE_LIM_NOSOL": constants.LpStatusNodeLimit,
     "ITERATION_LIMIT_REACHED": constants.LpStatusNotSolved,
-    "TIME_LIM_SOL": constants.LpStatusNotSolved,
-    "TIME_LIM_NOSOL": constants.LpStatusNotSolved,
-    "TIME_LIMIT_REACHED": constants.LpStatusNotSolved,
+    "TIME_LIM_SOL": constants.LpStatusTimeLimit,
+    "TIME_LIM_NOSOL": constants.LpStatusTimeLimit,
+    "TIME_LIMIT_REACHED": constants.LpStatusTimeLimit,
     "ABORTED": constants.LpStatusNotSolved,
     "ABORT_SOL": constants.LpStatusNotSolved,
     "ABORT_NOSOL": constants.LpStatusNotSolved,
-    "OUTMEM_SOL": constants.LpStatusNotSolved,
-    "OUTMEM_NOSOL": constants.LpStatusNotSolved,
+    "OUTMEM_SOL": constants.LpStatusMemoryLimit,
+    "OUTMEM_NOSOL": constants.LpStatusMemoryLimit,
     "FAILED": constants.LpStatusNotSolved,
     "FAIL_SOL": constants.LpStatusNotSolved,
     "FAIL_NOSOL": constants.LpStatusNotSolved,
     "ERROR": constants.LpStatusNotSolved,
+}
+
+# statuses that return a feasible solution without proving it optimal
+SOLSTATUS_WITH_SOLUTION = {
+    "FEASIBLE",
+    "SOLUTION_LIM",
+    "NODE_LIM_SOL",
+    "TIME_LIM_SOL",
+    "ABORT_SOL",
+    "OUTMEM_SOL",
+    "FAIL_SOL",
 }
 
 SASPY_OPTIONS = ["cfgname", "cfgfile"]
@@ -155,7 +166,11 @@ class SASsolver(LpSolver_CMD):
         return maxLen + 1
 
     def _read_solution(self, lp, primal_out, dual_out, proc):
-        status = SOLSTATUS_TO_STATUS[self._macro.get("SOLUTION_STATUS", "ERROR")]
+        solstatus = self._macro.get("SOLUTION_STATUS", "ERROR")
+        status = SOLSTATUS_TO_STATUS[solstatus]
+        sol_status = None
+        if solstatus in SOLSTATUS_WITH_SOLUTION:
+            sol_status = constants.LpSolutionIntegerFeasible
         primal_out = primal_out.set_index("_VAR_", drop=True)
         values = primal_out["_VALUE_"].to_dict()
         lp.assignVarsVals(values)
@@ -172,7 +187,7 @@ class SASsolver(LpSolver_CMD):
             slacks = dual_out["_ACTIVITY_"].to_dict()
             lp.assignConsSlack(slacks, activity=True)
 
-        lp.assignStatus(status)
+        lp.assignStatus(status, sol_status)
         return status
 
 

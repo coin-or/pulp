@@ -108,10 +108,15 @@ solved on their integer-rounded domain::
      from pulp import CPSAT
      status = prob.solve(CPSAT(msg=False))
 
-Display the status of the solution::
+Display why the solver stopped and what it returned::
 
-     LpStatus[status]
+     LpStatus[prob.getSolverStatus()]
      > 'Optimal'
+     LpSolution[prob.getSolutionStatus()]
+     > 'Optimal Solution Found'
+
+A solver that hits a limit reports it, for example ``'Time Limit'`` with
+``'Solution Found'`` when it has a feasible but unproven solution.
 
 You can get the value of the variables using ``value``. ex::
 

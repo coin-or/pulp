@@ -124,9 +124,9 @@ class CHOCO_CMD(LpSolver_CMD):
         self.delete_tmp_files(tmpMps, tmpLp, tmpSol)
 
         lp.assignStatus(status, status_sol)
-        if values is not None and status not in (
-            constants.LpStatusInfeasible,
-            constants.LpStatusNotSolved,
+        if values is not None and status_sol in (
+            constants.LpSolutionOptimal,
+            constants.LpSolutionIntegerFeasible,
         ):
             lp.assignVarsVals(values)
 
@@ -138,7 +138,7 @@ class CHOCO_CMD(LpSolver_CMD):
         # TODO: figure out the unbounded status in choco solver
         chocoStatus = {
             "OPTIMUM FOUND": constants.LpStatusOptimal,
-            "SATISFIABLE": constants.LpStatusOptimal,
+            "SATISFIABLE": constants.LpStatusNotSolved,
             "UNSATISFIABLE": constants.LpStatusInfeasible,
             "UNKNOWN": constants.LpStatusNotSolved,
         }

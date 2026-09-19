@@ -30,12 +30,13 @@ The LpProblem Class
 
    .. attribute:: status 
 
-      The return :data:`status <pulp.constants.LpStatus>`
-      of the problem from the solver.
+      Deprecated, use :meth:`getSolverStatus` or :meth:`getSolutionStatus`.
 
    Some of the more important methods:
 
    .. automethod:: solve
+   .. automethod:: getSolverStatus
+   .. automethod:: getSolutionStatus
    .. automethod:: roundSolution
    .. automethod:: setObjective
    .. automethod:: writeLP

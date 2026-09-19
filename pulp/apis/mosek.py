@@ -307,5 +307,9 @@ class MOSEK(LpSolver):
             if self.msg:
                 self.task.solutionsummary(mosek.streamtype.msg)
             self.findSolutionValues(lp)
-            lp.assignStatus(self.solution_status_dict[self.solsta])
-            return lp.status
+            status = self.solution_status_dict[self.solsta]
+            sol_status = None
+            if self.solsta in (mosek.solsta.prim_feas, mosek.solsta.prim_and_dual_feas):
+                sol_status = constants.LpSolutionIntegerFeasible
+            lp.assignStatus(status, sol_status)
+            return status

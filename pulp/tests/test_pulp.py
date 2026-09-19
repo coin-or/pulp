@@ -620,6 +620,34 @@ class PuLPModelTest(unittest.TestCase):
         self.assertRaises(const.PulpError, lambda: t.assignStatus(Invalid))
         self.assertRaises(const.PulpError, lambda: t.assignStatus(0, Invalid))
 
+    def test_solver_and_solution_status(self):
+        prob = LpProblem("test")
+        self.assertEqual(prob.getSolverStatus(), const.LpStatusNotSolved)
+        self.assertEqual(prob.getSolutionStatus(), const.LpSolutionNoSolutionFound)
+        prob.assignStatus(const.LpStatusTimeLimit, const.LpSolutionIntegerFeasible)
+        self.assertEqual(prob.getSolverStatus(), const.LpStatusTimeLimit)
+        self.assertEqual(prob.getSolutionStatus(), const.LpSolutionIntegerFeasible)
+        self.assertEqual(const.LpStatus[prob.getSolverStatus()], "Time Limit")
+        with self.assertWarns(DeprecationWarning):
+            self.assertEqual(prob.status, const.LpStatusTimeLimit)
+
+    def test_assignStatus_default_solution_status(self):
+        prob = LpProblem("test")
+        for status in (
+            const.LpStatusNotSolved,
+            const.LpStatusUndefined,
+            const.LpStatusTimeLimit,
+            const.LpStatusMemoryLimit,
+            const.LpStatusNodeLimit,
+        ):
+            prob.assignStatus(status)
+            self.assertEqual(prob.getSolverStatus(), status)
+            self.assertEqual(prob.getSolutionStatus(), const.LpSolutionNoSolutionFound)
+        prob.assignStatus(const.LpStatusOptimal)
+        self.assertEqual(prob.getSolutionStatus(), const.LpSolutionOptimal)
+        prob.assignStatus(const.LpStatusInfeasible)
+        self.assertEqual(prob.getSolutionStatus(), const.LpSolutionInfeasible)
+
     def test_makeDict_behavior(self):
         """
         Test if makeDict is returning the expected value.

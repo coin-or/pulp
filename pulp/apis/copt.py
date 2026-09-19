@@ -21,9 +21,12 @@ from ..constants import (
     LpInteger,
     LpMaximize,
     LpMinimize,
+    LpSolutionIntegerFeasible,
     LpStatusInfeasible,
+    LpStatusNodeLimit,
     LpStatusNotSolved,
     LpStatusOptimal,
+    LpStatusTimeLimit,
     LpStatusUnbounded,
     LpStatusUndefined,
 )
@@ -176,8 +179,7 @@ class COPT_CMD(LpSolver_CMD):
         if status == LpStatusOptimal:
             lp.assignVarsVals(values)
 
-        # lp.assignStatus(status)
-        lp.status = status
+        lp.assignStatus(status)
 
         return status
 
@@ -263,8 +265,8 @@ coptlpstat = {
     3: LpStatusUnbounded,
     4: LpStatusNotSolved,
     5: LpStatusNotSolved,
-    6: LpStatusNotSolved,
-    8: LpStatusNotSolved,
+    6: LpStatusNodeLimit,
+    8: LpStatusTimeLimit,
     9: LpStatusNotSolved,
     10: LpStatusNotSolved,
 }
@@ -703,8 +705,9 @@ class COPT_DLL(LpSolver):
                 lp.assignConsPi(con_pi)
                 lp.assignConsSlack(con_slack)
 
-            lp.status = coptlpstat.get(status.value, LpStatusUndefined)
-            return lp.status
+            status = coptlpstat.get(status.value, LpStatusUndefined)
+            lp.assignStatus(status)
+            return status
 
         def write(self, filename):
             """
@@ -930,9 +933,9 @@ class COPT(LpSolver):
                 coptpy.COPT.UNBOUNDED: LpStatusUnbounded,
                 coptpy.COPT.INF_OR_UNB: LpStatusUndefined,
                 coptpy.COPT.NUMERICAL: LpStatusNotSolved,
-                coptpy.COPT.NODELIMIT: LpStatusNotSolved,
+                coptpy.COPT.NODELIMIT: LpStatusNodeLimit,
                 coptpy.COPT.IMPRECISE: LpStatusNotSolved,
-                coptpy.COPT.TIMEOUT: LpStatusNotSolved,
+                coptpy.COPT.TIMEOUT: LpStatusTimeLimit,
                 coptpy.COPT.UNFINISHED: LpStatusNotSolved,
                 coptpy.COPT.INTERRUPTED: LpStatusNotSolved,
             }
@@ -941,8 +944,11 @@ class COPT(LpSolver):
                 print("COPT status=", solutionStatus)
 
             status = CoptLpStatus.get(solutionStatus, LpStatusUndefined)
-            lp.assignStatus(status)
             hasMipSol = model.ismip and model.getAttr("HasMipSol")
+            sol_status = None
+            if status != LpStatusOptimal and hasMipSol:
+                sol_status = LpSolutionIntegerFeasible
+            lp.assignStatus(status, sol_status)
             if status != LpStatusOptimal and not hasMipSol:
                 return status
 

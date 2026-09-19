@@ -50,7 +50,7 @@ class LpProblem:
             name = name.replace(" ", "_")
         self.name = name
         self._sense = sense
-        self.status = const.LpStatusNotSolved
+        self._status = const.LpStatusNotSolved
         self.sol_status = const.LpSolutionNoSolutionFound
         self.solver = None
         self.solverModel = None
@@ -330,7 +330,7 @@ class LpProblem:
         p.name = source.name
         p._sense = source._sense
         p._model = source._model.copy_model()
-        p.status = source.status
+        p._status = source._status
         p.sol_status = source.sol_status
         p.solver = source.solver
         p.solverModel = source.solverModel
@@ -382,7 +382,7 @@ class LpProblem:
             parameters=mpslp.MPSParameters(
                 name=self.name,
                 sense=self.sense,
-                status=self.status,
+                status=self._status,
                 sol_status=self.sol_status,
             ),
             sos1=s1,
@@ -421,7 +421,7 @@ class LpProblem:
 
         # we instantiate the problem
         pb = cls(name=mps.parameters.name, sense=mps.parameters.sense)
-        pb.status = mps.parameters.status
+        pb._status = mps.parameters.status
         pb.sol_status = mps.parameters.sol_status
 
         # recreate the variables.
@@ -968,8 +968,8 @@ class LpProblem:
     def assignStatus(self, status: int, sol_status: int | None = None) -> bool:
         """
         Sets the status of the model after solving.
-        :param status: code for the status of the model
-        :param sol_status: code for the status of the solution
+        :param status: code for the status of the solver, see :data:`~pulp.constants.LpStatus`
+        :param sol_status: code for the status of the solution, see :data:`~pulp.constants.LpSolution`
         :return:
         """
         if status not in const.LpStatus:
@@ -978,10 +978,42 @@ class LpProblem:
         if sol_status is not None and sol_status not in const.LpSolution:
             raise const.PulpError("Invalid solution status code: " + str(sol_status))
 
-        self.status = status
+        self._status = status
         if sol_status is None:
             sol_status = const.LpStatusToSolution.get(
                 status, const.LpSolutionNoSolutionFound
             )
         self.sol_status = sol_status
         return True
+
+    def getSolverStatus(self) -> int:
+        """
+        Why the solver stopped: optimal, infeasible, unbounded, a time, node or
+        memory limit, or not solved. Keys of :data:`~pulp.constants.LpStatus`.
+        """
+        return self._status
+
+    def getSolutionStatus(self) -> int:
+        """
+        What the solver returned: an optimal solution, a feasible one, none, or a
+        proof that none exists. Keys of :data:`~pulp.constants.LpSolution`.
+        """
+        return self.sol_status
+
+    @property
+    def status(self) -> int:
+        """
+        Deprecated. Use :meth:`getSolverStatus` for why the solver stopped and
+        :meth:`getSolutionStatus` for whether it returned a usable solution.
+        """
+        warnings.warn(
+            "LpProblem.status is deprecated, use LpProblem.getSolverStatus() "
+            "or LpProblem.getSolutionStatus() instead",
+            category=DeprecationWarning,
+            stacklevel=2,
+        )
+        return self._status
+
+    @status.setter
+    def status(self, value: int) -> None:
+        self._status = value

@@ -184,9 +184,10 @@ used to specify which solver to use (e.g ``prob.solve(CPLEX())`` ):
     :end-before: # END prob_solve
 
 Now the results of the solver call can be displayed as output to
-us. Firstly, we request the status of the solution, which can be one of
-"Not Solved", "Infeasible", "Unbounded", "Undefined" or "Optimal". The
-value of ``prob`` (:attr:`pulp.pulp.LpProblem.status`) is returned as an integer, which must be converted
+us. Firstly, we request why the solver stopped, which can be one of
+"Not Solved", "Infeasible", "Unbounded", "Undefined", "Optimal", "Time Limit",
+"Node Limit" or "Memory Limit". :meth:`pulp.pulp.LpProblem.getSolverStatus`
+returns it as an integer, which must be converted
 to its significant text meaning using the
 :attr:`~pulp.constants.LpStatus` dictionary. Since
 :attr:`~pulp.constants.LpStatus` is a dictionary(:obj:`dict`), its input must be in square brackets:

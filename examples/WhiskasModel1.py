@@ -49,7 +49,7 @@ prob.solve()
 
 # BEGIN print_status
 # The status of the solution is printed to the screen
-print("Status:", LpStatus[prob.status])
+print("Status:", LpStatus[prob.getSolverStatus()])
 # END print_status
 
 # BEGIN print_var_value

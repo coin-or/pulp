@@ -2,6 +2,7 @@
 
 import os
 import re
+import unittest
 from typing import ClassVar
 
 import pulp.apis as solvers
@@ -257,6 +258,57 @@ class COIN_CMD_CBCOptionsTest(BaseSolverTest.PuLPTest):
             command_line, option="randomSeed", grp_pattern="\\d+"
         )
         self.assertEqual("20", option_value)
+
+
+class COIN_CMDStatusTest(unittest.TestCase):
+    """The first line of a CBC solution file decides both statuses."""
+
+    def test_parse_status(self):
+        cases = {
+            "Optimal - objective value 5.00000000": (
+                const.LpStatusOptimal,
+                const.LpSolutionOptimal,
+            ),
+            "Optimal (within gap tolerance) - objective value 5.00000000": (
+                const.LpStatusOptimal,
+                const.LpSolutionOptimal,
+            ),
+            "Infeasible - objective value 0.00000000": (
+                const.LpStatusInfeasible,
+                const.LpSolutionInfeasible,
+            ),
+            "Integer infeasible - objective value 0.00000000": (
+                const.LpStatusInfeasible,
+                const.LpSolutionInfeasible,
+            ),
+            "Unbounded - objective value 0.00000000": (
+                const.LpStatusUnbounded,
+                const.LpSolutionUnbounded,
+            ),
+            "Stopped on time - objective value 7.00000000": (
+                const.LpStatusTimeLimit,
+                const.LpSolutionIntegerFeasible,
+            ),
+            "Stopped on time (no integer solution - continuous used) - objective value 3.5": (
+                const.LpStatusTimeLimit,
+                const.LpSolutionNoSolutionFound,
+            ),
+            "Stopped on iterations - objective value 7.00000000": (
+                const.LpStatusNotSolved,
+                const.LpSolutionIntegerFeasible,
+            ),
+            "Stopped on ctrl-c (no integer solution - continuous used) - objective value 3.5": (
+                const.LpStatusNotSolved,
+                const.LpSolutionNoSolutionFound,
+            ),
+            "Status unknown - objective value 0.00000000": (
+                const.LpStatusUndefined,
+                const.LpSolutionNoSolutionFound,
+            ),
+        }
+        for line, expected in cases.items():
+            with self.subTest(line=line):
+                self.assertEqual(solvers.COIN_CMD.parse_status(line), expected)
 
 
 class COIN_CMDTest(BaseSolverTest.PuLPTest):

@@ -70,10 +70,12 @@ If you want to try another solver to solve the problem::
 
      status = prob.solve(GLPK(msg = 0))
 
-Display the status of the solution::
+Display why the solver stopped and what it returned::
 
-     LpStatus[status]
+     LpStatus[prob.getSolverStatus()]
      > 'Optimal'
+     LpSolution[prob.getSolutionStatus()]
+     > 'Optimal Solution Found'
 
 You can get the value of the variables using ``value``. ex::
 
