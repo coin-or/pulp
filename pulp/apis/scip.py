@@ -26,8 +26,10 @@
 
 from __future__ import annotations
 
+import glob
 import operator
 import os
+import shutil
 import warnings
 from typing import TYPE_CHECKING, Any
 
@@ -307,8 +309,8 @@ class FSCIP_CMD(LpSolver_CMD):
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute " + self.path)
 
-        tmpLp, tmpSol, tmpOptions, tmpParams = self.create_tmp_files(
-            lp.name, "lp", "sol", "set", "prm"
+        tmpLp, tmpSol, tmpOptions, tmpParams, tmpLog = self.create_tmp_files(
+            lp.name, "lp", "sol", "set", "prm", "log"
         )
         lp.writeLP(tmpLp)
 
@@ -337,7 +339,7 @@ class FSCIP_CMD(LpSolver_CMD):
         if not self.msg:
             command.append("-q")
         if "logPath" in self.optionsDict:
-            command.extend(["-l", self.optionsDict["logPath"]])
+            command.extend(["-l", tmpLog])
         if "threads" in self.optionsDict:
             command.extend(["-sth", f"{self.optionsDict['threads']}"])
 
@@ -375,6 +377,9 @@ class FSCIP_CMD(LpSolver_CMD):
         if pipe is not None:
             pipe.close()
 
+        if "logPath" in self.optionsDict:
+            self._merge_log_files(tmpLog, self.optionsDict["logPath"])
+
         if not os.path.exists(tmpSol):
             raise PulpSolverError("PuLP: Error while executing " + self.path)
         status, values = self.readsol(tmpSol)
@@ -383,8 +388,23 @@ class FSCIP_CMD(LpSolver_CMD):
 
         lp.assignVarsVals(finalVals)
         lp.assignStatus(status)
-        self.delete_tmp_files(tmpLp, tmpSol, tmpOptions, tmpParams)
+        self.delete_tmp_files(tmpLp, tmpSol, tmpOptions, tmpParams, tmpLog)
         return status
+
+    @staticmethod
+    def _merge_log_files(log_prefix: str, log_path: str) -> None:
+        """Merge FiberSCIP's per-rank logs into the requested log file."""
+        rank_logs = []
+        for filename in glob.glob(f"{glob.escape(log_prefix)}[0-9]*"):
+            rank = filename[len(log_prefix) :]
+            if rank.isdigit():
+                rank_logs.append((int(rank), filename))
+
+        with open(log_path, "ab") as output:
+            for _, filename in sorted(rank_logs):
+                with open(filename, "rb") as rank_log:
+                    shutil.copyfileobj(rank_log, output)
+                os.remove(filename)
 
     @staticmethod
     def parse_status(string: str) -> int | None:

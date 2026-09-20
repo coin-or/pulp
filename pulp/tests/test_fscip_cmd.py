@@ -1,5 +1,8 @@
 """Unit tests for fscip_cmd solver."""
 
+import os
+import tempfile
+import unittest
 from typing import ClassVar
 
 import pulp.apis as solvers
@@ -10,6 +13,33 @@ from pulp.tests.solver_common import (
     PulpTestConfig,
     _status,
 )
+
+
+class FSCIPLogTest(unittest.TestCase):
+    def test_merge_rank_logs(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            log_prefix = os.path.join(tmp_dir, "fscip.log.")
+            log_path = os.path.join(tmp_dir, "fscip.log")
+
+            with open(log_path, "wb") as log_file:
+                log_file.write(b"existing\n")
+            for rank, content in [
+                (10, b"rank 10\n"),
+                (0, b"rank 0\n"),
+                (2, b"rank 2\n"),
+            ]:
+                with open(f"{log_prefix}{rank}", "wb") as rank_log:
+                    rank_log.write(content)
+
+            solvers.FSCIP_CMD._merge_log_files(log_prefix, log_path)
+
+            with open(log_path, "rb") as log_file:
+                self.assertEqual(
+                    log_file.read(),
+                    b"existing\nrank 0\nrank 2\nrank 10\n",
+                )
+            for rank in (0, 2, 10):
+                self.assertFalse(os.path.exists(f"{log_prefix}{rank}"))
 
 
 class FSCIP_CMDTest(BaseSolverTest.PuLPTest):
@@ -29,6 +59,7 @@ class FSCIP_CMDTest(BaseSolverTest.PuLPTest):
         ),
         "test_invalid_var_names": PulpTestConfig(skip=True),
         "test_long_var_name": PulpTestConfig(allow_pulp_error=True),
+        "test_logPath": PulpTestConfig(skip=False, check_log_path=True),
         "test_options_parsing_SCIP_HIGHS": PulpTestConfig(skip=False),
         "test_unbounded": PulpTestConfig(
             skip=True,
