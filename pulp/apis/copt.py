@@ -177,7 +177,7 @@ class COPT_CMD(LpSolver_CMD):
             lp.assignVarsVals(values)
 
         # lp.assignStatus(status)
-        lp.status = status
+        lp._stats.status = status
 
         return status
 
@@ -703,8 +703,8 @@ class COPT_DLL(LpSolver):
                 lp.assignConsPi(con_pi)
                 lp.assignConsSlack(con_slack)
 
-            lp.status = coptlpstat.get(status.value, LpStatusUndefined)
-            return lp.status
+            lp._stats.status = coptlpstat.get(status.value, LpStatusUndefined)
+            return lp._stats.status
 
         def write(self, filename):
             """

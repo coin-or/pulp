@@ -308,4 +308,4 @@ class MOSEK(LpSolver):
                 self.task.solutionsummary(mosek.streamtype.msg)
             self.findSolutionValues(lp)
             lp.assignStatus(self.solution_status_dict[self.solsta])
-            return lp.status
+            return lp._stats.status

@@ -38,12 +38,24 @@ import os
 import platform
 import shutil
 import sys
+import tempfile
 from time import time
 
 
 def clock() -> float:
     """Wall-clock seconds (for solver timing)."""
     return time()
+
+
+def cpu_clock() -> float:
+    """CPU seconds burned by this process and the child processes it waited on.
+
+    Command line solvers run in a subprocess, so their CPU time only shows up in the
+    ``children_*`` fields, and only on platforms that report them (they stay at zero
+    on Windows).
+    """
+    t = os.times()
+    return t.user + t.system + t.children_user + t.children_system
 
 
 def get_operating_system() -> str:
@@ -66,6 +78,7 @@ def get_arch() -> str:
 operating_system = get_operating_system()
 arch = get_arch()
 
+import contextlib
 import logging
 from collections.abc import Iterator
 from typing import TYPE_CHECKING, Any
@@ -108,6 +121,15 @@ class LpSolver:
     """A generic LP Solver"""
 
     name = "LpSolver"
+
+    #: orloge dialect this solver's log file speaks, if orloge can read it at all.
+    #: ``None`` means :meth:`capture_log` will not try to collect a log.
+    logDialect: str | None = None
+
+    #: True when handing the solver a ``logPath`` sends its output to the file
+    #: *instead of* the console, so :meth:`capture_log` has to echo the log back
+    #: afterwards to keep ``msg=True`` behaving as the caller expects.
+    logPathSilencesMsg: bool = False
 
     def __init__(
         self,
@@ -155,9 +177,58 @@ class LpSolver:
         aCopy.options = self.options
         return aCopy
 
-    def solve(self, lp: LpProblem) -> int:
+    def solve(self, lp: LpProblem, stats: bool = False) -> Any:
         """Solve the problem lp"""
-        return lp.solve(self)
+        return lp.solve(self, stats=stats)
+
+    def silent_remove(self, file: str | bytes | os.PathLike) -> None:
+        try:
+            os.remove(file)
+        except (FileNotFoundError, PermissionError):
+            pass
+
+    def _echo_log(self, path: str) -> None:
+        """Print a captured log, standing in for the console output ``logPath`` ate."""
+        try:
+            with open(path, errors="replace") as f:
+                sys.stdout.write(f.read())
+        except OSError:
+            pass
+
+    @contextlib.contextmanager
+    def capture_log(self) -> Iterator[str | None]:
+        """Ensure a parseable solver log exists for the duration of the block.
+
+        Yields the path to the log file, or ``None`` when this solver cannot produce
+        one that orloge understands. A log the caller asked for through ``logPath``
+        is used as-is and left in place; a log this method arranges itself goes to a
+        temporary file that is removed on the way out, so read it before the block
+        ends.
+        """
+        if self.logDialect is None:
+            yield None
+            return
+        existing = self.optionsDict.get("logPath")
+        if existing:
+            yield existing
+            return
+
+        fd, path = tempfile.mkstemp(suffix="-pulp.log")
+        os.close(fd)
+        msg = self.msg
+        self.optionsDict["logPath"] = path
+        if self.logPathSilencesMsg:
+            # otherwise the solver warns that logPath replaces msg=1, and we would
+            # swallow output the caller explicitly asked to see
+            self.msg = False
+        try:
+            yield path
+        finally:
+            self.optionsDict.pop("logPath", None)
+            self.msg = msg
+            if self.logPathSilencesMsg and msg:
+                self._echo_log(path)
+            self.silent_remove(path)
 
     # TODO: Not sure if this code should be here or in a child class
     def getCplexStyleArrays(
@@ -382,12 +453,6 @@ class LpSolver_CMD(LpSolver):
         else:
             prefix = os.path.join(self.tmpDir, uuid4().hex)
         return (f"{prefix}-pulp.{n}" for n in args)
-
-    def silent_remove(self, file: str | bytes | os.PathLike) -> None:
-        try:
-            os.remove(file)
-        except FileNotFoundError:
-            pass
 
     def delete_tmp_files(self, *args: str) -> None:
         if self.keepFiles:

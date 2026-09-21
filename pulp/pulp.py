@@ -127,6 +127,7 @@ __all__ = (
     "LpAffineExpression",
     "LpConstraint",
     "LpProblem",
+    "LpSolveStats",
     "LpVariable",
     "const",
     "log",

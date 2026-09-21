@@ -52,6 +52,9 @@ class GUROBI(LpSolver):
     """
 
     name = "GUROBI"
+    # no logPathSilencesMsg: msg=False sets OutputFlag=0, which empties the log file
+    # as well as the console
+    logDialect = "GUROBI"
     env = None
 
     try:
@@ -278,6 +281,33 @@ class GUROBI(LpSolver):
             lp.solverModel.optimize(callback=callback)
             self.solveTime += clock()
 
+        def _silence(self, solverModel):
+            """Apply ``msg=False``, without also emptying the log file.
+
+            ``OutputFlag=0`` turns off every kind of logging, the file included, and
+            ``__init__`` already put it on the environment. When a log file was asked
+            for, turn logging back on at the model level and silence the console
+            alone, so ``msg=False`` still leaves something to parse.
+            """
+            if self.msg:
+                return
+            if self.optionsDict.get("logPath"):
+                # silence the console first: doing it the other way round briefly
+                # enables output and Gurobi echoes the parameter change
+                solverModel.setParam("LogToConsole", 0)
+                solverModel.setParam("OutputFlag", 1)
+            else:
+                solverModel.setParam("OutputFlag", 0)
+
+        def _set_log_file(self, solverModel, logPath):
+            """Point Gurobi at a log file without echoing the path to the console."""
+            console = solverModel.Params.LogToConsole
+            if console:
+                solverModel.setParam("LogToConsole", 0)
+            solverModel.setParam("LogFile", logPath)
+            if console:
+                solverModel.setParam("LogToConsole", console)
+
         def buildSolverModel(self, lp: LpProblem):
             """
             Takes the pulp lp model and translates it into a gurobi model
@@ -287,8 +317,7 @@ class GUROBI(LpSolver):
             assert self.model is not None
             self.model.ModelName = lp.name
             lp.solverModel = self.model
-            if not self.msg:
-                lp.solverModel.setParam("OutputFlag", 0)
+            self._silence(lp.solverModel)
             log.debug("set the sense of the problem")
             if lp.sense == constants.LpMaximize:
                 lp.solverModel.setAttr("ModelSense", -1)
@@ -299,7 +328,7 @@ class GUROBI(LpSolver):
             if gapRel:
                 lp.solverModel.setParam("MIPGap", gapRel)
             if logPath:
-                lp.solverModel.setParam("LogFile", logPath)
+                self._set_log_file(lp.solverModel, logPath)
 
             log.debug("add the variables to the problem")
             lp.solverModel.update()
@@ -316,8 +345,7 @@ class GUROBI(LpSolver):
                 assert self.model is not None
                 self.model.ModelName = lp.name
                 lp.solverModel = self.model
-                if not self.msg:
-                    lp.solverModel.setParam("OutputFlag", 0)
+                self._silence(lp.solverModel)
                 if lp.sense == constants.LpMaximize:
                     lp.solverModel.setAttr("ModelSense", -1)
                 if self.timeLimit:
@@ -327,7 +355,7 @@ class GUROBI(LpSolver):
                 if gapRel:
                     lp.solverModel.setParam("MIPGap", gapRel)
                 if logPath:
-                    lp.solverModel.setParam("LogFile", logPath)
+                    self._set_log_file(lp.solverModel, logPath)
                 nvars = 0
 
             if nvars == 0:
@@ -400,6 +428,7 @@ class GUROBI_CMD(LpSolver_CMD):
     """The GUROBI_CMD solver"""
 
     name = "GUROBI_CMD"
+    logDialect = "GUROBI"
 
     def __init__(
         self,

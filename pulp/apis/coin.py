@@ -77,6 +77,9 @@ class COIN_CMD(LpSolver_CMD):
     """
 
     name = "COIN_CMD"
+    logDialect = "CBC"
+    # logPath takes over the subprocess pipe, so nothing reaches the console
+    logPathSilencesMsg = True
 
     def defaultPath(self):
         return _default_cbc_executable()
@@ -671,7 +674,7 @@ class COINMP_DLL(LpSolver):
             constraintpivalues = {}
             constraintslackvalues = {}
             if lp.isMIP() and self.mip:
-                lp.bestBound = self.lib.CoinGetMipBestBound(hProb)
+                lp._stats.best_bound = self.lib.CoinGetMipBestBound(hProb)
             for i in range(numVars):
                 variablevalues[self.n2v[i].name] = cActivity[i]
                 variabledjvalues[self.n2v[i].name] = cReducedCost[i]

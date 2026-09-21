@@ -42,6 +42,7 @@ dev = [
     "sphinx-rtd-theme",
     "ty",
     "numpy",
+    "orloge",
 ]
 
 [tool.maturin]
@@ -89,6 +90,7 @@ allowed-unresolved-imports = [
     "coptpy", "coptpy.**",
     "highspy", "highspy.**",
     "pyscipopt", "pyscipopt.**",
+    "orloge", "orloge.**",
 ]
 [tool.ty.rules]
 possibly-missing-attribute = "warn"
@@ -133,6 +135,8 @@ required-environments = [
 
 
 [project.optional-dependencies]
+# parses solver logs into the LpSolveStats returned by solve(stats=True)
+logs = ["orloge"]
 open_py = ["highspy<1.14", "pyscipopt", "cbcbox"]
 public_py = ["gurobipy", "coptpy; python_full_version < '3.14'", 'xpress', "cplex; sys_platform != 'darwin' or platform_machine == 'arm64'"]
 highs = ["highspy<1.14"]

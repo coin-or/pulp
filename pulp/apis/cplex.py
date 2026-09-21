@@ -26,6 +26,7 @@ class CPLEX_CMD(LpSolver_CMD):
     """The CPLEX LP solver"""
 
     name = "CPLEX_CMD"
+    logDialect = "CPLEX"
 
     def __init__(
         self,
@@ -314,6 +315,9 @@ class CPLEX_PY(LpSolver):
     """
 
     name = "CPLEX_PY"
+    logDialect = "CPLEX"
+    # setlogfile() redirects the stream, leaving the console empty
+    logPathSilencesMsg = True
 
     def __init__(
         self,
