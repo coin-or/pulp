@@ -813,7 +813,7 @@ class PuLPModelTest(unittest.TestCase):
     #     status = prob.solve(self.solver)
     #     self.assertEqual(prob.status, const.LpStatusNotSolved)
     #     self.assertEqual(status, const.LpStatusNotSolved)
-    #     self.assertEqual(prob.sol_status, const.LpSolutionNoSolutionFound)
+    #     self.assertFalse(prob.stats.has_solution)
 
     def test_LpVariable_indexs_param(self):
         """

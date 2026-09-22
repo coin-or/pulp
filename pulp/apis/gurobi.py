@@ -54,7 +54,6 @@ class GUROBI(LpSolver):
     name = "GUROBI"
     # no logPathSilencesMsg: msg=False sets OutputFlag=0, which empties the log file
     # as well as the console
-    logDialect = "GUROBI"
     env = None
 
     try:
@@ -428,7 +427,6 @@ class GUROBI_CMD(LpSolver_CMD):
     """The GUROBI_CMD solver"""
 
     name = "GUROBI_CMD"
-    logDialect = "GUROBI"
 
     def __init__(
         self,

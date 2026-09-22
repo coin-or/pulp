@@ -122,10 +122,6 @@ class LpSolver:
 
     name = "LpSolver"
 
-    #: orloge dialect this solver's log file speaks, if orloge can read it at all.
-    #: ``None`` means :meth:`capture_log` will not try to collect a log.
-    logDialect: str | None = None
-
     #: True when handing the solver a ``logPath`` sends its output to the file
     #: *instead of* the console, so :meth:`capture_log` has to echo the log back
     #: afterwards to keep ``msg=True`` behaving as the caller expects.
@@ -205,7 +201,10 @@ class LpSolver:
         temporary file that is removed on the way out, so read it before the block
         ends.
         """
-        if self.logDialect is None:
+        # deferred: pulp.core imports pulp.apis, so this can't be a module-level import
+        from ..core.lp_stats import dialect_for_solver
+
+        if dialect_for_solver(self.name) is None:
             yield None
             return
         existing = self.optionsDict.get("logPath")

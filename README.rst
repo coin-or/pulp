@@ -36,7 +36,7 @@ PuLP is part of the `COIN-OR project <https://www.coin-or.org/>`_.
 Installation
 ================
 
-PuLP requires Python 3.10 or newer.
+PuLP requires Python 3.12 or newer.
 
 **Recommended:** install with CBC support::
 
@@ -167,7 +167,7 @@ This version of PuLP includes a Rust extension (``pulp._rustcore``) that provide
 
 **Requirements**
 
-* **Python** 3.10 or newer
+* **Python** 3.12 or newer
 * **Rust** (latest stable). Install from https://rustup.rs/
 * **uv** (recommended for install and dev). See the `uv documentation <https://docs.astral.sh/uv/>`_ for installation.
 * **OS**: Windows, macOS (x86_64, arm64), or Linux (x86_64, arm64). The Rust extension is built for the host platform.

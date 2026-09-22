@@ -77,7 +77,6 @@ class COIN_CMD(LpSolver_CMD):
     """
 
     name = "COIN_CMD"
-    logDialect = "CBC"
     # logPath takes over the subprocess pipe, so nothing reaches the console
     logPathSilencesMsg = True
 

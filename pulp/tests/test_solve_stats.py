@@ -10,13 +10,12 @@ import os
 import tempfile
 import unittest
 import warnings
-from importlib.util import find_spec
 
 import pulp.apis as solvers
 from pulp import LpProblem, LpSolveStats
 from pulp import constants as const
 from pulp.core import lp_problem
-from pulp.core.lp_stats import parse_logs
+from pulp.core.lp_stats import dialect_for_solver, parse_logs
 
 
 class SolveStatsTest(unittest.TestCase):
@@ -48,9 +47,8 @@ class SolveStatsTest(unittest.TestCase):
         _, stats = self._solve()
         self.assertIsInstance(stats, LpSolveStats)
         self.assertEqual(stats.status, const.LpStatusOptimal)
-        self.assertEqual(stats.sol_status, const.LpSolutionOptimal)
         self.assertEqual(stats.status_str, "Optimal")
-        self.assertEqual(stats.feasible, 1)
+        self.assertIs(stats.has_solution, True)
         self.assertEqual(stats.solver, self.solver.name)
         self.assertAlmostEqual(stats.objective, 12, places=4)
 
@@ -97,7 +95,6 @@ class SolveStatsTest(unittest.TestCase):
         prob, stats = self._solve()
         for name, expected in (
             ("status", stats.status),
-            ("sol_status", stats.sol_status),
             ("solutionTime", stats.time),
             ("solutionCpuTime", stats.cpu_time),
             ("bestBound", stats.best_bound),
@@ -123,12 +120,12 @@ class SolveStatsTest(unittest.TestCase):
         prob += x
         stats = prob.solve(self.solver, stats=True)
         self.assertIn(stats.status, (const.LpStatusInfeasible, const.LpStatusUndefined))
-        self.assertEqual(stats.feasible, 0)
+        self.assertIs(stats.has_solution, False)
 
     def test_unsolved_problem_has_empty_stats(self):
         prob = self._problem()
         self.assertEqual(prob.stats.status, const.LpStatusNotSolved)
-        self.assertEqual(prob.stats.feasible, 0)
+        self.assertIs(prob.stats.has_solution, False)
         self.assertIsNone(prob.stats.logs)
 
     def test_gap_is_zero_at_the_optimum(self):
@@ -143,7 +140,7 @@ class SolveStatsTest(unittest.TestCase):
         data = stats.toDict()
         self.assertNotIn("logs", data)
         self.assertEqual(data["status"], stats.status)
-        self.assertEqual(data["feasible"], 1)
+        self.assertIs(data["has_solution"], True)
         self.assertEqual(data["status_str"], "Optimal")
         self.assertEqual(data["solver"], self.solver.name)
 
@@ -162,6 +159,7 @@ class SolveStatsTest(unittest.TestCase):
             os.remove(filename)
         self.assertEqual(data["status"], stats.status)
         self.assertEqual(data["solver"], stats.solver)
+        self.assertNotIn("logs", data)
 
     def test_str_mentions_the_solver_and_status(self):
         _, stats = self._solve()
@@ -178,11 +176,13 @@ class SolveStatsTest(unittest.TestCase):
         state = prob.__getstate__()
         state.pop("_stats")
         state["status"] = const.LpStatusInfeasible
+        state["sol_status"] = const.LpSolutionIntegerFeasible
         state["solutionTime"] = 1.5
         state["bestBound"] = 3.0
         restored = LpProblem.__new__(LpProblem)
         restored.__setstate__(state)
         self.assertEqual(restored.stats.status, const.LpStatusInfeasible)
+        self.assertIs(restored.stats.has_solution, True)
         self.assertEqual(restored.stats.time, 1.5)
         self.assertEqual(restored.stats.best_bound, 3.0)
 
@@ -200,7 +200,7 @@ class SolveStatsTest(unittest.TestCase):
         self.assertEqual(set(glob.glob(pattern)) - before, set())
 
     def test_a_user_log_path_is_kept(self):
-        if self.solver.logDialect is None:
+        if dialect_for_solver(self.solver.name) is None:
             self.skipTest(f"{self.solver.name} writes no parseable log")
         log_path = os.path.join(tempfile.mkdtemp(), "solver.log")
         solver = self.solver.copy()
@@ -209,9 +209,8 @@ class SolveStatsTest(unittest.TestCase):
         self.assertTrue(os.path.isfile(log_path))
         os.remove(log_path)
 
-    @unittest.skipIf(find_spec("orloge") is None, "orloge is not installed")
     def test_logs_are_parsed_without_a_log_path(self):
-        if self.solver.logDialect is None:
+        if dialect_for_solver(self.solver.name) is None:
             self.skipTest(f"{self.solver.name} writes no parseable log")
         _, stats = self._solve()
         self.assertIsInstance(stats.logs, dict)
@@ -222,9 +221,8 @@ class SolveStatsTest(unittest.TestCase):
         self.assertIsNotNone(stats.matrix)
         self.assertIn("variables", stats.matrix)
 
-    @unittest.skipIf(find_spec("orloge") is None, "orloge is not installed")
     def test_best_bound_falls_back_to_the_log(self):
-        if self.solver.logDialect is None:
+        if dialect_for_solver(self.solver.name) is None:
             self.skipTest(f"{self.solver.name} writes no parseable log")
         _, stats = self._solve()
         # COIN_CMD reports no bound itself, so this can only come from the log
@@ -251,16 +249,46 @@ class SolveStatsTest(unittest.TestCase):
 class SolveStatsUnitTest(unittest.TestCase):
     """Tests for LpSolveStats itself, needing no solver."""
 
-    def test_feasible_flag(self):
+    def test_has_solution_follows_the_solution_code(self):
         for sol_status, expected in (
-            (const.LpSolutionOptimal, 1),
-            (const.LpSolutionIntegerFeasible, 1),
-            (const.LpSolutionNoSolutionFound, 0),
-            (const.LpSolutionInfeasible, 0),
-            (const.LpSolutionUnbounded, 0),
+            (const.LpSolutionOptimal, True),
+            (const.LpSolutionIntegerFeasible, True),
+            (const.LpSolutionNoSolutionFound, False),
+            (const.LpSolutionInfeasible, False),
+            (const.LpSolutionUnbounded, False),
         ):
             with self.subTest(sol_status=sol_status):
-                self.assertEqual(LpSolveStats(sol_status=sol_status).feasible, expected)
+                prob = LpProblem("p")
+                prob.assignStatus(const.LpStatusNotSolved, sol_status)
+                self.assertIs(prob.stats.has_solution, expected)
+
+    def test_has_solution_without_a_solution_code(self):
+        for status, expected in (
+            (const.LpStatusOptimal, True),
+            (const.LpStatusNotSolved, False),
+            (const.LpStatusInfeasible, False),
+            (const.LpStatusUnbounded, False),
+            (const.LpStatusUndefined, False),
+        ):
+            with self.subTest(status=status):
+                prob = LpProblem("p")
+                prob.assignStatus(status)
+                self.assertIs(prob.stats.has_solution, expected)
+
+    def test_has_solution_survives_a_dict_roundtrip(self):
+        for status, sol_status in (
+            (const.LpStatusOptimal, const.LpSolutionOptimal),
+            (const.LpStatusNotSolved, const.LpSolutionIntegerFeasible),
+            (const.LpStatusInfeasible, const.LpSolutionInfeasible),
+        ):
+            with self.subTest(status=status, sol_status=sol_status):
+                prob = LpProblem("p")
+                x = prob.add_variable("x", 0, 1)
+                prob += x
+                prob.assignStatus(status, sol_status)
+                _, restored = LpProblem.fromDict(prob.toDict())
+                self.assertEqual(restored.stats.status, status)
+                self.assertEqual(restored.stats.has_solution, prob.stats.has_solution)
 
     def test_gap_needs_both_ends(self):
         self.assertIsNone(LpSolveStats(objective=10).gap_abs)
@@ -272,7 +300,8 @@ class SolveStatsUnitTest(unittest.TestCase):
         self.assertAlmostEqual(gap_rel, 0.2)
 
     def test_gap_rel_falls_back_to_the_solver_value(self):
-        self.assertEqual(LpSolveStats(objective=10, solver_gap=0.05).gap_rel, 0.05)
+        stats = LpSolveStats(objective=10, logs={"gap": 0.05})
+        self.assertEqual(stats.gap_rel, 0.05)
 
     def test_gap_rel_with_a_zero_objective(self):
         self.assertEqual(LpSolveStats(objective=0, best_bound=0).gap_rel, 0)
@@ -335,10 +364,14 @@ class SolveStatsUnitTest(unittest.TestCase):
         finally:
             os.remove(path)
 
+    def test_fill_from_logs_skips_empty_dicts(self):
+        stats = LpSolveStats()
+        stats.fill_from_logs({"cut_info": {}, "first_solution": None})
+        self.assertIsNone(stats.cut_info)
+        self.assertIsNone(stats.first_solution)
+
     def test_unknown_status_codes_stay_readable(self):
-        stats = LpSolveStats(status=99, sol_status=99)
-        self.assertEqual(stats.status_str, "Unknown")
-        self.assertEqual(stats.sol_status_str, "Unknown")
+        self.assertEqual(LpSolveStats(status=99).status_str, "Unknown")
 
 
 if __name__ == "__main__":

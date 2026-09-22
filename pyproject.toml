@@ -8,8 +8,11 @@ authors = [
     {name = "Franco Peschiera", email = "pchtsp@gmail.com"}
 ]
 maintainers= [{name= "Franco Peschiera", email= "pchtsp@gmail.com"}]
-dependencies = []
-requires-python = ">=3.10"
+dependencies = [
+    # parses solver logs into the LpSolveStats returned by solve(stats=True)
+    "orloge>=1.0.0",
+]
+requires-python = ">=3.12"
 readme = "README.rst"
 license = "MIT"
 license-files = ["LICENSE"]
@@ -20,8 +23,6 @@ classifiers=[
     "Natural Language :: English",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
@@ -42,7 +43,6 @@ dev = [
     "sphinx-rtd-theme",
     "ty",
     "numpy",
-    "orloge",
 ]
 
 [tool.maturin]
@@ -56,7 +56,7 @@ pulptest = "pulp.tests.run_tests:pulpTestAll"
 
 [tool.ruff]
 line-length = 88
-target-version = "py310"
+target-version = "py312"
 exclude = [".eggs", ".git", ".venv", "_build", "build", "dist", "target"]
 
 [tool.ruff.lint]
@@ -90,7 +90,6 @@ allowed-unresolved-imports = [
     "coptpy", "coptpy.**",
     "highspy", "highspy.**",
     "pyscipopt", "pyscipopt.**",
-    "orloge", "orloge.**",
 ]
 [tool.ty.rules]
 possibly-missing-attribute = "warn"
@@ -135,8 +134,6 @@ required-environments = [
 
 
 [project.optional-dependencies]
-# parses solver logs into the LpSolveStats returned by solve(stats=True)
-logs = ["orloge"]
 open_py = ["highspy<1.14", "pyscipopt", "cbcbox"]
 public_py = ["gurobipy", "coptpy; python_full_version < '3.14'", 'xpress', "cplex; sys_platform != 'darwin' or platform_machine == 'arm64'"]
 highs = ["highspy<1.14"]

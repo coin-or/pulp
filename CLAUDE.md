@@ -1,0 +1,51 @@
+---
+description: Core project conventions for PuLP development
+alwaysApply: true
+---
+
+# Project Conventions
+
+## Testing
+
+- Use `unittest` (not pytest) for writing and running unit tests.
+- Run tests via: `uv run python -m unittest discover -s pulp/tests`
+
+## Package Manager
+
+- Always use `uv` for dependency management, package installation, and running tools.
+- Do **not** manually activate the virtual environment; `uv run` handles it automatically.
+- Install packages: `uv pip install <package>`
+- Sync dependencies: `uv sync`
+- Build the project: `uv run maturin develop`
+
+## Linting and formatting
+
+- Use **ruff** for linting and formatting (not black).
+- Run: `uv run ruff check pulp` and `uv run ruff format pulp` (or `ruff format pulp --check` to only check).
+
+## Type checking
+
+- Use **ty** for type checking (not mypy or pyright).
+- Run type checks via: `uv run ty check pulp`
+
+## Rust / Cargo
+
+- Rust sources live under `pulp/rust/` (`Cargo.toml`, `src/`).
+- Always run Cargo through **uv** (do not invoke `cargo` directly).
+- Check Rust code: `uv run cargo check --manifest-path pulp/rust/Cargo.toml`
+- Build: `uv run cargo build --manifest-path pulp/rust/Cargo.toml`
+- Other subcommands: append `--manifest-path pulp/rust/Cargo.toml` to `uv run cargo <subcommand>`
+
+## Commands
+
+- Do not start commands with `cd` to move to the root directory of this project, you're already there.
+
+# Verify After Every Change
+
+After making any code change to the repo, run all three checks before considering the task done:
+
+1. **Unit tests**: `uv run python -m unittest discover -s pulp/tests`
+2. **Type checking**: `uv run ty check pulp`
+3. **Linting and formatting**: `uv run ruff check pulp` and `uv run ruff format pulp --check`
+
+If any check fails, fix the issues before proceeding. If Rust source files (`pulp/rust/src/`) were modified, run `uv run cargo check --manifest-path pulp/rust/Cargo.toml` and rebuild with `uv run maturin develop`.

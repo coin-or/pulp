@@ -57,7 +57,6 @@ class CPSAT(LpSolver):
     """
 
     name = "CPSAT"
-    logDialect = "CPSAT"
 
     def __init__(
         self,

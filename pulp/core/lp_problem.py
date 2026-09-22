@@ -26,7 +26,7 @@ from ._internal import (
 )
 from .lp_affine_expression import LpAffineExpression
 from .lp_constraint import LpConstraint
-from .lp_stats import LpSolveStats, parse_logs
+from .lp_stats import FEASIBLE_SOLUTIONS, LpSolveStats, dialect_for_solver, parse_logs
 from .lp_variable import LpVariable
 
 _STATS_DEPRECATION = (
@@ -77,8 +77,8 @@ class LpProblem:
             name = name.replace(" ", "_")
         self.name = name
         self._sense = sense
-        # Everything the last solve produced lives here. status, sol_status,
-        # solutionTime, solutionCpuTime and bestBound are deprecated views onto it.
+        # Everything the last solve produced lives here. status, solutionTime,
+        # solutionCpuTime and bestBound are deprecated views onto it.
         self._stats = LpSolveStats()
         self.solver = None
         self.dummyVar = None
@@ -106,17 +106,6 @@ class LpProblem:
     def status(self, value: int) -> None:
         _deprecated_attribute("status", "status")
         self._stats.status = value
-
-    @property
-    def sol_status(self) -> int:
-        """Deprecated. Read ``sol_status`` off the result of ``solve(stats=True)``."""
-        _deprecated_attribute("sol_status", "sol_status")
-        return self._stats.sol_status
-
-    @sol_status.setter
-    def sol_status(self, value: int) -> None:
-        _deprecated_attribute("sol_status", "sol_status")
-        self._stats.sol_status = value
 
     @property
     def solutionTime(self) -> float:
@@ -408,9 +397,10 @@ class LpProblem:
         # Pickles written before the solve output was gathered into one object carry
         # the old attributes at the top level; fold them into the stats.
         stats = state.pop("_stats", None) or LpSolveStats()
+        if "sol_status" in state:
+            stats.has_solution = state.pop("sol_status") in FEASIBLE_SOLUTIONS
         for old, new in (
             ("status", "status"),
-            ("sol_status", "sol_status"),
             ("solutionTime", "time"),
             ("solutionCpuTime", "cpu_time"),
             ("bestBound", "best_bound"),
@@ -477,11 +467,23 @@ class LpProblem:
                 name=self.name,
                 sense=self.sense,
                 status=self._stats.status,
-                sol_status=self._stats.sol_status,
+                sol_status=self._sol_status_code(),
             ),
             sos1=s1,
             sos2=s2,
         )
+
+    def _sol_status_code(self) -> int:
+        """An :data:`~pulp.constants.LpSolution` code for the export formats.
+
+        Only whether a solution came back is kept, so the code is optimal or
+        integer-feasible when there is one and no-solution-found otherwise.
+        """
+        if not self._stats.has_solution:
+            return const.LpSolutionNoSolutionFound
+        if self._stats.status == const.LpStatusOptimal:
+            return const.LpSolutionOptimal
+        return const.LpSolutionIntegerFeasible
 
     def toRustModel(self) -> _rustcore.Model:
         """
@@ -516,7 +518,7 @@ class LpProblem:
         # we instantiate the problem
         pb = cls(name=mps.parameters.name, sense=mps.parameters.sense)
         pb._stats.status = mps.parameters.status
-        pb._stats.sol_status = mps.parameters.sol_status
+        pb._stats.has_solution = mps.parameters.sol_status in FEASIBLE_SOLUTIONS
 
         # recreate the variables.
         var: dict[str, LpVariable] = {
@@ -991,7 +993,7 @@ class LpProblem:
                 solver.actualSolve(self, **kwargs)
             finally:
                 self.stopClock()
-            logs = parse_logs(log_path, solver.logDialect)
+            logs = parse_logs(log_path, dialect_for_solver(solver.name))
         self.restoreObjective(wasNone, dummyVar)
         self.solver = solver
         self._stats.fill_from_problem(self, solver)
@@ -1014,7 +1016,7 @@ class LpProblem:
         # status, which the solver overwrites through assignStatus
         self._stats = LpSolveStats(
             status=self._stats.status,
-            sol_status=self._stats.sol_status,
+            has_solution=self._stats.has_solution,
             cpu_time=-cpu_clock(),
             time=-clock(),
         )
@@ -1071,7 +1073,7 @@ class LpProblem:
                         solver.actualSolve(self)
                     finally:
                         self.stopClock()
-                    logs = parse_logs(log_path, solver.logDialect)
+                    logs = parse_logs(log_path, dialect_for_solver(solver.name))
                 self._stats.fill_from_problem(self, solver)
                 self._stats.fill_from_logs(logs)
                 results.append(self._stats)
@@ -1146,7 +1148,8 @@ class LpProblem:
         """
         Sets the status of the model after solving.
         :param status: code for the status of the model
-        :param sol_status: code for the status of the solution
+        :param sol_status: code for the status of the solution; only whether it
+            means a feasible solution came back is kept, as ``stats.has_solution``
         :return:
         """
         if status not in const.LpStatus:
@@ -1160,5 +1163,5 @@ class LpProblem:
             sol_status = const.LpStatusToSolution.get(
                 status, const.LpSolutionNoSolutionFound
             )
-        self._stats.sol_status = sol_status
+        self._stats.has_solution = sol_status in FEASIBLE_SOLUTIONS
         return True
