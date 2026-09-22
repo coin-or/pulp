@@ -36,6 +36,7 @@ from .core import (
     LpSolver_CMD,
     PulpSolverError,
     clock,
+    clocks,
     log,
     operating_system,
     subprocess,
@@ -43,6 +44,7 @@ from .core import (
 
 if TYPE_CHECKING:
     from ..core.lp_problem import LpProblem
+    from ..core.lp_stats import LpSolveStats
 
 glpk_path = "glpsol"
 
@@ -86,16 +88,17 @@ class GLPK_CMD(LpSolver_CMD):
         """True if the solver is available"""
         return self.executable(self.path)
 
-    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
         """Solve a well formulated lp problem."""
+        start = clocks()
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute " + self.path)
 
         # GLPK cannot handle empty problems:
         if not lp.numConstraints():
-            status = constants.LpStatusNotSolved
-            lp.assignStatus(status)
-            return status
+            return self.buildStats(
+                lp, constants.LpSolveStatus.NotSolved, False, start=start
+            )
 
         tmpLp, tmpOut, tmpSol = self.create_tmp_files(lp.name, "lp", "out", "sol")
         lp.writeLP(tmpLp, writeSOS=0)
@@ -157,9 +160,12 @@ class GLPK_CMD(LpSolver_CMD):
                 values[name] = float(value)
 
         lp.assignVarsVals(values)
-        lp.assignStatus(status)
         self.delete_tmp_files(tmpLp, tmpSol)
-        return status
+        has_solution = status in (
+            constants.LpSolveStatus.Optimal,
+            constants.LpSolveStatus.Stopped,
+        )
+        return self.buildStats(lp, status, has_solution, start=start)
 
     def readsol(self, outFile, solFile):
         """Read GLPK solution files"""
@@ -171,15 +177,17 @@ class GLPK_CMD(LpSolver_CMD):
             cols = int(f.readline().split()[1])
             f.readline()
             statusString = f.readline()[12:-1]
+            S = constants.LpSolveStatus
             glpkStatus = {
-                "INTEGER OPTIMAL": constants.LpStatusOptimal,
-                "INTEGER NON-OPTIMAL": constants.LpStatusOptimal,
-                "OPTIMAL": constants.LpStatusOptimal,
-                "INFEASIBLE (FINAL)": constants.LpStatusInfeasible,
-                "INTEGER UNDEFINED": constants.LpStatusUndefined,
-                "UNBOUNDED": constants.LpStatusUnbounded,
-                "UNDEFINED": constants.LpStatusUndefined,
-                "INTEGER EMPTY": constants.LpStatusInfeasible,
+                "INTEGER OPTIMAL": S.Optimal,
+                # a gap or time limit stopped the search; GLPK does not say which
+                "INTEGER NON-OPTIMAL": S.Stopped,
+                "OPTIMAL": S.Optimal,
+                "INFEASIBLE (FINAL)": S.Infeasible,
+                "INTEGER UNDEFINED": S.Undefined,
+                "UNBOUNDED": S.Unbounded,
+                "UNDEFINED": S.Undefined,
+                "INTEGER EMPTY": S.Infeasible,
             }
             if statusString not in glpkStatus:
                 raise PulpSolverError("Unknown status returned by GLPK")
@@ -203,7 +211,7 @@ class GLPK_CMD(LpSolver_CMD):
         # now actually read column values
         with open(solFile) as f:
             values = []
-            status2 = constants.LpStatusUndefined
+            status2 = S.Undefined
             vpos = 2
 
             while True:
@@ -216,11 +224,13 @@ class GLPK_CMD(LpSolver_CMD):
                 if elems[0] == "j":
                     values.append(elems[vpos])
                 if elems[0] == "s":
+                    # on "bas"/"ipt" lines this is the primal status, which is
+                    # "f" (feasible) for an optimal LP as well
                     status2 = {
-                        "o": constants.LpStatusOptimal,
-                        "f": constants.LpStatusOptimal,
-                        "n": constants.LpStatusInfeasible,
-                        "u": constants.LpStatusUndefined,
+                        "o": S.Optimal,
+                        "f": S.Stopped if elems[1] == "mip" else S.Optimal,
+                        "n": S.Infeasible,
+                        "u": S.Undefined,
                     }[elems[4]]
                     vpos = {"mip": 2, "bas": 3, "ipt": 2}[elems[1]]
 
@@ -260,7 +270,7 @@ class PYGLPK(LpSolver):
             """True if the solver is available"""
             return False
 
-        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
             """Solve a well formulated lp problem."""
             raise PulpSolverError("GLPK: Not Available")
 
@@ -289,13 +299,14 @@ class PYGLPK(LpSolver):
                 solutionStatus = glpk.glp_mip_status(prob)
             else:
                 solutionStatus = glpk.glp_get_status(prob)
+            S = constants.LpSolveStatus
             glpkLpStatus = {
-                glpk.GLP_OPT: constants.LpStatusOptimal,
-                glpk.GLP_UNDEF: constants.LpStatusUndefined,
-                glpk.GLP_FEAS: constants.LpStatusOptimal,
-                glpk.GLP_INFEAS: constants.LpStatusInfeasible,
-                glpk.GLP_NOFEAS: constants.LpStatusInfeasible,
-                glpk.GLP_UNBND: constants.LpStatusUnbounded,
+                glpk.GLP_OPT: S.Optimal,
+                glpk.GLP_UNDEF: S.Undefined,
+                glpk.GLP_FEAS: S.Stopped,
+                glpk.GLP_INFEAS: S.Infeasible,
+                glpk.GLP_NOFEAS: S.Infeasible,
+                glpk.GLP_UNBND: S.Unbounded,
             }
             exported_vars = lp.exported_variables()
             for var, col in zip(exported_vars, self._var_handles):
@@ -313,9 +324,8 @@ class PYGLPK(LpSolver):
                     row_val = glpk.glp_get_row_prim(prob, row)
                 constr.slack = -constr.constant - row_val
                 constr.pi = glpk.glp_get_row_dual(prob, row)
-            status = glpkLpStatus.get(solutionStatus, constants.LpStatusUndefined)
-            lp.assignStatus(status)
-            return status
+            status = glpkLpStatus.get(solutionStatus, S.Undefined)
+            return status, solutionStatus in (glpk.GLP_OPT, glpk.GLP_FEAS)
 
         def available(self):
             """True if the solver is available"""
@@ -417,18 +427,19 @@ class PYGLPK(LpSolver):
             self._var_handles = var_handles
             self._constr_handles = constr_handles
 
-        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
             """
             Solve a well formulated lp problem
 
             creates a glpk model, variables and constraints and attaches
             them to the lp model which it then solves
             """
+            start = clocks()
             callback = kwargs.get("callback")
             self.buildSolverModel(lp)
             # set the initial solution
             log.debug("Solve the Model using glpk")
             self.callSolver(lp, callback=callback)
             # get the solution information
-            solutionStatus = self.findSolutionValues(lp)
-            return solutionStatus
+            status, has_solution = self.findSolutionValues(lp)
+            return self.buildStats(lp, status, has_solution, start=start)

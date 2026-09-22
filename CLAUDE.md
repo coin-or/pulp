@@ -44,7 +44,7 @@ alwaysApply: true
 
 After making any code change to the repo, run all three checks before considering the task done:
 
-1. **Unit tests**: `uv run python -m unittest discover -s pulp/tests`
+1. **Unit tests**: `uv run --all-extras python -m unittest discover -s pulp/tests`
 2. **Type checking**: `uv run ty check pulp`
 3. **Linting and formatting**: `uv run ruff check pulp` and `uv run ruff format pulp --check`
 

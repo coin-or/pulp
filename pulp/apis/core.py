@@ -58,6 +58,11 @@ def cpu_clock() -> float:
     return t.user + t.system + t.children_user + t.children_system
 
 
+def clocks() -> tuple[float, float]:
+    """Wall-clock and CPU seconds now, to time a solve with :meth:`LpSolver.buildStats`."""
+    return clock(), cpu_clock()
+
+
 def get_operating_system() -> str:
     if sys.platform in ["win32", "cli"]:
         return "win"
@@ -87,6 +92,7 @@ from .. import constants as const
 from .. import sparse
 
 if TYPE_CHECKING:
+    from ..core.lp_stats import LpSolveStats
     from ..pulp import LpProblem
 
 try:
@@ -160,8 +166,11 @@ class LpSolver:
         """True if the solver is available"""
         raise NotImplementedError
 
-    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
-        """Solve a well formulated lp problem"""
+    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
+        """Solve a well formulated lp problem.
+
+        Implementations end with ``return self.buildStats(...)``.
+        """
         raise NotImplementedError
 
     def copy(self) -> LpSolver:
@@ -173,9 +182,75 @@ class LpSolver:
         aCopy.options = self.options
         return aCopy
 
-    def solve(self, lp: LpProblem, stats: bool = False) -> Any:
-        """Solve the problem lp"""
-        return lp.solve(self, stats=stats)
+    def solve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
+        """Solve the problem lp and describe how it went."""
+        wasNone, dummyVar = lp.fixObjective()
+        try:
+            # the log only lives until the block ends; actualSolve reads it in
+            # buildStats before returning
+            with self.capture_log():
+                return self.actualSolve(lp, **kwargs)
+        finally:
+            lp.restoreObjective(wasNone, dummyVar)
+
+    def buildStats(
+        self,
+        lp: LpProblem,
+        status: int,
+        has_solution: bool,
+        *,
+        start: tuple[float, float],
+        best_bound: float | None = None,
+    ) -> LpSolveStats:
+        """Describe the solve that just finished, for ``actualSolve`` to return.
+
+        :param lp: the problem that was solved
+        :param status: why the solver stopped, a :class:`~pulp.constants.LpSolveStatus`
+        :param has_solution: whether the solver handed back a feasible solution
+        :param start: :func:`clocks` taken when the solve started
+        :param best_bound: best bound the solver proved, if it reports one
+        """
+        # deferred: pulp.core imports pulp.apis, so this can't be a module-level import
+        from ..core.lp_stats import (
+            LpSolveStats,
+            _stop_reason_from_log,
+            dialect_for_solver,
+            parse_logs,
+        )
+
+        try:
+            status = const.LpSolveStatus(status)
+        except ValueError:
+            raise const.PulpError("Invalid status code: " + str(status)) from None
+        if not isinstance(has_solution, bool):
+            raise const.PulpError("has_solution must be a bool: " + str(has_solution))
+        wall, cpu = clocks()
+        logs = parse_logs(
+            self.optionsDict.get("logPath"), dialect_for_solver(self.name)
+        )
+        objective = lp.objective.value() if lp.objective is not None else None
+        # the solver itself is the better source; the log only fills gaps
+        if logs is not None:
+            if status == const.LpSolveStatus.Stopped:
+                status = _stop_reason_from_log(logs.get("status"), status)
+            if objective is None:
+                objective = logs.get("best_solution")
+            if best_bound is None:
+                best_bound = logs.get("best_bound")
+        return LpSolveStats(
+            solver=self.name,
+            status=status,
+            has_solution=has_solution,
+            time=wall - start[0],
+            cpu_time=cpu - start[1],
+            objective=objective,
+            best_bound=best_bound,
+            num_variables=lp.numVariables(),
+            num_constraints=lp.numConstraints(),
+            is_mip=bool(lp.isMIP()),
+            solver_options=self.toDict(),
+            logs=logs,
+        )
 
     def silent_remove(self, file: str | bytes | os.PathLike) -> None:
         try:

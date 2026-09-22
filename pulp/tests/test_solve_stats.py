@@ -1,5 +1,5 @@
 """
-Tests for the statistics object returned by ``LpProblem.solve(stats=True)``
+Tests for the statistics object every solve returns
 """
 
 from __future__ import annotations
@@ -7,27 +7,28 @@ from __future__ import annotations
 import glob
 import json
 import os
+import random
 import tempfile
 import unittest
-import warnings
+from typing import Any
+from unittest import mock
 
 import pulp.apis as solvers
-from pulp import LpProblem, LpSolveStats
+from pulp import LpProblem, LpSolveStats, lpSum
 from pulp import constants as const
-from pulp.core import lp_problem
+from pulp.apis.core import clocks
+from pulp.constants import LpSolveStatus
 from pulp.core.lp_stats import dialect_for_solver, parse_logs
 
 
 class SolveStatsTest(unittest.TestCase):
-    """Tests for ``LpProblem.solve(stats=True)`` against the default solver."""
+    """Tests for ``LpProblem.solve`` against the default solver."""
 
     def setUp(self):
         if solvers.LpSolverDefault is None:
             self.skipTest("no default solver available")
         self.solver = solvers.LpSolverDefault.copy()
         self.solver.msg = False
-        # the "solve() will return stats" notice fires once per process
-        lp_problem._warned_about_stats = False
 
     def _problem(self):
         """min 3x + 2y  s.t.  x + y >= 5, x >= 2, x integer. Optimum is 12."""
@@ -41,16 +42,21 @@ class SolveStatsTest(unittest.TestCase):
 
     def _solve(self, prob=None):
         prob = self._problem() if prob is None else prob
-        return prob, prob.solve(self.solver, stats=True)
+        return prob, prob.solve(self.solver)
 
     def test_returns_stats_object(self):
         _, stats = self._solve()
         self.assertIsInstance(stats, LpSolveStats)
-        self.assertEqual(stats.status, const.LpStatusOptimal)
+        self.assertIs(stats.status, LpSolveStatus.Optimal)
         self.assertEqual(stats.status_str, "Optimal")
         self.assertIs(stats.has_solution, True)
         self.assertEqual(stats.solver, self.solver.name)
         self.assertAlmostEqual(stats.objective, 12, places=4)
+
+    def test_solver_solve_returns_the_same_kind_of_stats(self):
+        stats = self.solver.solve(self._problem())
+        self.assertIsInstance(stats, LpSolveStats)
+        self.assertIs(stats.status, LpSolveStatus.Optimal)
 
     def test_model_shape_recorded(self):
         prob, stats = self._solve()
@@ -63,54 +69,19 @@ class SolveStatsTest(unittest.TestCase):
         self.assertGreater(stats.time, 0)
         self.assertGreaterEqual(stats.cpu_time, 0)
 
-    def test_status_matches_plain_solve(self):
-        prob = self._problem()
-        status = prob.solve(self.solver)
-        self.assertIsInstance(status, int)
-        self.assertEqual(status, prob.stats.status)
-        self.assertEqual(status, prob.solve(self.solver, stats=True).status)
-
-    def test_stats_property_is_the_last_result(self):
-        prob, stats = self._solve()
-        self.assertIs(prob.stats, stats)
-
-    def test_solve_without_stats_warns_once(self):
-        prob = self._problem()
-        with self.assertWarns(DeprecationWarning):
-            prob.solve(self.solver)
-        # the notice is one per process, not one per solve
-        with warnings.catch_warnings(record=True) as caught:
-            warnings.simplefilter("always")
-            prob.solve(self.solver)
-        self.assertEqual([w for w in caught if "stats=True" in str(w.message)], [])
-
-    def test_solve_with_stats_does_not_warn(self):
-        prob = self._problem()
-        with warnings.catch_warnings(record=True) as caught:
-            warnings.simplefilter("always")
-            prob.solve(self.solver, stats=True)
-        self.assertEqual([w for w in caught if "stats=True" in str(w.message)], [])
-
-    def test_legacy_attributes_warn_and_agree(self):
-        prob, stats = self._solve()
-        for name, expected in (
-            ("status", stats.status),
-            ("solutionTime", stats.time),
-            ("solutionCpuTime", stats.cpu_time),
-            ("bestBound", stats.best_bound),
-        ):
+    def test_the_problem_keeps_no_solve_state(self):
+        prob, _ = self._solve()
+        for name in ("stats", "status", "solutionTime", "bestBound", "assignStatus"):
             with self.subTest(attribute=name):
-                with self.assertWarns(DeprecationWarning):
-                    self.assertEqual(getattr(prob, name), expected)
+                self.assertFalse(hasattr(prob, name))
+        self.assertNotIn("status", prob.toDict()["parameters"])
+        self.assertNotIn("sol_status", prob.toDict()["parameters"])
 
-    def test_legacy_setters_reach_the_stats(self):
+    def test_each_solve_returns_its_own_stats(self):
         prob = self._problem()
-        with self.assertWarns(DeprecationWarning):
-            prob.status = const.LpStatusInfeasible
-        self.assertEqual(prob.stats.status, const.LpStatusInfeasible)
-        with self.assertWarns(DeprecationWarning):
-            prob.bestBound = 7.5
-        self.assertEqual(prob.stats.best_bound, 7.5)
+        first = prob.solve(self.solver)
+        second = prob.solve(self.solver)
+        self.assertIsNot(first, second)
 
     def test_infeasible_problem_is_not_feasible(self):
         prob = LpProblem(self._testMethodName, const.LpMinimize)
@@ -118,15 +89,9 @@ class SolveStatsTest(unittest.TestCase):
         prob += x >= 8, "lo"
         prob += x <= 2, "hi"
         prob += x
-        stats = prob.solve(self.solver, stats=True)
-        self.assertIn(stats.status, (const.LpStatusInfeasible, const.LpStatusUndefined))
+        stats = prob.solve(self.solver)
+        self.assertIn(stats.status, (LpSolveStatus.Infeasible, LpSolveStatus.Undefined))
         self.assertIs(stats.has_solution, False)
-
-    def test_unsolved_problem_has_empty_stats(self):
-        prob = self._problem()
-        self.assertEqual(prob.stats.status, const.LpStatusNotSolved)
-        self.assertIs(prob.stats.has_solution, False)
-        self.assertIsNone(prob.stats.logs)
 
     def test_gap_is_zero_at_the_optimum(self):
         _, stats = self._solve()
@@ -139,7 +104,7 @@ class SolveStatsTest(unittest.TestCase):
         _, stats = self._solve()
         data = stats.toDict()
         self.assertNotIn("logs", data)
-        self.assertEqual(data["status"], stats.status)
+        self.assertEqual(data["status"], LpSolveStatus.Optimal)
         self.assertIs(data["has_solution"], True)
         self.assertEqual(data["status_str"], "Optimal")
         self.assertEqual(data["solver"], self.solver.name)
@@ -171,28 +136,6 @@ class SolveStatsTest(unittest.TestCase):
         _, stats = self._solve()
         self.assertEqual(stats.solver_options["solver"], self.solver.name)
 
-    def test_legacy_pickle_is_migrated(self):
-        prob, stats = self._solve()
-        state = prob.__getstate__()
-        state.pop("_stats")
-        state["status"] = const.LpStatusInfeasible
-        state["sol_status"] = const.LpSolutionIntegerFeasible
-        state["solutionTime"] = 1.5
-        state["bestBound"] = 3.0
-        restored = LpProblem.__new__(LpProblem)
-        restored.__setstate__(state)
-        self.assertEqual(restored.stats.status, const.LpStatusInfeasible)
-        self.assertIs(restored.stats.has_solution, True)
-        self.assertEqual(restored.stats.time, 1.5)
-        self.assertEqual(restored.stats.best_bound, 3.0)
-
-    def test_copy_keeps_the_stats_independent(self):
-        prob, stats = self._solve()
-        clone = prob.copy()
-        self.assertEqual(clone.stats.status, stats.status)
-        clone.stats.status = const.LpStatusUndefined
-        self.assertEqual(prob.stats.status, stats.status)
-
     def test_no_temp_log_is_left_behind(self):
         pattern = os.path.join(tempfile.gettempdir(), "*-pulp.log")
         before = set(glob.glob(pattern))
@@ -205,7 +148,7 @@ class SolveStatsTest(unittest.TestCase):
         log_path = os.path.join(tempfile.mkdtemp(), "solver.log")
         solver = self.solver.copy()
         solver.optionsDict["logPath"] = log_path
-        self._problem().solve(solver, stats=True)
+        self._problem().solve(solver)
         self.assertTrue(os.path.isfile(log_path))
         os.remove(log_path)
 
@@ -231,64 +174,138 @@ class SolveStatsTest(unittest.TestCase):
     def test_sequential_solve_returns_one_stats_per_objective(self):
         prob = self._problem()
         x, y = prob.variables()
-        results = prob.sequentialSolve(
-            [x + y, 3 * x + 2 * y], solver=self.solver, stats=True
-        )
+        results = prob.sequentialSolve([x + y, 3 * x + 2 * y], solver=self.solver)
         self.assertEqual(len(results), 2)
         for stats in results:
             self.assertIsInstance(stats, LpSolveStats)
             self.assertEqual(stats.solver, self.solver.name)
         self.assertIsNot(results[0], results[1])
 
-    def test_resolve_passes_stats_through(self):
+    def test_resolve_returns_stats(self):
         prob = self._problem()
-        prob.solve(self.solver, stats=True)
-        self.assertIsInstance(prob.resolve(stats=True), LpSolveStats)
+        prob.solve(self.solver)
+        self.assertIsInstance(prob.resolve(), LpSolveStats)
+
+
+class _StubSolver(solvers.LpSolver):
+    """Reports a fixed outcome without solving anything."""
+
+    name = "Stub"
+
+    def __init__(
+        self,
+        status: int = LpSolveStatus.Optimal,
+        # Any, so tests can hand buildStats values it must reject
+        has_solution: Any = True,
+        best_bound: float | None = None,
+    ):
+        super().__init__(msg=False)
+        self.status = status
+        self.has_solution = has_solution
+        self.best_bound = best_bound
+
+    def actualSolve(self, lp, **kwargs):
+        start = clocks()
+        return self.buildStats(
+            lp,
+            self.status,
+            self.has_solution,
+            start=start,
+            best_bound=self.best_bound,
+        )
+
+
+class BuildStatsTest(unittest.TestCase):
+    """Tests for ``LpSolver.buildStats``, the one place LpSolveStats is built."""
+
+    _LOG = {
+        "version": "2.10.3",
+        "status": "Stopped on time limit",
+        "status_code": -4,
+        "sol_code": 2,
+        "time": 1.25,
+        "gap": 0.1,
+        "nodes": 42,
+        "rootTime": 0.5,
+        "matrix": {"constraints": 3, "variables": 2},
+        "best_solution": 12.0,
+        "best_bound": 11.0,
+    }
+
+    def _problem(self):
+        prob = LpProblem(self._testMethodName, const.LpMinimize)
+        x = prob.add_variable("x", 0, 10)
+        prob += x >= 1, "c1"
+        prob += x
+        return prob
+
+    def _solve(self, solver, log=None):
+        with mock.patch("pulp.core.lp_stats.parse_logs", return_value=log):
+            return self._problem().solve(solver)
+
+    def test_records_the_solver_outcome(self):
+        stats = self._solve(_StubSolver(LpSolveStatus.TimeLimit, True, best_bound=4.0))
+        self.assertIs(stats.status, LpSolveStatus.TimeLimit)
+        self.assertIs(stats.has_solution, True)
+        self.assertEqual(stats.best_bound, 4.0)
+        self.assertEqual(stats.solver, "Stub")
+        self.assertEqual(stats.num_variables, 1)
+        self.assertEqual(stats.num_constraints, 1)
+        self.assertIs(stats.is_mip, False)
+        self.assertIsNone(stats.logs)
+
+    def test_accepts_plain_integer_codes(self):
+        stats = self._solve(_StubSolver(-1, False))
+        self.assertIs(stats.status, LpSolveStatus.Infeasible)
+
+    def test_rejects_unknown_status_codes(self):
+        with self.assertRaises(const.PulpError):
+            self._solve(_StubSolver(99, False))
+
+    def test_rejects_a_non_bool_has_solution(self):
+        with self.assertRaises(const.PulpError):
+            self._solve(_StubSolver(LpSolveStatus.Optimal, 1))
+
+    def test_log_values_are_exposed(self):
+        stats = self._solve(_StubSolver(LpSolveStatus.TimeLimit, True), self._LOG)
+        self.assertEqual(stats.solver_version, "2.10.3")
+        self.assertEqual(stats.solver_status, "Stopped on time limit")
+        self.assertEqual(stats.solver_status_code, -4)
+        self.assertEqual(stats.solver_sol_code, 2)
+        self.assertEqual(stats.solver_time, 1.25)
+        self.assertEqual(stats.solver_gap, 0.1)
+        self.assertEqual(stats.nodes, 42)
+        self.assertEqual(stats.root_time, 0.5)
+        self.assertEqual(stats.matrix, {"constraints": 3, "variables": 2})
+        # the stub reported no bound, so the log supplies it
+        self.assertEqual(stats.best_bound, 11.0)
+
+    def test_the_solver_wins_over_the_log(self):
+        stats = self._solve(
+            _StubSolver(LpSolveStatus.TimeLimit, True, best_bound=4.0), self._LOG
+        )
+        self.assertEqual(stats.best_bound, 4.0)
+
+    def test_a_bare_stop_is_refined_from_the_log(self):
+        stats = self._solve(_StubSolver(LpSolveStatus.Stopped, True), self._LOG)
+        self.assertIs(stats.status, LpSolveStatus.TimeLimit)
+
+    def test_a_specific_status_is_not_touched_by_the_log(self):
+        stats = self._solve(_StubSolver(LpSolveStatus.NodeLimit, True), self._LOG)
+        self.assertIs(stats.status, LpSolveStatus.NodeLimit)
 
 
 class SolveStatsUnitTest(unittest.TestCase):
     """Tests for LpSolveStats itself, needing no solver."""
 
-    def test_has_solution_follows_the_solution_code(self):
-        for sol_status, expected in (
-            (const.LpSolutionOptimal, True),
-            (const.LpSolutionIntegerFeasible, True),
-            (const.LpSolutionNoSolutionFound, False),
-            (const.LpSolutionInfeasible, False),
-            (const.LpSolutionUnbounded, False),
-        ):
-            with self.subTest(sol_status=sol_status):
-                prob = LpProblem("p")
-                prob.assignStatus(const.LpStatusNotSolved, sol_status)
-                self.assertIs(prob.stats.has_solution, expected)
+    def test_status_str_names_the_reason(self):
+        self.assertEqual(
+            LpSolveStats(status=LpSolveStatus.TimeLimit).status_str, "TimeLimit"
+        )
+        self.assertEqual(LpSolveStats().status_str, "NotSolved")
 
-    def test_has_solution_without_a_solution_code(self):
-        for status, expected in (
-            (const.LpStatusOptimal, True),
-            (const.LpStatusNotSolved, False),
-            (const.LpStatusInfeasible, False),
-            (const.LpStatusUnbounded, False),
-            (const.LpStatusUndefined, False),
-        ):
-            with self.subTest(status=status):
-                prob = LpProblem("p")
-                prob.assignStatus(status)
-                self.assertIs(prob.stats.has_solution, expected)
-
-    def test_has_solution_survives_a_dict_roundtrip(self):
-        for status, sol_status in (
-            (const.LpStatusOptimal, const.LpSolutionOptimal),
-            (const.LpStatusNotSolved, const.LpSolutionIntegerFeasible),
-            (const.LpStatusInfeasible, const.LpSolutionInfeasible),
-        ):
-            with self.subTest(status=status, sol_status=sol_status):
-                prob = LpProblem("p")
-                x = prob.add_variable("x", 0, 1)
-                prob += x
-                prob.assignStatus(status, sol_status)
-                _, restored = LpProblem.fromDict(prob.toDict())
-                self.assertEqual(restored.stats.status, status)
-                self.assertEqual(restored.stats.has_solution, prob.stats.has_solution)
+    def test_unknown_status_codes_stay_readable(self):
+        self.assertEqual(LpSolveStats(status=99).status_str, "Unknown")  # ty: ignore[invalid-argument-type]
 
     def test_gap_needs_both_ends(self):
         self.assertIsNone(LpSolveStats(objective=10).gap_abs)
@@ -307,48 +324,15 @@ class SolveStatsUnitTest(unittest.TestCase):
         self.assertEqual(LpSolveStats(objective=0, best_bound=0).gap_rel, 0)
         self.assertEqual(LpSolveStats(objective=0, best_bound=3).gap_rel, float("inf"))
 
-    def test_fill_from_logs_promotes_fields(self):
+    def test_log_properties_without_a_log(self):
         stats = LpSolveStats()
-        stats.fill_from_logs(
-            {
-                "version": "2.10.3",
-                "status": "Stopped on time limit",
-                "status_code": -4,
-                "sol_code": 2,
-                "time": 1.25,
-                "gap": 0.1,
-                "nodes": 42,
-                "rootTime": 0.5,
-                "matrix": {"constraints": 3, "variables": 2},
-                "best_solution": 12.0,
-                "best_bound": 11.0,
-                "progress": "kept in logs only",
-            }
-        )
-        self.assertEqual(stats.solver_version, "2.10.3")
-        self.assertEqual(stats.solver_status, "Stopped on time limit")
-        self.assertEqual(stats.solver_status_code, -4)
-        self.assertEqual(stats.solver_sol_code, 2)
-        self.assertEqual(stats.solver_time, 1.25)
-        self.assertEqual(stats.solver_gap, 0.1)
-        self.assertEqual(stats.nodes, 42)
-        self.assertEqual(stats.root_time, 0.5)
-        self.assertEqual(stats.matrix, {"constraints": 3, "variables": 2})
-        # the solver reported neither, so the log supplies them
-        self.assertEqual(stats.objective, 12.0)
-        self.assertEqual(stats.best_bound, 11.0)
-
-    def test_fill_from_logs_does_not_overwrite_the_solver(self):
-        stats = LpSolveStats(objective=5.0, best_bound=4.0)
-        stats.fill_from_logs({"best_solution": 99.0, "best_bound": 98.0})
-        self.assertEqual(stats.objective, 5.0)
-        self.assertEqual(stats.best_bound, 4.0)
-
-    def test_fill_from_logs_with_nothing_to_parse(self):
-        stats = LpSolveStats()
-        stats.fill_from_logs(None)
         self.assertIsNone(stats.logs)
         self.assertIsNone(stats.solver_version)
+
+    def test_log_properties_skip_empty_dicts(self):
+        stats = LpSolveStats(logs={"cut_info": {}, "first_solution": None})
+        self.assertIsNone(stats.cut_info)
+        self.assertIsNone(stats.first_solution)
 
     def test_parse_logs_returns_none_when_unusable(self):
         self.assertIsNone(parse_logs(None, "CBC"))
@@ -364,14 +348,37 @@ class SolveStatsUnitTest(unittest.TestCase):
         finally:
             os.remove(path)
 
-    def test_fill_from_logs_skips_empty_dicts(self):
-        stats = LpSolveStats()
-        stats.fill_from_logs({"cut_info": {}, "first_solution": None})
-        self.assertIsNone(stats.cut_info)
-        self.assertIsNone(stats.first_solution)
 
-    def test_unknown_status_codes_stay_readable(self):
-        self.assertEqual(LpSolveStats(status=99).status_str, "Unknown")
+class CBCStopReasonTest(unittest.TestCase):
+    """CBC stopping on a limit reports why, and still hands back its solution."""
+
+    def setUp(self):
+        if not solvers.COIN_CMD(msg=False).available():
+            self.skipTest("COIN_CMD is not available")
+
+    def _knapsack(self):
+        """A multi-dimensional knapsack CBC does not close at the root node."""
+        rng = random.Random(1)
+        prob = LpProblem(self._testMethodName, const.LpMaximize)
+        xs = [prob.add_variable(f"x{i}", 0, 1, cat=const.LpInteger) for i in range(60)]
+        for _ in range(5):
+            weights = [rng.randint(10, 100) for _ in xs]
+            prob += lpSum(w * x for w, x in zip(weights, xs)) <= sum(weights) // 2
+        prob += lpSum(rng.randint(10, 100) * x for x in xs)
+        return prob
+
+    def _solve(self, **options):
+        return self._knapsack().solve(solvers.COIN_CMD(msg=False, **options))
+
+    def test_node_limit(self):
+        stats = self._solve(maxNodes=1)
+        self.assertIs(stats.status, LpSolveStatus.NodeLimit)
+        self.assertIs(stats.has_solution, True)
+
+    def test_gap_limit(self):
+        stats = self._solve(gapRel=0.5)
+        self.assertIs(stats.status, LpSolveStatus.GapLimit)
+        self.assertIs(stats.has_solution, True)
 
 
 if __name__ == "__main__":

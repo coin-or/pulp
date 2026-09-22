@@ -4,7 +4,7 @@ import dataclasses
 import math
 import warnings
 from collections.abc import Iterable
-from typing import Any, Literal, cast, overload
+from typing import Any, Literal, cast
 
 try:
     import ujson as json  # type: ignore[import-untyped]
@@ -15,7 +15,7 @@ from .. import _rustcore
 from .. import constants as const
 from .. import mps_lp as mpslp
 from ..apis import LpSolverDefault
-from ..apis.core import LpSolver, clock, cpu_clock
+from ..apis.core import LpSolver
 from ..utilities import value
 from ._internal import (
     LpBound,
@@ -26,35 +26,8 @@ from ._internal import (
 )
 from .lp_affine_expression import LpAffineExpression
 from .lp_constraint import LpConstraint
-from .lp_stats import FEASIBLE_SOLUTIONS, LpSolveStats, dialect_for_solver, parse_logs
+from .lp_stats import LpSolveStats
 from .lp_variable import LpVariable
-
-_STATS_DEPRECATION = (
-    "LpProblem.solve() returns an integer status code. In a future version it will "
-    "return an LpSolveStats object describing the solve: status, timings, solver, "
-    "and parsed solver logs. Pass stats=True to opt in now, or stats=False to keep "
-    "the status code and silence this warning."
-)
-
-# solve() gets called in loops, so this fires once per process rather than per call
-_warned_about_stats = False
-
-
-def _warn_about_stats() -> None:
-    global _warned_about_stats
-    if _warned_about_stats:
-        return
-    _warned_about_stats = True
-    warnings.warn(_STATS_DEPRECATION, DeprecationWarning, stacklevel=3)
-
-
-def _deprecated_attribute(name: str, replacement: str) -> None:
-    warnings.warn(
-        f"LpProblem.{name} is deprecated and will be removed. "
-        f"Use solve(stats=True) and read {replacement} from the result instead.",
-        DeprecationWarning,
-        stacklevel=3,
-    )
 
 
 class LpProblem:
@@ -77,9 +50,6 @@ class LpProblem:
             name = name.replace(" ", "_")
         self.name = name
         self._sense = sense
-        # Everything the last solve produced lives here. status, solutionTime,
-        # solutionCpuTime and bestBound are deprecated views onto it.
-        self._stats = LpSolveStats()
         self.solver = None
         self.dummyVar = None
 
@@ -90,55 +60,6 @@ class LpProblem:
             else _rustcore.ObjSense.Maximize
         )
         self.solverModel: Any | None = None
-
-    @property
-    def stats(self) -> LpSolveStats:
-        """Statistics for the last solve, the same object ``solve(stats=True)`` returns."""
-        return self._stats
-
-    @property
-    def status(self) -> int:
-        """Deprecated. Read ``status`` off the result of ``solve(stats=True)``."""
-        _deprecated_attribute("status", "status")
-        return self._stats.status
-
-    @status.setter
-    def status(self, value: int) -> None:
-        _deprecated_attribute("status", "status")
-        self._stats.status = value
-
-    @property
-    def solutionTime(self) -> float:
-        """Deprecated. Read ``time`` off the result of ``solve(stats=True)``."""
-        _deprecated_attribute("solutionTime", "time")
-        return self._stats.time
-
-    @solutionTime.setter
-    def solutionTime(self, value: float) -> None:
-        _deprecated_attribute("solutionTime", "time")
-        self._stats.time = value
-
-    @property
-    def solutionCpuTime(self) -> float:
-        """Deprecated. Read ``cpu_time`` off the result of ``solve(stats=True)``."""
-        _deprecated_attribute("solutionCpuTime", "cpu_time")
-        return self._stats.cpu_time
-
-    @solutionCpuTime.setter
-    def solutionCpuTime(self, value: float) -> None:
-        _deprecated_attribute("solutionCpuTime", "cpu_time")
-        self._stats.cpu_time = value
-
-    @property
-    def bestBound(self) -> float | None:
-        """Deprecated. Read ``best_bound`` off the result of ``solve(stats=True)``."""
-        _deprecated_attribute("bestBound", "best_bound")
-        return self._stats.best_bound
-
-    @bestBound.setter
-    def bestBound(self, value: float | None) -> None:
-        _deprecated_attribute("bestBound", "best_bound")
-        self._stats.best_bound = value
 
     def has_sos(self) -> bool:
         """True if the model has any SOS1/SOS2 groups (stored in the Rust core)."""
@@ -389,27 +310,6 @@ class LpProblem:
             s += v.asCplexLpVariable() + " " + const.LpCategories[v.cat] + "\n"
         return s
 
-    def __getstate__(self) -> dict[str, Any]:
-        return self.__dict__.copy()
-
-    def __setstate__(self, state: dict[str, Any]) -> None:
-        state = dict(state)
-        # Pickles written before the solve output was gathered into one object carry
-        # the old attributes at the top level; fold them into the stats.
-        stats = state.pop("_stats", None) or LpSolveStats()
-        if "sol_status" in state:
-            stats.has_solution = state.pop("sol_status") in FEASIBLE_SOLUTIONS
-        for old, new in (
-            ("status", "status"),
-            ("solutionTime", "time"),
-            ("solutionCpuTime", "cpu_time"),
-            ("bestBound", "best_bound"),
-        ):
-            if old in state:
-                setattr(stats, new, state.pop(old))
-        state["_stats"] = stats
-        self.__dict__.update(state)
-
     @classmethod
     def _from_rust_model_copy(cls, source: LpProblem) -> LpProblem:
         """Build a new problem sharing Python metadata but a deep-copied Rust model."""
@@ -417,7 +317,6 @@ class LpProblem:
         p.name = source.name
         p._sense = source._sense
         p._model = source._model.copy_model()
-        p._stats = dataclasses.replace(source._stats)
         p.solver = source.solver
         p.solverModel = source.solverModel
         p.dummyVar = source.dummyVar
@@ -466,24 +365,10 @@ class LpProblem:
             parameters=mpslp.MPSParameters(
                 name=self.name,
                 sense=self.sense,
-                status=self._stats.status,
-                sol_status=self._sol_status_code(),
             ),
             sos1=s1,
             sos2=s2,
         )
-
-    def _sol_status_code(self) -> int:
-        """An :data:`~pulp.constants.LpSolution` code for the export formats.
-
-        Only whether a solution came back is kept, so the code is optimal or
-        integer-feasible when there is one and no-solution-found otherwise.
-        """
-        if not self._stats.has_solution:
-            return const.LpSolutionNoSolutionFound
-        if self._stats.status == const.LpStatusOptimal:
-            return const.LpSolutionOptimal
-        return const.LpSolutionIntegerFeasible
 
     def toRustModel(self) -> _rustcore.Model:
         """
@@ -517,8 +402,6 @@ class LpProblem:
 
         # we instantiate the problem
         pb = cls(name=mps.parameters.name, sense=mps.parameters.sense)
-        pb._stats.status = mps.parameters.status
-        pb._stats.has_solution = mps.parameters.sol_status in FEASIBLE_SOLUTIONS
 
         # recreate the variables.
         var: dict[str, LpVariable] = {
@@ -934,71 +817,21 @@ class LpProblem:
                 expr.subInPlace(dummyVar)
                 self.objective = expr
 
-    @overload
-    def solve(
-        self,
-        solver: LpSolver | None = ...,
-        stats: Literal[False] = ...,
-        **kwargs: Any,
-    ) -> int: ...
-
-    @overload
-    def solve(
-        self, solver: LpSolver | None = ..., *, stats: Literal[True], **kwargs: Any
-    ) -> LpSolveStats: ...
-
-    @overload
-    def solve(
-        self, solver: LpSolver | None, stats: bool, **kwargs: Any
-    ) -> int | LpSolveStats: ...
-
-    def solve(
-        self, solver: LpSolver | None = None, stats: bool = False, **kwargs: Any
-    ) -> int | LpSolveStats:
+    def solve(self, solver: LpSolver | None = None, **kwargs: Any) -> LpSolveStats:
         """
         Solve the given Lp problem.
 
-        This function changes the problem to make it suitable for solving
-        then calls the solver.actualSolve() method to find the solution
-
         :param solver:  Optional: the specific solver to be used, defaults to the
-              default solver.
-        :param stats: when True, return an :py:class:`LpSolveStats` describing the
-              solve instead of the integer status code, which stays available as its
-              ``status`` attribute. This will become the default in a future version.
+              problem's solver, then to the default solver.
+        :return: an :py:class:`LpSolveStats` describing the solve
 
         Side Effects:
-            - The attributes of the problem object are changed in
-              :meth:`~pulp.solver.LpSolver.actualSolve()` to reflect the Lp solution
+            - The variables and constraints of the problem get the values of the
+              solution the solver handed back
         """
-        if not stats:
-            _warn_about_stats()
-
         solver = self._pick_solver(solver)
-        wasNone, dummyVar = self.fixObjective()
-        if not stats:
-            self.startClock()
-            status = solver.actualSolve(self, **kwargs)
-            self.stopClock()
-            self.restoreObjective(wasNone, dummyVar)
-            self.solver = solver
-            return status
-
-        # capture_log gives the solver somewhere to write its log when the caller
-        # did not ask for one; the file only lives until the block ends, so parse
-        # it before leaving.
-        with solver.capture_log() as log_path:
-            self.startClock()
-            try:
-                solver.actualSolve(self, **kwargs)
-            finally:
-                self.stopClock()
-            logs = parse_logs(log_path, dialect_for_solver(solver.name))
-        self.restoreObjective(wasNone, dummyVar)
         self.solver = solver
-        self._stats.fill_from_problem(self, solver)
-        self._stats.fill_from_logs(logs)
-        return self._stats
+        return solver.solve(self, **kwargs)
 
     def _pick_solver(self, solver: LpSolver | None) -> LpSolver:
         """The explicitly given solver, else the problem's own, else the default."""
@@ -1010,22 +843,6 @@ class LpProblem:
             raise const.PulpError("No solver available")
         return solver
 
-    def startClock(self) -> None:
-        "initializes properties with the current time"
-        # a fresh solve, so drop everything the previous one recorded except the
-        # status, which the solver overwrites through assignStatus
-        self._stats = LpSolveStats(
-            status=self._stats.status,
-            has_solution=self._stats.has_solution,
-            cpu_time=-cpu_clock(),
-            time=-clock(),
-        )
-
-    def stopClock(self) -> None:
-        "updates time wall time and cpu time"
-        self._stats.time += clock()
-        self._stats.cpu_time += cpu_clock()
-
     def sequentialSolve(
         self,
         objectives: list[LpAffineExpression],
@@ -1033,8 +850,7 @@ class LpProblem:
         relativeTols: list[int] | list[float] | None = None,
         solver: LpSolver | None = None,
         debug: bool = False,
-        stats: bool = False,
-    ) -> list[int] | list[LpSolveStats]:
+    ) -> list[LpSolveStats]:
         """
         Solve the given Lp problem with several objective functions.
 
@@ -1046,41 +862,22 @@ class LpProblem:
            the constraints should be +ve for a minimise objective
         :param relativeTols: the list of relative tolerances applied to the constraints
         :param solver: the specific solver to be used, defaults to the default solver.
-        :param stats: when True, return one :py:class:`LpSolveStats` per objective
-           instead of one integer status code per objective.
+        :return: one :py:class:`LpSolveStats` per objective
 
         """
         # TODO Add a penalty variable to make problems elastic
         # TODO add the ability to accept different status values i.e. infeasible etc
-        if not stats:
-            _warn_about_stats()
-
         solver = self._pick_solver(solver)
         if not (absoluteTols):
             absoluteTols = [0] * len(objectives)
         if not (relativeTols):
             relativeTols = [1] * len(objectives)
-        results: list[Any] = []
+        results: list[LpSolveStats] = []
         for i, (obj, absol, rel) in enumerate(
             zip(objectives, absoluteTols, relativeTols)
         ):
             self.setObjective(obj)
-            # each objective is timed on its own, so the numbers describe one solve
-            if stats:
-                with solver.capture_log() as log_path:
-                    self.startClock()
-                    try:
-                        solver.actualSolve(self)
-                    finally:
-                        self.stopClock()
-                    logs = parse_logs(log_path, dialect_for_solver(solver.name))
-                self._stats.fill_from_problem(self, solver)
-                self._stats.fill_from_logs(logs)
-                results.append(self._stats)
-            else:
-                self.startClock()
-                results.append(solver.actualSolve(self))
-                self.stopClock()
+            results.append(solver.solve(self))
             if debug:
                 self.writeLP(f"{i}Sequence.lp")
             obj_val = value(obj)
@@ -1095,31 +892,11 @@ class LpProblem:
         self.solver = solver
         return results
 
-    @overload
-    def resolve(
-        self,
-        solver: LpSolver | None = ...,
-        stats: Literal[False] = ...,
-        **kwargs: Any,
-    ) -> int: ...
-
-    @overload
-    def resolve(
-        self, solver: LpSolver | None = ..., *, stats: Literal[True], **kwargs: Any
-    ) -> LpSolveStats: ...
-
-    @overload
-    def resolve(
-        self, solver: LpSolver | None, stats: bool, **kwargs: Any
-    ) -> int | LpSolveStats: ...
-
-    def resolve(
-        self, solver: LpSolver | None = None, stats: bool = False, **kwargs: Any
-    ) -> int | LpSolveStats:
+    def resolve(self, solver: LpSolver | None = None, **kwargs: Any) -> LpSolveStats:
         """
         Re-solves the problem using the same solver as previously.
         """
-        return self.solve(solver=solver, stats=stats, **kwargs)
+        return self.solve(solver=solver, **kwargs)
 
     def setSolver(self, solver: LpSolver | None = LpSolverDefault) -> None:
         """Sets the Solver for this problem useful if you are using
@@ -1143,25 +920,3 @@ class LpProblem:
 
     def getSense(self) -> int:
         return self.sense
-
-    def assignStatus(self, status: int, sol_status: int | None = None) -> bool:
-        """
-        Sets the status of the model after solving.
-        :param status: code for the status of the model
-        :param sol_status: code for the status of the solution; only whether it
-            means a feasible solution came back is kept, as ``stats.has_solution``
-        :return:
-        """
-        if status not in const.LpStatus:
-            raise const.PulpError("Invalid status code: " + str(status))
-
-        if sol_status is not None and sol_status not in const.LpSolution:
-            raise const.PulpError("Invalid solution status code: " + str(sol_status))
-
-        self._stats.status = status
-        if sol_status is None:
-            sol_status = const.LpStatusToSolution.get(
-                status, const.LpSolutionNoSolutionFound
-            )
-        self._stats.has_solution = sol_status in FEASIBLE_SOLUTIONS
-        return True

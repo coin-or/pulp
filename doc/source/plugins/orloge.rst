@@ -5,7 +5,7 @@ orloge is a log parser for several MIP solvers that standardizes the contents in
 
 site: https://github.com/pchtsp/orloge/
 
-orloge is a dependency of PuLP. Solving with ``prob.solve(solver, stats=True)`` has the solver write a log, parses it with orloge, and keeps the result as-is on the returned :py:class:`~pulp.LpSolveStats`, in its ``logs`` attribute. Individual pieces of it are exposed as read-only properties, e.g. ``solver_version``, ``nodes`` and ``matrix``, which fall back to ``None`` when there is no log or orloge could not parse it.
+orloge is a dependency of PuLP. Solving with ``prob.solve(solver)`` has the solver write a log, parses it with orloge, and keeps the result as-is on the returned :py:class:`~pulp.LpSolveStats`, in its ``logs`` attribute. Individual pieces of it are exposed as read-only properties, e.g. ``solver_version``, ``nodes`` and ``matrix``, which fall back to ``None`` when there is no log or orloge could not parse it.
 
 orloge can also be used directly, with GUROBI for example::
 

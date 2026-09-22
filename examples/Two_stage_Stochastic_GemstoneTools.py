@@ -99,9 +99,9 @@ print(gemstoneprob)
 # The problem data is written to an .lp file
 gemstoneprob.writeLP("gemstoneprob.lp")
 # The problem is solved using PuLP's choice of Solver
-gemstoneprob.solve()
+stats = gemstoneprob.solve()
 # The status of the solution is printed to the screen
-print("Status:", pulp.LpStatus[gemstoneprob.status])
+print("Status:", stats.status_str)
 
 # OUTPUT
 

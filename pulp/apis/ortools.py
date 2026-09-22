@@ -5,10 +5,11 @@ import warnings
 from typing import TYPE_CHECKING, Any
 
 from .. import constants
-from .core import LpSolver, PulpSolverError, clock, log
+from .core import LpSolver, PulpSolverError, clock, clocks, log
 
 if TYPE_CHECKING:
     from ..core.lp_problem import LpProblem
+    from ..core.lp_stats import LpSolveStats
 
 _ORTOOLS_IMPORT_ERROR: BaseException | None = None
 cp_model_mod = None
@@ -91,16 +92,20 @@ class CPSAT(LpSolver):
         return cp_model_mod is not None
 
     @check_ortools
-    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
         """
         Solve a well formulated lp problem.
 
         Creates a CP-SAT model, variables and constraints, then solves it.
         """
+        start = clocks()
         var_handles = self.buildSolverModel(lp)
         log.debug("Solve the Model using CP-SAT")
-        solver, status = self.callSolver(lp)
-        return self.findSolutionValues(lp, solver, var_handles, status)
+        solver, status_code = self.callSolver(lp)
+        status, has_solution = self.findSolutionValues(
+            lp, solver, var_handles, status_code
+        )
+        return self.buildStats(lp, status, has_solution, start=start)
 
     @check_ortools
     def buildSolverModel(self, lp: LpProblem) -> list[Any]:
@@ -255,26 +260,24 @@ class CPSAT(LpSolver):
         solver: Any,
         var_handles: list[Any],
         status_code: Any,
-    ) -> int:
+    ) -> tuple[constants.LpSolveStatus, bool]:
         exported_vars = list(lp.exported_variables())
+        # CP-SAT does not say which limit stopped it, only whether it has a solution
         cp_status = {
-            cp_model_mod.OPTIMAL: constants.LpStatusOptimal,
-            cp_model_mod.FEASIBLE: constants.LpStatusOptimal,
-            cp_model_mod.INFEASIBLE: constants.LpStatusInfeasible,
-            cp_model_mod.UNKNOWN: constants.LpStatusNotSolved,
-            cp_model_mod.MODEL_INVALID: constants.LpStatusUndefined,
+            cp_model_mod.OPTIMAL: constants.LpSolveStatus.Optimal,
+            cp_model_mod.FEASIBLE: constants.LpSolveStatus.Stopped,
+            cp_model_mod.INFEASIBLE: constants.LpSolveStatus.Infeasible,
+            cp_model_mod.UNKNOWN: constants.LpSolveStatus.Stopped,
+            cp_model_mod.MODEL_INVALID: constants.LpSolveStatus.Undefined,
         }
-        sol_status = {
-            cp_model_mod.FEASIBLE: constants.LpSolutionIntegerFeasible,
-        }
-        status = cp_status.get(status_code, constants.LpStatusUndefined)
-        lp.assignStatus(status, sol_status.get(status_code))
+        status = cp_status.get(status_code, constants.LpSolveStatus.Undefined)
+        has_solution = status_code in (cp_model_mod.OPTIMAL, cp_model_mod.FEASIBLE)
 
-        if status_code in (cp_model_mod.OPTIMAL, cp_model_mod.FEASIBLE):
+        if has_solution:
             values = {
                 var.name: solver.Value(cp_var)
                 for var, cp_var in zip(exported_vars, var_handles)
             }
             lp.assignVarsVals(values)
 
-        return status
+        return status, has_solution

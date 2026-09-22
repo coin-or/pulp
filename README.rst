@@ -95,22 +95,22 @@ An expression is a constraint without a right-hand side (RHS) sense (one of ``=`
 To solve the problem with the default solver (CBC when installed via ``pulp[cbc]``
 or ``cbc`` on ``PATH``, otherwise another available backend)::
 
-     status = prob.solve()
+     stats = prob.solve()
 
 If you want to try another solver to solve the problem::
 
-     status = prob.solve(GLPK(msg = 0))
+     stats = prob.solve(GLPK(msg = 0))
 
 To use the OR-Tools CP-SAT solver (install with ``python -m pip install pulp[ortools]``).
 Every variable must have finite lower and upper bounds; continuous variables are
 solved on their integer-rounded domain::
 
      from pulp import CPSAT
-     status = prob.solve(CPSAT(msg=False))
+     stats = prob.solve(CPSAT(msg=False))
 
 Display the status of the solution::
 
-     LpStatus[status]
+     stats.status_str
      > 'Optimal'
 
 You can get the value of the variables using ``value``. ex::

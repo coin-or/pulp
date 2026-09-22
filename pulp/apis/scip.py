@@ -32,10 +32,11 @@ import warnings
 from typing import TYPE_CHECKING, Any
 
 from .. import constants
-from .core import LpSolver, LpSolver_CMD, PulpSolverError, subprocess
+from .core import LpSolver, LpSolver_CMD, PulpSolverError, clocks, subprocess
 
 if TYPE_CHECKING:
     from ..core.lp_problem import LpProblem
+    from ..core.lp_stats import LpSolveStats
 
 scip_path = "scip"
 fscip_path = "fscip"
@@ -89,26 +90,21 @@ class SCIP_CMD(LpSolver_CMD):
         )
 
     SCIP_STATUSES = {
-        "unknown": constants.LpStatusUndefined,
-        "user interrupt": constants.LpStatusNotSolved,
-        "node limit reached": constants.LpStatusNotSolved,
-        "total node limit reached": constants.LpStatusNotSolved,
-        "stall node limit reached": constants.LpStatusNotSolved,
-        "time limit reached": constants.LpStatusNotSolved,
-        "memory limit reached": constants.LpStatusNotSolved,
-        "gap limit reached": constants.LpStatusOptimal,
-        "solution limit reached": constants.LpStatusNotSolved,
-        "solution improvement limit reached": constants.LpStatusNotSolved,
-        "restart limit reached": constants.LpStatusNotSolved,
-        "optimal solution found": constants.LpStatusOptimal,
-        "infeasible": constants.LpStatusInfeasible,
-        "unbounded": constants.LpStatusUnbounded,
-        "infeasible or unbounded": constants.LpStatusUndefined,
-    }
-    NO_SOLUTION_STATUSES = {
-        constants.LpStatusInfeasible,
-        constants.LpStatusUnbounded,
-        constants.LpStatusNotSolved,
+        "unknown": constants.LpSolveStatus.Undefined,
+        "user interrupt": constants.LpSolveStatus.Interrupted,
+        "node limit reached": constants.LpSolveStatus.NodeLimit,
+        "total node limit reached": constants.LpSolveStatus.NodeLimit,
+        "stall node limit reached": constants.LpSolveStatus.NodeLimit,
+        "time limit reached": constants.LpSolveStatus.TimeLimit,
+        "memory limit reached": constants.LpSolveStatus.MemoryLimit,
+        "gap limit reached": constants.LpSolveStatus.GapLimit,
+        "solution limit reached": constants.LpSolveStatus.SolutionLimit,
+        "solution improvement limit reached": constants.LpSolveStatus.SolutionLimit,
+        "restart limit reached": constants.LpSolveStatus.Stopped,
+        "optimal solution found": constants.LpSolveStatus.Optimal,
+        "infeasible": constants.LpSolveStatus.Infeasible,
+        "unbounded": constants.LpSolveStatus.Unbounded,
+        "infeasible or unbounded": constants.LpSolveStatus.Undefined,
     }
 
     def defaultPath(self):
@@ -118,8 +114,9 @@ class SCIP_CMD(LpSolver_CMD):
         """True if the solver is available"""
         return self.executable(self.path)
 
-    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
         """Solve a well formulated lp problem."""
+        start = clocks()
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute " + self.path)
 
@@ -182,19 +179,21 @@ class SCIP_CMD(LpSolver_CMD):
 
         if not os.path.exists(tmpSol):
             raise PulpSolverError("PuLP: Error while executing " + self.path)
-        status, values = self.readsol(tmpSol)
+        status, values, has_solution = self.readsol(tmpSol)
         # SCIP may omit zero-valued columns; only fill exported (solver) variables.
         exported = lp.exported_variables()
         finalVals = {v.name: values.get(v.name, 0.0) for v in exported}
 
         lp.assignVarsVals(finalVals)
-        lp.assignStatus(status)
         self.delete_tmp_files(tmpLp, tmpSol, tmpOptions)
-        return status
+        return self.buildStats(lp, status, has_solution, start=start)
 
     @staticmethod
     def readsol(filename):
-        """Read a SCIP solution file"""
+        """Read a SCIP solution file.
+
+        Returns why SCIP stopped, the variable values and whether it has a solution.
+        """
         with open(filename) as f:
             # First line must contain 'solution status: <something>'
             try:
@@ -206,7 +205,7 @@ class SCIP_CMD(LpSolver_CMD):
                 raise PulpSolverError(f"Can't get SCIP solver status: {line!r}")
 
             status = SCIP_CMD.SCIP_STATUSES.get(
-                comps[1].strip(), constants.LpStatusUndefined
+                comps[1].strip(), constants.LpSolveStatus.Undefined
             )
             values = {}
 
@@ -219,7 +218,7 @@ class SCIP_CMD(LpSolver_CMD):
                 float(comps[1].strip())
             except Exception:
                 # we assume there was not solution found
-                return status, values
+                return status, values, False
 
             # Parse the variable values.
             for line in f:
@@ -229,10 +228,7 @@ class SCIP_CMD(LpSolver_CMD):
                 except Exception:
                     raise PulpSolverError(f"Can't read SCIP solver output: {line!r}")
 
-            # if we have a solution, we should change status to Optimal by conventio
-            status = constants.LpStatusOptimal
-
-            return status, values
+            return status, values, True
 
 
 SCIP = SCIP_CMD
@@ -286,13 +282,13 @@ class FSCIP_CMD(LpSolver_CMD):
         )
 
     FSCIP_STATUSES = {
-        "No Solution": constants.LpStatusNotSolved,
-        "Final Solution": constants.LpStatusOptimal,
+        "No Solution": constants.LpSolveStatus.NotSolved,
+        "Final Solution": constants.LpSolveStatus.Optimal,
     }
     NO_SOLUTION_STATUSES = {
-        constants.LpStatusInfeasible,
-        constants.LpStatusUnbounded,
-        constants.LpStatusNotSolved,
+        constants.LpSolveStatus.Infeasible,
+        constants.LpSolveStatus.Unbounded,
+        constants.LpSolveStatus.NotSolved,
     }
 
     def defaultPath(self):
@@ -302,8 +298,9 @@ class FSCIP_CMD(LpSolver_CMD):
         """True if the solver is available"""
         return self.executable(self.path)
 
-    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
         """Solve a well formulated lp problem."""
+        start = clocks()
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute " + self.path)
 
@@ -382,12 +379,12 @@ class FSCIP_CMD(LpSolver_CMD):
         finalVals = {v.name: values.get(v.name, 0.0) for v in exported}
 
         lp.assignVarsVals(finalVals)
-        lp.assignStatus(status)
         self.delete_tmp_files(tmpLp, tmpSol, tmpOptions, tmpParams)
-        return status
+        has_solution = status not in FSCIP_CMD.NO_SOLUTION_STATUSES
+        return self.buildStats(lp, status, has_solution, start=start)
 
     @staticmethod
-    def parse_status(string: str) -> int | None:
+    def parse_status(string: str) -> constants.LpSolveStatus | None:
         for fscip_status, pulp_status in FSCIP_CMD.FSCIP_STATUSES.items():
             if fscip_status in string:
                 return pulp_status
@@ -486,7 +483,7 @@ class SCIP_PY(LpSolver):
             """True if the solver is available"""
             return False
 
-        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
             """Solve a well formulated lp problem."""
             raise PulpSolverError(f"The {self.name} solver is not available")
 
@@ -532,36 +529,31 @@ class SCIP_PY(LpSolver):
 
         def findSolutionValues(self, lp, var_handles, constr_handles, exported_vars):
             solutionStatus = lp.solverModel.getStatus()
+            S = constants.LpSolveStatus
             scip_to_pulp_status = {
-                "optimal": constants.LpStatusOptimal,
-                "unbounded": constants.LpStatusUnbounded,
-                "infeasible": constants.LpStatusInfeasible,
-                "inforunbd": constants.LpStatusUndefined,
-                "timelimit": constants.LpStatusNotSolved,
-                "userinterrupt": constants.LpStatusNotSolved,
-                "nodelimit": constants.LpStatusNotSolved,
-                "totalnodelimit": constants.LpStatusNotSolved,
-                "stallnodelimit": constants.LpStatusNotSolved,
-                "gaplimit": constants.LpStatusNotSolved,
-                "memlimit": constants.LpStatusNotSolved,
-                "sollimit": constants.LpStatusNotSolved,
-                "bestsollimit": constants.LpStatusNotSolved,
-                "restartlimit": constants.LpStatusNotSolved,
-                "unknown": constants.LpStatusUndefined,
+                "optimal": S.Optimal,
+                "unbounded": S.Unbounded,
+                "infeasible": S.Infeasible,
+                "inforunbd": S.Undefined,
+                "timelimit": S.TimeLimit,
+                "userinterrupt": S.Interrupted,
+                "terminate": S.Interrupted,
+                "nodelimit": S.NodeLimit,
+                "totalnodelimit": S.NodeLimit,
+                "stallnodelimit": S.NodeLimit,
+                "gaplimit": S.GapLimit,
+                "primallimit": S.GapLimit,
+                "duallimit": S.GapLimit,
+                "memlimit": S.MemoryLimit,
+                "sollimit": S.SolutionLimit,
+                "bestsollimit": S.SolutionLimit,
+                "restartlimit": S.Stopped,
+                "unknown": S.Undefined,
             }
-            possible_solution_found_statuses = (
-                "optimal",
-                "timelimit",
-                "userinterrupt",
-                "nodelimit",
-                "totalnodelimit",
-                "stallnodelimit",
-                "gaplimit",
-                "memlimit",
-            )
-            status = scip_to_pulp_status[solutionStatus]
+            status = scip_to_pulp_status.get(solutionStatus, S.Undefined)
 
-            if solutionStatus in possible_solution_found_statuses:
+            has_solution = False
+            if status not in (S.Infeasible, S.Unbounded, S.Undefined):
                 try:  # Feasible solution found
                     solution = lp.solverModel.getBestSol()
                     for j, var in enumerate(exported_vars):
@@ -570,24 +562,10 @@ class SCIP_PY(LpSolver):
                         constraint.slack = lp.solverModel.getSlack(
                             constr_handles[constraint.id], solution
                         )
-                    if status == constants.LpStatusOptimal:
-                        lp.assignStatus(status, constants.LpSolutionOptimal)
-                    else:
-                        status = constants.LpStatusOptimal
-                        lp.assignStatus(status, constants.LpSolutionIntegerFeasible)
+                    has_solution = True
                 except Exception:  # No solution found
-                    lp.assignStatus(status, constants.LpSolutionNoSolutionFound)
-            else:
-                lp.assignStatus(status)
-
-                # TODO: check if problem is an LP i.e. does not have integer variables
-                # if :
-                #     for variable in lp._variables:
-                #         variable.dj = lp.solverModel.getVarRedcost(variable.solverVar)
-                #     for constraint in lp.constraints().values():
-                #         constraint.pi = lp.solverModel.getDualSolVal(constraint.solverConstraint)
-
-            return status
+                    pass
+            return status, has_solution
 
         def available(self):
             """True if the solver is available"""
@@ -699,16 +677,17 @@ class SCIP_PY(LpSolver):
                 lp.solverModel.addSol(s)
             return var_handles, constr_handles, exported_vars
 
-        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
             """
             Solve a well formulated lp problem
 
             creates a scip model, variables and constraints and attaches
             them to the lp model which it then solves
             """
+            start = clocks()
             var_handles, constr_handles, exported_vars = self.buildSolverModel(lp)
             self.callSolver(lp)
-            solutionStatus = self.findSolutionValues(
+            status, has_solution = self.findSolutionValues(
                 lp, var_handles, constr_handles, exported_vars
             )
-            return solutionStatus
+            return self.buildStats(lp, status, has_solution, start=start)

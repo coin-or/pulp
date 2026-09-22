@@ -84,7 +84,7 @@ class COIN_CMD_CBCOptionsTest(BaseSolverTest.PuLPTest):
         pulpTestCheck(
             prob,
             self.solver,
-            [const.LpStatusOptimal],
+            [const.LpSolveStatus.Optimal],
             {x: 4, y: -1, z: 6, w: 0},
         )
         if not os.path.exists(logFilename):
@@ -122,7 +122,7 @@ class COIN_CMD_CBCOptionsTest(BaseSolverTest.PuLPTest):
         pulpTestCheck(
             prob,
             self.solver,
-            [const.LpStatusOptimal],
+            [const.LpSolveStatus.Optimal],
             {x: 4, y: -1, z: 6, w: 0},
         )
         if not os.path.exists(logFilename):
@@ -167,7 +167,7 @@ class COIN_CMD_CBCOptionsTest(BaseSolverTest.PuLPTest):
         pulpTestCheck(
             prob,
             self.solver,
-            [const.LpStatusOptimal],
+            [const.LpSolveStatus.Optimal],
             {x: 4, y: -1, z: 6, w: 0},
         )
         if not os.path.exists(logFilename):
@@ -204,7 +204,7 @@ class COIN_CMD_CBCOptionsTest(BaseSolverTest.PuLPTest):
         pulpTestCheck(
             prob,
             self.solver,
-            [const.LpStatusOptimal],
+            [const.LpSolveStatus.Optimal],
             {x: 4, y: -1, z: 6, w: 0},
         )
         if not os.path.exists(logFilename):
@@ -243,7 +243,7 @@ class COIN_CMD_CBCOptionsTest(BaseSolverTest.PuLPTest):
         pulpTestCheck(
             prob,
             self.solver,
-            [const.LpStatusOptimal],
+            [const.LpSolveStatus.Optimal],
             {x: 4, y: -1, z: 6, w: 0},
         )
         if not os.path.exists(logFilename):
@@ -263,7 +263,7 @@ class COIN_CMDTest(BaseSolverTest.PuLPTest):
     solveInst = solvers.COIN_CMD
     pulp_test_overrides: ClassVar[dict[str, PulpTestConfig]] = {
         "test_infeasible": PulpTestConfig(
-            okstatus=_status("LpStatusInfeasible"),
+            okstatus=_status("Infeasible"),
             solve_kwargs={"use_mps": False},
         ),
         "test_longname_lp": PulpTestConfig(skip=False, solve_kwargs={"use_mps": False}),
@@ -271,7 +271,7 @@ class COIN_CMDTest(BaseSolverTest.PuLPTest):
         "test_dual_variables_reduced_costs": PulpTestConfig(skip=False),
         "test_initial_value": PulpTestConfig(warm_start=True),
         "test_integer_infeasible": PulpTestConfig(
-            okstatus=_status("LpStatusInfeasible", "LpStatusUndefined")
+            okstatus=_status("Infeasible", "Undefined")
         ),
     }
 
@@ -298,7 +298,7 @@ class COIN_CMDTest(BaseSolverTest.PuLPTest):
         pulpTestCheck(
             prob,
             self.solver,
-            [const.LpStatusOptimal],
+            [const.LpSolveStatus.Optimal],
             {
                 x[(0, 0)]: 1.0,
                 x[(0, 1)]: 0.0,
@@ -317,7 +317,7 @@ class COIN_CMDTest(BaseSolverTest.PuLPTest):
         pulpTestCheck(
             prob,
             self.solver,
-            [const.LpStatusOptimal],
+            [const.LpSolveStatus.Optimal],
             {y[(1, "east")]: 1.0, y[(2, "west")]: 0.0},
             objective=1.0,
         )

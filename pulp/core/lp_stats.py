@@ -1,7 +1,7 @@
 """Statistics describing a single solve.
 
-:class:`LpSolveStats` is what :meth:`~pulp.LpProblem.solve` returns when called with
-``stats=True``: why the solver stopped, whether a usable solution came back, how long
+:class:`LpSolveStats` is what :meth:`~pulp.LpProblem.solve` and
+:meth:`~pulp.apis.LpSolver.solve` return: why the solver stopped, whether a usable solution came back, how long
 it took, and -- when the solver produced a log ``orloge`` can read -- a good deal of
 detail read back out of that log.
 """
@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import dataclasses
 import os
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 try:
     import ujson as json  # type: ignore[import-untyped]
@@ -20,13 +20,6 @@ except ImportError:
 import orloge
 
 from .. import constants as const
-
-if TYPE_CHECKING:
-    from ..apis.core import LpSolver
-
-
-#: solution codes that mean the solver handed back a usable solution
-FEASIBLE_SOLUTIONS = (const.LpSolutionOptimal, const.LpSolutionIntegerFeasible)
 
 #: orloge dialect each solver's log speaks, keyed by :attr:`~pulp.apis.core.LpSolver.name`.
 #: Solvers left out here have no orloge parser; :func:`dialect_for_solver` returns
@@ -57,6 +50,29 @@ _LOG_PROPERTIES = (
     "first_relaxed",
     "first_solution",
 )
+
+
+# phrases in the stop reason a solver logs, e.g. CBC's "Stopped on node limit"
+_LOG_STOP_REASONS = (
+    ("time limit", const.LpSolveStatus.TimeLimit),
+    ("node limit", const.LpSolveStatus.NodeLimit),
+    ("solution limit", const.LpSolveStatus.SolutionLimit),
+    ("iteration", const.LpSolveStatus.IterationLimit),
+    ("memory", const.LpSolveStatus.MemoryLimit),
+    ("gap", const.LpSolveStatus.GapLimit),
+    ("ctrl-c", const.LpSolveStatus.Interrupted),
+)
+
+
+def _stop_reason_from_log(
+    solver_status: str | None, default: const.LpSolveStatus
+) -> const.LpSolveStatus:
+    """A specific stop reason for a solver that only said it stopped, if its log has one."""
+    text = (solver_status or "").lower()
+    for phrase, status in _LOG_STOP_REASONS:
+        if phrase in text:
+            return status
+    return default
 
 
 def dialect_for_solver(solver_name: str) -> str | None:
@@ -105,7 +121,7 @@ class LpSolveStats:
     log, or orloge could not parse it.
 
     :param solver: name of the solver that ran, e.g. ``"COIN_CMD"``
-    :param status: why the solver stopped, a :data:`~pulp.constants.LpStatus` code
+    :param status: why the solver stopped, a :class:`~pulp.constants.LpSolveStatus`
     :param has_solution: whether the solver found a feasible solution and handed it
         back
     :param time: wall-clock seconds spent solving
@@ -122,7 +138,7 @@ class LpSolveStats:
 
     # always available
     solver: str = "LpSolver"
-    status: int = const.LpStatusNotSolved
+    status: const.LpSolveStatus = const.LpSolveStatus.NotSolved
     has_solution: bool = False
     time: float = 0.0
     cpu_time: float = 0.0
@@ -216,8 +232,11 @@ class LpSolveStats:
 
     @property
     def status_str(self) -> str:
-        """Human readable reason the solver stopped, e.g. ``"Optimal"``."""
-        return const.LpStatus.get(self.status, "Unknown")
+        """Human readable reason the solver stopped, e.g. ``"Time Limit"``."""
+        try:
+            return const.LpSolveStatus(self.status).name
+        except ValueError:
+            return "Unknown"
 
     @property
     def gap_abs(self) -> float | None:
@@ -255,6 +274,7 @@ class LpSolveStats:
         for name in _LOG_PROPERTIES:
             data[name] = getattr(self, name)
         data.update(
+            status=int(self.status),
             status_str=self.status_str,
             gap_abs=self.gap_abs,
             gap_rel=self.gap_rel,
@@ -278,7 +298,7 @@ class LpSolveStats:
             name += f" ({self.solver_version})"
         lines = [
             f"solver: {name}",
-            f"status: {self.status_str} ({self.status})",
+            f"status: {self.status_str} ({int(self.status)})",
             f"has solution: {self.has_solution}",
             f"objective: {self.objective}",
         ]
@@ -291,25 +311,3 @@ class LpSolveStats:
         if self.nodes is not None:
             lines.append(f"nodes: {self.nodes}")
         return "\n".join(lines)
-
-    def fill_from_logs(self, logs: dict[str, Any] | None) -> None:
-        """Store the orloge payload; :attr:`logs`-derived properties read out of it."""
-        self.logs = logs
-        if logs is None:
-            return
-        # the solver itself is the better source for these two; only fall back
-        if self.objective is None:
-            self.objective = logs.get("best_solution")
-        if self.best_bound is None:
-            self.best_bound = logs.get("best_bound")
-
-    def fill_from_problem(self, lp: Any, solver: LpSolver) -> None:
-        """Copy across what is read off the problem and the solver after a solve."""
-        self.solver = solver.name
-        self.solver_options = solver.toDict()
-        self.num_variables = lp.numVariables()
-        self.num_constraints = lp.numConstraints()
-        self.is_mip = bool(lp.isMIP())
-        objective = lp.objective
-        if objective is not None:
-            self.objective = objective.value()

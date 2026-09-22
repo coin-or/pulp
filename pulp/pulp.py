@@ -64,15 +64,15 @@ objective::
 
 To solve the problem  with the default included solver::
 
-     status = prob.solve()
+     stats = prob.solve()
 
 If you want to try another solver to solve the problem::
 
-     status = prob.solve(GLPK(msg = 0))
+     stats = prob.solve(GLPK(msg = 0))
 
 Display the status of the solution::
 
-     LpStatus[status]
+     stats.status_str
      > 'Optimal'
 
 You can get the value of the variables using ``value``. ex::

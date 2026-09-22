@@ -1,5 +1,5 @@
 """
-End to end tests of pulp + solver + orloge: solve with ``stats=True`` and check what
+End to end tests of pulp + solver + orloge: solve and check what
 orloge read back out of each solver's log.
 """
 
@@ -10,6 +10,11 @@ import tempfile
 import unittest
 
 from orloge.base import MIPProgressRow
+from orloge.constants import (
+    LpSolutionIntegerFeasible,
+    LpSolutionOptimal,
+    LpStatusSolved,
+)
 from orloge.cplex import CPLEXProgressRow
 from orloge.cpsat import CPSATProgressRow
 from orloge.gurobi import GUROBIProgressRow
@@ -17,7 +22,6 @@ from orloge.gurobi import GUROBIProgressRow
 import pulp.apis as solvers
 from pulp import LpProblem
 from pulp import constants as const
-from pulp.core.lp_stats import FEASIBLE_SOLUTIONS
 
 
 class _SolverLogsTests(unittest.TestCase):
@@ -58,7 +62,7 @@ class _SolverLogsTests(unittest.TestCase):
         return prob
 
     def test_the_log_is_parsed(self):
-        stats = self._problem().solve(self._solver(), stats=True)
+        stats = self._problem().solve(self._solver())
         self.assertIsInstance(stats.logs, dict)
         self.assertEqual(stats.logs["solver"], self.dialect)
         self.assertIsNotNone(stats.solver_version)
@@ -68,18 +72,18 @@ class _SolverLogsTests(unittest.TestCase):
             self.assertIsNone(stats.solver_status)
 
     def test_the_log_agrees_with_the_solver(self):
-        stats = self._problem().solve(self._solver(), stats=True)
-        self.assertEqual(stats.status, const.LpStatusOptimal)
+        stats = self._problem().solve(self._solver())
+        self.assertEqual(stats.status, const.LpSolveStatus.Optimal)
         self.assertIs(stats.has_solution, True)
         self.assertAlmostEqual(stats.objective, 12, places=4)
         if not self.log_has_summary:
             return
-        self.assertEqual(stats.solver_status_code, const.LpStatusOptimal)
-        self.assertEqual(stats.solver_sol_code, const.LpSolutionOptimal)
+        self.assertEqual(stats.solver_status_code, LpStatusSolved)
+        self.assertEqual(stats.solver_sol_code, LpSolutionOptimal)
         self.assertAlmostEqual(stats.best_bound, 12, places=4)
 
     def test_progress_rows_use_the_solver_row_class(self):
-        stats = self._problem().solve(self._solver(), stats=True)
+        stats = self._problem().solve(self._solver())
         progress = stats.logs["progress"]
         self.assertIsInstance(progress, list)
         for row in progress:
@@ -88,7 +92,7 @@ class _SolverLogsTests(unittest.TestCase):
     def test_a_user_log_path_is_parsed_and_kept(self):
         log_path = os.path.join(tempfile.mkdtemp(), "solver.log")
         try:
-            stats = self._problem().solve(self._solver(logPath=log_path), stats=True)
+            stats = self._problem().solve(self._solver(logPath=log_path))
             self.assertTrue(os.path.isfile(log_path))
             self.assertIsInstance(stats.logs, dict)
             self.assertEqual(stats.logs["solver"], self.dialect)
@@ -102,9 +106,11 @@ class _SolverLogsTests(unittest.TestCase):
         prob += x >= 8, "lo"
         prob += x <= 2, "hi"
         prob += x
-        stats = prob.solve(self._solver(), stats=True)
+        stats = prob.solve(self._solver())
         self.assertIs(stats.has_solution, False)
-        self.assertNotIn(stats.solver_sol_code, FEASIBLE_SOLUTIONS)
+        self.assertNotIn(
+            stats.solver_sol_code, (LpSolutionOptimal, LpSolutionIntegerFeasible)
+        )
 
 
 class CBCLogsTest(_SolverLogsTests):

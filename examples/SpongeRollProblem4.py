@@ -135,10 +135,10 @@ for j in Pattern.lenOpts:
 prob.writeLP("SpongeRollProblem.lp")
 
 # The problem is solved
-prob.solve()
+stats = prob.solve()
 
 # The status of the solution is printed to the screen
-print("Status:", LpStatus[prob.status])
+print("Status:", stats.status_str)
 
 # Each of the variables is printed with it's resolved optimum value
 for v in prob.variables():

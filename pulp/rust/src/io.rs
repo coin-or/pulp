@@ -737,12 +737,7 @@ pub fn read_mps(
 
     let parameters = Py::new(
         py,
-        MpsParameters {
-            name,
-            sense,
-            status: 0,
-            sol_status: 0,
-        },
+        MpsParameters { name, sense },
     )?;
 
     let obj_coeff_list = PyList::empty(py);
@@ -995,8 +990,6 @@ struct MpsVarData {
 pub struct MpsParameters {
     name: String,
     sense: i32,
-    status: i32,
-    sol_status: i32,
 }
 
 #[pymethods]
@@ -1008,14 +1001,6 @@ impl MpsParameters {
     #[getter]
     fn sense(&self) -> i32 {
         self.sense
-    }
-    #[getter]
-    fn status(&self) -> i32 {
-        self.status
-    }
-    #[getter]
-    fn sol_status(&self) -> i32 {
-        self.sol_status
     }
 }
 

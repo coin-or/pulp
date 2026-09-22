@@ -31,10 +31,11 @@ import warnings
 from typing import TYPE_CHECKING, Any
 
 from .. import constants
-from .core import LpSolver_CMD, PulpSolverError, subprocess
+from .core import LpSolver_CMD, PulpSolverError, clocks, subprocess
 
 if TYPE_CHECKING:
     from ..core.lp_problem import LpProblem
+    from ..core.lp_stats import LpSolveStats
 
 
 class CHOCO_CMD(LpSolver_CMD):
@@ -77,8 +78,9 @@ class CHOCO_CMD(LpSolver_CMD):
         java_path = self.executableExtension("java")
         return self.executable(self.path) and self.executable(java_path)
 
-    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
         """Solve a well formulated lp problem."""
+        start = clocks()
         java_path = self.executableExtension("java")
         if not self.executable(java_path):
             raise PulpSolverError(
@@ -116,54 +118,43 @@ class CHOCO_CMD(LpSolver_CMD):
         if return_code != 0:
             raise PulpSolverError("PuLP: Error while trying to execute " + self.path)
         if not os.path.exists(tmpSol):
-            status = constants.LpStatusNotSolved
-            status_sol = constants.LpSolutionNoSolutionFound
+            status = constants.LpSolveStatus.NotSolved
+            has_solution = False
             values = None
         else:
-            status, values, status_sol = self.readsol(tmpSol)
+            status, values, has_solution = self.readsol(tmpSol)
         self.delete_tmp_files(tmpMps, tmpLp, tmpSol)
 
-        lp.assignStatus(status, status_sol)
-        if values is not None and status not in (
-            constants.LpStatusInfeasible,
-            constants.LpStatusNotSolved,
-        ):
+        if values is not None and has_solution:
             lp.assignVarsVals(values)
 
-        return status
+        return self.buildStats(lp, status, has_solution, start=start)
 
     @staticmethod
     def readsol(filename):
         """Read a Choco solution file"""
         # TODO: figure out the unbounded status in choco solver
+        S = constants.LpSolveStatus
+        # choco does not say which limit stopped it, only whether it has a solution
         chocoStatus = {
-            "OPTIMUM FOUND": constants.LpStatusOptimal,
-            "SATISFIABLE": constants.LpStatusOptimal,
-            "UNSATISFIABLE": constants.LpStatusInfeasible,
-            "UNKNOWN": constants.LpStatusNotSolved,
+            "OPTIMUM FOUND": (S.Optimal, True),
+            "SATISFIABLE": (S.Stopped, True),
+            "UNSATISFIABLE": (S.Infeasible, False),
+            "UNKNOWN": (S.Stopped, False),
         }
 
-        chocoSolStatus = {
-            "OPTIMUM FOUND": constants.LpSolutionOptimal,
-            "SATISFIABLE": constants.LpSolutionIntegerFeasible,
-            "UNSATISFIABLE": constants.LpSolutionInfeasible,
-            "UNKNOWN": constants.LpSolutionNoSolutionFound,
-        }
-
-        status = constants.LpStatusNotSolved
-        sol_status = constants.LpSolutionNoSolutionFound
+        status = S.NotSolved
+        has_solution = False
         values = {}
         with open(filename) as f:
             content = f.readlines()
         content = [line.strip() for line in content if line[:2] not in ["o ", "c "]]
         if not len(content):
-            return status, values, sol_status
+            return status, values, has_solution
         if content[0][:2] == "s ":
-            status_str = content[0][2:]
-            status = chocoStatus[status_str]
-            sol_status = chocoSolStatus[status_str]
+            status, has_solution = chocoStatus[content[0][2:]]
         for line in content[1:]:
             name, value = line.split()
             values[name] = float(value)
 
-        return status, values, sol_status
+        return status, values, has_solution

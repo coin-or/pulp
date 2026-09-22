@@ -11,6 +11,7 @@ from uuid import uuid4
 
 if TYPE_CHECKING:
     from ..core.lp_problem import LpProblem
+    from ..core.lp_stats import LpSolveStats
 
 from ..constants import (
     LpBinary,
@@ -21,17 +22,14 @@ from ..constants import (
     LpInteger,
     LpMaximize,
     LpMinimize,
-    LpStatusInfeasible,
-    LpStatusNotSolved,
-    LpStatusOptimal,
-    LpStatusUnbounded,
-    LpStatusUndefined,
+    LpSolveStatus,
 )
 from .core import (
     LpSolver,
     LpSolver_CMD,
     PulpSolverError,
     clock,
+    clocks,
     ctypesArrayFill,
     sparse,
 )
@@ -92,13 +90,14 @@ class COPT_CMD(LpSolver_CMD):
         """
         return self.executable(self.path)
 
-    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
         """
         Solve a well formulated LP problem
 
         This function borrowed implementation of CPLEX_CMD.actualSolve and
         GUROBI_CMD.actualSolve, with some modifications.
         """
+        start = clocks()
         if not self.available():
             raise PulpSolverError("COPT_PULP: Failed to execute '{}'".format(self.path))
 
@@ -162,7 +161,7 @@ class COPT_CMD(LpSolver_CMD):
             raise PulpSolverError("COPT_PULP: Failed to execute '{}'".format(self.path))
 
         if not os.path.exists(tmpSol):
-            status = LpStatusNotSolved
+            status = LpSolveStatus.NotSolved
         else:
             status, values = self.readsol(tmpSol)
 
@@ -173,13 +172,12 @@ class COPT_CMD(LpSolver_CMD):
                 except Exception:
                     pass
 
-        if status == LpStatusOptimal:
+        # the solution file carries no status: a solution counts as optimal
+        has_solution = status == LpSolveStatus.Optimal
+        if has_solution:
             lp.assignVarsVals(values)
 
-        # lp.assignStatus(status)
-        lp._stats.status = status
-
-        return status
+        return self.buildStats(lp, status, has_solution, start=start)
 
     def readsol(self, filename):
         """
@@ -190,10 +188,10 @@ class COPT_CMD(LpSolver_CMD):
                 next(solfile)
             except StopIteration:
                 warnings.warn("COPT_PULP: No solution was returned")
-                return LpStatusNotSolved, {}
+                return LpSolveStatus.NotSolved, {}
 
             # TODO: No information about status, assumed to be optimal
-            status = LpStatusOptimal
+            status = LpSolveStatus.Optimal
 
             values = {}
             for line in solfile:
@@ -257,16 +255,17 @@ def COPT_DLL_loadlib():
 
 # COPT LP/MIP status map
 coptlpstat = {
-    0: LpStatusNotSolved,
-    1: LpStatusOptimal,
-    2: LpStatusInfeasible,
-    3: LpStatusUnbounded,
-    4: LpStatusNotSolved,
-    5: LpStatusNotSolved,
-    6: LpStatusNotSolved,
-    8: LpStatusNotSolved,
-    9: LpStatusNotSolved,
-    10: LpStatusNotSolved,
+    0: LpSolveStatus.NotSolved,  # unstarted
+    1: LpSolveStatus.Optimal,
+    2: LpSolveStatus.Infeasible,
+    3: LpSolveStatus.Unbounded,
+    4: LpSolveStatus.Undefined,  # infeasible or unbounded
+    5: LpSolveStatus.NumericalError,  # numerical
+    6: LpSolveStatus.NodeLimit,
+    7: LpSolveStatus.NumericalError,  # imprecise
+    8: LpSolveStatus.TimeLimit,  # timeout
+    9: LpSolveStatus.Stopped,  # unfinished
+    10: LpSolveStatus.Interrupted,
 }
 
 # COPT variable types map
@@ -304,7 +303,7 @@ class COPT_DLL(LpSolver):
             """True if the solver is available"""
             return False
 
-        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
             """Solve a well formulated lp problem."""
             raise PulpSolverError(f"COPT_DLL: Not Available:\n{self.err}")
 
@@ -381,13 +380,14 @@ class COPT_DLL(LpSolver):
             """
             return True
 
-        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
             """
             Solve a well formulated LP/MIP problem
 
             This function borrowed implementation of CPLEX_DLL.actualSolve,
             with some modifications.
             """
+            start = clocks()
             # Extract problem data and load it into COPT
             (
                 ncol,
@@ -471,9 +471,9 @@ class COPT_DLL(LpSolver):
                     raise PulpSolverError("COPT_PULP: Failed to solve the LP problem")
 
             # Get problem status and solution
-            status = self.getsolution(lp, ncol, nrow)
+            status, has_solution = self.getsolution(lp, ncol, nrow)
 
-            return status
+            return self.buildStats(lp, status, has_solution, start=start)
 
         def extract(self, lp):
             """
@@ -647,6 +647,7 @@ class COPT_DLL(LpSolver):
             var_dj = {}
             con_pi = {}
             con_slack = {}
+            has_solution = False
 
             if lp.isMIP() and self.mip:
                 hasmipsol = ctypes.c_int()
@@ -665,6 +666,7 @@ class COPT_DLL(LpSolver):
 
                 # Optimal/Feasible MIP solution
                 if status.value == 1 or hasmipsol.value == 1:
+                    has_solution = True
                     rc = self.GetSolution(self.coptprob, byref(x))
                     if rc != 0:
                         raise PulpSolverError("COPT_PULP: Failed to get MIP solution")
@@ -682,6 +684,7 @@ class COPT_DLL(LpSolver):
 
                 # Optimal LP solution
                 if status.value == 1:
+                    has_solution = True
                     rc = self.GetLpSolution(
                         self.coptprob, byref(x), byref(slack), byref(pi), byref(dj)
                     )
@@ -703,8 +706,7 @@ class COPT_DLL(LpSolver):
                 lp.assignConsPi(con_pi)
                 lp.assignConsSlack(con_slack)
 
-            lp._stats.status = coptlpstat.get(status.value, LpStatusUndefined)
-            return lp._stats.status
+            return coptlpstat.get(status.value, LpSolveStatus.Undefined), has_solution
 
         def write(self, filename):
             """
@@ -877,7 +879,7 @@ class COPT(LpSolver):
             """True if the solver is available"""
             return False
 
-        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
             """Solve a well formulated lp problem."""
             raise PulpSolverError("COPT: Not available")
 
@@ -924,27 +926,27 @@ class COPT(LpSolver):
             solutionStatus = model.status
 
             CoptLpStatus = {
-                coptpy.COPT.UNSTARTED: LpStatusNotSolved,
-                coptpy.COPT.OPTIMAL: LpStatusOptimal,
-                coptpy.COPT.INFEASIBLE: LpStatusInfeasible,
-                coptpy.COPT.UNBOUNDED: LpStatusUnbounded,
-                coptpy.COPT.INF_OR_UNB: LpStatusUndefined,
-                coptpy.COPT.NUMERICAL: LpStatusNotSolved,
-                coptpy.COPT.NODELIMIT: LpStatusNotSolved,
-                coptpy.COPT.IMPRECISE: LpStatusNotSolved,
-                coptpy.COPT.TIMEOUT: LpStatusNotSolved,
-                coptpy.COPT.UNFINISHED: LpStatusNotSolved,
-                coptpy.COPT.INTERRUPTED: LpStatusNotSolved,
+                coptpy.COPT.UNSTARTED: LpSolveStatus.NotSolved,
+                coptpy.COPT.OPTIMAL: LpSolveStatus.Optimal,
+                coptpy.COPT.INFEASIBLE: LpSolveStatus.Infeasible,
+                coptpy.COPT.UNBOUNDED: LpSolveStatus.Unbounded,
+                coptpy.COPT.INF_OR_UNB: LpSolveStatus.Undefined,
+                coptpy.COPT.NUMERICAL: LpSolveStatus.NumericalError,
+                coptpy.COPT.NODELIMIT: LpSolveStatus.NodeLimit,
+                coptpy.COPT.IMPRECISE: LpSolveStatus.NumericalError,
+                coptpy.COPT.TIMEOUT: LpSolveStatus.TimeLimit,
+                coptpy.COPT.UNFINISHED: LpSolveStatus.Stopped,
+                coptpy.COPT.INTERRUPTED: LpSolveStatus.Interrupted,
             }
 
             if self.msg:
                 print("COPT status=", solutionStatus)
 
-            status = CoptLpStatus.get(solutionStatus, LpStatusUndefined)
-            lp.assignStatus(status)
-            hasMipSol = model.ismip and model.getAttr("HasMipSol")
-            if status != LpStatusOptimal and not hasMipSol:
-                return status
+            status = CoptLpStatus.get(solutionStatus, LpSolveStatus.Undefined)
+            hasMipSol = bool(model.ismip and model.getAttr("HasMipSol"))
+            has_solution = status == LpSolveStatus.Optimal or hasMipSol
+            if not has_solution:
+                return status, has_solution
 
             values = model.getInfo("Value", model.getVars())
             exported_vars = lp.exported_variables()
@@ -970,7 +972,7 @@ class COPT(LpSolver):
                     # sometimes the model is not solved, and thus these infos are not available
                     pass
 
-            return status
+            return status, has_solution
 
         def available(self):
             """True if the solver is available"""
@@ -1046,16 +1048,17 @@ class COPT(LpSolver):
                     raise PulpSolverError("Detected an invalid constraint type")
                 lp.solverModel.addConstr(expr, relation, -constraint.constant, name)
 
-        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
             """
             Solve a well formulated lp problem
 
             creates a COPT model, variables and constraints and attaches
             them to the lp model which it then solves
             """
+            start = clocks()
             callback = kwargs.get("callback")
             self.buildSolverModel(lp)
             self.callSolver(lp, callback=callback)
 
-            solutionStatus = self.findSolutionValues(lp)
-            return solutionStatus
+            status, has_solution = self.findSolutionValues(lp)
+            return self.buildStats(lp, status, has_solution, start=start)
