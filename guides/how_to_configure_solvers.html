@@ -61,6 +61,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#configuring-where-the-cmd-solvers-write-their-temporary-files">Configuring where the CMD solvers write their temporary files</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#using-the-official-solver-api">Using the official solver API</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#installing-cpsat-or-tools-cp-sat">Installing CPSAT (OR-Tools CP-SAT)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#installing-pyglpk">Installing PYGLPK</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#installing-cplex-py">Installing CPLEX_PY</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#installing-gurobi">Installing GUROBI</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#installing-xpress-py">Installing XPRESS_PY</a></li>
@@ -304,6 +305,7 @@ other command-line tool).</p></li>
 <li><p>XPRESS (XPRESS_PY)</p></li>
 <li><p>COPT (COPT)</p></li>
 <li><p>OR-Tools CP-SAT (CPSAT)</p></li>
+<li><p>GLPK (PYGLPK)</p></li>
 </ul>
 <p>These API offer a series of advantages over using the command line option:</p>
 <ul class="simple">
@@ -344,6 +346,31 @@ raise <code class="docutils literal notranslate"><span class="pre">PulpSolverErr
 <p>Optional arguments include <code class="docutils literal notranslate"><span class="pre">warmStart=True</span></code> (pass current <code class="docutils literal notranslate"><span class="pre">varValue</span></code> hints),
 <code class="docutils literal notranslate"><span class="pre">timeLimit</span></code> (seconds), and any <code class="docutils literal notranslate"><span class="pre">CpSolver.parameters</span></code> names as keyword
 arguments (for example <code class="docutils literal notranslate"><span class="pre">num_search_workers=8</span></code>).</p>
+</section>
+<section id="installing-pyglpk">
+<h3>Installing PYGLPK<a class="headerlink" href="#installing-pyglpk" title="Link to this heading"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">PYGLPK</span></code> solver uses the <a class="reference external" href="https://pypi.org/project/swiglpk/">swiglpk</a>
+Python package, which bundles the GLPK library, so no separate GLPK
+installation or executable is required. Install PuLP with the optional
+extra:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">pulp</span><span class="p">[</span><span class="n">glpk</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Unlike <code class="docutils literal notranslate"><span class="pre">GLPK_CMD</span></code>, which shells out to the <code class="docutils literal notranslate"><span class="pre">glpsol</span></code> binary, <code class="docutils literal notranslate"><span class="pre">PYGLPK</span></code>
+talks to GLPK directly through its C API, which avoids the overhead of
+writing files to disk:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pulp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
+
+<span class="n">prob</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;pyglpk_example&quot;</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&gt;=</span> <span class="mi">2</span>
+
+<span class="n">status</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">PYGLPK</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">LpStatus</span><span class="p">[</span><span class="n">status</span><span class="p">],</span> <span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">(),</span> <span class="n">y</span><span class="o">.</span><span class="n">value</span><span class="p">())</span>
+</pre></div>
+</div>
 </section>
 <section id="installing-cplex-py">
 <h3>Installing CPLEX_PY<a class="headerlink" href="#installing-cplex-py" title="Link to this heading"></a></h3>

@@ -83,5 +83,8 @@ Installing solvers
 PuLP can use a variety of solvers. CBC is typically used through ``COIN_CMD``
 after ``pip install pulp[cbc]`` or when ``cbc`` is on ``PATH``. The OR-Tools
 CP-SAT backend is available via ``pip install pulp[ortools]`` and the ``CPSAT``
-solver class. For other solvers and configuration, see the
+solver class. GLPK is available either as a command-line tool via
+``GLPK_CMD`` (requires ``glpsol`` on your ``PATH``) or through its native
+python API via ``pip install pulp[glpk]`` and the ``PYGLPK`` solver class.
+For other solvers and configuration, see the
 :ref:`guide on configuring solvers <how_to_configure_solvers>`.

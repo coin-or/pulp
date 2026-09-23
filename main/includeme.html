@@ -157,10 +157,11 @@ optional PyPI extras (some require a commercial license for running or for large
 <span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">pulp</span><span class="p">[</span><span class="n">ortools</span><span class="p">]</span>
 <span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">pulp</span><span class="p">[</span><span class="n">cylp</span><span class="p">]</span>
 <span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">pulp</span><span class="p">[</span><span class="n">cbc</span><span class="p">]</span>
+<span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">pulp</span><span class="p">[</span><span class="n">glpk</span><span class="p">]</span>
 </pre></div>
 </div>
 <dl class="simple">
-<dt>If you want to install all open source solvers (scip, highs, cbc), you can use the shortcut::</dt><dd><p>python -m pip install pulp[open_py]</p>
+<dt>If you want to install all open source solvers (scip, highs, cbc, glpk), you can use the shortcut::</dt><dd><p>python -m pip install pulp[open_py]</p>
 </dd>
 </dl>
 <p>For more information on how to install solvers, see the <a class="reference external" href="https://coin-or.github.io/pulp/guides/how_to_configure_solvers.html">guide on configuring solvers</a>.</p>
@@ -193,6 +194,12 @@ or <code class="docutils literal notranslate"><span class="pre">cbc</span></code
 </div>
 <p>If you want to try another solver to solve the problem:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">status</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">GLPK</span><span class="p">(</span><span class="n">msg</span> <span class="o">=</span> <span class="mi">0</span><span class="p">))</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">GLPK</span></code> uses GLPK’s command-line tool (<code class="docutils literal notranslate"><span class="pre">glpsol</span></code>) and requires it to be on
+your <code class="docutils literal notranslate"><span class="pre">PATH</span></code>. To use GLPK’s python API instead, install
+<code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">pulp[glpk]</span></code> and use <code class="docutils literal notranslate"><span class="pre">PYGLPK</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">status</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">PYGLPK</span><span class="p">(</span><span class="n">msg</span> <span class="o">=</span> <span class="mi">0</span><span class="p">))</span>
 </pre></div>
 </div>
 <p>To use the OR-Tools CP-SAT solver (install with <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">pulp[ortools]</span></code>).
