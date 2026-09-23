@@ -33,6 +33,8 @@ the current version
 from __future__ import annotations
 
 import ctypes
+import functools
+import importlib
 import math
 import os
 import platform
@@ -67,7 +69,7 @@ operating_system = get_operating_system()
 arch = get_arch()
 
 import logging
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from typing import TYPE_CHECKING, Any
 
 from .. import constants as const
@@ -102,6 +104,47 @@ class PulpSolverError(const.PulpError):
     """
 
     pass
+
+
+# errors raised while importing optional solver libraries, by module name
+_OPTIONAL_IMPORT_ERRORS: dict[str, BaseException] = {}
+
+
+def import_optional(module_name: str) -> Any:
+    """
+    Import an optional solver library.
+
+    :param module_name: name of the module to import (e.g. ``"gurobipy"``)
+    :return: the module, or None if it could not be imported. In that case
+        the error is kept so :func:`requires` can report it.
+    """
+    try:
+        return importlib.import_module(module_name)
+    except Exception as exc:  # some libraries (e.g. gurobipy) raise their own errors
+        _OPTIONAL_IMPORT_ERRORS[module_name] = exc
+        return None
+
+
+def requires(*module_names: str) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+    """
+    Decorator for solver methods that need optional libraries.
+
+    :param module_names: modules previously imported with :func:`import_optional`
+    :raises PulpSolverError: if any of the modules could not be imported
+    """
+
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
+        @functools.wraps(func)
+        def wrapper(self: LpSolver, *args: Any, **kwargs: Any) -> Any:
+            for module_name in module_names:
+                error = _OPTIONAL_IMPORT_ERRORS.get(module_name)
+                if error is not None:
+                    raise PulpSolverError(f"{self.name}: Not Available:\n{error}")
+            return func(self, *args, **kwargs)
+
+        return wrapper
+
+    return decorator
 
 
 class LpSolver:

@@ -33,7 +33,14 @@ import warnings
 from typing import TYPE_CHECKING, Any
 
 from .. import constants
-from .core import LpSolver, LpSolver_CMD, PulpSolverError, subprocess
+from .core import (
+    LpSolver,
+    LpSolver_CMD,
+    PulpSolverError,
+    import_optional,
+    requires,
+    subprocess,
+)
 
 if TYPE_CHECKING:
     from ..core.lp_problem import LpProblem
@@ -328,7 +335,14 @@ class XPRESS(LpSolver_CMD):
 
 XPRESS_CMD = XPRESS
 
-xpress = None
+xpress_mod = import_optional("xpress")
+if xpress_mod is not None:
+    # Always disable the global output. We only want output if
+    # we install callbacks explicitly
+    try:
+        xpress_mod.setOutputEnabled(False)
+    except Exception:
+        pass
 
 
 class XPRESS_PY(LpSolver):
@@ -390,23 +404,11 @@ class XPRESS_PY(LpSolver):
             preSolve=preSolve,
             warmStart=warmStart,
         )
-        self._available = None
         self._export = export
 
     def available(self):
         """True if the solver is available"""
-        if self._available is None:
-            try:
-                global xpress
-                import xpress  # type: ignore[import-not-found, import-untyped]
-
-                # Always disable the global output. We only want output if
-                # we install callbacks explicitly
-                xpress.setOutputEnabled(False)
-                self._available = True
-            except Exception:
-                self._available = False
-        return self._available
+        return xpress_mod is not None
 
     def callSolver(self, lp, prepare=None):
         """Run the low-level XPRESS solve (used from :meth:`actualSolve`).
@@ -442,7 +444,11 @@ class XPRESS_PY(LpSolver):
                     model.optimize()
                 except AttributeError:  # Fallback to deprecated API
                     model.solve()
-        except (xpress.ModelError, xpress.InterfaceError, xpress.SolverError) as err:
+        except (
+            xpress_mod.ModelError,
+            xpress_mod.InterfaceError,
+            xpress_mod.SolverError,
+        ) as err:
             raise PulpSolverError(str(err))
 
     def findSolutionValues(self, lp):
@@ -470,7 +476,7 @@ class XPRESS_PY(LpSolver):
             vals = slacks = duals = djs = None
 
             # Resolve solstatus enum constants with integer fallbacks for older versions
-            _SS = getattr(xpress, "SolStatus", None)
+            _SS = getattr(xpress_mod, "SolStatus", None)
             _SS_NOTFOUND = getattr(_SS, "NOTFOUND", 0) if _SS else 0
             _SS_OPTIMAL = getattr(_SS, "OPTIMAL", 1) if _SS else 1
             _SS_FEASIBLE = getattr(_SS, "FEASIBLE", 2) if _SS else 2
@@ -552,25 +558,22 @@ class XPRESS_PY(LpSolver):
             lp.assignStatus(status, sol_status)
             return status
 
-        except (xpress.ModelError, xpress.InterfaceError, xpress.SolverError) as err:
+        except (
+            xpress_mod.ModelError,
+            xpress_mod.InterfaceError,
+            xpress_mod.SolverError,
+        ) as err:
             raise PulpSolverError(str(err))
 
+    @requires("xpress")
     def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
         """Solve a well formulated lp problem."""
         prepare = kwargs.get("prepare")
-        if not self.available():
-            # Import again to get a more verbose error message
-            message = "XPRESS Python API not available"
-            try:
-                import xpress  # noqa: F401
-            except ImportError as err:
-                message = str(err)
-            raise PulpSolverError(message)
-
         self.buildSolverModel(lp)
         self.callSolver(lp, prepare)
         return self.findSolutionValues(lp)
 
+    @requires("xpress")
     def buildSolverModel(self, lp):
         """
         Takes the pulp lp model and translates it into an xpress model
@@ -663,7 +666,11 @@ class XPRESS_PY(LpSolver):
                     model.addMessageCallback(message)
                 except AttributeError:  # Fallback to deprecated API
                     model.addcbmessage(message)
-        except (xpress.ModelError, xpress.InterfaceError, xpress.SolverError) as err:
+        except (
+            xpress_mod.ModelError,
+            xpress_mod.InterfaceError,
+            xpress_mod.SolverError,
+        ) as err:
             raise PulpSolverError(str(err))
 
     def _reset(self, lp):
@@ -682,15 +689,15 @@ class XPRESS_PY(LpSolver):
         try:
             # Map PuLP senses -> XPRESS tokens (prefer xp.leq/geq/eq if present; else fall back to 'L','G','E')
             try:
-                _XP_LEQ = xpress.leq
+                _XP_LEQ = xpress_mod.leq
             except AttributeError:
                 _XP_LEQ = "L"
             try:
-                _XP_GEQ = xpress.geq
+                _XP_GEQ = xpress_mod.geq
             except AttributeError:
                 _XP_GEQ = "G"
             try:
-                _XP_EQ = xpress.eq
+                _XP_EQ = xpress_mod.eq
             except AttributeError:
                 _XP_EQ = "E"
 
@@ -708,13 +715,13 @@ class XPRESS_PY(LpSolver):
                 """
                 # Prefer the new keyword first
                 try:
-                    return xpress.constraint(
+                    return xpress_mod.constraint(
                         body=lhs, type=xp_sense, rhs=rhs, name=name
                     )
                 except TypeError:
                     # Fallback to old keyword
                     try:
-                        return xpress.constraint(
+                        return xpress_mod.constraint(
                             body=lhs, sense=xp_sense, rhs=rhs, name=name
                         )
                     except TypeError as e:
@@ -722,12 +729,12 @@ class XPRESS_PY(LpSolver):
                             f"XPRESS constraint constructor is incompatible: {e}"
                         )
 
-            model = xpress.problem()
+            model = xpress_mod.problem()
             if lp.sense == constants.LpMaximize:
                 try:  # New API first
-                    model.chgObjSense(xpress.maximize)
+                    model.chgObjSense(xpress_mod.maximize)
                 except AttributeError:  # Fallback to deprecated API
-                    model.chgobjsense(xpress.maximize)
+                    model.chgobjsense(xpress_mod.maximize)
 
             var_handles = []
 
@@ -741,10 +748,12 @@ class XPRESS_PY(LpSolver):
             id_to_col = {v.id: j for j, v in enumerate(exported_vars)}
             for v in exported_vars:
                 lb.append(
-                    -xpress.infinity if not math.isfinite(v.lowBound) else v.lowBound
+                    -xpress_mod.infinity
+                    if not math.isfinite(v.lowBound)
+                    else v.lowBound
                 )
                 ub.append(
-                    xpress.infinity if not math.isfinite(v.upBound) else v.upBound
+                    xpress_mod.infinity if not math.isfinite(v.upBound) else v.upBound
                 )
                 obj.append(lp.objective.get(v, 0.0))
                 if v.cat == constants.LpInteger:
@@ -756,7 +765,7 @@ class XPRESS_PY(LpSolver):
                 names.append(v.name)
             try:  # New API first
                 model.addCols(obj, [0] * (len(obj) + 1), [], [], lb, ub)
-                model.addNames(xpress.Namespaces.COLUMN, names, 0, len(names) - 1)
+                model.addNames(xpress_mod.Namespaces.COLUMN, names, 0, len(names) - 1)
                 model.chgColType(range(len(ctype)), ctype)
             except AttributeError:  # Fallback to deprecated API
                 model.addcols(obj, [0] * (len(obj) + 1), [], [], lb, ub, names, ctype)
@@ -766,7 +775,7 @@ class XPRESS_PY(LpSolver):
             # Generate constraints in model order (same as lp.constraints() list).
             cons = list()
             for con in lp.constraints():
-                lhs = xpress.Sum(
+                lhs = xpress_mod.Sum(
                     a * var_handles[id_to_col[x.id]]
                     for x, a in sorted(con.items(), key=lambda item: item[0].name)
                 )
@@ -791,7 +800,7 @@ class XPRESS_PY(LpSolver):
                 for name in sorted(sosdict):
                     indices = [id_to_col[v.id] for v, _ in sosdict[name].items()]
                     weights = [val for _, val in sosdict[name].items()]
-                    soslist.append(xpress.sos(indices, weights, sostype, str(name)))
+                    soslist.append(xpress_mod.sos(indices, weights, sostype, str(name)))
                 if len(soslist):
                     m.addSOS(soslist)
 
@@ -800,7 +809,11 @@ class XPRESS_PY(LpSolver):
             addsos(model, sos2, 2)
 
             lp.solverModel = model
-        except (xpress.ModelError, xpress.InterfaceError, xpress.SolverError) as err:
+        except (
+            xpress_mod.ModelError,
+            xpress_mod.InterfaceError,
+            xpress_mod.SolverError,
+        ) as err:
             # Undo everything
             self._reset(lp)
             raise PulpSolverError(str(err))
