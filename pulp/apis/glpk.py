@@ -253,7 +253,8 @@ class PYGLPK(LpSolver):
     try:
         # import the model into the global scope
         global glpk
-        import glpk.glpkpi as glpk  # type: ignore[import-not-found]
+        import swiglpk as glpk  # type: ignore[import-not-found]
+
     except Exception:
 
         def available(self):
@@ -354,7 +355,8 @@ class PYGLPK(LpSolver):
             log.debug("add the constraints to the problem")
             var_handles = []
             constr_handles = []
-            glpk.glp_add_rows(prob, len(lp.constraints()))
+            if lp.constraints():
+                glpk.glp_add_rows(prob, len(lp.constraints()))
             for i, constraint in enumerate(lp.constraints(), start=1):
                 name = constraint.name
                 glpk.glp_set_row_name(prob, i, name)
@@ -376,7 +378,8 @@ class PYGLPK(LpSolver):
             log.debug("add the variables to the problem")
             exported_vars = lp.exported_variables()
             id_to_col = {v.id: j for j, v in enumerate(exported_vars, start=1)}
-            glpk.glp_add_cols(prob, len(exported_vars))
+            if exported_vars:
+                glpk.glp_add_cols(prob, len(exported_vars))
             for j, var in enumerate(exported_vars, start=1):
                 glpk.glp_set_col_name(prob, j, var.name)
                 lb = 0.0
@@ -396,7 +399,12 @@ class PYGLPK(LpSolver):
                 glpk.glp_set_col_bnds(prob, j, t, lb, ub)
                 if var.cat == constants.LpInteger:
                     glpk.glp_set_col_kind(prob, j, glpk.GLP_IV)
-                    assert glpk.glp_get_col_kind(prob, j) == glpk.GLP_IV
+                    # GLPK reclassifies integer columns bounded to [0, 1] as
+                    # GLP_BV (binary) rather than keeping them GLP_IV.
+                    assert glpk.glp_get_col_kind(prob, j) in (
+                        glpk.GLP_IV,
+                        glpk.GLP_BV,
+                    )
                 var_handles.append(j)
             log.debug("set the objective function")
             for var in exported_vars:
