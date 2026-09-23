@@ -120,6 +120,14 @@ class LpSolveStats:
     read out of it lazily. Those properties fall back to ``None`` when there is no
     log, or orloge could not parse it.
 
+    A solver that is handed the objective negated (COIN_CMD writes a maximize
+    problem as a minimize MPS with no ``OBJSENSE``) logs everything about the
+    objective -- :attr:`best_bound` and the log's own values -- in the opposite
+    sense to the problem's. Such a solver calls
+    :meth:`~pulp.apis.core.LpSolver.flipStatsSense` right after
+    :meth:`~pulp.apis.core.LpSolver.buildStats` to negate those values back; see
+    that method for exactly what it touches.
+
     :param solver: name of the solver that ran, e.g. ``"COIN_CMD"``
     :param status: why the solver stopped, a :class:`~pulp.constants.LpSolveStatus`
     :param has_solution: whether the solver found a feasible solution and handed it

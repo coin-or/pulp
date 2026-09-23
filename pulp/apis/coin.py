@@ -160,7 +160,14 @@ class COIN_CMD(LpSolver_CMD):
         """Solve a well formulated lp problem."""
         start = clocks()
         status, has_solution = self.solve_CBC(lp, **kwargs)
-        return self.buildStats(lp, status, has_solution, start=start)
+        stats = self.buildStats(lp, status, has_solution, start=start)
+        # the MPS file is written without OBJSENSE, so a maximize problem reaches
+        # CBC with its objective negated instead (no -max on the command line
+        # either); CBC's log and best bound then come back in minimize sense and
+        # need flipping back. An LP file (use_mps=False) keeps "Maximize" as-is.
+        if kwargs.get("use_mps", True) and lp.sense == constants.LpMaximize:
+            self.flipStatsSense(stats)
+        return stats
 
     def available(self):
         """True if the solver is available"""

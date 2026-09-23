@@ -10,7 +10,15 @@
 
 from math import *
 
-from pulp import LpContinuous, LpInteger, LpMinimize, LpProblem, LpVariable, lpSum, value
+from pulp import (
+    LpContinuous,
+    LpInteger,
+    LpMinimize,
+    LpProblem,
+    LpVariable,
+    lpSum,
+    value,
+)
 
 prob = LpProblem("test3", LpMinimize)
 

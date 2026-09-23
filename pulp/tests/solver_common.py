@@ -705,6 +705,48 @@ class BaseSolverTest:
                 prob, self.solver, [const.LpSolveStatus.Optimal], {x: 3, y: -0.5, z: 7}
             )
 
+        def _check_stats_in_problem_sense(self, sense: int) -> None:
+            """Every objective value in the stats reads in ``sense``, the problem's.
+
+            Solvers handed a negated objective (COIN_CMD writes a maximize problem as
+            a minimize MPS) log it in the opposite sense; the stats must undo that.
+            """
+            prob = LpProblem(self._testMethodName, sense)
+            x = prob.add_variable("x", 0, 10, cat=const.LpInteger)
+            y = prob.add_variable("y", 0, 10, cat=const.LpInteger)
+            # 3x + 2y peaks at 18 on (4, 3); its relaxation at 18.5 on (4.5, 2.5)
+            prob += sense * -(3 * x + 2 * y), "obj"
+            prob += x + y <= 7, "c1"
+            prob += x - y <= 2, "c2"
+            stats = prob.solve(self.solver)
+            self.assertIs(stats.status, const.LpSolveStatus.Optimal)
+            expected = -sense * 18
+            assert stats.objective is not None
+            self.assertAlmostEqual(stats.objective, expected, places=4)
+            if stats.best_bound is not None:
+                self.assertAlmostEqual(stats.best_bound, expected, places=4)
+            if stats.logs is not None and stats.logs.get("best_solution") is not None:
+                # a solver that negates the objective flips its log back too,
+                # so this must already read in the problem's sense
+                self.assertAlmostEqual(stats.logs["best_solution"], expected, places=4)
+            # sense * value grows as the solution gets worse: relaxations are
+            # never worse than the optimum, incumbents never better
+            tol = 1e-6
+            if stats.first_relaxed is not None:
+                self.assertLessEqual(sense * stats.first_relaxed, -18 + tol)
+            if stats.first_solution is not None:
+                first = stats.first_solution["BestInteger"]
+                self.assertGreaterEqual(sense * first, -18 - tol)
+            self.assertLessEqual(stats.gap_rel or 0, tol)
+
+        @gurobi_test
+        def test_stats_objective_sense_max(self):
+            self._check_stats_in_problem_sense(const.LpMaximize)
+
+        @gurobi_test
+        def test_stats_objective_sense_min(self):
+            self._check_stats_in_problem_sense(const.LpMinimize)
+
         def test_mip_floats_objective(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
             x = prob.add_variable("x", 0, 4)

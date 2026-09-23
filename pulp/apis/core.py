@@ -33,6 +33,7 @@ the current version
 from __future__ import annotations
 
 import ctypes
+import dataclasses
 import math
 import os
 import platform
@@ -251,6 +252,70 @@ class LpSolver:
             solver_options=self.toDict(),
             logs=logs,
         )
+
+    def flipStatsSense(self, stats: LpSolveStats) -> LpSolveStats:
+        """Undo a solver-side objective negation in stats built by :meth:`buildStats`.
+
+        Some solvers (e.g. COIN_CMD, which writes a maximize problem as an MPS
+        file with no ``OBJSENSE`` and no ``-max``, negating the objective instead)
+        are handed the problem with its objective negated. Everything that solver
+        then *reports about the objective* -- its log, and any bound it proves --
+        comes back with the opposite sign to the problem's own sense, and needs
+        flipping back. Call this once, right after :meth:`buildStats`, only for a
+        solve where that negation happened.
+
+        ``stats.objective`` is left alone: it comes from ``lp.objective.value()``,
+        computed from the variable values :meth:`buildStats` already assigned back
+        onto the original (un-negated) problem, so it is already in the problem's
+        sense.
+
+        Mutates ``stats`` in place and returns it, for convenient chaining.
+        """
+
+        def negate(value: Any) -> Any:
+            # leave anything that isn't a plain number alone: None, descriptive
+            # text (e.g. "Cuts: 5"), and CBC's 1e50 "no incumbent yet" sentinel
+            if isinstance(value, bool) or not isinstance(value, (int, float)):
+                return value
+            if value == 1e50:
+                return value
+            return -value
+
+        if stats.best_bound is not None:
+            stats.best_bound = negate(stats.best_bound)
+
+        logs = stats.logs
+        if logs is not None:
+            logs = dict(logs)
+            for key in ("best_bound", "best_solution", "first_relaxed"):
+                if key in logs:
+                    logs[key] = negate(logs[key])
+            for key in ("first_solution", "cut_info"):
+                nested = logs.get(key)
+                if isinstance(nested, dict):
+                    nested = dict(nested)
+                    for subkey in (
+                        "BestInteger",
+                        "CutsBestBound",
+                        "best_bound",
+                        "best_solution",
+                    ):
+                        if subkey in nested:
+                            nested[subkey] = negate(nested[subkey])
+                    logs[key] = nested
+            progress = logs.get("progress")
+            if progress:
+                logs["progress"] = [
+                    dataclasses.replace(
+                        row,
+                        BestInteger=negate(getattr(row, "BestInteger", None)),
+                        CutsBestBound=negate(getattr(row, "CutsBestBound", None)),
+                    )
+                    for row in progress
+                ]
+            stats.logs = logs
+
+        return stats
 
     def silent_remove(self, file: str | bytes | os.PathLike) -> None:
         try:

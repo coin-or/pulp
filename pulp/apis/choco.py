@@ -76,7 +76,10 @@ class CHOCO_CMD(LpSolver_CMD):
     def available(self):
         """True if the solver is available"""
         java_path = self.executableExtension("java")
-        return self.executable(self.path) and self.executable(java_path)
+        return (
+            self.executable(self.path) is not None
+            and self.executable(java_path) is not None
+        )
 
     def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
         """Solve a well formulated lp problem."""

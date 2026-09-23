@@ -79,18 +79,26 @@ gemstoneprob += (
 )
 
 for j in scenarios:
-    gemstoneprob += pulp.lpSum(
-        [steel_dict[i] * production_vars[j, i] for i in products]
-    ) - steelpurchase <= 0, ("Steel capacity" + str(j))
-    gemstoneprob += pulp.lpSum(
-        [molding_dict[i] * production_vars[j, i] for i in products]
-    ) <= capmolding, ("molding capacity" + str(j))
-    gemstoneprob += pulp.lpSum(
-        [assembly_dict[i] * production_vars[j, i] for i in products]
-    ) <= capassembly[j], ("assembly capacity" + str(j))
+    gemstoneprob += (
+        pulp.lpSum([steel_dict[i] * production_vars[j, i] for i in products])
+        - steelpurchase
+        <= 0,
+        ("Steel capacity" + str(j)),
+    )
+    gemstoneprob += (
+        pulp.lpSum([molding_dict[i] * production_vars[j, i] for i in products])
+        <= capmolding,
+        ("molding capacity" + str(j)),
+    )
+    gemstoneprob += (
+        pulp.lpSum([assembly_dict[i] * production_vars[j, i] for i in products])
+        <= capassembly[j],
+        ("assembly capacity" + str(j)),
+    )
     for i in products:
-        gemstoneprob += production_vars[j, i] <= capacity_dict[i], (
-            "capacity " + str(i) + str(j)
+        gemstoneprob += (
+            production_vars[j, i] <= capacity_dict[i],
+            ("capacity " + str(i) + str(j)),
         )
 
 # Print problem

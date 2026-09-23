@@ -13,6 +13,8 @@ import unittest
 from typing import Any
 from unittest import mock
 
+from orloge.base import MIPProgressRow
+
 import pulp.apis as solvers
 from pulp import LpProblem, LpSolveStats, lpSum
 from pulp import constants as const
@@ -349,6 +351,106 @@ class SolveStatsUnitTest(unittest.TestCase):
             os.remove(path)
 
 
+class FlipStatsSenseTest(unittest.TestCase):
+    """Tests for ``LpSolver.flipStatsSense``, called by a solver that was handed
+    the objective negated (e.g. COIN_CMD writing a maximize problem as a
+    minimize MPS) to undo that in the stats it already built."""
+
+    def setUp(self):
+        self.solver = solvers.LpSolver(msg=False)
+
+    def _stats(self, **overrides) -> LpSolveStats:
+        defaults: dict[str, Any] = dict(
+            objective=12.0,
+            best_bound=-11.0,
+            logs={
+                "best_bound": -11.0,
+                "best_solution": -12.0,
+                "first_relaxed": -18.5,
+                "first_solution": {
+                    "Node": 3,
+                    "NodesLeft": 2,
+                    "BestInteger": -17.0,
+                    "CutsBestBound": -18.5,
+                },
+                "cut_info": {
+                    "time": 0.1,
+                    "cuts": {"Gomory": 2},
+                    "best_bound": -18.2,
+                    "best_solution": "text",
+                },
+                "progress": [
+                    MIPProgressRow(
+                        Node=0, NodesLeft=1, BestInteger=1e50, CutsBestBound=-18.5
+                    ),
+                    MIPProgressRow(
+                        Node=3, NodesLeft=2, BestInteger=-17.0, CutsBestBound=-18.5
+                    ),
+                ],
+            },
+        )
+        defaults.update(overrides)
+        return LpSolveStats(**defaults)
+
+    def test_flips_the_best_bound(self):
+        stats = self.solver.flipStatsSense(self._stats())
+        self.assertEqual(stats.best_bound, 11.0)
+
+    def test_leaves_the_objective_alone(self):
+        # it already comes from lp.objective.value(), in the problem's sense
+        stats = self.solver.flipStatsSense(self._stats())
+        self.assertEqual(stats.objective, 12.0)
+
+    def test_a_missing_bound_is_left_as_none(self):
+        stats = self.solver.flipStatsSense(self._stats(best_bound=None))
+        self.assertIsNone(stats.best_bound)
+
+    def test_flips_the_top_level_log_values(self):
+        stats = self.solver.flipStatsSense(self._stats())
+        assert stats.logs is not None
+        self.assertEqual(stats.logs["best_bound"], 11.0)
+        self.assertEqual(stats.logs["best_solution"], 12.0)
+        self.assertEqual(stats.first_relaxed, 18.5)
+
+    def test_flips_first_solution_and_cut_info(self):
+        stats = self.solver.flipStatsSense(self._stats())
+        self.assertEqual(
+            stats.first_solution,
+            {"Node": 3, "NodesLeft": 2, "BestInteger": 17.0, "CutsBestBound": 18.5},
+        )
+        self.assertEqual(
+            stats.cut_info,
+            {
+                "time": 0.1,
+                "cuts": {"Gomory": 2},
+                "best_bound": 18.2,
+                # text is descriptive (e.g. "Cuts: 5"), not a number, so untouched
+                "best_solution": "text",
+            },
+        )
+
+    def test_flips_progress_rows_without_touching_the_sentinel(self):
+        stats = self.solver.flipStatsSense(self._stats())
+        assert stats.logs is not None
+        progress = stats.logs["progress"]
+        # CBC's magic number for "no incumbent found yet" is left alone
+        self.assertEqual(progress[0].BestInteger, 1e50)
+        self.assertEqual(progress[0].CutsBestBound, 18.5)
+        self.assertEqual(progress[1].BestInteger, 17.0)
+        self.assertEqual(progress[1].CutsBestBound, 18.5)
+        # Node/NodesLeft, not objective values, are untouched
+        self.assertEqual(progress[1].Node, 3)
+        self.assertEqual(progress[1].NodesLeft, 2)
+
+    def test_a_missing_log_is_left_as_none(self):
+        stats = self.solver.flipStatsSense(self._stats(logs=None))
+        self.assertIsNone(stats.logs)
+
+    def test_returns_the_same_object_it_mutated(self):
+        stats = self._stats()
+        self.assertIs(self.solver.flipStatsSense(stats), stats)
+
+
 class CBCStopReasonTest(unittest.TestCase):
     """CBC stopping on a limit reports why, and still hands back its solution."""
 
@@ -379,6 +481,41 @@ class CBCStopReasonTest(unittest.TestCase):
         stats = self._solve(gapRel=0.5)
         self.assertIs(stats.status, LpSolveStatus.GapLimit)
         self.assertIs(stats.has_solution, True)
+
+    def _assert_maximize_stats(self, stats):
+        """Bounds of a maximize problem sit above its incumbents, all positive."""
+        self.assertIsNotNone(stats.objective)
+        self.assertIsNotNone(stats.best_bound)
+        self.assertGreater(stats.objective, 0)
+        self.assertGreaterEqual(stats.best_bound, stats.objective - 1e-6)
+        self.assertLess(stats.gap_rel, 1)
+        if stats.first_relaxed is not None:
+            self.assertGreaterEqual(stats.first_relaxed, stats.objective - 1e-6)
+        if stats.first_solution is not None:
+            self.assertGreater(stats.first_solution["BestInteger"], 0)
+            self.assertLessEqual(
+                stats.first_solution["BestInteger"], stats.objective + 1e-6
+            )
+        if stats.cut_info and isinstance(stats.cut_info.get("best_bound"), float):
+            self.assertGreaterEqual(
+                stats.cut_info["best_bound"], stats.objective - 1e-6
+            )
+
+    def test_maximize_stats_read_in_maximize_sense(self):
+        # the MPS CBC reads has the objective negated, so actualSolve must flip
+        # its log and bound back before returning
+        stats = self._solve(maxNodes=1)
+        self._assert_maximize_stats(stats)
+
+    def test_maximize_stats_from_an_lp_file(self):
+        # an LP file keeps the maximize sense, so CBC's log needs no flipping
+        prob = self._knapsack()
+        solver = solvers.COIN_CMD(msg=False, maxNodes=1)
+        start = clocks()
+        with solver.capture_log():
+            status, has_solution = solver.solve_CBC(prob, use_mps=False)
+            stats = solver.buildStats(prob, status, has_solution, start=start)
+        self._assert_maximize_stats(stats)
 
 
 if __name__ == "__main__":
