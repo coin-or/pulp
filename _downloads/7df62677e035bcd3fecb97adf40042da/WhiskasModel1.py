@@ -44,12 +44,12 @@ prob.writeLP("WhiskasModel.lp")
 
 # BEGIN prob_solve
 # The problem is solved using PuLP's choice of Solver
-prob.solve()
+stats = prob.solve()
 # END prob_solve
 
 # BEGIN print_status
 # The status of the solution is printed to the screen
-print("Status:", LpStatus[prob.status])
+print("Status:", stats.status_str)
 # END print_status
 
 # BEGIN print_var_value

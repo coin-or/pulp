@@ -154,6 +154,7 @@
 <p>Takes an <code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.pulp.LpProblem</span></code> as argument, solves it, stores the solution, and returns a status code:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">actualSolve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lp</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Solve a well formulated lp problem&quot;&quot;&quot;</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">clocks</span><span class="p">()</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">executable</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">):</span>
         <span class="k">raise</span> <span class="n">PulpSolverError</span><span class="p">(</span><span class="s2">&quot;PuLP: cannot execute &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
     <span class="n">tmpMps</span><span class="p">,</span> <span class="n">tmpSol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_tmp_files</span><span class="p">(</span><span class="n">lp</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;mps&quot;</span><span class="p">,</span> <span class="s2">&quot;sol&quot;</span><span class="p">)</span>
@@ -197,19 +198,28 @@
     <span class="k">if</span> <span class="n">return_code</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">PulpSolverError</span><span class="p">(</span><span class="s2">&quot;PuLP: Error while trying to execute &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">tmpSol</span><span class="p">):</span>
-        <span class="n">status</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">LpStatusNotSolved</span>
-        <span class="n">status_sol</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">LpSolutionNoSolutionFound</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">LpSolveStatus</span><span class="o">.</span><span class="n">NotSolved</span>
+        <span class="n">has_solution</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="n">values</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">status</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">status_sol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">readsol</span><span class="p">(</span><span class="n">tmpSol</span><span class="p">)</span>
+        <span class="n">status</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">has_solution</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">readsol</span><span class="p">(</span><span class="n">tmpSol</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">delete_tmp_files</span><span class="p">(</span><span class="n">tmpMps</span><span class="p">,</span> <span class="n">tmpSol</span><span class="p">)</span>
-    <span class="n">lp</span><span class="o">.</span><span class="n">assignStatus</span><span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="n">status_sol</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">status</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">constants</span><span class="o">.</span><span class="n">LpStatusInfeasible</span><span class="p">,</span> <span class="n">constants</span><span class="o">.</span><span class="n">LpStatusNotSolved</span><span class="p">]:</span>
+    <span class="k">if</span> <span class="n">values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">has_solution</span><span class="p">:</span>
         <span class="n">lp</span><span class="o">.</span><span class="n">assignVarsVals</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">status</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">buildStats</span><span class="p">(</span><span class="n">lp</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">has_solution</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">)</span>
 </pre></div>
 </div>
+<p><code class="docutils literal notranslate"><span class="pre">self.buildStats(lp,</span> <span class="pre">status,</span> <span class="pre">has_solution,</span> <span class="pre">start=start)</span></code> is the only place an
+<code class="xref py py-class docutils literal notranslate"><span class="pre">LpSolveStats</span></code> gets built, and every <code class="docutils literal notranslate"><span class="pre">actualSolve</span></code> ends by
+returning it. <code class="docutils literal notranslate"><span class="pre">status</span></code> is why the solver stopped: use the most specific
+<a class="reference internal" href="../technical/constants.html#pulp.constants.LpSolveStatus" title="pulp.constants.LpSolveStatus"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpSolveStatus</span></code></a> member the solver reports, e.g.
+<code class="docutils literal notranslate"><span class="pre">TimeLimit</span></code> or <code class="docutils literal notranslate"><span class="pre">NodeLimit</span></code>, not just <code class="docutils literal notranslate"><span class="pre">Optimal</span></code>/<code class="docutils literal notranslate"><span class="pre">NotSolved</span></code>. <code class="docutils literal notranslate"><span class="pre">has_solution</span></code>
+says whether it handed back a feasible solution – pass what the solver actually
+told you, since most limit statuses can come with or without one. <code class="docutils literal notranslate"><span class="pre">start</span></code> is
+<code class="xref py py-func docutils literal notranslate"><span class="pre">clocks()</span></code> taken at the top of <code class="docutils literal notranslate"><span class="pre">actualSolve</span></code>, so the
+reported time covers the whole solve; pass <code class="docutils literal notranslate"><span class="pre">best_bound=</span></code> too when the solver
+reports one.</p>
 </section>
 <section id="defaultpath-method">
 <h2><code class="docutils literal notranslate"><span class="pre">defaultPath</span></code> method<a class="headerlink" href="#defaultpath-method" title="Link to this heading"></a></h2>

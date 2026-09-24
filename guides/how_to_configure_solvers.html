@@ -20,7 +20,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="How to warm-start a solver" href="how_to_mip_start.html" />
-    <link rel="prev" title="User Guides" href="index.html" /> 
+    <link rel="prev" title="How to migrate from PuLP 3.x to 4.0" href="how_to_migrate_to_v4.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -46,6 +46,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../main/index.html">Main Topics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../CaseStudies/index.html">Case Studies</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">User Guides</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="how_to_migrate_to_v4.html">How to migrate from PuLP 3.x to 4.0</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">How to configure a solver in PuLP</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#checking-which-solvers-pulp-has-access-to">Checking which solvers PuLP has access to</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#what-is-an-environment-variable">What is an environment variable</a></li>
@@ -339,8 +340,8 @@ raise <code class="docutils literal notranslate"><span class="pre">PulpSolverErr
 <span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">y</span>
 <span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&gt;=</span> <span class="mi">7</span>
 
-<span class="n">status</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">CPSAT</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">timeLimit</span><span class="o">=</span><span class="mi">60</span><span class="p">))</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">LpStatus</span><span class="p">[</span><span class="n">status</span><span class="p">],</span> <span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">(),</span> <span class="n">y</span><span class="o">.</span><span class="n">value</span><span class="p">())</span>
+<span class="n">stats</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">CPSAT</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">timeLimit</span><span class="o">=</span><span class="mi">60</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">stats</span><span class="o">.</span><span class="n">status_str</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">(),</span> <span class="n">y</span><span class="o">.</span><span class="n">value</span><span class="p">())</span>
 </pre></div>
 </div>
 <p>Optional arguments include <code class="docutils literal notranslate"><span class="pre">warmStart=True</span></code> (pass current <code class="docutils literal notranslate"><span class="pre">varValue</span></code> hints),
@@ -455,7 +456,7 @@ writing files to disk:</p>
 <span class="c1"># the, you can call the solver to solve the problem</span>
 <span class="n">solver</span><span class="o">.</span><span class="n">callSolver</span><span class="p">(</span><span class="n">prob</span><span class="p">)</span>
 <span class="c1"># finally, you fill the PuLP variables with the solution</span>
-<span class="n">status</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">findSolutionValues</span><span class="p">(</span><span class="n">prob</span><span class="p">)</span>
+<span class="n">status</span><span class="p">,</span> <span class="n">has_solution</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">findSolutionValues</span><span class="p">(</span><span class="n">prob</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>For more information on how to use the <cite>solverModel</cite>, one needs to check the official documentation depending on the solver.</p>
@@ -502,7 +503,7 @@ writing files to disk:</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="index.html" class="btn btn-neutral float-left" title="User Guides" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="how_to_migrate_to_v4.html" class="btn btn-neutral float-left" title="How to migrate from PuLP 3.x to 4.0" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="how_to_mip_start.html" class="btn btn-neutral float-right" title="How to warm-start a solver" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

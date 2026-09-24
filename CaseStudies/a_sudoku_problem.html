@@ -263,10 +263,10 @@ number of feasible solutions, instead of just one).</p></li>
 <span class="n">prob</span><span class="o">.</span><span class="n">writeLP</span><span class="p">(</span><span class="s2">&quot;Sudoku.lp&quot;</span><span class="p">)</span>
 
 <span class="c1"># The problem is solved using PuLP&#39;s choice of Solver</span>
-<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+<span class="n">stats</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
 
 <span class="c1"># The status of the solution is printed to the screen</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Status:&quot;</span><span class="p">,</span> <span class="n">LpStatus</span><span class="p">[</span><span class="n">prob</span><span class="o">.</span><span class="n">status</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Status:&quot;</span><span class="p">,</span> <span class="n">stats</span><span class="o">.</span><span class="n">status_str</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Instead of printing out all 729 of the binary problem variables and their respective values, it is more meaningful to draw the solution in a text file. The code also puts lines inbetween every third row and column to make the solution easier to read. The sudokuout.txt file is created in the same folder as the .py file.</p>
@@ -303,11 +303,11 @@ The final solution should be the following:</p>
 <p>In the above formulation we did not consider the fact that there may be multiple solutions if the sudoku problem is not well defined.</p>
 <p>We can make our code return all the solutions by editing our code as shown after the <cite>prob.writeLP</cite> line. Essentially we are just looping over the solve statement, and each time after a successful solve, adding a constraint that the same solution cannot be used again. When there are no more solutions, our program ends.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
-    <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+    <span class="n">stats</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
     <span class="c1"># The status of the solution is printed to the screen</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Status:&quot;</span><span class="p">,</span> <span class="n">LpStatus</span><span class="p">[</span><span class="n">prob</span><span class="o">.</span><span class="n">status</span><span class="p">])</span>
-    <span class="c1"># The solution is printed if it was deemed &quot;optimal&quot; i.e met the constraints</span>
-    <span class="k">if</span> <span class="n">LpStatus</span><span class="p">[</span><span class="n">prob</span><span class="o">.</span><span class="n">status</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Optimal&quot;</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Status:&quot;</span><span class="p">,</span> <span class="n">stats</span><span class="o">.</span><span class="n">status_str</span><span class="p">)</span>
+    <span class="c1"># The solution is printed if the solver found one meeting the constraints</span>
+    <span class="k">if</span> <span class="n">stats</span><span class="o">.</span><span class="n">has_solution</span><span class="p">:</span>
         <span class="c1"># The solution is written to the sudokuout.txt file</span>
         <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">ROWS</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">r</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">7</span><span class="p">]:</span>

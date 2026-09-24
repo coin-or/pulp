@@ -50,6 +50,34 @@
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">PuLP Internal Documentation</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="build.html">Build architecture</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp.constants</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pulp.constants.LpSolveStatus"><code class="docutils literal notranslate"><span class="pre">LpSolveStatus</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.constants.LpSolveStatus.GapLimit"><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.GapLimit</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.constants.LpSolveStatus.Infeasible"><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.Infeasible</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.constants.LpSolveStatus.Interrupted"><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.Interrupted</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.constants.LpSolveStatus.IterationLimit"><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.IterationLimit</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.constants.LpSolveStatus.MemoryLimit"><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.MemoryLimit</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.constants.LpSolveStatus.NodeLimit"><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.NodeLimit</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.constants.LpSolveStatus.NotSolved"><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.NotSolved</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.constants.LpSolveStatus.NumericalError"><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.NumericalError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.constants.LpSolveStatus.Optimal"><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.Optimal</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.constants.LpSolveStatus.SolutionLimit"><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.SolutionLimit</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.constants.LpSolveStatus.Stopped"><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.Stopped</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.constants.LpSolveStatus.TimeLimit"><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.TimeLimit</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.constants.LpSolveStatus.Unbounded"><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.Unbounded</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.constants.LpSolveStatus.Undefined"><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.Undefined</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.constants.LpSolveStatus.as_integer_ratio"><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.as_integer_ratio()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.constants.LpSolveStatus.bit_count"><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.bit_count()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.constants.LpSolveStatus.bit_length"><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.bit_length()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.constants.LpSolveStatus.conjugate"><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.conjugate()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.constants.LpSolveStatus.denominator"><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.denominator</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.constants.LpSolveStatus.from_bytes"><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.from_bytes()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.constants.LpSolveStatus.imag"><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.imag</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.constants.LpSolveStatus.is_integer"><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.is_integer()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.constants.LpSolveStatus.numerator"><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.numerator</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.constants.LpSolveStatus.real"><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.real</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.constants.LpSolveStatus.to_bytes"><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.to_bytes()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#pulp.constants.PulpError"><code class="docutils literal notranslate"><span class="pre">PulpError</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#pulp.constants.PulpError.add_note"><code class="docutils literal notranslate"><span class="pre">PulpError.add_note()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#pulp.constants.PulpError.args"><code class="docutils literal notranslate"><span class="pre">PulpError.args</span></code></a></li>
@@ -57,13 +85,6 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#pulp.constants.LpContinuous"><code class="docutils literal notranslate"><span class="pre">LpContinuous</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#pulp.constants.LpStatus"><code class="docutils literal notranslate"><span class="pre">LpStatus</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#pulp.constants.LpStatusOptimal"><code class="docutils literal notranslate"><span class="pre">LpStatusOptimal</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#pulp.constants.LpStatusNotSolved"><code class="docutils literal notranslate"><span class="pre">LpStatusNotSolved</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#pulp.constants.LpStatusInfeasible"><code class="docutils literal notranslate"><span class="pre">LpStatusInfeasible</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#pulp.constants.LpStatusUnbounded"><code class="docutils literal notranslate"><span class="pre">LpStatusUnbounded</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#pulp.constants.LpStatusUndefined"><code class="docutils literal notranslate"><span class="pre">LpStatusUndefined</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#pulp.constants.LpSolution"><code class="docutils literal notranslate"><span class="pre">LpSolution</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#pulp.constants.LpSenses"><code class="docutils literal notranslate"><span class="pre">LpSenses</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#pulp.constants.LpMinimize"><code class="docutils literal notranslate"><span class="pre">LpMinimize</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#pulp.constants.LpMaximize"><code class="docutils literal notranslate"><span class="pre">LpMaximize</span></code></a></li>
@@ -109,6 +130,210 @@
 <span id="pulp-constants"></span><h1><a class="reference internal" href="#module-pulp.constants" title="pulp.constants"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulp.constants</span></code></a><a class="headerlink" href="#module-pulp.constants" title="Link to this heading"></a></h1>
 <p>This file contains the constant definitions for PuLP
 Note that hopefully these will be changed into something more pythonic</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pulp.constants.LpSolveStatus">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pulp.constants.</span></span><span class="sig-name descname"><span class="pre">LpSolveStatus</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.constants.LpSolveStatus" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.IntEnum" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">IntEnum</span></code></a></p>
+<p>Why the solver stopped.</p>
+<p>Whether a feasible solution came back is recorded separately, as
+<code class="xref py py-attr docutils literal notranslate"><span class="pre">has_solution</span></code>.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulp.constants.LpSolveStatus.GapLimit">
+<span class="sig-name descname"><span class="pre">GapLimit</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">-7</span></span><a class="headerlink" href="#pulp.constants.LpSolveStatus.GapLimit" title="Link to this definition"></a></dt>
+<dd><p>gap tolerance met, or an objective cutoff, bound or target reached</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulp.constants.LpSolveStatus.Infeasible">
+<span class="sig-name descname"><span class="pre">Infeasible</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">-1</span></span><a class="headerlink" href="#pulp.constants.LpSolveStatus.Infeasible" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulp.constants.LpSolveStatus.Interrupted">
+<span class="sig-name descname"><span class="pre">Interrupted</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">-10</span></span><a class="headerlink" href="#pulp.constants.LpSolveStatus.Interrupted" title="Link to this definition"></a></dt>
+<dd><p>stopped by the user or an abort</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulp.constants.LpSolveStatus.IterationLimit">
+<span class="sig-name descname"><span class="pre">IterationLimit</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">-8</span></span><a class="headerlink" href="#pulp.constants.LpSolveStatus.IterationLimit" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulp.constants.LpSolveStatus.MemoryLimit">
+<span class="sig-name descname"><span class="pre">MemoryLimit</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">-5</span></span><a class="headerlink" href="#pulp.constants.LpSolveStatus.MemoryLimit" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulp.constants.LpSolveStatus.NodeLimit">
+<span class="sig-name descname"><span class="pre">NodeLimit</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">-6</span></span><a class="headerlink" href="#pulp.constants.LpSolveStatus.NodeLimit" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulp.constants.LpSolveStatus.NotSolved">
+<span class="sig-name descname"><span class="pre">NotSolved</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></span><a class="headerlink" href="#pulp.constants.LpSolveStatus.NotSolved" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulp.constants.LpSolveStatus.NumericalError">
+<span class="sig-name descname"><span class="pre">NumericalError</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">-12</span></span><a class="headerlink" href="#pulp.constants.LpSolveStatus.NumericalError" title="Link to this definition"></a></dt>
+<dd><p>numerical trouble, or tolerances could not be met</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulp.constants.LpSolveStatus.Optimal">
+<span class="sig-name descname"><span class="pre">Optimal</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="headerlink" href="#pulp.constants.LpSolveStatus.Optimal" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulp.constants.LpSolveStatus.SolutionLimit">
+<span class="sig-name descname"><span class="pre">SolutionLimit</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">-9</span></span><a class="headerlink" href="#pulp.constants.LpSolveStatus.SolutionLimit" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulp.constants.LpSolveStatus.Stopped">
+<span class="sig-name descname"><span class="pre">Stopped</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">-11</span></span><a class="headerlink" href="#pulp.constants.LpSolveStatus.Stopped" title="Link to this definition"></a></dt>
+<dd><p>stopped early for a reason the solver does not report</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulp.constants.LpSolveStatus.TimeLimit">
+<span class="sig-name descname"><span class="pre">TimeLimit</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">-4</span></span><a class="headerlink" href="#pulp.constants.LpSolveStatus.TimeLimit" title="Link to this definition"></a></dt>
+<dd><p>time budget exhausted, including deterministic work limits</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulp.constants.LpSolveStatus.Unbounded">
+<span class="sig-name descname"><span class="pre">Unbounded</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">-2</span></span><a class="headerlink" href="#pulp.constants.LpSolveStatus.Unbounded" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulp.constants.LpSolveStatus.Undefined">
+<span class="sig-name descname"><span class="pre">Undefined</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">-3</span></span><a class="headerlink" href="#pulp.constants.LpSolveStatus.Undefined" title="Link to this definition"></a></dt>
+<dd><p>the solver ran but its answer is inconclusive, e.g. infeasible or unbounded</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulp.constants.LpSolveStatus.as_integer_ratio">
+<span class="sig-name descname"><span class="pre">as_integer_ratio</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.constants.LpSolveStatus.as_integer_ratio" title="Link to this definition"></a></dt>
+<dd><p>Return a pair of integers, whose ratio is equal to the original int.</p>
+<p>The ratio is in lowest terms and has a positive denominator.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="mi">10</span><span class="p">)</span><span class="o">.</span><span class="n">as_integer_ratio</span><span class="p">()</span>
+<span class="go">(10, 1)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="o">-</span><span class="mi">10</span><span class="p">)</span><span class="o">.</span><span class="n">as_integer_ratio</span><span class="p">()</span>
+<span class="go">(-10, 1)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">as_integer_ratio</span><span class="p">()</span>
+<span class="go">(0, 1)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulp.constants.LpSolveStatus.bit_count">
+<span class="sig-name descname"><span class="pre">bit_count</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.constants.LpSolveStatus.bit_count" title="Link to this definition"></a></dt>
+<dd><p>Number of ones in the binary representation of the absolute value of self.</p>
+<p>Also known as the population count.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">bin</span><span class="p">(</span><span class="mi">13</span><span class="p">)</span>
+<span class="go">&#39;0b1101&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="mi">13</span><span class="p">)</span><span class="o">.</span><span class="n">bit_count</span><span class="p">()</span>
+<span class="go">3</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulp.constants.LpSolveStatus.bit_length">
+<span class="sig-name descname"><span class="pre">bit_length</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.constants.LpSolveStatus.bit_length" title="Link to this definition"></a></dt>
+<dd><p>Number of bits necessary to represent self in binary.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">bin</span><span class="p">(</span><span class="mi">37</span><span class="p">)</span>
+<span class="go">&#39;0b100101&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="mi">37</span><span class="p">)</span><span class="o">.</span><span class="n">bit_length</span><span class="p">()</span>
+<span class="go">6</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulp.constants.LpSolveStatus.conjugate">
+<span class="sig-name descname"><span class="pre">conjugate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.constants.LpSolveStatus.conjugate" title="Link to this definition"></a></dt>
+<dd><p>Returns self, the complex conjugate of any int.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulp.constants.LpSolveStatus.denominator">
+<span class="sig-name descname"><span class="pre">denominator</span></span><a class="headerlink" href="#pulp.constants.LpSolveStatus.denominator" title="Link to this definition"></a></dt>
+<dd><p>the denominator of a rational number in lowest terms</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulp.constants.LpSolveStatus.from_bytes">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bytes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">byteorder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'big'</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">signed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.constants.LpSolveStatus.from_bytes" title="Link to this definition"></a></dt>
+<dd><p>Return the integer represented by the given array of bytes.</p>
+<dl class="simple">
+<dt>bytes</dt><dd><p>Holds the array of bytes to convert.  The argument must either
+support the buffer protocol or be an iterable object producing bytes.
+Bytes and bytearray are examples of built-in objects that support the
+buffer protocol.</p>
+</dd>
+<dt>byteorder</dt><dd><p>The byte order used to represent the integer.  If byteorder is ‘big’,
+the most significant byte is at the beginning of the byte array.  If
+byteorder is ‘little’, the most significant byte is at the end of the
+byte array.  To request the native byte order of the host system, use
+<a href="#id1"><span class="problematic" id="id2">`</span></a>sys.byteorder’ as the byte order value.  Default is to use ‘big’.</p>
+</dd>
+<dt>signed</dt><dd><p>Indicates whether two’s complement is used to represent the integer.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulp.constants.LpSolveStatus.imag">
+<span class="sig-name descname"><span class="pre">imag</span></span><a class="headerlink" href="#pulp.constants.LpSolveStatus.imag" title="Link to this definition"></a></dt>
+<dd><p>the imaginary part of a complex number</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulp.constants.LpSolveStatus.is_integer">
+<span class="sig-name descname"><span class="pre">is_integer</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pulp.constants.LpSolveStatus.is_integer" title="Link to this definition"></a></dt>
+<dd><p>Returns True. Exists for duck type compatibility with float.is_integer.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulp.constants.LpSolveStatus.numerator">
+<span class="sig-name descname"><span class="pre">numerator</span></span><a class="headerlink" href="#pulp.constants.LpSolveStatus.numerator" title="Link to this definition"></a></dt>
+<dd><p>the numerator of a rational number in lowest terms</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulp.constants.LpSolveStatus.real">
+<span class="sig-name descname"><span class="pre">real</span></span><a class="headerlink" href="#pulp.constants.LpSolveStatus.real" title="Link to this definition"></a></dt>
+<dd><p>the real part of a complex number</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulp.constants.LpSolveStatus.to_bytes">
+<span class="sig-name descname"><span class="pre">to_bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">byteorder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'big'</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">signed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.constants.LpSolveStatus.to_bytes" title="Link to this definition"></a></dt>
+<dd><p>Return an array of bytes representing an integer.</p>
+<dl class="simple">
+<dt>length</dt><dd><p>Length of bytes object to use.  An OverflowError is raised if the
+integer is not representable with the given number of bytes.  Default
+is length 1.</p>
+</dd>
+<dt>byteorder</dt><dd><p>The byte order used to represent the integer.  If byteorder is ‘big’,
+the most significant byte is at the beginning of the byte array.  If
+byteorder is ‘little’, the most significant byte is at the end of the
+byte array.  To request the native byte order of the host system, use
+<a href="#id3"><span class="problematic" id="id4">`</span></a>sys.byteorder’ as the byte order value.  Default is to use ‘big’.</p>
+</dd>
+<dt>signed</dt><dd><p>Determines whether two’s complement is used to represent the integer.
+If signed is False and a negative integer is given, an OverflowError
+is raised.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 <dl class="py exception">
 <dt class="sig sig-object py" id="pulp.constants.PulpError">
 <span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pulp.constants.</span></span><span class="sig-name descname"><span class="pre">PulpError</span></span><a class="headerlink" href="#pulp.constants.PulpError" title="Link to this definition"></a></dt>
@@ -153,108 +378,78 @@ set self.__traceback__ to tb and return self.</p>
 <dd><p>LpBinary= “Binary”</p>
 </dd></dl>
 
-<dl class="py data">
-<dt class="sig sig-object py" id="pulp.constants.LpStatus">
-<span class="sig-prename descclassname"><span class="pre">pulp.constants.</span></span><span class="sig-name descname"><span class="pre">LpStatus</span></span><a class="headerlink" href="#pulp.constants.LpStatus" title="Link to this definition"></a></dt>
-<dd><p>Return status from solver:</p>
-<blockquote>
-<div><table class="docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p>LpStatus  key</p></th>
-<th class="head"><p>string value</p></th>
-<th class="head"><p>numerical value</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p><a class="reference internal" href="#pulp.constants.LpStatusOptimal" title="pulp.constants.LpStatusOptimal"><code class="xref py py-data docutils literal notranslate"><span class="pre">LpStatusOptimal</span></code></a></p></td>
-<td><p>“Optimal”</p></td>
-<td><p>1</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#pulp.constants.LpStatusNotSolved" title="pulp.constants.LpStatusNotSolved"><code class="xref py py-data docutils literal notranslate"><span class="pre">LpStatusNotSolved</span></code></a></p></td>
-<td><p>“Not Solved”</p></td>
-<td><p>0</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#pulp.constants.LpStatusInfeasible" title="pulp.constants.LpStatusInfeasible"><code class="xref py py-data docutils literal notranslate"><span class="pre">LpStatusInfeasible</span></code></a></p></td>
-<td><p>“Infeasible”</p></td>
-<td><p>-1</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#pulp.constants.LpStatusUnbounded" title="pulp.constants.LpStatusUnbounded"><code class="xref py py-data docutils literal notranslate"><span class="pre">LpStatusUnbounded</span></code></a></p></td>
-<td><p>“Unbounded”</p></td>
-<td><p>-2</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#pulp.constants.LpStatusUndefined" title="pulp.constants.LpStatusUndefined"><code class="xref py py-data docutils literal notranslate"><span class="pre">LpStatusUndefined</span></code></a></p></td>
-<td><p>“Undefined”</p></td>
-<td><p>-3</p></td>
-</tr>
-</tbody>
-</table>
-</div></blockquote>
-</dd></dl>
-
-<dl class="py data">
-<dt class="sig sig-object py" id="pulp.constants.LpStatusOptimal">
-<span class="sig-prename descclassname"><span class="pre">pulp.constants.</span></span><span class="sig-name descname"><span class="pre">LpStatusOptimal</span></span><a class="headerlink" href="#pulp.constants.LpStatusOptimal" title="Link to this definition"></a></dt>
-<dd><p>LpStatusOptimal = 1</p>
-</dd></dl>
-
-<dl class="py data">
-<dt class="sig sig-object py" id="pulp.constants.LpStatusNotSolved">
-<span class="sig-prename descclassname"><span class="pre">pulp.constants.</span></span><span class="sig-name descname"><span class="pre">LpStatusNotSolved</span></span><a class="headerlink" href="#pulp.constants.LpStatusNotSolved" title="Link to this definition"></a></dt>
-<dd><p>LpStatusNotSolved = 0</p>
-</dd></dl>
-
-<dl class="py data">
-<dt class="sig sig-object py" id="pulp.constants.LpStatusInfeasible">
-<span class="sig-prename descclassname"><span class="pre">pulp.constants.</span></span><span class="sig-name descname"><span class="pre">LpStatusInfeasible</span></span><a class="headerlink" href="#pulp.constants.LpStatusInfeasible" title="Link to this definition"></a></dt>
-<dd><p>LpStatusInfeasible = -1</p>
-</dd></dl>
-
-<dl class="py data">
-<dt class="sig sig-object py" id="pulp.constants.LpStatusUnbounded">
-<span class="sig-prename descclassname"><span class="pre">pulp.constants.</span></span><span class="sig-name descname"><span class="pre">LpStatusUnbounded</span></span><a class="headerlink" href="#pulp.constants.LpStatusUnbounded" title="Link to this definition"></a></dt>
-<dd><p>LpStatusUnbounded = -2</p>
-</dd></dl>
-
-<dl class="py data">
-<dt class="sig sig-object py" id="pulp.constants.LpStatusUndefined">
-<span class="sig-prename descclassname"><span class="pre">pulp.constants.</span></span><span class="sig-name descname"><span class="pre">LpStatusUndefined</span></span><a class="headerlink" href="#pulp.constants.LpStatusUndefined" title="Link to this definition"></a></dt>
-<dd><p>LpStatusUndefined = -3</p>
-</dd></dl>
-
-<dl class="py data">
-<dt class="sig sig-object py" id="pulp.constants.LpSolution">
-<span class="sig-prename descclassname"><span class="pre">pulp.constants.</span></span><span class="sig-name descname"><span class="pre">LpSolution</span></span><a class="headerlink" href="#pulp.constants.LpSolution" title="Link to this definition"></a></dt>
+<dl class="py class">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pulp.constants.</span></span><span class="sig-name descname"><span class="pre">LpSolveStatus</span></span></dt>
 <dd></dd></dl>
 
-<p>Return solution status from solver:</p>
+<p>Why the solver stopped, as stored in <code class="xref py py-attr docutils literal notranslate"><span class="pre">pulp.LpSolveStats.status</span></code> – the type
+every solve returns. It is an <code class="docutils literal notranslate"><span class="pre">IntEnum</span></code>. Whether the solver handed back a
+feasible solution is kept separately, in <code class="xref py py-attr docutils literal notranslate"><span class="pre">pulp.LpSolveStats.has_solution</span></code>.</p>
 <blockquote>
 <div><table class="docutils align-default">
 <thead>
-<tr class="row-odd"><th class="head"><p>LpStatus  key</p></th>
-<th class="head"><p>string value</p></th>
+<tr class="row-odd"><th class="head"><p>member</p></th>
+<th class="head"><p>meaning</p></th>
 <th class="head"><p>numerical value</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="xref py py-data docutils literal notranslate"><span class="pre">LpSolutionOptimal</span></code></p></td>
-<td><p>“Optimal Solution Found”</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.Optimal</span></code></p></td>
+<td><p>proven optimal</p></td>
 <td><p>1</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-data docutils literal notranslate"><span class="pre">LpSolutionNoSolutionFound</span></code></p></td>
-<td><p>“No Solution Found”</p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.NotSolved</span></code></p></td>
+<td><p>not solved yet</p></td>
 <td><p>0</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-data docutils literal notranslate"><span class="pre">LpSolutionStatusInfeasible</span></code></p></td>
-<td><p>“No Solution Exists”</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.Infeasible</span></code></p></td>
+<td><p>proven infeasible</p></td>
 <td><p>-1</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-data docutils literal notranslate"><span class="pre">LpSolutionStatusUnbounded</span></code></p></td>
-<td><p>“Solution is Unbounded”</p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.Unbounded</span></code></p></td>
+<td><p>proven unbounded</p></td>
 <td><p>-2</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-data docutils literal notranslate"><span class="pre">LpSolutionIntegerFeasible</span></code></p></td>
-<td><p>“Solution Found”</p></td>
-<td><p>2</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.Undefined</span></code></p></td>
+<td><p>inconclusive, e.g. infeasible or unbounded</p></td>
+<td><p>-3</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.TimeLimit</span></code></p></td>
+<td><p>time (or deterministic work) limit</p></td>
+<td><p>-4</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.MemoryLimit</span></code></p></td>
+<td><p>memory limit</p></td>
+<td><p>-5</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.NodeLimit</span></code></p></td>
+<td><p>branch and bound node limit</p></td>
+<td><p>-6</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.GapLimit</span></code></p></td>
+<td><p>gap tolerance, or objective cutoff/target</p></td>
+<td><p>-7</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.IterationLimit</span></code></p></td>
+<td><p>iteration limit</p></td>
+<td><p>-8</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.SolutionLimit</span></code></p></td>
+<td><p>number of solutions found</p></td>
+<td><p>-9</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.Interrupted</span></code></p></td>
+<td><p>user interrupt or abort</p></td>
+<td><p>-10</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.Stopped</span></code></p></td>
+<td><p>stopped early, the solver does not say why</p></td>
+<td><p>-11</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.NumericalError</span></code></p></td>
+<td><p>numerical trouble</p></td>
+<td><p>-12</p></td>
 </tr>
 </tbody>
 </table>

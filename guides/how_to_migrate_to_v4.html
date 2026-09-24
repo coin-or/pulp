@@ -1,0 +1,682 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How to migrate from PuLP 3.x to 4.0 &mdash; PuLP 4.0.0a12 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=9a4cf090"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="How to configure a solver in PuLP" href="how_to_configure_solvers.html" />
+    <link rel="prev" title="User Guides" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            PuLP
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../main/index.html">Main Topics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CaseStudies/index.html">Case Studies</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">User Guides</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">How to migrate from PuLP 3.x to 4.0</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#before-you-upgrade-run-3-3-2-with-warnings-on">Before you upgrade: run 3.3.2 with warnings on</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#quick-reference">Quick reference</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#installation">Installation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#creating-variables">Creating variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#expressions-and-constraints">Expressions and constraints</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#reading-constraints-back">Reading constraints back</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#removed-problem-features">Removed problem features</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#solving-and-reading-the-status">Solving and reading the status</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#the-status-enum">The status enum</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#optimal-now-means-optimal">“Optimal” now means optimal</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#what-else-is-in-lpsolvestats">What else is in <code class="docutils literal notranslate"><span class="pre">LpSolveStats</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#saving-and-loading-problems">Saving and loading problems</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#solver-modules-and-custom-solvers">Solver modules and custom solvers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#removed-top-level-names">Removed top-level names</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#a-complete-example">A complete example</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="how_to_configure_solvers.html">How to configure a solver in PuLP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how_to_mip_start.html">How to warm-start a solver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how_to_export_models.html">How to import and export models in PuLP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how_to_debug.html">How to debug most errors during solving</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../develop/index.html">Developer Guides</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../technical/index.html">PuLP Internal Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../plugins/index.html">Plugins</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PuLP</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">User Guides</a></li>
+      <li class="breadcrumb-item active">How to migrate from PuLP 3.x to 4.0</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/guides/how_to_migrate_to_v4.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="how-to-migrate-from-pulp-3-x-to-4-0">
+<span id="migrate-to-v4"></span><h1>How to migrate from PuLP 3.x to 4.0<a class="headerlink" href="#how-to-migrate-from-pulp-3-x-to-4-0" title="Link to this heading"></a></h1>
+<p>PuLP 4.0 moves the model into a Rust core. Most modelling code keeps working:
+<code class="docutils literal notranslate"><span class="pre">prob</span> <span class="pre">+=</span> <span class="pre">...</span></code>, <code class="docutils literal notranslate"><span class="pre">lpSum</span></code>, <code class="docutils literal notranslate"><span class="pre">lpDot</span></code>, <code class="docutils literal notranslate"><span class="pre">value</span></code>, constraint names, <code class="docutils literal notranslate"><span class="pre">writeLP</span></code>,
+<code class="docutils literal notranslate"><span class="pre">writeMPS</span></code> and the solver classes are the same. The breaking changes are in
+four places:</p>
+<ul class="simple">
+<li><p>variables are created <strong>by the problem</strong> (<code class="docutils literal notranslate"><span class="pre">prob.add_variable(...)</span></code>), not with
+<code class="docutils literal notranslate"><span class="pre">LpVariable(...)</span></code>,</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">prob.constraints</span></code> is a <strong>method that returns a list</strong>, not a dict,</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">solve()</span></code> returns an <code class="xref py py-class docutils literal notranslate"><span class="pre">LpSolveStats</span></code> object instead of an
+integer, and the status constants are replaced by the <code class="docutils literal notranslate"><span class="pre">LpSolveStatus</span></code> enum,</p></li>
+<li><p>CBC is no longer bundled: <code class="docutils literal notranslate"><span class="pre">PULP_CBC_CMD</span></code> is gone, use <code class="docutils literal notranslate"><span class="pre">COIN_CMD</span></code>.</p></li>
+</ul>
+<p>This guide lists every breaking change with the code to write instead.</p>
+<nav class="contents local" id="on-this-page">
+<p class="topic-title">On this page</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#before-you-upgrade-run-3-3-2-with-warnings-on" id="id1">Before you upgrade: run 3.3.2 with warnings on</a></p></li>
+<li><p><a class="reference internal" href="#quick-reference" id="id2">Quick reference</a></p></li>
+<li><p><a class="reference internal" href="#installation" id="id3">Installation</a></p></li>
+<li><p><a class="reference internal" href="#creating-variables" id="id4">Creating variables</a></p></li>
+<li><p><a class="reference internal" href="#expressions-and-constraints" id="id5">Expressions and constraints</a></p></li>
+<li><p><a class="reference internal" href="#solving-and-reading-the-status" id="id6">Solving and reading the status</a></p></li>
+<li><p><a class="reference internal" href="#saving-and-loading-problems" id="id7">Saving and loading problems</a></p></li>
+<li><p><a class="reference internal" href="#solver-modules-and-custom-solvers" id="id8">Solver modules and custom solvers</a></p></li>
+<li><p><a class="reference internal" href="#removed-top-level-names" id="id9">Removed top-level names</a></p></li>
+<li><p><a class="reference internal" href="#a-complete-example" id="id10">A complete example</a></p></li>
+</ul>
+</nav>
+<section id="before-you-upgrade-run-3-3-2-with-warnings-on">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">Before you upgrade: run 3.3.2 with warnings on</a><a class="headerlink" href="#before-you-upgrade-run-3-3-2-with-warnings-on" title="Link to this heading"></a></h2>
+<p>PuLP 3.3.1 and 3.3.2 emit a <code class="docutils literal notranslate"><span class="pre">DeprecationWarning</span></code> for most of the calls that
+4.0 removes, and they already include the new methods (<code class="docutils literal notranslate"><span class="pre">add_variable</span></code>,
+<code class="docutils literal notranslate"><span class="pre">add_variable_dicts</span></code>, <code class="docutils literal notranslate"><span class="pre">constraints()</span></code>…). The smoothest path is:</p>
+<ol class="arabic">
+<li><p>Install <code class="docutils literal notranslate"><span class="pre">pulp==3.3.2</span></code> and run your code (or your tests) with warnings
+turned into errors:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">W</span> <span class="n">error</span><span class="p">::</span><span class="ne">DeprecationWarning</span> <span class="n">my_model</span><span class="o">.</span><span class="n">py</span>
+</pre></div>
+</div>
+</li>
+<li><p>Fix every warning using the sections below. Your code now runs on both 3.3.2
+and 4.0 for the modelling part.</p></li>
+<li><p>Upgrade to 4.0 and update the code that reads the solve result
+(see <a class="reference internal" href="#solving-and-reading-the-status">Solving and reading the status</a>), which cannot be written in a way
+that works on both versions.</p></li>
+</ol>
+<p>Remove any call to <code class="docutils literal notranslate"><span class="pre">set_v4_migration_warnings(...)</span></code> when you upgrade: the
+function does not exist in 4.0.</p>
+</section>
+<section id="quick-reference">
+<h2><a class="toc-backref" href="#id2" role="doc-backlink">Quick reference</a><a class="headerlink" href="#quick-reference" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 50.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>PuLP 3.x</p></th>
+<th class="head"><p>PuLP 4.0</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">=</span> <span class="pre">LpVariable(&quot;x&quot;,</span> <span class="pre">0,</span> <span class="pre">10)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">=</span> <span class="pre">prob.add_variable(&quot;x&quot;,</span> <span class="pre">0,</span> <span class="pre">10)</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">LpVariable.dicts(&quot;x&quot;,</span> <span class="pre">idx,</span> <span class="pre">0)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">prob.add_variable_dicts(&quot;x&quot;,</span> <span class="pre">idx,</span> <span class="pre">0)</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">LpVariable.dict(&quot;x&quot;,</span> <span class="pre">idx,</span> <span class="pre">0)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">prob.add_variable_dict(&quot;x&quot;,</span> <span class="pre">idx,</span> <span class="pre">0)</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">LpVariable.matrix(&quot;x&quot;,</span> <span class="pre">idx,</span> <span class="pre">0)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">prob.add_variable_matrix(&quot;x&quot;,</span> <span class="pre">idx,</span> <span class="pre">0)</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">prob.addVariable(x)</span></code> / <code class="docutils literal notranslate"><span class="pre">prob.addVariables(xs)</span></code></p></td>
+<td><p>not needed: variables belong to the problem that created them</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">LpAffineExpression({x:</span> <span class="pre">1,</span> <span class="pre">y:</span> <span class="pre">2},</span> <span class="pre">constant=3)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">LpAffineExpression.from_dict({x:</span> <span class="pre">1,</span> <span class="pre">y:</span> <span class="pre">2},</span> <span class="pre">constant=3)</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">LpConstraint(e,</span> <span class="pre">LpConstraintLE,</span> <span class="pre">&quot;c&quot;,</span> <span class="pre">5)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">prob</span> <span class="pre">+=</span> <span class="pre">e</span> <span class="pre">&lt;=</span> <span class="pre">5,</span> <span class="pre">&quot;c&quot;</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">prob.constraints[&quot;c&quot;]</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">prob.get_constraint_by_name(&quot;c&quot;)</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">prob.constraints.values()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">prob.constraints()</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">status</span> <span class="pre">=</span> <span class="pre">prob.solve()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">stats</span> <span class="pre">=</span> <span class="pre">prob.solve()</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">prob.status</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">stats.status</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">LpStatus[prob.status]</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">stats.status_str</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">LpStatusOptimal</span></code>, <code class="docutils literal notranslate"><span class="pre">LpStatusInfeasible</span></code>, …</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.Optimal</span></code>, <code class="docutils literal notranslate"><span class="pre">LpSolveStatus.Infeasible</span></code>, …</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">prob.sol_status</span></code>, <code class="docutils literal notranslate"><span class="pre">LpSolution*</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">stats.has_solution</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">prob.solutionTime</span></code> / <code class="docutils literal notranslate"><span class="pre">prob.solutionCpuTime</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">stats.time</span></code> / <code class="docutils literal notranslate"><span class="pre">stats.cpu_time</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">prob.bestBound</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">stats.best_bound</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">PULP_CBC_CMD(...)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">COIN_CMD(...)</span></code> (with <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">pulp[cbc]</span></code>)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">pulp.apis.coin_api</span> <span class="pre">import</span> <span class="pre">COIN_CMD</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">pulp.apis.coin</span> <span class="pre">import</span> <span class="pre">COIN_CMD</span></code> (or just <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">pulp</span> <span class="pre">import</span> <span class="pre">COIN_CMD</span></code>)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">pickle.dumps(prob)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">prob.toDict()</span></code> / <code class="docutils literal notranslate"><span class="pre">prob.toJson(path)</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="installation">
+<h2><a class="toc-backref" href="#id3" role="doc-backlink">Installation</a><a class="headerlink" href="#installation" title="Link to this heading"></a></h2>
+<ul>
+<li><p>PuLP 4.0 requires <strong>Python 3.12 or newer</strong>.</p></li>
+<li><p>PuLP 4.0 ships a compiled extension, so it is installed as a platform wheel.
+It also depends on <a class="reference external" href="https://github.com/pchtsp/orloge">orloge</a>, which is
+installed automatically and is used to read solver logs.</p></li>
+<li><p><strong>CBC is no longer bundled</strong> and <code class="docutils literal notranslate"><span class="pre">PULP_CBC_CMD</span></code> has been removed. Install CBC
+with the <code class="docutils literal notranslate"><span class="pre">cbc</span></code> extra (or put a <code class="docutils literal notranslate"><span class="pre">cbc</span></code> executable on your <code class="docutils literal notranslate"><span class="pre">PATH</span></code>) and use
+<code class="docutils literal notranslate"><span class="pre">COIN_CMD</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">pulp</span><span class="p">[</span><span class="n">cbc</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 3.x</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">PULP_CBC_CMD</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">timeLimit</span><span class="o">=</span><span class="mi">60</span><span class="p">))</span>
+
+<span class="c1"># 4.0</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">COIN_CMD</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">timeLimit</span><span class="o">=</span><span class="mi">60</span><span class="p">))</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">COIN_CMD</span></code> accepts the same arguments <code class="docutils literal notranslate"><span class="pre">PULP_CBC_CMD</span></code> did. <code class="docutils literal notranslate"><span class="pre">getSolver(&quot;PULP_CBC_CMD&quot;)</span></code>
+and solver JSON files with <code class="docutils literal notranslate"><span class="pre">&quot;solver&quot;:</span> <span class="pre">&quot;PULP_CBC_CMD&quot;</span></code> must be changed to <code class="docutils literal notranslate"><span class="pre">COIN_CMD</span></code> too.</p>
+<p><code class="docutils literal notranslate"><span class="pre">prob.solve()</span></code> with no solver still uses CBC when it is available, and
+otherwise the first other solver it finds. Run <code class="docutils literal notranslate"><span class="pre">listSolvers(onlyAvailable=True)</span></code>
+to see which solvers PuLP can find.</p>
+</li>
+</ul>
+</section>
+<section id="creating-variables">
+<h2><a class="toc-backref" href="#id4" role="doc-backlink">Creating variables</a><a class="headerlink" href="#creating-variables" title="Link to this heading"></a></h2>
+<p>In 3.x a variable was a free-standing object that joined a problem the first
+time it appeared in the objective or a constraint. In 4.0 a variable is created
+by the problem and belongs to it. <code class="docutils literal notranslate"><span class="pre">LpVariable(...)</span></code> can no longer be called
+directly (it raises <code class="docutils literal notranslate"><span class="pre">TypeError</span></code>), and <code class="docutils literal notranslate"><span class="pre">LpVariable.dicts</span></code>, <code class="docutils literal notranslate"><span class="pre">LpVariable.dict</span></code>
+and <code class="docutils literal notranslate"><span class="pre">LpVariable.matrix</span></code> have been removed.</p>
+<p>Every method takes the same arguments as its 3.x counterpart (<code class="docutils literal notranslate"><span class="pre">name</span></code>,
+<code class="docutils literal notranslate"><span class="pre">indices</span></code>, <code class="docutils literal notranslate"><span class="pre">lowBound</span></code>, <code class="docutils literal notranslate"><span class="pre">upBound</span></code>, <code class="docutils literal notranslate"><span class="pre">cat</span></code>) and names the variables the same
+way.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 3.x</span>
+<span class="n">prob</span> <span class="o">=</span> <span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;example&quot;</span><span class="p">,</span> <span class="n">LpMinimize</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">LpVariable</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">lowBound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upBound</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">LpVariable</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="n">cat</span><span class="o">=</span><span class="n">LpBinary</span><span class="p">)</span>
+<span class="n">flows</span> <span class="o">=</span> <span class="n">LpVariable</span><span class="o">.</span><span class="n">dicts</span><span class="p">(</span><span class="s2">&quot;flow&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">warehouses</span><span class="p">,</span> <span class="n">bars</span><span class="p">),</span> <span class="n">lowBound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">cat</span><span class="o">=</span><span class="n">LpInteger</span><span class="p">)</span>
+<span class="n">assign</span> <span class="o">=</span> <span class="n">LpVariable</span><span class="o">.</span><span class="n">dict</span><span class="p">(</span><span class="s2">&quot;assign&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">people</span><span class="p">,</span> <span class="n">tables</span><span class="p">),</span> <span class="n">cat</span><span class="o">=</span><span class="n">LpBinary</span><span class="p">)</span>
+<span class="n">grid</span> <span class="o">=</span> <span class="n">LpVariable</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="s2">&quot;grid&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">),</span> <span class="n">lowBound</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="c1"># 4.0</span>
+<span class="n">prob</span> <span class="o">=</span> <span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;example&quot;</span><span class="p">,</span> <span class="n">LpMinimize</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">lowBound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upBound</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="n">cat</span><span class="o">=</span><span class="n">LpBinary</span><span class="p">)</span>
+<span class="n">flows</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable_dicts</span><span class="p">(</span><span class="s2">&quot;flow&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">warehouses</span><span class="p">,</span> <span class="n">bars</span><span class="p">),</span> <span class="n">lowBound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">cat</span><span class="o">=</span><span class="n">LpInteger</span><span class="p">)</span>
+<span class="n">assign</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable_dict</span><span class="p">(</span><span class="s2">&quot;assign&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">people</span><span class="p">,</span> <span class="n">tables</span><span class="p">),</span> <span class="n">cat</span><span class="o">=</span><span class="n">LpBinary</span><span class="p">)</span>
+<span class="n">grid</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable_matrix</span><span class="p">(</span><span class="s2">&quot;grid&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">),</span> <span class="n">lowBound</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This means <strong>the problem must exist before its variables</strong>. Code that created
+the variables first and the problem later needs to be reordered, and helper
+functions that build variables need the problem passed in:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 3.x</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">make_vars</span><span class="p">(</span><span class="n">items</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">LpVariable</span><span class="o">.</span><span class="n">dicts</span><span class="p">(</span><span class="s2">&quot;buy&quot;</span><span class="p">,</span> <span class="n">items</span><span class="p">,</span> <span class="n">cat</span><span class="o">=</span><span class="n">LpBinary</span><span class="p">)</span>
+
+<span class="c1"># 4.0</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">make_vars</span><span class="p">(</span><span class="n">prob</span><span class="p">,</span> <span class="n">items</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable_dicts</span><span class="p">(</span><span class="s2">&quot;buy&quot;</span><span class="p">,</span> <span class="n">items</span><span class="p">,</span> <span class="n">cat</span><span class="o">=</span><span class="n">LpBinary</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Other changes around variables:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">prob.addVariable(x)</span></code> and <code class="docutils literal notranslate"><span class="pre">prob.addVariables(xs)</span></code> have been removed. They
+are not needed: a variable is in the problem from the moment it is created,
+even if no constraint uses it yet.</p></li>
+<li><p><strong>A variable cannot be used in another problem.</strong> Adding an expression with a
+variable from problem <code class="docutils literal notranslate"><span class="pre">A</span></code> to problem <code class="docutils literal notranslate"><span class="pre">B</span></code> raises
+<code class="docutils literal notranslate"><span class="pre">PulpError:</span> <span class="pre">Expression</span> <span class="pre">is</span> <span class="pre">bound</span> <span class="pre">to</span> <span class="pre">a</span> <span class="pre">different</span> <span class="pre">model</span></code>. If you built several
+problems from the same variables, create the variables in each problem.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">prob.copy()</span></code> and <code class="docutils literal notranslate"><span class="pre">prob.deepcopy()</span></code> now copy the whole model, variables
+included. Use the copy’s own variables, looked up by name:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 3.x</span>
+<span class="n">other</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">other</span> <span class="o">+=</span> <span class="n">x</span> <span class="o">&lt;=</span> <span class="mi">1</span>          <span class="c1"># x shared by both problems</span>
+
+<span class="c1"># 4.0</span>
+<span class="n">other</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">other_vars</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">variablesDict</span><span class="p">()</span>
+<span class="n">other</span> <span class="o">+=</span> <span class="n">other_vars</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">1</span>
+</pre></div>
+</div>
+</li>
+<li><p>Binary variables are stored as integer variables with bounds 0 and 1, so
+<code class="docutils literal notranslate"><span class="pre">y.cat</span></code> returns <code class="docutils literal notranslate"><span class="pre">&quot;Integer&quot;</span></code> for a variable created with <code class="docutils literal notranslate"><span class="pre">cat=LpBinary</span></code>.
+Use <code class="docutils literal notranslate"><span class="pre">y.isBinary()</span></code> to check for binaries.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LpVariable.fromDict(data)</span></code> and <code class="docutils literal notranslate"><span class="pre">LpVariable.fromDataclass(mps)</span></code> now take the
+problem as their first argument: <code class="docutils literal notranslate"><span class="pre">LpVariable.fromDict(prob,</span> <span class="pre">data)</span></code>.</p></li>
+<li><p>Column-wise modelling (<code class="docutils literal notranslate"><span class="pre">LpConstraintVar</span></code> and <code class="docutils literal notranslate"><span class="pre">LpVariable(...,</span> <span class="pre">e=...)</span></code>) has
+been removed. Build the constraints row by row instead.</p></li>
+</ul>
+</section>
+<section id="expressions-and-constraints">
+<h2><a class="toc-backref" href="#id5" role="doc-backlink">Expressions and constraints</a><a class="headerlink" href="#expressions-and-constraints" title="Link to this heading"></a></h2>
+<p>Operators work as before: <code class="docutils literal notranslate"><span class="pre">2</span> <span class="pre">*</span> <span class="pre">x</span> <span class="pre">+</span> <span class="pre">y</span></code>, <code class="docutils literal notranslate"><span class="pre">lpSum(...)</span></code>, <code class="docutils literal notranslate"><span class="pre">lpDot(...)</span></code>,
+<code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">+</span> <span class="pre">y</span> <span class="pre">&lt;=</span> <span class="pre">5</span></code>, <code class="docutils literal notranslate"><span class="pre">prob</span> <span class="pre">+=</span> <span class="pre">expr,</span> <span class="pre">&quot;name&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">prob.addConstraint(expr,</span> <span class="pre">&quot;name&quot;)</span></code>
+need no changes.</p>
+<p>What changed is building expressions and constraints through their
+constructors, which now only wrap internal objects:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 3.x</span>
+<span class="n">e</span> <span class="o">=</span> <span class="n">LpAffineExpression</span><span class="p">({</span><span class="n">x</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="mi">2</span><span class="p">},</span> <span class="n">constant</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;e&quot;</span><span class="p">)</span>
+<span class="n">e</span> <span class="o">=</span> <span class="n">LpAffineExpression</span><span class="p">([(</span><span class="n">x</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="mi">2</span><span class="p">)])</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">LpConstraint</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">LpConstraintLE</span><span class="p">,</span> <span class="s2">&quot;cap&quot;</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">c</span>
+
+<span class="c1"># 4.0</span>
+<span class="n">e</span> <span class="o">=</span> <span class="n">LpAffineExpression</span><span class="o">.</span><span class="n">from_dict</span><span class="p">({</span><span class="n">x</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="mi">2</span><span class="p">},</span> <span class="n">constant</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;e&quot;</span><span class="p">)</span>
+<span class="n">e</span> <span class="o">=</span> <span class="n">LpAffineExpression</span><span class="o">.</span><span class="n">from_list</span><span class="p">([(</span><span class="n">x</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="mi">2</span><span class="p">)])</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">e</span> <span class="o">&lt;=</span> <span class="mi">10</span><span class="p">,</span> <span class="s2">&quot;cap&quot;</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">LpAffineExpression</span></code> also has <code class="docutils literal notranslate"><span class="pre">empty()</span></code>, <code class="docutils literal notranslate"><span class="pre">from_variable(x)</span></code> and
+<code class="docutils literal notranslate"><span class="pre">from_constant(3)</span></code>.</p>
+<section id="reading-constraints-back">
+<h3>Reading constraints back<a class="headerlink" href="#reading-constraints-back" title="Link to this heading"></a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">prob.constraints</span></code> is now a method returning the constraints as a list, in
+the order they were added. Indexing it by name raises <code class="docutils literal notranslate"><span class="pre">TypeError</span></code>, and
+calling <code class="docutils literal notranslate"><span class="pre">.items()</span></code>, <code class="docutils literal notranslate"><span class="pre">.values()</span></code> or <code class="docutils literal notranslate"><span class="pre">.keys()</span></code> on it raises <code class="docutils literal notranslate"><span class="pre">AttributeError</span></code>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 3.x</span>
+<span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">prob</span><span class="o">.</span><span class="n">constraints</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">slack</span><span class="p">)</span>
+<span class="n">cap</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">constraints</span><span class="p">[</span><span class="s2">&quot;cap&quot;</span><span class="p">]</span>
+
+<span class="c1"># 4.0</span>
+<span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">prob</span><span class="o">.</span><span class="n">constraints</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">slack</span><span class="p">)</span>
+<span class="n">cap</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">get_constraint_by_name</span><span class="p">(</span><span class="s2">&quot;cap&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">get_constraint_by_name</span></code> returns <code class="docutils literal notranslate"><span class="pre">None</span></code> when there is no constraint with
+that name. It is also available in PuLP 3.3.1 and later, so you can switch to it
+before upgrading. If you look up many constraints by name, build a dictionary
+once after the model is complete:
+<code class="docutils literal notranslate"><span class="pre">constraints</span> <span class="pre">=</span> <span class="pre">{c.name:</span> <span class="pre">c</span> <span class="pre">for</span> <span class="pre">c</span> <span class="pre">in</span> <span class="pre">prob.constraints()}</span></code>.</p>
+</section>
+<section id="removed-problem-features">
+<h3>Removed problem features<a class="headerlink" href="#removed-problem-features" title="Link to this heading"></a></h3>
+<p>These 3.x features have no direct equivalent in 4.0:</p>
+<ul class="simple">
+<li><p><strong>Elastic constraints</strong>: <code class="docutils literal notranslate"><span class="pre">LpConstraint.makeElasticSubProblem</span></code>,
+<code class="docutils literal notranslate"><span class="pre">FixedElasticSubProblem</span></code>, <code class="docutils literal notranslate"><span class="pre">FractionElasticSubProblem</span></code> and
+<code class="docutils literal notranslate"><span class="pre">LpProblem.extend</span></code>. Model the penalty explicitly: add non-negative slack
+variables to the constraint and a penalty on them in the objective.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LpFractionConstraint</span></code> and <code class="docutils literal notranslate"><span class="pre">LpElement</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LpProblem.normalisedNames</span></code>, <code class="docutils literal notranslate"><span class="pre">unusedConstraintName</span></code>, <code class="docutils literal notranslate"><span class="pre">startClock</span></code> /
+<code class="docutils literal notranslate"><span class="pre">stopClock</span></code>, <code class="docutils literal notranslate"><span class="pre">assignStatus</span></code>.</p></li>
+</ul>
+</section>
+</section>
+<section id="solving-and-reading-the-status">
+<h2><a class="toc-backref" href="#id6" role="doc-backlink">Solving and reading the status</a><a class="headerlink" href="#solving-and-reading-the-status" title="Link to this heading"></a></h2>
+<p>This is the change that affects almost every script. In 3.x <code class="docutils literal notranslate"><span class="pre">prob.solve()</span></code>
+returned an integer and stored the status on the problem. In 4.0 it returns an
+<code class="xref py py-class docutils literal notranslate"><span class="pre">LpSolveStats</span></code> object, and the problem no longer has
+<code class="docutils literal notranslate"><span class="pre">status</span></code>, <code class="docutils literal notranslate"><span class="pre">sol_status</span></code>, <code class="docutils literal notranslate"><span class="pre">solutionTime</span></code>, <code class="docutils literal notranslate"><span class="pre">solutionCpuTime</span></code> or
+<code class="docutils literal notranslate"><span class="pre">bestBound</span></code> attributes.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 3.x</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">COIN_CMD</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Status:&quot;</span><span class="p">,</span> <span class="n">LpStatus</span><span class="p">[</span><span class="n">prob</span><span class="o">.</span><span class="n">status</span><span class="p">])</span>
+<span class="k">if</span> <span class="n">prob</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">LpStatusOptimal</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">value</span><span class="p">(</span><span class="n">prob</span><span class="o">.</span><span class="n">objective</span><span class="p">),</span> <span class="n">prob</span><span class="o">.</span><span class="n">solutionTime</span><span class="p">)</span>
+
+<span class="c1"># 4.0</span>
+<span class="n">stats</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">COIN_CMD</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Status:&quot;</span><span class="p">,</span> <span class="n">stats</span><span class="o">.</span><span class="n">status_str</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">stats</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">LpSolveStatus</span><span class="o">.</span><span class="n">Optimal</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">stats</span><span class="o">.</span><span class="n">objective</span><span class="p">,</span> <span class="n">stats</span><span class="o">.</span><span class="n">time</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">solver.solve(prob)</span></code> and <code class="docutils literal notranslate"><span class="pre">prob.resolve()</span></code> return an <code class="docutils literal notranslate"><span class="pre">LpSolveStats</span></code> too, and
+<code class="docutils literal notranslate"><span class="pre">prob.sequentialSolve(...)</span></code> returns a list of them, one per objective.</p>
+<p>Variable values, <code class="docutils literal notranslate"><span class="pre">value(prob.objective)</span></code>, <code class="docutils literal notranslate"><span class="pre">c.pi</span></code> and <code class="docutils literal notranslate"><span class="pre">c.slack</span></code> are read the
+same way as before.</p>
+<section id="the-status-enum">
+<h3>The status enum<a class="headerlink" href="#the-status-enum" title="Link to this heading"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">LpStatus*</span></code> constants and the <code class="docutils literal notranslate"><span class="pre">LpStatus</span></code> dictionary are replaced by the
+<a class="reference internal" href="../technical/constants.html#pulp.constants.LpSolveStatus" title="pulp.constants.LpSolveStatus"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpSolveStatus</span></code></a> enum. It is an <code class="docutils literal notranslate"><span class="pre">IntEnum</span></code> and keeps
+the old numbers, so a comparison with a plain integer (<code class="docutils literal notranslate"><span class="pre">stats.status</span> <span class="pre">==</span> <span class="pre">1</span></code>)
+still works.</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>PuLP 3.x</p></th>
+<th class="head"><p>PuLP 4.0</p></th>
+<th class="head"><p>Value</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">LpStatusNotSolved</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.NotSolved</span></code></p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">LpStatusOptimal</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.Optimal</span></code></p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">LpStatusInfeasible</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.Infeasible</span></code></p></td>
+<td><p>-1</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">LpStatusUnbounded</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.Unbounded</span></code></p></td>
+<td><p>-2</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">LpStatusUndefined</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.Undefined</span></code></p></td>
+<td><p>-3</p></td>
+</tr>
+<tr class="row-odd"><td><p>(new)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.TimeLimit</span></code></p></td>
+<td><p>-4</p></td>
+</tr>
+<tr class="row-even"><td><p>(new)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.MemoryLimit</span></code></p></td>
+<td><p>-5</p></td>
+</tr>
+<tr class="row-odd"><td><p>(new)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.NodeLimit</span></code></p></td>
+<td><p>-6</p></td>
+</tr>
+<tr class="row-even"><td><p>(new)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.GapLimit</span></code></p></td>
+<td><p>-7</p></td>
+</tr>
+<tr class="row-odd"><td><p>(new)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.IterationLimit</span></code></p></td>
+<td><p>-8</p></td>
+</tr>
+<tr class="row-even"><td><p>(new)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.SolutionLimit</span></code></p></td>
+<td><p>-9</p></td>
+</tr>
+<tr class="row-odd"><td><p>(new)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.Interrupted</span></code></p></td>
+<td><p>-10</p></td>
+</tr>
+<tr class="row-even"><td><p>(new)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.Stopped</span></code></p></td>
+<td><p>-11</p></td>
+</tr>
+<tr class="row-odd"><td><p>(new)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">LpSolveStatus.NumericalError</span></code></p></td>
+<td><p>-12</p></td>
+</tr>
+</tbody>
+</table>
+<p><code class="docutils literal notranslate"><span class="pre">stats.status_str</span></code> is the member’s name, so the text changes slightly:
+<code class="docutils literal notranslate"><span class="pre">&quot;Not</span> <span class="pre">Solved&quot;</span></code> becomes <code class="docutils literal notranslate"><span class="pre">&quot;NotSolved&quot;</span></code>. If you compared <code class="docutils literal notranslate"><span class="pre">LpStatus[...]</span></code>
+strings, compare the enum instead. To turn a stored integer into a name, use
+<code class="docutils literal notranslate"><span class="pre">LpSolveStatus(code).name</span></code>.</p>
+</section>
+<section id="optimal-now-means-optimal">
+<h3>“Optimal” now means optimal<a class="headerlink" href="#optimal-now-means-optimal" title="Link to this heading"></a></h3>
+<p>In 3.x a solver that stopped at a time limit with a feasible solution usually
+reported <code class="docutils literal notranslate"><span class="pre">LpStatusOptimal</span></code> (1), and only <code class="docutils literal notranslate"><span class="pre">prob.sol_status</span></code> told you the
+solution was not proven optimal. In 4.0 the status says why the solver stopped
+(<code class="docutils literal notranslate"><span class="pre">TimeLimit</span></code>, <code class="docutils literal notranslate"><span class="pre">GapLimit</span></code>, <code class="docutils literal notranslate"><span class="pre">NodeLimit</span></code>…), and whether it returned a
+solution is a separate flag, <code class="docutils literal notranslate"><span class="pre">stats.has_solution</span></code>.</p>
+<p>So code like this, which used to accept time-limited solutions, <strong>now treats
+them as failures</strong>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 3.x: also true for a feasible solution found before the time limit</span>
+<span class="k">if</span> <span class="n">prob</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">LpStatusOptimal</span><span class="p">:</span>
+    <span class="n">use_solution</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Decide which of the two you mean:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 4.0: any feasible solution the solver returned</span>
+<span class="k">if</span> <span class="n">stats</span><span class="o">.</span><span class="n">has_solution</span><span class="p">:</span>
+    <span class="n">use_solution</span><span class="p">()</span>
+
+<span class="c1"># 4.0: only proven optimal solutions</span>
+<span class="k">if</span> <span class="n">stats</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">LpSolveStatus</span><span class="o">.</span><span class="n">Optimal</span><span class="p">:</span>
+    <span class="n">use_solution</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">LpSolution*</span></code> constants (<code class="docutils literal notranslate"><span class="pre">LpSolutionOptimal</span></code>, <code class="docutils literal notranslate"><span class="pre">LpSolutionIntegerFeasible</span></code>,
+<code class="docutils literal notranslate"><span class="pre">LpSolutionNoSolutionFound</span></code>, …) and <code class="docutils literal notranslate"><span class="pre">LpStatusToSolution</span></code> have been removed;
+use <code class="docutils literal notranslate"><span class="pre">has_solution</span></code> together with <code class="docutils literal notranslate"><span class="pre">status</span></code>:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>PuLP 3.x <code class="docutils literal notranslate"><span class="pre">prob.sol_status</span></code></p></th>
+<th class="head"><p>PuLP 4.0</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">LpSolutionOptimal</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">stats.has_solution</span> <span class="pre">and</span> <span class="pre">stats.status</span> <span class="pre">==</span> <span class="pre">LpSolveStatus.Optimal</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">LpSolutionIntegerFeasible</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">stats.has_solution</span> <span class="pre">and</span> <span class="pre">stats.status</span> <span class="pre">!=</span> <span class="pre">LpSolveStatus.Optimal</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">LpSolutionNoSolutionFound</span></code>, <code class="docutils literal notranslate"><span class="pre">LpSolutionInfeasible</span></code>, <code class="docutils literal notranslate"><span class="pre">LpSolutionUnbounded</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">not</span> <span class="pre">stats.has_solution</span></code> (and <code class="docutils literal notranslate"><span class="pre">stats.status</span></code> for the reason)</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="what-else-is-in-lpsolvestats">
+<h3>What else is in <code class="docutils literal notranslate"><span class="pre">LpSolveStats</span></code><a class="headerlink" href="#what-else-is-in-lpsolvestats" title="Link to this heading"></a></h3>
+<p>Besides <code class="docutils literal notranslate"><span class="pre">status</span></code> and <code class="docutils literal notranslate"><span class="pre">has_solution</span></code>, the object has:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">solver</span></code>, <code class="docutils literal notranslate"><span class="pre">time</span></code>, <code class="docutils literal notranslate"><span class="pre">cpu_time</span></code>, <code class="docutils literal notranslate"><span class="pre">objective</span></code>, <code class="docutils literal notranslate"><span class="pre">best_bound</span></code>, <code class="docutils literal notranslate"><span class="pre">gap_abs</span></code>,
+<code class="docutils literal notranslate"><span class="pre">gap_rel</span></code>, <code class="docutils literal notranslate"><span class="pre">num_variables</span></code>, <code class="docutils literal notranslate"><span class="pre">num_constraints</span></code>, <code class="docutils literal notranslate"><span class="pre">is_mip</span></code>,
+<code class="docutils literal notranslate"><span class="pre">solver_options</span></code>.</p></li>
+<li><p>For solvers whose log PuLP can read (<code class="docutils literal notranslate"><span class="pre">COIN_CMD</span></code>, <code class="docutils literal notranslate"><span class="pre">CPLEX_CMD</span></code>, <code class="docutils literal notranslate"><span class="pre">CPLEX_PY</span></code>,
+<code class="docutils literal notranslate"><span class="pre">GUROBI</span></code>, <code class="docutils literal notranslate"><span class="pre">GUROBI_CMD</span></code>, <code class="docutils literal notranslate"><span class="pre">CPSAT</span></code>): <code class="docutils literal notranslate"><span class="pre">solver_version</span></code>, <code class="docutils literal notranslate"><span class="pre">nodes</span></code>,
+<code class="docutils literal notranslate"><span class="pre">root_time</span></code>, <code class="docutils literal notranslate"><span class="pre">presolve</span></code>, <code class="docutils literal notranslate"><span class="pre">matrix</span></code>, <code class="docutils literal notranslate"><span class="pre">cut_info</span></code>, <code class="docutils literal notranslate"><span class="pre">first_solution</span></code> and the
+full parsed log in <code class="docutils literal notranslate"><span class="pre">logs</span></code>. These are <code class="docutils literal notranslate"><span class="pre">None</span></code> for the other solvers.</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">print(stats)</span></code> shows a short summary, and <code class="docutils literal notranslate"><span class="pre">stats.toDict()</span></code> /
+<code class="docutils literal notranslate"><span class="pre">stats.toJson(path)</span></code> export it.</p>
+</section>
+</section>
+<section id="saving-and-loading-problems">
+<h2><a class="toc-backref" href="#id7" role="doc-backlink">Saving and loading problems</a><a class="headerlink" href="#saving-and-loading-problems" title="Link to this heading"></a></h2>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">LpProblem</span></code> objects <strong>cannot be pickled</strong> any more (<code class="docutils literal notranslate"><span class="pre">pickle.dumps(prob)</span></code>
+raises <code class="docutils literal notranslate"><span class="pre">TypeError</span></code>), and neither can objects that hold one, such as
+<code class="docutils literal notranslate"><span class="pre">multiprocessing</span></code> arguments. Pass the model as a dictionary or JSON and
+rebuild it on the other side:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">toDict</span><span class="p">()</span>                  <span class="c1"># or prob.toJson(&quot;model.json&quot;)</span>
+<span class="n">variables</span><span class="p">,</span> <span class="n">prob</span> <span class="o">=</span> <span class="n">LpProblem</span><span class="o">.</span><span class="n">fromDict</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>  <span class="c1"># or LpProblem.fromJson(&quot;model.json&quot;)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">variables</span></code> is a dictionary from variable name to the new problem’s
+variables.</p>
+</li>
+<li><p>JSON files written by 3.x load in 4.0. Files written by 4.0 no longer contain
+<code class="docutils literal notranslate"><span class="pre">status</span></code> and <code class="docutils literal notranslate"><span class="pre">sol_status</span></code>, so PuLP 3.x cannot read them.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LpProblem.to_dict</span></code>, <code class="docutils literal notranslate"><span class="pre">from_dict</span></code>, <code class="docutils literal notranslate"><span class="pre">to_json</span></code> and <code class="docutils literal notranslate"><span class="pre">from_json</span></code> still work
+but are deprecated; use <code class="docutils literal notranslate"><span class="pre">toDict</span></code>, <code class="docutils literal notranslate"><span class="pre">fromDict</span></code>, <code class="docutils literal notranslate"><span class="pre">toJson</span></code> and <code class="docutils literal notranslate"><span class="pre">fromJson</span></code>.</p></li>
+</ul>
+</section>
+<section id="solver-modules-and-custom-solvers">
+<h2><a class="toc-backref" href="#id8" role="doc-backlink">Solver modules and custom solvers</a><a class="headerlink" href="#solver-modules-and-custom-solvers" title="Link to this heading"></a></h2>
+<p>Most code imports solvers from <code class="docutils literal notranslate"><span class="pre">pulp</span></code> directly and needs no change. If you
+import from the solver modules, drop the <code class="docutils literal notranslate"><span class="pre">_api</span></code> suffix:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 3.x</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pulp.apis.coin_api</span><span class="w"> </span><span class="kn">import</span> <span class="n">COIN_CMD</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pulp.apis.gurobi_api</span><span class="w"> </span><span class="kn">import</span> <span class="n">GUROBI</span>
+
+<span class="c1"># 4.0</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pulp.apis.coin</span><span class="w"> </span><span class="kn">import</span> <span class="n">COIN_CMD</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pulp.apis.gurobi</span><span class="w"> </span><span class="kn">import</span> <span class="n">GUROBI</span>
+</pre></div>
+</div>
+<p>If you wrote your own solver class by subclassing <code class="docutils literal notranslate"><span class="pre">LpSolver</span></code> or
+<code class="docutils literal notranslate"><span class="pre">LpSolver_CMD</span></code>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">actualSolve(lp)</span></code> must return an <code class="docutils literal notranslate"><span class="pre">LpSolveStats</span></code>. Build it with
+<code class="docutils literal notranslate"><span class="pre">self.buildStats(lp,</span> <span class="pre">status,</span> <span class="pre">has_solution,</span> <span class="pre">start=start)</span></code>, where <code class="docutils literal notranslate"><span class="pre">start</span></code> is
+<code class="docutils literal notranslate"><span class="pre">clocks()</span></code> (from <code class="docutils literal notranslate"><span class="pre">pulp.apis.core</span></code>) taken at the beginning of
+<code class="docutils literal notranslate"><span class="pre">actualSolve</span></code>. Do not call <code class="docutils literal notranslate"><span class="pre">lp.assignStatus</span></code> (removed).</p></li>
+<li><p>The API solvers’ <code class="docutils literal notranslate"><span class="pre">findSolutionValues(lp)</span></code> returns a
+<code class="docutils literal notranslate"><span class="pre">(status,</span> <span class="pre">has_solution)</span></code> tuple instead of a status.</p></li>
+<li><p>Register the class with <code class="docutils literal notranslate"><span class="pre">pulp.apis.addSolver(MySolver)</span></code> so that
+<code class="docutils literal notranslate"><span class="pre">getSolver(&quot;MY_SOLVER&quot;)</span></code> and <code class="docutils literal notranslate"><span class="pre">listSolvers()</span></code> can find it.</p></li>
+</ul>
+<p>See <a class="reference internal" href="../develop/add_solver.html"><span class="doc">How to add a new solver to PuLP</span></a> for a complete example.</p>
+</section>
+<section id="removed-top-level-names">
+<h2><a class="toc-backref" href="#id9" role="doc-backlink">Removed top-level names</a><a class="headerlink" href="#removed-top-level-names" title="Link to this heading"></a></h2>
+<p>These names can no longer be imported from <code class="docutils literal notranslate"><span class="pre">pulp</span></code>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">PULP_CBC_CMD</span></code>: use <code class="docutils literal notranslate"><span class="pre">COIN_CMD</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LpStatus</span></code>, <code class="docutils literal notranslate"><span class="pre">LpStatusNotSolved</span></code>, <code class="docutils literal notranslate"><span class="pre">LpStatusOptimal</span></code>, <code class="docutils literal notranslate"><span class="pre">LpStatusInfeasible</span></code>,
+<code class="docutils literal notranslate"><span class="pre">LpStatusUnbounded</span></code>, <code class="docutils literal notranslate"><span class="pre">LpStatusUndefined</span></code>: use <code class="docutils literal notranslate"><span class="pre">LpSolveStatus</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LpSolution</span></code>, <code class="docutils literal notranslate"><span class="pre">LpSolutionNoSolutionFound</span></code>, <code class="docutils literal notranslate"><span class="pre">LpSolutionOptimal</span></code>,
+<code class="docutils literal notranslate"><span class="pre">LpSolutionIntegerFeasible</span></code>, <code class="docutils literal notranslate"><span class="pre">LpSolutionInfeasible</span></code>, <code class="docutils literal notranslate"><span class="pre">LpSolutionUnbounded</span></code>,
+<code class="docutils literal notranslate"><span class="pre">LpStatusToSolution</span></code>: use <code class="docutils literal notranslate"><span class="pre">LpSolveStats.has_solution</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LpConstraintVar</span></code>, <code class="docutils literal notranslate"><span class="pre">LpElement</span></code>, <code class="docutils literal notranslate"><span class="pre">LpFractionConstraint</span></code>,
+<code class="docutils literal notranslate"><span class="pre">FixedElasticSubProblem</span></code>, <code class="docutils literal notranslate"><span class="pre">FractionElasticSubProblem</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">set_v4_migration_warnings</span></code>, <code class="docutils literal notranslate"><span class="pre">pulpTestAll</span></code>, <code class="docutils literal notranslate"><span class="pre">configSolvers</span></code>, <code class="docutils literal notranslate"><span class="pre">clock</span></code>,
+<code class="docutils literal notranslate"><span class="pre">VERSION</span></code>: use <code class="docutils literal notranslate"><span class="pre">pulp.__version__</span></code> for the version.</p></li>
+</ul>
+</section>
+<section id="a-complete-example">
+<h2><a class="toc-backref" href="#id10" role="doc-backlink">A complete example</a><a class="headerlink" href="#a-complete-example" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># PuLP 3.x</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pulp</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+
+<span class="n">prob</span> <span class="o">=</span> <span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;production&quot;</span><span class="p">,</span> <span class="n">LpMaximize</span><span class="p">)</span>
+<span class="n">products</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="s2">&quot;B&quot;</span><span class="p">]</span>
+<span class="n">make</span> <span class="o">=</span> <span class="n">LpVariable</span><span class="o">.</span><span class="n">dicts</span><span class="p">(</span><span class="s2">&quot;make&quot;</span><span class="p">,</span> <span class="n">products</span><span class="p">,</span> <span class="n">lowBound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">cat</span><span class="o">=</span><span class="n">LpInteger</span><span class="p">)</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">make</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="mi">5</span> <span class="o">*</span> <span class="n">make</span><span class="p">[</span><span class="s2">&quot;B&quot;</span><span class="p">],</span> <span class="s2">&quot;profit&quot;</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">make</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">make</span><span class="p">[</span><span class="s2">&quot;B&quot;</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">40</span><span class="p">,</span> <span class="s2">&quot;machine_hours&quot;</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">make</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">make</span><span class="p">[</span><span class="s2">&quot;B&quot;</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">15</span><span class="p">,</span> <span class="s2">&quot;labour&quot;</span>
+
+<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">PULP_CBC_CMD</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">timeLimit</span><span class="o">=</span><span class="mi">30</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">LpStatus</span><span class="p">[</span><span class="n">prob</span><span class="o">.</span><span class="n">status</span><span class="p">],</span> <span class="n">value</span><span class="p">(</span><span class="n">prob</span><span class="o">.</span><span class="n">objective</span><span class="p">))</span>
+<span class="k">if</span> <span class="n">prob</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">LpStatusOptimal</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">({</span><span class="n">p</span><span class="p">:</span> <span class="n">make</span><span class="p">[</span><span class="n">p</span><span class="p">]</span><span class="o">.</span><span class="n">varValue</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">products</span><span class="p">})</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">prob</span><span class="o">.</span><span class="n">constraints</span><span class="p">[</span><span class="s2">&quot;labour&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">slack</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># PuLP 4.0</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pulp</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+
+<span class="n">prob</span> <span class="o">=</span> <span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;production&quot;</span><span class="p">,</span> <span class="n">LpMaximize</span><span class="p">)</span>
+<span class="n">products</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="s2">&quot;B&quot;</span><span class="p">]</span>
+<span class="n">make</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable_dicts</span><span class="p">(</span><span class="s2">&quot;make&quot;</span><span class="p">,</span> <span class="n">products</span><span class="p">,</span> <span class="n">lowBound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">cat</span><span class="o">=</span><span class="n">LpInteger</span><span class="p">)</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">make</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="mi">5</span> <span class="o">*</span> <span class="n">make</span><span class="p">[</span><span class="s2">&quot;B&quot;</span><span class="p">],</span> <span class="s2">&quot;profit&quot;</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">make</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">make</span><span class="p">[</span><span class="s2">&quot;B&quot;</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">40</span><span class="p">,</span> <span class="s2">&quot;machine_hours&quot;</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">make</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">make</span><span class="p">[</span><span class="s2">&quot;B&quot;</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">15</span><span class="p">,</span> <span class="s2">&quot;labour&quot;</span>
+
+<span class="n">stats</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">COIN_CMD</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">timeLimit</span><span class="o">=</span><span class="mi">30</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">stats</span><span class="o">.</span><span class="n">status_str</span><span class="p">,</span> <span class="n">stats</span><span class="o">.</span><span class="n">objective</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">stats</span><span class="o">.</span><span class="n">has_solution</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">({</span><span class="n">p</span><span class="p">:</span> <span class="n">make</span><span class="p">[</span><span class="n">p</span><span class="p">]</span><span class="o">.</span><span class="n">varValue</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">products</span><span class="p">})</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">prob</span><span class="o">.</span><span class="n">get_constraint_by_name</span><span class="p">(</span><span class="s2">&quot;labour&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">slack</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="User Guides" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="how_to_configure_solvers.html" class="btn btn-neutral float-right" title="How to configure a solver in PuLP" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2009-, pulp documentation team..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

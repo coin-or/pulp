@@ -114,6 +114,14 @@
 <p>PuLP is an linear and mixed integer programming modeler written in Python. With PuLP, it is simple to create MILP optimisation problems and solve them with the latest open-source (or proprietary) solvers.  PuLP can generate MPS or LP files and call solvers such as <a class="reference external" href="http://www.gnu.org/software/glpk/glpk.html">GLPK</a>, COIN-OR CLP/<a class="reference external" href="https://github.com/coin-or/Cbc">CBC</a>, <a class="reference external" href="http://www.cplex.com/">CPLEX</a>, <a class="reference external" href="http://www.gurobi.com/">GUROBI</a>, <a class="reference external" href="https://www.mosek.com/">MOSEK</a>, <a class="reference external" href="https://www.fico.com/es/products/fico-xpress-solver">XPRESS</a>, <a class="reference external" href="https://choco-solver.org/">CHOCO</a>, <a class="reference external" href="http://mipcl-cpp.appspot.com/">MIPCL</a>, <a class="reference external" href="https://highs.dev">HiGHS</a>, <a class="reference external" href="https://www.scipopt.org/">SCIP</a>/<a class="reference external" href="https://ug.zib.de">FSCIP</a>, and OR-Tools <a class="reference external" href="https://developers.google.com/optimization/cp/cp_solver">CP-SAT</a> (via the <code class="docutils literal notranslate"><span class="pre">CPSAT</span></code> API).</p>
 <p>The documentation for PuLP can be <a class="reference external" href="https://coin-or.github.io/pulp/">found here</a>.</p>
 <p>PuLP is part of the <a class="reference external" href="https://www.coin-or.org/">COIN-OR project</a>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><strong>Upgrading from PuLP 3.x?</strong> PuLP 4.0 has breaking changes: variables are
+created with <code class="docutils literal notranslate"><span class="pre">prob.add_variable(...)</span></code>, <code class="docutils literal notranslate"><span class="pre">prob.constraints()</span></code> returns a list,
+and <code class="docutils literal notranslate"><span class="pre">prob.solve()</span></code> returns an <code class="docutils literal notranslate"><span class="pre">LpSolveStats</span></code> object instead of a status
+code. See the <a class="reference external" href="https://coin-or.github.io/pulp/guides/how_to_migrate_to_v4.html">guide to migrate from PuLP 3.x to 4.0</a>
+(source: <a class="reference external" href="https://github.com/coin-or/pulp/blob/master/doc/source/guides/how_to_migrate_to_v4.rst">doc/source/guides/how_to_migrate_to_v4.rst</a>).</p>
+</div>
 <div class="admonition important">
 <p class="admonition-title">Important</p>
 <p><strong>CBC is not shipped inside the PuLP package.</strong> Older releases bundled a CBC
@@ -133,7 +141,7 @@ solve path will raise <code class="docutils literal notranslate"><span class="pr
 </div>
 <section id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h2>
-<p>PuLP requires Python 3.10 or newer.</p>
+<p>PuLP requires Python 3.12 or newer.</p>
 <p><strong>Recommended:</strong> install with CBC support:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">pulp</span><span class="p">[</span><span class="n">cbc</span><span class="p">]</span>
 </pre></div>
@@ -189,11 +197,11 @@ optional PyPI extras (some require a commercial license for running or for large
 </div>
 <p>To solve the problem with the default solver (CBC when installed via <code class="docutils literal notranslate"><span class="pre">pulp[cbc]</span></code>
 or <code class="docutils literal notranslate"><span class="pre">cbc</span></code> on <code class="docutils literal notranslate"><span class="pre">PATH</span></code>, otherwise another available backend):</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">status</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">stats</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
 </pre></div>
 </div>
 <p>If you want to try another solver to solve the problem:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">status</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">GLPK</span><span class="p">(</span><span class="n">msg</span> <span class="o">=</span> <span class="mi">0</span><span class="p">))</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">stats</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">GLPK</span><span class="p">(</span><span class="n">msg</span> <span class="o">=</span> <span class="mi">0</span><span class="p">))</span>
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">GLPK</span></code> uses GLPK’s command-line tool (<code class="docutils literal notranslate"><span class="pre">glpsol</span></code>) and requires it to be on
@@ -206,11 +214,11 @@ your <code class="docutils literal notranslate"><span class="pre">PATH</span></c
 Every variable must have finite lower and upper bounds; continuous variables are
 solved on their integer-rounded domain:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pulp</span><span class="w"> </span><span class="kn">import</span> <span class="n">CPSAT</span>
-<span class="n">status</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">CPSAT</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+<span class="n">stats</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">CPSAT</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
 </pre></div>
 </div>
 <p>Display the status of the solution:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">LpStatus</span><span class="p">[</span><span class="n">status</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">stats</span><span class="o">.</span><span class="n">status_str</span>
 <span class="o">&gt;</span> <span class="s1">&#39;Optimal&#39;</span>
 </pre></div>
 </div>
@@ -265,7 +273,7 @@ information, see the <a class="reference external" href="https://coin-or.github.
 <p>This version of PuLP includes a Rust extension (<code class="docutils literal notranslate"><span class="pre">pulp._rustcore</span></code>) that provides the core model, variables, constraints, and expressions. The build uses <a class="reference external" href="https://github.com/PyO3/maturin">maturin</a> and requires a Rust toolchain in addition to Python.</p>
 <p><strong>Requirements</strong></p>
 <ul class="simple">
-<li><p><strong>Python</strong> 3.10 or newer</p></li>
+<li><p><strong>Python</strong> 3.12 or newer</p></li>
 <li><p><strong>Rust</strong> (latest stable). Install from <a class="reference external" href="https://rustup.rs/">https://rustup.rs/</a></p></li>
 <li><p><strong>uv</strong> (recommended for install and dev). See the <a class="reference external" href="https://docs.astral.sh/uv/">uv documentation</a> for installation.</p></li>
 <li><p><strong>OS</strong>: Windows, macOS (x86_64, arm64), or Linux (x86_64, arm64). The Rust extension is built for the host platform.</p></li>

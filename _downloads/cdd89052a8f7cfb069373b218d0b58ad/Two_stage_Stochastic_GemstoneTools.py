@@ -79,18 +79,26 @@ gemstoneprob += (
 )
 
 for j in scenarios:
-    gemstoneprob += pulp.lpSum(
-        [steel_dict[i] * production_vars[j, i] for i in products]
-    ) - steelpurchase <= 0, ("Steel capacity" + str(j))
-    gemstoneprob += pulp.lpSum(
-        [molding_dict[i] * production_vars[j, i] for i in products]
-    ) <= capmolding, ("molding capacity" + str(j))
-    gemstoneprob += pulp.lpSum(
-        [assembly_dict[i] * production_vars[j, i] for i in products]
-    ) <= capassembly[j], ("assembly capacity" + str(j))
+    gemstoneprob += (
+        pulp.lpSum([steel_dict[i] * production_vars[j, i] for i in products])
+        - steelpurchase
+        <= 0,
+        ("Steel capacity" + str(j)),
+    )
+    gemstoneprob += (
+        pulp.lpSum([molding_dict[i] * production_vars[j, i] for i in products])
+        <= capmolding,
+        ("molding capacity" + str(j)),
+    )
+    gemstoneprob += (
+        pulp.lpSum([assembly_dict[i] * production_vars[j, i] for i in products])
+        <= capassembly[j],
+        ("assembly capacity" + str(j)),
+    )
     for i in products:
-        gemstoneprob += production_vars[j, i] <= capacity_dict[i], (
-            "capacity " + str(i) + str(j)
+        gemstoneprob += (
+            production_vars[j, i] <= capacity_dict[i],
+            ("capacity " + str(i) + str(j)),
         )
 
 # Print problem
@@ -99,9 +107,9 @@ print(gemstoneprob)
 # The problem data is written to an .lp file
 gemstoneprob.writeLP("gemstoneprob.lp")
 # The problem is solved using PuLP's choice of Solver
-gemstoneprob.solve()
+stats = gemstoneprob.solve()
 # The status of the solution is printed to the screen
-print("Status:", pulp.LpStatus[gemstoneprob.status])
+print("Status:", stats.status_str)
 
 # OUTPUT
 
