@@ -272,12 +272,16 @@ class LpSolver:
         logs = parse_logs(
             self.optionsDict.get("logPath"), dialect_for_solver(self.name)
         )
-        objective = lp.objective.value() if lp.objective is not None else None
+        # without a solution the variables hold leftovers (e.g. an infeasible
+        # point), so their objective value would be misleading
+        objective = None
+        if has_solution and lp.objective is not None:
+            objective = lp.objective.value()
         # the solver itself is the better source; the log only fills gaps
         if logs is not None:
             if status == const.LpSolveStatus.Stopped:
                 status = _stop_reason_from_log(logs.get("status"), status)
-            if objective is None:
+            if has_solution and objective is None:
                 objective = logs.get("best_solution")
             if best_bound is None:
                 best_bound = logs.get("best_bound")

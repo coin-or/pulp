@@ -296,6 +296,22 @@ class BuildStatsTest(unittest.TestCase):
         stats = self._solve(_StubSolver(LpSolveStatus.NodeLimit, True), self._LOG)
         self.assertIs(stats.status, LpSolveStatus.NodeLimit)
 
+    def test_no_objective_without_a_solution(self):
+        prob = self._problem()
+        # values left behind by the solver, as CBC does on an infeasible model
+        prob.variables()[0].varValue = 2.0
+        with mock.patch("pulp.core.lp_stats.parse_logs", return_value=self._LOG):
+            stats = prob.solve(_StubSolver(LpSolveStatus.Infeasible, False))
+        self.assertIsNone(stats.objective)
+        self.assertIsNone(stats.gap_abs)
+
+    def test_objective_with_a_solution(self):
+        prob = self._problem()
+        prob.variables()[0].varValue = 2.0
+        with mock.patch("pulp.core.lp_stats.parse_logs", return_value=None):
+            stats = prob.solve(_StubSolver(LpSolveStatus.Optimal, True))
+        self.assertEqual(stats.objective, 2.0)
+
 
 class SolveStatsUnitTest(unittest.TestCase):
     """Tests for LpSolveStats itself, needing no solver."""

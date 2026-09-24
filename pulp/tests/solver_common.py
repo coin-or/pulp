@@ -88,11 +88,11 @@ def dumpTestProblem(prob):
 
 
 def _constraint_named(prob: LpProblem, name: str) -> LpConstraint:
-    """Return the constraint with the given name (first match)."""
-    for c in prob.constraints():
-        if c.name == name:
-            return c
-    raise KeyError(name)
+    """Return the constraint with the given name."""
+    c = prob.get_constraint_by_name(name)
+    if c is None:
+        raise KeyError(name)
+    return c
 
 
 @dataclass(frozen=True)
@@ -221,8 +221,16 @@ def pulpTestCheck(
     objective=None,
     **kwargs,
 ):
+    stats = None
     if status is None:
-        status = prob.solve(solver, **kwargs).status
+        stats = prob.solve(solver, **kwargs)
+        status = stats.status
+    if stats is not None and not stats.has_solution and stats.objective is not None:
+        raise PulpError(
+            "Tests failed for solver {}:\nobjective == {} without a solution".format(
+                solver, stats.objective
+            )
+        )
     if status not in okstatus:
         dumpTestProblem(prob)
         raise PulpError(

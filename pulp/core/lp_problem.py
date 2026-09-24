@@ -261,6 +261,11 @@ class LpProblem:
         """Constraints from the Rust model, in insertion / id order."""
         return [LpConstraint(v) for v in self._model.list_constraints()]
 
+    def get_constraint_by_name(self, name: str) -> LpConstraint | None:
+        """The constraint called ``name``, or ``None`` if there is none."""
+        c = self._model.get_constraint_by_name(name)
+        return None if c is None else LpConstraint(c)
+
     @property
     def objective(self) -> LpAffineExpression | None:
         """Objective expression from Rust, wrapped as LpAffineExpression."""

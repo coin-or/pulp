@@ -109,6 +109,25 @@ class ModelUnitTest(unittest.TestCase):
         c2 = _constraint_named(prob, "c1")
         self.assertEqual(c2.slack, 2.0)
 
+    def test_get_constraint_by_name(self):
+        prob = self._make_prob()
+        x = prob.add_variable("x", 0, 10)
+        prob += x <= 5, "c1"
+        prob += x >= 1, "c2"
+        c = prob.get_constraint_by_name("c2")
+        assert c is not None
+        self.assertEqual(c.name, "c2")
+        self.assertEqual(c.sense, const.LpConstraintGE)
+        # it is the model's constraint, not a detached copy
+        c.pi = 4.0
+        self.assertEqual(_constraint_named(prob, "c2").pi, 4.0)
+
+    def test_get_constraint_by_name_missing(self):
+        prob = self._make_prob()
+        x = prob.add_variable("x", 0, 10)
+        prob += x <= 5, "c1"
+        self.assertIsNone(prob.get_constraint_by_name("nope"))
+
     # -- 4. Constraint properties delegate to Rust --
 
     def test_constraint_sense_property(self):

@@ -14,7 +14,17 @@ PuLP is an linear and mixed integer programming modeler written in Python. With 
 
 The documentation for PuLP can be `found here <https://coin-or.github.io/pulp/>`_.
 
-PuLP is part of the `COIN-OR project <https://www.coin-or.org/>`_. 
+PuLP is part of the `COIN-OR project <https://www.coin-or.org/>`_.
+
+.. note::
+
+   **Upgrading from PuLP 3.x?** PuLP 4.0 has breaking changes: variables are
+   created with ``prob.add_variable(...)``, ``prob.constraints()`` returns a list,
+   and ``prob.solve()`` returns an ``LpSolveStats`` object instead of a status
+   code. See the `guide to migrate from PuLP 3.x to 4.0
+   <https://coin-or.github.io/pulp/guides/how_to_migrate_to_v4.html>`_
+   (source: `doc/source/guides/how_to_migrate_to_v4.rst
+   <https://github.com/coin-or/pulp/blob/master/doc/source/guides/how_to_migrate_to_v4.rst>`_).
 
 .. important::
 
