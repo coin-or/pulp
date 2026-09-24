@@ -220,15 +220,20 @@ class CPSAT(LpSolver):
         """Solves the problem with CP-SAT and returns the solver and status."""
         solver = cp_model_mod.CpSolver()
         solver.parameters.log_search_progress = bool(self.msg)
-        # CP-SAT has no log file parameter, so a logPath is served by collecting the
-        # search log through a callback and writing it out once the solve is done.
+        # CP-SAT has no log file parameter, so a logPath is served by appending each
+        # line of the search log to the file as the callback receives it.
         log_path = self.optionsDict.get("logPath")
-        log_lines: list[str] = []
-        if log_path:
+        log_file = open(log_path, "w") if log_path else None
+        if log_file is not None:
             solver.parameters.log_search_progress = True
             if hasattr(solver.parameters, "log_to_stdout"):
                 solver.parameters.log_to_stdout = bool(self.msg)
-            solver.log_callback = log_lines.append
+
+            def write_log(line: str) -> None:
+                log_file.write(line + "\n")
+                log_file.flush()
+
+            solver.log_callback = write_log
         if self.timeLimit is not None:
             solver.parameters.max_time_in_seconds = float(self.timeLimit)
         if "threads" in self.optionsDict:
@@ -237,12 +242,13 @@ class CPSAT(LpSolver):
             if hasattr(solver.parameters, param):
                 setattr(solver.parameters, param, value)
 
-        self.solveTime = -clock()
-        status = solver.Solve(self.solverModel)
-        self.solveTime += clock()
-        if log_path:
-            with open(log_path, "w") as f:
-                f.write("\n".join(log_lines))
+        try:
+            self.solveTime = -clock()
+            status = solver.Solve(self.solverModel)
+            self.solveTime += clock()
+        finally:
+            if log_file is not None:
+                log_file.close()
         return solver, status
 
     @requires("ortools.sat.python.cp_model")
