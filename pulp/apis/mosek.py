@@ -30,282 +30,276 @@ import sys
 from typing import TYPE_CHECKING, Any
 
 from .. import constants
-from .core import LpSolver, PulpSolverError
+from .core import LpSolver, PulpSolverError, import_optional, requires
 
 if TYPE_CHECKING:
     from ..core.lp_problem import LpProblem
+
+mosek_mod = import_optional("mosek")
 
 
 class MOSEK(LpSolver):
     """Mosek lp and mip solver (via Mosek Optimizer API)."""
 
     name = "MOSEK"
-    try:
-        global mosek
-        import mosek  # type: ignore[import-not-found, import-untyped]
+    env: Any = mosek_mod.Env() if mosek_mod is not None else None
 
-        env = mosek.Env()  # type: ignore[name-defined]
-    except ImportError:
+    def __init__(
+        self,
+        mip=True,
+        msg=True,
+        timeLimit: float | None = None,
+        options: dict | None = None,
+        task_file_name="",
+        sol_type=None,
+    ):
+        """Initializes the Mosek solver.
 
-        def available(self):
-            """True if Mosek is available."""
-            return False
+        Keyword arguments:
 
-        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
-            """Solves a well-formulated lp problem."""
-            raise PulpSolverError("MOSEK : Not Available")
+        @param mip: If False, then solve MIP as LP.
 
-    else:
+        @param msg: Enable Mosek log output.
 
-        def __init__(
-            self,
-            mip=True,
-            msg=True,
-            timeLimit: float | None = None,
-            options: dict | None = None,
-            task_file_name="",
-            sol_type=mosek.soltype.bas,  # type: ignore[name-defined]
-        ):
-            """Initializes the Mosek solver.
+        @param float timeLimit: maximum time for solver (in seconds)
 
-            Keyword arguments:
+        @param options: Accepts a dictionary of Mosek solver parameters. Ignore to
+                        use default parameter values. Eg: options = {mosek.dparam.mio_max_time:30}
+                        sets the maximum time spent by the Mixed Integer optimizer to 30 seconds.
+                        Equivalently, one could also write: options = {"MSK_DPAR_MIO_MAX_TIME":30}
+                        which uses the generic parameter name as used within the solver, instead of
+                        using an object from the Mosek Optimizer API (Python), as before.
 
-            @param mip: If False, then solve MIP as LP.
+        @param task_file_name: Writes a Mosek task file of the given name. By default,
+                        no task file will be written. Eg: task_file_name = "eg1.opf".
 
-            @param msg: Enable Mosek log output.
+        @param sol_type: Mosek supports three types of solutions: mosek.soltype.bas
+                        (Basic solution, default), mosek.soltype.itr (Interior-point
+                        solution) and mosek.soltype.itg (Integer solution).
+                        Default None uses mosek.soltype.bas.
 
-            @param float timeLimit: maximum time for solver (in seconds)
+        For a full list of Mosek parameters (for the Mosek Optimizer API) and supported task file
+        formats, please see https://docs.mosek.com/9.1/pythonapi/parameters.html#doc-all-parameter-list.
+        """
+        self.mip = mip
+        self.msg = msg
+        self.timeLimit = timeLimit
+        self.task_file_name = task_file_name
+        if sol_type is None and mosek_mod is not None:
+            sol_type = mosek_mod.soltype.bas
+        self.solution_type = sol_type
+        if options is None:
+            options = {}
+        self.options: dict = options
+        if self.timeLimit is not None:
+            timeLimit_keys: set = {"MSK_DPAR_MIO_MAX_TIME"}
+            if mosek_mod is not None:
+                timeLimit_keys.add(mosek_mod.dparam.mio_max_time)
+            if not timeLimit_keys.isdisjoint(self.options.keys()):
+                raise ValueError(
+                    "timeLimit parameter has been provided trough `timeLimit` and `options`."
+                )
+            self.options["MSK_DPAR_MIO_MAX_TIME"] = self.timeLimit
 
-            @param options: Accepts a dictionary of Mosek solver parameters. Ignore to
-                            use default parameter values. Eg: options = {mosek.dparam.mio_max_time:30}
-                            sets the maximum time spent by the Mixed Integer optimizer to 30 seconds.
-                            Equivalently, one could also write: options = {"MSK_DPAR_MIO_MAX_TIME":30}
-                            which uses the generic parameter name as used within the solver, instead of
-                            using an object from the Mosek Optimizer API (Python), as before.
+    def available(self):
+        """True if Mosek is available."""
+        return mosek_mod is not None
 
-            @param task_file_name: Writes a Mosek task file of the given name. By default,
-                            no task file will be written. Eg: task_file_name = "eg1.opf".
+    def setOutStream(self, text):
+        """Sets the log-output stream."""
+        sys.stdout.write(text)
+        sys.stdout.flush()
 
-            @param sol_type: Mosek supports three types of solutions: mosek.soltype.bas
-                            (Basic solution, default), mosek.soltype.itr (Interior-point
-                            solution) and mosek.soltype.itg (Integer solution).
-
-            For a full list of Mosek parameters (for the Mosek Optimizer API) and supported task file
-            formats, please see https://docs.mosek.com/9.1/pythonapi/parameters.html#doc-all-parameter-list.
-            """
-            self.mip = mip
-            self.msg = msg
-            self.timeLimit = timeLimit
-            self.task_file_name = task_file_name
-            self.solution_type = sol_type
-            if options is None:
-                options = {}
-            self.options: dict = options
-            if self.timeLimit is not None:
-                timeLimit_keys = {"MSK_DPAR_MIO_MAX_TIME", mosek.dparam.mio_max_time}  # type: ignore[name-defined]
-                if not timeLimit_keys.isdisjoint(self.options.keys()):
-                    raise ValueError(
-                        "timeLimit parameter has been provided trough `timeLimit` and `options`."
-                    )
-                self.options["MSK_DPAR_MIO_MAX_TIME"] = self.timeLimit
-
-        def available(self):
-            """True if Mosek is available."""
-            return True
-
-        def setOutStream(self, text):
-            """Sets the log-output stream."""
-            sys.stdout.write(text)
-            sys.stdout.flush()
-
-        def buildSolverModel(self, lp, inf=1e20):
-            """Translate the problem into a Mosek task object."""
-            self.cons = lp.constraints()
-            self.numcons = len(self.cons)
-            self.cons_dict = {}
-            for i, constr in enumerate(self.cons):
-                row = constr.name
-                self.cons_dict[row] = i
-            self.vars = list(lp.exported_variables())
-            self.numvars = len(self.vars)
-            self.var_dict = {}
-            # Checking for repeated names
-            lp.checkDuplicateVars()
-            lp.checkDuplicateConstraints()
-            self.task = MOSEK.env.Task()
-            self.task.appendcons(self.numcons)
-            self.task.appendvars(self.numvars)
-            if self.msg:
-                self.task.set_Stream(mosek.streamtype.log, self.setOutStream)
-            # Adding variables
-            for i in range(self.numvars):
-                vname = self.vars[i].name
-                self.var_dict[vname] = i
-                self.task.putvarname(i, vname)
-                # Variable type (Default: Continuous)
-                if self.mip & (self.vars[i].cat == constants.LpInteger):
-                    self.task.putvartype(i, mosek.variabletype.type_int)
-                    self.solution_type = mosek.soltype.itg
-                # Variable bounds
-                vbkey = mosek.boundkey.fr
-                vup = inf
-                vlow = -inf
-                if self.vars[i].lowBound is not None:
-                    vlow = self.vars[i].lowBound
-                    if self.vars[i].upBound is not None:
-                        vup = self.vars[i].upBound
-                        vbkey = mosek.boundkey.ra
-                    else:
-                        vbkey = mosek.boundkey.lo
-                elif self.vars[i].upBound is not None:
+    @requires("mosek")
+    def buildSolverModel(self, lp, inf=1e20):
+        """Translate the problem into a Mosek task object."""
+        self.cons = lp.constraints()
+        self.numcons = len(self.cons)
+        self.cons_dict = {}
+        for i, constr in enumerate(self.cons):
+            row = constr.name
+            self.cons_dict[row] = i
+        self.vars = list(lp.exported_variables())
+        self.numvars = len(self.vars)
+        self.var_dict = {}
+        # Checking for repeated names
+        lp.checkDuplicateVars()
+        lp.checkDuplicateConstraints()
+        self.task = MOSEK.env.Task()
+        self.task.appendcons(self.numcons)
+        self.task.appendvars(self.numvars)
+        if self.msg:
+            self.task.set_Stream(mosek_mod.streamtype.log, self.setOutStream)
+        # Adding variables
+        for i in range(self.numvars):
+            vname = self.vars[i].name
+            self.var_dict[vname] = i
+            self.task.putvarname(i, vname)
+            # Variable type (Default: Continuous)
+            if self.mip & (self.vars[i].cat == constants.LpInteger):
+                self.task.putvartype(i, mosek_mod.variabletype.type_int)
+                self.solution_type = mosek_mod.soltype.itg
+            # Variable bounds
+            vbkey = mosek_mod.boundkey.fr
+            vup = inf
+            vlow = -inf
+            if self.vars[i].lowBound is not None:
+                vlow = self.vars[i].lowBound
+                if self.vars[i].upBound is not None:
                     vup = self.vars[i].upBound
-                    vbkey = mosek.boundkey.up
-                self.task.putvarbound(i, vbkey, vlow, vup)
-                # Objective coefficient for the current variable.
-                self.task.putcj(i, lp.objective.get(self.vars[i], 0.0))
-            # Coefficient matrix
-            self.A_rows, self.A_cols, self.A_vals = zip(
-                *[
-                    [self.cons_dict[row], self.var_dict[col], coeff]
-                    for col, row, coeff in lp.coefficients()
-                ]
-            )
-            self.task.putaijlist(self.A_rows, self.A_cols, self.A_vals)
-            # Constraints
-            self.constraint_data_list = []
-            for i, constr in enumerate(self.cons):
-                cname = constr.name
-                row_key = cname if cname is not None else ""
-                if cname is not None:
-                    self.task.putconname(i, cname)
+                    vbkey = mosek_mod.boundkey.ra
                 else:
-                    self.task.putconname(i, row_key)
-                csense = constr.sense
-                cconst = -constr.constant
-                clow = -inf
-                cup = inf
-                # Constraint bounds
-                if csense == constants.LpConstraintEQ:
-                    cbkey = mosek.boundkey.fx
-                    clow = cconst
-                    cup = cconst
-                elif csense == constants.LpConstraintGE:
-                    cbkey = mosek.boundkey.lo
-                    clow = cconst
-                elif csense == constants.LpConstraintLE:
-                    cbkey = mosek.boundkey.up
-                    cup = cconst
-                else:
-                    raise PulpSolverError("Invalid constraint type.")
-                self.constraint_data_list.append([i, cbkey, clow, cup])
-            self.cons_id_list, self.cbkey_list, self.clow_list, self.cup_list = zip(
-                *self.constraint_data_list
-            )
-            self.task.putconboundlist(
-                self.cons_id_list, self.cbkey_list, self.clow_list, self.cup_list
-            )
-            # Objective sense
-            if lp.sense == constants.LpMaximize:
-                self.task.putobjsense(mosek.objsense.maximize)
+                    vbkey = mosek_mod.boundkey.lo
+            elif self.vars[i].upBound is not None:
+                vup = self.vars[i].upBound
+                vbkey = mosek_mod.boundkey.up
+            self.task.putvarbound(i, vbkey, vlow, vup)
+            # Objective coefficient for the current variable.
+            self.task.putcj(i, lp.objective.get(self.vars[i], 0.0))
+        # Coefficient matrix
+        self.A_rows, self.A_cols, self.A_vals = zip(
+            *[
+                [self.cons_dict[row], self.var_dict[col], coeff]
+                for col, row, coeff in lp.coefficients()
+            ]
+        )
+        self.task.putaijlist(self.A_rows, self.A_cols, self.A_vals)
+        # Constraints
+        self.constraint_data_list = []
+        for i, constr in enumerate(self.cons):
+            cname = constr.name
+            row_key = cname if cname is not None else ""
+            if cname is not None:
+                self.task.putconname(i, cname)
             else:
-                self.task.putobjsense(mosek.objsense.minimize)
+                self.task.putconname(i, row_key)
+            csense = constr.sense
+            cconst = -constr.constant
+            clow = -inf
+            cup = inf
+            # Constraint bounds
+            if csense == constants.LpConstraintEQ:
+                cbkey = mosek_mod.boundkey.fx
+                clow = cconst
+                cup = cconst
+            elif csense == constants.LpConstraintGE:
+                cbkey = mosek_mod.boundkey.lo
+                clow = cconst
+            elif csense == constants.LpConstraintLE:
+                cbkey = mosek_mod.boundkey.up
+                cup = cconst
+            else:
+                raise PulpSolverError("Invalid constraint type.")
+            self.constraint_data_list.append([i, cbkey, clow, cup])
+        self.cons_id_list, self.cbkey_list, self.clow_list, self.cup_list = zip(
+            *self.constraint_data_list
+        )
+        self.task.putconboundlist(
+            self.cons_id_list, self.cbkey_list, self.clow_list, self.cup_list
+        )
+        # Objective sense
+        if lp.sense == constants.LpMaximize:
+            self.task.putobjsense(mosek_mod.objsense.maximize)
+        else:
+            self.task.putobjsense(mosek_mod.objsense.minimize)
 
-        def findSolutionValues(self, lp):
-            """
-            Read the solution values and status from the Mosek task object. Note: Since the status
-            map from mosek.solsta to LpStatus is not exact, it is recommended that one enables the
-            log output and then refer to Mosek documentation for a better understanding of the
-            solution (especially in the case of mip problems).
-            """
-            self.solsta = self.task.getsolsta(self.solution_type)
-            self.solution_status_dict = {
-                mosek.solsta.optimal: constants.LpStatusOptimal,
-                mosek.solsta.prim_infeas_cer: constants.LpStatusInfeasible,
-                mosek.solsta.dual_infeas_cer: constants.LpStatusUnbounded,
-                mosek.solsta.unknown: constants.LpStatusUndefined,
-                mosek.solsta.integer_optimal: constants.LpStatusOptimal,
-                mosek.solsta.prim_illposed_cer: constants.LpStatusNotSolved,
-                mosek.solsta.dual_illposed_cer: constants.LpStatusNotSolved,
-                mosek.solsta.prim_feas: constants.LpStatusNotSolved,
-                mosek.solsta.dual_feas: constants.LpStatusNotSolved,
-                mosek.solsta.prim_and_dual_feas: constants.LpStatusNotSolved,
-            }
-            # Variable values.
+    def findSolutionValues(self, lp):
+        """
+        Read the solution values and status from the Mosek task object. Note: Since the status
+        map from mosek.solsta to LpStatus is not exact, it is recommended that one enables the
+        log output and then refer to Mosek documentation for a better understanding of the
+        solution (especially in the case of mip problems).
+        """
+        self.solsta = self.task.getsolsta(self.solution_type)
+        self.solution_status_dict = {
+            mosek_mod.solsta.optimal: constants.LpStatusOptimal,
+            mosek_mod.solsta.prim_infeas_cer: constants.LpStatusInfeasible,
+            mosek_mod.solsta.dual_infeas_cer: constants.LpStatusUnbounded,
+            mosek_mod.solsta.unknown: constants.LpStatusUndefined,
+            mosek_mod.solsta.integer_optimal: constants.LpStatusOptimal,
+            mosek_mod.solsta.prim_illposed_cer: constants.LpStatusNotSolved,
+            mosek_mod.solsta.dual_illposed_cer: constants.LpStatusNotSolved,
+            mosek_mod.solsta.prim_feas: constants.LpStatusNotSolved,
+            mosek_mod.solsta.dual_feas: constants.LpStatusNotSolved,
+            mosek_mod.solsta.prim_and_dual_feas: constants.LpStatusNotSolved,
+        }
+        # Variable values.
+        try:
+            self.xx = [0.0] * self.numvars
+            self.task.getxx(self.solution_type, self.xx)
+            for var in self.vars:
+                var.varValue = self.xx[self.var_dict[var.name]]
+        except mosek_mod.Error:
+            pass
+        # Constraint slack variables.
+        try:
+            self.xc = [0.0] * self.numcons
+            self.task.getxc(self.solution_type, self.xc)
+            for i, constr in enumerate(lp.constraints()):
+                constr.slack = -(constr.constant + self.xc[i])
+        except mosek_mod.Error:
+            pass
+        # Reduced costs.
+        if self.solution_type != mosek_mod.soltype.itg:
             try:
-                self.xx = [0.0] * self.numvars
-                self.task.getxx(self.solution_type, self.xx)
+                self.x_rc = [0.0] * self.numvars
+                self.task.getreducedcosts(
+                    self.solution_type, 0, self.numvars, self.x_rc
+                )
                 for var in self.vars:
-                    var.varValue = self.xx[self.var_dict[var.name]]
-            except mosek.Error:
+                    var.dj = self.x_rc[self.var_dict[var.name]]
+            except mosek_mod.Error:
                 pass
-            # Constraint slack variables.
+            # Constraint Pi variables.
             try:
-                self.xc = [0.0] * self.numcons
-                self.task.getxc(self.solution_type, self.xc)
+                self.y = [0.0] * self.numcons
+                self.task.gety(self.solution_type, self.y)
                 for i, constr in enumerate(lp.constraints()):
-                    constr.slack = -(constr.constant + self.xc[i])
-            except mosek.Error:
+                    constr.pi = self.y[i]
+            except mosek_mod.Error:
                 pass
-            # Reduced costs.
-            if self.solution_type != mosek.soltype.itg:
-                try:
-                    self.x_rc = [0.0] * self.numvars
-                    self.task.getreducedcosts(
-                        self.solution_type, 0, self.numvars, self.x_rc
-                    )
-                    for var in self.vars:
-                        var.dj = self.x_rc[self.var_dict[var.name]]
-                except mosek.Error:
-                    pass
-                # Constraint Pi variables.
-                try:
-                    self.y = [0.0] * self.numcons
-                    self.task.gety(self.solution_type, self.y)
-                    for i, constr in enumerate(lp.constraints()):
-                        constr.pi = self.y[i]
-                except mosek.Error:
-                    pass
 
-        def putparam(self, par, val):
-            """
-            Pass the values of valid parameters to Mosek.
-            """
-            if isinstance(par, mosek.dparam):
-                self.task.putdouparam(par, val)
-            elif isinstance(par, mosek.iparam):
-                self.task.putintparam(par, val)
-            elif isinstance(par, mosek.sparam):
-                self.task.putstrparam(par, val)
-            elif isinstance(par, str):
-                if par.startswith("MSK_DPAR_"):
-                    self.task.putnadouparam(par, val)
-                elif par.startswith("MSK_IPAR_"):
-                    self.task.putnaintparam(par, val)
-                elif par.startswith("MSK_SPAR_"):
-                    self.task.putnastrparam(par, val)
-                else:
-                    raise PulpSolverError(
-                        "Invalid MOSEK parameter: '{}'. Check MOSEK documentation for a list of valid parameters.".format(
-                            par
-                        )
+    def putparam(self, par, val):
+        """
+        Pass the values of valid parameters to Mosek.
+        """
+        if isinstance(par, mosek_mod.dparam):
+            self.task.putdouparam(par, val)
+        elif isinstance(par, mosek_mod.iparam):
+            self.task.putintparam(par, val)
+        elif isinstance(par, mosek_mod.sparam):
+            self.task.putstrparam(par, val)
+        elif isinstance(par, str):
+            if par.startswith("MSK_DPAR_"):
+                self.task.putnadouparam(par, val)
+            elif par.startswith("MSK_IPAR_"):
+                self.task.putnaintparam(par, val)
+            elif par.startswith("MSK_SPAR_"):
+                self.task.putnastrparam(par, val)
+            else:
+                raise PulpSolverError(
+                    "Invalid MOSEK parameter: '{}'. Check MOSEK documentation for a list of valid parameters.".format(
+                        par
                     )
+                )
 
-        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
-            """
-            Solve a well-formulated lp problem.
-            """
-            self.buildSolverModel(lp)
-            # Set solver parameters
-            for msk_par in self.options:
-                self.putparam(msk_par, self.options[msk_par])
-            # Task file
-            if self.task_file_name:
-                self.task.writedata(self.task_file_name)
-            # Optimize
-            self.task.optimize()
-            # Mosek solver log (default: standard output stream)
-            if self.msg:
-                self.task.solutionsummary(mosek.streamtype.msg)
-            self.findSolutionValues(lp)
-            lp.assignStatus(self.solution_status_dict[self.solsta])
-            return lp.status
+    @requires("mosek")
+    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+        """
+        Solve a well-formulated lp problem.
+        """
+        self.buildSolverModel(lp)
+        # Set solver parameters
+        for msk_par in self.options:
+            self.putparam(msk_par, self.options[msk_par])
+        # Task file
+        if self.task_file_name:
+            self.task.writedata(self.task_file_name)
+        # Optimize
+        self.task.optimize()
+        # Mosek solver log (default: standard output stream)
+        if self.msg:
+            self.task.solutionsummary(mosek_mod.streamtype.msg)
+        self.findSolutionValues(lp)
+        lp.assignStatus(self.solution_status_dict[self.solsta])
+        return lp.status

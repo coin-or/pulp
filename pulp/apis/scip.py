@@ -32,10 +32,19 @@ import warnings
 from typing import TYPE_CHECKING, Any
 
 from .. import constants
-from .core import LpSolver, LpSolver_CMD, PulpSolverError, subprocess
+from .core import (
+    LpSolver,
+    LpSolver_CMD,
+    PulpSolverError,
+    import_optional,
+    requires,
+    subprocess,
+)
 
 if TYPE_CHECKING:
     from ..core.lp_problem import LpProblem
+
+pyscipopt_mod = import_optional("pyscipopt")
 
 scip_path = "scip"
 fscip_path = "fscip"
@@ -476,239 +485,223 @@ class SCIP_PY(LpSolver):
 
     name = "SCIP_PY"
 
-    try:
-        global scip
-        import pyscipopt as scip  # type: ignore[import-not-found, import-untyped]
+    def __init__(
+        self,
+        mip=True,
+        msg=True,
+        options=None,
+        timeLimit=None,
+        gapRel=None,
+        gapAbs=None,
+        maxNodes=None,
+        logPath=None,
+        threads=None,
+        warmStart=False,
+    ):
+        """
+        :param bool mip: if False, assume LP even if integer variables
+        :param bool msg: if False, no log is shown
+        :param list options: list of additional options to pass to solver
+        :param float timeLimit: maximum time for solver (in seconds)
+        :param float gapRel: relative gap tolerance for the solver to stop (in fraction)
+        :param float gapAbs: absolute gap tolerance for the solver to stop
+        :param int maxNodes: max number of nodes during branching. Stops the solving when reached.
+        :param str logPath: path to the log file
+        :param int threads: sets the maximum number of threads
+        :param bool warmStart: if True, the solver will use the current value of variables as a start
+        """
+        super().__init__(
+            mip=mip,
+            msg=msg,
+            options=options,
+            timeLimit=timeLimit,
+            gapRel=gapRel,
+            gapAbs=gapAbs,
+            maxNodes=maxNodes,
+            logPath=logPath,
+            threads=threads,
+            warmStart=warmStart,
+        )
 
-    except ImportError:
+    def findSolutionValues(self, lp, var_handles, constr_handles, exported_vars):
+        solutionStatus = lp.solverModel.getStatus()
+        scip_to_pulp_status = {
+            "optimal": constants.LpStatusOptimal,
+            "unbounded": constants.LpStatusUnbounded,
+            "infeasible": constants.LpStatusInfeasible,
+            "inforunbd": constants.LpStatusUndefined,
+            "timelimit": constants.LpStatusNotSolved,
+            "userinterrupt": constants.LpStatusNotSolved,
+            "nodelimit": constants.LpStatusNotSolved,
+            "totalnodelimit": constants.LpStatusNotSolved,
+            "stallnodelimit": constants.LpStatusNotSolved,
+            "gaplimit": constants.LpStatusNotSolved,
+            "memlimit": constants.LpStatusNotSolved,
+            "sollimit": constants.LpStatusNotSolved,
+            "bestsollimit": constants.LpStatusNotSolved,
+            "restartlimit": constants.LpStatusNotSolved,
+            "unknown": constants.LpStatusUndefined,
+        }
+        possible_solution_found_statuses = (
+            "optimal",
+            "timelimit",
+            "userinterrupt",
+            "nodelimit",
+            "totalnodelimit",
+            "stallnodelimit",
+            "gaplimit",
+            "memlimit",
+        )
+        status = scip_to_pulp_status[solutionStatus]
 
-        def available(self):
-            """True if the solver is available"""
-            return False
-
-        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
-            """Solve a well formulated lp problem."""
-            raise PulpSolverError(f"The {self.name} solver is not available")
-
-    else:
-
-        def __init__(
-            self,
-            mip=True,
-            msg=True,
-            options=None,
-            timeLimit=None,
-            gapRel=None,
-            gapAbs=None,
-            maxNodes=None,
-            logPath=None,
-            threads=None,
-            warmStart=False,
-        ):
-            """
-            :param bool mip: if False, assume LP even if integer variables
-            :param bool msg: if False, no log is shown
-            :param list options: list of additional options to pass to solver
-            :param float timeLimit: maximum time for solver (in seconds)
-            :param float gapRel: relative gap tolerance for the solver to stop (in fraction)
-            :param float gapAbs: absolute gap tolerance for the solver to stop
-            :param int maxNodes: max number of nodes during branching. Stops the solving when reached.
-            :param str logPath: path to the log file
-            :param int threads: sets the maximum number of threads
-            :param bool warmStart: if True, the solver will use the current value of variables as a start
-            """
-            super().__init__(
-                mip=mip,
-                msg=msg,
-                options=options,
-                timeLimit=timeLimit,
-                gapRel=gapRel,
-                gapAbs=gapAbs,
-                maxNodes=maxNodes,
-                logPath=logPath,
-                threads=threads,
-                warmStart=warmStart,
-            )
-
-        def findSolutionValues(self, lp, var_handles, constr_handles, exported_vars):
-            solutionStatus = lp.solverModel.getStatus()
-            scip_to_pulp_status = {
-                "optimal": constants.LpStatusOptimal,
-                "unbounded": constants.LpStatusUnbounded,
-                "infeasible": constants.LpStatusInfeasible,
-                "inforunbd": constants.LpStatusUndefined,
-                "timelimit": constants.LpStatusNotSolved,
-                "userinterrupt": constants.LpStatusNotSolved,
-                "nodelimit": constants.LpStatusNotSolved,
-                "totalnodelimit": constants.LpStatusNotSolved,
-                "stallnodelimit": constants.LpStatusNotSolved,
-                "gaplimit": constants.LpStatusNotSolved,
-                "memlimit": constants.LpStatusNotSolved,
-                "sollimit": constants.LpStatusNotSolved,
-                "bestsollimit": constants.LpStatusNotSolved,
-                "restartlimit": constants.LpStatusNotSolved,
-                "unknown": constants.LpStatusUndefined,
-            }
-            possible_solution_found_statuses = (
-                "optimal",
-                "timelimit",
-                "userinterrupt",
-                "nodelimit",
-                "totalnodelimit",
-                "stallnodelimit",
-                "gaplimit",
-                "memlimit",
-            )
-            status = scip_to_pulp_status[solutionStatus]
-
-            if solutionStatus in possible_solution_found_statuses:
-                try:  # Feasible solution found
-                    solution = lp.solverModel.getBestSol()
-                    for j, var in enumerate(exported_vars):
-                        var.varValue = solution[var_handles[j]]
-                    for constraint in lp.constraints():
-                        constraint.slack = lp.solverModel.getSlack(
-                            constr_handles[constraint.id], solution
-                        )
-                    if status == constants.LpStatusOptimal:
-                        lp.assignStatus(status, constants.LpSolutionOptimal)
-                    else:
-                        status = constants.LpStatusOptimal
-                        lp.assignStatus(status, constants.LpSolutionIntegerFeasible)
-                except Exception:  # No solution found
-                    lp.assignStatus(status, constants.LpSolutionNoSolutionFound)
-            else:
-                lp.assignStatus(status)
-
-                # TODO: check if problem is an LP i.e. does not have integer variables
-                # if :
-                #     for variable in lp._variables:
-                #         variable.dj = lp.solverModel.getVarRedcost(variable.solverVar)
-                #     for constraint in lp.constraints().values():
-                #         constraint.pi = lp.solverModel.getDualSolVal(constraint.solverConstraint)
-
-            return status
-
-        def available(self):
-            """True if the solver is available"""
-            # if pyscipopt can be installed (and therefore imported) it has access to scip
-            return True
-
-        def callSolver(self, lp):
-            """Solves the problem with scip"""
-            lp.solverModel.optimize()
-
-        def buildSolverModel(self, lp):
-            """
-            Takes the pulp lp model and translates it into a scip model
-            """
-            ##################################################
-            # create model
-            ##################################################
-            lp.solverModel = scip.Model(lp.name)
-            if lp.sense == constants.LpMaximize:
-                lp.solverModel.setMaximize()
-            else:
-                lp.solverModel.setMinimize()
-
-            ##################################################
-            # add options
-            ##################################################
-            if not self.msg:
-                lp.solverModel.hideOutput()
-            if self.timeLimit is not None:
-                lp.solverModel.setParam("limits/time", self.timeLimit)
-            if "gapRel" in self.optionsDict:
-                lp.solverModel.setParam("limits/gap", self.optionsDict["gapRel"])
-            if "gapAbs" in self.optionsDict:
-                lp.solverModel.setParam("limits/absgap", self.optionsDict["gapAbs"])
-            if "maxNodes" in self.optionsDict:
-                lp.solverModel.setParam("limits/nodes", self.optionsDict["maxNodes"])
-            if "logPath" in self.optionsDict:
-                lp.solverModel.setLogfile(self.optionsDict["logPath"])
-            if "threads" in self.optionsDict and int(self.optionsDict["threads"]) > 1:
-                warnings.warn(
-                    f"The solver {self.name} can only run with a single thread"
-                )
-            if not self.mip:
-                warnings.warn(f"{self.name} does not allow a problem to be relaxed")
-
-            options = iter(self.options)
-            for option in options:
-                # assumption: all file options require an argument which is provided after the equal sign (=)
-                if "=" in option:
-                    name, value = option.split("=", maxsplit=2)
+        if solutionStatus in possible_solution_found_statuses:
+            try:  # Feasible solution found
+                solution = lp.solverModel.getBestSol()
+                for j, var in enumerate(exported_vars):
+                    var.varValue = solution[var_handles[j]]
+                for constraint in lp.constraints():
+                    constraint.slack = lp.solverModel.getSlack(
+                        constr_handles[constraint.id], solution
+                    )
+                if status == constants.LpStatusOptimal:
+                    lp.assignStatus(status, constants.LpSolutionOptimal)
                 else:
-                    name, value = option, next(options)
-                lp.solverModel.setParam(name, value)
+                    status = constants.LpStatusOptimal
+                    lp.assignStatus(status, constants.LpSolutionIntegerFeasible)
+            except Exception:  # No solution found
+                lp.assignStatus(status, constants.LpSolutionNoSolutionFound)
+        else:
+            lp.assignStatus(status)
 
-            ##################################################
-            # add variables
-            ##################################################
-            var_handles = []
-            constr_handles = []
-            category_to_vtype = {
-                constants.LpBinary: "B",
-                constants.LpContinuous: "C",
-                constants.LpInteger: "I",
-            }
-            exported_vars = lp.exported_variables()
-            id_to_col = {v.id: j for j, v in enumerate(exported_vars)}
-            for var in exported_vars:
-                svar = lp.solverModel.addVar(
-                    name=var.name,
-                    vtype=category_to_vtype[var.cat],
-                    lb=var.lowBound,  # a lower bound of None represents -infinity
-                    ub=var.upBound,  # an upper bound of None represents +infinity
-                    obj=lp.objective.get(var, 0.0),
-                )
-                var_handles.append(svar)
+            # TODO: check if problem is an LP i.e. does not have integer variables
+            # if :
+            #     for variable in lp._variables:
+            #         variable.dj = lp.solverModel.getVarRedcost(variable.solverVar)
+            #     for constraint in lp.constraints().values():
+            #         constraint.pi = lp.solverModel.getDualSolVal(constraint.solverConstraint)
 
-            ##################################################
-            # add constraints
-            ##################################################
-            sense_to_operator = {
-                constants.LpConstraintLE: operator.le,
-                constants.LpConstraintGE: operator.ge,
-                constants.LpConstraintEQ: operator.eq,
-            }
-            for constraint in lp.constraints():
-                name = constraint.name
-                ccon = lp.solverModel.addCons(
-                    cons=sense_to_operator[constraint.sense](
-                        scip.quicksum(
-                            coefficient * var_handles[id_to_col[variable.id]]
-                            for variable, coefficient in constraint.items()
-                        ),
-                        -constraint.constant,
-                    ),
-                    name=name,
-                )
-                constr_handles.append(ccon)
+        return status
 
-            ##################################################
-            # add warm start
-            ##################################################
-            if self.optionsDict.get("warmStart", False):
-                s = lp.solverModel.createPartialSol()
-                for var in exported_vars:
-                    if var.varValue is not None:
-                        lp.solverModel.setSolVal(
-                            s, var_handles[id_to_col[var.id]], var.varValue
-                        )
-                lp.solverModel.addSol(s)
-            return var_handles, constr_handles, exported_vars
+    def available(self):
+        """True if the solver is available"""
+        # if pyscipopt can be installed (and therefore imported) it has access to scip
+        return pyscipopt_mod is not None
 
-        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
-            """
-            Solve a well formulated lp problem
+    def callSolver(self, lp):
+        """Solves the problem with scip"""
+        lp.solverModel.optimize()
 
-            creates a scip model, variables and constraints and attaches
-            them to the lp model which it then solves
-            """
-            var_handles, constr_handles, exported_vars = self.buildSolverModel(lp)
-            self.callSolver(lp)
-            solutionStatus = self.findSolutionValues(
-                lp, var_handles, constr_handles, exported_vars
+    @requires("pyscipopt")
+    def buildSolverModel(self, lp):
+        """
+        Takes the pulp lp model and translates it into a scip model
+        """
+        ##################################################
+        # create model
+        ##################################################
+        lp.solverModel = pyscipopt_mod.Model(lp.name)
+        if lp.sense == constants.LpMaximize:
+            lp.solverModel.setMaximize()
+        else:
+            lp.solverModel.setMinimize()
+
+        ##################################################
+        # add options
+        ##################################################
+        if not self.msg:
+            lp.solverModel.hideOutput()
+        if self.timeLimit is not None:
+            lp.solverModel.setParam("limits/time", self.timeLimit)
+        if "gapRel" in self.optionsDict:
+            lp.solverModel.setParam("limits/gap", self.optionsDict["gapRel"])
+        if "gapAbs" in self.optionsDict:
+            lp.solverModel.setParam("limits/absgap", self.optionsDict["gapAbs"])
+        if "maxNodes" in self.optionsDict:
+            lp.solverModel.setParam("limits/nodes", self.optionsDict["maxNodes"])
+        if "logPath" in self.optionsDict:
+            lp.solverModel.setLogfile(self.optionsDict["logPath"])
+        if "threads" in self.optionsDict and int(self.optionsDict["threads"]) > 1:
+            warnings.warn(f"The solver {self.name} can only run with a single thread")
+        if not self.mip:
+            warnings.warn(f"{self.name} does not allow a problem to be relaxed")
+
+        options = iter(self.options)
+        for option in options:
+            # assumption: all file options require an argument which is provided after the equal sign (=)
+            if "=" in option:
+                name, value = option.split("=", maxsplit=2)
+            else:
+                name, value = option, next(options)
+            lp.solverModel.setParam(name, value)
+
+        ##################################################
+        # add variables
+        ##################################################
+        var_handles = []
+        constr_handles = []
+        category_to_vtype = {
+            constants.LpBinary: "B",
+            constants.LpContinuous: "C",
+            constants.LpInteger: "I",
+        }
+        exported_vars = lp.exported_variables()
+        id_to_col = {v.id: j for j, v in enumerate(exported_vars)}
+        for var in exported_vars:
+            svar = lp.solverModel.addVar(
+                name=var.name,
+                vtype=category_to_vtype[var.cat],
+                lb=var.lowBound,  # a lower bound of None represents -infinity
+                ub=var.upBound,  # an upper bound of None represents +infinity
+                obj=lp.objective.get(var, 0.0),
             )
-            return solutionStatus
+            var_handles.append(svar)
+
+        ##################################################
+        # add constraints
+        ##################################################
+        sense_to_operator = {
+            constants.LpConstraintLE: operator.le,
+            constants.LpConstraintGE: operator.ge,
+            constants.LpConstraintEQ: operator.eq,
+        }
+        for constraint in lp.constraints():
+            name = constraint.name
+            ccon = lp.solverModel.addCons(
+                cons=sense_to_operator[constraint.sense](
+                    pyscipopt_mod.quicksum(
+                        coefficient * var_handles[id_to_col[variable.id]]
+                        for variable, coefficient in constraint.items()
+                    ),
+                    -constraint.constant,
+                ),
+                name=name,
+            )
+            constr_handles.append(ccon)
+
+        ##################################################
+        # add warm start
+        ##################################################
+        if self.optionsDict.get("warmStart", False):
+            s = lp.solverModel.createPartialSol()
+            for var in exported_vars:
+                if var.varValue is not None:
+                    lp.solverModel.setSolVal(
+                        s, var_handles[id_to_col[var.id]], var.varValue
+                    )
+            lp.solverModel.addSol(s)
+        return var_handles, constr_handles, exported_vars
+
+    @requires("pyscipopt")
+    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+        """
+        Solve a well formulated lp problem
+
+        creates a scip model, variables and constraints and attaches
+        them to the lp model which it then solves
+        """
+        var_handles, constr_handles, exported_vars = self.buildSolverModel(lp)
+        self.callSolver(lp)
+        solutionStatus = self.findSolutionValues(
+            lp, var_handles, constr_handles, exported_vars
+        )
+        return solutionStatus

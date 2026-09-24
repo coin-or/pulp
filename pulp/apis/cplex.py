@@ -6,7 +6,16 @@ import warnings
 from typing import TYPE_CHECKING, Any, Iterable
 
 from .. import constants
-from .core import LpSolver, LpSolver_CMD, PulpSolverError, clock, log, subprocess
+from .core import (
+    LpSolver,
+    LpSolver_CMD,
+    PulpSolverError,
+    clock,
+    import_optional,
+    log,
+    requires,
+    subprocess,
+)
 
 if TYPE_CHECKING:
     import cplex as cplex_t
@@ -14,12 +23,7 @@ if TYPE_CHECKING:
     from ..core.lp_problem import LpProblem
     from ..core.lp_variable import LpVariable
 
-_CPLEX_IMPORT_ERROR: BaseException | None = None
-cplex_mod = None
-try:
-    import cplex as cplex_mod  # type: ignore[import-not-found, import-untyped]
-except Exception as exc:
-    _CPLEX_IMPORT_ERROR = exc
+cplex_mod = import_optional("cplex")
 
 
 class CPLEX_CMD(LpSolver_CMD):
@@ -289,20 +293,6 @@ def check_solverModel(func):
     return wrapper
 
 
-# do a check cplex_mod decorator
-def check_cplex_mod(func):
-    """
-    Decorator that checks if cplex_mod is initialized.
-    """
-
-    def wrapper(self, *args, **kwargs):
-        if cplex_mod is None:
-            raise PulpSolverError(f"CPLEX_PY: Not Available:\n{_CPLEX_IMPORT_ERROR}")
-        return func(self, *args, **kwargs)
-
-    return wrapper
-
-
 class CPLEX_PY(LpSolver):
     """
     The CPLEX LP/MIP solver (via a Python Binding)
@@ -361,7 +351,7 @@ class CPLEX_PY(LpSolver):
         """True if the solver is available"""
         return cplex_mod is not None
 
-    @check_cplex_mod
+    @requires("cplex")
     def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
         """
         Solve a well formulated lp problem
@@ -381,7 +371,7 @@ class CPLEX_PY(LpSolver):
         solutionStatus = self.findSolutionValues(lp)
         return solutionStatus
 
-    @check_cplex_mod
+    @requires("cplex")
     def buildSolverModel(self, lp: LpProblem) -> None:
         """
         Takes the pulp lp model and translates it into a cplex model.
