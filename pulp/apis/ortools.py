@@ -66,7 +66,8 @@ class CPSAT(LpSolver):
         :param float timeLimit: maximum time for solver (in seconds)
         :param bool warmStart: if True, pass current variable values as hints
         :param str logPath: path to write the search log to
-        :param dict solverParams: additional parameters for ``CpSolver.parameters``
+        :param dict solverParams: ``threads`` or additional parameters for
+            ``CpSolver.parameters``
         """
         LpSolver.__init__(
             self,
@@ -75,8 +76,8 @@ class CPSAT(LpSolver):
             timeLimit=timeLimit,
             warmStart=warmStart,
             logPath=logPath,
+            **solverParams,
         )
-        self.solver_params = solverParams
         self.solverModel = None
 
     def available(self) -> bool:
@@ -238,7 +239,7 @@ class CPSAT(LpSolver):
             solver.parameters.max_time_in_seconds = float(self.timeLimit)
         if "threads" in self.optionsDict:
             solver.parameters.num_search_workers = int(self.optionsDict["threads"])
-        for param, value in self.solver_params.items():
+        for param, value in self.optionsDict.items():
             if hasattr(solver.parameters, param):
                 setattr(solver.parameters, param, value)
 
