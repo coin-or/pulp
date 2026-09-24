@@ -37,8 +37,10 @@ from .core import (
     clock,
     clocks,
     devnull,
+    import_optional,
     log,
     operating_system,
+    requires,
     subprocess,
 )
 
@@ -709,7 +711,7 @@ class COINMP_DLL(LpSolver):
 if COINMP_DLL.available():
     COIN = COINMP_DLL  # type: ignore[assignment,misc]
 
-yaposib = None
+yaposib_mod = import_optional("yaposib")
 
 
 class YAPOSIB(LpSolver):
@@ -724,295 +726,267 @@ class YAPOSIB(LpSolver):
     """
 
     name = "YAPOSIB"
-    try:
-        # import the model into the global scope
-        global yaposib
-        import yaposib  # type: ignore[import-not-found]
-    except ImportError:
 
-        def available(self):
-            """True if the solver is available"""
-            return False
+    def __init__(
+        self,
+        mip=True,
+        msg=True,
+        timeLimit=None,
+        epgap=None,
+        solverName=None,
+        **solverParams,
+    ):
+        """
+        Initializes the yaposib solver.
 
-        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
-            """Solve a well formulated lp problem."""
-            raise PulpSolverError("YAPOSIB: Not Available")
+        @param mip:          if False the solver will solve a MIP as
+                             an LP
+        @param msg:          displays information from the solver to
+                             stdout
+        @param timeLimit:    not supported
+        @param epgap:        not supported
+        @param solverParams: not supported
+        """
+        LpSolver.__init__(self, mip, msg)
+        if solverName:
+            self.solverName = solverName
+        elif yaposib_mod is not None:
+            self.solverName = yaposib_mod.available_solvers()[0]
+        else:
+            self.solverName = None
 
-    else:
+    def findSolutionValues(self, lp):
+        model = lp.solverModel
+        solutionStatus = model.status
+        S = constants.LpSolveStatus
+        yaposibLpStatus = {
+            "optimal": S.Optimal,
+            "undefined": S.Undefined,
+            "abandoned": S.Interrupted,
+            "infeasible": S.Infeasible,
+            "limitreached": S.Stopped,
+        }
+        # populate pulp solution values
+        for var in lp.exported_variables():
+            var.varValue = var.solverVar.solution
+            var.dj = var.solverVar.reducedcost
+        # put pi and slack variables against the constraints
+        for constr in lp.constraints():
+            constr.pi = constr.solverConstraint.dual
+            constr.slack = -constr.constant - constr.solverConstraint.activity
+        if self.msg:
+            print("yaposib status=", solutionStatus)
+        status = yaposibLpStatus.get(solutionStatus, S.Undefined)
+        return status, status == S.Optimal
 
-        def __init__(
-            self,
-            mip=True,
-            msg=True,
-            timeLimit=None,
-            epgap=None,
-            solverName=None,
-            **solverParams,
-        ):
-            """
-            Initializes the yaposib solver.
+    def available(self):
+        """True if the solver is available"""
+        return yaposib_mod is not None
 
-            @param mip:          if False the solver will solve a MIP as
-                                 an LP
-            @param msg:          displays information from the solver to
-                                 stdout
-            @param timeLimit:    not supported
-            @param epgap:        not supported
-            @param solverParams: not supported
-            """
-            LpSolver.__init__(self, mip, msg)
-            if solverName:
-                self.solverName = solverName
-            else:
-                self.solverName = yaposib.available_solvers()[0]
-
-        def findSolutionValues(self, lp):
-            model = lp.solverModel
-            solutionStatus = model.status
-            S = constants.LpSolveStatus
-            yaposibLpStatus = {
-                "optimal": S.Optimal,
-                "undefined": S.Undefined,
-                "abandoned": S.Interrupted,
-                "infeasible": S.Infeasible,
-                "limitreached": S.Stopped,
-            }
-            # populate pulp solution values
-            for var in lp.exported_variables():
-                var.varValue = var.solverVar.solution
-                var.dj = var.solverVar.reducedcost
-            # put pi and slack variables against the constraints
-            for constr in lp.constraints():
-                constr.pi = constr.solverConstraint.dual
-                constr.slack = -constr.constant - constr.solverConstraint.activity
-            if self.msg:
-                print("yaposib status=", solutionStatus)
-            status = yaposibLpStatus.get(solutionStatus, S.Undefined)
-            return status, status == S.Optimal
-
-        def available(self):
-            """True if the solver is available"""
-            return True
-
-        def callSolver(self, lp, callback=None):
-            """Solves the problem with yaposib"""
+    def callSolver(self, lp, callback=None):
+        """Solves the problem with yaposib"""
+        savestdout = None
+        tmp = None
+        if not self.msg:
+            # close stdout to get rid of messages
+            tmp = tempfile.NamedTemporaryFile(mode="w", delete=False)
+            savestdout = os.dup(1)
+            os.close(1)
+            if os.dup(tmp.fileno()) != 1:
+                raise PulpSolverError("couldn't redirect stdout - dup() error")
+        self.solveTime = -clock()
+        lp.solverModel.solve(self.mip)
+        self.solveTime += clock()
+        if not self.msg and savestdout is not None:
+            # reopen stdout
+            os.close(1)
+            os.dup(savestdout)
+            os.close(savestdout)
             savestdout = None
-            tmp = None
-            if not self.msg:
-                # close stdout to get rid of messages
-                tmp = tempfile.NamedTemporaryFile(mode="w", delete=False)
-                savestdout = os.dup(1)
-                os.close(1)
-                if os.dup(tmp.fileno()) != 1:
-                    raise PulpSolverError("couldn't redirect stdout - dup() error")
-            self.solveTime = -clock()
-            lp.solverModel.solve(self.mip)
-            self.solveTime += clock()
-            if not self.msg and savestdout is not None:
-                # reopen stdout
-                os.close(1)
-                os.dup(savestdout)
-                os.close(savestdout)
-                savestdout = None
-            if not self.msg and tmp is not None:
-                tmp.close()
-                os.unlink(tmp.name)
+        if not self.msg and tmp is not None:
+            tmp.close()
+            os.unlink(tmp.name)
 
-        def buildSolverModel(self, lp):
-            """
-            Takes the pulp lp model and translates it into a yaposib model
-            """
-            log.debug("create the yaposib model")
-            lp.solverModel = yaposib.Problem(self.solverName)
-            prob = lp.solverModel
-            prob.name = lp.name
-            log.debug("set the sense of the problem")
-            if lp.sense == constants.LpMaximize:
-                prob.obj.maximize = True
-            log.debug("add the variables to the problem")
-            exported_vars = lp.exported_variables()
-            for var in exported_vars:
-                col = prob.cols.add(yaposib.vec([]))
-                col.name = var.name
-                if math.isfinite(var.lowBound):
-                    col.lowerbound = var.lowBound
-                if math.isfinite(var.upBound):
-                    col.upperbound = var.upBound
-                if var.cat == constants.LpInteger:
-                    col.integer = True
-                prob.obj[col.index] = lp.objective.get(var, 0.0)
-                var.solverVar = col
-            log.debug("add the Constraints to the problem")
-            for constraint in lp.constraints():
-                row = prob.rows.add(
-                    yaposib.vec(
-                        [
-                            (var.solverVar.index, value)
-                            for var, value in constraint.items()
-                        ]
-                    )
+    @requires("yaposib")
+    def buildSolverModel(self, lp):
+        """
+        Takes the pulp lp model and translates it into a yaposib model
+        """
+        log.debug("create the yaposib model")
+        lp.solverModel = yaposib_mod.Problem(self.solverName)
+        prob = lp.solverModel
+        prob.name = lp.name
+        log.debug("set the sense of the problem")
+        if lp.sense == constants.LpMaximize:
+            prob.obj.maximize = True
+        log.debug("add the variables to the problem")
+        exported_vars = lp.exported_variables()
+        for var in exported_vars:
+            col = prob.cols.add(yaposib_mod.vec([]))
+            col.name = var.name
+            if math.isfinite(var.lowBound):
+                col.lowerbound = var.lowBound
+            if math.isfinite(var.upBound):
+                col.upperbound = var.upBound
+            if var.cat == constants.LpInteger:
+                col.integer = True
+            prob.obj[col.index] = lp.objective.get(var, 0.0)
+            var.solverVar = col
+        log.debug("add the Constraints to the problem")
+        for constraint in lp.constraints():
+            row = prob.rows.add(
+                yaposib_mod.vec(
+                    [(var.solverVar.index, value) for var, value in constraint.items()]
                 )
-                if constraint.sense == constants.LpConstraintLE:
-                    row.upperbound = -constraint.constant
-                elif constraint.sense == constants.LpConstraintGE:
-                    row.lowerbound = -constraint.constant
-                elif constraint.sense == constants.LpConstraintEQ:
-                    row.upperbound = -constraint.constant
-                    row.lowerbound = -constraint.constant
-                else:
-                    raise PulpSolverError("Detected an invalid constraint type")
-                row.name = constraint.name
-                constraint.solverConstraint = row
+            )
+            if constraint.sense == constants.LpConstraintLE:
+                row.upperbound = -constraint.constant
+            elif constraint.sense == constants.LpConstraintGE:
+                row.lowerbound = -constraint.constant
+            elif constraint.sense == constants.LpConstraintEQ:
+                row.upperbound = -constraint.constant
+                row.lowerbound = -constraint.constant
+            else:
+                raise PulpSolverError("Detected an invalid constraint type")
+            row.name = constraint.name
+            constraint.solverConstraint = row
 
-        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
-            """
-            Solve a well formulated lp problem
+    @requires("yaposib")
+    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
+        """
+        Solve a well formulated lp problem
 
-            creates a yaposib model, variables and constraints and attaches
-            them to the lp model which it then solves
-            """
-            start = clocks()
-            callback = kwargs.get("callback")
-            self.buildSolverModel(lp)
-            # set the initial solution
-            log.debug("Solve the model using yaposib")
-            self.callSolver(lp, callback=callback)
-            # get the solution information
-            status, has_solution = self.findSolutionValues(lp)
-            return self.buildStats(lp, status, has_solution, start=start)
+        creates a yaposib model, variables and constraints and attaches
+        them to the lp model which it then solves
+        """
+        start = clocks()
+        callback = kwargs.get("callback")
+        self.buildSolverModel(lp)
+        # set the initial solution
+        log.debug("Solve the model using yaposib")
+        self.callSolver(lp, callback=callback)
+        # get the solution information
+        status, has_solution = self.findSolutionValues(lp)
+        return self.buildStats(lp, status, has_solution, start=start)
 
 
-cy = None
+cylp_mod = import_optional("cylp.cy")
 
 
 class CYLP(LpSolver):
     # https://github.com/coin-or/CyLP
     name = "CyLP"
-    try:
-        global cy
-        from cylp import (
-            cy,  # type: ignore[import-not-found, import-untyped]
-        )
-    except Exception:
 
-        def available(self):
-            """True if the solver is available"""
-            return False
+    def __init__(
+        self,
+        mip=True,
+        msg=True,
+        gapAbs=None,
+        gapRel=None,
+        threads=None,
+        timeLimit=None,
+        **solverParams,
+    ):
+        """
+        :param bool mip: if False, assume LP even if integer variables
+        :param bool msg: if False, no log is shown
+        :param float gapRel: relative gap tolerance for the solver to stop (in fraction)
+        :param float gapAbs: absolute gap tolerance for the solver to stop
+        :param int threads: sets the maximum number of threads
+        :param float timeLimit: maximum time for solver (in seconds)
+        :param dict solverParams: list of named options to pass directly to the HiGHS solver
+        """
+        super().__init__(mip=mip, msg=msg, timeLimit=timeLimit, **solverParams)
+        self.gapAbs = gapAbs
+        self.gapRel = gapRel
+        self.threads = threads
 
-        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
-            """Solve a well formulated lp problem."""
-            raise PulpSolverError("CyLP: Not Available")
+    @requires("cylp.cy")
+    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
+        start = clocks()
+        self.buildSolverModel(lp)
+        self.callSolver(lp)
+        # get the solution information
+        self.findSolutionValues(lp)
 
-    else:
+        sol_stats = lp.solverModel.status
+        print(sol_stats)
+        S = constants.LpSolveStatus
+        my_map_2 = {
+            "linear relaxation unbounded": S.Infeasible,
+            "relaxation infeasible": S.Infeasible,
+            "solution": S.Optimal,
+            "problem proven infeasible": S.Infeasible,
+            "relaxation abandoned": S.Stopped,
+        }
 
-        def __init__(
-            self,
-            mip=True,
-            msg=True,
-            gapAbs=None,
-            gapRel=None,
-            threads=None,
-            timeLimit=None,
-            **solverParams,
-        ):
-            """
-            :param bool mip: if False, assume LP even if integer variables
-            :param bool msg: if False, no log is shown
-            :param float gapRel: relative gap tolerance for the solver to stop (in fraction)
-            :param float gapAbs: absolute gap tolerance for the solver to stop
-            :param int threads: sets the maximum number of threads
-            :param float timeLimit: maximum time for solver (in seconds)
-            :param dict solverParams: list of named options to pass directly to the HiGHS solver
-            """
-            super().__init__(mip=mip, msg=msg, timeLimit=timeLimit, **solverParams)
-            self.gapAbs = gapAbs
-            self.gapRel = gapRel
-            self.threads = threads
+        status = my_map_2.get(sol_stats, S.Undefined)
+        return self.buildStats(lp, status, status == S.Optimal, start=start)
 
-        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
-            start = clocks()
-            self.buildSolverModel(lp)
-            self.callSolver(lp)
-            # get the solution information
-            self.findSolutionValues(lp)
+    def findSolutionValues(self, lp):
+        my_vars = lp.exported_variables()
+        my_values = lp.solverModel.primalVariableSolution
+        for var, value in zip(my_vars, my_values):
+            var.varValue = value
+        # status = lp.solverModel.getStatusCode()
+        # -1 - unknown e.g. before solve or if postSolve says not optimal
 
-            sol_stats = lp.solverModel.status
-            print(sol_stats)
-            S = constants.LpSolveStatus
-            my_map_2 = {
-                "linear relaxation unbounded": S.Infeasible,
-                "relaxation infeasible": S.Infeasible,
-                "solution": S.Optimal,
-                "problem proven infeasible": S.Infeasible,
-                "relaxation abandoned": S.Stopped,
-            }
+        # 0 - optimal
+        # 1 - primal infeasible
+        # 2 - dual infeasible
+        # 3 - stopped on iterations or time
+        # 4 - stopped due to errors
+        # 5 - stopped by event handler (virtual int ClpEventHandler::event())
+        # lp.solverModel.primalVariableSolution
+        # variables
+        # solution
+        # reducedCosts
+        pass
 
-            status = my_map_2.get(sol_stats, S.Undefined)
-            return self.buildStats(lp, status, status == S.Optimal, start=start)
+    def available(self):
+        return cylp_mod is not None
 
-        def findSolutionValues(self, lp):
-            my_vars = lp.exported_variables()
-            my_values = lp.solverModel.primalVariableSolution
-            for var, value in zip(my_vars, my_values):
-                var.varValue = value
-            # status = lp.solverModel.getStatusCode()
-            # -1 - unknown e.g. before solve or if postSolve says not optimal
+    def callSolver(self, lp):
+        self.solveTime = -clock()
+        if self.timeLimit:
+            lp.solverModel.maximumSeconds = self.timeLimit
+        if self.gapRel:
+            lp.solverModel.allowableFractionGap = self.gapRel
+        if self.gapAbs:
+            lp.solverModel.allowableGap = self.gapAbs
+        if self.threads:
+            lp.solverModel.numberThreads = self.threads
 
-            # 0 - optimal
-            # 1 - primal infeasible
-            # 2 - dual infeasible
-            # 3 - stopped on iterations or time
-            # 4 - stopped due to errors
-            # 5 - stopped by event handler (virtual int ClpEventHandler::event())
-            # lp.solverModel.primalVariableSolution
-            # variables
-            # solution
-            # reducedCosts
+        if max_nodes := self.optionsDict.get("maxNodes"):
+            lp.solverModel.maximumNodes = max_nodes
+
+        stop_status = lp.solverModel.solve()
+        self.solveTime += clock()
+        return stop_status
+
+    @requires("cylp.cy")
+    def buildSolverModel(self, lp):
+
+        my_model = cylp_mod.CyClpSimplex()
+        tmpMps = f"{lp.name}-pulp.mps"
+        lp.writeMPS(tmpMps)
+        success = my_model.readMps(tmpMps)
+        try:
+            os.remove(tmpMps)
+        except Exception:
             pass
-
-        def available(self):
-            return True
-
-        def callSolver(self, lp):
-            self.solveTime = -clock()
-            if self.timeLimit:
-                lp.solverModel.maximumSeconds = self.timeLimit
-            if self.gapRel:
-                lp.solverModel.allowableFractionGap = self.gapRel
-            if self.gapAbs:
-                lp.solverModel.allowableGap = self.gapAbs
-            if self.threads:
-                lp.solverModel.numberThreads = self.threads
-
-            if max_nodes := self.optionsDict.get("maxNodes"):
-                lp.solverModel.maximumNodes = max_nodes
-
-            stop_status = lp.solverModel.solve()
-            self.solveTime += clock()
-            return stop_status
-
-        def buildSolverModel(self, lp):
-
-            my_model = cy.CyClpSimplex()
-            tmpMps = f"{lp.name}-pulp.mps"
-            lp.writeMPS(tmpMps)
-            success = my_model.readMps(tmpMps)
-            try:
-                os.remove(tmpMps)
-            except Exception:
-                pass
-            if success != 0:
-                raise PulpSolverError("Error reading MPS file")
-            cbc_model = my_model.getCbcModel()
-            # my_model.initialSolve()
-            # cbc_model.solve()
-            # cbc_model.status
-            # my_model.primalVariableSolution
-            # my_model.variableNames
-            # my_model.variables
-            # my_model.readMps("test.mps")
-            # my_model.solution
-            # my_model.status
-            # my_model.getStatusCode()
-            # my_model.getStatusString()
-            lp.solverModel = cbc_model
+        if success != 0:
+            raise PulpSolverError("Error reading MPS file")
+        cbc_model = my_model.getCbcModel()
+        # my_model.initialSolve()
+        # cbc_model.solve()
+        # cbc_model.status
+        # my_model.primalVariableSolution
+        # my_model.variableNames
+        # my_model.variables
+        # my_model.readMps("test.mps")
+        # my_model.solution
+        # my_model.status
+        # my_model.getStatusCode()
+        # my_model.getStatusString()
+        lp.solverModel = cbc_model

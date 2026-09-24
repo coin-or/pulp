@@ -65,8 +65,9 @@ optional PyPI extras (some require a commercial license for running or for large
     python -m pip install pulp[ortools]
     python -m pip install pulp[cylp]
     python -m pip install pulp[cbc]
+    python -m pip install pulp[glpk]
 
-If you want to install all open source solvers (scip, highs, cbc), you can use the shortcut::
+If you want to install all open source solvers (scip, highs, cbc, glpk), you can use the shortcut::
     python -m pip install pulp[open_py]
 
 For more information on how to install solvers, see the `guide on configuring solvers <https://coin-or.github.io/pulp/guides/how_to_configure_solvers.html>`_.
@@ -100,6 +101,12 @@ or ``cbc`` on ``PATH``, otherwise another available backend)::
 If you want to try another solver to solve the problem::
 
      stats = prob.solve(GLPK(msg = 0))
+
+``GLPK`` uses GLPK's command-line tool (``glpsol``) and requires it to be on
+your ``PATH``. To use GLPK's python API instead, install
+``python -m pip install pulp[glpk]`` and use ``PYGLPK``::
+
+     status = prob.solve(PYGLPK(msg = 0))
 
 To use the OR-Tools CP-SAT solver (install with ``python -m pip install pulp[ortools]``).
 Every variable must have finite lower and upper bounds; continuous variables are

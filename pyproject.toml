@@ -83,7 +83,7 @@ allowed-unresolved-imports = [
     "elementtree.ElementTree", "elementtree.**",
     "yaposib", "yaposib.**",
     "ujson", "ujson.**",
-    "glpk.glpkpi", "glpk.**",
+    "swiglpk", "swiglpk.**",
     "mosek", "mosek.**",
     "saspy", "saspy.**",
     "swat", "swat.**",
@@ -134,12 +134,13 @@ required-environments = [
 
 
 [project.optional-dependencies]
-open_py = ["highspy<1.14", "pyscipopt", "cbcbox"]
+open_py = ["highspy<1.14", "pyscipopt", "cbcbox", "swiglpk"]
 public_py = ["gurobipy", "coptpy; python_full_version < '3.14'", 'xpress', "cplex; sys_platform != 'darwin' or platform_machine == 'arm64'"]
 highs = ["highspy<1.14"]
 highs_cmd = ["highsbox"]
 cbc = ["cbcbox"]
 scip = ["pyscipopt"]
+glpk = ["swiglpk"]
 gurobi = ["gurobipy"]
 xpress = ["xpress"]
 copt = ["coptpy; python_full_version < '3.14'"]

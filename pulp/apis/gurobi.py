@@ -37,7 +37,9 @@ from .core import (
     PulpSolverError,
     clock,
     clocks,
+    import_optional,
     log,
+    requires,
     subprocess,
 )
 
@@ -47,8 +49,7 @@ if TYPE_CHECKING:
 
 import warnings
 
-# to import the gurobipy name into the module scope
-gp = None
+gurobipy_mod = import_optional("gurobipy")
 
 
 class GUROBI(LpSolver):
@@ -65,283 +66,297 @@ class GUROBI(LpSolver):
     # as well as the console
     env = None
 
-    try:
-        # to import the name into the module scope
-        global gp
-        import gurobipy as gp  # type: ignore[import-not-found, import-untyped]
-    except Exception:  # FIXME: Bug because gurobi returns
-        #  a gurobi exception on failed imports
-        def available(self):
-            """True if the solver is available"""
-            return False
+    def __init__(
+        self,
+        mip=True,
+        msg=True,
+        timeLimit=None,
+        gapRel=None,
+        warmStart=False,
+        logPath=None,
+        env=None,
+        envOptions=None,
+        manageEnv=False,
+        **solverParams,
+    ):
+        """
+        :param bool mip: if False, assume LP even if integer variables
+        :param bool msg: if False, no log is shown
+        :param float timeLimit: maximum time for solver (in seconds)
+        :param float gapRel: relative gap tolerance for the solver to stop (in fraction)
+        :param bool warmStart: if True, the solver will use the current value of variables as a start
+        :param str logPath: path to the log file
+        :param gp.Env env: Gurobi environment to use. Default None.
+        :param dict envOptions: environment options.
+        :param bool manageEnv: if False, assume the environment is handled by the user.
 
-        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
-            """Solve a well formulated lp problem."""
-            raise PulpSolverError("GUROBI: Not Available")
 
-    else:
+        If ``manageEnv`` is set to True, the ``GUROBI`` object creates a
+        local Gurobi environment and manages all associated Gurobi
+        resources. Importantly, this enables Gurobi licenses to be freed
+        and connections terminated when the ``.close()`` function is called
+        (this function always disposes of the Gurobi model, and the
+        environment)::
 
-        def __init__(
+            solver = GUROBI(manageEnv=True)
+            prob.solve(solver)
+            solver.close() # Must be called to free Gurobi resources.
+            # All Gurobi models and environments are freed
+
+        ``manageEnv=True`` is required when setting license or connection
+        parameters. The ``envOptions`` argument is used to pass parameters
+        to the Gurobi environment. For example, to connect to a Gurobi
+        Cluster Manager::
+
+            options = {
+                "CSManager": "<url>",
+                "CSAPIAccessID": "<access-id>",
+                "CSAPISecret": "<api-key>",
+            }
+            solver = GUROBI(manageEnv=True, envOptions=options)
+            solver.close()
+            # Compute server connection terminated
+
+        Alternatively, one can also pass a ``gp.Env`` object. In this case,
+        to be safe, one should still call ``.close()`` to dispose of the
+        model::
+
+            with gp.Env(params=options) as env:
+                # Pass environment as a parameter
+                solver = GUROBI(env=env)
+                prob.solve(solver)
+                solver.close()
+                # Still call `close` as this disposes the model which is required to correctly free env
+
+        If ``manageEnv`` is set to False (the default), the ``GUROBI``
+        object uses the global default Gurobi environment which will be
+        freed once the object is deleted. In this case, one can still call
+        ``.close()`` to dispose of the model::
+
+            solver = GUROBI()
+            prob.solve(solver)
+            # The global default environment and model remain active
+            solver.close()
+            # Only the global default environment remains active
+        """
+        self.env = env
+        self.env_options = envOptions if envOptions else {}
+        self.manage_env = False if self.env is not None else manageEnv
+        self.solver_params = solverParams
+
+        self.model = None
+        self.init_gurobi = False  # whether env and model have been initialised
+
+        LpSolver.__init__(
             self,
-            mip=True,
-            msg=True,
-            timeLimit=None,
-            gapRel=None,
-            warmStart=False,
-            logPath=None,
-            env=None,
-            envOptions=None,
-            manageEnv=False,
-            **solverParams,
-        ):
-            """
-            :param bool mip: if False, assume LP even if integer variables
-            :param bool msg: if False, no log is shown
-            :param float timeLimit: maximum time for solver (in seconds)
-            :param float gapRel: relative gap tolerance for the solver to stop (in fraction)
-            :param bool warmStart: if True, the solver will use the current value of variables as a start
-            :param str logPath: path to the log file
-            :param gp.Env env: Gurobi environment to use. Default None.
-            :param dict envOptions: environment options.
-            :param bool manageEnv: if False, assume the environment is handled by the user.
+            mip=mip,
+            msg=msg,
+            timeLimit=timeLimit,
+            gapRel=gapRel,
+            logPath=logPath,
+            warmStart=warmStart,
+        )
 
+        # set the output of gurobi
+        if not self.msg:
+            self.env_options["OutputFlag"] = 0
 
-            If ``manageEnv`` is set to True, the ``GUROBI`` object creates a
-            local Gurobi environment and manages all associated Gurobi
-            resources. Importantly, this enables Gurobi licenses to be freed
-            and connections terminated when the ``.close()`` function is called
-            (this function always disposes of the Gurobi model, and the
-            environment)::
+            if not self.manage_env:
+                self.solver_params["OutputFlag"] = 0
 
-                solver = GUROBI(manageEnv=True)
-                prob.solve(solver)
-                solver.close() # Must be called to free Gurobi resources.
-                # All Gurobi models and environments are freed
+    def __del__(self):
+        self.close()
 
-            ``manageEnv=True`` is required when setting license or connection
-            parameters. The ``envOptions`` argument is used to pass parameters
-            to the Gurobi environment. For example, to connect to a Gurobi
-            Cluster Manager::
+    def close(self):
+        """
+        Must be called when internal Gurobi model and/or environment
+        requires disposing. The environment (default or otherwise) will be
+        disposed only if ``manageEnv`` is set to True.
+        """
+        if not self.init_gurobi:
+            return
+        self.model.dispose()
+        if self.manage_env:
+            self.env.dispose()
 
-                options = {
-                    "CSManager": "<url>",
-                    "CSAPIAccessID": "<access-id>",
-                    "CSAPISecret": "<api-key>",
-                }
-                solver = GUROBI(manageEnv=True, envOptions=options)
-                solver.close()
-                # Compute server connection terminated
-
-            Alternatively, one can also pass a ``gp.Env`` object. In this case,
-            to be safe, one should still call ``.close()`` to dispose of the
-            model::
-
-                with gp.Env(params=options) as env:
-                    # Pass environment as a parameter
-                    solver = GUROBI(env=env)
-                    prob.solve(solver)
-                    solver.close()
-                    # Still call `close` as this disposes the model which is required to correctly free env
-
-            If ``manageEnv`` is set to False (the default), the ``GUROBI``
-            object uses the global default Gurobi environment which will be
-            freed once the object is deleted. In this case, one can still call
-            ``.close()`` to dispose of the model::
-
-                solver = GUROBI()
-                prob.solve(solver)
-                # The global default environment and model remain active
-                solver.close()
-                # Only the global default environment remains active
-            """
-            self.env = env
-            self.env_options = envOptions if envOptions else {}
-            self.manage_env = False if self.env is not None else manageEnv
-            self.solver_params = solverParams
-
-            self.model = None
-            self.init_gurobi = False  # whether env and model have been initialised
-
-            LpSolver.__init__(
-                self,
-                mip=mip,
-                msg=msg,
-                timeLimit=timeLimit,
-                gapRel=gapRel,
-                logPath=logPath,
-                warmStart=warmStart,
-            )
-
-            # set the output of gurobi
-            if not self.msg:
-                self.env_options["OutputFlag"] = 0
-
-                if not self.manage_env:
-                    self.solver_params["OutputFlag"] = 0
-
-        def __del__(self):
-            self.close()
-
-        def close(self):
-            """
-            Must be called when internal Gurobi model and/or environment
-            requires disposing. The environment (default or otherwise) will be
-            disposed only if ``manageEnv`` is set to True.
-            """
-            if not self.init_gurobi:
-                return
-            self.model.dispose()
-            if self.manage_env:
-                self.env.dispose()
-
-        def findSolutionValues(self, lp: LpProblem, var_handles, constr_handles):
-            model = lp.solverModel
-            solutionStatus = model.Status
-            GRB = gp.GRB
-            S = constants.LpSolveStatus
-            # looked up by name: older gurobipy versions lack some codes
-            status_names = {
-                "LOADED": S.NotSolved,
-                "INPROGRESS": S.NotSolved,
-                "OPTIMAL": S.Optimal,
-                "LOCALLY_OPTIMAL": S.Optimal,
-                "INFEASIBLE": S.Infeasible,
-                "LOCALLY_INFEASIBLE": S.Infeasible,
-                "INF_OR_UNBD": S.Undefined,
-                "UNBOUNDED": S.Unbounded,
-                "CUTOFF": S.GapLimit,
-                "USER_OBJ_LIMIT": S.GapLimit,
-                "ITERATION_LIMIT": S.IterationLimit,
-                "NODE_LIMIT": S.NodeLimit,
-                "TIME_LIMIT": S.TimeLimit,
-                "WORK_LIMIT": S.TimeLimit,
-                "SOLUTION_LIMIT": S.SolutionLimit,
-                "MEM_LIMIT": S.MemoryLimit,
-                "INTERRUPTED": S.Interrupted,
-                "NUMERIC": S.NumericalError,
-                "SUBOPTIMAL": S.NumericalError,
-            }
-            gurobiLpStatus = {
-                getattr(GRB.Status, name): status
-                for name, status in status_names.items()
-                if hasattr(GRB.Status, name)
-            }
-            if self.msg:
-                print("Gurobi status=", solutionStatus)
-            status = gurobiLpStatus.get(solutionStatus, S.Undefined)
-            has_solution = model.SolCount >= 1
-            if has_solution:
-                exported_vars = lp.exported_variables()
+    def findSolutionValues(self, lp: LpProblem, var_handles, constr_handles):
+        model = lp.solverModel
+        solutionStatus = model.Status
+        GRB = gurobipy_mod.GRB
+        S = constants.LpSolveStatus
+        # looked up by name: older gurobipy versions lack some codes
+        status_names = {
+            "LOADED": S.NotSolved,
+            "INPROGRESS": S.NotSolved,
+            "OPTIMAL": S.Optimal,
+            "LOCALLY_OPTIMAL": S.Optimal,
+            "INFEASIBLE": S.Infeasible,
+            "LOCALLY_INFEASIBLE": S.Infeasible,
+            "INF_OR_UNBD": S.Undefined,
+            "UNBOUNDED": S.Unbounded,
+            "CUTOFF": S.GapLimit,
+            "USER_OBJ_LIMIT": S.GapLimit,
+            "ITERATION_LIMIT": S.IterationLimit,
+            "NODE_LIMIT": S.NodeLimit,
+            "TIME_LIMIT": S.TimeLimit,
+            "WORK_LIMIT": S.TimeLimit,
+            "SOLUTION_LIMIT": S.SolutionLimit,
+            "MEM_LIMIT": S.MemoryLimit,
+            "INTERRUPTED": S.Interrupted,
+            "NUMERIC": S.NumericalError,
+            "SUBOPTIMAL": S.NumericalError,
+        }
+        gurobiLpStatus = {
+            getattr(GRB.Status, name): status
+            for name, status in status_names.items()
+            if hasattr(GRB.Status, name)
+        }
+        if self.msg:
+            print("Gurobi status=", solutionStatus)
+        status = gurobiLpStatus.get(solutionStatus, S.Undefined)
+        has_solution = model.SolCount >= 1
+        if has_solution:
+            exported_vars = lp.exported_variables()
+            for var, value in zip(
+                exported_vars,
+                model.getAttr(
+                    GRB.Attr.X, [var_handles[j] for j in range(len(exported_vars))]
+                ),
+            ):
+                var.varValue = value
+            # populate pulp constraints slack (constraints.items() in id order)
+            for constr, value in zip(
+                lp.constraints(),
+                model.getAttr(
+                    GRB.Attr.Slack,
+                    [constr_handles[c.id] for c in lp.constraints()],
+                ),
+            ):
+                constr.slack = value
+            # put pi and slack variables against the constraints
+            if not model.IsMIP:
                 for var, value in zip(
                     exported_vars,
                     model.getAttr(
-                        GRB.Attr.X, [var_handles[j] for j in range(len(exported_vars))]
+                        GRB.Attr.RC,
+                        [var_handles[j] for j in range(len(exported_vars))],
                     ),
                 ):
-                    var.varValue = value
-                # populate pulp constraints slack (constraints.items() in id order)
+                    var.dj = value
+
                 for constr, value in zip(
                     lp.constraints(),
                     model.getAttr(
-                        GRB.Attr.Slack,
+                        GRB.Attr.Pi,
                         [constr_handles[c.id] for c in lp.constraints()],
                     ),
                 ):
-                    constr.slack = value
-                # put pi and slack variables against the constraints
-                if not model.IsMIP:
-                    for var, value in zip(
-                        exported_vars,
-                        model.getAttr(
-                            GRB.Attr.RC,
-                            [var_handles[j] for j in range(len(exported_vars))],
-                        ),
-                    ):
-                        var.dj = value
+                    constr.pi = value
+        return status, has_solution
 
-                    for constr, value in zip(
-                        lp.constraints(),
-                        model.getAttr(
-                            GRB.Attr.Pi,
-                            [constr_handles[c.id] for c in lp.constraints()],
-                        ),
-                    ):
-                        constr.pi = value
-            return status, has_solution
+    def available(self):
+        """True if the solver is available"""
+        if gurobipy_mod is None:
+            return False
+        try:
+            with gurobipy_mod.Env(params=self.env_options):
+                pass
+        except gurobipy_mod.GurobiError as e:
+            warnings.warn(f"GUROBI error: {e}.")
+            return False
+        return True
 
-        def available(self):
-            """True if the solver is available"""
-            try:
-                with gp.Env(params=self.env_options):
-                    pass
-            except gp.GurobiError as e:
-                warnings.warn(f"GUROBI error: {e}.")
-                return False
-            return True
-
-        def initGurobi(self):
-            if self.init_gurobi:
-                return
+    def initGurobi(self):
+        if self.init_gurobi:
+            return
+        else:
+            self.init_gurobi = True
+        try:
+            if self.manage_env:
+                self.env = gurobipy_mod.Env(params=self.env_options)
+                self.model = gurobipy_mod.Model(env=self.env)
+            # Environment handled by user or default Env
             else:
-                self.init_gurobi = True
-            try:
-                if self.manage_env:
-                    self.env = gp.Env(params=self.env_options)
-                    self.model = gp.Model(env=self.env)
-                # Environment handled by user or default Env
-                else:
-                    self.model = gp.Model(env=self.env)
-                # Set solver parameters
-                for param, value in self.solver_params.items():
-                    self.model.setParam(param, value)
-            except gp.GurobiError as e:
-                raise e
+                self.model = gurobipy_mod.Model(env=self.env)
+            # Set solver parameters
+            for param, value in self.solver_params.items():
+                self.model.setParam(param, value)
+        except gurobipy_mod.GurobiError as e:
+            raise e
 
-        def callSolver(self, lp, callback=None):
-            """Solves the problem with gurobi"""
-            # solve the problem
-            self.solveTime = -clock()
-            lp.solverModel.optimize(callback=callback)
-            self.solveTime += clock()
+    def callSolver(self, lp, callback=None):
+        """Solves the problem with gurobi"""
+        # solve the problem
+        self.solveTime = -clock()
+        lp.solverModel.optimize(callback=callback)
+        self.solveTime += clock()
 
-        def _silence(self, solverModel):
-            """Apply ``msg=False``, without also emptying the log file.
+    def _silence(self, solverModel):
+        """Apply ``msg=False``, without also emptying the log file.
 
-            ``OutputFlag=0`` turns off every kind of logging, the file included, and
-            ``__init__`` already put it on the environment. When a log file was asked
-            for, turn logging back on at the model level and silence the console
-            alone, so ``msg=False`` still leaves something to parse.
-            """
-            if self.msg:
-                return
-            if self.optionsDict.get("logPath"):
-                # silence the console first: doing it the other way round briefly
-                # enables output and Gurobi echoes the parameter change
-                solverModel.setParam("LogToConsole", 0)
-                solverModel.setParam("OutputFlag", 1)
-            else:
-                solverModel.setParam("OutputFlag", 0)
+        ``OutputFlag=0`` turns off every kind of logging, the file included, and
+        ``__init__`` already put it on the environment. When a log file was asked
+        for, turn logging back on at the model level and silence the console
+        alone, so ``msg=False`` still leaves something to parse.
+        """
+        if self.msg:
+            return
+        if self.optionsDict.get("logPath"):
+            # silence the console first: doing it the other way round briefly
+            # enables output and Gurobi echoes the parameter change
+            solverModel.setParam("LogToConsole", 0)
+            solverModel.setParam("OutputFlag", 1)
+        else:
+            solverModel.setParam("OutputFlag", 0)
 
-        def _set_log_file(self, solverModel, logPath):
-            """Point Gurobi at a log file without echoing the path to the console."""
-            console = solverModel.Params.LogToConsole
-            if console:
-                solverModel.setParam("LogToConsole", 0)
-            solverModel.setParam("LogFile", logPath)
-            if console:
-                solverModel.setParam("LogToConsole", console)
+    def _set_log_file(self, solverModel, logPath):
+        """Point Gurobi at a log file without echoing the path to the console."""
+        console = solverModel.Params.LogToConsole
+        if console:
+            solverModel.setParam("LogToConsole", 0)
+        solverModel.setParam("LogFile", logPath)
+        if console:
+            solverModel.setParam("LogToConsole", console)
 
-        def buildSolverModel(self, lp: LpProblem):
-            """
-            Takes the pulp lp model and translates it into a gurobi model
-            """
-            log.debug("create the gurobi model")
+    @requires("gurobipy")
+    def buildSolverModel(self, lp: LpProblem):
+        """
+        Takes the pulp lp model and translates it into a gurobi model
+        """
+        log.debug("create the gurobi model")
+        self.initGurobi()
+        assert self.model is not None
+        self.model.ModelName = lp.name
+        lp.solverModel = self.model
+        self._silence(lp.solverModel)
+        log.debug("set the sense of the problem")
+        if lp.sense == constants.LpMaximize:
+            lp.solverModel.setAttr("ModelSense", -1)
+        if self.timeLimit:
+            lp.solverModel.setParam("TimeLimit", self.timeLimit)
+        gapRel = self.optionsDict.get("gapRel")
+        logPath = self.optionsDict.get("logPath")
+        if gapRel:
+            lp.solverModel.setParam("MIPGap", gapRel)
+        if logPath:
+            self._set_log_file(lp.solverModel, logPath)
+
+        log.debug("add the variables to the problem")
+        lp.solverModel.update()
+        nvars = lp.solverModel.NumVars
+        var_handles = []
+        constr_handles = []
+        exported_vars = lp.exported_variables()
+        id_to_col = {v.id: j for j, v in enumerate(exported_vars)}
+        if nvars > 0:
+            # Variable compression changes column order vs. var.id; rebuild from scratch.
+            lp.solverModel.dispose()
+            self.init_gurobi = False
             self.initGurobi()
             assert self.model is not None
             self.model.ModelName = lp.name
             lp.solverModel = self.model
             self._silence(lp.solverModel)
-            log.debug("set the sense of the problem")
             if lp.sense == constants.LpMaximize:
                 lp.solverModel.setAttr("ModelSense", -1)
             if self.timeLimit:
@@ -352,102 +367,72 @@ class GUROBI(LpSolver):
                 lp.solverModel.setParam("MIPGap", gapRel)
             if logPath:
                 self._set_log_file(lp.solverModel, logPath)
+            nvars = 0
 
-            log.debug("add the variables to the problem")
-            lp.solverModel.update()
-            nvars = lp.solverModel.NumVars
-            var_handles = []
-            constr_handles = []
-            exported_vars = lp.exported_variables()
-            id_to_col = {v.id: j for j, v in enumerate(exported_vars)}
-            if nvars > 0:
-                # Variable compression changes column order vs. var.id; rebuild from scratch.
-                lp.solverModel.dispose()
-                self.init_gurobi = False
-                self.initGurobi()
-                assert self.model is not None
-                self.model.ModelName = lp.name
-                lp.solverModel = self.model
-                self._silence(lp.solverModel)
-                if lp.sense == constants.LpMaximize:
-                    lp.solverModel.setAttr("ModelSense", -1)
-                if self.timeLimit:
-                    lp.solverModel.setParam("TimeLimit", self.timeLimit)
-                gapRel = self.optionsDict.get("gapRel")
-                logPath = self.optionsDict.get("logPath")
-                if gapRel:
-                    lp.solverModel.setParam("MIPGap", gapRel)
-                if logPath:
-                    self._set_log_file(lp.solverModel, logPath)
-                nvars = 0
+        if nvars == 0:
+            for var in exported_vars:
+                lowBound = var.lowBound
+                if not math.isfinite(lowBound):
+                    lowBound = -gurobipy_mod.GRB.INFINITY
+                upBound = var.upBound
+                if not math.isfinite(upBound):
+                    upBound = gurobipy_mod.GRB.INFINITY
+                obj = lp.objective.get(var, 0.0)
+                varType = gurobipy_mod.GRB.CONTINUOUS
+                if var.cat == constants.LpInteger and self.mip:
+                    varType = gurobipy_mod.GRB.INTEGER
+                gvar = lp.solverModel.addVar(
+                    lowBound, upBound, vtype=varType, obj=obj, name=var.name
+                )
+                var_handles.append(gvar)
+        if self.optionsDict.get("warmStart", False):
+            for var in exported_vars:
+                if var.varValue is not None:
+                    var_handles[id_to_col[var.id]].start = var.varValue
 
-            if nvars == 0:
-                for var in exported_vars:
-                    lowBound = var.lowBound
-                    if not math.isfinite(lowBound):
-                        lowBound = -gp.GRB.INFINITY
-                    upBound = var.upBound
-                    if not math.isfinite(upBound):
-                        upBound = gp.GRB.INFINITY
-                    obj = lp.objective.get(var, 0.0)
-                    varType = gp.GRB.CONTINUOUS
-                    if var.cat == constants.LpInteger and self.mip:
-                        varType = gp.GRB.INTEGER
-                    gvar = lp.solverModel.addVar(
-                        lowBound, upBound, vtype=varType, obj=obj, name=var.name
+        lp.solverModel.update()
+        if nvars == 0:
+            log.debug("add the Constraints to the problem")
+            for constraint in lp.constraints():
+                # build the expression (id = index in var_handles)
+                name = constraint.name
+                solver_vars = [var_handles[id_to_col[v.id]] for v in constraint.keys()]
+                expr = gurobipy_mod.LinExpr(list(constraint.values()), solver_vars)
+                if constraint.sense == constants.LpConstraintLE:
+                    gconstr = lp.solverModel.addConstr(
+                        expr <= -constraint.constant, name=name
                     )
-                    var_handles.append(gvar)
-            if self.optionsDict.get("warmStart", False):
-                for var in exported_vars:
-                    if var.varValue is not None:
-                        var_handles[id_to_col[var.id]].start = var.varValue
+                elif constraint.sense == constants.LpConstraintGE:
+                    gconstr = lp.solverModel.addConstr(
+                        expr >= -constraint.constant, name=name
+                    )
+                elif constraint.sense == constants.LpConstraintEQ:
+                    gconstr = lp.solverModel.addConstr(
+                        expr == -constraint.constant, name=name
+                    )
+                else:
+                    raise PulpSolverError("Detected an invalid constraint type")
+                constr_handles.append(gconstr)
+        lp.solverModel.update()
+        return var_handles, constr_handles
 
-            lp.solverModel.update()
-            if nvars == 0:
-                log.debug("add the Constraints to the problem")
-                for constraint in lp.constraints():
-                    # build the expression (id = index in var_handles)
-                    name = constraint.name
-                    solver_vars = [
-                        var_handles[id_to_col[v.id]] for v in constraint.keys()
-                    ]
-                    expr = gp.LinExpr(list(constraint.values()), solver_vars)
-                    if constraint.sense == constants.LpConstraintLE:
-                        gconstr = lp.solverModel.addConstr(
-                            expr <= -constraint.constant, name=name
-                        )
-                    elif constraint.sense == constants.LpConstraintGE:
-                        gconstr = lp.solverModel.addConstr(
-                            expr >= -constraint.constant, name=name
-                        )
-                    elif constraint.sense == constants.LpConstraintEQ:
-                        gconstr = lp.solverModel.addConstr(
-                            expr == -constraint.constant, name=name
-                        )
-                    else:
-                        raise PulpSolverError("Detected an invalid constraint type")
-                    constr_handles.append(gconstr)
-            lp.solverModel.update()
-            return var_handles, constr_handles
+    @requires("gurobipy")
+    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
+        """
+        Solve a well formulated lp problem
 
-        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
-            """
-            Solve a well formulated lp problem
-
-            creates a gurobi model, variables and constraints and attaches
-            them to the lp model which it then solves
-            """
-            start = clocks()
-            callback = kwargs.get("callback")
-            var_handles, constr_handles = self.buildSolverModel(lp)
-            # set the initial solution
-            log.debug("Solve the Model using gurobi")
-            self.callSolver(lp, callback=callback)
-            # get the solution information
-            status, has_solution = self.findSolutionValues(
-                lp, var_handles, constr_handles
-            )
-            return self.buildStats(lp, status, has_solution, start=start)
+        creates a gurobi model, variables and constraints and attaches
+        them to the lp model which it then solves
+        """
+        start = clocks()
+        callback = kwargs.get("callback")
+        var_handles, constr_handles = self.buildSolverModel(lp)
+        # set the initial solution
+        log.debug("Solve the Model using gurobi")
+        self.callSolver(lp, callback=callback)
+        # get the solution information
+        status, has_solution = self.findSolutionValues(lp, var_handles, constr_handles)
+        return self.buildStats(lp, status, has_solution, start=start)
 
 
 class GUROBI_CMD(LpSolver_CMD):

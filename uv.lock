@@ -675,6 +675,9 @@ copt = [
 cplex = [
     { name = "cplex", marker = "platform_machine == 'arm64' or sys_platform != 'darwin'" },
 ]
+glpk = [
+    { name = "swiglpk" },
+]
 gurobi = [
     { name = "gurobipy" },
 ]
@@ -691,6 +694,7 @@ open-py = [
     { name = "cbcbox" },
     { name = "highspy" },
     { name = "pyscipopt" },
+    { name = "swiglpk" },
 ]
 ortools = [
     { name = "ortools" },
@@ -736,10 +740,12 @@ requires-dist = [
     { name = "ortools", marker = "extra == 'ortools'" },
     { name = "pyscipopt", marker = "extra == 'open-py'" },
     { name = "pyscipopt", marker = "extra == 'scip'" },
+    { name = "swiglpk", marker = "extra == 'glpk'" },
+    { name = "swiglpk", marker = "extra == 'open-py'" },
     { name = "xpress", marker = "extra == 'public-py'" },
     { name = "xpress", marker = "extra == 'xpress'" },
 ]
-provides-extras = ["open-py", "public-py", "highs", "highs-cmd", "cbc", "scip", "gurobi", "xpress", "copt", "cplex", "mosek", "ortools"]
+provides-extras = ["open-py", "public-py", "highs", "highs-cmd", "cbc", "scip", "glpk", "gurobi", "xpress", "copt", "cplex", "mosek", "ortools"]
 
 [package.metadata.requires-dev]
 dev = [
@@ -1121,6 +1127,50 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/3b/44/6716b257b0aa6bfd51a1b31665d1c205fb12cb5ad56de752dfa15657de2f/sphinxcontrib_serializinghtml-2.0.0.tar.gz", hash = "sha256:e9d912827f872c029017a53f0ef2180b327c3f7fd23c87229f7a8e8b70031d4d", size = 16080 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/52/a7/d2782e4e3f77c8450f727ba74a8f12756d5ba823d81b941f1b04da9d033a/sphinxcontrib_serializinghtml-2.0.0-py3-none-any.whl", hash = "sha256:6e2cb0eef194e10c27ec0023bfeb25badbbb5868244cf5bc5bdc04e4464bf331", size = 92072 },
+]
+
+[[package]]
+name = "swiglpk"
+version = "5.0.13"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/2e/4b/9bd62c4637bf6bc613b31d1f4d2cf797c98d231c214c55eb7b2b48af1f5f/swiglpk-5.0.13.tar.gz", hash = "sha256:23050101f01ae1de162a68943e49f139dd586eed327324fece57647ec0c52212", size = 39756 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e3/26/0221b5f882da40af0ae344571ac6dc43bc9f3af9e261ffa007d6d4958de5/swiglpk-5.0.13-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:4af6b71b381cdf184b7044d467bf7d64bcb6480425caa576820a0dc3999f5baa", size = 782826 },
+    { url = "https://files.pythonhosted.org/packages/d6/bc/049f51343f2bdb68c87f0f691d7b4913ffef51b58c18f69f855c12d2b4cd/swiglpk-5.0.13-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:910b24aed66a0b2d90f039496614bcbac9ac9db20de1ea51dfedbde4d9db19aa", size = 764254 },
+    { url = "https://files.pythonhosted.org/packages/30/ac/e17c874970bca31071e110e23d389be6b79847d9d1ee78a644d68984194c/swiglpk-5.0.13-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:c22b0365af7df2409e57ad8577ab2138bbcac65f84ff2502e9a0fd5997887fe0", size = 2206780 },
+    { url = "https://files.pythonhosted.org/packages/fd/13/73c2d690a78fdd30d7c2ad06ab86d27a097d8a868e9bf9a8a034e400d7a9/swiglpk-5.0.13-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:d6f98564c08f7e2cc24c2d43d3ac0c78f5d97f0ceee2b9495428a30ea2d2dc11", size = 2343139 },
+    { url = "https://files.pythonhosted.org/packages/a0/d2/30b6e0de56125e5953a70c5c0e1dc77430d3eb98862806ad4390e8e3ed48/swiglpk-5.0.13-cp310-cp310-win32.whl", hash = "sha256:183cadff8882e4af1fff8fe6112dde7bae9c78ab8660628645e700c065502838", size = 465390 },
+    { url = "https://files.pythonhosted.org/packages/46/63/cfd5b69328617d8dda7a0af0bc0147416fa471d82a9bb31918b60ffc442e/swiglpk-5.0.13-cp310-cp310-win_amd64.whl", hash = "sha256:99898a73b9c6353656d09a10c6a52410809b54dcf566744710dc41927e490262", size = 581192 },
+    { url = "https://files.pythonhosted.org/packages/d5/64/274e5177193f24b46a72813827f25742f44fe8d44495ad2dc5be9fdeeef1/swiglpk-5.0.13-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:145de82baa80317474579ee50712358ddce8ed482affaf38d603d5972793e301", size = 782826 },
+    { url = "https://files.pythonhosted.org/packages/fa/d1/b74e7ec5a39b7180f1706b39f5e598d24bf083423a255d387b8e10559990/swiglpk-5.0.13-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:f2ce367ab9f17aa7c4987fa4adb68910d0cc2ac77ad6f75d57da4546bb8d6fbc", size = 764256 },
+    { url = "https://files.pythonhosted.org/packages/2f/69/54e768964ed6be048fbb6e460fcee78baac09e58f93ad2afd71c0c9007b7/swiglpk-5.0.13-cp311-cp311-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:5b804ece9263e129067bb14c63c96dbe012eee6a04340cd8aa20d8797266500e", size = 2228930 },
+    { url = "https://files.pythonhosted.org/packages/8b/af/58882355d5181165d7f0477b855ebbf1c180347080225e48cbaa7ec262cb/swiglpk-5.0.13-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:42a732f664919f28d2187e8afda80e99e99ac3e0cdccd2576126753d0632e5f7", size = 2366602 },
+    { url = "https://files.pythonhosted.org/packages/d2/f5/c248387fa424d023ecf78f343961f3072f5a0ab246bd3d9fb01700a2b767/swiglpk-5.0.13-cp311-cp311-win32.whl", hash = "sha256:b2fa6587bc7b3a3ffd8e7cde2dd06064e0cc910ccf7e84d9858dcfdb350b994c", size = 465388 },
+    { url = "https://files.pythonhosted.org/packages/62/c1/00a5ede264ce42448ca9c2ee4b7fdb4e69292cdb9501e6d061380b60f24d/swiglpk-5.0.13-cp311-cp311-win_amd64.whl", hash = "sha256:9714bb9a0673c2d5f02dd364eead1b7bba92788767b1bec08e1cb6f74f530ee7", size = 581189 },
+    { url = "https://files.pythonhosted.org/packages/b1/43/bb15639899c615f0c228d10ffa147ac4445bd72a7dff2fc391306f20b7b7/swiglpk-5.0.13-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:09d2f1093f858ddfb13bc8ff408e443013a8562325ec27e2b5fb23a39451e70c", size = 774739 },
+    { url = "https://files.pythonhosted.org/packages/f7/e9/e20243acbb2f7b02d32881c332a55eeae342effb1137492d09225fea2649/swiglpk-5.0.13-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:2885d90a15189974262b3794b720dd3dc2da84b91c9e816a25cfa909c156f9a4", size = 764583 },
+    { url = "https://files.pythonhosted.org/packages/94/24/34758672a633807062812704a61c4f3209f50520eaad32d61480a8d0dd17/swiglpk-5.0.13-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:d644cc457a8b685833c5f749c7589bdc21d817258c4b058c65add8a9d7c21420", size = 2229957 },
+    { url = "https://files.pythonhosted.org/packages/8f/f4/bfbcc72fb9789abf97cf4b5f814d39d82f8b9b16152b06fd6bc6e5abaf61/swiglpk-5.0.13-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:60ca287839ab252f3eee0e9b820e1da43d5339cc3e5819cdecd9514cee00789b", size = 2373916 },
+    { url = "https://files.pythonhosted.org/packages/99/d4/91f03838d2b66a926a7187d7da4ee55031139b6f5978dd4c6a634ec52289/swiglpk-5.0.13-cp312-cp312-win32.whl", hash = "sha256:fe66faace05eb79aa15b7b59830269a7b7720cf90503d2326abf80e5f7e987cd", size = 466042 },
+    { url = "https://files.pythonhosted.org/packages/61/16/ad3d7811d8c4a01cbd3551602040af7438502e624bbe65bd1bd02082d81c/swiglpk-5.0.13-cp312-cp312-win_amd64.whl", hash = "sha256:b4f563b49a789675e2365050b8c751b90c28f6e1839b78dca90a83fbcf56aead", size = 581486 },
+    { url = "https://files.pythonhosted.org/packages/16/f5/627e52b391c94b41d53287be3e74c837e9cd78865d486428377df36636da/swiglpk-5.0.13-cp313-cp313-macosx_10_13_x86_64.whl", hash = "sha256:451f6e0be310a3fb0557fc720858c18831716e1e28b1c3da16e22934ece2a916", size = 774388 },
+    { url = "https://files.pythonhosted.org/packages/08/9d/f2bb64e8ddd632002aaf701c44242b043ba2c35b1daf5f52ad5850fec4e5/swiglpk-5.0.13-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:f687aee94613755e92e491c5b8049be2380b579028efb26b20b16edfa774b17e", size = 764241 },
+    { url = "https://files.pythonhosted.org/packages/83/23/3f580b7074d40cc7eb95d94aac401a7d15f2c5f04d7ed276f1bc4785431a/swiglpk-5.0.13-cp313-cp313-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:5eedad88a771d7db3de56cd40ccb0d8a7cf41e9d5cc62142b04754072bd29195", size = 2227976 },
+    { url = "https://files.pythonhosted.org/packages/79/7a/224dda905682dcde30c691e063ffaa17138a43d452d22732504e0ae3a050/swiglpk-5.0.13-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:fe6a549196cccc15ff722d200fd54ad130a2315e623a782a499b829f17e2df2e", size = 2372437 },
+    { url = "https://files.pythonhosted.org/packages/09/0c/bf779e8c1ccb1b9fa4894596e2c89be7b4754823b219eb868fadd468b029/swiglpk-5.0.13-cp313-cp313-win32.whl", hash = "sha256:2784242ba0141a1338cc35520c9d5c7e3f5b22bee12b9410f030b4082365789b", size = 466038 },
+    { url = "https://files.pythonhosted.org/packages/65/a8/f518096adde4c7cd155395c52d27cd42b1697ba04370fdce159ca3265aff/swiglpk-5.0.13-cp313-cp313-win_amd64.whl", hash = "sha256:c50bfa1452083427a364a3f8a1402dde41090d75c04ff423e317b79775af3fde", size = 581483 },
+    { url = "https://files.pythonhosted.org/packages/f8/ad/83298a6d732abd1d414a5f91cd589801c686362948f5ad23874d259a802f/swiglpk-5.0.13-cp314-cp314-macosx_10_15_x86_64.whl", hash = "sha256:7173ba5a53906cc562cd119f73199ec298dc81104f3c0859f545222c2d0bb4f6", size = 775786 },
+    { url = "https://files.pythonhosted.org/packages/02/07/2590417c26d1e0b29459271f1648e2d7f228753d9aac3420a162d5c92c1f/swiglpk-5.0.13-cp314-cp314-macosx_11_0_arm64.whl", hash = "sha256:9b4bd347518ac694e478c2cc156b4bf9b721291b6c77bfb1bcc99f9c3e7a5c8f", size = 764324 },
+    { url = "https://files.pythonhosted.org/packages/46/61/c7c2fdccbb24aeec0aa0120771a69bb42b23e30a44654f7dc7539e4fbffb/swiglpk-5.0.13-cp314-cp314-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:2bdabc3b7a9a3515e093c21094191b3785c8962eb5da843927d84d60723ec0fd", size = 2225224 },
+    { url = "https://files.pythonhosted.org/packages/f8/54/6eb89ba70ac5c0149e485259e9d940c10b2ba366487d1ea5f36c9f4bd4bb/swiglpk-5.0.13-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:b0e201b0da3ff2a16322bcbfc2a590eaa0786466510b00a9c6b7ac0692dddda8", size = 2368569 },
+    { url = "https://files.pythonhosted.org/packages/8d/56/991e0e8247307e40274535f423efbc230174337c0d05390e1816a2e91e63/swiglpk-5.0.13-cp314-cp314-win32.whl", hash = "sha256:5546ad13347c645ce54cf68c13beb40f088083f2f011cf7bf818185ec4577373", size = 477934 },
+    { url = "https://files.pythonhosted.org/packages/99/9d/a5d2fad5c7049e5929fe6aeca5bf9567cc36fcdee70f5d842e9d4e39b0b7/swiglpk-5.0.13-cp314-cp314-win_amd64.whl", hash = "sha256:3acefaa81a3a9d6cff90d89197222b8ceb814acc85f77aab81e88edc71cc609f", size = 600417 },
+    { url = "https://files.pythonhosted.org/packages/b0/8c/6066ced52fefa599eaf8c9fa571dd75581f597ef0f38b7c2e0fd635a4d8e/swiglpk-5.0.13-cp314-cp314t-macosx_10_15_x86_64.whl", hash = "sha256:a8f647ec2c8ffba9dd4ce08b650fd10dbdf7ef0e980aa1aba3cf6a228b00aa16", size = 779419 },
+    { url = "https://files.pythonhosted.org/packages/34/53/f5f179dc8b2f6d35c86d9778f9f5a7ac2963c17b535597f5c9216eb74048/swiglpk-5.0.13-cp314-cp314t-macosx_11_0_arm64.whl", hash = "sha256:8f6736c089a060ceb89baf7a5d89117e6473d53674445037de57ed859f869f20", size = 766570 },
+    { url = "https://files.pythonhosted.org/packages/26/6b/d08ff0229f37e4d97f9c050e9a236ca7d95384639243b95d5b2a3f2be5d6/swiglpk-5.0.13-cp314-cp314t-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:0d927a414f702da0f83d0bdd8e6d1ff04b9db1ba5e24bfc5fe0d42c55f71d960", size = 2215178 },
+    { url = "https://files.pythonhosted.org/packages/2e/2f/e7799bbc46fdd1423a5fa681f9c6b95e7b7e393771f13767cd21f6f19c43/swiglpk-5.0.13-cp314-cp314t-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:4c17982952cfa2436b3f4f4b2e249a81f0dbe0df19909515b0a48f972a0901cd", size = 2353956 },
+    { url = "https://files.pythonhosted.org/packages/7d/a4/2442a92e0ab4bd333bbb4db1ef48ef8a191e1143fb22c702d4b4414ab3b9/swiglpk-5.0.13-cp314-cp314t-win32.whl", hash = "sha256:cbc6fb74f4216ff464dc96605907742bbefb5d2097f158ddcc5952a5cfc6675d", size = 484204 },
+    { url = "https://files.pythonhosted.org/packages/ae/83/9e2abd8862cbd604283b93e8c1a840fa95c63ba2734c1bd1bdff3f9254e8/swiglpk-5.0.13-cp314-cp314t-win_amd64.whl", hash = "sha256:12d11beff9bdbae0a026656f4a58e4adb6074bd86f9d87030c5680e5c87a9571", size = 609578 },
 ]
 
 [[package]]

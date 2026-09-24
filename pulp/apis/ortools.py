@@ -5,18 +5,21 @@ import warnings
 from typing import TYPE_CHECKING, Any
 
 from .. import constants
-from .core import LpSolver, PulpSolverError, clock, clocks, log
+from .core import (
+    LpSolver,
+    PulpSolverError,
+    clock,
+    clocks,
+    import_optional,
+    log,
+    requires,
+)
 
 if TYPE_CHECKING:
     from ..core.lp_problem import LpProblem
     from ..core.lp_stats import LpSolveStats
 
-_ORTOOLS_IMPORT_ERROR: BaseException | None = None
-cp_model_mod = None
-try:
-    from ortools.sat.python import cp_model as cp_model_mod
-except Exception as exc:
-    _ORTOOLS_IMPORT_ERROR = exc
+cp_model_mod = import_optional("ortools.sat.python.cp_model")
 
 
 def _decimal_places(value: float) -> int:
@@ -33,17 +36,6 @@ def _integer_scale(values: list[float]) -> int:
 
 def _scale_to_int(value: float, scale: int) -> int:
     return int(round(value * scale))
-
-
-def check_ortools(func):
-    """Decorator that checks if ortools is available."""
-
-    def wrapper(self, *args, **kwargs):
-        if cp_model_mod is None:
-            raise PulpSolverError(f"CPSAT: Not Available:\n{_ORTOOLS_IMPORT_ERROR}")
-        return func(self, *args, **kwargs)
-
-    return wrapper
 
 
 class CPSAT(LpSolver):
@@ -91,7 +83,7 @@ class CPSAT(LpSolver):
         """True if the solver is available"""
         return cp_model_mod is not None
 
-    @check_ortools
+    @requires("ortools.sat.python.cp_model")
     def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
         """
         Solve a well formulated lp problem.
@@ -107,7 +99,7 @@ class CPSAT(LpSolver):
         )
         return self.buildStats(lp, status, has_solution, start=start)
 
-    @check_ortools
+    @requires("ortools.sat.python.cp_model")
     def buildSolverModel(self, lp: LpProblem) -> list[Any]:
         """
         Takes the pulp lp model and translates it into a CP-SAT model.
@@ -223,7 +215,7 @@ class CPSAT(LpSolver):
 
         return var_handles
 
-    @check_ortools
+    @requires("ortools.sat.python.cp_model")
     def callSolver(self, lp: LpProblem) -> tuple[Any, Any]:
         """Solves the problem with CP-SAT and returns the solver and status."""
         solver = cp_model_mod.CpSolver()
@@ -253,7 +245,7 @@ class CPSAT(LpSolver):
                 f.write("\n".join(log_lines))
         return solver, status
 
-    @check_ortools
+    @requires("ortools.sat.python.cp_model")
     def findSolutionValues(
         self,
         lp: LpProblem,

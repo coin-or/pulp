@@ -37,8 +37,10 @@ from .core import (
     PulpSolverError,
     clock,
     clocks,
+    import_optional,
     log,
     operating_system,
+    requires,
     subprocess,
 )
 
@@ -243,8 +245,7 @@ class GLPK_CMD(LpSolver_CMD):
 
 GLPK = GLPK_CMD
 
-# get the glpk name in global scope
-glpk = None
+swiglpk_mod = import_optional("swiglpk")
 
 
 class PYGLPK(LpSolver):
@@ -260,186 +261,187 @@ class PYGLPK(LpSolver):
 
     name = "PYGLPK"
 
-    try:
-        # import the model into the global scope
-        global glpk
-        import glpk.glpkpi as glpk  # type: ignore[import-not-found]
-    except Exception:
+    def __init__(self, mip=True, msg=True, timeLimit=None, gapRel=None, **solverParams):
+        """
+        Initializes the glpk solver.
 
-        def available(self):
-            """True if the solver is available"""
-            return False
+        @param mip: if False the solver will solve a MIP as an LP
+        @param msg: displays information from the solver to stdout
+        @param timeLimit: not handled
+        @param gapRel: not handled
+        @param solverParams: not handled
+        """
+        LpSolver.__init__(self, mip, msg)
+        if not self.msg and swiglpk_mod is not None:
+            swiglpk_mod.glp_term_out(swiglpk_mod.GLP_OFF)
 
-        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
-            """Solve a well formulated lp problem."""
-            raise PulpSolverError("GLPK: Not Available")
-
-    else:
-
-        def __init__(
-            self, mip=True, msg=True, timeLimit=None, gapRel=None, **solverParams
-        ):
-            """
-            Initializes the glpk solver.
-
-            @param mip: if False the solver will solve a MIP as an LP
-            @param msg: displays information from the solver to stdout
-            @param timeLimit: not handled
-            @param gapRel: not handled
-            @param solverParams: not handled
-            """
-            LpSolver.__init__(self, mip, msg)
-            if not self.msg:
-                glpk.glp_term_out(glpk.GLP_OFF)
-
-        def findSolutionValues(self, lp):
-            prob = lp.solverModel
-            constr_handles = self._constr_handles
+    def findSolutionValues(self, lp):
+        prob = lp.solverModel
+        constr_handles = self._constr_handles
+        if self.mip and self.hasMIPConstraints(lp.solverModel):
+            solutionStatus = swiglpk_mod.glp_mip_status(prob)
+        else:
+            solutionStatus = swiglpk_mod.glp_get_status(prob)
+        S = constants.LpSolveStatus
+        glpkLpStatus = {
+            swiglpk_mod.GLP_OPT: S.Optimal,
+            swiglpk_mod.GLP_UNDEF: S.Undefined,
+            swiglpk_mod.GLP_FEAS: S.Stopped,
+            swiglpk_mod.GLP_INFEAS: S.Infeasible,
+            swiglpk_mod.GLP_NOFEAS: S.Infeasible,
+            swiglpk_mod.GLP_UNBND: S.Unbounded,
+        }
+        exported_vars = lp.exported_variables()
+        for var, col in zip(exported_vars, self._var_handles):
             if self.mip and self.hasMIPConstraints(lp.solverModel):
-                solutionStatus = glpk.glp_mip_status(prob)
+                var.varValue = swiglpk_mod.glp_mip_col_val(prob, col)
             else:
-                solutionStatus = glpk.glp_get_status(prob)
-            S = constants.LpSolveStatus
-            glpkLpStatus = {
-                glpk.GLP_OPT: S.Optimal,
-                glpk.GLP_UNDEF: S.Undefined,
-                glpk.GLP_FEAS: S.Stopped,
-                glpk.GLP_INFEAS: S.Infeasible,
-                glpk.GLP_NOFEAS: S.Infeasible,
-                glpk.GLP_UNBND: S.Unbounded,
-            }
-            exported_vars = lp.exported_variables()
-            for var, col in zip(exported_vars, self._var_handles):
-                if self.mip and self.hasMIPConstraints(lp.solverModel):
-                    var.varValue = glpk.glp_mip_col_val(prob, col)
-                else:
-                    var.varValue = glpk.glp_get_col_prim(prob, col)
-                var.dj = glpk.glp_get_col_dual(prob, col)
-            # put pi and slack variables against the constraints
-            for constr in lp.constraints():
-                row = constr_handles[constr.id]
-                if self.mip and self.hasMIPConstraints(lp.solverModel):
-                    row_val = glpk.glp_mip_row_val(prob, row)
-                else:
-                    row_val = glpk.glp_get_row_prim(prob, row)
-                constr.slack = -constr.constant - row_val
-                constr.pi = glpk.glp_get_row_dual(prob, row)
-            status = glpkLpStatus.get(solutionStatus, S.Undefined)
-            return status, solutionStatus in (glpk.GLP_OPT, glpk.GLP_FEAS)
-
-        def available(self):
-            """True if the solver is available"""
-            return True
-
-        def hasMIPConstraints(self, solverModel):
-            return (
-                glpk.glp_get_num_int(solverModel) > 0
-                or glpk.glp_get_num_bin(solverModel) > 0
-            )
-
-        def callSolver(self, lp, callback=None):
-            """Solves the problem with glpk"""
-            self.solveTime = -clock()
-            glpk.glp_adv_basis(lp.solverModel, 0)
-            glpk.glp_simplex(lp.solverModel, None)
+                var.varValue = swiglpk_mod.glp_get_col_prim(prob, col)
+            var.dj = swiglpk_mod.glp_get_col_dual(prob, col)
+        # put pi and slack variables against the constraints
+        for constr in lp.constraints():
+            row = constr_handles[constr.id]
             if self.mip and self.hasMIPConstraints(lp.solverModel):
-                status = glpk.glp_get_status(lp.solverModel)
-                if status in (glpk.GLP_OPT, glpk.GLP_UNDEF, glpk.GLP_FEAS):
-                    glpk.glp_intopt(lp.solverModel, None)
-            self.solveTime += clock()
+                row_val = swiglpk_mod.glp_mip_row_val(prob, row)
+            else:
+                row_val = swiglpk_mod.glp_get_row_prim(prob, row)
+            constr.slack = -constr.constant - row_val
+            constr.pi = swiglpk_mod.glp_get_row_dual(prob, row)
+        status = glpkLpStatus.get(solutionStatus, S.Undefined)
+        return status, solutionStatus in (swiglpk_mod.GLP_OPT, swiglpk_mod.GLP_FEAS)
 
-        def buildSolverModel(self, lp):
-            """
-            Takes the pulp lp model and translates it into a glpk model.
+    def available(self):
+        """True if the solver is available"""
+        return swiglpk_mod is not None
 
-            Fills ``self._var_handles`` / ``self._constr_handles`` (GLPK 1-based
-            indices, indexed by PuLP ``.id``).
-            """
-            log.debug("create the glpk model")
-            prob = glpk.glp_create_prob()
-            glpk.glp_set_prob_name(prob, lp.name)
-            log.debug("set the sense of the problem")
-            if lp.sense == constants.LpMaximize:
-                glpk.glp_set_obj_dir(prob, glpk.GLP_MAX)
-            log.debug("add the constraints to the problem")
-            var_handles = []
-            constr_handles = []
-            glpk.glp_add_rows(prob, len(lp.constraints()))
-            for i, constraint in enumerate(lp.constraints(), start=1):
-                name = constraint.name
-                glpk.glp_set_row_name(prob, i, name)
-                if constraint.sense == constants.LpConstraintLE:
-                    glpk.glp_set_row_bnds(
-                        prob, i, glpk.GLP_UP, 0.0, -constraint.constant
-                    )
-                elif constraint.sense == constants.LpConstraintGE:
-                    glpk.glp_set_row_bnds(
-                        prob, i, glpk.GLP_LO, -constraint.constant, 0.0
-                    )
-                elif constraint.sense == constants.LpConstraintEQ:
-                    glpk.glp_set_row_bnds(
-                        prob, i, glpk.GLP_FX, -constraint.constant, -constraint.constant
-                    )
+    def hasMIPConstraints(self, solverModel):
+        return (
+            swiglpk_mod.glp_get_num_int(solverModel) > 0
+            or swiglpk_mod.glp_get_num_bin(solverModel) > 0
+        )
+
+    def callSolver(self, lp, callback=None):
+        """Solves the problem with glpk"""
+        self.solveTime = -clock()
+        swiglpk_mod.glp_adv_basis(lp.solverModel, 0)
+        swiglpk_mod.glp_simplex(lp.solverModel, None)
+        if self.mip and self.hasMIPConstraints(lp.solverModel):
+            status = swiglpk_mod.glp_get_status(lp.solverModel)
+            if status in (
+                swiglpk_mod.GLP_OPT,
+                swiglpk_mod.GLP_UNDEF,
+                swiglpk_mod.GLP_FEAS,
+            ):
+                swiglpk_mod.glp_intopt(lp.solverModel, None)
+        self.solveTime += clock()
+
+    @requires("swiglpk")
+    def buildSolverModel(self, lp):
+        """
+        Takes the pulp lp model and translates it into a glpk model.
+
+        Fills ``self._var_handles`` / ``self._constr_handles`` (GLPK 1-based
+        indices, indexed by PuLP ``.id``).
+        """
+        log.debug("create the glpk model")
+        prob = swiglpk_mod.glp_create_prob()
+        swiglpk_mod.glp_set_prob_name(prob, lp.name)
+        log.debug("set the sense of the problem")
+        if lp.sense == constants.LpMaximize:
+            swiglpk_mod.glp_set_obj_dir(prob, swiglpk_mod.GLP_MAX)
+        log.debug("add the constraints to the problem")
+        var_handles = []
+        constr_handles = []
+        if lp.constraints():
+            swiglpk_mod.glp_add_rows(prob, len(lp.constraints()))
+        for i, constraint in enumerate(lp.constraints(), start=1):
+            name = constraint.name
+            swiglpk_mod.glp_set_row_name(prob, i, name)
+            if constraint.sense == constants.LpConstraintLE:
+                swiglpk_mod.glp_set_row_bnds(
+                    prob, i, swiglpk_mod.GLP_UP, 0.0, -constraint.constant
+                )
+            elif constraint.sense == constants.LpConstraintGE:
+                swiglpk_mod.glp_set_row_bnds(
+                    prob, i, swiglpk_mod.GLP_LO, -constraint.constant, 0.0
+                )
+            elif constraint.sense == constants.LpConstraintEQ:
+                swiglpk_mod.glp_set_row_bnds(
+                    prob,
+                    i,
+                    swiglpk_mod.GLP_FX,
+                    -constraint.constant,
+                    -constraint.constant,
+                )
+            else:
+                raise PulpSolverError("Detected an invalid constraint type")
+            constr_handles.append(i)
+        log.debug("add the variables to the problem")
+        exported_vars = lp.exported_variables()
+        id_to_col = {v.id: j for j, v in enumerate(exported_vars, start=1)}
+        if exported_vars:
+            swiglpk_mod.glp_add_cols(prob, len(exported_vars))
+        for j, var in enumerate(exported_vars, start=1):
+            swiglpk_mod.glp_set_col_name(prob, j, var.name)
+            lb = 0.0
+            ub = 0.0
+            t = swiglpk_mod.GLP_FR
+            if math.isfinite(var.lowBound):
+                lb = var.lowBound
+                t = swiglpk_mod.GLP_LO
+            if math.isfinite(var.upBound):
+                ub = var.upBound
+                t = swiglpk_mod.GLP_UP
+            if math.isfinite(var.upBound) and math.isfinite(var.lowBound):
+                if ub == lb:
+                    t = swiglpk_mod.GLP_FX
                 else:
-                    raise PulpSolverError("Detected an invalid constraint type")
-                constr_handles.append(i)
-            log.debug("add the variables to the problem")
-            exported_vars = lp.exported_variables()
-            id_to_col = {v.id: j for j, v in enumerate(exported_vars, start=1)}
-            glpk.glp_add_cols(prob, len(exported_vars))
-            for j, var in enumerate(exported_vars, start=1):
-                glpk.glp_set_col_name(prob, j, var.name)
-                lb = 0.0
-                ub = 0.0
-                t = glpk.GLP_FR
-                if math.isfinite(var.lowBound):
-                    lb = var.lowBound
-                    t = glpk.GLP_LO
-                if math.isfinite(var.upBound):
-                    ub = var.upBound
-                    t = glpk.GLP_UP
-                if math.isfinite(var.upBound) and math.isfinite(var.lowBound):
-                    if ub == lb:
-                        t = glpk.GLP_FX
-                    else:
-                        t = glpk.GLP_DB
-                glpk.glp_set_col_bnds(prob, j, t, lb, ub)
-                if var.cat == constants.LpInteger:
-                    glpk.glp_set_col_kind(prob, j, glpk.GLP_IV)
-                    assert glpk.glp_get_col_kind(prob, j) == glpk.GLP_IV
-                var_handles.append(j)
-            log.debug("set the objective function")
-            for var in exported_vars:
-                value = lp.objective.get(var)
-                if value:
-                    glpk.glp_set_obj_coef(prob, id_to_col[var.id], value)
-            log.debug("set the problem matrix")
-            for constraint in lp.constraints():
-                n = len(list(constraint.items()))
-                ind = glpk.intArray(n + 1)
-                val = glpk.doubleArray(n + 1)
-                for j, (var, value) in enumerate(constraint.items(), start=1):
-                    ind[j] = id_to_col[var.id]
-                    val[j] = value
-                glpk.glp_set_mat_row(prob, constr_handles[constraint.id], n, ind, val)
-            lp.solverModel = prob
-            # glpk.glp_write_lp(prob, None, "glpk.lp")
-            self._var_handles = var_handles
-            self._constr_handles = constr_handles
+                    t = swiglpk_mod.GLP_DB
+            swiglpk_mod.glp_set_col_bnds(prob, j, t, lb, ub)
+            if var.cat == constants.LpInteger:
+                swiglpk_mod.glp_set_col_kind(prob, j, swiglpk_mod.GLP_IV)
+                # GLPK reclassifies integer columns bounded to [0, 1] as
+                # GLP_BV (binary) rather than keeping them GLP_IV.
+                assert swiglpk_mod.glp_get_col_kind(prob, j) in (
+                    swiglpk_mod.GLP_IV,
+                    swiglpk_mod.GLP_BV,
+                )
+            var_handles.append(j)
+        log.debug("set the objective function")
+        for var in exported_vars:
+            value = lp.objective.get(var)
+            if value:
+                swiglpk_mod.glp_set_obj_coef(prob, id_to_col[var.id], value)
+        log.debug("set the problem matrix")
+        for constraint in lp.constraints():
+            n = len(list(constraint.items()))
+            ind = swiglpk_mod.intArray(n + 1)
+            val = swiglpk_mod.doubleArray(n + 1)
+            for j, (var, value) in enumerate(constraint.items(), start=1):
+                ind[j] = id_to_col[var.id]
+                val[j] = value
+            swiglpk_mod.glp_set_mat_row(
+                prob, constr_handles[constraint.id], n, ind, val
+            )
+        lp.solverModel = prob
+        # swiglpk_mod.glp_write_lp(prob, None, "glpk.lp")
+        self._var_handles = var_handles
+        self._constr_handles = constr_handles
 
-        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
-            """
-            Solve a well formulated lp problem
+    @requires("swiglpk")
+    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
+        """
+        Solve a well formulated lp problem
 
-            creates a glpk model, variables and constraints and attaches
-            them to the lp model which it then solves
-            """
-            start = clocks()
-            callback = kwargs.get("callback")
-            self.buildSolverModel(lp)
-            # set the initial solution
-            log.debug("Solve the Model using glpk")
-            self.callSolver(lp, callback=callback)
-            # get the solution information
-            status, has_solution = self.findSolutionValues(lp)
-            return self.buildStats(lp, status, has_solution, start=start)
+        creates a glpk model, variables and constraints and attaches
+        them to the lp model which it then solves
+        """
+        start = clocks()
+        callback = kwargs.get("callback")
+        self.buildSolverModel(lp)
+        # set the initial solution
+        log.debug("Solve the Model using glpk")
+        self.callSolver(lp, callback=callback)
+        # get the solution information
+        status, has_solution = self.findSolutionValues(lp)
+        return self.buildStats(lp, status, has_solution, start=start)

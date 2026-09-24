@@ -230,6 +230,7 @@ PuLP has the integrations with the official python API solvers for the following
 * XPRESS (XPRESS_PY)
 * COPT (COPT)
 * OR-Tools CP-SAT (CPSAT)
+* GLPK (PYGLPK)
 
 These API offer a series of advantages over using the command line option:
 
@@ -271,6 +272,31 @@ Example::
 Optional arguments include ``warmStart=True`` (pass current ``varValue`` hints),
 ``timeLimit`` (seconds), and any ``CpSolver.parameters`` names as keyword
 arguments (for example ``num_search_workers=8``).
+
+Installing PYGLPK
+***********************
+
+The ``PYGLPK`` solver uses the `swiglpk <https://pypi.org/project/swiglpk/>`_
+Python package, which bundles the GLPK library, so no separate GLPK
+installation or executable is required. Install PuLP with the optional
+extra::
+
+    python -m pip install pulp[glpk]
+
+Unlike ``GLPK_CMD``, which shells out to the ``glpsol`` binary, ``PYGLPK``
+talks to GLPK directly through its C API, which avoids the overhead of
+writing files to disk::
+
+    import pulp as pl
+
+    prob = pl.LpProblem("pyglpk_example", pl.LpMinimize)
+    x = prob.add_variable("x", 0, 3)
+    y = prob.add_variable("y", 0, 3)
+    prob += x + y
+    prob += x + y >= 2
+
+    status = prob.solve(pl.PYGLPK(msg=False))
+    print(pl.LpStatus[status], x.value(), y.value())
 
 Installing CPLEX_PY
 ***********************
