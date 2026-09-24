@@ -18,11 +18,9 @@ class SCIP_PYTest(BaseSolverTest.PuLPTest):
     pulp_test_overrides: ClassVar[dict[str, PulpTestConfig]] = {
         "test_repeated_name": ALLOW_REPEATED_VAR_NAMES,
         "test_integer_infeasible_2": PulpTestConfig(
-            okstatus=_status("LpStatusNotSolved", "LpStatusUndefined")
+            okstatus=_status("NotSolved", "Undefined")
         ),
-        "test_unbounded": PulpTestConfig(
-            okstatus=_status("LpStatusNotSolved", "LpStatusUndefined")
-        ),
+        "test_unbounded": PulpTestConfig(okstatus=_status("NotSolved", "Undefined")),
     }
 
     def test_relaxed_mip(self):

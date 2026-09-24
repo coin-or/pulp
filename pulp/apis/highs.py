@@ -9,12 +9,20 @@ from math import inf
 from typing import TYPE_CHECKING, Any
 
 from .. import constants
-from .core import LpSolver, LpSolver_CMD, PulpSolverError, import_optional, requires
+from .core import (
+    LpSolver,
+    LpSolver_CMD,
+    PulpSolverError,
+    clocks,
+    import_optional,
+    requires,
+)
 
 if TYPE_CHECKING:
     import highspy as highspy_t
 
     from ..core.lp_problem import LpProblem
+    from ..core.lp_stats import LpSolveStats
 
 # Copyright (c) 2002-2005, Jean-Sebastien Roy (js@jeannot.org)
 # Modifications Copyright (c) 2007- Stuart Anthony Mitchell (s.mitchell@auckland.ac.nz)
@@ -100,8 +108,9 @@ class HiGHS_CMD(LpSolver_CMD):
         """True if the solver is available"""
         return self.executable(self.path)
 
-    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
         """Solve a well formulated lp problem."""
+        start = clocks()
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute " + self.path)
         lp.checkDuplicateVars()
@@ -190,52 +199,34 @@ class HiGHS_CMD(LpSolver_CMD):
         sol_line = [line for line in lines if line[:2] == ["Solution", "status"]]
         sol_line = sol_line[0] if len(sol_line) > 0 else ["Not solved"]
         sol_status = sol_line[-1]
-        if model_status.lower() == "optimal":  # optimal
-            status, status_sol = (
-                constants.LpStatusOptimal,
-                constants.LpSolutionOptimal,
-            )
-        elif sol_status.lower() == "feasible":  # feasible
-            # Following the PuLP convention
-            status, status_sol = (
-                constants.LpStatusOptimal,
-                constants.LpSolutionIntegerFeasible,
-            )
-        elif model_status.lower() == "infeasible":  # infeasible
-            status, status_sol = (
-                constants.LpStatusInfeasible,
-                constants.LpSolutionInfeasible,
-            )
-        elif model_status.lower() == "unbounded":  # unbounded
-            status, status_sol = (
-                constants.LpStatusUnbounded,
-                constants.LpSolutionUnbounded,
-            )
-        else:  # no solution
-            status, status_sol = (
-                constants.LpStatusNotSolved,
-                constants.LpSolutionNoSolutionFound,
-            )
+        S = constants.LpSolveStatus
+        model_statuses = {
+            "optimal": S.Optimal,
+            "infeasible": S.Infeasible,
+            "unbounded": S.Unbounded,
+            "primal infeasible or unbounded": S.Undefined,
+            "bound on objective reached": S.GapLimit,
+            "target for objective reached": S.GapLimit,
+            "time limit reached": S.TimeLimit,
+            "iteration limit reached": S.IterationLimit,
+            "solution limit reached": S.SolutionLimit,
+            "interrupted by user": S.Interrupted,
+            "memory limit reached": S.MemoryLimit,
+        }
+        status = model_statuses.get(model_status.lower())
+        has_solution = status == S.Optimal or sol_status.lower() == "feasible"
+        if status is None:
+            status = S.Stopped if has_solution else S.NotSolved
 
         if not os.path.exists(tmpSol) or os.stat(tmpSol).st_size == 0:
-            status_sol = constants.LpSolutionNoSolutionFound
-            values = None
-        elif status_sol in {
-            constants.LpSolutionNoSolutionFound,
-            constants.LpSolutionInfeasible,
-            constants.LpSolutionUnbounded,
-        }:
-            values = None
-        else:
-            values = self.readsol(tmpSol)
+            has_solution = False
+        values = self.readsol(tmpSol) if has_solution else None
 
         self.delete_tmp_files(tmpMps, tmpSol, tmpOptions, tmpLog, tmpMst)
-        lp.assignStatus(status, status_sol)
-
-        if status == constants.LpStatusOptimal and values is not None:
+        if values is not None:
             lp.assignVarsVals(values)
 
-        return status
+        return self.buildStats(lp, status, has_solution, start=start)
 
     def writesol(self, filename, lp):
         """Writes a HiGHS solution file"""
@@ -436,84 +427,37 @@ class HiGHS(LpSolver):
         solution = lp.solverModel.getSolution()
         HighsModelStatus = highspy_mod.HighsModelStatus
 
+        S = constants.LpSolveStatus
         status_dict = {
-            HighsModelStatus.kNotset: (
-                constants.LpStatusNotSolved,
-                constants.LpSolutionNoSolutionFound,
-            ),
-            HighsModelStatus.kLoadError: (
-                constants.LpStatusNotSolved,
-                constants.LpSolutionNoSolutionFound,
-            ),
-            HighsModelStatus.kModelError: (
-                constants.LpStatusNotSolved,
-                constants.LpSolutionNoSolutionFound,
-            ),
-            HighsModelStatus.kPresolveError: (
-                constants.LpStatusNotSolved,
-                constants.LpSolutionNoSolutionFound,
-            ),
-            HighsModelStatus.kSolveError: (
-                constants.LpStatusNotSolved,
-                constants.LpSolutionNoSolutionFound,
-            ),
-            HighsModelStatus.kPostsolveError: (
-                constants.LpStatusNotSolved,
-                constants.LpSolutionNoSolutionFound,
-            ),
-            HighsModelStatus.kModelEmpty: (
-                constants.LpStatusNotSolved,
-                constants.LpSolutionNoSolutionFound,
-            ),
-            HighsModelStatus.kOptimal: (
-                constants.LpStatusOptimal,
-                constants.LpSolutionOptimal,
-            ),
-            HighsModelStatus.kInfeasible: (
-                constants.LpStatusInfeasible,
-                constants.LpSolutionInfeasible,
-            ),
-            HighsModelStatus.kUnboundedOrInfeasible: (
-                constants.LpStatusUndefined,
-                constants.LpSolutionNoSolutionFound,
-            ),
-            HighsModelStatus.kUnbounded: (
-                constants.LpStatusUnbounded,
-                constants.LpSolutionUnbounded,
-            ),
-            HighsModelStatus.kObjectiveBound: (
-                constants.LpStatusOptimal,
-                constants.LpSolutionIntegerFeasible,
-            ),
-            HighsModelStatus.kObjectiveTarget: (
-                constants.LpStatusOptimal,
-                constants.LpSolutionIntegerFeasible,
-            ),
-            HighsModelStatus.kInterrupt: (
-                constants.LpStatusOptimal,
-                constants.LpSolutionIntegerFeasible,
-            ),
-            HighsModelStatus.kTimeLimit: (
-                constants.LpStatusOptimal,
-                constants.LpSolutionIntegerFeasible,
-            ),
-            HighsModelStatus.kIterationLimit: (
-                constants.LpStatusOptimal,
-                constants.LpSolutionIntegerFeasible,
-            ),
-            HighsModelStatus.kSolutionLimit: (
-                constants.LpStatusOptimal,
-                constants.LpSolutionIntegerFeasible,
-            ),
-            HighsModelStatus.kMemoryLimit: (
-                constants.LpStatusNotSolved,
-                constants.LpSolutionNoSolutionFound,
-            ),
-            HighsModelStatus.kUnknown: (
-                constants.LpStatusNotSolved,
-                constants.LpSolutionNoSolutionFound,
-            ),
+            HighsModelStatus.kNotset: S.NotSolved,
+            HighsModelStatus.kLoadError: S.Undefined,
+            HighsModelStatus.kModelError: S.Undefined,
+            HighsModelStatus.kPresolveError: S.Undefined,
+            HighsModelStatus.kSolveError: S.Undefined,
+            HighsModelStatus.kPostsolveError: S.Undefined,
+            HighsModelStatus.kModelEmpty: S.NotSolved,
+            HighsModelStatus.kOptimal: S.Optimal,
+            HighsModelStatus.kInfeasible: S.Infeasible,
+            HighsModelStatus.kUnboundedOrInfeasible: S.Undefined,
+            HighsModelStatus.kUnbounded: S.Unbounded,
+            HighsModelStatus.kObjectiveBound: S.GapLimit,
+            HighsModelStatus.kObjectiveTarget: S.GapLimit,
+            HighsModelStatus.kInterrupt: S.Interrupted,
+            HighsModelStatus.kTimeLimit: S.TimeLimit,
+            HighsModelStatus.kIterationLimit: S.IterationLimit,
+            HighsModelStatus.kSolutionLimit: S.SolutionLimit,
+            HighsModelStatus.kMemoryLimit: S.MemoryLimit,
+            HighsModelStatus.kUnknown: S.Undefined,
         }
+        stopped_early = (
+            HighsModelStatus.kObjectiveBound,
+            HighsModelStatus.kObjectiveTarget,
+            HighsModelStatus.kInterrupt,
+            HighsModelStatus.kTimeLimit,
+            HighsModelStatus.kIterationLimit,
+            HighsModelStatus.kSolutionLimit,
+            HighsModelStatus.kMemoryLimit,
+        )
 
         col_values = list(solution.col_value)
         col_duals = list(solution.col_dual)
@@ -536,25 +480,18 @@ class HiGHS(LpSolver):
                 constraint.slack *= -1.0
             constraint.pi = row_duals[row_idx]
 
-        if obj_value == float(inf) and status in (
-            HighsModelStatus.kTimeLimit,
-            HighsModelStatus.kIterationLimit,
-            HighsModelStatus.kSolutionLimit,
-        ):
-            return (
-                constants.LpStatusNotSolved,
-                constants.LpSolutionNoSolutionFound,
-            )
-        else:
-            return status_dict[status]
+        # a solver that stopped early without an incumbent reports an infinite objective
+        has_solution = status == HighsModelStatus.kOptimal or (
+            status in stopped_early and obj_value != float(inf)
+        )
+        return status_dict.get(status, S.Undefined), has_solution
 
     @requires("highspy")
-    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
+        start = clocks()
         self.createAndConfigureSolver(lp)
         self.buildSolverModel(lp)
         self.callSolver(lp)
 
-        status, sol_status = self.findSolutionValues(lp)
-        lp.assignStatus(status, sol_status)
-
-        return status
+        status, has_solution = self.findSolutionValues(lp)
+        return self.buildStats(lp, status, has_solution, start=start)

@@ -37,6 +37,7 @@ from .core import (
     LpSolver,
     LpSolver_CMD,
     PulpSolverError,
+    clocks,
     import_optional,
     requires,
     subprocess,
@@ -44,6 +45,7 @@ from .core import (
 
 if TYPE_CHECKING:
     from ..core.lp_problem import LpProblem
+    from ..core.lp_stats import LpSolveStats
 
 
 def _ismip(lp: LpProblem) -> bool:
@@ -123,8 +125,9 @@ class XPRESS(LpSolver_CMD):
             )
         return False
 
-    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
         """Solve a well formulated lp problem."""
+        start = clocks()
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute " + self.path)
         tmpLp, tmpSol, tmpCmd, tmpAttr, tmpStart = self.create_tmp_files(
@@ -137,32 +140,35 @@ class XPRESS(LpSolver_CMD):
         # Explicitly capture some attributes so that we can easily get
         # information about the solution.
         attrNames = []
+        S = constants.LpSolveStatus
         if _ismip(lp) and self.mip:
             attrNames.extend(["mipobjval", "bestbound", "mipstatus"])
             statusmap = {
-                0: constants.LpStatusUndefined,  # XPRS_MIP_NOT_LOADED
-                1: constants.LpStatusUndefined,  # XPRS_MIP_LP_NOT_OPTIMAL
-                2: constants.LpStatusUndefined,  # XPRS_MIP_LP_OPTIMAL
-                3: constants.LpStatusUndefined,  # XPRS_MIP_NO_SOL_FOUND
-                4: constants.LpStatusUndefined,  # XPRS_MIP_SOLUTION
-                5: constants.LpStatusInfeasible,  # XPRS_MIP_INFEAS
-                6: constants.LpStatusOptimal,  # XPRS_MIP_OPTIMAL
-                7: constants.LpStatusUnbounded,  # XPRS_MIP_UNBOUNDED
+                0: S.Undefined,  # XPRS_MIP_NOT_LOADED
+                1: S.Undefined,  # XPRS_MIP_LP_NOT_OPTIMAL
+                2: S.Undefined,  # XPRS_MIP_LP_OPTIMAL
+                3: S.Stopped,  # XPRS_MIP_NO_SOL_FOUND
+                4: S.Stopped,  # XPRS_MIP_SOLUTION
+                5: S.Infeasible,  # XPRS_MIP_INFEAS
+                6: S.Optimal,  # XPRS_MIP_OPTIMAL
+                7: S.Unbounded,  # XPRS_MIP_UNBOUNDED
             }
+            with_solution = {4, 6}
             statuskey = "mipstatus"
         else:
             attrNames.extend(["lpobjval", "lpstatus"])
             statusmap = {
-                0: constants.LpStatusNotSolved,  # XPRS_LP_UNSTARTED
-                1: constants.LpStatusOptimal,  # XPRS_LP_OPTIMAL
-                2: constants.LpStatusInfeasible,  # XPRS_LP_INFEAS
-                3: constants.LpStatusUndefined,  # XPRS_LP_CUTOFF
-                4: constants.LpStatusUndefined,  # XPRS_LP_UNFINISHED
-                5: constants.LpStatusUnbounded,  # XPRS_LP_UNBOUNDED
-                6: constants.LpStatusUndefined,  # XPRS_LP_CUTOFF_IN_DUAL
-                7: constants.LpStatusNotSolved,  # XPRS_LP_UNSOLVED
-                8: constants.LpStatusUndefined,  # XPRS_LP_NONCONVEX
+                0: S.NotSolved,  # XPRS_LP_UNSTARTED
+                1: S.Optimal,  # XPRS_LP_OPTIMAL
+                2: S.Infeasible,  # XPRS_LP_INFEAS
+                3: S.GapLimit,  # XPRS_LP_CUTOFF
+                4: S.Stopped,  # XPRS_LP_UNFINISHED
+                5: S.Unbounded,  # XPRS_LP_UNBOUNDED
+                6: S.GapLimit,  # XPRS_LP_CUTOFF_IN_DUAL
+                7: S.NotSolved,  # XPRS_LP_UNSOLVED
+                8: S.Undefined,  # XPRS_LP_NONCONVEX
             }
+            with_solution = {1}
             statuskey = "lpstatus"
         with open(tmpCmd, "w") as cmd:
             if not self.msg:
@@ -238,13 +244,13 @@ class XPRESS(LpSolver_CMD):
                 raise PulpSolverError("PuLP: Error while executing " + self.path)
         values, redcost, slacks, duals, attrs = self.readsol(tmpSol, tmpAttr)
         self.delete_tmp_files(tmpLp, tmpSol, tmpCmd, tmpAttr)
-        status = statusmap.get(attrs.get(statuskey, -1), constants.LpStatusUndefined)
+        code = attrs.get(statuskey, -1)
+        status = statusmap.get(code, S.Undefined)
         lp.assignVarsVals(values)
         lp.assignVarsDj(redcost)
         lp.assignConsSlack(slacks)
         lp.assignConsPi(duals)
-        lp.assignStatus(status)
-        return status
+        return self.buildStats(lp, status, code in with_solution, start=start)
 
     @staticmethod
     def readsol(filename, attrfile):
@@ -483,28 +489,31 @@ class XPRESS_PY(LpSolver):
             _SS_INFEASIBLE = getattr(_SS, "INFEASIBLE", 3) if _SS else 3
             _SS_UNBOUNDED = getattr(_SS, "UNBOUNDED", 4) if _SS else 4
 
-            # Map solstatus to (status, sol_status) tuples for detailed status reporting
+            S = constants.LpSolveStatus
             statusmap = {
-                _SS_NOTFOUND: (
-                    constants.LpStatusNotSolved,
-                    constants.LpSolutionNoSolutionFound,
-                ),
-                _SS_OPTIMAL: (
-                    constants.LpStatusOptimal,
-                    constants.LpSolutionOptimal,
-                ),
-                _SS_FEASIBLE: (
-                    constants.LpStatusUndefined,
-                    constants.LpSolutionIntegerFeasible,
-                ),
-                _SS_INFEASIBLE: (
-                    constants.LpStatusInfeasible,
-                    constants.LpSolutionInfeasible,
-                ),
-                _SS_UNBOUNDED: (
-                    constants.LpStatusUnbounded,
-                    constants.LpSolutionUnbounded,
-                ),
+                _SS_NOTFOUND: S.NotSolved,
+                _SS_OPTIMAL: S.Optimal,
+                _SS_FEASIBLE: S.Stopped,
+                _SS_INFEASIBLE: S.Infeasible,
+                _SS_UNBOUNDED: S.Unbounded,
+            }
+            # why the solve stopped early, with integer fallbacks for older versions
+            _ST = getattr(xpress_mod, "StopStatus", None)
+            stop_names = {
+                "TIMELIMIT": (1, S.TimeLimit),
+                "CTRLC": (2, S.Interrupted),
+                "NODELIMIT": (3, S.NodeLimit),
+                "ITERLIMIT": (4, S.IterationLimit),
+                "MIPGAP": (5, S.GapLimit),
+                "SOLLIMIT": (6, S.SolutionLimit),
+                "MEMORYERROR": (8, S.MemoryLimit),
+                "USER": (9, S.Interrupted),
+                "NUMERICALERROR": (13, S.NumericalError),
+                "WORKLIMIT": (14, S.TimeLimit),
+            }
+            stopmap = {
+                (getattr(_ST, name, code) if _ST else code): status
+                for name, (code, status) in stop_names.items()
             }
 
             solstatus = model.attributes.solstatus
@@ -551,12 +560,13 @@ class XPRESS_PY(LpSolver):
             if slacks is not None:
                 lp.assignConsSlack({n: s for (n, c, _), s in zip(xpress_cons, slacks)})
 
-            status, sol_status = statusmap.get(
-                solstatus,
-                (constants.LpStatusUndefined, constants.LpSolutionNoSolutionFound),
-            )
-            lp.assignStatus(status, sol_status)
-            return status
+            status = statusmap.get(solstatus, S.Undefined)
+            if status in (S.NotSolved, S.Stopped):
+                try:
+                    status = stopmap.get(model.attributes.stopstatus, status)
+                except AttributeError:
+                    pass
+            return status, solstatus in (_SS_OPTIMAL, _SS_FEASIBLE)
 
         except (
             xpress_mod.ModelError,
@@ -566,12 +576,14 @@ class XPRESS_PY(LpSolver):
             raise PulpSolverError(str(err))
 
     @requires("xpress")
-    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
         """Solve a well formulated lp problem."""
+        start = clocks()
         prepare = kwargs.get("prepare")
         self.buildSolverModel(lp)
         self.callSolver(lp, prepare)
-        return self.findSolutionValues(lp)
+        status, has_solution = self.findSolutionValues(lp)
+        return self.buildStats(lp, status, has_solution, start=start)
 
     @requires("xpress")
     def buildSolverModel(self, lp):

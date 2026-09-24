@@ -30,7 +30,7 @@ prob += -y + z == 7, "c3"
 prob.writeLP("test1.lp")
 
 # Solve the problem using the default solver
-prob.solve()
+stats = prob.solve()
 # Use prob.solve(GLPK()) instead to choose GLPK as the solver
 # Use GLPK(msg = 0) to suppress GLPK messages
 # If GLPK is not in your path and you lack the pulpGLPK module,
@@ -42,7 +42,7 @@ prob.solve()
 # two paths may be provided (one to clp, one to cbc).
 
 # Print the status of the solved LP
-print("Status:", LpStatus[prob.status])
+print("Status:", stats.status_str)
 
 # Print the value of the variables at the optimum
 for v in prob.variables():

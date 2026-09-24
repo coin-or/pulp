@@ -35,10 +35,18 @@ from typing import TYPE_CHECKING, Any
 from uuid import uuid4
 
 from .. import constants
-from .core import LpSolver_CMD, PulpSolverError, import_optional, log, requires
+from .core import (
+    LpSolver_CMD,
+    PulpSolverError,
+    clocks,
+    import_optional,
+    log,
+    requires,
+)
 
 if TYPE_CHECKING:
     from ..core.lp_problem import LpProblem
+    from ..core.lp_stats import LpSolveStats
 
 saspy_mod = import_optional("saspy")
 if saspy_mod is not None:
@@ -49,33 +57,35 @@ swat_mod = import_optional("swat")
 MAX_NAME_LENGTH = 256
 
 # This combines all status codes from OPTLP/solvelp and OPTMILP/solvemilp
+_S = constants.LpSolveStatus
+# SAS solution status -> (why the solver stopped, whether it has a solution)
 SOLSTATUS_TO_STATUS = {
-    "OPTIMAL": constants.LpStatusOptimal,
-    "OPTIMAL_AGAP": constants.LpStatusOptimal,
-    "OPTIMAL_RGAP": constants.LpStatusOptimal,
-    "OPTIMAL_COND": constants.LpStatusOptimal,
-    "TARGET": constants.LpStatusOptimal,
-    "CONDITIONAL_OPTIMAL": constants.LpStatusOptimal,
-    "FEASIBLE": constants.LpStatusNotSolved,
-    "INFEASIBLE": constants.LpStatusInfeasible,
-    "UNBOUNDED": constants.LpStatusUnbounded,
-    "INFEASIBLE_OR_UNBOUNDED": constants.LpStatusUndefined,
-    "SOLUTION_LIM": constants.LpStatusNotSolved,
-    "NODE_LIM_SOL": constants.LpStatusNotSolved,
-    "NODE_LIM_NOSOL": constants.LpStatusNotSolved,
-    "ITERATION_LIMIT_REACHED": constants.LpStatusNotSolved,
-    "TIME_LIM_SOL": constants.LpStatusNotSolved,
-    "TIME_LIM_NOSOL": constants.LpStatusNotSolved,
-    "TIME_LIMIT_REACHED": constants.LpStatusNotSolved,
-    "ABORTED": constants.LpStatusNotSolved,
-    "ABORT_SOL": constants.LpStatusNotSolved,
-    "ABORT_NOSOL": constants.LpStatusNotSolved,
-    "OUTMEM_SOL": constants.LpStatusNotSolved,
-    "OUTMEM_NOSOL": constants.LpStatusNotSolved,
-    "FAILED": constants.LpStatusNotSolved,
-    "FAIL_SOL": constants.LpStatusNotSolved,
-    "FAIL_NOSOL": constants.LpStatusNotSolved,
-    "ERROR": constants.LpStatusNotSolved,
+    "OPTIMAL": (_S.Optimal, True),
+    "OPTIMAL_AGAP": (_S.GapLimit, True),
+    "OPTIMAL_RGAP": (_S.GapLimit, True),
+    "OPTIMAL_COND": (_S.Optimal, True),
+    "TARGET": (_S.GapLimit, True),
+    "CONDITIONAL_OPTIMAL": (_S.Optimal, True),
+    "FEASIBLE": (_S.Stopped, True),
+    "INFEASIBLE": (_S.Infeasible, False),
+    "UNBOUNDED": (_S.Unbounded, False),
+    "INFEASIBLE_OR_UNBOUNDED": (_S.Undefined, False),
+    "SOLUTION_LIM": (_S.SolutionLimit, True),
+    "NODE_LIM_SOL": (_S.NodeLimit, True),
+    "NODE_LIM_NOSOL": (_S.NodeLimit, False),
+    "ITERATION_LIMIT_REACHED": (_S.IterationLimit, False),
+    "TIME_LIM_SOL": (_S.TimeLimit, True),
+    "TIME_LIM_NOSOL": (_S.TimeLimit, False),
+    "TIME_LIMIT_REACHED": (_S.TimeLimit, False),
+    "ABORTED": (_S.Interrupted, False),
+    "ABORT_SOL": (_S.Interrupted, True),
+    "ABORT_NOSOL": (_S.Interrupted, False),
+    "OUTMEM_SOL": (_S.MemoryLimit, True),
+    "OUTMEM_NOSOL": (_S.MemoryLimit, False),
+    "FAILED": (_S.Undefined, False),
+    "FAIL_SOL": (_S.Stopped, True),
+    "FAIL_NOSOL": (_S.Stopped, False),
+    "ERROR": (_S.Undefined, False),
 }
 
 SASPY_OPTIONS = ["cfgname", "cfgfile"]
@@ -159,8 +169,10 @@ class SASsolver(LpSolver_CMD):
                 maxLen = max(maxLen, max([len(word) for word in line.split(" ")]))
         return maxLen + 1
 
-    def _read_solution(self, lp, primal_out, dual_out, proc):
-        status = SOLSTATUS_TO_STATUS[self._macro.get("SOLUTION_STATUS", "ERROR")]
+    def _read_solution(self, lp, primal_out, dual_out, proc, start):
+        status, has_solution = SOLSTATUS_TO_STATUS[
+            self._macro.get("SOLUTION_STATUS", "ERROR")
+        ]
         primal_out = primal_out.set_index("_VAR_", drop=True)
         values = primal_out["_VALUE_"].to_dict()
         lp.assignVarsVals(values)
@@ -177,8 +189,7 @@ class SASsolver(LpSolver_CMD):
             slacks = dual_out["_ACTIVITY_"].to_dict()
             lp.assignConsSlack(slacks, activity=True)
 
-        lp.assignStatus(status)
-        return status
+        return self.buildStats(lp, status, has_solution, start=start)
 
 
 class SAS94(SASsolver):
@@ -242,8 +253,9 @@ class SAS94(SASsolver):
             return False
 
     @requires("saspy")
-    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
         """Solve a well formulated lp problem."""
+        start = clocks()
         log.debug("Running SAS")
 
         if not self.sas:
@@ -468,9 +480,7 @@ class SAS94(SASsolver):
         # Prepare output
         primal_out = sas.sd2df(f"primalout{postfix}")
         dual_out = sas.sd2df(f"dualout{postfix}")
-        status = self._read_solution(lp, primal_out, dual_out, proc)
-
-        return status
+        return self._read_solution(lp, primal_out, dual_out, proc, start)
 
 
 class SASCAS(SASsolver):
@@ -537,8 +547,9 @@ class SASCAS(SASsolver):
             return True
 
     @requires("swat")
-    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
         """Solve a well formulated lp problem."""
+        start = clocks()
         log.debug("Running SAS")
 
         if not self.cas:
@@ -578,7 +589,7 @@ class SASCAS(SASsolver):
         if self.timeLimit:
             solverOptions["MAXTIME"] = self.timeLimit
 
-        status = None
+        stats = None
         with redirect_stdout(SASLogWriter(self.msg)) as self._log_writer:
             # Load the optimization action set
             s.loadactionset("optimization")
@@ -633,12 +644,12 @@ class SASCAS(SASsolver):
                     )
                 if r:
                     primal_out, dual_out = self._get_output(lp, s, r, proc, postfix)
-                    status = self._read_solution(lp, primal_out, dual_out, proc)
+                    stats = self._read_solution(lp, primal_out, dual_out, proc, start)
             finally:
                 self.delete_tmp_files(tmpMps, tmpMstCsv, tmpMpsCsv)
 
-        if status:
-            return status
+        if stats is not None:
+            return stats
         else:
             raise PulpSolverError(
                 f"PuLP: Error while trying to solve the instance: \

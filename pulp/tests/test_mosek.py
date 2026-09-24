@@ -14,11 +14,9 @@ class MOSEKTest(BaseSolverTest.PuLPTest):
     solveInst = solvers.MOSEK
     pulp_test_overrides: ClassVar[dict[str, PulpTestConfig]] = {
         "test_integer_infeasible": PulpTestConfig(
-            okstatus=_status("LpStatusInfeasible", "LpStatusUndefined")
+            okstatus=_status("Infeasible", "Undefined")
         ),
         "test_unbounded": PulpTestConfig(
-            okstatus=_status(
-                "LpStatusInfeasible", "LpStatusUnbounded", "LpStatusUndefined"
-            )
+            okstatus=_status("Infeasible", "Unbounded", "Undefined")
         ),
     }

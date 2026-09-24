@@ -266,8 +266,8 @@ Example::
     prob += x + 2 * y
     prob += x + y >= 7
 
-    status = prob.solve(pl.CPSAT(msg=False, timeLimit=60))
-    print(pl.LpStatus[status], x.value(), y.value())
+    stats = prob.solve(pl.CPSAT(msg=False, timeLimit=60))
+    print(stats.status_str, x.value(), y.value())
 
 Optional arguments include ``warmStart=True`` (pass current ``varValue`` hints),
 ``timeLimit`` (seconds), and any ``CpSolver.parameters`` names as keyword
@@ -397,7 +397,7 @@ Also, you can access the python api object before solving by using the lower-lev
     # the, you can call the solver to solve the problem
     solver.callSolver(prob)
     # finally, you fill the PuLP variables with the solution
-    status = solver.findSolutionValues(prob)
+    status, has_solution = solver.findSolutionValues(prob)
 
 For more information on how to use the `solverModel`, one needs to check the official documentation depending on the solver.
 

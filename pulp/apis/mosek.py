@@ -30,10 +30,17 @@ import sys
 from typing import TYPE_CHECKING, Any
 
 from .. import constants
-from .core import LpSolver, PulpSolverError, import_optional, requires
+from .core import (
+    LpSolver,
+    PulpSolverError,
+    clocks,
+    import_optional,
+    requires,
+)
 
 if TYPE_CHECKING:
     from ..core.lp_problem import LpProblem
+    from ..core.lp_stats import LpSolveStats
 
 mosek_mod = import_optional("mosek")
 
@@ -211,18 +218,25 @@ class MOSEK(LpSolver):
         solution (especially in the case of mip problems).
         """
         self.solsta = self.task.getsolsta(self.solution_type)
+        S = constants.LpSolveStatus
         self.solution_status_dict = {
-            mosek_mod.solsta.optimal: constants.LpStatusOptimal,
-            mosek_mod.solsta.prim_infeas_cer: constants.LpStatusInfeasible,
-            mosek_mod.solsta.dual_infeas_cer: constants.LpStatusUnbounded,
-            mosek_mod.solsta.unknown: constants.LpStatusUndefined,
-            mosek_mod.solsta.integer_optimal: constants.LpStatusOptimal,
-            mosek_mod.solsta.prim_illposed_cer: constants.LpStatusNotSolved,
-            mosek_mod.solsta.dual_illposed_cer: constants.LpStatusNotSolved,
-            mosek_mod.solsta.prim_feas: constants.LpStatusNotSolved,
-            mosek_mod.solsta.dual_feas: constants.LpStatusNotSolved,
-            mosek_mod.solsta.prim_and_dual_feas: constants.LpStatusNotSolved,
+            mosek_mod.solsta.optimal: S.Optimal,
+            mosek_mod.solsta.prim_infeas_cer: S.Infeasible,
+            mosek_mod.solsta.dual_infeas_cer: S.Unbounded,
+            mosek_mod.solsta.unknown: S.Undefined,
+            mosek_mod.solsta.integer_optimal: S.Optimal,
+            mosek_mod.solsta.prim_illposed_cer: S.NumericalError,
+            mosek_mod.solsta.dual_illposed_cer: S.NumericalError,
+            mosek_mod.solsta.prim_feas: S.Stopped,
+            mosek_mod.solsta.dual_feas: S.Stopped,
+            mosek_mod.solsta.prim_and_dual_feas: S.Stopped,
         }
+        self.has_solution = self.solsta in (
+            mosek_mod.solsta.optimal,
+            mosek_mod.solsta.integer_optimal,
+            mosek_mod.solsta.prim_feas,
+            mosek_mod.solsta.prim_and_dual_feas,
+        )
         # Variable values.
         try:
             self.xx = [0.0] * self.numvars
@@ -284,10 +298,11 @@ class MOSEK(LpSolver):
                 )
 
     @requires("mosek")
-    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
         """
         Solve a well-formulated lp problem.
         """
+        start = clocks()
         self.buildSolverModel(lp)
         # Set solver parameters
         for msk_par in self.options:
@@ -296,10 +311,40 @@ class MOSEK(LpSolver):
         if self.task_file_name:
             self.task.writedata(self.task_file_name)
         # Optimize
-        self.task.optimize()
+        trmcode = self.task.optimize()
         # Mosek solver log (default: standard output stream)
         if self.msg:
             self.task.solutionsummary(mosek_mod.streamtype.msg)
         self.findSolutionValues(lp)
-        lp.assignStatus(self.solution_status_dict[self.solsta])
-        return lp.status
+        status = self.solution_status_dict.get(
+            self.solsta, constants.LpSolveStatus.Undefined
+        )
+        if status in (
+            constants.LpSolveStatus.Stopped,
+            constants.LpSolveStatus.Undefined,
+        ):
+            status = self.termination_status(trmcode, status)
+        return self.buildStats(lp, status, self.has_solution, start=start)
+
+    @staticmethod
+    def termination_status(trmcode, default):
+        """Why MOSEK stopped early, read off the termination code of optimize()."""
+        S = constants.LpSolveStatus
+        # looked up by name: not every MOSEK version defines every code
+        trm_names = {
+            "trm_max_time": S.TimeLimit,
+            "trm_max_iterations": S.IterationLimit,
+            "trm_mio_num_branches": S.NodeLimit,
+            "trm_mio_num_relaxs": S.NodeLimit,
+            "trm_num_max_num_int_solutions": S.SolutionLimit,
+            "trm_mio_near_rel_gap": S.GapLimit,
+            "trm_mio_near_abs_gap": S.GapLimit,
+            "trm_objective_range": S.GapLimit,
+            "trm_user_callback": S.Interrupted,
+            "trm_numerical_problem": S.NumericalError,
+            "trm_stall": S.NumericalError,
+        }
+        for name, status in trm_names.items():
+            if trmcode == getattr(mosek_mod.rescode, name, None):
+                return status
+        return default

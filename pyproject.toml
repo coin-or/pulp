@@ -8,8 +8,11 @@ authors = [
     {name = "Franco Peschiera", email = "pchtsp@gmail.com"}
 ]
 maintainers= [{name= "Franco Peschiera", email= "pchtsp@gmail.com"}]
-dependencies = []
-requires-python = ">=3.10"
+dependencies = [
+    # parses solver logs into the LpSolveStats returned by solve(stats=True)
+    "orloge>=1.0.0",
+]
+requires-python = ">=3.12"
 readme = "README.rst"
 license = "MIT"
 license-files = ["LICENSE"]
@@ -20,8 +23,6 @@ classifiers=[
     "Natural Language :: English",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
@@ -55,7 +56,7 @@ pulptest = "pulp.tests.run_tests:pulpTestAll"
 
 [tool.ruff]
 line-length = 88
-target-version = "py310"
+target-version = "py312"
 exclude = [".eggs", ".git", ".venv", "_build", "build", "dist", "target"]
 
 [tool.ruff.lint]

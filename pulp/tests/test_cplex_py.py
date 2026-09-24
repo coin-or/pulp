@@ -20,9 +20,7 @@ class CPLEX_PYTest(BaseSolverTest.PuLPTest):
         "test_dual_variables_reduced_costs": PulpTestConfig(skip=False),
         "test_initial_value": PulpTestConfig(warm_start=True),
         "test_unbounded": PulpTestConfig(
-            okstatus=_status(
-                "LpStatusInfeasible", "LpStatusUnbounded", "LpStatusUndefined"
-            )
+            okstatus=_status("Infeasible", "Unbounded", "Undefined")
         ),
     }
 
@@ -94,6 +92,6 @@ class CPLEX_PYTest(BaseSolverTest.PuLPTest):
 
         problem = create_bin_packing_problem(bins=5, seed=55)
         pulpTestCheck(
-            problem, self.solver, [const.LpStatusOptimal], callback=[Callback]
+            problem, self.solver, [const.LpSolveStatus.Optimal], callback=[Callback]
         )
         self.assertGreaterEqual(counter, 1)

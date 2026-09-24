@@ -10,22 +10,20 @@ from ..constants import (
     LpConstraintLE,
     LpInteger,
     LpMaximize,
-    LpStatusInfeasible,
-    LpStatusNotSolved,
-    LpStatusOptimal,
-    LpStatusUnbounded,
-    LpStatusUndefined,
+    LpSolveStatus,
 )
 from .core import (
     LpSolver,
     PulpSolverError,
     clock,
+    clocks,
     import_optional,
     requires,
 )
 
 if TYPE_CHECKING:
     from ..core.lp_problem import LpProblem
+    from ..core.lp_stats import LpSolveStats
 
 cuopt_mod = import_optional("cuopt")
 numpy_mod = import_optional("numpy")
@@ -90,27 +88,28 @@ class CUOPT(LpSolver):
         if self.msg:
             print("CUOPT status=", solution.get_termination_reason())
 
+        S = LpSolveStatus
         CuoptStatus = {
-            0: LpStatusNotSolved,  # No Termination
-            1: LpStatusOptimal,  # Optimal
-            2: LpStatusInfeasible,  # Infeasible
-            3: LpStatusUnbounded,  # Unbounded
-            4: LpStatusNotSolved,  # Iteration Limit
-            5: LpStatusNotSolved,  # Timelimit
-            6: LpStatusNotSolved,  # Numerical Error
-            7: LpStatusNotSolved,  # Primal Feasible
-            8: LpStatusNotSolved,  # Feasible Found
-            9: LpStatusNotSolved,  # Concurrent Limit
-            10: LpStatusNotSolved,  # Work Limit
+            0: S.NotSolved,  # No Termination
+            1: S.Optimal,  # Optimal
+            2: S.Infeasible,  # Infeasible
+            3: S.Unbounded,  # Unbounded
+            4: S.IterationLimit,  # Iteration Limit
+            5: S.TimeLimit,  # Timelimit
+            6: S.NumericalError,  # Numerical Error
+            7: S.Stopped,  # Primal Feasible
+            8: S.Stopped,  # Feasible Found
+            9: S.Stopped,  # Concurrent Limit
+            10: S.TimeLimit,  # Work Limit
             # cuOpt returns UnboundedOrInfeasible when the presolver
             # detects one of the two but cannot disambiguate. PuLP has
             # no combined status, so map to Undefined (matches how
             # GLPK_CMD reports the same situation).
-            11: LpStatusUndefined,  # Unbounded or Infeasible
+            11: S.Undefined,  # Unbounded or Infeasible
         }
 
-        status = CuoptStatus.get(solutionStatus, LpStatusUndefined)
-        lp.assignStatus(status)
+        status = CuoptStatus.get(solutionStatus, S.Undefined)
+        has_solution = solutionStatus in (1, 7, 8)
 
         values = solution.get_primal_solution()
 
@@ -129,7 +128,7 @@ class CUOPT(LpSolver):
             for constr, value in zip(lp.constraints(), duals):
                 constr.pi = value
 
-        return status
+        return status, has_solution
 
     def available(self):
         """True if the solver is available"""
@@ -230,16 +229,17 @@ class CUOPT(LpSolver):
         lp.solverModel.set_objective_offset(lp.objective.constant)
 
     @requires("cuopt", "numpy")
-    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
         """
         Solve a well formulated lp problem
 
         creates a COPT model, variables and constraints and attaches
         them to the lp model which it then solves
         """
+        start = clocks()
         callback = kwargs.get("callback")
         self.buildSolverModel(lp)
         solution = self.callSolver(lp, callback=callback)
 
-        solutionStatus = self.findSolutionValues(lp, solution)
-        return solutionStatus
+        status, has_solution = self.findSolutionValues(lp, solution)
+        return self.buildStats(lp, status, has_solution, start=start)

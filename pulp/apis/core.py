@@ -33,6 +33,7 @@ the current version
 from __future__ import annotations
 
 import ctypes
+import dataclasses
 import functools
 import importlib
 import math
@@ -40,12 +41,29 @@ import os
 import platform
 import shutil
 import sys
+import tempfile
 from time import time
 
 
 def clock() -> float:
     """Wall-clock seconds (for solver timing)."""
     return time()
+
+
+def cpu_clock() -> float:
+    """CPU seconds burned by this process and the child processes it waited on.
+
+    Command line solvers run in a subprocess, so their CPU time only shows up in the
+    ``children_*`` fields, and only on platforms that report them (they stay at zero
+    on Windows).
+    """
+    t = os.times()
+    return t.user + t.system + t.children_user + t.children_system
+
+
+def clocks() -> tuple[float, float]:
+    """Wall-clock and CPU seconds now, to time a solve with :meth:`LpSolver.buildStats`."""
+    return clock(), cpu_clock()
 
 
 def get_operating_system() -> str:
@@ -68,6 +86,7 @@ def get_arch() -> str:
 operating_system = get_operating_system()
 arch = get_arch()
 
+import contextlib
 import logging
 from collections.abc import Callable, Iterator
 from typing import TYPE_CHECKING, Any
@@ -76,6 +95,7 @@ from .. import constants as const
 from .. import sparse
 
 if TYPE_CHECKING:
+    from ..core.lp_stats import LpSolveStats
     from ..pulp import LpProblem
 
 try:
@@ -152,6 +172,11 @@ class LpSolver:
 
     name = "LpSolver"
 
+    #: True when handing the solver a ``logPath`` sends its output to the file
+    #: *instead of* the console, so :meth:`capture_log` has to echo the log back
+    #: afterwards to keep ``msg=True`` behaving as the caller expects.
+    logPathSilencesMsg: bool = False
+
     def __init__(
         self,
         mip: bool = True,
@@ -185,8 +210,11 @@ class LpSolver:
         """True if the solver is available"""
         raise NotImplementedError
 
-    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
-        """Solve a well formulated lp problem"""
+    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
+        """Solve a well formulated lp problem.
+
+        Implementations end with ``return self.buildStats(...)``.
+        """
         raise NotImplementedError
 
     def copy(self) -> LpSolver:
@@ -198,9 +226,195 @@ class LpSolver:
         aCopy.options = self.options
         return aCopy
 
-    def solve(self, lp: LpProblem) -> int:
-        """Solve the problem lp"""
-        return lp.solve(self)
+    def solve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
+        """Solve the problem lp and describe how it went."""
+        wasNone, dummyVar = lp.fixObjective()
+        try:
+            # the log only lives until the block ends; actualSolve reads it in
+            # buildStats before returning
+            with self.capture_log():
+                return self.actualSolve(lp, **kwargs)
+        finally:
+            lp.restoreObjective(wasNone, dummyVar)
+
+    def buildStats(
+        self,
+        lp: LpProblem,
+        status: int,
+        has_solution: bool,
+        *,
+        start: tuple[float, float],
+        best_bound: float | None = None,
+    ) -> LpSolveStats:
+        """Describe the solve that just finished, for ``actualSolve`` to return.
+
+        :param lp: the problem that was solved
+        :param status: why the solver stopped, a :class:`~pulp.constants.LpSolveStatus`
+        :param has_solution: whether the solver handed back a feasible solution
+        :param start: :func:`clocks` taken when the solve started
+        :param best_bound: best bound the solver proved, if it reports one
+        """
+        # deferred: pulp.core imports pulp.apis, so this can't be a module-level import
+        from ..core.lp_stats import (
+            LpSolveStats,
+            _stop_reason_from_log,
+            dialect_for_solver,
+            parse_logs,
+        )
+
+        try:
+            status = const.LpSolveStatus(status)
+        except ValueError:
+            raise const.PulpError("Invalid status code: " + str(status)) from None
+        if not isinstance(has_solution, bool):
+            raise const.PulpError("has_solution must be a bool: " + str(has_solution))
+        wall, cpu = clocks()
+        logs = parse_logs(
+            self.optionsDict.get("logPath"), dialect_for_solver(self.name)
+        )
+        # without a solution the variables hold leftovers (e.g. an infeasible
+        # point), so their objective value would be misleading
+        objective = None
+        if has_solution and lp.objective is not None:
+            objective = lp.objective.value()
+        # the solver itself is the better source; the log only fills gaps
+        if logs is not None:
+            if status == const.LpSolveStatus.Stopped:
+                status = _stop_reason_from_log(logs.get("status"), status)
+            if has_solution and objective is None:
+                objective = logs.get("best_solution")
+            if best_bound is None:
+                best_bound = logs.get("best_bound")
+        return LpSolveStats(
+            solver=self.name,
+            status=status,
+            has_solution=has_solution,
+            time=wall - start[0],
+            cpu_time=cpu - start[1],
+            objective=objective,
+            best_bound=best_bound,
+            num_variables=lp.numVariables(),
+            num_constraints=lp.numConstraints(),
+            is_mip=bool(lp.isMIP()),
+            solver_options=self.toDict(),
+            logs=logs,
+        )
+
+    def flipStatsSense(self, stats: LpSolveStats) -> LpSolveStats:
+        """Undo a solver-side objective negation in stats built by :meth:`buildStats`.
+
+        Some solvers (e.g. COIN_CMD, which writes a maximize problem as an MPS
+        file with no ``OBJSENSE`` and no ``-max``, negating the objective instead)
+        are handed the problem with its objective negated. Everything that solver
+        then *reports about the objective* -- its log, and any bound it proves --
+        comes back with the opposite sign to the problem's own sense, and needs
+        flipping back. Call this once, right after :meth:`buildStats`, only for a
+        solve where that negation happened.
+
+        ``stats.objective`` is left alone: it comes from ``lp.objective.value()``,
+        computed from the variable values :meth:`buildStats` already assigned back
+        onto the original (un-negated) problem, so it is already in the problem's
+        sense.
+
+        Mutates ``stats`` in place and returns it, for convenient chaining.
+        """
+
+        def negate(value: Any) -> Any:
+            # leave anything that isn't a plain number alone: None, descriptive
+            # text (e.g. "Cuts: 5"), and CBC's 1e50 "no incumbent yet" sentinel
+            if isinstance(value, bool) or not isinstance(value, (int, float)):
+                return value
+            if value == 1e50:
+                return value
+            return -value
+
+        if stats.best_bound is not None:
+            stats.best_bound = negate(stats.best_bound)
+
+        logs = stats.logs
+        if logs is not None:
+            logs = dict(logs)
+            for key in ("best_bound", "best_solution", "first_relaxed"):
+                if key in logs:
+                    logs[key] = negate(logs[key])
+            for key in ("first_solution", "cut_info"):
+                nested = logs.get(key)
+                if isinstance(nested, dict):
+                    nested = dict(nested)
+                    for subkey in (
+                        "BestInteger",
+                        "CutsBestBound",
+                        "best_bound",
+                        "best_solution",
+                    ):
+                        if subkey in nested:
+                            nested[subkey] = negate(nested[subkey])
+                    logs[key] = nested
+            progress = logs.get("progress")
+            if progress:
+                logs["progress"] = [
+                    dataclasses.replace(
+                        row,
+                        BestInteger=negate(getattr(row, "BestInteger", None)),
+                        CutsBestBound=negate(getattr(row, "CutsBestBound", None)),
+                    )
+                    for row in progress
+                ]
+            stats.logs = logs
+
+        return stats
+
+    def silent_remove(self, file: str | bytes | os.PathLike) -> None:
+        try:
+            os.remove(file)
+        except (FileNotFoundError, PermissionError):
+            pass
+
+    def _echo_log(self, path: str) -> None:
+        """Print a captured log, standing in for the console output ``logPath`` ate."""
+        try:
+            with open(path, errors="replace") as f:
+                sys.stdout.write(f.read())
+        except OSError:
+            pass
+
+    @contextlib.contextmanager
+    def capture_log(self) -> Iterator[str | None]:
+        """Ensure a parseable solver log exists for the duration of the block.
+
+        Yields the path to the log file, or ``None`` when this solver cannot produce
+        one that orloge understands. A log the caller asked for through ``logPath``
+        is used as-is and left in place; a log this method arranges itself goes to a
+        temporary file that is removed on the way out, so read it before the block
+        ends.
+        """
+        # deferred: pulp.core imports pulp.apis, so this can't be a module-level import
+        from ..core.lp_stats import dialect_for_solver
+
+        if dialect_for_solver(self.name) is None:
+            yield None
+            return
+        existing = self.optionsDict.get("logPath")
+        if existing:
+            yield existing
+            return
+
+        fd, path = tempfile.mkstemp(suffix="-pulp.log")
+        os.close(fd)
+        msg = self.msg
+        self.optionsDict["logPath"] = path
+        if self.logPathSilencesMsg:
+            # otherwise the solver warns that logPath replaces msg=1, and we would
+            # swallow output the caller explicitly asked to see
+            self.msg = False
+        try:
+            yield path
+        finally:
+            self.optionsDict.pop("logPath", None)
+            self.msg = msg
+            if self.logPathSilencesMsg and msg:
+                self._echo_log(path)
+            self.silent_remove(path)
 
     # TODO: Not sure if this code should be here or in a child class
     def getCplexStyleArrays(
@@ -425,12 +639,6 @@ class LpSolver_CMD(LpSolver):
         else:
             prefix = os.path.join(self.tmpDir, uuid4().hex)
         return (f"{prefix}-pulp.{n}" for n in args)
-
-    def silent_remove(self, file: str | bytes | os.PathLike) -> None:
-        try:
-            os.remove(file)
-        except FileNotFoundError:
-            pass
 
     def delete_tmp_files(self, *args: str) -> None:
         if self.keepFiles:

@@ -36,6 +36,7 @@ from .core import (
     LpSolver_CMD,
     PulpSolverError,
     clock,
+    clocks,
     import_optional,
     log,
     requires,
@@ -44,6 +45,7 @@ from .core import (
 
 if TYPE_CHECKING:
     from ..core.lp_problem import LpProblem
+    from ..core.lp_stats import LpSolveStats
 
 import warnings
 
@@ -60,6 +62,8 @@ class GUROBI(LpSolver):
     """
 
     name = "GUROBI"
+    # no logPathSilencesMsg: msg=False sets OutputFlag=0, which empties the log file
+    # as well as the console
     env = None
 
     def __init__(
@@ -179,24 +183,39 @@ class GUROBI(LpSolver):
         model = lp.solverModel
         solutionStatus = model.Status
         GRB = gurobipy_mod.GRB
-        # TODO: check status for Integer Feasible
+        S = constants.LpSolveStatus
+        # looked up by name: older gurobipy versions lack some codes
+        status_names = {
+            "LOADED": S.NotSolved,
+            "INPROGRESS": S.NotSolved,
+            "OPTIMAL": S.Optimal,
+            "LOCALLY_OPTIMAL": S.Optimal,
+            "INFEASIBLE": S.Infeasible,
+            "LOCALLY_INFEASIBLE": S.Infeasible,
+            "INF_OR_UNBD": S.Undefined,
+            "UNBOUNDED": S.Unbounded,
+            "CUTOFF": S.GapLimit,
+            "USER_OBJ_LIMIT": S.GapLimit,
+            "ITERATION_LIMIT": S.IterationLimit,
+            "NODE_LIMIT": S.NodeLimit,
+            "TIME_LIMIT": S.TimeLimit,
+            "WORK_LIMIT": S.TimeLimit,
+            "SOLUTION_LIMIT": S.SolutionLimit,
+            "MEM_LIMIT": S.MemoryLimit,
+            "INTERRUPTED": S.Interrupted,
+            "NUMERIC": S.NumericalError,
+            "SUBOPTIMAL": S.NumericalError,
+        }
         gurobiLpStatus = {
-            GRB.OPTIMAL: constants.LpStatusOptimal,
-            GRB.INFEASIBLE: constants.LpStatusInfeasible,
-            GRB.INF_OR_UNBD: constants.LpStatusUndefined,
-            GRB.UNBOUNDED: constants.LpStatusUnbounded,
-            GRB.ITERATION_LIMIT: constants.LpStatusNotSolved,
-            GRB.NODE_LIMIT: constants.LpStatusNotSolved,
-            GRB.TIME_LIMIT: constants.LpStatusNotSolved,
-            GRB.SOLUTION_LIMIT: constants.LpStatusNotSolved,
-            GRB.INTERRUPTED: constants.LpStatusNotSolved,
-            GRB.NUMERIC: constants.LpStatusNotSolved,
+            getattr(GRB.Status, name): status
+            for name, status in status_names.items()
+            if hasattr(GRB.Status, name)
         }
         if self.msg:
             print("Gurobi status=", solutionStatus)
-        status = gurobiLpStatus.get(solutionStatus, constants.LpStatusUndefined)
-        lp.assignStatus(status)
-        if model.SolCount >= 1:
+        status = gurobiLpStatus.get(solutionStatus, S.Undefined)
+        has_solution = model.SolCount >= 1
+        if has_solution:
             exported_vars = lp.exported_variables()
             for var, value in zip(
                 exported_vars,
@@ -233,7 +252,7 @@ class GUROBI(LpSolver):
                     ),
                 ):
                     constr.pi = value
-        return status
+        return status, has_solution
 
     def available(self):
         """True if the solver is available"""
@@ -272,6 +291,33 @@ class GUROBI(LpSolver):
         lp.solverModel.optimize(callback=callback)
         self.solveTime += clock()
 
+    def _silence(self, solverModel):
+        """Apply ``msg=False``, without also emptying the log file.
+
+        ``OutputFlag=0`` turns off every kind of logging, the file included, and
+        ``__init__`` already put it on the environment. When a log file was asked
+        for, turn logging back on at the model level and silence the console
+        alone, so ``msg=False`` still leaves something to parse.
+        """
+        if self.msg:
+            return
+        if self.optionsDict.get("logPath"):
+            # silence the console first: doing it the other way round briefly
+            # enables output and Gurobi echoes the parameter change
+            solverModel.setParam("LogToConsole", 0)
+            solverModel.setParam("OutputFlag", 1)
+        else:
+            solverModel.setParam("OutputFlag", 0)
+
+    def _set_log_file(self, solverModel, logPath):
+        """Point Gurobi at a log file without echoing the path to the console."""
+        console = solverModel.Params.LogToConsole
+        if console:
+            solverModel.setParam("LogToConsole", 0)
+        solverModel.setParam("LogFile", logPath)
+        if console:
+            solverModel.setParam("LogToConsole", console)
+
     @requires("gurobipy")
     def buildSolverModel(self, lp: LpProblem):
         """
@@ -282,8 +328,7 @@ class GUROBI(LpSolver):
         assert self.model is not None
         self.model.ModelName = lp.name
         lp.solverModel = self.model
-        if not self.msg:
-            lp.solverModel.setParam("OutputFlag", 0)
+        self._silence(lp.solverModel)
         log.debug("set the sense of the problem")
         if lp.sense == constants.LpMaximize:
             lp.solverModel.setAttr("ModelSense", -1)
@@ -294,7 +339,7 @@ class GUROBI(LpSolver):
         if gapRel:
             lp.solverModel.setParam("MIPGap", gapRel)
         if logPath:
-            lp.solverModel.setParam("LogFile", logPath)
+            self._set_log_file(lp.solverModel, logPath)
 
         log.debug("add the variables to the problem")
         lp.solverModel.update()
@@ -311,8 +356,7 @@ class GUROBI(LpSolver):
             assert self.model is not None
             self.model.ModelName = lp.name
             lp.solverModel = self.model
-            if not self.msg:
-                lp.solverModel.setParam("OutputFlag", 0)
+            self._silence(lp.solverModel)
             if lp.sense == constants.LpMaximize:
                 lp.solverModel.setAttr("ModelSense", -1)
             if self.timeLimit:
@@ -322,7 +366,7 @@ class GUROBI(LpSolver):
             if gapRel:
                 lp.solverModel.setParam("MIPGap", gapRel)
             if logPath:
-                lp.solverModel.setParam("LogFile", logPath)
+                self._set_log_file(lp.solverModel, logPath)
             nvars = 0
 
         if nvars == 0:
@@ -373,21 +417,22 @@ class GUROBI(LpSolver):
         return var_handles, constr_handles
 
     @requires("gurobipy")
-    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
         """
         Solve a well formulated lp problem
 
         creates a gurobi model, variables and constraints and attaches
         them to the lp model which it then solves
         """
+        start = clocks()
         callback = kwargs.get("callback")
         var_handles, constr_handles = self.buildSolverModel(lp)
         # set the initial solution
         log.debug("Solve the Model using gurobi")
         self.callSolver(lp, callback=callback)
         # get the solution information
-        solutionStatus = self.findSolutionValues(lp, var_handles, constr_handles)
-        return solutionStatus
+        status, has_solution = self.findSolutionValues(lp, var_handles, constr_handles)
+        return self.buildStats(lp, status, has_solution, start=start)
 
 
 class GUROBI_CMD(LpSolver_CMD):
@@ -459,9 +504,9 @@ class GUROBI_CMD(LpSolver_CMD):
             warnings.warn(f"GUROBI error: {out}.")
         return False
 
-    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
         """Solve a well formulated lp problem."""
-
+        start = clocks()
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute " + self.path)
         tmpLp, tmpSol, tmpMst = self.create_tmp_files(lp.name, "lp", "sol", "mst")
@@ -496,13 +541,14 @@ class GUROBI_CMD(LpSolver_CMD):
             raise PulpSolverError("PuLP: Error while trying to execute " + self.path)
         if not os.path.exists(tmpSol):
             # TODO: the status should be infeasible here, I think
-            status = constants.LpStatusNotSolved
+            status = constants.LpSolveStatus.NotSolved
             values = reducedCosts = shadowPrices = slacks = None
         else:
             # TODO: the status should be infeasible here, I think
             status, values, reducedCosts, shadowPrices, slacks = self.readsol(tmpSol)
         self.delete_tmp_files(tmpLp, tmpMst, tmpSol, "gurobi.log")
-        if status != constants.LpStatusInfeasible:
+        has_solution = bool(values)
+        if has_solution:
             if values is not None:
                 lp.assignVarsVals(values)
             if reducedCosts is not None:
@@ -511,8 +557,7 @@ class GUROBI_CMD(LpSolver_CMD):
                 lp.assignConsPi(shadowPrices)
             if slacks is not None:
                 lp.assignConsSlack(slacks)
-        lp.assignStatus(status)
-        return status
+        return self.buildStats(lp, status, has_solution, start=start)
 
     def readsol(self, filename):
         """Read a Gurobi solution file"""
@@ -521,11 +566,11 @@ class GUROBI_CMD(LpSolver_CMD):
                 next(my_file)  # skip the objective value
             except StopIteration:
                 # Empty file not solved
-                status = constants.LpStatusNotSolved
+                status = constants.LpSolveStatus.NotSolved
                 return status, {}, {}, {}, {}
             # We have no idea what the status is assume optimal
             # TODO: check status for Integer Feasible
-            status = constants.LpStatusOptimal
+            status = constants.LpSolveStatus.Optimal
 
             shadowPrices = {}
             slacks = {}

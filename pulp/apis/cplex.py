@@ -11,6 +11,7 @@ from .core import (
     LpSolver_CMD,
     PulpSolverError,
     clock,
+    clocks,
     import_optional,
     log,
     requires,
@@ -21,6 +22,7 @@ if TYPE_CHECKING:
     import cplex as cplex_t
 
     from ..core.lp_problem import LpProblem
+    from ..core.lp_stats import LpSolveStats
     from ..core.lp_variable import LpVariable
 
 cplex_mod = import_optional("cplex")
@@ -86,8 +88,9 @@ class CPLEX_CMD(LpSolver_CMD):
         """True if the solver is available"""
         return self.executable(self.path) is not None
 
-    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
         """Solve a well formulated lp problem"""
+        start = clocks()
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute " + self.path)
         tmpLp, tmpSol, tmpMst = self.create_tmp_files(lp.name, "lp", "sol", "mst")
@@ -130,8 +133,9 @@ class CPLEX_CMD(LpSolver_CMD):
         if cplex.returncode != 0:
             raise PulpSolverError("PuLP: Error while trying to execute " + self.path)
         if not os.path.exists(tmpSol):
-            status = constants.LpStatusInfeasible
-            values = reducedCosts = shadowPrices = slacks = solStatus = None
+            status = constants.LpSolveStatus.Infeasible
+            values = reducedCosts = shadowPrices = slacks = None
+            has_solution = False
         else:
             (
                 status,
@@ -139,12 +143,12 @@ class CPLEX_CMD(LpSolver_CMD):
                 reducedCosts,
                 shadowPrices,
                 slacks,
-                solStatus,
+                has_solution,
             ) = self.readsol(tmpSol)
         self.delete_tmp_files(tmpLp, tmpMst, tmpSol)
         if self.optionsDict.get("logPath") != "cplex.log":
             self.delete_tmp_files("cplex.log")
-        if status != constants.LpStatusInfeasible:
+        if has_solution:
             if values is not None:
                 lp.assignVarsVals(values)
             if reducedCosts is not None:
@@ -153,8 +157,7 @@ class CPLEX_CMD(LpSolver_CMD):
                 lp.assignConsPi(shadowPrices)
             if slacks is not None:
                 lp.assignConsSlack(slacks)
-        lp.assignStatus(status, solStatus)
-        return status
+        return self.buildStats(lp, status, has_solution, start=start)
 
     def getOptions(self):
         # CPLEX parameters: https://www.ibm.com/support/knowledgecenter/en/SSSA5P_12.6.0/ilog.odms.cplex.help/CPLEX/GettingStarted/topics/tutorials/InteractiveOptimizer/settingParams.html
@@ -185,15 +188,21 @@ class CPLEX_CMD(LpSolver_CMD):
         solutionheader = solutionXML.find("header")
         statusString = solutionheader.get("solutionStatusString")
         statusValue = solutionheader.get("solutionStatusValue")
+        # CPLEX only writes a solution file when it has a solution
+        S = constants.LpSolveStatus
         cplexStatus = {
-            "1": constants.LpStatusOptimal,  #  optimal
-            "101": constants.LpStatusOptimal,  #  mip optimal
-            "102": constants.LpStatusOptimal,  #  mip optimal tolerance
-            "104": constants.LpStatusOptimal,  #  max solution limit
-            "105": constants.LpStatusOptimal,  #  node limit feasible
-            "107": constants.LpStatusOptimal,  # time lim feasible
-            "109": constants.LpStatusOptimal,  #  fail but feasible
-            "113": constants.LpStatusOptimal,  # abort feasible
+            "1": S.Optimal,  # optimal
+            "101": S.Optimal,  # mip optimal
+            "102": S.GapLimit,  # mip optimal tolerance
+            "104": S.SolutionLimit,  # max solution limit
+            "105": S.NodeLimit,  # node limit feasible
+            "107": S.TimeLimit,  # time lim feasible
+            "109": S.Stopped,  # fail but feasible
+            "111": S.MemoryLimit,  # memory limit feasible
+            "113": S.Interrupted,  # abort feasible
+            "116": S.MemoryLimit,  # out of memory, no tree, feasible
+            "127": S.Stopped,  # mip feasible
+            "131": S.TimeLimit,  # deterministic time limit feasible
         }
         if statusValue not in cplexStatus:
             raise PulpSolverError(
@@ -202,16 +211,6 @@ class CPLEX_CMD(LpSolver_CMD):
                 )
             )
         status = cplexStatus[statusValue]
-        # we check for integer feasible status to differentiate from optimal in solution status
-        cplexSolStatus = {
-            "104": constants.LpSolutionIntegerFeasible,  # max solution limit
-            "105": constants.LpSolutionIntegerFeasible,  # node limit feasible
-            "107": constants.LpSolutionIntegerFeasible,  # time lim feasible
-            "109": constants.LpSolutionIntegerFeasible,  # fail but feasible
-            "111": constants.LpSolutionIntegerFeasible,  # memory limit feasible
-            "113": constants.LpSolutionIntegerFeasible,  # abort feasible
-        }
-        solStatus = cplexSolStatus.get(statusValue)
         shadowPrices: dict[str, float | None] = {}
         slacks: dict[str, float] = {}
 
@@ -253,7 +252,7 @@ class CPLEX_CMD(LpSolver_CMD):
                 except (TypeError, ValueError):
                     reducedCosts[name] = None
 
-        return status, values, reducedCosts, shadowPrices, slacks, solStatus
+        return status, values, reducedCosts, shadowPrices, slacks, True
 
     def writesol(self, filename, vs):
         """Writes a CPLEX solution file"""
@@ -304,6 +303,8 @@ class CPLEX_PY(LpSolver):
     """
 
     name = "CPLEX_PY"
+    # setlogfile() redirects the stream, leaving the console empty
+    logPathSilencesMsg = True
 
     def __init__(
         self,
@@ -352,7 +353,7 @@ class CPLEX_PY(LpSolver):
         return cplex_mod is not None
 
     @requires("cplex")
-    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
         """
         Solve a well formulated lp problem
 
@@ -362,14 +363,15 @@ class CPLEX_PY(LpSolver):
         :param kwargs: Optional ``callback`` — iterable of CPLEX callback classes to
             register during solve (same as the former ``callback`` argument).
         """
+        start = clocks()
         callback: Any = kwargs.get("callback")
         self.buildSolverModel(lp)
         # set the initial solution
         log.debug("Solve the Model using cplex")
         self.callSolver(lp, callback=callback)
         # get the solution information
-        solutionStatus = self.findSolutionValues(lp)
-        return solutionStatus
+        status, has_solution = self.findSolutionValues(lp)
+        return self.buildStats(lp, status, has_solution, start=start)
 
     @requires("cplex")
     def buildSolverModel(self, lp: LpProblem) -> None:
@@ -569,44 +571,58 @@ class CPLEX_PY(LpSolver):
         self.solveTime += clock()
 
     @check_solverModel
-    def findSolutionValues(self, lp: LpProblem) -> int:
+    def findSolutionValues(self, lp: LpProblem) -> tuple[constants.LpSolveStatus, bool]:
         model_variables = lp.exported_variables()
         var_names = [var.name for var in model_variables]
         con_names = [c.name for c in lp.constraints()]
         my_solution: cplex_t.solution.Solution = lp.solverModel.solution
         cplexstatus: cplex_t.solution.status = my_solution.status
+        S = constants.LpSolveStatus
+        # looked up by name: not every CPLEX version defines every code
+        status_names = {
+            "optimal": S.Optimal,
+            "MIP_optimal": S.Optimal,
+            "optimal_tolerance": S.GapLimit,
+            "infeasible": S.Infeasible,
+            "MIP_infeasible": S.Infeasible,
+            "infeasible_or_unbounded": S.Undefined,
+            "MIP_infeasible_or_unbounded": S.Undefined,
+            "unbounded": S.Unbounded,
+            "MIP_unbounded": S.Unbounded,
+            "abort_obj_limit": S.GapLimit,
+            "abort_primal_obj_limit": S.GapLimit,
+            "abort_dual_obj_limit": S.GapLimit,
+            "abort_iteration_limit": S.IterationLimit,
+            "abort_time_limit": S.TimeLimit,
+            "abort_dettime_limit": S.TimeLimit,
+            "abort_user": S.Interrupted,
+            "abort_relaxed": S.Stopped,
+            "MIP_time_limit_feasible": S.TimeLimit,
+            "MIP_time_limit_infeasible": S.TimeLimit,
+            "MIP_dettime_limit_feasible": S.TimeLimit,
+            "MIP_dettime_limit_infeasible": S.TimeLimit,
+            "MIP_node_limit_feasible": S.NodeLimit,
+            "MIP_node_limit_infeasible": S.NodeLimit,
+            "MIP_mem_limit_feasible": S.MemoryLimit,
+            "MIP_mem_limit_infeasible": S.MemoryLimit,
+            "MIP_solution_limit": S.SolutionLimit,
+            "MIP_abort_feasible": S.Interrupted,
+            "MIP_abort_infeasible": S.Interrupted,
+            "MIP_fail_feasible": S.Stopped,
+            "MIP_fail_infeasible": S.Stopped,
+            "MIP_feasible": S.Stopped,
+        }
         CplexLpStatus = {
-            cplexstatus.MIP_optimal: constants.LpStatusOptimal,
-            cplexstatus.optimal: constants.LpStatusOptimal,
-            cplexstatus.optimal_tolerance: constants.LpStatusOptimal,
-            cplexstatus.infeasible: constants.LpStatusInfeasible,
-            cplexstatus.infeasible_or_unbounded: constants.LpStatusUndefined,
-            cplexstatus.MIP_infeasible: constants.LpStatusInfeasible,
-            cplexstatus.MIP_infeasible_or_unbounded: constants.LpStatusUndefined,
-            cplexstatus.unbounded: constants.LpStatusUnbounded,
-            cplexstatus.MIP_unbounded: constants.LpStatusUnbounded,
-            cplexstatus.abort_dual_obj_limit: constants.LpStatusNotSolved,
-            cplexstatus.abort_iteration_limit: constants.LpStatusNotSolved,
-            cplexstatus.abort_obj_limit: constants.LpStatusNotSolved,
-            cplexstatus.abort_relaxed: constants.LpStatusNotSolved,
-            cplexstatus.abort_time_limit: constants.LpStatusNotSolved,
-            cplexstatus.abort_user: constants.LpStatusNotSolved,
-            cplexstatus.MIP_abort_feasible: constants.LpStatusOptimal,
-            cplexstatus.MIP_time_limit_feasible: constants.LpStatusOptimal,
-            cplexstatus.MIP_time_limit_infeasible: constants.LpStatusInfeasible,
+            getattr(cplexstatus, name): status
+            for name, status in status_names.items()
+            if hasattr(cplexstatus, name)
         }
         cplex_status = my_solution.get_status()
-        status = CplexLpStatus.get(cplex_status, constants.LpStatusUndefined)
-        CplexSolStatus = {
-            cplexstatus.MIP_time_limit_feasible: constants.LpSolutionIntegerFeasible,
-            cplexstatus.MIP_abort_feasible: constants.LpSolutionIntegerFeasible,
-            cplexstatus.MIP_feasible: constants.LpSolutionIntegerFeasible,
-        }
-        # TODO: I did not find the following status: CPXMIP_NODE_LIM_FEAS, CPXMIP_MEM_LIM_FEAS
-        sol_status = CplexSolStatus.get(cplex_status)
-        lp.assignStatus(status, sol_status)
+        status = CplexLpStatus.get(cplex_status, S.Undefined)
+        has_solution = False
         try:
             my_solution.get_objective_value()
+            has_solution = True
             variablevalues = dict(zip(var_names, my_solution.get_values(var_names)))
             lp.assignVarsVals(variablevalues)
             constraintslackvalues = dict(
@@ -635,7 +651,7 @@ class CPLEX_PY(LpSolver):
         # TODO: clear up the name of self.n2c
         if self.msg:
             print("Cplex status=", cplex_status)
-        return status
+        return status, has_solution
 
 
 CPLEX = CPLEX_CMD

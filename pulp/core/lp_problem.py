@@ -4,7 +4,6 @@ import dataclasses
 import math
 import warnings
 from collections.abc import Iterable
-from time import time
 from typing import Any, Literal, cast
 
 try:
@@ -16,7 +15,7 @@ from .. import _rustcore
 from .. import constants as const
 from .. import mps_lp as mpslp
 from ..apis import LpSolverDefault
-from ..apis.core import LpSolver, clock
+from ..apis.core import LpSolver
 from ..utilities import value
 from ._internal import (
     LpBound,
@@ -27,6 +26,7 @@ from ._internal import (
 )
 from .lp_affine_expression import LpAffineExpression
 from .lp_constraint import LpConstraint
+from .lp_stats import LpSolveStats
 from .lp_variable import LpVariable
 
 
@@ -50,15 +50,8 @@ class LpProblem:
             name = name.replace(" ", "_")
         self.name = name
         self._sense = sense
-        self.status = const.LpStatusNotSolved
-        self.sol_status = const.LpSolutionNoSolutionFound
         self.solver = None
-        self.solverModel = None
         self.dummyVar = None
-        self.solutionTime = 0
-        self.solutionCpuTime = 0
-        # Set by some MIP solvers (e.g. COINMP_DLL) after solve when applicable.
-        self.bestBound: float | None = None
 
         self._model: _rustcore.Model = _rustcore.Model(self.name)
         self._model.set_sense(
@@ -268,6 +261,11 @@ class LpProblem:
         """Constraints from the Rust model, in insertion / id order."""
         return [LpConstraint(v) for v in self._model.list_constraints()]
 
+    def get_constraint_by_name(self, name: str) -> LpConstraint | None:
+        """The constraint called ``name``, or ``None`` if there is none."""
+        c = self._model.get_constraint_by_name(name)
+        return None if c is None else LpConstraint(c)
+
     @property
     def objective(self) -> LpAffineExpression | None:
         """Objective expression from Rust, wrapped as LpAffineExpression."""
@@ -317,12 +315,6 @@ class LpProblem:
             s += v.asCplexLpVariable() + " " + const.LpCategories[v.cat] + "\n"
         return s
 
-    def __getstate__(self) -> dict[str, Any]:
-        return self.__dict__.copy()
-
-    def __setstate__(self, state: dict[str, Any]) -> None:
-        self.__dict__.update(state)
-
     @classmethod
     def _from_rust_model_copy(cls, source: LpProblem) -> LpProblem:
         """Build a new problem sharing Python metadata but a deep-copied Rust model."""
@@ -330,13 +322,9 @@ class LpProblem:
         p.name = source.name
         p._sense = source._sense
         p._model = source._model.copy_model()
-        p.status = source.status
-        p.sol_status = source.sol_status
         p.solver = source.solver
         p.solverModel = source.solverModel
         p.dummyVar = source.dummyVar
-        p.solutionTime = source.solutionTime
-        p.solutionCpuTime = source.solutionCpuTime
         return p
 
     def copy(self) -> LpProblem:
@@ -382,8 +370,6 @@ class LpProblem:
             parameters=mpslp.MPSParameters(
                 name=self.name,
                 sense=self.sense,
-                status=self.status,
-                sol_status=self.sol_status,
             ),
             sos1=s1,
             sos2=s2,
@@ -421,8 +407,6 @@ class LpProblem:
 
         # we instantiate the problem
         pb = cls(name=mps.parameters.name, sense=mps.parameters.sense)
-        pb.status = mps.parameters.status
-        pb.sol_status = mps.parameters.sol_status
 
         # recreate the variables.
         var: dict[str, LpVariable] = {
@@ -838,45 +822,31 @@ class LpProblem:
                 expr.subInPlace(dummyVar)
                 self.objective = expr
 
-    def solve(self, solver: LpSolver | None = None, **kwargs: Any) -> int:
+    def solve(self, solver: LpSolver | None = None, **kwargs: Any) -> LpSolveStats:
         """
         Solve the given Lp problem.
 
-        This function changes the problem to make it suitable for solving
-        then calls the solver.actualSolve() method to find the solution
-
         :param solver:  Optional: the specific solver to be used, defaults to the
-              default solver.
+              problem's solver, then to the default solver.
+        :return: an :py:class:`LpSolveStats` describing the solve
 
         Side Effects:
-            - The attributes of the problem object are changed in
-              :meth:`~pulp.solver.LpSolver.actualSolve()` to reflect the Lp solution
+            - The variables and constraints of the problem get the values of the
+              solution the solver handed back
         """
+        solver = self._pick_solver(solver)
+        self.solver = solver
+        return solver.solve(self, **kwargs)
 
+    def _pick_solver(self, solver: LpSolver | None) -> LpSolver:
+        """The explicitly given solver, else the problem's own, else the default."""
         if not (solver):
             solver = self.solver
         if not (solver):
             solver = LpSolverDefault
         if solver is None:
             raise const.PulpError("No solver available")
-        wasNone, dummyVar = self.fixObjective()
-        # time it
-        self.startClock()
-        status = solver.actualSolve(self, **kwargs)
-        self.stopClock()
-        self.restoreObjective(wasNone, dummyVar)
-        self.solver = solver
-        return status
-
-    def startClock(self) -> None:
-        "initializes properties with the current time"
-        self.solutionCpuTime = -clock()
-        self.solutionTime = -time()
-
-    def stopClock(self) -> None:
-        "updates time wall time and cpu time"
-        self.solutionTime += time()
-        self.solutionCpuTime += clock()
+        return solver
 
     def sequentialSolve(
         self,
@@ -885,7 +855,7 @@ class LpProblem:
         relativeTols: list[int] | list[float] | None = None,
         solver: LpSolver | None = None,
         debug: bool = False,
-    ) -> list[int]:
+    ) -> list[LpSolveStats]:
         """
         Solve the given Lp problem with several objective functions.
 
@@ -897,30 +867,22 @@ class LpProblem:
            the constraints should be +ve for a minimise objective
         :param relativeTols: the list of relative tolerances applied to the constraints
         :param solver: the specific solver to be used, defaults to the default solver.
+        :return: one :py:class:`LpSolveStats` per objective
 
         """
         # TODO Add a penalty variable to make problems elastic
         # TODO add the ability to accept different status values i.e. infeasible etc
-
-        if not (solver):
-            solver = self.solver
-        if not (solver):
-            solver = LpSolverDefault
-        if solver is None:
-            raise const.PulpError("No solver available")
+        solver = self._pick_solver(solver)
         if not (absoluteTols):
             absoluteTols = [0] * len(objectives)
         if not (relativeTols):
             relativeTols = [1] * len(objectives)
-        # time it
-        self.startClock()
-        statuses = []
+        results: list[LpSolveStats] = []
         for i, (obj, absol, rel) in enumerate(
             zip(objectives, absoluteTols, relativeTols)
         ):
             self.setObjective(obj)
-            status = solver.actualSolve(self)
-            statuses.append(status)
+            results.append(solver.solve(self))
             if debug:
                 self.writeLP(f"{i}Sequence.lp")
             obj_val = value(obj)
@@ -932,11 +894,10 @@ class LpProblem:
                 self += obj <= obj_val * rel + absol, f"Sequence_Objective_{i}"
             elif self.sense == const.LpMaximize:
                 self += obj >= obj_val * rel + absol, f"Sequence_Objective_{i}"
-        self.stopClock()
         self.solver = solver
-        return statuses
+        return results
 
-    def resolve(self, solver: LpSolver | None = None, **kwargs: Any) -> int:
+    def resolve(self, solver: LpSolver | None = None, **kwargs: Any) -> LpSolveStats:
         """
         Re-solves the problem using the same solver as previously.
         """
@@ -964,24 +925,3 @@ class LpProblem:
 
     def getSense(self) -> int:
         return self.sense
-
-    def assignStatus(self, status: int, sol_status: int | None = None) -> bool:
-        """
-        Sets the status of the model after solving.
-        :param status: code for the status of the model
-        :param sol_status: code for the status of the solution
-        :return:
-        """
-        if status not in const.LpStatus:
-            raise const.PulpError("Invalid status code: " + str(status))
-
-        if sol_status is not None and sol_status not in const.LpSolution:
-            raise const.PulpError("Invalid solution status code: " + str(sol_status))
-
-        self.status = status
-        if sol_status is None:
-            sol_status = const.LpStatusToSolution.get(
-                status, const.LpSolutionNoSolutionFound
-            )
-        self.sol_status = sol_status
-        return True

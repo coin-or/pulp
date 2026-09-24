@@ -16,9 +16,7 @@ class CUOPTTest(BaseSolverTest.PuLPTest):
     pulp_test_overrides: ClassVar[dict[str, PulpTestConfig]] = {
         "test_repeated_name": ALLOW_REPEATED_VAR_NAMES,
         "test_integer_infeasible_2": PulpTestConfig(
-            okstatus=_status("LpStatusInfeasible", "LpStatusUndefined")
+            okstatus=_status("Infeasible", "Undefined")
         ),
-        "test_unbounded": PulpTestConfig(
-            okstatus=_status("LpStatusUnbounded", "LpStatusUndefined")
-        ),
+        "test_unbounded": PulpTestConfig(okstatus=_status("Unbounded", "Undefined")),
     }

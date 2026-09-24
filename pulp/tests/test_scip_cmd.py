@@ -16,14 +16,12 @@ class SCIP_CMDTest(BaseSolverTest.PuLPTest):
     solveInst = solvers.SCIP_CMD
     pulp_test_overrides: ClassVar[dict[str, PulpTestConfig]] = {
         "test_integer_infeasible_2": PulpTestConfig(
-            okstatus=_status("LpStatusNotSolved", "LpStatusUndefined")
+            okstatus=_status("NotSolved", "Undefined")
         ),
         "test_invalid_var_names": PulpTestConfig(skip=True),
         "test_long_var_name": PulpTestConfig(allow_pulp_error=True),
         "test_options_parsing_SCIP_HIGHS": PulpTestConfig(skip=False),
-        "test_unbounded": PulpTestConfig(
-            okstatus=_status("LpStatusNotSolved", "LpStatusUndefined")
-        ),
+        "test_unbounded": PulpTestConfig(okstatus=_status("NotSolved", "Undefined")),
     }
 
     def setup_test_options_parsing_SCIP_HIGHS(self, prob: LpProblem) -> None:

@@ -17,7 +17,7 @@ The following considerations need to be taken into account:
 
 #. Variable names need to be unique. PuLP permits having variable names because it uses an internal code for each one. But we do not export that code. So we identify variables by their name only.
 #. Variables are not exported in a grouped way. This means that if you have several `dictionaries of many variables each` you will end up with a very long list of variables. This can be seen in the Example 2.
-#. Output information is also written to the json format. This means that the status, solution status, the values of variables and shadow prices / reduced costs are exported too. This means that it is possible to export a model that has been solved and then read it again only to see the values of the variables.
+#. Output information is also written to the json format: the values of variables and shadow prices / reduced costs are exported too, so a solved model can be read back to see those values. The solve outcome itself (status, timings, ...) is not part of the model -- it lives on the :class:`~pulp.LpSolveStats` each solve returns, not on the exported model.
 #. For json, we use the base `json` package. But if `ujson` is available, we use that so the import / export can be really fast.
 
 Example 1: json
@@ -65,9 +65,7 @@ We now have a dictionary with a lot of data::
                                     {'name': 'z', 'value': 9}],
                    'name': 'obj'},
      'parameters': {'name': 'test_export_dict_MIP',
-                    'sense': 1,
-                    'sol_status': 0,
-                    'status': 0},
+                    'sense': 1},
      'sos1': {},
      'sos2': {},
      'variables': [{'cat': 'Continuous',

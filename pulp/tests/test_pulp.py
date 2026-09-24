@@ -23,6 +23,7 @@ from pulp import (
     lpSum_vars_coefs,
 )
 from pulp import constants as const
+from pulp.apis.core import clocks
 from pulp.constants import PulpError
 from pulp.tests.solver_common import (
     EXAMPLE_MPS_MI_BOUNDS,
@@ -108,6 +109,25 @@ class ModelUnitTest(unittest.TestCase):
         c2 = _constraint_named(prob, "c1")
         self.assertEqual(c2.slack, 2.0)
 
+    def test_get_constraint_by_name(self):
+        prob = self._make_prob()
+        x = prob.add_variable("x", 0, 10)
+        prob += x <= 5, "c1"
+        prob += x >= 1, "c2"
+        c = prob.get_constraint_by_name("c2")
+        assert c is not None
+        self.assertEqual(c.name, "c2")
+        self.assertEqual(c.sense, const.LpConstraintGE)
+        # it is the model's constraint, not a detached copy
+        c.pi = 4.0
+        self.assertEqual(_constraint_named(prob, "c2").pi, 4.0)
+
+    def test_get_constraint_by_name_missing(self):
+        prob = self._make_prob()
+        x = prob.add_variable("x", 0, 10)
+        prob += x <= 5, "c1"
+        self.assertIsNone(prob.get_constraint_by_name("nope"))
+
     # -- 4. Constraint properties delegate to Rust --
 
     def test_constraint_sense_property(self):
@@ -176,9 +196,7 @@ class ModelUnitTest(unittest.TestCase):
 
     def test_from_dataclass_sanitizes_leading_underscore_constraint_name(self):
         mps = mps_lp.MPS(
-            parameters=mps_lp.MPSParameters(
-                name="p", sense=const.LpMinimize, status=0, sol_status=0
-            ),
+            parameters=mps_lp.MPSParameters(name="p", sense=const.LpMinimize),
             objective=mps_lp.MPSObjective(
                 name="OBJ",
                 coefficients=[mps_lp.MPSCoefficient("x", 1.0)],
@@ -529,10 +547,10 @@ class PuLPModelTest(unittest.TestCase):
     def _default_solver_available(self) -> bool:
         return solvers.COIN_CMD().available() or solvers.GLPK_CMD().available()
 
-    def _solve_exported(self, prob: LpProblem) -> int:
+    def _solve_exported(self, prob: LpProblem) -> const.LpSolveStatus:
         if not self._default_solver_available():
             self.skipTest("Default solver not available for export test validation")
-        return prob.solve()
+        return prob.solve().status
 
     def test_variable_0_is_deleted(self):
         """
@@ -614,11 +632,18 @@ class PuLPModelTest(unittest.TestCase):
         Test the availability of the function pulpTestAll
         """
 
-    def test_assignInvalidStatus(self):
+    def test_buildStats_rejects_invalid_values(self):
         t = LpProblem("test")
+        solver = solvers.LpSolver()
+        start = clocks()
         Invalid = -100
-        self.assertRaises(const.PulpError, lambda: t.assignStatus(Invalid))
-        self.assertRaises(const.PulpError, lambda: t.assignStatus(0, Invalid))
+        self.assertRaises(
+            const.PulpError, lambda: solver.buildStats(t, Invalid, False, start=start)
+        )
+        self.assertRaises(
+            const.PulpError,
+            lambda: solver.buildStats(t, 0, Invalid, start=start),  # ty: ignore[invalid-argument-type]
+        )
 
     def test_makeDict_behavior(self):
         """
@@ -796,7 +821,7 @@ class PuLPModelTest(unittest.TestCase):
     #     )
     #     self.assertIsNotNone(prob.objective)
     #     self.assertIsNotNone(prob.objective.value())
-    #     self.assertEqual(status, const.LpStatusOptimal)
+    #     self.assertEqual(status, const.LpSolveStatus.Optimal)
     #     for v in prob.variables():
     #         self.assertIsNotNone(v.varValue)
 
@@ -811,9 +836,9 @@ class PuLPModelTest(unittest.TestCase):
     #     prob = create_bin_packing_problem(bins=bins, seed=99)
     #     self.solver.timeLimit = time_limit
     #     status = prob.solve(self.solver)
-    #     self.assertEqual(prob.status, const.LpStatusNotSolved)
-    #     self.assertEqual(status, const.LpStatusNotSolved)
-    #     self.assertEqual(prob.sol_status, const.LpSolutionNoSolutionFound)
+    #     self.assertEqual(prob.status, const.LpSolveStatus.NotSolved)
+    #     self.assertEqual(status, const.LpSolveStatus.NotSolved)
+    #     self.assertFalse(prob.stats.has_solution)
 
     def test_LpVariable_indexs_param(self):
         """
@@ -1252,7 +1277,7 @@ class PuLPModelTest(unittest.TestCase):
         var1, prob1 = LpProblem.fromDict(prob.toDict())
         self.assertDictEqual(getSortedDict(prob), getSortedDict(prob1))
         x, y, z, w = (var1[n] for n in ["x", "y", "z", "w"])
-        self.assertEqual(self._solve_exported(prob1), const.LpStatusOptimal)
+        self.assertEqual(self._solve_exported(prob1), const.LpSolveStatus.Optimal)
         self.assertAlmostEqual(x.value() or 0.0, 4)
         self.assertAlmostEqual(y.value() or 0.0, -1)
         self.assertAlmostEqual(z.value() or 0.0, 6)
@@ -1271,7 +1296,7 @@ class PuLPModelTest(unittest.TestCase):
         var1, prob1 = LpProblem.fromDict(prob.toDict())
         self.assertDictEqual(getSortedDict(prob), getSortedDict(prob1))
         x, y, z, w = (var1[n] for n in ["x", "y", "z", "w"])
-        self.assertEqual(self._solve_exported(prob1), const.LpStatusOptimal)
+        self.assertEqual(self._solve_exported(prob1), const.LpSolveStatus.Optimal)
         self.assertAlmostEqual(x.value() or 0.0, 4)
         self.assertAlmostEqual(y.value() or 0.0, 1)
         self.assertAlmostEqual(z.value() or 0.0, 6)
@@ -1298,7 +1323,7 @@ class PuLPModelTest(unittest.TestCase):
             pass
         self.assertDictEqual(getSortedDict(prob), getSortedDict(prob1))
         x, y, z, w = (var1[n] for n in ["x", "y", "z", "w"])
-        self.assertEqual(self._solve_exported(prob1), const.LpStatusOptimal)
+        self.assertEqual(self._solve_exported(prob1), const.LpSolveStatus.Optimal)
         self.assertAlmostEqual(x.value() or 0.0, 4)
         self.assertAlmostEqual(y.value() or 0.0, -1)
         self.assertAlmostEqual(z.value() or 0.0, 6)
@@ -1321,7 +1346,7 @@ class PuLPModelTest(unittest.TestCase):
         self.assertDictEqual(data, data_backup)
         self.assertDictEqual(getSortedDict(prob), getSortedDict(prob1))
         x, y, z = (var1[n] for n in ["x", "y", "z"])
-        self.assertEqual(self._solve_exported(prob1), const.LpStatusOptimal)
+        self.assertEqual(self._solve_exported(prob1), const.LpSolveStatus.Optimal)
         self.assertAlmostEqual(x.value() or 0.0, 3)
         self.assertAlmostEqual(y.value() or 0.0, -0.5)
         self.assertAlmostEqual(z.value() or 0.0, 7)
@@ -1340,7 +1365,7 @@ class PuLPModelTest(unittest.TestCase):
         var1, prob1 = LpProblem.fromDict(prob.toDict())
         self.assertDictEqual(getSortedDict(prob), getSortedDict(prob1))
         x, y, z, w = (var1[n] for n in ["x", "y", "z", "w"])
-        self.assertEqual(self._solve_exported(prob1), const.LpStatusOptimal)
+        self.assertEqual(self._solve_exported(prob1), const.LpSolveStatus.Optimal)
         self.assertAlmostEqual(x.value() or 0.0, 4)
         self.assertAlmostEqual(y.value() or 0.0, 1)
         self.assertAlmostEqual(z.value() or 0.0, 8)
@@ -1361,7 +1386,7 @@ class PuLPModelTest(unittest.TestCase):
         prob += -y + z == 7, "c3"
         prob += w >= 0, "c4"
         restored = solvers.getSolverFromDict(ref_solver.toDict())
-        self.assertEqual(prob.solve(restored), const.LpStatusOptimal)
+        self.assertEqual(prob.solve(restored).status, const.LpSolveStatus.Optimal)
         self.assertAlmostEqual(x.value() or 0.0, 4)
         self.assertAlmostEqual(y.value() or 0.0, -1)
         self.assertAlmostEqual(z.value() or 0.0, 6)
@@ -1391,7 +1416,7 @@ class PuLPModelTest(unittest.TestCase):
             os.remove(filename)
         except OSError:
             pass
-        self.assertEqual(prob.solve(restored), const.LpStatusOptimal)
+        self.assertEqual(prob.solve(restored).status, const.LpSolveStatus.Optimal)
         self.assertAlmostEqual(x.value() or 0.0, 4)
         self.assertAlmostEqual(y.value() or 0.0, -1)
         self.assertAlmostEqual(z.value() or 0.0, 6)

@@ -14,7 +14,17 @@ PuLP is an linear and mixed integer programming modeler written in Python. With 
 
 The documentation for PuLP can be `found here <https://coin-or.github.io/pulp/>`_.
 
-PuLP is part of the `COIN-OR project <https://www.coin-or.org/>`_. 
+PuLP is part of the `COIN-OR project <https://www.coin-or.org/>`_.
+
+.. note::
+
+   **Upgrading from PuLP 3.x?** PuLP 4.0 has breaking changes: variables are
+   created with ``prob.add_variable(...)``, ``prob.constraints()`` returns a list,
+   and ``prob.solve()`` returns an ``LpSolveStats`` object instead of a status
+   code. See the `guide to migrate from PuLP 3.x to 4.0
+   <https://coin-or.github.io/pulp/guides/how_to_migrate_to_v4.html>`_
+   (source: `doc/source/guides/how_to_migrate_to_v4.rst
+   <https://github.com/coin-or/pulp/blob/master/doc/source/guides/how_to_migrate_to_v4.rst>`_).
 
 .. important::
 
@@ -36,7 +46,7 @@ PuLP is part of the `COIN-OR project <https://www.coin-or.org/>`_.
 Installation
 ================
 
-PuLP requires Python 3.10 or newer.
+PuLP requires Python 3.12 or newer.
 
 **Recommended:** install with CBC support::
 
@@ -96,11 +106,11 @@ An expression is a constraint without a right-hand side (RHS) sense (one of ``=`
 To solve the problem with the default solver (CBC when installed via ``pulp[cbc]``
 or ``cbc`` on ``PATH``, otherwise another available backend)::
 
-     status = prob.solve()
+     stats = prob.solve()
 
 If you want to try another solver to solve the problem::
 
-     status = prob.solve(GLPK(msg = 0))
+     stats = prob.solve(GLPK(msg = 0))
 
 ``GLPK`` uses GLPK's command-line tool (``glpsol``) and requires it to be on
 your ``PATH``. To use GLPK's python API instead, install
@@ -113,11 +123,11 @@ Every variable must have finite lower and upper bounds; continuous variables are
 solved on their integer-rounded domain::
 
      from pulp import CPSAT
-     status = prob.solve(CPSAT(msg=False))
+     stats = prob.solve(CPSAT(msg=False))
 
 Display the status of the solution::
 
-     LpStatus[status]
+     stats.status_str
      > 'Optimal'
 
 You can get the value of the variables using ``value``. ex::
@@ -174,7 +184,7 @@ This version of PuLP includes a Rust extension (``pulp._rustcore``) that provide
 
 **Requirements**
 
-* **Python** 3.10 or newer
+* **Python** 3.12 or newer
 * **Rust** (latest stable). Install from https://rustup.rs/
 * **uv** (recommended for install and dev). See the `uv documentation <https://docs.astral.sh/uv/>`_ for installation.
 * **OS**: Windows, macOS (x86_64, arm64), or Linux (x86_64, arm64). The Rust extension is built for the host platform.

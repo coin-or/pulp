@@ -14,7 +14,7 @@ class COINMP_DLLTest(BaseSolverTest.PuLPTest):
     solveInst = solvers.COINMP_DLL
     pulp_test_overrides: ClassVar[dict[str, PulpTestConfig]] = {
         "test_dual_variables_reduced_costs": PulpTestConfig(skip=False),
-        "test_integer_infeasible": PulpTestConfig(okstatus=_status("LpStatusOptimal")),
+        "test_integer_infeasible": PulpTestConfig(okstatus=_status("Optimal")),
         "test_sequential_solve": PulpTestConfig(skip=False),
-        "test_unbounded": PulpTestConfig(okstatus=_status("LpStatusOptimal")),
+        "test_unbounded": PulpTestConfig(okstatus=_status("Optimal")),
     }
