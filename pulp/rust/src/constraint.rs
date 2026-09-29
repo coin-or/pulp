@@ -1,7 +1,11 @@
 //! Constraint handle (constraint stored in a ModelCore). Only created by Model.
 
+use std::sync::Arc;
+
+use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
+use crate::affine_expr::AffineExpr;
 use crate::format;
 use crate::types::{lock_model, upgrade_model, ConstrId, Sense, WeakModelCore};
 use crate::variable::Variable;
@@ -18,6 +22,11 @@ pub struct Constraint {
 impl Constraint {
     fn id(&self) -> ConstrId {
         self.id
+    }
+
+    fn model_identity(&self) -> PyResult<usize> {
+        let core = upgrade_model(&self.model)?;
+        Ok(Arc::as_ptr(&core) as usize)
     }
 
     #[getter]
@@ -102,6 +111,51 @@ impl Constraint {
                 )
             })
             .collect())
+    }
+
+    fn to_expr(&self) -> PyResult<AffineExpr> {
+        let core_rc = upgrade_model(&self.model)?;
+        let core = lock_model(&core_rc);
+        let constraint = &core.constraints[self.id];
+        Ok(AffineExpr {
+            terms: constraint.coeffs.clone(),
+            constant: -constraint.rhs,
+            sense: Some(constraint.sense),
+            name: Some(constraint.name.clone()),
+            model: Some(self.model.clone()),
+        })
+    }
+
+    #[pyo3(signature = (expr, replace_name=false))]
+    fn replace_expr(&self, expr: &AffineExpr, replace_name: bool) -> PyResult<()> {
+        if !expr.constant.is_finite() || expr.terms.values().any(|v| !v.is_finite()) {
+            return Err(PyValueError::new_err(
+                "Constraint coefficients and RHS must be finite",
+            ));
+        }
+        let core_rc = upgrade_model(&self.model)?;
+        if let Some(expr_model) = &expr.model {
+            let expr_core = upgrade_model(expr_model)?;
+            if !Arc::ptr_eq(&core_rc, &expr_core) {
+                return Err(PyValueError::new_err(
+                    "Expression belongs to a different model",
+                ));
+            }
+        }
+        let sense = expr.sense.ok_or_else(|| {
+            PyValueError::new_err("An added constraint cannot have its sense cleared")
+        })?;
+        let mut core = lock_model(&core_rc);
+        let constraint = &mut core.constraints[self.id];
+        constraint.coeffs = expr.terms.clone();
+        constraint.rhs = -expr.constant;
+        constraint.sense = sense;
+        if replace_name {
+            constraint.name = expr.name.clone().unwrap_or_default();
+        }
+        constraint.pi = None;
+        constraint.slack = None;
+        Ok(())
     }
 
     // ── Value / validation methods ──

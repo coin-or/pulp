@@ -1422,6 +1422,83 @@ class PuLPModelTest(unittest.TestCase):
         self.assertAlmostEqual(z.value() or 0.0, 6)
         self.assertAlmostEqual(w.value() or 0.0, 0)
 
+    def test_rejected_constraint_replacement_preserves_row(self) -> None:
+        problem = LpProblem("rejected_replacement")
+        x = problem.add_variable("x")
+        problem += x <= 2, "original"
+        row = problem.constraints()[0]
+        row._constr.set_pi(3)
+        row._constr.set_slack(4)
+        before = (row[x], row.constant, row.sense, row.name, row.pi, row.slack)
+
+        replacement = row._constr.to_expr()
+        replacement.add_term(x._var, 6)
+        replacement.set_constant(-99)
+        replacement.set_name("invalid")
+        replacement.clear_sense()
+        with self.assertRaisesRegex(ValueError, "cannot have its sense cleared"):
+            row._constr.replace_expr(replacement, replace_name=True)
+
+        self.assertEqual(
+            (row[x], row.constant, row.sense, row.name, row.pi, row.slack), before
+        )
+
+    def test_added_constraint_remains_bound_to_problem(self) -> None:
+        problem = LpProblem("bound_constraint")
+        x = problem.add_variable("x")
+        constraint = x <= 2
+        problem += constraint
+
+        constraint[x] = 2
+        constraint.constant = -3
+        constraint.name = "renamed"
+        constraint.sense = const.LpConstraintGE
+        constraint += x + 1
+
+        stored = problem.constraints()[0]
+        self.assertEqual(stored[x], 3)
+        self.assertEqual(stored.constant, -2)
+        self.assertEqual(stored.name, "renamed")
+        self.assertEqual(stored.sense, const.LpConstraintGE)
+
+        stored.name = "from_proxy"
+        self.assertEqual(constraint.name, "from_proxy")
+        constraint.name = "renamed"
+
+        detached = constraint.copy()
+        detached[x] = 9
+        self.assertEqual(stored[x], 3)
+
+        problem.addConstraint(constraint, "second")
+        constraint[x] = 4
+        constraint.constant = -5
+        constraint.sense = const.LpConstraintLE
+        constraint += x + 1
+        self.assertEqual([row[x] for row in problem.constraints()], [5, 5])
+        self.assertEqual([row.constant for row in problem.constraints()], [-4, -4])
+        self.assertEqual(
+            [row.sense for row in problem.constraints()],
+            [const.LpConstraintLE, const.LpConstraintLE],
+        )
+        self.assertEqual(
+            [row.name for row in problem.constraints()], ["renamed", "second"]
+        )
+
+        independent = constraint.copy()
+        problem.addConstraint(independent, "independent")
+        independent[x] = 7
+        self.assertEqual([row[x] for row in problem.constraints()], [5, 5, 7])
+
+        with tempfile.TemporaryDirectory() as directory:
+            target = os.path.join(directory, "bound.lp")
+            problem.writeLP(target)
+            with open(target, encoding="utf-8") as stream:
+                text = stream.read()
+            self.assertEqual(text.count("5 x <= 4"), 2)
+            self.assertIn("renamed: 5 x <= 4", text)
+            self.assertIn("second: 5 x <= 4", text)
+            self.assertIn("independent: 7 x <= 4", text)
+
 
 def _affine_keyed(expr: LpAffineExpression) -> tuple[float, list[tuple[str, float]]]:
     return (

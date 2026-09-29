@@ -580,14 +580,21 @@ class LpProblem:
     def addConstraint(
         self, constraint: LpAffineExpression, name: str | None = None
     ) -> None:
-        if name:
+        expr_to_add = constraint._active_expr().clone_expr()
+        if constraint._stored_constraints:
+            if name:
+                expr_to_add.set_name(str(name).translate(LpAffineExpression.trans))
+            else:
+                expr_to_add.clear_name()
+        elif name:
             constraint.name = name
+            expr_to_add = constraint._active_expr()
         rhs = -constraint.constant
         if not math.isfinite(rhs):
             raise const.PulpError(
                 f"Invalid constraint RHS value: {rhs}. Coefficients and bounds must be finite."
             )
-        for var, coeff in constraint._expr.items():
+        for var, coeff in expr_to_add.items():
             if not math.isfinite(coeff):
                 raise const.PulpError(
                     f"Invalid coefficient value: {coeff} for variable {var.name}. Coefficients must be finite."
@@ -595,7 +602,8 @@ class LpProblem:
         if constraint.sense is None:
             raise const.PulpError("Cannot add constraint without a sense (<=, >=, ==)")
         try:
-            self._model.add_constraint(constraint._expr)
+            stored_constraint = self._model.add_constraint(expr_to_add)
+            constraint._stored_constraints.append(stored_constraint)
         except ValueError as err:
             msg = str(err)
             if "different model" in msg or "no longer exists" in msg:
