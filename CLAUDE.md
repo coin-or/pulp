@@ -30,11 +30,11 @@ alwaysApply: true
 
 ## Rust / Cargo
 
-- Rust sources live under `pulp/rust/` (`Cargo.toml`, `src/`).
+- Rust sources live under `rust/` (`Cargo.toml`, `src/`).
 - Always run Cargo through **uv** (do not invoke `cargo` directly).
-- Check Rust code: `uv run cargo check --manifest-path pulp/rust/Cargo.toml`
-- Build: `uv run cargo build --manifest-path pulp/rust/Cargo.toml`
-- Other subcommands: append `--manifest-path pulp/rust/Cargo.toml` to `uv run cargo <subcommand>`
+- Check Rust code: `uv run cargo check --manifest-path rust/Cargo.toml`
+- Build: `uv run cargo build --manifest-path rust/Cargo.toml`
+- Other subcommands: append `--manifest-path rust/Cargo.toml` to `uv run cargo <subcommand>`
 
 ## Commands
 
@@ -48,4 +48,4 @@ After making any code change to the repo, run all three checks before considerin
 2. **Type checking**: `uv run ty check pulp`
 3. **Linting and formatting**: `uv run ruff check pulp` and `uv run ruff format pulp --check`
 
-If any check fails, fix the issues before proceeding. If Rust source files (`pulp/rust/src/`) were modified, run `uv run cargo check --manifest-path pulp/rust/Cargo.toml` and rebuild with `uv run maturin develop`.
+If any check fails, fix the issues before proceeding. If Rust source files (`rust/src/`) were modified, run `uv run cargo check --manifest-path rust/Cargo.toml` and rebuild with `uv run maturin develop`.
