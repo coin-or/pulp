@@ -49,7 +49,7 @@ dev = [
 bindings = "pyo3"
 module-name = "pulp._rustcore"
 python-packages = ["pulp"]
-manifest-path = "pulp/rust/Cargo.toml"
+manifest-path = "rust/Cargo.toml"
 
 [project.scripts]
 pulptest = "pulp.tests.run_tests:pulpTestAll"
