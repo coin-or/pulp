@@ -162,6 +162,20 @@ class ModelUnitTest(unittest.TestCase):
         self.assertEqual(key_names, ["x", "y"])
         self.assertEqual(sorted(c.values()), [2.0, 3.0])
 
+    def test_expression_get_missing_variable(self):
+        prob = self._make_prob()
+        x = prob.add_variable("x", 0, 10)
+        y = prob.add_variable("y", 0, 10)
+        expr = 2 * x + 1
+        self.assertEqual(expr.get(x), 2.0)
+        self.assertEqual(expr.get(x, 5.0), 2.0)
+        self.assertIsNone(expr.get(y))
+        self.assertEqual(expr.get(y, 5.0), 5.0)
+        prob += expr <= 10, "c1"
+        c = _constraint_named(prob, "c1")
+        self.assertIsNone(c.get(y))
+        self.assertEqual(c.get(y, 5.0), 5.0)
+
     # -- 5. Auto-naming constraints --
 
     def test_auto_named_constraint(self):
