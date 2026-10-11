@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 import subprocess
 import warnings
-from math import inf
+from math import inf, isfinite
 from typing import TYPE_CHECKING, Any
 
 from .. import constants
@@ -494,4 +494,19 @@ class HiGHS(LpSolver):
         self.callSolver(lp)
 
         status, has_solution = self.findSolutionValues(lp)
-        return self.buildStats(lp, status, has_solution, start=start)
+        return self.buildStats(
+            lp, status, has_solution, start=start, best_bound=self.findBestBound(lp)
+        )
+
+    def findBestBound(self, lp: LpProblem) -> float | None:
+        """The best bound HiGHS proved on a MIP, in the problem's sense, or None."""
+        if not (lp.isMIP() and self.mip):
+            return None
+        bound = lp.solverModel.getInfo().mip_dual_bound
+        if not isfinite(bound):
+            return None
+        # buildSolverModel hands HiGHS the objective negated for a maximisation and
+        # without its constant, so the bound comes back in that form
+        obj_mult = -1 if lp.sense == constants.LpMaximize else 1
+        constant = lp.objective.constant if lp.objective is not None else 0
+        return obj_mult * bound + constant
