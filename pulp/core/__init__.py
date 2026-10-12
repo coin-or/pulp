@@ -7,12 +7,14 @@ from .linear import lpDot, lpSum, lpSum_vars, lpSum_vars_coefs
 from .lp_affine_expression import LpAffineExpression
 from .lp_constraint import LpConstraint
 from .lp_problem import LpProblem
+from .lp_stats import LpSolveStats
 from .lp_variable import LpVariable
 
 __all__ = [
     "LpAffineExpression",
     "LpConstraint",
     "LpProblem",
+    "LpSolveStats",
     "LpVariable",
     "log",
     "lpDot",

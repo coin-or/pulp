@@ -18,6 +18,6 @@ class MIPCL_CMDTest(BaseSolverTest.PuLPTest):
             skip_reason="MIPCL_CMD does not detect this infeasible case with MPS",
         ),
         "test_long_var_name": PulpTestConfig(allow_pulp_error=True),
-        "test_relaxed_mip": PulpTestConfig(okstatus=_status("LpStatusOptimal"), sol={}),
-        "test_unbounded": PulpTestConfig(okstatus=_status("LpStatusOptimal")),
+        "test_relaxed_mip": PulpTestConfig(okstatus=_status("Optimal"), sol={}),
+        "test_unbounded": PulpTestConfig(okstatus=_status("Optimal")),
     }

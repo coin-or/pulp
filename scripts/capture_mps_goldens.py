@@ -4,7 +4,9 @@ from pathlib import Path
 
 from pulp import LpBinary, LpInteger, LpMaximize, LpMinimize, LpProblem
 
-FIXTURE_DIR = Path(__file__).resolve().parent.parent / "pulp" / "tests" / "fixtures" / "mps"
+FIXTURE_DIR = (
+    Path(__file__).resolve().parent.parent / "pulp" / "tests" / "fixtures" / "mps"
+)
 
 
 def _write_continuous(path: Path) -> None:

@@ -17,7 +17,7 @@ class CHOCO_CMDTest(BaseSolverTest.PuLPTest):
             skip=True,
             skip_reason="CHOCO_CMD does not detect this infeasible case with MPS",
         ),
-        "test_relaxed_mip": PulpTestConfig(okstatus=_status("LpStatusOptimal"), sol={}),
+        "test_relaxed_mip": PulpTestConfig(okstatus=_status("Optimal"), sol={}),
         "test_unbounded": PulpTestConfig(
             skip=True,
             skip_reason="CHOCO_CMD bounds all variables; unbounded status not returned",

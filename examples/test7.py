@@ -19,9 +19,9 @@ prob += -y + z == 7, "c3"
 
 prob.writeLP("test7.lp")
 
-prob.solve()
+stats = prob.solve()
 
-print("Status:", LpStatus[prob.status])
+print("Status:", stats.status_str)
 
 for v in prob.variables():
     print(v.name, "=", v.varValue, "\tReduced Cost =", v.dj)

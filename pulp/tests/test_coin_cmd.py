@@ -84,7 +84,7 @@ class COIN_CMD_CBCOptionsTest(BaseSolverTest.PuLPTest):
         pulpTestCheck(
             prob,
             self.solver,
-            [const.LpStatusOptimal],
+            [const.LpSolveStatus.Optimal],
             {x: 4, y: -1, z: 6, w: 0},
         )
         if not os.path.exists(logFilename):
@@ -122,7 +122,7 @@ class COIN_CMD_CBCOptionsTest(BaseSolverTest.PuLPTest):
         pulpTestCheck(
             prob,
             self.solver,
-            [const.LpStatusOptimal],
+            [const.LpSolveStatus.Optimal],
             {x: 4, y: -1, z: 6, w: 0},
         )
         if not os.path.exists(logFilename):
@@ -167,7 +167,7 @@ class COIN_CMD_CBCOptionsTest(BaseSolverTest.PuLPTest):
         pulpTestCheck(
             prob,
             self.solver,
-            [const.LpStatusOptimal],
+            [const.LpSolveStatus.Optimal],
             {x: 4, y: -1, z: 6, w: 0},
         )
         if not os.path.exists(logFilename):
@@ -204,7 +204,7 @@ class COIN_CMD_CBCOptionsTest(BaseSolverTest.PuLPTest):
         pulpTestCheck(
             prob,
             self.solver,
-            [const.LpStatusOptimal],
+            [const.LpSolveStatus.Optimal],
             {x: 4, y: -1, z: 6, w: 0},
         )
         if not os.path.exists(logFilename):
@@ -220,12 +220,50 @@ class COIN_CMD_CBCOptionsTest(BaseSolverTest.PuLPTest):
         )
         self.assertEqual("10", option_value)
 
+    def test_random_seed(self):
+        """
+        Test if setting randomSeed=20 adds randomSeed 20 to the command line.
+        """
+        # randomSeed is a public constructor argument that flows into optionsDict.
+        self.assertEqual(20, solvers.COIN_CMD(randomSeed=20).optionsDict["randomSeed"])
+        name = self._testMethodName
+        prob = LpProblem(name, const.LpMinimize)
+        x = prob.add_variable("x", 0, 4)
+        y = prob.add_variable("y", -1, 1)
+        z = prob.add_variable("z", 0)
+        w = prob.add_variable("w", 0)
+        prob += x + 4 * y + 9 * z, "obj"
+        prob += x + y <= 5, "c1"
+        prob += x + z >= 10, "c2"
+        prob += -y + z == 7, "c3"
+        prob += w >= 0, "c4"
+        logFilename = name + ".log"
+        self.solver.optionsDict["logPath"] = logFilename
+        self.solver.optionsDict["randomSeed"] = 20
+        pulpTestCheck(
+            prob,
+            self.solver,
+            [const.LpSolveStatus.Optimal],
+            {x: 4, y: -1, z: 6, w: 0},
+        )
+        if not os.path.exists(logFilename):
+            raise PulpError(f"Test failed for solver: {self.solver}")
+        if not os.path.getsize(logFilename):
+            raise PulpError(f"Test failed for solver: {self.solver}")
+        command_line = COIN_CMD_CBCOptionsTest.read_command_line_from_log_file(
+            logFilename
+        )
+        option_value = COIN_CMD_CBCOptionsTest.extract_option_from_command_line(
+            command_line, option="randomSeed", grp_pattern="\\d+"
+        )
+        self.assertEqual("20", option_value)
+
 
 class COIN_CMDTest(BaseSolverTest.PuLPTest):
     solveInst = solvers.COIN_CMD
     pulp_test_overrides: ClassVar[dict[str, PulpTestConfig]] = {
         "test_infeasible": PulpTestConfig(
-            okstatus=_status("LpStatusInfeasible"),
+            okstatus=_status("Infeasible"),
             solve_kwargs={"use_mps": False},
         ),
         "test_longname_lp": PulpTestConfig(skip=False, solve_kwargs={"use_mps": False}),
@@ -233,7 +271,7 @@ class COIN_CMDTest(BaseSolverTest.PuLPTest):
         "test_dual_variables_reduced_costs": PulpTestConfig(skip=False),
         "test_initial_value": PulpTestConfig(warm_start=True),
         "test_integer_infeasible": PulpTestConfig(
-            okstatus=_status("LpStatusInfeasible", "LpStatusUndefined")
+            okstatus=_status("Infeasible", "Undefined")
         ),
     }
 
@@ -260,7 +298,7 @@ class COIN_CMDTest(BaseSolverTest.PuLPTest):
         pulpTestCheck(
             prob,
             self.solver,
-            [const.LpStatusOptimal],
+            [const.LpSolveStatus.Optimal],
             {
                 x[(0, 0)]: 1.0,
                 x[(0, 1)]: 0.0,
@@ -279,7 +317,7 @@ class COIN_CMDTest(BaseSolverTest.PuLPTest):
         pulpTestCheck(
             prob,
             self.solver,
-            [const.LpStatusOptimal],
+            [const.LpSolveStatus.Optimal],
             {y[(1, "east")]: 1.0, y[(2, "west")]: 0.0},
             objective=1.0,
         )

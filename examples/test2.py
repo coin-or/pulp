@@ -13,7 +13,6 @@ from pulp import (
     LpMaximize,
     LpMinimize,
     LpProblem,
-    LpStatus,
     LpVariable,
     lpDot,
     lpSum,
@@ -45,10 +44,10 @@ prob += weight
 prob += weight <= b
 
 # Resolution
-prob.solve()
+stats = prob.solve()
 
 # Print the status of the solved LP
-print("Status:", LpStatus[prob.status])
+print("Status:", stats.status_str)
 
 # Print the value of the variables at the optimum
 for v in prob.variables():

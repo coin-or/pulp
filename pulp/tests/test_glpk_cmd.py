@@ -15,7 +15,7 @@ from pulp.tests.solver_common import (
 class GLPK_CMDTest(BaseSolverTest.PuLPTest):
     solveInst = solvers.GLPK_CMD
     pulp_test_overrides: ClassVar[dict[str, PulpTestConfig]] = {
-        "test_infeasible_2": PulpTestConfig(okstatus=_status("LpStatusUndefined")),
+        "test_infeasible_2": PulpTestConfig(okstatus=_status("Undefined")),
         "test_long_var_name": PulpTestConfig(allow_pulp_error=True),
     }
 

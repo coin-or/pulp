@@ -40,10 +40,10 @@ for j in range(m):
     prob += lpDot(d[j], x) + s[j] - w[j] == lpSum(d[j]) / 2
 
 # Resolution
-prob.solve()
+stats = prob.solve()
 
 # Print the status of the solved LP
-print("Status:", LpStatus[prob.status])
+print("Status:", stats.status_str)
 
 # Print the value of the variables at the optimum
 for v in prob.variables():

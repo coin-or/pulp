@@ -11,6 +11,7 @@ from uuid import uuid4
 
 if TYPE_CHECKING:
     from ..core.lp_problem import LpProblem
+    from ..core.lp_stats import LpSolveStats
 
 from ..constants import (
     LpBinary,
@@ -21,18 +22,17 @@ from ..constants import (
     LpInteger,
     LpMaximize,
     LpMinimize,
-    LpStatusInfeasible,
-    LpStatusNotSolved,
-    LpStatusOptimal,
-    LpStatusUnbounded,
-    LpStatusUndefined,
+    LpSolveStatus,
 )
 from .core import (
     LpSolver,
     LpSolver_CMD,
     PulpSolverError,
     clock,
+    clocks,
     ctypesArrayFill,
+    import_optional,
+    requires,
     sparse,
 )
 
@@ -49,8 +49,7 @@ else:
 
 byref = ctypes.byref
 
-# Set by COPT class when coptpy import succeeds; used for type checker.
-coptpy: Any = None
+coptpy_mod = import_optional("coptpy")
 
 
 class COPT_CMD(LpSolver_CMD):
@@ -92,13 +91,14 @@ class COPT_CMD(LpSolver_CMD):
         """
         return self.executable(self.path)
 
-    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
         """
         Solve a well formulated LP problem
 
         This function borrowed implementation of CPLEX_CMD.actualSolve and
         GUROBI_CMD.actualSolve, with some modifications.
         """
+        start = clocks()
         if not self.available():
             raise PulpSolverError("COPT_PULP: Failed to execute '{}'".format(self.path))
 
@@ -162,7 +162,7 @@ class COPT_CMD(LpSolver_CMD):
             raise PulpSolverError("COPT_PULP: Failed to execute '{}'".format(self.path))
 
         if not os.path.exists(tmpSol):
-            status = LpStatusNotSolved
+            status = LpSolveStatus.NotSolved
         else:
             status, values = self.readsol(tmpSol)
 
@@ -173,13 +173,12 @@ class COPT_CMD(LpSolver_CMD):
                 except Exception:
                     pass
 
-        if status == LpStatusOptimal:
+        # the solution file carries no status: a solution counts as optimal
+        has_solution = status == LpSolveStatus.Optimal
+        if has_solution:
             lp.assignVarsVals(values)
 
-        # lp.assignStatus(status)
-        lp.status = status
-
-        return status
+        return self.buildStats(lp, status, has_solution, start=start)
 
     def readsol(self, filename):
         """
@@ -190,10 +189,10 @@ class COPT_CMD(LpSolver_CMD):
                 next(solfile)
             except StopIteration:
                 warnings.warn("COPT_PULP: No solution was returned")
-                return LpStatusNotSolved, {}
+                return LpSolveStatus.NotSolved, {}
 
             # TODO: No information about status, assumed to be optimal
-            status = LpStatusOptimal
+            status = LpSolveStatus.Optimal
 
             values = {}
             for line in solfile:
@@ -257,16 +256,17 @@ def COPT_DLL_loadlib():
 
 # COPT LP/MIP status map
 coptlpstat = {
-    0: LpStatusNotSolved,
-    1: LpStatusOptimal,
-    2: LpStatusInfeasible,
-    3: LpStatusUnbounded,
-    4: LpStatusNotSolved,
-    5: LpStatusNotSolved,
-    6: LpStatusNotSolved,
-    8: LpStatusNotSolved,
-    9: LpStatusNotSolved,
-    10: LpStatusNotSolved,
+    0: LpSolveStatus.NotSolved,  # unstarted
+    1: LpSolveStatus.Optimal,
+    2: LpSolveStatus.Infeasible,
+    3: LpSolveStatus.Unbounded,
+    4: LpSolveStatus.Undefined,  # infeasible or unbounded
+    5: LpSolveStatus.NumericalError,  # numerical
+    6: LpSolveStatus.NodeLimit,
+    7: LpSolveStatus.NumericalError,  # imprecise
+    8: LpSolveStatus.TimeLimit,  # timeout
+    9: LpSolveStatus.Stopped,  # unfinished
+    10: LpSolveStatus.Interrupted,
 }
 
 # COPT variable types map
@@ -304,7 +304,7 @@ class COPT_DLL(LpSolver):
             """True if the solver is available"""
             return False
 
-        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
             """Solve a well formulated lp problem."""
             raise PulpSolverError(f"COPT_DLL: Not Available:\n{self.err}")
 
@@ -381,13 +381,14 @@ class COPT_DLL(LpSolver):
             """
             return True
 
-        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
             """
             Solve a well formulated LP/MIP problem
 
             This function borrowed implementation of CPLEX_DLL.actualSolve,
             with some modifications.
             """
+            start = clocks()
             # Extract problem data and load it into COPT
             (
                 ncol,
@@ -471,9 +472,9 @@ class COPT_DLL(LpSolver):
                     raise PulpSolverError("COPT_PULP: Failed to solve the LP problem")
 
             # Get problem status and solution
-            status = self.getsolution(lp, ncol, nrow)
+            status, has_solution = self.getsolution(lp, ncol, nrow)
 
-            return status
+            return self.buildStats(lp, status, has_solution, start=start)
 
         def extract(self, lp):
             """
@@ -647,6 +648,7 @@ class COPT_DLL(LpSolver):
             var_dj = {}
             con_pi = {}
             con_slack = {}
+            has_solution = False
 
             if lp.isMIP() and self.mip:
                 hasmipsol = ctypes.c_int()
@@ -665,6 +667,7 @@ class COPT_DLL(LpSolver):
 
                 # Optimal/Feasible MIP solution
                 if status.value == 1 or hasmipsol.value == 1:
+                    has_solution = True
                     rc = self.GetSolution(self.coptprob, byref(x))
                     if rc != 0:
                         raise PulpSolverError("COPT_PULP: Failed to get MIP solution")
@@ -682,6 +685,7 @@ class COPT_DLL(LpSolver):
 
                 # Optimal LP solution
                 if status.value == 1:
+                    has_solution = True
                     rc = self.GetLpSolution(
                         self.coptprob, byref(x), byref(slack), byref(pi), byref(dj)
                     )
@@ -703,8 +707,7 @@ class COPT_DLL(LpSolver):
                 lp.assignConsPi(con_pi)
                 lp.assignConsSlack(con_slack)
 
-            lp.status = coptlpstat.get(status.value, LpStatusUndefined)
-            return lp.status
+            return coptlpstat.get(status.value, LpSolveStatus.Undefined), has_solution
 
         def write(self, filename):
             """
@@ -868,194 +871,186 @@ class COPT(LpSolver):
 
     name = "COPT"
 
-    try:
-        global coptpy
-        import coptpy  # type: ignore[import-not-found, import-untyped]
-    except Exception:
+    def __init__(
+        self,
+        mip=True,
+        msg=True,
+        timeLimit=None,
+        gapRel=None,
+        warmStart=False,
+        logPath=None,
+        **solverParams,
+    ):
+        """
+        :param bool mip: if False, assume LP even if integer variables
+        :param bool msg: if False, no log is shown
+        :param float timeLimit: maximum time for solver (in seconds)
+        :param float gapRel: relative gap tolerance for the solver to stop (in fraction)
+        :param bool warmStart: if True, the solver will use the current value of variables as a start
+        :param str logPath: path to the log file
+        """
 
-        def available(self):
-            """True if the solver is available"""
-            return False
-
-        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
-            """Solve a well formulated lp problem."""
-            raise PulpSolverError("COPT: Not available")
-
-    else:
-
-        def __init__(
+        LpSolver.__init__(
             self,
-            mip=True,
-            msg=True,
-            timeLimit=None,
-            gapRel=None,
-            warmStart=False,
-            logPath=None,
-            **solverParams,
-        ):
-            """
-            :param bool mip: if False, assume LP even if integer variables
-            :param bool msg: if False, no log is shown
-            :param float timeLimit: maximum time for solver (in seconds)
-            :param float gapRel: relative gap tolerance for the solver to stop (in fraction)
-            :param bool warmStart: if True, the solver will use the current value of variables as a start
-            :param str logPath: path to the log file
-            """
+            mip=mip,
+            msg=msg,
+            timeLimit=timeLimit,
+            gapRel=gapRel,
+            logPath=logPath,
+            warmStart=warmStart,
+        )
+        self.coptenv: Any = None
+        self.coptmdl: Any = None
+        if coptpy_mod is None:
+            return
+        self.coptenv = coptpy_mod.Envr()
+        self.coptmdl = self.coptenv.createModel()
 
-            LpSolver.__init__(
-                self,
-                mip=mip,
-                msg=msg,
-                timeLimit=timeLimit,
-                gapRel=gapRel,
-                logPath=logPath,
-                warmStart=warmStart,
+        if not self.msg:
+            self.coptmdl.setParam("Logging", 0)
+        for key, value in solverParams.items():
+            self.coptmdl.setParam(key, value)
+
+    def findSolutionValues(self, lp):
+        model = lp.solverModel
+        solutionStatus = model.status
+
+        CoptLpStatus = {
+            coptpy_mod.COPT.UNSTARTED: LpSolveStatus.NotSolved,
+            coptpy_mod.COPT.OPTIMAL: LpSolveStatus.Optimal,
+            coptpy_mod.COPT.INFEASIBLE: LpSolveStatus.Infeasible,
+            coptpy_mod.COPT.UNBOUNDED: LpSolveStatus.Unbounded,
+            coptpy_mod.COPT.INF_OR_UNB: LpSolveStatus.Undefined,
+            coptpy_mod.COPT.NUMERICAL: LpSolveStatus.NumericalError,
+            coptpy_mod.COPT.NODELIMIT: LpSolveStatus.NodeLimit,
+            coptpy_mod.COPT.IMPRECISE: LpSolveStatus.NumericalError,
+            coptpy_mod.COPT.TIMEOUT: LpSolveStatus.TimeLimit,
+            coptpy_mod.COPT.UNFINISHED: LpSolveStatus.Stopped,
+            coptpy_mod.COPT.INTERRUPTED: LpSolveStatus.Interrupted,
+        }
+
+        if self.msg:
+            print("COPT status=", solutionStatus)
+
+        status = CoptLpStatus.get(solutionStatus, LpSolveStatus.Undefined)
+        hasMipSol = bool(model.ismip and model.getAttr("HasMipSol"))
+        has_solution = status == LpSolveStatus.Optimal or hasMipSol
+        if not has_solution:
+            return status, has_solution
+
+        values = model.getInfo("Value", model.getVars())
+        exported_vars = lp.exported_variables()
+        for var, value in zip(exported_vars, values):
+            var.varValue = value
+
+        if not model.ismip:
+            # COPT returns an error with an empty model
+            try:
+                # NOTE: slacks in COPT are activities of rows
+                slacks = model.getInfo("Slack", model.getConstrs())
+                for constr, value in zip(lp.constraints(), slacks):
+                    constr.slack = value
+
+                redcosts = model.getInfo("RedCost", model.getVars())
+                for var, value in zip(exported_vars, redcosts):
+                    var.dj = value
+
+                duals = model.getInfo("Dual", model.getConstrs())
+                for constr, value in zip(lp.constraints(), duals):
+                    constr.pi = value
+            except coptpy_mod.CoptError:
+                # sometimes the model is not solved, and thus these infos are not available
+                pass
+
+        return status, has_solution
+
+    def available(self):
+        """True if the solver is available"""
+        return coptpy_mod is not None
+
+    def callSolver(self, lp, callback=None):
+        """Solves the problem with COPT"""
+        self.solveTime = -clock()
+        if callback is not None:
+            lp.solverModel.setCallback(
+                callback,
+                coptpy_mod.COPT.CBCONTEXT_MIPRELAX | coptpy_mod.COPT.CBCONTEXT_MIPSOL,
             )
-            self.coptenv = coptpy.Envr()
-            self.coptmdl = self.coptenv.createModel()
+        lp.solverModel.solve()
+        self.solveTime += clock()
 
-            if not self.msg:
-                self.coptmdl.setParam("Logging", 0)
-            for key, value in solverParams.items():
-                self.coptmdl.setParam(key, value)
+    @requires("coptpy")
+    def buildSolverModel(self, lp):
+        """
+        Takes the pulp lp model and translates it into a COPT model
+        """
+        lp.solverModel = self.coptmdl
 
-        def findSolutionValues(self, lp):
-            model = lp.solverModel
-            solutionStatus = model.status
+        if lp.sense == LpMaximize:
+            lp.solverModel.objsense = coptpy_mod.COPT.MAXIMIZE
+        if self.timeLimit:
+            lp.solverModel.setParam("TimeLimit", self.timeLimit)
 
-            CoptLpStatus = {
-                coptpy.COPT.UNSTARTED: LpStatusNotSolved,
-                coptpy.COPT.OPTIMAL: LpStatusOptimal,
-                coptpy.COPT.INFEASIBLE: LpStatusInfeasible,
-                coptpy.COPT.UNBOUNDED: LpStatusUnbounded,
-                coptpy.COPT.INF_OR_UNB: LpStatusUndefined,
-                coptpy.COPT.NUMERICAL: LpStatusNotSolved,
-                coptpy.COPT.NODELIMIT: LpStatusNotSolved,
-                coptpy.COPT.IMPRECISE: LpStatusNotSolved,
-                coptpy.COPT.TIMEOUT: LpStatusNotSolved,
-                coptpy.COPT.UNFINISHED: LpStatusNotSolved,
-                coptpy.COPT.INTERRUPTED: LpStatusNotSolved,
-            }
+        gapRel = self.optionsDict.get("gapRel")
+        logPath = self.optionsDict.get("logPath")
+        if gapRel:
+            lp.solverModel.setParam("RelGap", gapRel)
+        if logPath:
+            lp.solverModel.setLogFile(logPath)
 
-            if self.msg:
-                print("COPT status=", solutionStatus)
+        var_handles = []
+        exported_vars = lp.exported_variables()
+        id_to_col = {v.id: j for j, v in enumerate(exported_vars)}
+        for var in exported_vars:
+            lowBound = var.lowBound
+            if not math.isfinite(lowBound):
+                lowBound = -coptpy_mod.COPT.INFINITY
+            upBound = var.upBound
+            if not math.isfinite(upBound):
+                upBound = coptpy_mod.COPT.INFINITY
+            obj = lp.objective.get(var, 0.0)
+            varType = coptpy_mod.COPT.CONTINUOUS
+            if var.cat == LpInteger and self.mip:
+                varType = coptpy_mod.COPT.INTEGER
+            cvar = lp.solverModel.addVar(
+                lowBound, upBound, vtype=varType, obj=obj, name=var.name
+            )
+            var_handles.append(cvar)
 
-            status = CoptLpStatus.get(solutionStatus, LpStatusUndefined)
-            lp.assignStatus(status)
-            hasMipSol = model.ismip and model.getAttr("HasMipSol")
-            if status != LpStatusOptimal and not hasMipSol:
-                return status
-
-            values = model.getInfo("Value", model.getVars())
-            exported_vars = lp.exported_variables()
-            for var, value in zip(exported_vars, values):
-                var.varValue = value
-
-            if not model.ismip:
-                # COPT returns an error with an empty model
-                try:
-                    # NOTE: slacks in COPT are activities of rows
-                    slacks = model.getInfo("Slack", model.getConstrs())
-                    for constr, value in zip(lp.constraints(), slacks):
-                        constr.slack = value
-
-                    redcosts = model.getInfo("RedCost", model.getVars())
-                    for var, value in zip(exported_vars, redcosts):
-                        var.dj = value
-
-                    duals = model.getInfo("Dual", model.getConstrs())
-                    for constr, value in zip(lp.constraints(), duals):
-                        constr.pi = value
-                except coptpy.CoptError:
-                    # sometimes the model is not solved, and thus these infos are not available
-                    pass
-
-            return status
-
-        def available(self):
-            """True if the solver is available"""
-            return True
-
-        def callSolver(self, lp, callback=None):
-            """Solves the problem with COPT"""
-            self.solveTime = -clock()
-            if callback is not None:
-                lp.solverModel.setCallback(
-                    callback,
-                    coptpy.COPT.CBCONTEXT_MIPRELAX | coptpy.COPT.CBCONTEXT_MIPSOL,
-                )
-            lp.solverModel.solve()
-            self.solveTime += clock()
-
-        def buildSolverModel(self, lp):
-            """
-            Takes the pulp lp model and translates it into a COPT model
-            """
-            lp.solverModel = self.coptmdl
-
-            if lp.sense == LpMaximize:
-                lp.solverModel.objsense = coptpy.COPT.MAXIMIZE
-            if self.timeLimit:
-                lp.solverModel.setParam("TimeLimit", self.timeLimit)
-
-            gapRel = self.optionsDict.get("gapRel")
-            logPath = self.optionsDict.get("logPath")
-            if gapRel:
-                lp.solverModel.setParam("RelGap", gapRel)
-            if logPath:
-                lp.solverModel.setLogFile(logPath)
-
-            var_handles = []
-            exported_vars = lp.exported_variables()
-            id_to_col = {v.id: j for j, v in enumerate(exported_vars)}
+        if self.optionsDict.get("warmStart", False):
             for var in exported_vars:
-                lowBound = var.lowBound
-                if not math.isfinite(lowBound):
-                    lowBound = -coptpy.COPT.INFINITY
-                upBound = var.upBound
-                if not math.isfinite(upBound):
-                    upBound = coptpy.COPT.INFINITY
-                obj = lp.objective.get(var, 0.0)
-                varType = coptpy.COPT.CONTINUOUS
-                if var.cat == LpInteger and self.mip:
-                    varType = coptpy.COPT.INTEGER
-                cvar = lp.solverModel.addVar(
-                    lowBound, upBound, vtype=varType, obj=obj, name=var.name
-                )
-                var_handles.append(cvar)
+                if var.varValue is not None:
+                    lp.solverModel.setMipStart(
+                        var_handles[id_to_col[var.id]], var.varValue
+                    )
+            lp.solverModel.loadMipStart()
 
-            if self.optionsDict.get("warmStart", False):
-                for var in exported_vars:
-                    if var.varValue is not None:
-                        lp.solverModel.setMipStart(
-                            var_handles[id_to_col[var.id]], var.varValue
-                        )
-                lp.solverModel.loadMipStart()
+        for constraint in lp.constraints():
+            name = constraint.name
+            solver_vars = [var_handles[id_to_col[v.id]] for v in constraint.keys()]
+            expr = coptpy_mod.LinExpr(solver_vars, list(constraint.values()))
+            if constraint.sense == LpConstraintLE:
+                relation = coptpy_mod.COPT.LESS_EQUAL
+            elif constraint.sense == LpConstraintGE:
+                relation = coptpy_mod.COPT.GREATER_EQUAL
+            elif constraint.sense == LpConstraintEQ:
+                relation = coptpy_mod.COPT.EQUAL
+            else:
+                raise PulpSolverError("Detected an invalid constraint type")
+            lp.solverModel.addConstr(expr, relation, -constraint.constant, name)
 
-            for constraint in lp.constraints():
-                name = constraint.name
-                solver_vars = [var_handles[id_to_col[v.id]] for v in constraint.keys()]
-                expr = coptpy.LinExpr(solver_vars, list(constraint.values()))
-                if constraint.sense == LpConstraintLE:
-                    relation = coptpy.COPT.LESS_EQUAL
-                elif constraint.sense == LpConstraintGE:
-                    relation = coptpy.COPT.GREATER_EQUAL
-                elif constraint.sense == LpConstraintEQ:
-                    relation = coptpy.COPT.EQUAL
-                else:
-                    raise PulpSolverError("Detected an invalid constraint type")
-                lp.solverModel.addConstr(expr, relation, -constraint.constant, name)
+    @requires("coptpy")
+    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
+        """
+        Solve a well formulated lp problem
 
-        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
-            """
-            Solve a well formulated lp problem
+        creates a COPT model, variables and constraints and attaches
+        them to the lp model which it then solves
+        """
+        start = clocks()
+        callback = kwargs.get("callback")
+        self.buildSolverModel(lp)
+        self.callSolver(lp, callback=callback)
 
-            creates a COPT model, variables and constraints and attaches
-            them to the lp model which it then solves
-            """
-            callback = kwargs.get("callback")
-            self.buildSolverModel(lp)
-            self.callSolver(lp, callback=callback)
-
-            solutionStatus = self.findSolutionValues(lp)
-            return solutionStatus
+        status, has_solution = self.findSolutionValues(lp)
+        return self.buildStats(lp, status, has_solution, start=start)

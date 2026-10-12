@@ -5,17 +5,21 @@ import warnings
 from typing import TYPE_CHECKING, Any
 
 from .. import constants
-from .core import LpSolver, PulpSolverError, clock, log
+from .core import (
+    LpSolver,
+    PulpSolverError,
+    clock,
+    clocks,
+    import_optional,
+    log,
+    requires,
+)
 
 if TYPE_CHECKING:
     from ..core.lp_problem import LpProblem
+    from ..core.lp_stats import LpSolveStats
 
-_ORTOOLS_IMPORT_ERROR: BaseException | None = None
-cp_model_mod = None
-try:
-    from ortools.sat.python import cp_model as cp_model_mod
-except Exception as exc:
-    _ORTOOLS_IMPORT_ERROR = exc
+cp_model_mod = import_optional("ortools.sat.python.cp_model")
 
 
 def _decimal_places(value: float) -> int:
@@ -32,17 +36,6 @@ def _integer_scale(values: list[float]) -> int:
 
 def _scale_to_int(value: float, scale: int) -> int:
     return int(round(value * scale))
-
-
-def check_ortools(func):
-    """Decorator that checks if ortools is available."""
-
-    def wrapper(self, *args, **kwargs):
-        if cp_model_mod is None:
-            raise PulpSolverError(f"CPSAT: Not Available:\n{_ORTOOLS_IMPORT_ERROR}")
-        return func(self, *args, **kwargs)
-
-    return wrapper
 
 
 class CPSAT(LpSolver):
@@ -64,6 +57,7 @@ class CPSAT(LpSolver):
         msg=True,
         timeLimit=None,
         warmStart=False,
+        logPath=None,
         **solverParams,
     ):
         """
@@ -71,7 +65,9 @@ class CPSAT(LpSolver):
         :param bool msg: if False, no log is shown
         :param float timeLimit: maximum time for solver (in seconds)
         :param bool warmStart: if True, pass current variable values as hints
-        :param dict solverParams: additional parameters for ``CpSolver.parameters``
+        :param str logPath: path to write the search log to
+        :param dict solverParams: ``threads`` or additional parameters for
+            ``CpSolver.parameters``
         """
         LpSolver.__init__(
             self,
@@ -79,27 +75,32 @@ class CPSAT(LpSolver):
             msg=msg,
             timeLimit=timeLimit,
             warmStart=warmStart,
+            logPath=logPath,
+            **solverParams,
         )
-        self.solver_params = solverParams
         self.solverModel = None
 
     def available(self) -> bool:
         """True if the solver is available"""
         return cp_model_mod is not None
 
-    @check_ortools
-    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+    @requires("ortools.sat.python.cp_model")
+    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
         """
         Solve a well formulated lp problem.
 
         Creates a CP-SAT model, variables and constraints, then solves it.
         """
+        start = clocks()
         var_handles = self.buildSolverModel(lp)
         log.debug("Solve the Model using CP-SAT")
-        solver, status = self.callSolver(lp)
-        return self.findSolutionValues(lp, solver, var_handles, status)
+        solver, status_code = self.callSolver(lp)
+        status, has_solution = self.findSolutionValues(
+            lp, solver, var_handles, status_code
+        )
+        return self.buildStats(lp, status, has_solution, start=start)
 
-    @check_ortools
+    @requires("ortools.sat.python.cp_model")
     def buildSolverModel(self, lp: LpProblem) -> list[Any]:
         """
         Takes the pulp lp model and translates it into a CP-SAT model.
@@ -215,51 +216,67 @@ class CPSAT(LpSolver):
 
         return var_handles
 
-    @check_ortools
+    @requires("ortools.sat.python.cp_model")
     def callSolver(self, lp: LpProblem) -> tuple[Any, Any]:
         """Solves the problem with CP-SAT and returns the solver and status."""
         solver = cp_model_mod.CpSolver()
         solver.parameters.log_search_progress = bool(self.msg)
+        # CP-SAT has no log file parameter, so a logPath is served by appending each
+        # line of the search log to the file as the callback receives it.
+        log_path = self.optionsDict.get("logPath")
+        log_file = open(log_path, "w") if log_path else None
+        if log_file is not None:
+            solver.parameters.log_search_progress = True
+            if hasattr(solver.parameters, "log_to_stdout"):
+                solver.parameters.log_to_stdout = bool(self.msg)
+
+            def write_log(line: str) -> None:
+                log_file.write(line + "\n")
+                log_file.flush()
+
+            solver.log_callback = write_log
         if self.timeLimit is not None:
             solver.parameters.max_time_in_seconds = float(self.timeLimit)
         if "threads" in self.optionsDict:
             solver.parameters.num_search_workers = int(self.optionsDict["threads"])
-        for param, value in self.solver_params.items():
+        for param, value in self.optionsDict.items():
             if hasattr(solver.parameters, param):
                 setattr(solver.parameters, param, value)
 
-        self.solveTime = -clock()
-        status = solver.Solve(self.solverModel)
-        self.solveTime += clock()
+        try:
+            self.solveTime = -clock()
+            status = solver.Solve(self.solverModel)
+            self.solveTime += clock()
+        finally:
+            if log_file is not None:
+                log_file.close()
         return solver, status
 
-    @check_ortools
+    @requires("ortools.sat.python.cp_model")
     def findSolutionValues(
         self,
         lp: LpProblem,
         solver: Any,
         var_handles: list[Any],
         status_code: Any,
-    ) -> int:
+    ) -> tuple[constants.LpSolveStatus, bool]:
         exported_vars = list(lp.exported_variables())
+        # CP-SAT does not say which limit stopped it, only whether it has a solution
         cp_status = {
-            cp_model_mod.OPTIMAL: constants.LpStatusOptimal,
-            cp_model_mod.FEASIBLE: constants.LpStatusOptimal,
-            cp_model_mod.INFEASIBLE: constants.LpStatusInfeasible,
-            cp_model_mod.UNKNOWN: constants.LpStatusNotSolved,
-            cp_model_mod.MODEL_INVALID: constants.LpStatusUndefined,
+            cp_model_mod.OPTIMAL: constants.LpSolveStatus.Optimal,
+            cp_model_mod.FEASIBLE: constants.LpSolveStatus.Stopped,
+            cp_model_mod.INFEASIBLE: constants.LpSolveStatus.Infeasible,
+            cp_model_mod.UNKNOWN: constants.LpSolveStatus.Stopped,
+            cp_model_mod.MODEL_INVALID: constants.LpSolveStatus.Undefined,
         }
-        sol_status = {
-            cp_model_mod.FEASIBLE: constants.LpSolutionIntegerFeasible,
-        }
-        status = cp_status.get(status_code, constants.LpStatusUndefined)
-        lp.assignStatus(status, sol_status.get(status_code))
+        status = cp_status.get(status_code, constants.LpSolveStatus.Undefined)
+        has_solution = status_code in (cp_model_mod.OPTIMAL, cp_model_mod.FEASIBLE)
 
-        if status_code in (cp_model_mod.OPTIMAL, cp_model_mod.FEASIBLE):
+        if has_solution:
             values = {
                 var.name: solver.Value(cp_var)
                 for var, cp_var in zip(exported_vars, var_handles)
             }
             lp.assignVarsVals(values)
 
-        return status
+        return status, has_solution

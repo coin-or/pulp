@@ -5,14 +5,26 @@ from __future__ import annotations
 import os
 import subprocess
 import warnings
-from math import inf
+from math import isfinite
 from typing import TYPE_CHECKING, Any
 
+import numpy as np
+
 from .. import constants
-from .core import LpSolver, LpSolver_CMD, PulpSolverError
+from .core import (
+    LpSolver,
+    LpSolver_CMD,
+    PulpSolverError,
+    clocks,
+    import_optional,
+    requires,
+)
 
 if TYPE_CHECKING:
+    import highspy as highspy_t
+
     from ..core.lp_problem import LpProblem
+    from ..core.lp_stats import LpSolveStats
 
 # Copyright (c) 2002-2005, Jean-Sebastien Roy (js@jeannot.org)
 # Modifications Copyright (c) 2007- Stuart Anthony Mitchell (s.mitchell@auckland.ac.nz)
@@ -98,8 +110,9 @@ class HiGHS_CMD(LpSolver_CMD):
         """True if the solver is available"""
         return self.executable(self.path)
 
-    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
         """Solve a well formulated lp problem."""
+        start = clocks()
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute " + self.path)
         lp.checkDuplicateVars()
@@ -188,52 +201,34 @@ class HiGHS_CMD(LpSolver_CMD):
         sol_line = [line for line in lines if line[:2] == ["Solution", "status"]]
         sol_line = sol_line[0] if len(sol_line) > 0 else ["Not solved"]
         sol_status = sol_line[-1]
-        if model_status.lower() == "optimal":  # optimal
-            status, status_sol = (
-                constants.LpStatusOptimal,
-                constants.LpSolutionOptimal,
-            )
-        elif sol_status.lower() == "feasible":  # feasible
-            # Following the PuLP convention
-            status, status_sol = (
-                constants.LpStatusOptimal,
-                constants.LpSolutionIntegerFeasible,
-            )
-        elif model_status.lower() == "infeasible":  # infeasible
-            status, status_sol = (
-                constants.LpStatusInfeasible,
-                constants.LpSolutionInfeasible,
-            )
-        elif model_status.lower() == "unbounded":  # unbounded
-            status, status_sol = (
-                constants.LpStatusUnbounded,
-                constants.LpSolutionUnbounded,
-            )
-        else:  # no solution
-            status, status_sol = (
-                constants.LpStatusNotSolved,
-                constants.LpSolutionNoSolutionFound,
-            )
+        S = constants.LpSolveStatus
+        model_statuses = {
+            "optimal": S.Optimal,
+            "infeasible": S.Infeasible,
+            "unbounded": S.Unbounded,
+            "primal infeasible or unbounded": S.Undefined,
+            "bound on objective reached": S.GapLimit,
+            "target for objective reached": S.GapLimit,
+            "time limit reached": S.TimeLimit,
+            "iteration limit reached": S.IterationLimit,
+            "solution limit reached": S.SolutionLimit,
+            "interrupted by user": S.Interrupted,
+            "memory limit reached": S.MemoryLimit,
+        }
+        status = model_statuses.get(model_status.lower())
+        has_solution = status == S.Optimal or sol_status.lower() == "feasible"
+        if status is None:
+            status = S.Stopped if has_solution else S.NotSolved
 
         if not os.path.exists(tmpSol) or os.stat(tmpSol).st_size == 0:
-            status_sol = constants.LpSolutionNoSolutionFound
-            values = None
-        elif status_sol in {
-            constants.LpSolutionNoSolutionFound,
-            constants.LpSolutionInfeasible,
-            constants.LpSolutionUnbounded,
-        }:
-            values = None
-        else:
-            values = self.readsol(tmpSol)
+            has_solution = False
+        values = self.readsol(tmpSol) if has_solution else None
 
         self.delete_tmp_files(tmpMps, tmpSol, tmpOptions, tmpLog, tmpMst)
-        lp.assignStatus(status, status_sol)
-
-        if status == constants.LpStatusOptimal and values is not None:
+        if values is not None:
             lp.assignVarsVals(values)
 
-        return status
+        return self.buildStats(lp, status, has_solution, start=start)
 
     def writesol(self, filename, lp):
         """Writes a HiGHS solution file"""
@@ -278,293 +273,263 @@ class HiGHS_CMD(LpSolver_CMD):
         return values
 
 
-highspy = None
+highspy_mod = import_optional("highspy")
 
 
 class HiGHS(LpSolver):
     name = "HiGHS"
 
-    try:
-        global highspy
-        import highspy  # type: ignore[import-not-found, import-untyped]
-    except Exception:
-        hscb = None
+    hscb = highspy_mod.cb if highspy_mod is not None else None
 
-        def available(self):
-            """True if the solver is available"""
-            return False
-
-        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
-            """Solve a well formulated lp problem."""
-            raise PulpSolverError("HiGHS: Not Available")
-
-    else:
-        hscb = highspy.cb  # type: ignore[attr-defined]
-
-        def __init__(
-            self,
-            mip=True,
-            msg=True,
-            callbackTuple=None,
-            gapAbs=None,
-            gapRel=None,
-            threads=None,
-            timeLimit=None,
-            logPath=None,
-            warmStart=False,
-            callbacksToActivate: list[highspy.cb.HighsCallbackType] | None = None,
+    def __init__(
+        self,
+        mip=True,
+        msg=True,
+        callbackTuple=None,
+        gapAbs=None,
+        gapRel=None,
+        threads=None,
+        timeLimit=None,
+        logPath=None,
+        warmStart=False,
+        callbacksToActivate: list[highspy_t.cb.HighsCallbackType] | None = None,
+        **solverParams,
+    ):
+        """
+        :param bool mip: if False, assume LP even if integer variables
+        :param bool msg: if False, no log is shown
+        :param tuple callbackTuple: Tuple of callback function and callbackValue (see tests for an example)
+        :param float gapRel: relative gap tolerance for the solver to stop (in fraction)
+        :param float gapAbs: absolute gap tolerance for the solver to stop
+        :param int threads: sets the maximum number of threads
+        :param str logPath: path to the log file
+        :param float timeLimit: maximum time for solver (in seconds)
+        :param bool warmStart: if True, the solver will use the current value of variables as a start
+        :param dict solverParams: list of named options to pass directly to the HiGHS solver
+        :param callbacksToActivate: list of callback types to start
+        """
+        super().__init__(
+            mip=mip,
+            msg=msg,
+            timeLimit=timeLimit,
+            logPath=logPath,
+            warmStart=warmStart,
             **solverParams,
-        ):
-            """
-            :param bool mip: if False, assume LP even if integer variables
-            :param bool msg: if False, no log is shown
-            :param tuple callbackTuple: Tuple of callback function and callbackValue (see tests for an example)
-            :param float gapRel: relative gap tolerance for the solver to stop (in fraction)
-            :param float gapAbs: absolute gap tolerance for the solver to stop
-            :param int threads: sets the maximum number of threads
-            :param str logPath: path to the log file
-            :param float timeLimit: maximum time for solver (in seconds)
-            :param bool warmStart: if True, the solver will use the current value of variables as a start
-            :param dict solverParams: list of named options to pass directly to the HiGHS solver
-            :param callbacksToActivate: list of callback types to start
-            """
-            super().__init__(
-                mip=mip,
-                msg=msg,
-                timeLimit=timeLimit,
-                logPath=logPath,
-                warmStart=warmStart,
-                **solverParams,
+        )
+        self.callbackTuple = callbackTuple
+        self.callbacksToActivate = callbacksToActivate
+        self.gapAbs = gapAbs
+        self.gapRel = gapRel
+        self.threads = threads
+
+    def available(self):
+        return highspy_mod is not None
+
+    def callSolver(self, lp):
+        lp.solverModel.run()
+
+    @requires("highspy")
+    def createAndConfigureSolver(self, lp):
+        lp.solverModel = highspy_mod.Highs()
+
+        if self.callbackTuple:
+            lp.solverModel.setCallback(*self.callbackTuple)
+
+        if self.callbacksToActivate:
+            for cb_type in self.callbacksToActivate:
+                lp.solverModel.startCallback(cb_type)
+
+        if not self.msg:
+            lp.solverModel.setOptionValue("output_flag", False)
+
+        if self.gapRel is not None:
+            lp.solverModel.setOptionValue("mip_rel_gap", self.gapRel)
+
+        if self.gapAbs is not None:
+            lp.solverModel.setOptionValue("mip_abs_gap", self.gapAbs)
+
+        if self.threads is not None:
+            lp.solverModel.setOptionValue("threads", self.threads)
+
+        if self.timeLimit is not None:
+            lp.solverModel.setOptionValue("time_limit", float(self.timeLimit))
+
+        logPath = self.optionsDict.get("logPath")
+        if logPath is not None:
+            lp.solverModel.setOptionValue("log_file", logPath)
+
+        # set remaining parameter values
+        for key, value in self.optionsDict.items():
+            if key == "warmStart":
+                continue
+            lp.solverModel.setOptionValue(key, value)
+
+    @requires("highspy")
+    def buildSolverModel(self, lp):
+        inf = highspy_mod.kHighsInf
+
+        exported_vars = lp.exported_variables()
+        id_to_col = {v.id: j for j, v in enumerate(exported_vars)}
+
+        # one addCols and one addRows call: per-column and per-row calls cost more
+        # than the solve itself on models that resolve in a few milliseconds, and the
+        # objective and constraint lookups are done once rather than once per column
+        cost = np.zeros(len(exported_vars))
+        for var, coefficient in lp.objective.items():
+            j = id_to_col.get(var.id)
+            if j is not None:
+                cost[j] = coefficient
+        lower = np.full(len(exported_vars), -inf)
+        upper = np.full(len(exported_vars), inf)
+        for j, var in enumerate(exported_vars):
+            if var.lowBound is not None:
+                lower[j] = var.lowBound
+            if var.upBound is not None:
+                upper[j] = var.upBound
+
+        empty = np.zeros(0, dtype=np.int32)
+        lp.solverModel.addCols(
+            len(exported_vars), cost, lower, upper, 0, empty, empty, np.zeros(0)
+        )
+
+        if self.mip:
+            integer = np.fromiter(
+                (
+                    j
+                    for j, var in enumerate(exported_vars)
+                    if var.cat == constants.LpInteger
+                ),
+                dtype=np.int32,
             )
-            self.callbackTuple = callbackTuple
-            self.callbacksToActivate = callbacksToActivate
-            self.gapAbs = gapAbs
-            self.gapRel = gapRel
-            self.threads = threads
+            if len(integer):
+                lp.solverModel.changeColsIntegrality(
+                    len(integer),
+                    integer,
+                    np.full(len(integer), highspy_mod.HighsVarType.kInteger),
+                )
 
-        def available(self):
-            return True
+        if lp.sense == constants.LpMaximize:
+            lp.solverModel.changeObjectiveSense(highspy_mod.ObjSense.kMaximize)
+        lp.solverModel.changeObjectiveOffset(lp.objective.constant)
 
-        def callSolver(self, lp):
-            lp.solverModel.run()
+        constraints = lp.constraints()
+        starts: list[int] = []
+        indices: list[int] = []
+        coefficients: list[float] = []
+        row_lower: list[float] = []
+        row_upper: list[float] = []
+        for constraint in constraints:
+            starts.append(len(indices))
+            for var, coefficient in constraint.items():
+                if coefficient != 0:
+                    indices.append(id_to_col[var.id])
+                    coefficients.append(coefficient)
+            lb = constraint.getLb()
+            ub = constraint.getUb()
+            row_lower.append(-inf if lb is None else lb)
+            row_upper.append(inf if ub is None else ub)
 
-        def createAndConfigureSolver(self, lp):
-            lp.solverModel = highspy.Highs()
-
-            if self.callbackTuple:
-                lp.solverModel.setCallback(*self.callbackTuple)
-
-            if self.callbacksToActivate:
-                for cb_type in self.callbacksToActivate:
-                    lp.solverModel.startCallback(cb_type)
-
-            if not self.msg:
-                lp.solverModel.setOptionValue("output_flag", False)
-
-            if self.gapRel is not None:
-                lp.solverModel.setOptionValue("mip_rel_gap", self.gapRel)
-
-            if self.gapAbs is not None:
-                lp.solverModel.setOptionValue("mip_abs_gap", self.gapAbs)
-
-            if self.threads is not None:
-                lp.solverModel.setOptionValue("threads", self.threads)
-
-            if self.timeLimit is not None:
-                lp.solverModel.setOptionValue("time_limit", float(self.timeLimit))
-
-            logPath = self.optionsDict.get("logPath")
-            if logPath is not None:
-                lp.solverModel.setOptionValue("log_file", logPath)
-
-            # set remaining parameter values
-            for key, value in self.optionsDict.items():
-                if key == "warmStart":
-                    continue
-                lp.solverModel.setOptionValue(key, value)
-
-        def buildSolverModel(self, lp):
-            inf = highspy.kHighsInf
-
-            obj_mult = -1 if lp.sense == constants.LpMaximize else 1
-
-            exported_vars = lp.exported_variables()
-            id_to_col = {v.id: j for j, v in enumerate(exported_vars)}
-
+        lp.solverModel.addRows(
+            len(constraints),
+            np.array(row_lower, dtype=np.float64),
+            np.array(row_upper, dtype=np.float64),
+            len(indices),
+            np.array(starts, dtype=np.int32),
+            np.array(indices, dtype=np.int32),
+            np.array(coefficients, dtype=np.float64),
+        )
+        if self.optionsDict.get("warmStart", False):
+            indices: list[int] = []
+            values: list[float] = []
             for j, var in enumerate(exported_vars):
-                lb = var.lowBound
-                ub = var.upBound
-                lp.solverModel.addCol(
-                    obj_mult * lp.objective.get(var, 0.0),
-                    -inf if lb is None else lb,
-                    inf if ub is None else ub,
-                    0,
-                    [],
-                    [],
-                )
+                if var.varValue is not None:
+                    indices.append(j)
+                    values.append(var.varValue)
+            if not indices:
+                warnings.warn("No variable with value found: warmStart aborted")
+                return
+            lp.solverModel.setSolution(len(indices), indices, values)
 
-                if var.cat == constants.LpInteger and self.mip:
-                    lp.solverModel.changeColIntegrality(
-                        j, highspy.HighsVarType.kInteger
-                    )
+    def findSolutionValues(self, lp):
+        status = lp.solverModel.getModelStatus()
+        obj_value = lp.solverModel.getObjectiveValue()
+        solution = lp.solverModel.getSolution()
+        HighsModelStatus = highspy_mod.HighsModelStatus
 
-            for constraint in lp.constraints():
-                non_zero_constraint_items = [
-                    (id_to_col[var.id], coefficient)
-                    for var, coefficient in constraint.items()
-                    if coefficient != 0
-                ]
+        S = constants.LpSolveStatus
+        status_dict = {
+            HighsModelStatus.kNotset: S.NotSolved,
+            HighsModelStatus.kLoadError: S.Undefined,
+            HighsModelStatus.kModelError: S.Undefined,
+            HighsModelStatus.kPresolveError: S.Undefined,
+            HighsModelStatus.kSolveError: S.Undefined,
+            HighsModelStatus.kPostsolveError: S.Undefined,
+            HighsModelStatus.kModelEmpty: S.NotSolved,
+            HighsModelStatus.kOptimal: S.Optimal,
+            HighsModelStatus.kInfeasible: S.Infeasible,
+            HighsModelStatus.kUnboundedOrInfeasible: S.Undefined,
+            HighsModelStatus.kUnbounded: S.Unbounded,
+            HighsModelStatus.kObjectiveBound: S.GapLimit,
+            HighsModelStatus.kObjectiveTarget: S.GapLimit,
+            HighsModelStatus.kInterrupt: S.Interrupted,
+            HighsModelStatus.kTimeLimit: S.TimeLimit,
+            HighsModelStatus.kIterationLimit: S.IterationLimit,
+            HighsModelStatus.kSolutionLimit: S.SolutionLimit,
+            HighsModelStatus.kMemoryLimit: S.MemoryLimit,
+            HighsModelStatus.kUnknown: S.Undefined,
+        }
+        stopped_early = (
+            HighsModelStatus.kObjectiveBound,
+            HighsModelStatus.kObjectiveTarget,
+            HighsModelStatus.kInterrupt,
+            HighsModelStatus.kTimeLimit,
+            HighsModelStatus.kIterationLimit,
+            HighsModelStatus.kSolutionLimit,
+            HighsModelStatus.kMemoryLimit,
+        )
 
-                if len(non_zero_constraint_items) == 0:
-                    indices, coefficients = [], []
-                else:
-                    indices, coefficients = map(list, zip(*non_zero_constraint_items))
+        col_values = list(solution.col_value)
+        col_duals = list(solution.col_dual)
 
-                lb = constraint.getLb()
-                ub = constraint.getUb()
-                lp.solverModel.addRow(
-                    -inf if lb is None else lb,
-                    inf if ub is None else ub,
-                    len(indices),
-                    indices,
-                    coefficients,
-                )
-            if self.optionsDict.get("warmStart", False):
-                indices: list[int] = []
-                values: list[float] = []
-                for j, var in enumerate(exported_vars):
-                    if var.varValue is not None:
-                        indices.append(j)
-                        values.append(var.varValue)
-                if not indices:
-                    warnings.warn("No variable with value found: warmStart aborted")
-                    return
-                lp.solverModel.setSolution(len(indices), indices, values)
+        exported_vars = lp.exported_variables()
+        for j, var in enumerate(exported_vars):
+            var.varValue = col_values[j]
+            var.dj = col_duals[j]
 
-        def findSolutionValues(self, lp):
-            status = lp.solverModel.getModelStatus()
-            obj_value = lp.solverModel.getObjectiveValue()
-            solution = lp.solverModel.getSolution()
-            HighsModelStatus = highspy.HighsModelStatus
+        row_values = list(solution.row_value)
+        row_duals = list(solution.row_dual)
+        for constraint in lp.constraints():
+            # PuLP returns LpConstraint.constant as if it were on the
+            # left-hand side, which means the signs on the following line
+            # are correct
+            # We need to flip the sign for slacks for LE constraints
+            row_idx = constraint.id
+            constraint.slack = constraint.constant + row_values[row_idx]
+            if constraint.sense == constants.LpConstraintLE:
+                constraint.slack *= -1.0
+            constraint.pi = row_duals[row_idx]
 
-            status_dict = {
-                HighsModelStatus.kNotset: (
-                    constants.LpStatusNotSolved,
-                    constants.LpSolutionNoSolutionFound,
-                ),
-                HighsModelStatus.kLoadError: (
-                    constants.LpStatusNotSolved,
-                    constants.LpSolutionNoSolutionFound,
-                ),
-                HighsModelStatus.kModelError: (
-                    constants.LpStatusNotSolved,
-                    constants.LpSolutionNoSolutionFound,
-                ),
-                HighsModelStatus.kPresolveError: (
-                    constants.LpStatusNotSolved,
-                    constants.LpSolutionNoSolutionFound,
-                ),
-                HighsModelStatus.kSolveError: (
-                    constants.LpStatusNotSolved,
-                    constants.LpSolutionNoSolutionFound,
-                ),
-                HighsModelStatus.kPostsolveError: (
-                    constants.LpStatusNotSolved,
-                    constants.LpSolutionNoSolutionFound,
-                ),
-                HighsModelStatus.kModelEmpty: (
-                    constants.LpStatusNotSolved,
-                    constants.LpSolutionNoSolutionFound,
-                ),
-                HighsModelStatus.kOptimal: (
-                    constants.LpStatusOptimal,
-                    constants.LpSolutionOptimal,
-                ),
-                HighsModelStatus.kInfeasible: (
-                    constants.LpStatusInfeasible,
-                    constants.LpSolutionInfeasible,
-                ),
-                HighsModelStatus.kUnboundedOrInfeasible: (
-                    constants.LpStatusUndefined,
-                    constants.LpSolutionNoSolutionFound,
-                ),
-                HighsModelStatus.kUnbounded: (
-                    constants.LpStatusUnbounded,
-                    constants.LpSolutionUnbounded,
-                ),
-                HighsModelStatus.kObjectiveBound: (
-                    constants.LpStatusOptimal,
-                    constants.LpSolutionIntegerFeasible,
-                ),
-                HighsModelStatus.kObjectiveTarget: (
-                    constants.LpStatusOptimal,
-                    constants.LpSolutionIntegerFeasible,
-                ),
-                HighsModelStatus.kInterrupt: (
-                    constants.LpStatusOptimal,
-                    constants.LpSolutionIntegerFeasible,
-                ),
-                HighsModelStatus.kTimeLimit: (
-                    constants.LpStatusOptimal,
-                    constants.LpSolutionIntegerFeasible,
-                ),
-                HighsModelStatus.kIterationLimit: (
-                    constants.LpStatusOptimal,
-                    constants.LpSolutionIntegerFeasible,
-                ),
-                HighsModelStatus.kSolutionLimit: (
-                    constants.LpStatusOptimal,
-                    constants.LpSolutionIntegerFeasible,
-                ),
-                HighsModelStatus.kMemoryLimit: (
-                    constants.LpStatusNotSolved,
-                    constants.LpSolutionNoSolutionFound,
-                ),
-                HighsModelStatus.kUnknown: (
-                    constants.LpStatusNotSolved,
-                    constants.LpSolutionNoSolutionFound,
-                ),
-            }
+        # a solver that stopped early without an incumbent reports an infinite objective
+        has_solution = status == HighsModelStatus.kOptimal or (
+            status in stopped_early and isfinite(obj_value)
+        )
+        return status_dict.get(status, S.Undefined), has_solution
 
-            col_values = list(solution.col_value)
-            col_duals = list(solution.col_dual)
+    @requires("highspy")
+    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
+        start = clocks()
+        self.createAndConfigureSolver(lp)
+        self.buildSolverModel(lp)
+        self.callSolver(lp)
 
-            exported_vars = lp.exported_variables()
-            for j, var in enumerate(exported_vars):
-                var.varValue = col_values[j]
-                var.dj = col_duals[j]
+        status, has_solution = self.findSolutionValues(lp)
+        return self.buildStats(
+            lp, status, has_solution, start=start, best_bound=self.findBestBound(lp)
+        )
 
-            row_values = list(solution.row_value)
-            row_duals = list(solution.row_dual)
-            for constraint in lp.constraints():
-                # PuLP returns LpConstraint.constant as if it were on the
-                # left-hand side, which means the signs on the following line
-                # are correct
-                # We need to flip the sign for slacks for LE constraints
-                row_idx = constraint.id
-                constraint.slack = constraint.constant + row_values[row_idx]
-                if constraint.sense == constants.LpConstraintLE:
-                    constraint.slack *= -1.0
-                constraint.pi = row_duals[row_idx]
-
-            if obj_value == float(inf) and status in (
-                HighsModelStatus.kTimeLimit,
-                HighsModelStatus.kIterationLimit,
-                HighsModelStatus.kSolutionLimit,
-            ):
-                return (
-                    constants.LpStatusNotSolved,
-                    constants.LpSolutionNoSolutionFound,
-                )
-            else:
-                return status_dict[status]
-
-        def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
-            self.createAndConfigureSolver(lp)
-            self.buildSolverModel(lp)
-            self.callSolver(lp)
-
-            status, sol_status = self.findSolutionValues(lp)
-            lp.assignStatus(status, sol_status)
-
-            return status
+    def findBestBound(self, lp: LpProblem) -> float | None:
+        """The best bound HiGHS proved on a MIP, in the problem's sense, or None."""
+        if not (lp.isMIP() and self.mip):
+            return None
+        bound = lp.solverModel.getInfo().mip_dual_bound
+        return bound if isfinite(bound) else None

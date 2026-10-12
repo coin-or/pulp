@@ -87,11 +87,11 @@ prob.writeLP("Sudoku.lp")
 sudokuout = open("sudokuout.txt", "w")
 
 while True:
-    prob.solve()
+    stats = prob.solve()
     # The status of the solution is printed to the screen
-    print("Status:", LpStatus[prob.status])
-    # The solution is printed if it was deemed "optimal" i.e met the constraints
-    if LpStatus[prob.status] == "Optimal":
+    print("Status:", stats.status_str)
+    # The solution is printed if the solver found one meeting the constraints
+    if stats.has_solution:
         # The solution is written to the sudokuout.txt file
         for r in ROWS:
             if r in [1, 4, 7]:

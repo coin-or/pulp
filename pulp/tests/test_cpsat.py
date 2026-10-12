@@ -4,7 +4,7 @@ import unittest
 from typing import ClassVar
 
 import pulp.apis as solvers
-from pulp import CPSAT, LpMaximize, LpMinimize, LpProblem, LpStatusOptimal, const
+from pulp import CPSAT, LpMaximize, LpMinimize, LpProblem, LpSolveStatus, const
 from pulp.apis.core import PulpSolverError
 from pulp.tests.solver_common import BaseSolverTest, PulpTestConfig
 
@@ -67,8 +67,8 @@ class CPSATUnitTest(unittest.TestCase):
         prob += x + 2 * y
         prob += x + y >= 7
         prob += x <= 5
-        status = prob.solve(self.solver)
-        self.assertEqual(status, LpStatusOptimal)
+        status = prob.solve(self.solver).status
+        self.assertEqual(status, LpSolveStatus.Optimal)
         self.assertEqual(x.value(), 5)
         self.assertEqual(y.value(), 2)
 
@@ -77,8 +77,8 @@ class CPSATUnitTest(unittest.TestCase):
         x = prob.add_variable("x", 0.0, 10.0, cat=const.LpContinuous)
         prob += 2.5 * x
         prob += x >= 3.7
-        status = prob.solve(self.solver)
-        self.assertEqual(status, LpStatusOptimal)
+        status = prob.solve(self.solver).status
+        self.assertEqual(status, LpSolveStatus.Optimal)
         self.assertEqual(x.value(), 4)
 
     def test_feasibility_only(self):
@@ -87,8 +87,8 @@ class CPSATUnitTest(unittest.TestCase):
         y = prob.add_variable("y", 0, 5)
         prob += x + y >= 4
         prob += x <= 2
-        status = prob.solve(self.solver)
-        self.assertEqual(status, LpStatusOptimal)
+        status = prob.solve(self.solver).status
+        self.assertEqual(status, LpSolveStatus.Optimal)
         self.assertGreaterEqual((x.value() or 0.0) + (y.value() or 0.0), 4)
 
     def test_unbounded_variable_raises(self):
@@ -106,8 +106,8 @@ class CPSATUnitTest(unittest.TestCase):
         prob += x + 2 * y >= 15
         x.varValue = 10
         y.varValue = 3
-        status = prob.solve(CPSAT(msg=False, warmStart=True))
-        self.assertEqual(status, LpStatusOptimal)
+        status = prob.solve(CPSAT(msg=False, warmStart=True)).status
+        self.assertEqual(status, LpSolveStatus.Optimal)
         self.assertEqual((x.value() or 0.0) + (y.value() or 0.0), 8)
 
     def test_repeated_name_raises(self):
@@ -123,6 +123,6 @@ class CPSATUnitTest(unittest.TestCase):
         x = prob.add_variable("x", 0, 10)
         prob += x
         prob += x <= 7
-        status = prob.solve(self.solver)
-        self.assertEqual(status, LpStatusOptimal)
+        status = prob.solve(self.solver).status
+        self.assertEqual(status, LpSolveStatus.Optimal)
         self.assertEqual(x.value(), 7)

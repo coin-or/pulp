@@ -28,11 +28,6 @@ The LpProblem Class
 
       A :class:`list` of :class:`constraints<LpConstraint>` in model order (same order as rows in the Rust core).
 
-   .. attribute:: status 
-
-      The return :data:`status <pulp.constants.LpStatus>`
-      of the problem from the solver.
-
    Some of the more important methods:
 
    .. automethod:: solve

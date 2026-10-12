@@ -72,6 +72,7 @@ Takes an :py:class:`pulp.pulp.LpProblem` as argument, solves it, stores the solu
 
     def actualSolve(self, lp):
         """Solve a well formulated lp problem"""
+        start = clocks()
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute " + self.path)
         tmpMps, tmpSol = self.create_tmp_files(lp.name, "mps", "sol")
@@ -115,17 +116,27 @@ Takes an :py:class:`pulp.pulp.LpProblem` as argument, solves it, stores the solu
         if return_code != 0:
             raise PulpSolverError("PuLP: Error while trying to execute " + self.path)
         if not os.path.exists(tmpSol):
-            status = constants.LpStatusNotSolved
-            status_sol = constants.LpSolutionNoSolutionFound
+            status = constants.LpSolveStatus.NotSolved
+            has_solution = False
             values = None
         else:
-            status, values, status_sol = self.readsol(tmpSol)
+            status, values, has_solution = self.readsol(tmpSol)
         self.delete_tmp_files(tmpMps, tmpSol)
-        lp.assignStatus(status, status_sol)
-        if status not in [constants.LpStatusInfeasible, constants.LpStatusNotSolved]:
+        if values is not None and has_solution:
             lp.assignVarsVals(values)
 
-        return status
+        return self.buildStats(lp, status, has_solution, start=start)
+
+``self.buildStats(lp, status, has_solution, start=start)`` is the only place an
+:py:class:`~pulp.LpSolveStats` gets built, and every ``actualSolve`` ends by
+returning it. ``status`` is why the solver stopped: use the most specific
+:class:`~pulp.constants.LpSolveStatus` member the solver reports, e.g.
+``TimeLimit`` or ``NodeLimit``, not just ``Optimal``/``NotSolved``. ``has_solution``
+says whether it handed back a feasible solution -- pass what the solver actually
+told you, since most limit statuses can come with or without one. ``start`` is
+:func:`~pulp.apis.core.clocks` taken at the top of ``actualSolve``, so the
+reported time covers the whole solve; pass ``best_bound=`` too when the solver
+reports one.
 
 ``defaultPath`` method
 -------------------------

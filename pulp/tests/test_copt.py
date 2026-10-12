@@ -17,8 +17,6 @@ class COPTTest(BaseSolverTest.PuLPTest):
         "test_repeated_name": ALLOW_REPEATED_VAR_NAMES,
         "test_initial_value": PulpTestConfig(warm_start=True),
         "test_unbounded": PulpTestConfig(
-            okstatus=_status(
-                "LpStatusInfeasible", "LpStatusUnbounded", "LpStatusUndefined"
-            )
+            okstatus=_status("Infeasible", "Unbounded", "Undefined")
         ),
     }

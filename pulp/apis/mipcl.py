@@ -32,10 +32,11 @@ import warnings
 from typing import TYPE_CHECKING, Any
 
 from .. import constants
-from .core import LpSolver_CMD, PulpSolverError
+from .core import LpSolver_CMD, PulpSolverError, clocks
 
 if TYPE_CHECKING:
     from ..core.lp_problem import LpProblem
+    from ..core.lp_stats import LpSolveStats
 
 
 class MIPCL_CMD(LpSolver_CMD):
@@ -77,8 +78,9 @@ class MIPCL_CMD(LpSolver_CMD):
         """True if the solver is available"""
         return self.executable(self.path) is not None
 
-    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> int:
+    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
         """Solve a well formulated lp problem."""
+        start = clocks()
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute " + self.path)
         tmpMps, tmpSol = self.create_tmp_files(lp.name, "mps", "sol")
@@ -124,45 +126,42 @@ class MIPCL_CMD(LpSolver_CMD):
         if return_code != 0:
             raise PulpSolverError("PuLP: Error while trying to execute " + self.path)
         if not os.path.exists(tmpSol):
-            status = constants.LpStatusNotSolved
-            status_sol = constants.LpSolutionNoSolutionFound
+            status = constants.LpSolveStatus.NotSolved
+            has_solution = False
             values = None
         else:
-            status, values, status_sol = self.readsol(tmpSol)
+            status, values, has_solution = self.readsol(tmpSol)
         self.delete_tmp_files(tmpMps, tmpSol)
-        lp.assignStatus(status, status_sol)
-        if values is not None and status not in (
-            constants.LpStatusInfeasible,
-            constants.LpStatusNotSolved,
-        ):
+        if values is not None and has_solution:
             lp.assignVarsVals(values)
 
-        return status
+        return self.buildStats(lp, status, has_solution, start=start)
 
     @staticmethod
-    def readsol(filename: str) -> tuple[int, dict[str, float], int]:
-        """Read a MIPCL solution file"""
+    def readsol(
+        filename: str,
+    ) -> tuple[constants.LpSolveStatus, dict[str, float], bool]:
+        """Read a MIPCL solution file.
+
+        Returns why MIPCL stopped, the variable values and whether it has a solution.
+        """
+        S = constants.LpSolveStatus
         with open(filename) as f:
             content = f.readlines()
         content = [line.strip() for line in content]
         values = {}
         if not len(content):
-            return (
-                constants.LpStatusNotSolved,
-                values,
-                constants.LpSolutionNoSolutionFound,
-            )
+            return S.NotSolved, values, False
         first_line = content[0]
         if first_line == "=infeas=":
-            return constants.LpStatusInfeasible, values, constants.LpSolutionInfeasible
+            return S.Infeasible, values, False
         objective, value = first_line.split()
         # this is a workaround.
         # Not sure if it always returns this limit when unbounded.
         if abs(float(value)) >= 9.999999995e10:
-            return constants.LpStatusUnbounded, values, constants.LpSolutionUnbounded
+            return S.Unbounded, values, False
         for line in content[1:]:
             name, value = line.split()
             values[name] = float(value)
-        # I'm not sure how this solver announces the optimality
-        # of a solution so we assume it is integer feasible
-        return constants.LpStatusOptimal, values, constants.LpSolutionIntegerFeasible
+        # MIPCL's solution file does not say whether the solution is optimal
+        return S.Stopped, values, True

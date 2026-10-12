@@ -27,17 +27,10 @@ def _from_compatible_object(cls: type[_DC], obj: object) -> _DC:
 class MPSParameters:
     name: str
     sense: int
-    status: int
-    sol_status: int
 
     @classmethod
     def fromDict(cls, data: dict[str, Any]) -> MPSParameters:
-        return cls(
-            str(data["name"]),
-            int(data["sense"]),
-            int(data["status"]),
-            int(data["sol_status"]),
-        )
+        return cls(str(data["name"]), int(data["sense"]))
 
 
 @dataclass

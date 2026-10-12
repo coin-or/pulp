@@ -20,62 +20,44 @@
 
     LpBinary= "Binary"
 
-.. data:: LpStatus
-  
-    Return status from solver:
-  
-      +-----------------------------+---------------+-----------------+
-      |  LpStatus  key              | string value  | numerical value |
-      +=============================+===============+=================+
-      |  :data:`LpStatusOptimal`    | "Optimal"     |          1      |
-      +-----------------------------+---------------+-----------------+
-      |  :data:`LpStatusNotSolved`  | "Not Solved"  |          0      |
-      +-----------------------------+---------------+-----------------+
-      |  :data:`LpStatusInfeasible` | "Infeasible"  |         -1      |
-      +-----------------------------+---------------+-----------------+
-      |  :data:`LpStatusUnbounded`  | "Unbounded"   |          -2     |
-      +-----------------------------+---------------+-----------------+
-      |  :data:`LpStatusUndefined`  | "Undefined"   |          -3     |
-      +-----------------------------+---------------+-----------------+
- 
-.. data:: LpStatusOptimal 
- 
-    LpStatusOptimal = 1
- 
-.. data:: LpStatusNotSolved 
- 
-    LpStatusNotSolved = 0
- 
-.. data:: LpStatusInfeasible
+.. class:: LpSolveStatus
+   :noindex:
 
-    LpStatusInfeasible = -1
+Why the solver stopped, as stored in :attr:`pulp.LpSolveStats.status` -- the type
+every solve returns. It is an ``IntEnum``. Whether the solver handed back a
+feasible solution is kept separately, in :attr:`pulp.LpSolveStats.has_solution`.
 
-.. data:: LpStatusUnbounded 
-
-    LpStatusUnbounded = -2
-
-.. data:: LpStatusUndefined 
-
-    LpStatusUndefined = -3
-
-.. data:: LpSolution
-
-Return solution status from solver:
-
-  +----------------------------------------+------------------------------+-----------------+
-  |  LpStatus  key                         | string value                 | numerical value |
-  +========================================+==============================+=================+
-  |  :data:`LpSolutionOptimal`             | "Optimal Solution Found"     |          1      |
-  +----------------------------------------+------------------------------+-----------------+
-  |  :data:`LpSolutionNoSolutionFound`     | "No Solution Found"          |          0      |
-  +----------------------------------------+------------------------------+-----------------+
-  |  :data:`LpSolutionStatusInfeasible`    |"No Solution Exists"          |         -1      |
-  +----------------------------------------+------------------------------+-----------------+
-  |  :data:`LpSolutionStatusUnbounded`     | "Solution is Unbounded"      |          -2     |
-  +----------------------------------------+------------------------------+-----------------+
-  |  :data:`LpSolutionIntegerFeasible`     | "Solution Found"             |          2      |
-  +----------------------------------------+------------------------------+-----------------+
-  
+  +--------------------------------------+----------------------------------------------+-----------------+
+  |  member                              | meaning                                      | numerical value |
+  +======================================+==============================================+=================+
+  |  ``LpSolveStatus.Optimal``           | proven optimal                               |          1      |
+  +--------------------------------------+----------------------------------------------+-----------------+
+  |  ``LpSolveStatus.NotSolved``         | not solved yet                               |          0      |
+  +--------------------------------------+----------------------------------------------+-----------------+
+  |  ``LpSolveStatus.Infeasible``        | proven infeasible                            |         -1      |
+  +--------------------------------------+----------------------------------------------+-----------------+
+  |  ``LpSolveStatus.Unbounded``         | proven unbounded                             |         -2      |
+  +--------------------------------------+----------------------------------------------+-----------------+
+  |  ``LpSolveStatus.Undefined``         | inconclusive, e.g. infeasible or unbounded   |         -3      |
+  +--------------------------------------+----------------------------------------------+-----------------+
+  |  ``LpSolveStatus.TimeLimit``         | time (or deterministic work) limit           |         -4      |
+  +--------------------------------------+----------------------------------------------+-----------------+
+  |  ``LpSolveStatus.MemoryLimit``       | memory limit                                 |         -5      |
+  +--------------------------------------+----------------------------------------------+-----------------+
+  |  ``LpSolveStatus.NodeLimit``         | branch and bound node limit                  |         -6      |
+  +--------------------------------------+----------------------------------------------+-----------------+
+  |  ``LpSolveStatus.GapLimit``          | gap tolerance, or objective cutoff/target    |         -7      |
+  +--------------------------------------+----------------------------------------------+-----------------+
+  |  ``LpSolveStatus.IterationLimit``    | iteration limit                              |         -8      |
+  +--------------------------------------+----------------------------------------------+-----------------+
+  |  ``LpSolveStatus.SolutionLimit``     | number of solutions found                    |         -9      |
+  +--------------------------------------+----------------------------------------------+-----------------+
+  |  ``LpSolveStatus.Interrupted``       | user interrupt or abort                      |        -10      |
+  +--------------------------------------+----------------------------------------------+-----------------+
+  |  ``LpSolveStatus.Stopped``           | stopped early, the solver does not say why   |        -11      |
+  +--------------------------------------+----------------------------------------------+-----------------+
+  |  ``LpSolveStatus.NumericalError``    | numerical trouble                            |        -12      |
+  +--------------------------------------+----------------------------------------------+-----------------+
 
 .. data:: LpSenses
  

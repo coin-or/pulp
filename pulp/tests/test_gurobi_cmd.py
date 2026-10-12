@@ -15,25 +15,19 @@ from pulp.tests.solver_common import (
 class GUROBI_CMDTest(BaseSolverTest.PuLPTest):
     solveInst = solvers.GUROBI_CMD
     pulp_test_overrides: ClassVar[dict[str, PulpTestConfig]] = {
-        "test_infeasible_2": PulpTestConfig(okstatus=_status("LpStatusNotSolved")),
+        "test_infeasible_2": PulpTestConfig(okstatus=_status("NotSolved")),
         "test_infeasible_problem__is_not_valid": PulpTestConfig(
-            okstatus=_status(
-                "LpStatusNotSolved", "LpStatusInfeasible", "LpStatusUndefined"
-            )
+            okstatus=_status("NotSolved", "Infeasible", "Undefined")
         ),
         "test_initial_value": PulpTestConfig(warm_start=True),
-        "test_integer_infeasible": PulpTestConfig(
-            okstatus=_status("LpStatusNotSolved")
-        ),
+        "test_integer_infeasible": PulpTestConfig(okstatus=_status("NotSolved")),
         "test_integer_infeasible_2": PulpTestConfig(
-            okstatus=_status("LpStatusNotSolved", "LpStatusUndefined")
+            okstatus=_status("NotSolved", "Undefined")
         ),
         "test_invalid_var_names": PulpTestConfig(skip=True),
         "test_logPath": PulpTestConfig(skip=False, check_log_path=True),
         "test_long_var_name": PulpTestConfig(allow_pulp_error=True),
-        "test_unbounded": PulpTestConfig(
-            okstatus=_status("LpStatusNotSolved", "LpStatusUndefined")
-        ),
+        "test_unbounded": PulpTestConfig(okstatus=_status("NotSolved", "Undefined")),
     }
 
     def test_relaxed_mip(self):

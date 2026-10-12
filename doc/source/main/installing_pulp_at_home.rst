@@ -25,7 +25,7 @@ use Python commands to manipulate and display the solution.
 Installing from PyPI
 --------------------
 
-PuLP requires **Python 3.10 or newer**.
+PuLP requires **Python 3.12 or newer**.
 
 **Recommended** install (PuLP **and** CBC via ``cbcbox``)::
 
@@ -48,7 +48,7 @@ automatically when you install the package from source.
 
 **Requirements for building**
 
-* **Python** 3.10 or newer
+* **Python** 3.12 or newer
 * **Rust** (latest stable). Install from https://rustup.rs/
 * **uv** (recommended) or **pip** for installing the package
 * **OS**: Windows, macOS (x86_64, arm64), or Linux (x86_64, arm64). The Rust
@@ -83,5 +83,8 @@ Installing solvers
 PuLP can use a variety of solvers. CBC is typically used through ``COIN_CMD``
 after ``pip install pulp[cbc]`` or when ``cbc`` is on ``PATH``. The OR-Tools
 CP-SAT backend is available via ``pip install pulp[ortools]`` and the ``CPSAT``
-solver class. For other solvers and configuration, see the
+solver class. GLPK is available either as a command-line tool via
+``GLPK_CMD`` (requires ``glpsol`` on your ``PATH``) or through its native
+python API via ``pip install pulp[glpk]`` and the ``PYGLPK`` solver class.
+For other solvers and configuration, see the
 :ref:`guide on configuring solvers <how_to_configure_solvers>`.

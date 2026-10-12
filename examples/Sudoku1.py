@@ -82,10 +82,10 @@ for v, r, c in input_data:
 prob.writeLP("Sudoku.lp")
 
 # The problem is solved using PuLP's choice of Solver
-prob.solve()
+stats = prob.solve()
 
 # The status of the solution is printed to the screen
-print("Status:", LpStatus[prob.status])
+print("Status:", stats.status_str)
 
 # A file called sudokuout.txt is created/overwritten for writing to
 sudokuout = open("sudokuout.txt", "w")

@@ -88,18 +88,18 @@ def dumpTestProblem(prob):
 
 
 def _constraint_named(prob: LpProblem, name: str) -> LpConstraint:
-    """Return the constraint with the given name (first match)."""
-    for c in prob.constraints():
-        if c.name == name:
-            return c
-    raise KeyError(name)
+    """Return the constraint with the given name."""
+    c = prob.get_constraint_by_name(name)
+    if c is None:
+        raise KeyError(name)
+    return c
 
 
 @dataclass(frozen=True)
 class PulpTestConfig:
     skip: bool = False
     skip_reason: str | None = None
-    okstatus: tuple[int, ...] | None = None
+    okstatus: tuple[const.LpSolveStatus, ...] | None = None
     sol: Any = None
     reducedcosts: Any = None
     duals: Any = None
@@ -144,79 +144,67 @@ class PulpTestConfig:
 ALLOW_REPEATED_VAR_NAMES = PulpTestConfig(expect_pulp_error=False)
 
 
-def _status(*names: str) -> tuple[int, ...]:
-    return tuple(getattr(const, n) for n in names)
+def _status(*names: str) -> tuple[const.LpSolveStatus, ...]:
+    return tuple(getattr(const.LpSolveStatus, n) for n in names)
 
 
 DEFAULT_PULP_TEST_CONFIGS: dict[str, PulpTestConfig] = {
     "test_infeasible": PulpTestConfig(
-        okstatus=_status(
-            "LpStatusInfeasible", "LpStatusNotSolved", "LpStatusUndefined"
-        ),
+        okstatus=_status("Infeasible", "NotSolved", "Undefined"),
     ),
     "test_empty": PulpTestConfig(
-        okstatus=_status("LpStatusOptimal", "LpStatusNotSolved"),
+        okstatus=_status("Optimal", "NotSolved"),
         sol={},
     ),
     "test_continuous": PulpTestConfig(
-        okstatus=_status("LpStatusOptimal"),
+        okstatus=_status("Optimal"),
         sol="std_lp",
     ),
     "test_continuous_max": PulpTestConfig(
-        okstatus=_status("LpStatusOptimal"),
+        okstatus=_status("Optimal"),
         sol="std_lp_max",
     ),
     "test_unbounded": PulpTestConfig(
-        okstatus=_status("LpStatusUnbounded", "LpStatusUndefined"),
+        okstatus=_status("Unbounded", "Undefined"),
     ),
     "test_long_var_name": PulpTestConfig(
-        okstatus=_status("LpStatusOptimal"),
+        okstatus=_status("Optimal"),
         sol="std_lp",
     ),
     "test_repeated_name": PulpTestConfig(expect_pulp_error=True),
-    "test_zero_constraint": PulpTestConfig(
-        okstatus=_status("LpStatusOptimal"), sol="std_lp"
-    ),
-    "test_no_objective": PulpTestConfig(okstatus=_status("LpStatusOptimal")),
-    "test_variable_as_objective": PulpTestConfig(okstatus=_status("LpStatusOptimal")),
+    "test_zero_constraint": PulpTestConfig(okstatus=_status("Optimal"), sol="std_lp"),
+    "test_no_objective": PulpTestConfig(okstatus=_status("Optimal")),
+    "test_variable_as_objective": PulpTestConfig(okstatus=_status("Optimal")),
     "test_longname_lp": PulpTestConfig(skip=True, skip_reason="COIN_CMD only"),
-    "test_divide": PulpTestConfig(okstatus=_status("LpStatusOptimal"), sol="std_lp"),
-    "test_mip": PulpTestConfig(okstatus=_status("LpStatusOptimal"), sol="std_mip"),
+    "test_divide": PulpTestConfig(okstatus=_status("Optimal"), sol="std_lp"),
+    "test_mip": PulpTestConfig(okstatus=_status("Optimal"), sol="std_mip"),
     "test_mip_floats_objective": PulpTestConfig(
-        okstatus=_status("LpStatusOptimal"), sol="std_mip", objective=64.95
+        okstatus=_status("Optimal"), sol="std_mip", objective=64.95
     ),
-    "test_initial_value": PulpTestConfig(
-        okstatus=_status("LpStatusOptimal"), sol="std_mip"
-    ),
+    "test_initial_value": PulpTestConfig(okstatus=_status("Optimal"), sol="std_mip"),
     "test_fixed_value": PulpTestConfig(
-        okstatus=_status("LpStatusOptimal"), sol="std_mip_fixed"
+        okstatus=_status("Optimal"), sol="std_mip_fixed"
     ),
     "test_relaxed_mip": PulpTestConfig(
-        okstatus=_status("LpStatusOptimal"), sol="std_mip_relaxed", set_mip_zero=True
+        okstatus=_status("Optimal"), sol="std_mip_relaxed", set_mip_zero=True
     ),
-    "test_feasibility_only": PulpTestConfig(okstatus=_status("LpStatusOptimal")),
-    "test_infeasible_2": PulpTestConfig(okstatus=_status("LpStatusInfeasible")),
-    "test_integer_infeasible": PulpTestConfig(okstatus=_status("LpStatusInfeasible")),
+    "test_feasibility_only": PulpTestConfig(okstatus=_status("Optimal")),
+    "test_infeasible_2": PulpTestConfig(okstatus=_status("Infeasible")),
+    "test_integer_infeasible": PulpTestConfig(okstatus=_status("Infeasible")),
     "test_integer_infeasible_2": PulpTestConfig(
-        okstatus=_status("LpStatusInfeasible", "LpStatusUndefined")
+        okstatus=_status("Infeasible", "Undefined")
     ),
     "test_dual_variables_reduced_costs": PulpTestConfig(skip=True),
     "test_sequential_solve": PulpTestConfig(skip=True),
-    "test_msg_arg": PulpTestConfig(okstatus=_status("LpStatusOptimal"), sol="std_lp"),
+    "test_msg_arg": PulpTestConfig(okstatus=_status("Optimal"), sol="std_lp"),
     "test_logPath": PulpTestConfig(skip=True),
-    "test_unset_objective_value__is_valid": PulpTestConfig(
-        okstatus=_status("LpStatusOptimal")
-    ),
+    "test_unset_objective_value__is_valid": PulpTestConfig(okstatus=_status("Optimal")),
     "test_infeasible_problem__is_not_valid": PulpTestConfig(
-        okstatus=_status("LpStatusInfeasible", "LpStatusUndefined")
+        okstatus=_status("Infeasible", "Undefined")
     ),
-    "test_invalid_var_names": PulpTestConfig(
-        okstatus=_status("LpStatusOptimal"), sol="std_lp"
-    ),
+    "test_invalid_var_names": PulpTestConfig(okstatus=_status("Optimal"), sol="std_lp"),
     "test_options_parsing_SCIP_HIGHS": PulpTestConfig(skip=True),
-    "test_decimal_815": PulpTestConfig(
-        okstatus=_status("LpStatusOptimal"), sol="decimal_815"
-    ),
+    "test_decimal_815": PulpTestConfig(okstatus=_status("Optimal"), sol="decimal_815"),
 }
 
 
@@ -233,17 +221,21 @@ def pulpTestCheck(
     objective=None,
     **kwargs,
 ):
+    stats = None
     if status is None:
-        status = prob.solve(solver, **kwargs)
+        stats = prob.solve(solver, **kwargs)
+        status = stats.status
+    if stats is not None and not stats.has_solution and stats.objective is not None:
+        raise PulpError(
+            "Tests failed for solver {}:\nobjective == {} without a solution".format(
+                solver, stats.objective
+            )
+        )
     if status not in okstatus:
         dumpTestProblem(prob)
         raise PulpError(
-            "Tests failed for solver {}:\nstatus == {} not in {}\nstatus == {} not in {}".format(
-                solver,
-                status,
-                okstatus,
-                const.LpStatus[status],
-                [const.LpStatus[s] for s in okstatus],
+            "Tests failed for solver {}:\nstatus == {!r} not in {!r}".format(
+                solver, status, okstatus
             )
         )
     if sol is not None:
@@ -374,7 +366,7 @@ class BaseSolverTest:
                 else (
                     list(cfg.okstatus)
                     if cfg.okstatus is not None
-                    else [const.LpStatusOptimal]
+                    else [const.LpSolveStatus.Optimal]
                 )
             )
             check_extra = dict(extra)
@@ -445,7 +437,10 @@ class BaseSolverTest:
             prob += -y + z == 7, "c3"
             prob += w >= 0, "c4"
             pulpTestCheck(
-                prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0}
+                prob,
+                self.solver,
+                [const.LpSolveStatus.Optimal],
+                {x: 4, y: -1, z: 6, w: 0},
             )
 
         def test_continuous_max(self):
@@ -460,7 +455,10 @@ class BaseSolverTest:
             prob += -y + z == 7, "c3"
             prob += w >= 0, "c4"
             pulpTestCheck(
-                prob, self.solver, [const.LpStatusOptimal], {x: 4, y: 1, z: 8, w: 0}
+                prob,
+                self.solver,
+                [const.LpSolveStatus.Optimal],
+                {x: 4, y: 1, z: 8, w: 0},
             )
 
         def test_decimal_815(self):
@@ -501,7 +499,7 @@ class BaseSolverTest:
             pulpTestCheck(
                 prob,
                 self.solver,
-                [const.LpStatusOptimal],
+                [const.LpSolveStatus.Optimal],
                 {x: 2.15686, y: 11.4706},
             )
 
@@ -517,7 +515,10 @@ class BaseSolverTest:
             prob += -y + z == 7, "c3"
             prob += w >= 0, "c4"
             pulpTestCheck(
-                prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0}
+                prob,
+                self.solver,
+                [const.LpSolveStatus.Optimal],
+                {x: 4, y: -1, z: 6, w: 0},
             )
 
         def test_dual_variables_reduced_costs(self):
@@ -543,7 +544,10 @@ class BaseSolverTest:
         def test_empty(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
             pulpTestCheck(
-                prob, self.solver, [const.LpStatusOptimal, const.LpStatusNotSolved], {}
+                prob,
+                self.solver,
+                [const.LpSolveStatus.Optimal, const.LpSolveStatus.NotSolved],
+                {},
             )
 
         def test_feasibility_only(self):
@@ -554,7 +558,7 @@ class BaseSolverTest:
             prob += x + y <= 5, "c1"
             prob += x + z >= 10, "c2"
             prob += -y + z == 7.5, "c3"
-            pulpTestCheck(prob, self.solver, [const.LpStatusOptimal])
+            pulpTestCheck(prob, self.solver, [const.LpSolveStatus.Optimal])
 
         def test_fixed_value(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
@@ -570,7 +574,7 @@ class BaseSolverTest:
                 v.setInitialValue(solution[v])
                 v.fixValue()
             self.solver.optionsDict["warmStart"] = True
-            pulpTestCheck(prob, self.solver, [const.LpStatusOptimal], solution)
+            pulpTestCheck(prob, self.solver, [const.LpSolveStatus.Optimal], solution)
 
         def test_infeasible(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
@@ -706,8 +710,50 @@ class BaseSolverTest:
             prob += x + z >= 10, "c2"
             prob += -y + z == 7.5, "c3"
             pulpTestCheck(
-                prob, self.solver, [const.LpStatusOptimal], {x: 3, y: -0.5, z: 7}
+                prob, self.solver, [const.LpSolveStatus.Optimal], {x: 3, y: -0.5, z: 7}
             )
+
+        def _check_stats_in_problem_sense(self, sense: int) -> None:
+            """Every objective value in the stats reads in ``sense``, the problem's.
+
+            Solvers handed a negated objective (COIN_CMD writes a maximize problem as
+            a minimize MPS) log it in the opposite sense; the stats must undo that.
+            """
+            prob = LpProblem(self._testMethodName, sense)
+            x = prob.add_variable("x", 0, 10, cat=const.LpInteger)
+            y = prob.add_variable("y", 0, 10, cat=const.LpInteger)
+            # 3x + 2y peaks at 18 on (4, 3); its relaxation at 18.5 on (4.5, 2.5)
+            prob += sense * -(3 * x + 2 * y), "obj"
+            prob += x + y <= 7, "c1"
+            prob += x - y <= 2, "c2"
+            stats = prob.solve(self.solver)
+            self.assertIs(stats.status, const.LpSolveStatus.Optimal)
+            expected = -sense * 18
+            assert stats.objective is not None
+            self.assertAlmostEqual(stats.objective, expected, places=4)
+            if stats.best_bound is not None:
+                self.assertAlmostEqual(stats.best_bound, expected, places=4)
+            if stats.logs is not None and stats.logs.get("best_solution") is not None:
+                # a solver that negates the objective flips its log back too,
+                # so this must already read in the problem's sense
+                self.assertAlmostEqual(stats.logs["best_solution"], expected, places=4)
+            # sense * value grows as the solution gets worse: relaxations are
+            # never worse than the optimum, incumbents never better
+            tol = 1e-6
+            if stats.first_relaxed is not None:
+                self.assertLessEqual(sense * stats.first_relaxed, -18 + tol)
+            if stats.first_solution is not None:
+                first = stats.first_solution["BestInteger"]
+                self.assertGreaterEqual(sense * first, -18 - tol)
+            self.assertLessEqual(stats.gap_rel or 0, tol)
+
+        @gurobi_test
+        def test_stats_objective_sense_max(self):
+            self._check_stats_in_problem_sense(const.LpMaximize)
+
+        @gurobi_test
+        def test_stats_objective_sense_min(self):
+            self._check_stats_in_problem_sense(const.LpMinimize)
 
         def test_mip_floats_objective(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
@@ -721,7 +767,7 @@ class BaseSolverTest:
             pulpTestCheck(
                 prob,
                 self.solver,
-                [const.LpStatusOptimal],
+                [const.LpSolveStatus.Optimal],
                 {x: 3, y: -0.5, z: 7},
                 objective=64.95,
             )
@@ -747,7 +793,7 @@ class BaseSolverTest:
             pulpTestCheck(
                 prob1,
                 self.solveInst(msg=True),
-                [const.LpStatusOptimal],
+                [const.LpSolveStatus.Optimal],
                 {x: 4, y: -1, z: 6, w: 0},
             )
 
@@ -762,7 +808,7 @@ class BaseSolverTest:
             prob += -y + z == 7, "c3"
             prob += w >= 0, "c4"
             prob += lpSum([0, 0]) <= 0, "c5"
-            pulpTestCheck(prob, self.solver, [const.LpStatusOptimal])
+            pulpTestCheck(prob, self.solver, [const.LpSolveStatus.Optimal])
 
         def test_options_parsing_SCIP_HIGHS(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
@@ -810,11 +856,14 @@ class BaseSolverTest:
             obj1 = x + 0 * y + 0 * z
             obj2 = 0 * x - 1 * y + 0 * z
             prob += x <= 1, "c1"
-            status = prob.sequentialSolve([obj1, obj2], solver=self.solver)
+            status = [
+                stats.status
+                for stats in prob.sequentialSolve([obj1, obj2], solver=self.solver)
+            ]
             self._apply_pulp_check(
                 prob,
                 sol={x: 0, y: 1},
-                okstatus=[[const.LpStatusOptimal, const.LpStatusOptimal]],  # ty: ignore[invalid-argument-type]
+                okstatus=[[const.LpSolveStatus.Optimal, const.LpSolveStatus.Optimal]],  # ty: ignore[invalid-argument-type]
                 status=status,
             )
 
@@ -840,7 +889,7 @@ class BaseSolverTest:
             x = prob.add_variable("x")
             prob += 0 * x
             prob += x >= 1
-            pulpTestCheck(prob, self.solver, [const.LpStatusOptimal])
+            pulpTestCheck(prob, self.solver, [const.LpSolveStatus.Optimal])
             self.assertTrue(prob.valid())
 
         def test_variable_as_objective(self):
@@ -855,7 +904,7 @@ class BaseSolverTest:
             prob += -y + z == 7, "c3"
             prob += w >= 0, "c4"
             prob += lpSum([0, 0]) <= 0, "c5"
-            pulpTestCheck(prob, self.solver, [const.LpStatusOptimal])
+            pulpTestCheck(prob, self.solver, [const.LpSolveStatus.Optimal])
 
         def test_zero_constraint(self):
             prob = LpProblem(self._testMethodName, const.LpMinimize)
@@ -870,7 +919,10 @@ class BaseSolverTest:
             prob += w >= 0, "c4"
             prob += lpSum([0, 0]) <= 0, "c5"
             pulpTestCheck(
-                prob, self.solver, [const.LpStatusOptimal], {x: 4, y: -1, z: 6, w: 0}
+                prob,
+                self.solver,
+                [const.LpSolveStatus.Optimal],
+                {x: 4, y: -1, z: 6, w: 0},
             )
 
 
@@ -886,7 +938,7 @@ class SASTest:
         pulpTestCheck(
             prob,
             self.solver,  # ty: ignore[unresolved-attribute]
-            [const.LpStatusOptimal],
+            [const.LpSolveStatus.Optimal],
             {X[1]: 0.0, X[2]: 2.5, X[3]: 0.0},
         )
 
