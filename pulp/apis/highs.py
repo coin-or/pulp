@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 import subprocess
 import warnings
-from math import inf, isfinite
+from math import isfinite
 from typing import TYPE_CHECKING, Any
 
 from .. import constants
@@ -366,8 +366,6 @@ class HiGHS(LpSolver):
     def buildSolverModel(self, lp):
         inf = highspy_mod.kHighsInf
 
-        obj_mult = -1 if lp.sense == constants.LpMaximize else 1
-
         exported_vars = lp.exported_variables()
         id_to_col = {v.id: j for j, v in enumerate(exported_vars)}
 
@@ -375,7 +373,7 @@ class HiGHS(LpSolver):
             lb = var.lowBound
             ub = var.upBound
             lp.solverModel.addCol(
-                obj_mult * lp.objective.get(var, 0.0),
+                lp.objective.get(var, 0.0),
                 -inf if lb is None else lb,
                 inf if ub is None else ub,
                 0,
@@ -387,6 +385,12 @@ class HiGHS(LpSolver):
                 lp.solverModel.changeColIntegrality(
                     j, highspy_mod.HighsVarType.kInteger
                 )
+
+        # hand HiGHS the objective as it is, so its log, objective value and bound
+        # are in the problem's sense and include the constant
+        if lp.sense == constants.LpMaximize:
+            lp.solverModel.changeObjectiveSense(highspy_mod.ObjSense.kMaximize)
+        lp.solverModel.changeObjectiveOffset(lp.objective.constant)
 
         for constraint in lp.constraints():
             non_zero_constraint_items = [
@@ -482,7 +486,7 @@ class HiGHS(LpSolver):
 
         # a solver that stopped early without an incumbent reports an infinite objective
         has_solution = status == HighsModelStatus.kOptimal or (
-            status in stopped_early and obj_value != float(inf)
+            status in stopped_early and isfinite(obj_value)
         )
         return status_dict.get(status, S.Undefined), has_solution
 
@@ -503,10 +507,4 @@ class HiGHS(LpSolver):
         if not (lp.isMIP() and self.mip):
             return None
         bound = lp.solverModel.getInfo().mip_dual_bound
-        if not isfinite(bound):
-            return None
-        # buildSolverModel hands HiGHS the objective negated for a maximisation and
-        # without its constant, so the bound comes back in that form
-        obj_mult = -1 if lp.sense == constants.LpMaximize else 1
-        constant = lp.objective.constant if lp.objective is not None else 0
-        return obj_mult * bound + constant
+        return bound if isfinite(bound) else None
