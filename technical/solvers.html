@@ -219,6 +219,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#pulp.apis.HiGHS.buildSolverModel"><code class="docutils literal notranslate"><span class="pre">HiGHS.buildSolverModel()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#pulp.apis.HiGHS.callSolver"><code class="docutils literal notranslate"><span class="pre">HiGHS.callSolver()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#pulp.apis.HiGHS.createAndConfigureSolver"><code class="docutils literal notranslate"><span class="pre">HiGHS.createAndConfigureSolver()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.HiGHS.findBestBound"><code class="docutils literal notranslate"><span class="pre">HiGHS.findBestBound()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#pulp.apis.HiGHS.findSolutionValues"><code class="docutils literal notranslate"><span class="pre">HiGHS.findSolutionValues()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#pulp.apis.HiGHS.hscb"><code class="docutils literal notranslate"><span class="pre">HiGHS.hscb</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#pulp.apis.HiGHS.name"><code class="docutils literal notranslate"><span class="pre">HiGHS.name</span></code></a></li>
@@ -1521,6 +1522,12 @@ disposed only if <code class="docutils literal notranslate"><span class="pre">ma
 <dt class="sig sig-object py" id="pulp.apis.HiGHS.createAndConfigureSolver">
 <span class="sig-name descname"><span class="pre">createAndConfigureSolver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.HiGHS.createAndConfigureSolver" title="Link to this definition"></a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulp.apis.HiGHS.findBestBound">
+<span class="sig-name descname"><span class="pre">findBestBound</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="pulp.html#pulp.LpProblem" title="pulp.LpProblem"><span class="pre">LpProblem</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#pulp.apis.HiGHS.findBestBound" title="Link to this definition"></a></dt>
+<dd><p>The best bound HiGHS proved on a MIP, in the problem’s sense, or None.</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.HiGHS.findSolutionValues">
