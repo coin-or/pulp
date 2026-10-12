@@ -8,6 +8,8 @@ import warnings
 from math import isfinite
 from typing import TYPE_CHECKING, Any
 
+import numpy as np
+
 from .. import constants
 from .core import (
     LpSolver,
@@ -369,50 +371,73 @@ class HiGHS(LpSolver):
         exported_vars = lp.exported_variables()
         id_to_col = {v.id: j for j, v in enumerate(exported_vars)}
 
+        # one addCols and one addRows call: per-column and per-row calls cost more
+        # than the solve itself on models that resolve in a few milliseconds, and the
+        # objective and constraint lookups are done once rather than once per column
+        cost = np.zeros(len(exported_vars))
+        for var, coefficient in lp.objective.items():
+            j = id_to_col.get(var.id)
+            if j is not None:
+                cost[j] = coefficient
+        lower = np.full(len(exported_vars), -inf)
+        upper = np.full(len(exported_vars), inf)
         for j, var in enumerate(exported_vars):
-            lb = var.lowBound
-            ub = var.upBound
-            lp.solverModel.addCol(
-                lp.objective.get(var, 0.0),
-                -inf if lb is None else lb,
-                inf if ub is None else ub,
-                0,
-                [],
-                [],
+            if var.lowBound is not None:
+                lower[j] = var.lowBound
+            if var.upBound is not None:
+                upper[j] = var.upBound
+        
+        empty = np.zeros(0, dtype=np.int32)
+        lp.solverModel.addCols(
+            len(exported_vars), cost, lower, upper, 0, empty, empty, np.zeros(0)
+        )
+
+        if self.mip:
+            integer = np.fromiter(
+                (
+                    j
+                    for j, var in enumerate(exported_vars)
+                    if var.cat == constants.LpInteger
+                ),
+                dtype=np.int32,
             )
-
-            if var.cat == constants.LpInteger and self.mip:
-                lp.solverModel.changeColIntegrality(
-                    j, highspy_mod.HighsVarType.kInteger
+            if len(integer):
+                lp.solverModel.changeColsIntegrality(
+                    len(integer),
+                    integer,
+                    np.full(len(integer), highspy_mod.HighsVarType.kInteger),
                 )
-
-        # hand HiGHS the objective as it is, so its log, objective value and bound
-        # are in the problem's sense and include the constant
+                
         if lp.sense == constants.LpMaximize:
             lp.solverModel.changeObjectiveSense(highspy_mod.ObjSense.kMaximize)
         lp.solverModel.changeObjectiveOffset(lp.objective.constant)
-
-        for constraint in lp.constraints():
-            non_zero_constraint_items = [
-                (id_to_col[var.id], coefficient)
-                for var, coefficient in constraint.items()
-                if coefficient != 0
-            ]
-
-            if len(non_zero_constraint_items) == 0:
-                indices, coefficients = [], []
-            else:
-                indices, coefficients = map(list, zip(*non_zero_constraint_items))
-
+        
+        constraints = lp.constraints()
+        starts: list[int] = []
+        indices: list[int] = []
+        coefficients: list[float] = []
+        row_lower: list[float] = []
+        row_upper: list[float] = []
+        for constraint in constraints:
+            starts.append(len(indices))
+            for var, coefficient in constraint.items():
+                if coefficient != 0:
+                    indices.append(id_to_col[var.id])
+                    coefficients.append(coefficient)
             lb = constraint.getLb()
             ub = constraint.getUb()
-            lp.solverModel.addRow(
-                -inf if lb is None else lb,
-                inf if ub is None else ub,
-                len(indices),
-                indices,
-                coefficients,
-            )
+            row_lower.append(-inf if lb is None else lb)
+            row_upper.append(inf if ub is None else ub)
+        
+        lp.solverModel.addRows(
+            len(constraints),
+            np.array(row_lower, dtype=np.float64),
+            np.array(row_upper, dtype=np.float64),
+            len(indices),
+            np.array(starts, dtype=np.int32),
+            np.array(indices, dtype=np.int32),
+            np.array(coefficients, dtype=np.float64),
+        )
         if self.optionsDict.get("warmStart", False):
             indices: list[int] = []
             values: list[float] = []

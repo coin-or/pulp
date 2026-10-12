@@ -53,6 +53,38 @@ class HiGHS_PYTest(BaseSolverTest.PuLPTest):
         stats = prob.solve(self.solver)
         self.assertIs(stats.status, LpSolveStatus.Optimal)
         self.assertIsNone(stats.best_bound)
+    def test_model_arrays(self):
+        # the model HiGHS holds, column by column and row by row: a maximisation is
+        # negated, missing bounds are infinite and a zero coefficient is not an entry
+        import highspy
+
+        prob = LpProblem("arrays", LpMaximize)
+        x = prob.add_variable("x", 0, 4, cat=const.LpInteger)
+        y = prob.add_variable("y", None, None)
+        prob += 3 * x - 2 * y + 1, "obj"
+        prob += x + 0 * y <= 7, "c1"
+        prob += 2 * x - y >= -3, "c2"
+        prob += y == 5, "c3"
+        solver = solvers.HiGHS(msg=False)
+        prob.solverModel = highspy.Highs()
+        solver.buildSolverModel(prob)
+        lp = prob.solverModel.getLp()
+        inf = highspy.kHighsInf
+
+        self.assertEqual(lp.num_col_, 2)
+        self.assertEqual(lp.num_row_, 3)
+        self.assertEqual(list(lp.col_cost_), [-3, 2])
+        self.assertEqual(list(lp.col_lower_), [0, -inf])
+        self.assertEqual(list(lp.col_upper_), [4, inf])
+        self.assertEqual(
+            list(lp.integrality_),
+            [highspy.HighsVarType.kInteger, highspy.HighsVarType.kContinuous],
+        )
+        self.assertEqual(list(lp.row_lower_), [-inf, -3, 5])
+        self.assertEqual(list(lp.row_upper_), [7, inf, 5])
+        self.assertEqual(list(lp.a_matrix_.start_), [0, 1, 3, 4])
+        self.assertEqual(list(lp.a_matrix_.index_), [0, 0, 1, 1])
+        self.assertEqual(list(lp.a_matrix_.value_), [1, 2, -1, 1])
 
     def test_callback(self):
         prob = create_bin_packing_problem(bins=40, seed=99)

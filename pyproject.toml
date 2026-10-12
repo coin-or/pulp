@@ -50,6 +50,8 @@ bindings = "pyo3"
 module-name = "pulp._rustcore"
 python-packages = ["pulp"]
 manifest-path = "pulp/rust/Cargo.toml"
+# *.mps is gitignored, so the test fixtures have to be included explicitly
+include = [{ path = "pulp/tests/fixtures/**/*", format = ["sdist", "wheel"] }]
 
 [project.scripts]
 pulptest = "pulp.tests.run_tests:pulpTestAll"
