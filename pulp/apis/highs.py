@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 import subprocess
 import warnings
-from math import inf
+from math import isfinite
 from typing import TYPE_CHECKING, Any
 
 import numpy as np
@@ -368,8 +368,6 @@ class HiGHS(LpSolver):
     def buildSolverModel(self, lp):
         inf = highspy_mod.kHighsInf
 
-        obj_mult = -1 if lp.sense == constants.LpMaximize else 1
-
         exported_vars = lp.exported_variables()
         id_to_col = {v.id: j for j, v in enumerate(exported_vars)}
 
@@ -380,7 +378,7 @@ class HiGHS(LpSolver):
         for var, coefficient in lp.objective.items():
             j = id_to_col.get(var.id)
             if j is not None:
-                cost[j] = obj_mult * coefficient
+                cost[j] = coefficient
         lower = np.full(len(exported_vars), -inf)
         upper = np.full(len(exported_vars), inf)
         for j, var in enumerate(exported_vars):
@@ -388,6 +386,7 @@ class HiGHS(LpSolver):
                 lower[j] = var.lowBound
             if var.upBound is not None:
                 upper[j] = var.upBound
+
         empty = np.zeros(0, dtype=np.int32)
         lp.solverModel.addCols(
             len(exported_vars), cost, lower, upper, 0, empty, empty, np.zeros(0)
@@ -409,6 +408,10 @@ class HiGHS(LpSolver):
                     np.full(len(integer), highspy_mod.HighsVarType.kInteger),
                 )
 
+        if lp.sense == constants.LpMaximize:
+            lp.solverModel.changeObjectiveSense(highspy_mod.ObjSense.kMaximize)
+        lp.solverModel.changeObjectiveOffset(lp.objective.constant)
+
         constraints = lp.constraints()
         starts: list[int] = []
         indices: list[int] = []
@@ -425,6 +428,7 @@ class HiGHS(LpSolver):
             ub = constraint.getUb()
             row_lower.append(-inf if lb is None else lb)
             row_upper.append(inf if ub is None else ub)
+
         lp.solverModel.addRows(
             len(constraints),
             np.array(row_lower, dtype=np.float64),
@@ -507,7 +511,7 @@ class HiGHS(LpSolver):
 
         # a solver that stopped early without an incumbent reports an infinite objective
         has_solution = status == HighsModelStatus.kOptimal or (
-            status in stopped_early and obj_value != float(inf)
+            status in stopped_early and isfinite(obj_value)
         )
         return status_dict.get(status, S.Undefined), has_solution
 
@@ -519,4 +523,13 @@ class HiGHS(LpSolver):
         self.callSolver(lp)
 
         status, has_solution = self.findSolutionValues(lp)
-        return self.buildStats(lp, status, has_solution, start=start)
+        return self.buildStats(
+            lp, status, has_solution, start=start, best_bound=self.findBestBound(lp)
+        )
+
+    def findBestBound(self, lp: LpProblem) -> float | None:
+        """The best bound HiGHS proved on a MIP, in the problem's sense, or None."""
+        if not (lp.isMIP() and self.mip):
+            return None
+        bound = lp.solverModel.getInfo().mip_dual_bound
+        return bound if isfinite(bound) else None
