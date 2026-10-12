@@ -53,9 +53,10 @@ class HiGHS_PYTest(BaseSolverTest.PuLPTest):
         stats = prob.solve(self.solver)
         self.assertIs(stats.status, LpSolveStatus.Optimal)
         self.assertIsNone(stats.best_bound)
+
     def test_model_arrays(self):
-        # the model HiGHS holds, column by column and row by row: a maximisation is
-        # negated, missing bounds are infinite and a zero coefficient is not an entry
+        # the model HiGHS holds, column by column and row by row: a maximisation keeps its
+        # sense and constant, missing bounds are infinite and a zero coefficient is not an entry
         import highspy
 
         prob = LpProblem("arrays", LpMaximize)
@@ -73,7 +74,9 @@ class HiGHS_PYTest(BaseSolverTest.PuLPTest):
 
         self.assertEqual(lp.num_col_, 2)
         self.assertEqual(lp.num_row_, 3)
-        self.assertEqual(list(lp.col_cost_), [-3, 2])
+        self.assertEqual(lp.sense_, highspy.ObjSense.kMaximize)
+        self.assertEqual(lp.offset_, 1)
+        self.assertEqual(list(lp.col_cost_), [3, -2])
         self.assertEqual(list(lp.col_lower_), [0, -inf])
         self.assertEqual(list(lp.col_upper_), [4, inf])
         self.assertEqual(

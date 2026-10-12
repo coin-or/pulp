@@ -386,7 +386,7 @@ class HiGHS(LpSolver):
                 lower[j] = var.lowBound
             if var.upBound is not None:
                 upper[j] = var.upBound
-        
+
         empty = np.zeros(0, dtype=np.int32)
         lp.solverModel.addCols(
             len(exported_vars), cost, lower, upper, 0, empty, empty, np.zeros(0)
@@ -407,11 +407,11 @@ class HiGHS(LpSolver):
                     integer,
                     np.full(len(integer), highspy_mod.HighsVarType.kInteger),
                 )
-                
+
         if lp.sense == constants.LpMaximize:
             lp.solverModel.changeObjectiveSense(highspy_mod.ObjSense.kMaximize)
         lp.solverModel.changeObjectiveOffset(lp.objective.constant)
-        
+
         constraints = lp.constraints()
         starts: list[int] = []
         indices: list[int] = []
@@ -428,7 +428,7 @@ class HiGHS(LpSolver):
             ub = constraint.getUb()
             row_lower.append(-inf if lb is None else lb)
             row_upper.append(inf if ub is None else ub)
-        
+
         lp.solverModel.addRows(
             len(constraints),
             np.array(row_lower, dtype=np.float64),
