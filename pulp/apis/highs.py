@@ -381,14 +381,13 @@ class HiGHS(LpSolver):
             j = id_to_col.get(var.id)
             if j is not None:
                 cost[j] = obj_mult * coefficient
-        lower = np.array(
-            [-inf if var.lowBound is None else var.lowBound for var in exported_vars],
-            dtype=np.float64,
-        )
-        upper = np.array(
-            [inf if var.upBound is None else var.upBound for var in exported_vars],
-            dtype=np.float64,
-        )
+        lower = np.full(len(exported_vars), -inf)
+        upper = np.full(len(exported_vars), inf)
+        for j, var in enumerate(exported_vars):
+            if var.lowBound is not None:
+                lower[j] = var.lowBound
+            if var.upBound is not None:
+                upper[j] = var.upBound
         empty = np.zeros(0, dtype=np.int32)
         lp.solverModel.addCols(
             len(exported_vars), cost, lower, upper, 0, empty, empty, np.zeros(0)
