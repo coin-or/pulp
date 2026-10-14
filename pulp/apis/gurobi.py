@@ -72,6 +72,7 @@ class GUROBI(LpSolver):
         msg=True,
         timeLimit=None,
         gapRel=None,
+        gapAbs=None,
         warmStart=False,
         logPath=None,
         env=None,
@@ -84,6 +85,7 @@ class GUROBI(LpSolver):
         :param bool msg: if False, no log is shown
         :param float timeLimit: maximum time for solver (in seconds)
         :param float gapRel: relative gap tolerance for the solver to stop (in fraction)
+        :param float gapAbs: absolute gap tolerance for the solver to stop
         :param bool warmStart: if True, the solver will use the current value of variables as a start
         :param str logPath: path to the log file
         :param gp.Env env: Gurobi environment to use. Default None.
@@ -153,6 +155,7 @@ class GUROBI(LpSolver):
             msg=msg,
             timeLimit=timeLimit,
             gapRel=gapRel,
+            gapAbs=gapAbs,
             logPath=logPath,
             warmStart=warmStart,
         )
@@ -318,6 +321,17 @@ class GUROBI(LpSolver):
         if console:
             solverModel.setParam("LogToConsole", console)
 
+    def _set_params(self, solverModel):
+        """Apply the time limit, gap tolerances and log file to the model."""
+        if self.timeLimit:
+            solverModel.setParam("TimeLimit", self.timeLimit)
+        for option, param in [("gapRel", "MIPGap"), ("gapAbs", "MIPGapAbs")]:
+            if (value := self.optionsDict.get(option)) is not None:
+                solverModel.setParam(param, value)
+        logPath = self.optionsDict.get("logPath")
+        if logPath is not None:
+            self._set_log_file(solverModel, str(logPath))
+
     @requires("gurobipy")
     def buildSolverModel(self, lp: LpProblem):
         """
@@ -332,14 +346,7 @@ class GUROBI(LpSolver):
         log.debug("set the sense of the problem")
         if lp.sense == constants.LpMaximize:
             lp.solverModel.setAttr("ModelSense", -1)
-        if self.timeLimit:
-            lp.solverModel.setParam("TimeLimit", self.timeLimit)
-        gapRel = self.optionsDict.get("gapRel")
-        logPath = self.optionsDict.get("logPath")
-        if gapRel:
-            lp.solverModel.setParam("MIPGap", gapRel)
-        if logPath:
-            self._set_log_file(lp.solverModel, logPath)
+        self._set_params(lp.solverModel)
 
         log.debug("add the variables to the problem")
         lp.solverModel.update()
@@ -359,14 +366,7 @@ class GUROBI(LpSolver):
             self._silence(lp.solverModel)
             if lp.sense == constants.LpMaximize:
                 lp.solverModel.setAttr("ModelSense", -1)
-            if self.timeLimit:
-                lp.solverModel.setParam("TimeLimit", self.timeLimit)
-            gapRel = self.optionsDict.get("gapRel")
-            logPath = self.optionsDict.get("logPath")
-            if gapRel:
-                lp.solverModel.setParam("MIPGap", gapRel)
-            if logPath:
-                self._set_log_file(lp.solverModel, logPath)
+            self._set_params(lp.solverModel)
             nvars = 0
 
         if nvars == 0:
