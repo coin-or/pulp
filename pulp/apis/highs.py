@@ -5,8 +5,10 @@ from __future__ import annotations
 import os
 import subprocess
 import warnings
-from math import inf
+from math import isfinite
 from typing import TYPE_CHECKING, Any
+
+import numpy as np
 
 from .. import constants
 from .core import (
@@ -366,49 +368,76 @@ class HiGHS(LpSolver):
     def buildSolverModel(self, lp):
         inf = highspy_mod.kHighsInf
 
-        obj_mult = -1 if lp.sense == constants.LpMaximize else 1
-
         exported_vars = lp.exported_variables()
         id_to_col = {v.id: j for j, v in enumerate(exported_vars)}
 
+        # one addCols and one addRows call: per-column and per-row calls cost more
+        # than the solve itself on models that resolve in a few milliseconds, and the
+        # objective and constraint lookups are done once rather than once per column
+        cost = np.zeros(len(exported_vars))
+        for var, coefficient in lp.objective.items():
+            j = id_to_col.get(var.id)
+            if j is not None:
+                cost[j] = coefficient
+        lower = np.full(len(exported_vars), -inf)
+        upper = np.full(len(exported_vars), inf)
         for j, var in enumerate(exported_vars):
-            lb = var.lowBound
-            ub = var.upBound
-            lp.solverModel.addCol(
-                obj_mult * lp.objective.get(var, 0.0),
-                -inf if lb is None else lb,
-                inf if ub is None else ub,
-                0,
-                [],
-                [],
-            )
+            if var.lowBound is not None:
+                lower[j] = var.lowBound
+            if var.upBound is not None:
+                upper[j] = var.upBound
 
-            if var.cat == constants.LpInteger and self.mip:
-                lp.solverModel.changeColIntegrality(
-                    j, highspy_mod.HighsVarType.kInteger
+        empty = np.zeros(0, dtype=np.int32)
+        lp.solverModel.addCols(
+            len(exported_vars), cost, lower, upper, 0, empty, empty, np.zeros(0)
+        )
+
+        if self.mip:
+            integer = np.fromiter(
+                (
+                    j
+                    for j, var in enumerate(exported_vars)
+                    if var.cat == constants.LpInteger
+                ),
+                dtype=np.int32,
+            )
+            if len(integer):
+                lp.solverModel.changeColsIntegrality(
+                    len(integer),
+                    integer,
+                    np.full(len(integer), highspy_mod.HighsVarType.kInteger),
                 )
 
-        for constraint in lp.constraints():
-            non_zero_constraint_items = [
-                (id_to_col[var.id], coefficient)
-                for var, coefficient in constraint.items()
-                if coefficient != 0
-            ]
+        if lp.sense == constants.LpMaximize:
+            lp.solverModel.changeObjectiveSense(highspy_mod.ObjSense.kMaximize)
+        lp.solverModel.changeObjectiveOffset(lp.objective.constant)
 
-            if len(non_zero_constraint_items) == 0:
-                indices, coefficients = [], []
-            else:
-                indices, coefficients = map(list, zip(*non_zero_constraint_items))
-
+        constraints = lp.constraints()
+        starts: list[int] = []
+        indices: list[int] = []
+        coefficients: list[float] = []
+        row_lower: list[float] = []
+        row_upper: list[float] = []
+        for constraint in constraints:
+            starts.append(len(indices))
+            for var, coefficient in constraint.items():
+                if coefficient != 0:
+                    indices.append(id_to_col[var.id])
+                    coefficients.append(coefficient)
             lb = constraint.getLb()
             ub = constraint.getUb()
-            lp.solverModel.addRow(
-                -inf if lb is None else lb,
-                inf if ub is None else ub,
-                len(indices),
-                indices,
-                coefficients,
-            )
+            row_lower.append(-inf if lb is None else lb)
+            row_upper.append(inf if ub is None else ub)
+
+        lp.solverModel.addRows(
+            len(constraints),
+            np.array(row_lower, dtype=np.float64),
+            np.array(row_upper, dtype=np.float64),
+            len(indices),
+            np.array(starts, dtype=np.int32),
+            np.array(indices, dtype=np.int32),
+            np.array(coefficients, dtype=np.float64),
+        )
         if self.optionsDict.get("warmStart", False):
             indices: list[int] = []
             values: list[float] = []
@@ -482,7 +511,7 @@ class HiGHS(LpSolver):
 
         # a solver that stopped early without an incumbent reports an infinite objective
         has_solution = status == HighsModelStatus.kOptimal or (
-            status in stopped_early and obj_value != float(inf)
+            status in stopped_early and isfinite(obj_value)
         )
         return status_dict.get(status, S.Undefined), has_solution
 
@@ -494,4 +523,13 @@ class HiGHS(LpSolver):
         self.callSolver(lp)
 
         status, has_solution = self.findSolutionValues(lp)
-        return self.buildStats(lp, status, has_solution, start=start)
+        return self.buildStats(
+            lp, status, has_solution, start=start, best_bound=self.findBestBound(lp)
+        )
+
+    def findBestBound(self, lp: LpProblem) -> float | None:
+        """The best bound HiGHS proved on a MIP, in the problem's sense, or None."""
+        if not (lp.isMIP() and self.mip):
+            return None
+        bound = lp.solverModel.getInfo().mip_dual_bound
+        return bound if isfinite(bound) else None

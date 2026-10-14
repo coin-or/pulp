@@ -158,10 +158,10 @@ class LpAffineExpression:
         return key in self.keys()
 
     def get(self, key: LpVariable, default: float | None = None) -> float | None:
-        try:
-            return self[key]
-        except KeyError:
+        # self[key] returns 0.0 for a variable that is not in the expression
+        if key not in self:
             return default
+        return self[key]
 
     def isAtomic(self) -> bool:
         return len(self) == 1 and self.constant == 0 and next(iter(self.values())) == 1
