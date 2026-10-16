@@ -950,6 +950,10 @@ enum MpsBoundType {
     Lo,
     Up,
     Fx,
+    /// Integer variable with a lower bound.
+    Li,
+    /// Integer variable with an upper bound.
+    Ui,
 }
 
 impl MpsBoundType {
@@ -962,6 +966,8 @@ impl MpsBoundType {
             "LO" => Some(MpsBoundType::Lo),
             "UP" => Some(MpsBoundType::Up),
             "FX" => Some(MpsBoundType::Fx),
+            "LI" => Some(MpsBoundType::Li),
+            "UI" => Some(MpsBoundType::Ui),
             _ => None,
         }
     }
@@ -1213,6 +1219,8 @@ fn set_bounds(
             vd.up_bound = None;
         }
         MpsBoundType::Bv => {
+            // A binary variable is integer, also without INTORG/INTEND markers.
+            vd.cat = "Integer";
             vd.low_bound = Some(0.0);
             vd.up_bound = Some(1.0);
         }
@@ -1223,7 +1231,11 @@ fn set_bounds(
         MpsBoundType::Mi => {
             vd.low_bound = None;
         }
-        MpsBoundType::Lo | MpsBoundType::Up | MpsBoundType::Fx => {
+        MpsBoundType::Lo
+        | MpsBoundType::Up
+        | MpsBoundType::Fx
+        | MpsBoundType::Li
+        | MpsBoundType::Ui => {
             if tokens.len() < 4 {
                 return Err(PyRuntimeError::new_err(format!(
                     "Missing value for bound type {:?}",
@@ -1238,6 +1250,14 @@ fn set_bounds(
                 MpsBoundType::Up => vd.up_bound = Some(val),
                 MpsBoundType::Fx => {
                     vd.low_bound = Some(val);
+                    vd.up_bound = Some(val);
+                }
+                MpsBoundType::Li => {
+                    vd.cat = "Integer";
+                    vd.low_bound = Some(val);
+                }
+                MpsBoundType::Ui => {
+                    vd.cat = "Integer";
                     vd.up_bound = Some(val);
                 }
                 _ => unreachable!(),

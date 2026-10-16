@@ -56,6 +56,14 @@ EXAMPLE_MPS_MI_BOUNDS = EXAMPLE_MPS_RHS56.replace(
     "LO BND1      YTWO                -1", "MI BND1      YTWO                  "
 )
 
+EXAMPLE_MPS_BV_BOUNDS = EXAMPLE_MPS_RHS56.replace(
+    "LO BND1      YTWO                -1", "BV BND1      YTWO                  "
+)
+
+EXAMPLE_MPS_LI_UI_BOUNDS = EXAMPLE_MPS_RHS56.replace(
+    "UP BND1      XONE                 4", "UI BND1      XONE                 4"
+).replace("LO BND1      YTWO                -1", "LI BND1      YTWO                -1")
+
 
 def gurobi_test(test_item):
     @functools.wraps(test_item)
