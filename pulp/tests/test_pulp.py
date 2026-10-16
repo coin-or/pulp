@@ -26,6 +26,8 @@ from pulp import constants as const
 from pulp.apis.core import clocks
 from pulp.constants import PulpError
 from pulp.tests.solver_common import (
+    EXAMPLE_MPS_BV_BOUNDS,
+    EXAMPLE_MPS_LI_UI_BOUNDS,
     EXAMPLE_MPS_MI_BOUNDS,
     EXAMPLE_MPS_PL_BOUNDS,
     EXAMPLE_MPS_RHS56,
@@ -781,6 +783,34 @@ class PuLPModelTest(unittest.TestCase):
         self.assertIsInstance(problem, LpProblem)
         mi_var = vars["YTWO"]
         self.assertEqual(mi_var.lowBound, float("-inf"))
+
+    def test_importMPS_BV_bound(self):
+        """Import MPS file with BV bound type: a binary variable is integer."""
+        with tempfile.NamedTemporaryFile(delete=False) as h:
+            h.write(str.encode(EXAMPLE_MPS_BV_BOUNDS))
+        vars, problem = LpProblem.fromMPS(h.name)
+        os.unlink(h.name)
+        self.assertIsInstance(problem, LpProblem)
+        bv_var = vars["YTWO"]
+        self.assertEqual(bv_var.cat, const.LpInteger)
+        self.assertEqual(bv_var.lowBound, 0)
+        self.assertEqual(bv_var.upBound, 1)
+        self.assertEqual(vars["ZTHREE"].cat, const.LpContinuous)
+
+    def test_importMPS_LI_UI_bounds(self):
+        """Import MPS file with LI and UI bound types: integer variables with a bound."""
+        with tempfile.NamedTemporaryFile(delete=False) as h:
+            h.write(str.encode(EXAMPLE_MPS_LI_UI_BOUNDS))
+        vars, problem = LpProblem.fromMPS(h.name)
+        os.unlink(h.name)
+        self.assertIsInstance(problem, LpProblem)
+        self.assertEqual(vars["XONE"].cat, const.LpInteger)
+        self.assertEqual(vars["XONE"].lowBound, 0)
+        self.assertEqual(vars["XONE"].upBound, 4)
+        self.assertEqual(vars["YTWO"].cat, const.LpInteger)
+        self.assertEqual(vars["YTWO"].lowBound, -1)
+        self.assertEqual(vars["YTWO"].upBound, 1)
+        self.assertEqual(vars["ZTHREE"].cat, const.LpContinuous)
 
     def test_unbounded_problem__is_not_valid(self):
         """Given an unbounded problem, where x will tend to infinity
