@@ -37,6 +37,16 @@ class LpAffineExpression:
 
     def __init__(self, _expr: _rustcore.AffineExpr) -> None:
         self._expr: _rustcore.AffineExpr = _expr
+        # set by LpProblem.addConstraint: the problem stores its own copy of the row
+        self._added_to_problem = False
+
+    def _check_not_added(self) -> None:
+        if getattr(self, "_added_to_problem", False):
+            raise const.PulpError(
+                "Cannot change a constraint after it has been added to a problem, "
+                "since the problem keeps its own copy. "
+                "Use copy() to get an expression that can be changed."
+            )
 
     # -- Factory class methods --
 
@@ -113,6 +123,7 @@ class LpAffineExpression:
 
     @constant.setter
     def constant(self, value: float):
+        self._check_not_added()
         self._expr.set_constant(float(value))
 
     @property
@@ -124,6 +135,7 @@ class LpAffineExpression:
 
     @sense.setter
     def sense(self, value: int | None):
+        self._check_not_added()
         if value is None:
             self._expr.clear_sense()
         else:
@@ -151,6 +163,7 @@ class LpAffineExpression:
     def __setitem__(self, key: LpVariable, value: float | int):
         if not isinstance(key, LpVariable):
             raise TypeError("Only LpVariable keys supported")
+        self._check_not_added()
         old = self._expr.get_coeff(key._var)
         self._expr.add_term(key._var, float(value) - old)
 
@@ -182,6 +195,7 @@ class LpAffineExpression:
         return self._expr.value_or_default()
 
     def addterm(self, key: LpVariable, value: float | int):
+        self._check_not_added()
         self._expr.add_term(key._var, float(value))
 
     def emptyCopy(self) -> LpAffineExpression:
@@ -268,6 +282,7 @@ class LpAffineExpression:
         sign: Literal[+1, -1] = 1,
     ) -> LpAffineExpression:
 
+        self._check_not_added()
         if other is None or (isinstance(other, int) and other == 0):
             return self
         if isinstance(other, LpVariable):

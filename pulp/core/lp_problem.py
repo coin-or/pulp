@@ -601,6 +601,7 @@ class LpProblem:
             if "different model" in msg or "no longer exists" in msg:
                 raise const.PulpError(msg) from err
             raise
+        constraint._added_to_problem = True
 
     def setObjective(self, obj: LpAffineExpression | LpVariable | int | float) -> None:
         """
