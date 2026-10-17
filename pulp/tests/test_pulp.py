@@ -266,6 +266,51 @@ class ModelUnitTest(unittest.TestCase):
         self.assertIsNot(a, b, "Each call should produce a fresh wrapper")
         self.assertEqual(a.name, b.name)
 
+    def test_change_constraint_after_adding_raises(self):
+        prob = self._make_prob()
+        x = prob.add_variable("x", 0, 10)
+        y = prob.add_variable("y", 0, 10)
+        constr = x <= 2
+        prob += constr, "c1"
+        changes = {
+            "coefficient": lambda: constr.__setitem__(x, 2),
+            "addterm": lambda: constr.addterm(y, 1),
+            "constant": lambda: setattr(constr, "constant", -3),
+            "sense": lambda: setattr(constr, "sense", const.LpConstraintGE),
+            "in-place add": lambda: constr.__iadd__(y),
+            "in-place subtract": lambda: constr.__isub__(1),
+        }
+        for change, apply in changes.items():
+            with self.subTest(change=change):
+                with self.assertRaises(PulpError):
+                    apply()
+        # neither the problem nor the expression has changed
+        c1 = _constraint_named(prob, "c1")
+        self.assertEqual({v.name: c for v, c in c1.items()}, {"x": 1})
+        self.assertEqual(c1.constant, -2)
+        self.assertEqual({v.name: c for v, c in constr.items()}, {"x": 1})
+        self.assertEqual(constr.constant, -2)
+        self.assertEqual(constr.sense, const.LpConstraintLE)
+
+    def test_copy_of_added_constraint_can_change(self):
+        prob = self._make_prob()
+        x = prob.add_variable("x", 0, 10)
+        constr = x <= 2
+        prob += constr, "c1"
+        changed = constr.copy()
+        changed[x] = 2
+        prob += changed, "c2"
+        self.assertEqual(_constraint_named(prob, "c1")[x], 1)
+        self.assertEqual(_constraint_named(prob, "c2")[x], 2)
+
+    def test_add_constraint_again_with_a_name(self):
+        prob = self._make_prob()
+        x = prob.add_variable("x", 0, 10)
+        constr = x <= 2
+        prob += constr, "c1"
+        prob += constr, "c2"
+        self.assertEqual({c.name for c in prob.constraints()}, {"c1", "c2"})
+
     # -- 8. variables() (fresh from Rust) --
 
     def test_variables_returns_list(self):
