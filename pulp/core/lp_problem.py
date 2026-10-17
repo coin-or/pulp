@@ -163,10 +163,12 @@ class LpProblem:
         indices_rest = indices[1:]
         lb = float("-inf") if lowBound is None else lowBound
         ub = float("inf") if upBound is None else upBound
+        # keep ``cat`` for the recursive calls below: they redo this conversion
+        rust_cat = cat
         if cat == const.LpBinary:
             lb, ub = 0.0, 1.0
-            cat = const.LpInteger
-        rcat = _const_to_rust_cat(cat)
+            rust_cat = const.LpInteger
+        rcat = _const_to_rust_cat(rust_cat)
         if len(indices_rest) == 0:
             names = [name % tuple(indexStart + [str(i)]) for i in index]
             vars_ = self._model.add_variables_batch(names, lb, ub, rcat)
@@ -242,10 +244,12 @@ class LpProblem:
         indices_rest = indices[1:]
         lb = float("-inf") if lowBound is None else lowBound
         ub = float("inf") if upBound is None else upBound
+        # keep ``cat`` for the recursive calls below: they redo this conversion
+        rust_cat = cat
         if cat == const.LpBinary:
             lb, ub = 0.0, 1.0
-            cat = const.LpInteger
-        rcat = _const_to_rust_cat(cat)
+            rust_cat = const.LpInteger
+        rcat = _const_to_rust_cat(rust_cat)
         if len(indices_rest) == 0:
             names = [name % tuple(indexStart + [i]) for i in index]
             vars_ = self._model.add_variables_batch(names, lb, ub, rcat)
