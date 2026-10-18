@@ -35,8 +35,19 @@ class LpAffineExpression:
 
     trans = str.maketrans("-+[] ", "_____")
 
+    # Rows of the problems to which this expression was added as a constraint; changes to the
+    # expression are written to them (see LpProblem.addConstraint)
+    _rows: tuple[_rustcore.Constraint, ...] = ()
+
     def __init__(self, _expr: _rustcore.AffineExpr) -> None:
         self._expr: _rustcore.AffineExpr = _expr
+
+    def _update_rows(self) -> None:
+        for row in self._rows:
+            try:
+                row.set_expr(self._expr)
+            except ValueError as err:
+                raise const.PulpError(str(err)) from err
 
     # -- Factory class methods --
 
@@ -114,6 +125,7 @@ class LpAffineExpression:
     @constant.setter
     def constant(self, value: float):
         self._expr.set_constant(float(value))
+        self._update_rows()
 
     @property
     def sense(self) -> int | None:
@@ -128,6 +140,7 @@ class LpAffineExpression:
             self._expr.clear_sense()
         else:
             self._expr.set_sense(_const_to_rust_sense(value))
+        self._update_rows()
 
     def items(self) -> list[tuple[LpVariable, float]]:
         raw = self._expr.items()
@@ -153,6 +166,7 @@ class LpAffineExpression:
             raise TypeError("Only LpVariable keys supported")
         old = self._expr.get_coeff(key._var)
         self._expr.add_term(key._var, float(value) - old)
+        self._update_rows()
 
     def __contains__(self, key: LpVariable) -> bool:
         return key in self.keys()
@@ -183,6 +197,7 @@ class LpAffineExpression:
 
     def addterm(self, key: LpVariable, value: float | int):
         self._expr.add_term(key._var, float(value))
+        self._update_rows()
 
     def emptyCopy(self) -> LpAffineExpression:
         e = LpAffineExpression.empty()
@@ -291,6 +306,7 @@ class LpAffineExpression:
             raise TypeError(
                 f"Unsupported type for in-place add/subtract: {type(other).__name__}"
             )
+        self._update_rows()
         return self
 
     def subInPlace(

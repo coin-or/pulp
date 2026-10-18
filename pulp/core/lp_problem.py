@@ -599,12 +599,14 @@ class LpProblem:
         if constraint.sense is None:
             raise const.PulpError("Cannot add constraint without a sense (<=, >=, ==)")
         try:
-            self._model.add_constraint(constraint._expr)
+            row = self._model.add_constraint(constraint._expr)
         except ValueError as err:
             msg = str(err)
             if "different model" in msg or "no longer exists" in msg:
                 raise const.PulpError(msg) from err
             raise
+        # later changes to the expression are written to the stored row
+        constraint._rows = (*constraint._rows, row)
 
     def setObjective(self, obj: LpAffineExpression | LpVariable | int | float) -> None:
         """

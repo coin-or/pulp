@@ -155,7 +155,8 @@ impl ModelCore {
 
     /// Add a constraint from a pending `AffineExpr` (must have `sense` set).
     /// `rhs` in storage is `-expr.constant` (same convention as Python `addConstraint`).
-    pub fn add_constraint(&mut self, expr: &AffineExpr) -> PyResult<ConstrId> {
+    /// Checks that `expr` can be stored as a constraint row and returns its sense.
+    fn check_constraint_expr(&self, expr: &AffineExpr) -> PyResult<Sense> {
         let sense = expr.sense.ok_or_else(|| {
             PyValueError::new_err("Cannot add constraint without a sense (<=, >=, ==)")
         })?;
@@ -178,6 +179,11 @@ impl ModelCore {
                 )));
             }
         }
+        Ok(sense)
+    }
+
+    pub fn add_constraint(&mut self, expr: &AffineExpr) -> PyResult<ConstrId> {
+        let sense = self.check_constraint_expr(expr)?;
         let rhs = -expr.constant;
         let coeffs = expr.terms.clone();
         let raw_name = expr
@@ -207,6 +213,19 @@ impl ModelCore {
             slack: None,
         });
         Ok(id)
+    }
+
+    /// Replaces the coefficients, sense and right-hand side of constraint `id` with those of
+    /// `expr`. The name is kept; the dual value and slack of the old row are cleared.
+    pub fn set_constraint_expr(&mut self, id: ConstrId, expr: &AffineExpr) -> PyResult<()> {
+        let sense = self.check_constraint_expr(expr)?;
+        let row = &mut self.constraints[id];
+        row.coeffs = expr.terms.clone();
+        row.rhs = -expr.constant;
+        row.sense = sense;
+        row.pi = None;
+        row.slack = None;
+        Ok(())
     }
 
     pub fn set_objective(&mut self, expr: AffineExpr) {

@@ -266,6 +266,51 @@ class ModelUnitTest(unittest.TestCase):
         self.assertIsNot(a, b, "Each call should produce a fresh wrapper")
         self.assertEqual(a.name, b.name)
 
+    def test_change_constraint_after_adding(self):
+        prob = self._make_prob()
+        x = prob.add_variable("x", 0, 10)
+        y = prob.add_variable("y", 0, 10)
+        constr = x <= 2
+        prob += constr, "c1"
+        constr[x] = 2
+        constr.addterm(y, 1)
+        constr.constant = -3
+        constr += y
+        c1 = _constraint_named(prob, "c1")
+        self.assertEqual({v.name: c for v, c in c1.items()}, {"x": 2, "y": 2})
+        self.assertEqual(c1.constant, -3)
+        self.assertEqual(c1.sense, const.LpConstraintLE)
+        constr.sense = const.LpConstraintGE
+        self.assertEqual(_constraint_named(prob, "c1").sense, const.LpConstraintGE)
+
+    def test_change_constraint_added_twice(self):
+        prob = self._make_prob()
+        x = prob.add_variable("x", 0, 10)
+        constr = x <= 2
+        prob += constr, "c1"
+        prob += constr, "c2"
+        constr.constant = -5
+        self.assertEqual(_constraint_named(prob, "c1").constant, -5)
+        self.assertEqual(_constraint_named(prob, "c2").constant, -5)
+
+    def test_copy_of_added_constraint_is_independent(self):
+        prob = self._make_prob()
+        x = prob.add_variable("x", 0, 10)
+        constr = x <= 2
+        prob += constr, "c1"
+        changed = constr.copy()
+        changed[x] = 2
+        self.assertEqual(_constraint_named(prob, "c1")[x], 1)
+
+    def test_invalid_change_of_added_constraint_raises(self):
+        prob = self._make_prob()
+        x = prob.add_variable("x", 0, 10)
+        constr = x <= 2
+        prob += constr, "c1"
+        with self.assertRaises(PulpError):
+            constr[x] = float("inf")
+        self.assertEqual(_constraint_named(prob, "c1")[x], 1)
+
     # -- 8. variables() (fresh from Rust) --
 
     def test_variables_returns_list(self):

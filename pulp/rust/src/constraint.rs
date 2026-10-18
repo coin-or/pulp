@@ -2,8 +2,11 @@
 
 use pyo3::prelude::*;
 
+use std::sync::Arc;
+
+use crate::affine_expr::AffineExpr;
 use crate::format;
-use crate::types::{lock_model, upgrade_model, ConstrId, Sense, WeakModelCore};
+use crate::types::{get_model_optional, lock_model, upgrade_model, ConstrId, Sense, WeakModelCore};
 use crate::variable::Variable;
 
 /// Handle to a constraint stored inside a `ModelCore`. Only created by the model.
@@ -38,6 +41,21 @@ impl Constraint {
             c.name = name;
         }
         Ok(())
+    }
+
+    /// Replaces the row with the terms, sense and constant of `expr` (used when the expression
+    /// that was added is changed). Does nothing if the model no longer exists.
+    fn set_expr(&self, expr: &AffineExpr) -> PyResult<()> {
+        let Some(core_rc) = self.model.upgrade() else {
+            return Ok(());
+        };
+        if expr.model.is_some() && !Arc::ptr_eq(&get_model_optional(&expr.model)?, &core_rc) {
+            return Err(pyo3::exceptions::PyValueError::new_err(
+                "Expression is bound to a different model than the one holding the constraint.",
+            ));
+        }
+        let mut core = lock_model(&core_rc);
+        core.set_constraint_expr(self.id, expr)
     }
 
     #[getter]
