@@ -2,6 +2,22 @@
 #       Copyright S.A.Mitchell (s.mitchell@auckland.ac.nz), 2007-
 #       Copyright F.Peschiera (pchtsp@gmail.com), 2019-
 # See the LICENSE file for copyright information.
+4.1.0 2026-10-19
+    MPS reader: BV, LI and UI bounds are read as integer variables
+    ``add_variable_dicts`` and ``add_variable_matrix`` keep binary bounds in nested structures
+    removed pinned version fot highspy, it now takes latest
+4.0.1 2026-10-14
+    Gurobi: absolute MIP gap option
+    HiGHS: model is built with a single addCols and addRows call; best bound reported in
+        ``LpSolveStats``
+    ``LpAffineExpression.get`` returns the default for missing variables
+    ``pulptest`` works from an installed package
+4.0.0 2026-09-25
+    ``LpSolveStats`` with solve statistics
+    ``COIN_CMD`` accepts ``randomSeed`` for reproducible CBC solves
+    GLPK fixes (#943); solvers handle try/except imports more cleanly
+4.0.0a12 2026-06-19
+    HiGHS keeps the warmstart solution when constraints are added
 4.0.0a11 2026-06-19
     HiGHS API accepts warmstarts
 4.0.0a10 2026-06-01

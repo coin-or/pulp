@@ -1,6 +1,6 @@
 [project]
 name = "PuLP"
-version = "4.0.1"
+version = "4.1.0"
 description = "PuLP is an LP modeler written in python. PuLP can generate MPS or LP files and call GLPK, COIN CLP/CBC, CPLEX, and GUROBI to solve linear problems."
 authors = [
     {name = 'J.S. Roy'},
@@ -136,9 +136,9 @@ required-environments = [
 
 
 [project.optional-dependencies]
-open_py = ["highspy<1.14", "pyscipopt", "cbcbox", "swiglpk"]
+open_py = ["highspy", "pyscipopt", "cbcbox", "swiglpk"]
 public_py = ["gurobipy", "coptpy; python_full_version < '3.14'", 'xpress', "cplex; sys_platform != 'darwin' or platform_machine == 'arm64'"]
-highs = ["highspy<1.14"]
+highs = ["highspy"]
 highs_cmd = ["highsbox"]
 cbc = ["cbcbox"]
 scip = ["pyscipopt"]
