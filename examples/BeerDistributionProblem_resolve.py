@@ -63,17 +63,19 @@ for w in Warehouses:
 bar_demand_constraint = {}
 for b in Bars:
     constraint = lpSum([vars[w, b] for w in Warehouses]) >= demand[b]
-    prob += constraint, f"Sum_of_Products_into_Bar_{b}"
-    bar_demand_constraint[b] = constraint
+    # addConstraint returns the constraint as stored in the problem; editing it
+    # edits the problem (editing `constraint` itself would not)
+    bar_demand_constraint[b] = prob.addConstraint(
+        constraint, f"Sum_of_Products_into_Bar_{b}"
+    )
 
 # The problem data is written to an .lp file
 prob.writeLP("BeerDistributionProblem.lp")
 for demand_value in range(500, 601, 10):
     # reoptimise the problem by increasing demand at bar '1'
-    # note the constant is stored as the LHS constant not the RHS of the constraint
-    bar_demand_constraint["1"].constant = -demand_value
+    bar_demand_constraint["1"].changeRHS(demand_value)
     # or alternatively,
-    # prob.constraints()["Sum_of_Products_into_Bar_1"].constant = - demand
+    # prob.get_constraint_by_name("Sum_of_Products_into_Bar_1").changeRHS(demand_value)
 
     # The problem is solved using PuLP's choice of Solver
     stats = prob.solve()

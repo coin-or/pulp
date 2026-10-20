@@ -99,6 +99,15 @@ impl Variable {
         Ok(())
     }
 
+    fn set_category(&self, category: Category) -> PyResult<()> {
+        let core_rc = upgrade_model(&self.model)?;
+        let mut core = lock_model(&core_rc);
+        if let Some(var) = core.vars.get_mut(self.id) {
+            var.category = category;
+        }
+        Ok(())
+    }
+
     fn set_name(&self, name: String) -> PyResult<()> {
         let core_rc = upgrade_model(&self.model)?;
         let mut core = lock_model(&core_rc);

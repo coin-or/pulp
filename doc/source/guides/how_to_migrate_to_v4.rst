@@ -71,6 +71,10 @@ Quick reference
      - ``prob.get_constraint_by_name("c")``
    * - ``prob.constraints.values()``
      - ``prob.constraints()``
+   * - ``c = e <= 5; prob += c; c[x] = 2``
+     - ``c = prob.addConstraint(e <= 5); c[x] = 2``
+   * - ``LpConstraintVar`` / ``LpVariable(..., e=...)``
+     - ``prob.add_column(name, ..., obj=..., coefficients={c: a})``
    * - ``status = prob.solve()``
      - ``stats = prob.solve()``
    * - ``prob.status``
@@ -133,7 +137,7 @@ and ``LpVariable.matrix`` have been removed.
 
 Every method takes the same arguments as its 3.x counterpart (``name``,
 ``indices``, ``lowBound``, ``upBound``, ``cat``) and names the variables the same
-way.
+way. See :ref:`create_variables` for details and examples.
 
 .. code-block:: python
 
@@ -195,8 +199,9 @@ Other changes around variables:
   Use ``y.isBinary()`` to check for binaries.
 * ``LpVariable.fromDict(data)`` and ``LpVariable.fromDataclass(mps)`` now take the
   problem as their first argument: ``LpVariable.fromDict(prob, data)``.
-* Column-wise modelling (``LpConstraintVar`` and ``LpVariable(..., e=...)``) has
-  been removed. Build the constraints row by row instead.
+* ``LpConstraintVar`` and ``LpVariable(..., e=...)`` have been removed. For
+  column-wise modelling use ``prob.add_column(...)``, which creates a variable
+  together with its coefficients in existing constraints. See :ref:`column_wise`.
 
 
 Expressions and constraints
@@ -249,6 +254,29 @@ that name. It is also available in PuLP 3.3.1 and later, so you can switch to it
 before upgrading. If you look up many constraints by name, build a dictionary
 once after the model is complete:
 ``constraints = {c.name: c for c in prob.constraints()}``.
+
+Editing a constraint after adding it
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In 3.x the problem stored the expression object you added, so changing it later
+changed the problem. In 4.0 the problem keeps its own copy: changing the
+expression no longer reaches the problem, and PuLP raises a ``UserWarning``.
+Edit the ``LpConstraint`` instead, which ``addConstraint`` returns:
+
+.. code-block:: python
+
+    # 3.x
+    c = x + y <= 5
+    prob += c, "cap"
+    c[x] = 2
+    c.constant = -8            # rhs 8
+
+    # 4.0
+    c = prob.addConstraint(x + y <= 5, "cap")   # or prob.get_constraint_by_name("cap")
+    c[x] = 2
+    c.changeRHS(8)
+
+See :ref:`edit_constraints`.
 
 Removed problem features
 ~~~~~~~~~~~~~~~~~~~~~~~~~

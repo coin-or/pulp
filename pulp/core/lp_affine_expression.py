@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import warnings
 from collections.abc import Iterable, Iterator
 from typing import Any, Literal, cast
 
@@ -15,6 +16,14 @@ from ._internal import (
     _rust_sense_to_const,
 )
 from .lp_variable import LpVariable
+
+_EDIT_CONSTRAINT_WARNING = (
+    "Editing an LpAffineExpression with a sense does not change any problem it "
+    "was added to. To edit a constraint in a problem, edit its LpConstraint: get "
+    "it with prob.get_constraint_by_name(name) or prob.constraints(), or keep the "
+    "one returned by prob.addConstraint(...); then e.g. con[x] = 2 or "
+    "con.changeRHS(3)."
+)
 
 
 class LpAffineExpression:
@@ -113,6 +122,7 @@ class LpAffineExpression:
 
     @constant.setter
     def constant(self, value: float):
+        self._warn_if_constraint()
         self._expr.set_constant(float(value))
 
     @property
@@ -124,10 +134,20 @@ class LpAffineExpression:
 
     @sense.setter
     def sense(self, value: int | None):
+        self._warn_if_constraint()
+        self._set_sense(value)
+
+    def _set_sense(self, value: int | None) -> None:
         if value is None:
             self._expr.clear_sense()
         else:
             self._expr.set_sense(_const_to_rust_sense(value))
+
+    def _warn_if_constraint(self) -> None:
+        """Warn that editing a constraint expression does not edit the problem
+        (called from the public mutators, so stacklevel 3 is the user's line)."""
+        if self._expr.sense is not None:
+            warnings.warn(_EDIT_CONSTRAINT_WARNING, UserWarning, stacklevel=3)
 
     def items(self) -> list[tuple[LpVariable, float]]:
         raw = self._expr.items()
@@ -151,6 +171,7 @@ class LpAffineExpression:
     def __setitem__(self, key: LpVariable, value: float | int):
         if not isinstance(key, LpVariable):
             raise TypeError("Only LpVariable keys supported")
+        self._warn_if_constraint()
         old = self._expr.get_coeff(key._var)
         self._expr.add_term(key._var, float(value) - old)
 
@@ -182,12 +203,12 @@ class LpAffineExpression:
         return self._expr.value_or_default()
 
     def addterm(self, key: LpVariable, value: float | int):
+        self._warn_if_constraint()
         self._expr.add_term(key._var, float(value))
 
     def emptyCopy(self) -> LpAffineExpression:
         e = LpAffineExpression.empty()
-        if self.sense is not None:
-            e.sense = self.sense
+        e._set_sense(self.sense)
         return e
 
     def copy(self) -> LpAffineExpression:
@@ -208,9 +229,9 @@ class LpAffineExpression:
     ) -> str:
         if override_constant is not None:
             saved = self.constant
-            self.constant = override_constant
+            self._expr.set_constant(float(override_constant))
             result = self._expr.str_expr(include_constant)
-            self.constant = saved
+            self._expr.set_constant(saved)
             return result
         return self._expr.str_expr(include_constant)
 
@@ -227,9 +248,9 @@ class LpAffineExpression:
     def __repr__(self, override_constant: float | None = None) -> str:
         if override_constant is not None:
             saved = self.constant
-            self.constant = override_constant
+            self._expr.set_constant(float(override_constant))
             result = self._expr.repr_expr()
-            self.constant = saved
+            self._expr.set_constant(saved)
             return result
         return self._expr.repr_expr()
 
@@ -248,9 +269,9 @@ class LpAffineExpression:
     ) -> str:
         if override_constant is not None:
             saved = self.constant
-            self.constant = override_constant
+            self._expr.set_constant(float(override_constant))
             result = self._expr.as_cplex_lp_affine_expression(name, include_constant)
-            self.constant = saved
+            self._expr.set_constant(saved)
             return result
         return self._expr.as_cplex_lp_affine_expression(name, include_constant)
 
@@ -267,20 +288,33 @@ class LpAffineExpression:
         | None,
         sign: Literal[+1, -1] = 1,
     ) -> LpAffineExpression:
+        self._warn_if_constraint()
+        return self._add_in_place(other, sign)
+
+    def _add_in_place(
+        self,
+        other: LpVariable
+        | LpAffineExpression
+        | dict[Any, Any]
+        | Iterable[Any]
+        | LpNumeric
+        | None,
+        sign: Literal[+1, -1] = 1,
+    ) -> LpAffineExpression:
 
         if other is None or (isinstance(other, int) and other == 0):
             return self
         if isinstance(other, LpVariable):
-            self.addterm(other, sign)
+            self._expr.add_term(other._var, float(sign))
         elif isinstance(other, LpAffineExpression):
             self._expr.add_expr(other._expr, sign)
             self._expr.combine_sense(other._expr.sense, float(sign))
         elif isinstance(other, dict):
             for e in other.values():
-                self.addInPlace(cast(Any, e), sign=sign)
+                self._add_in_place(cast(Any, e), sign=sign)
         elif isinstance(other, Iterable) and not isinstance(other, str):
             for e in other:
-                self.addInPlace(cast(Any, e), sign=sign)
+                self._add_in_place(cast(Any, e), sign=sign)
         elif _is_numeric_scalar(other):
             if not _is_finite_numeric(other):
                 raise const.PulpError("Cannot add/subtract NaN/inf values")
@@ -302,7 +336,8 @@ class LpAffineExpression:
         | LpNumeric
         | None,
     ) -> LpAffineExpression:
-        return self.addInPlace(other, sign=-1)
+        self._warn_if_constraint()
+        return self._add_in_place(other, sign=-1)
 
     def __neg__(self) -> LpAffineExpression:
         e = LpAffineExpression(self._expr.clone_expr())
@@ -315,39 +350,41 @@ class LpAffineExpression:
     def __add__(
         self, other: LpVariable | LpAffineExpression | LpNumeric
     ) -> LpAffineExpression:
-        return self.copy().addInPlace(other)
+        return self.copy()._add_in_place(other)
 
     def __radd__(
         self, other: LpVariable | LpAffineExpression | LpNumeric
     ) -> LpAffineExpression:
-        return self.copy().addInPlace(other)
+        return self.copy()._add_in_place(other)
 
     def __iadd__(
         self, other: LpVariable | LpAffineExpression | LpNumeric
     ) -> LpAffineExpression:
-        return self.addInPlace(other)
+        self._warn_if_constraint()
+        return self._add_in_place(other)
 
     def __sub__(
         self, other: LpVariable | LpAffineExpression | LpNumeric
     ) -> LpAffineExpression:
-        return self.copy().subInPlace(other)
+        return self.copy()._add_in_place(other, sign=-1)
 
     def __rsub__(
         self, other: LpVariable | LpAffineExpression | LpNumeric
     ) -> LpAffineExpression:
-        return (-self).addInPlace(other)
+        return (-self)._add_in_place(other)
 
     def __isub__(
         self, other: LpVariable | LpAffineExpression | LpNumeric
     ) -> LpAffineExpression:
-        return self.subInPlace(other)
+        self._warn_if_constraint()
+        return self._add_in_place(other, sign=-1)
 
     def __mul__(
         self, other: LpAffineExpression | LpVariable | LpNumeric
     ) -> LpAffineExpression:
         e = LpAffineExpression.empty()
         if isinstance(other, LpAffineExpression):
-            e.constant = self.constant * other.constant
+            e._expr.set_constant(self.constant * other.constant)
             if len(other):
                 if len(self):
                     raise TypeError("Non-constant expressions cannot be multiplied")
@@ -395,12 +432,12 @@ class LpAffineExpression:
     ) -> LpAffineExpression:
         if _is_numeric_scalar(other):
             result = self.copy()
-            result.constant = result.constant - _numeric_to_float(other)
-            result.sense = const.LpConstraintLE
+            result._expr.set_constant(result.constant - _numeric_to_float(other))
+            result._set_sense(const.LpConstraintLE)
             return result
         elif isinstance(other, (LpAffineExpression, LpVariable)):
             result = self - other
-            result.sense = const.LpConstraintLE
+            result._set_sense(const.LpConstraintLE)
             return result
         return NotImplemented
 
@@ -409,24 +446,24 @@ class LpAffineExpression:
     ) -> LpAffineExpression:
         if _is_numeric_scalar(other):
             result = self.copy()
-            result.constant = result.constant - _numeric_to_float(other)
-            result.sense = const.LpConstraintGE
+            result._expr.set_constant(result.constant - _numeric_to_float(other))
+            result._set_sense(const.LpConstraintGE)
             return result
         elif isinstance(other, (LpAffineExpression, LpVariable)):
             result = self - other
-            result.sense = const.LpConstraintGE
+            result._set_sense(const.LpConstraintGE)
             return result
         return NotImplemented
 
     def __eq__(self, other: object) -> LpAffineExpression:  # type: ignore[override, ty:invalid-method-override]
         if _is_numeric_scalar(other):
             result = self.copy()
-            result.constant = result.constant - _numeric_to_float(other)
-            result.sense = const.LpConstraintEQ
+            result._expr.set_constant(result.constant - _numeric_to_float(other))
+            result._set_sense(const.LpConstraintEQ)
             return result
         elif isinstance(other, (LpAffineExpression, LpVariable)):
             result = self - other
-            result.sense = const.LpConstraintEQ
+            result._set_sense(const.LpConstraintEQ)
             return result
         return NotImplemented
 
@@ -448,7 +485,8 @@ class LpAffineExpression:
         return None
 
     def changeRHS(self, RHS: float) -> None:
-        self.constant = -RHS
+        self._warn_if_constraint()
+        self._expr.set_constant(-float(RHS))
 
     def valid(self, eps: float = 0) -> bool:
         val = self.value()

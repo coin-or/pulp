@@ -3,7 +3,7 @@ from __future__ import annotations
 import dataclasses
 import math
 import warnings
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from typing import Any, Literal, cast
 
 try:
@@ -121,27 +121,50 @@ class LpProblem:
         upBound: LpBound = None,
         cat: Literal["Continuous", "Integer", "Binary"] = const.LpContinuous,
     ) -> LpVariable:
-        """Add a variable to the problem. Returns LpVariable wrapping the Rust variable."""
-        if lowBound is not None and not _is_finite_numeric(lowBound):
-            raise const.PulpError(
-                "The lower bound of a variable must be finite, got {}".format(lowBound)
-            )
-        if upBound is not None and not _is_finite_numeric(upBound):
-            raise const.PulpError(
-                "The upper bound of a variable must be finite, got {}".format(upBound)
-            )
-        lb = float("-inf") if lowBound is None else lowBound
-        ub = float("inf") if upBound is None else upBound
-        if cat == const.LpBinary:
-            lb, ub = 0.0, 1.0
-            cat = const.LpInteger
-        if lowBound is not None and _is_finite_numeric(lowBound):
-            lb = lowBound
-        if upBound is not None and _is_finite_numeric(upBound):
-            ub = upBound
-        rcat = _const_to_rust_cat(cat)
+        """Create a variable in this problem and return it.
+
+        :param name: the variable's name
+        :param lowBound: lower bound (``None``: no bound); must be finite
+        :param upBound: upper bound (``None``: no bound); must be finite
+        :param cat: ``"Continuous"``, ``"Integer"`` or ``"Binary"`` (stored as
+            an integer variable with bounds 0 and 1)
+        """
+        lb, ub, rcat = _variable_bounds(lowBound, upBound, cat)
         rvar = self._model.add_variable(name, lb, ub, rcat)
         return LpVariable(rvar)
+
+    def add_column(
+        self,
+        name: str,
+        lowBound: LpBound = None,
+        upBound: LpBound = None,
+        cat: Literal["Continuous", "Integer", "Binary"] = const.LpContinuous,
+        obj: float = 0.0,
+        coefficients: Mapping[LpConstraint, float] | None = None,
+    ) -> LpVariable:
+        """Add a variable column-wise: with objective coefficient ``obj`` and
+        its ``coefficients`` in constraints already in the problem (column
+        generation). Returns the new LpVariable.
+
+        :param coefficients: ``{constraint: coefficient}`` for constraints of
+            this problem (:class:`LpConstraint`, e.g. as returned by
+            :meth:`addConstraint`); zeros are skipped
+        :raises ValueError: on an infinite or NaN coefficient; the problem is
+            left unchanged
+
+        >>> c = prob.addConstraint(x >= 1, "c")
+        >>> y = prob.add_column("y", 0, 1, obj=2, coefficients={c: 1})
+        """
+        lb, ub, rcat = _variable_bounds(lowBound, upBound, cat)
+        entries = [(c.id, float(v)) for c, v in (coefficients or {}).items()]
+        rvar = self._model.add_column(name, lb, ub, rcat, float(obj), entries)
+        return LpVariable(rvar)
+
+    def remove_variables(self, variables: Iterable[LpVariable]) -> None:
+        """Drop ``variables`` from every constraint, the objective and every
+        SOS group. The variables themselves stay valid but unused, so the
+        solvers and the LP/MPS writers leave them out."""
+        self._model.remove_variables([v.id for v in variables])
 
     def add_variable_dicts(
         self,
@@ -152,7 +175,28 @@ class LpProblem:
         cat: Literal["Continuous", "Integer", "Binary"] = const.LpContinuous,
         indexStart: list[Any] | None = None,
     ) -> dict[Any, Any]:
-        """Create a dictionary of variables; names built from name + indices."""
+        """Create one variable per index value and return them in a dictionary.
+
+        :param name: prefix of the variable names. One ``_%s`` per index is
+            appended unless ``name`` already contains ``%s`` placeholders.
+        :param indices: an iterable of index values, or a tuple of iterables
+            for several indices. Several indices give nested dictionaries, one
+            level per index.
+        :param lowBound: lower bound of every variable (``None``: no bound)
+        :param upBound: upper bound of every variable (``None``: no bound)
+        :param cat: ``"Continuous"``, ``"Integer"`` or ``"Binary"``
+        :param indexStart: index values already used in the name (used for the
+            nested levels)
+        :return: ``{index: variable}``, or ``{i: {j: variable}}`` for two
+            indices, and so on
+
+        >>> buy = prob.add_variable_dicts("buy", ["A", "B"], lowBound=0)
+        >>> buy["A"].name
+        'buy_A'
+        >>> flow = prob.add_variable_dicts("flow", (["A", "B"], [1, 2]), cat="Integer")
+        >>> flow["A"][2].name
+        'flow_A_2'
+        """
         if indexStart is None:
             indexStart = []
         if not isinstance(indices, tuple):
@@ -188,7 +232,14 @@ class LpProblem:
         upBound: LpBound = None,
         cat: Literal["Continuous", "Integer", "Binary"] = const.LpContinuous,
     ) -> dict[Any, LpVariable]:
-        """Create a dictionary of variables with Cartesian product of indices."""
+        """Create one variable per combination of the indices and return them in
+        one flat dictionary keyed by tuples (by value for a single index).
+        Takes the same arguments as :meth:`add_variable_dicts`.
+
+        >>> assign = prob.add_variable_dict("assign", (["A", "B"], [1, 2]))
+        >>> assign["A", 1].name
+        'assign_A_1'
+        """
         if not isinstance(indices, tuple):
             indices = (indices,)
         if "%" not in name:
@@ -233,7 +284,14 @@ class LpProblem:
         cat: Literal["Continuous", "Integer", "Binary"] = const.LpContinuous,
         indexStart: list[Any] | None = None,
     ) -> list[Any]:
-        """Create a list or nested list of variables; names built from name + indices."""
+        """Create one variable per index value and return them in a list, or
+        nested lists for several indices, indexed by position. Takes the same
+        arguments as :meth:`add_variable_dicts`.
+
+        >>> grid = prob.add_variable_matrix("grid", (["A", "B"], [1, 2]))
+        >>> grid[0][1].name
+        'grid_A_2'
+        """
         if indexStart is None:
             indexStart = []
         if not isinstance(indices, tuple):
@@ -262,7 +320,8 @@ class LpProblem:
         ]
 
     def constraints(self) -> list[LpConstraint]:
-        """Constraints from the Rust model, in insertion / id order."""
+        """The problem's constraints (:class:`LpConstraint`), in the order they
+        were added. Editing them edits the problem."""
         return [LpConstraint(v) for v in self._model.list_constraints()]
 
     def get_constraint_by_name(self, name: str) -> LpConstraint | None:
@@ -583,7 +642,10 @@ class LpProblem:
 
     def addConstraint(
         self, constraint: LpAffineExpression, name: str | None = None
-    ) -> None:
+    ) -> LpConstraint:
+        """Adds ``constraint`` (an expression with a sense) and returns it as
+        stored in the problem. Edit the returned :class:`LpConstraint` to change
+        the problem; editing ``constraint`` afterwards does not."""
         if name:
             constraint.name = name
         rhs = -constraint.constant
@@ -599,7 +661,7 @@ class LpProblem:
         if constraint.sense is None:
             raise const.PulpError("Cannot add constraint without a sense (<=, >=, ==)")
         try:
-            self._model.add_constraint(constraint._expr)
+            return LpConstraint(self._model.add_constraint(constraint._expr))
         except ValueError as err:
             msg = str(err)
             if "different model" in msg or "no longer exists" in msg:
@@ -929,3 +991,29 @@ class LpProblem:
 
     def getSense(self) -> int:
         return self.sense
+
+
+def _variable_bounds(
+    lowBound: LpBound,
+    upBound: LpBound,
+    cat: Literal["Continuous", "Integer", "Binary"],
+) -> tuple[float, float, _rustcore.Category]:
+    """Rust ``(lb, ub, category)`` of a new variable (binary: Integer in [0, 1])."""
+    if lowBound is not None and not _is_finite_numeric(lowBound):
+        raise const.PulpError(
+            "The lower bound of a variable must be finite, got {}".format(lowBound)
+        )
+    if upBound is not None and not _is_finite_numeric(upBound):
+        raise const.PulpError(
+            "The upper bound of a variable must be finite, got {}".format(upBound)
+        )
+    lb = float("-inf") if lowBound is None else lowBound
+    ub = float("inf") if upBound is None else upBound
+    if cat == const.LpBinary:
+        lb, ub = 0.0, 1.0
+        cat = const.LpInteger
+    if lowBound is not None and _is_finite_numeric(lowBound):
+        lb = lowBound
+    if upBound is not None and _is_finite_numeric(upBound):
+        ub = upBound
+    return float(lb), float(ub), _const_to_rust_cat(cat)

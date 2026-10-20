@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from collections.abc import Iterator
+from collections.abc import Generator, Iterator
+from contextlib import contextmanager
 from typing import Any, Literal
 
 from .. import _rustcore
@@ -17,6 +18,9 @@ class LpConstraint:
     Instances appear in :meth:`LpProblem.constraints` as a list in model order; they are not
     pending expressions and must not be combined with ``+`` / ``-`` on affine
     expressions. Use :meth:`copy` to obtain a pending :class:`LpAffineExpression`.
+
+    Editing an instance edits the row in the problem: ``c[x] = 2``, ``del c[x]``,
+    ``c.changeRHS(3)``, ``c.sense = ...`` or ``c += y``.
     """
 
     # Causes numpy to defer comparisons to our __le__/__ge__/__eq__
@@ -66,9 +70,19 @@ class LpConstraint:
         val = -self._constr.rhs
         return 0.0 if val == 0.0 else val
 
+    @constant.setter
+    def constant(self, value: float) -> None:
+        self.changeRHS(-value)
+
     @property
     def sense(self) -> int:
         return _rust_sense_to_const(self._constr.sense)
+
+    @sense.setter
+    def sense(self, value: int) -> None:
+        if value is None:
+            raise const.PulpError("A constraint in a problem must have a sense")
+        self._constr.set_sense(_const_to_rust_sense(value))
 
     @property
     def id(self) -> int:
@@ -93,6 +107,14 @@ class LpConstraint:
             if v is key or (v.name == key.name):
                 return c
         raise KeyError(key)
+
+    def __setitem__(self, key: LpVariable, value: float) -> None:
+        """``c[x] = value``: same as :meth:`set_coefficient`."""
+        self.set_coefficient(key, value)
+
+    def __delitem__(self, key: LpVariable) -> None:
+        """``del c[x]``: remove ``x`` from this constraint."""
+        self.set_coefficient(key, 0)
 
     def __contains__(self, key: object) -> bool:
         if isinstance(key, LpVariable):
@@ -138,13 +160,34 @@ class LpConstraint:
     ) -> str:
         return self._expr.as_cplex_lp_affine_expression(name, include_constant)
 
-    def changeRHS(self, RHS: float) -> None:
-        raise NotImplementedError("Cannot change RHS of constraint already in model")
+    def set_coefficient(self, var: LpVariable, coefficient: float) -> None:
+        """Set ``var``'s coefficient in this constraint (0 removes the term),
+        e.g. to add a new column to existing rows."""
+        with _as_pulp_error():
+            self._constr.set_coefficient(var._var, float(coefficient))
 
-    def addInPlace(self, other: Any, sign: Literal[+1, -1] = 1) -> LpAffineExpression:
-        raise NotImplementedError(
-            "Cannot modify constraint already in model; use a pending constraint (e.g. expr <= rhs) for in-place ops"
-        )
+    def changeRHS(self, RHS: float) -> None:
+        """Set the right-hand side of this constraint."""
+        with _as_pulp_error():
+            self._constr.set_rhs(float(RHS))
+
+    def addInPlace(self, other: Any, sign: Literal[+1, -1] = 1) -> LpConstraint:
+        """Add ``other`` (variable, expression, number...) to this row's left-hand side."""
+        expr = self.copy()._add_in_place(other, sign)
+        with _as_pulp_error():
+            self._constr.set_expr(expr._expr)
+        return self
+
+    def subInPlace(self, other: Any) -> LpConstraint:
+        return self.addInPlace(other, sign=-1)
+
+    def __iadd__(self, other: Any) -> LpConstraint:
+        """``c += expr``: add ``expr`` to the left-hand side."""
+        return self.addInPlace(other)
+
+    def __isub__(self, other: Any) -> LpConstraint:
+        """``c -= expr``: subtract ``expr`` from the left-hand side."""
+        return self.subInPlace(other)
 
     def copy(self) -> LpAffineExpression:
         """Return a pending LpAffineExpression copy with sense set."""
@@ -203,3 +246,12 @@ class LpConstraint:
 
     def valueOrDefault(self) -> float:
         return self._expr.value_or_default()
+
+
+@contextmanager
+def _as_pulp_error() -> Generator[None]:
+    """Re-raise the Rust model's ``ValueError`` as ``PulpError``."""
+    try:
+        yield
+    except ValueError as err:
+        raise const.PulpError(str(err)) from err
