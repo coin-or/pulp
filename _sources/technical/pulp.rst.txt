@@ -18,15 +18,29 @@ The LpProblem Class
 .. autoclass:: LpProblem
    :show-inheritance:
 
-   Three important attributes of the problem are:
+   An important attribute of the problem is:
 
    .. attribute:: objective
 
       The objective of the problem, an :obj:`LpAffineExpression`
 
-   .. attribute:: constraints
+   Creating variables (see :ref:`create_variables`):
 
-      A :class:`list` of :class:`constraints<LpConstraint>` in model order (same order as rows in the Rust core).
+   .. automethod:: add_variable
+   .. automethod:: add_variable_dicts
+   .. automethod:: add_variable_dict
+   .. automethod:: add_variable_matrix
+
+   Constraints (see :ref:`edit_constraints`):
+
+   .. automethod:: addConstraint
+   .. automethod:: constraints
+   .. automethod:: get_constraint_by_name
+
+   Column-wise modelling (see :ref:`column_wise`):
+
+   .. automethod:: add_column
+   .. automethod:: remove_variables
 
    Some of the more important methods:
 
@@ -77,6 +91,18 @@ Constraints
 .. autoclass::  LpConstraint
    :show-inheritance:
    :members:
+   :special-members: __setitem__, __delitem__, __iadd__, __isub__
+
+   A constraint of a problem, as returned by :meth:`LpProblem.addConstraint`,
+   :meth:`LpProblem.constraints` and :meth:`LpProblem.get_constraint_by_name`.
+   Editing it edits the problem:
+
+   >>> c = prob.addConstraint(x + y <= 5, "c")
+   >>> c[x] = 2           # 2*x + y <= 5
+   >>> c.changeRHS(8)     # 2*x + y <= 8
+   >>> c += 3             # 2*x + y <= 5
+
+   Editing the expression that was added does not; see :ref:`edit_constraints`.
 
 
 Combinations  and Permutations

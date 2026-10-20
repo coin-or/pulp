@@ -19,7 +19,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="How to configure a solver in PuLP" href="how_to_configure_solvers.html" />
+    <link rel="next" title="How to create variables" href="how_to_create_variables.html" />
     <link rel="prev" title="User Guides" href="index.html" /> 
 </head>
 
@@ -53,6 +53,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#creating-variables">Creating variables</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#expressions-and-constraints">Expressions and constraints</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#reading-constraints-back">Reading constraints back</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#editing-a-constraint-after-adding-it">Editing a constraint after adding it</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#removed-problem-features">Removed problem features</a></li>
 </ul>
 </li>
@@ -68,6 +69,9 @@
 <li class="toctree-l3"><a class="reference internal" href="#a-complete-example">A complete example</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="how_to_create_variables.html">How to create variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how_to_edit_constraints.html">How to edit constraints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how_to_model_column_wise.html">How to model column-wise</a></li>
 <li class="toctree-l2"><a class="reference internal" href="how_to_configure_solvers.html">How to configure a solver in PuLP</a></li>
 <li class="toctree-l2"><a class="reference internal" href="how_to_mip_start.html">How to warm-start a solver</a></li>
 <li class="toctree-l2"><a class="reference internal" href="how_to_export_models.html">How to import and export models in PuLP</a></li>
@@ -195,6 +199,12 @@ function does not exist in 4.0.</p>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">prob.constraints.values()</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">prob.constraints()</span></code></p></td>
 </tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">c</span> <span class="pre">=</span> <span class="pre">e</span> <span class="pre">&lt;=</span> <span class="pre">5;</span> <span class="pre">prob</span> <span class="pre">+=</span> <span class="pre">c;</span> <span class="pre">c[x]</span> <span class="pre">=</span> <span class="pre">2</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">c</span> <span class="pre">=</span> <span class="pre">prob.addConstraint(e</span> <span class="pre">&lt;=</span> <span class="pre">5);</span> <span class="pre">c[x]</span> <span class="pre">=</span> <span class="pre">2</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">LpConstraintVar</span></code> / <code class="docutils literal notranslate"><span class="pre">LpVariable(...,</span> <span class="pre">e=...)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">prob.add_column(name,</span> <span class="pre">...,</span> <span class="pre">obj=...,</span> <span class="pre">coefficients={c:</span> <span class="pre">a})</span></code></p></td>
+</tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">status</span> <span class="pre">=</span> <span class="pre">prob.solve()</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">stats</span> <span class="pre">=</span> <span class="pre">prob.solve()</span></code></p></td>
 </tr>
@@ -265,7 +275,7 @@ directly (it raises <code class="docutils literal notranslate"><span class="pre"
 and <code class="docutils literal notranslate"><span class="pre">LpVariable.matrix</span></code> have been removed.</p>
 <p>Every method takes the same arguments as its 3.x counterpart (<code class="docutils literal notranslate"><span class="pre">name</span></code>,
 <code class="docutils literal notranslate"><span class="pre">indices</span></code>, <code class="docutils literal notranslate"><span class="pre">lowBound</span></code>, <code class="docutils literal notranslate"><span class="pre">upBound</span></code>, <code class="docutils literal notranslate"><span class="pre">cat</span></code>) and names the variables the same
-way.</p>
+way. See <a class="reference internal" href="how_to_create_variables.html#create-variables"><span class="std std-ref">How to create variables</span></a> for details and examples.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 3.x</span>
 <span class="n">prob</span> <span class="o">=</span> <span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;example&quot;</span><span class="p">,</span> <span class="n">LpMinimize</span><span class="p">)</span>
 <span class="n">x</span> <span class="o">=</span> <span class="n">LpVariable</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">lowBound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upBound</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
@@ -322,8 +332,9 @@ included. Use the copy’s own variables, looked up by name:</p>
 Use <code class="docutils literal notranslate"><span class="pre">y.isBinary()</span></code> to check for binaries.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">LpVariable.fromDict(data)</span></code> and <code class="docutils literal notranslate"><span class="pre">LpVariable.fromDataclass(mps)</span></code> now take the
 problem as their first argument: <code class="docutils literal notranslate"><span class="pre">LpVariable.fromDict(prob,</span> <span class="pre">data)</span></code>.</p></li>
-<li><p>Column-wise modelling (<code class="docutils literal notranslate"><span class="pre">LpConstraintVar</span></code> and <code class="docutils literal notranslate"><span class="pre">LpVariable(...,</span> <span class="pre">e=...)</span></code>) has
-been removed. Build the constraints row by row instead.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LpConstraintVar</span></code> and <code class="docutils literal notranslate"><span class="pre">LpVariable(...,</span> <span class="pre">e=...)</span></code> have been removed. For
+column-wise modelling use <code class="docutils literal notranslate"><span class="pre">prob.add_column(...)</span></code>, which creates a variable
+together with its coefficients in existing constraints. See <a class="reference internal" href="how_to_model_column_wise.html#column-wise"><span class="std std-ref">How to model column-wise</span></a>.</p></li>
 </ul>
 </section>
 <section id="expressions-and-constraints">
@@ -368,6 +379,26 @@ that name. It is also available in PuLP 3.3.1 and later, so you can switch to it
 before upgrading. If you look up many constraints by name, build a dictionary
 once after the model is complete:
 <code class="docutils literal notranslate"><span class="pre">constraints</span> <span class="pre">=</span> <span class="pre">{c.name:</span> <span class="pre">c</span> <span class="pre">for</span> <span class="pre">c</span> <span class="pre">in</span> <span class="pre">prob.constraints()}</span></code>.</p>
+</section>
+<section id="editing-a-constraint-after-adding-it">
+<h3>Editing a constraint after adding it<a class="headerlink" href="#editing-a-constraint-after-adding-it" title="Link to this heading"></a></h3>
+<p>In 3.x the problem stored the expression object you added, so changing it later
+changed the problem. In 4.0 the problem keeps its own copy: changing the
+expression no longer reaches the problem, and PuLP raises a <code class="docutils literal notranslate"><span class="pre">UserWarning</span></code>.
+Edit the <code class="docutils literal notranslate"><span class="pre">LpConstraint</span></code> instead, which <code class="docutils literal notranslate"><span class="pre">addConstraint</span></code> returns:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 3.x</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="mi">5</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">c</span><span class="p">,</span> <span class="s2">&quot;cap&quot;</span>
+<span class="n">c</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="n">c</span><span class="o">.</span><span class="n">constant</span> <span class="o">=</span> <span class="o">-</span><span class="mi">8</span>            <span class="c1"># rhs 8</span>
+
+<span class="c1"># 4.0</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">addConstraint</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">&quot;cap&quot;</span><span class="p">)</span>   <span class="c1"># or prob.get_constraint_by_name(&quot;cap&quot;)</span>
+<span class="n">c</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="n">c</span><span class="o">.</span><span class="n">changeRHS</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>See <a class="reference internal" href="how_to_edit_constraints.html#edit-constraints"><span class="std std-ref">How to edit constraints</span></a>.</p>
 </section>
 <section id="removed-problem-features">
 <h3>Removed problem features<a class="headerlink" href="#removed-problem-features" title="Link to this heading"></a></h3>
@@ -653,7 +684,7 @@ import from the solver modules, drop the <code class="docutils literal notransla
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="index.html" class="btn btn-neutral float-left" title="User Guides" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="how_to_configure_solvers.html" class="btn btn-neutral float-right" title="How to configure a solver in PuLP" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="how_to_create_variables.html" class="btn btn-neutral float-right" title="How to create variables" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

@@ -1,0 +1,273 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How to create variables &mdash; PuLP 4.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=42d1b3bd"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="How to edit constraints" href="how_to_edit_constraints.html" />
+    <link rel="prev" title="How to migrate from PuLP 3.x to 4.0" href="how_to_migrate_to_v4.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            PuLP
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../main/index.html">Main Topics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CaseStudies/index.html">Case Studies</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">User Guides</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="how_to_migrate_to_v4.html">How to migrate from PuLP 3.x to 4.0</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">How to create variables</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#one-variable-add-variable">One variable: <code class="docutils literal notranslate"><span class="pre">add_variable</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#many-variables-add-variable-dicts">Many variables: <code class="docutils literal notranslate"><span class="pre">add_variable_dicts</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#choosing-the-names">Choosing the names</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#binary-variables">Binary variables</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#other-shapes-add-variable-dict-and-add-variable-matrix">Other shapes: <code class="docutils literal notranslate"><span class="pre">add_variable_dict</span></code> and <code class="docutils literal notranslate"><span class="pre">add_variable_matrix</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#changing-a-variable-after-it-is-created">Changing a variable after it is created</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="how_to_edit_constraints.html">How to edit constraints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how_to_model_column_wise.html">How to model column-wise</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how_to_configure_solvers.html">How to configure a solver in PuLP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how_to_mip_start.html">How to warm-start a solver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how_to_export_models.html">How to import and export models in PuLP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how_to_debug.html">How to debug most errors during solving</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../develop/index.html">Developer Guides</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../technical/index.html">PuLP Internal Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../plugins/index.html">Plugins</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PuLP</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">User Guides</a></li>
+      <li class="breadcrumb-item active">How to create variables</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/guides/how_to_create_variables.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="how-to-create-variables">
+<span id="create-variables"></span><h1>How to create variables<a class="headerlink" href="#how-to-create-variables" title="Link to this heading"></a></h1>
+<p>In PuLP 4 variables are created <strong>by the problem</strong> and belong to it. Create the
+problem first, then its variables:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pulp</span><span class="w"> </span><span class="kn">import</span> <span class="n">LpProblem</span><span class="p">,</span> <span class="n">LpMinimize</span><span class="p">,</span> <span class="n">LpBinary</span><span class="p">,</span> <span class="n">LpInteger</span>
+
+<span class="n">prob</span> <span class="o">=</span> <span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;example&quot;</span><span class="p">,</span> <span class="n">LpMinimize</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">lowBound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upBound</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>A variable cannot be used in another problem. Adding an expression that uses a
+variable from another problem raises <code class="docutils literal notranslate"><span class="pre">PulpError</span></code>.</p>
+<nav class="contents local" id="on-this-page">
+<p class="topic-title">On this page</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#one-variable-add-variable" id="id1">One variable: <code class="docutils literal notranslate"><span class="pre">add_variable</span></code></a></p></li>
+<li><p><a class="reference internal" href="#many-variables-add-variable-dicts" id="id2">Many variables: <code class="docutils literal notranslate"><span class="pre">add_variable_dicts</span></code></a></p></li>
+<li><p><a class="reference internal" href="#other-shapes-add-variable-dict-and-add-variable-matrix" id="id3">Other shapes: <code class="docutils literal notranslate"><span class="pre">add_variable_dict</span></code> and <code class="docutils literal notranslate"><span class="pre">add_variable_matrix</span></code></a></p></li>
+<li><p><a class="reference internal" href="#changing-a-variable-after-it-is-created" id="id4">Changing a variable after it is created</a></p></li>
+</ul>
+</nav>
+<section id="one-variable-add-variable">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">One variable: <code class="docutils literal notranslate"><span class="pre">add_variable</span></code></a><a class="headerlink" href="#one-variable-add-variable" title="Link to this heading"></a></h2>
+<p><a class="reference internal" href="../technical/pulp.html#pulp.LpProblem.add_variable" title="pulp.LpProblem.add_variable"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_variable()</span></code></a> takes a name, the bounds and the
+category:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">lowBound</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>                 <span class="c1"># x &gt;= 0</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="n">upBound</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">cat</span><span class="o">=</span><span class="n">LpInteger</span><span class="p">)</span>   <span class="c1"># integer, y &lt;= 5</span>
+<span class="n">z</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="n">cat</span><span class="o">=</span><span class="n">LpBinary</span><span class="p">)</span>               <span class="c1"># 0 or 1</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">lowBound</span></code> and <code class="docutils literal notranslate"><span class="pre">upBound</span></code> default to <code class="docutils literal notranslate"><span class="pre">None</span></code>, which means no bound. A bound
+must be finite; pass <code class="docutils literal notranslate"><span class="pre">None</span></code> instead of <code class="docutils literal notranslate"><span class="pre">float(&quot;inf&quot;)</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cat</span></code> is <code class="docutils literal notranslate"><span class="pre">&quot;Continuous&quot;</span></code> (default), <code class="docutils literal notranslate"><span class="pre">&quot;Integer&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;Binary&quot;</span></code>. A binary
+variable is stored as an integer variable with bounds 0 and 1, so <code class="docutils literal notranslate"><span class="pre">z.cat</span></code>
+returns <code class="docutils literal notranslate"><span class="pre">&quot;Integer&quot;</span></code>. Use <code class="docutils literal notranslate"><span class="pre">z.isBinary()</span></code> to check for binaries.</p></li>
+<li><p>The variable is part of the problem as soon as it is created, even if no
+constraint uses it yet.</p></li>
+</ul>
+</section>
+<section id="many-variables-add-variable-dicts">
+<h2><a class="toc-backref" href="#id2" role="doc-backlink">Many variables: <code class="docutils literal notranslate"><span class="pre">add_variable_dicts</span></code></a><a class="headerlink" href="#many-variables-add-variable-dicts" title="Link to this heading"></a></h2>
+<p>Most models need one variable per item, or per combination of items.
+<a class="reference internal" href="../technical/pulp.html#pulp.LpProblem.add_variable_dicts" title="pulp.LpProblem.add_variable_dicts"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_variable_dicts()</span></code></a> creates them all in one call and
+returns them in a dictionary keyed by the index values. Use it in place of the
+3.x <code class="docutils literal notranslate"><span class="pre">LpVariable.dicts</span></code>. The arguments are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">name</span></code>: the prefix of the variable names.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">indices</span></code>: one iterable of index values, or a tuple of iterables for
+several indices.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lowBound</span></code>, <code class="docutils literal notranslate"><span class="pre">upBound</span></code>, <code class="docutils literal notranslate"><span class="pre">cat</span></code>: the same as for <code class="docutils literal notranslate"><span class="pre">add_variable</span></code>. They
+apply to every variable.</p></li>
+</ul>
+<p>With one index you get a flat dictionary. Each name is the prefix and the index
+value joined by <code class="docutils literal notranslate"><span class="pre">_</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">warehouses</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="s2">&quot;B&quot;</span><span class="p">]</span>
+<span class="n">bars</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
+
+<span class="n">buy</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable_dicts</span><span class="p">(</span><span class="s2">&quot;buy&quot;</span><span class="p">,</span> <span class="n">warehouses</span><span class="p">,</span> <span class="n">lowBound</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="c1"># {&#39;A&#39;: buy_A, &#39;B&#39;: buy_B}</span>
+<span class="n">buy</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">]</span>          <span class="c1"># the variable called buy_A</span>
+</pre></div>
+</div>
+<p>With a tuple of indices you get <strong>nested</strong> dictionaries, one level per index:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">flow</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable_dicts</span><span class="p">(</span><span class="s2">&quot;flow&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">warehouses</span><span class="p">,</span> <span class="n">bars</span><span class="p">),</span> <span class="n">lowBound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">cat</span><span class="o">=</span><span class="n">LpInteger</span><span class="p">)</span>
+<span class="n">flow</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>      <span class="c1"># the variable called flow_A_2</span>
+<span class="n">flow</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">]</span>         <span class="c1"># {1: flow_A_1, 2: flow_A_2, 3: flow_A_3}</span>
+</pre></div>
+</div>
+<p>The nested dictionaries work well with <code class="docutils literal notranslate"><span class="pre">lpSum</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pulp</span><span class="w"> </span><span class="kn">import</span> <span class="n">lpSum</span>
+
+<span class="n">supply</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;A&quot;</span><span class="p">:</span> <span class="mi">1000</span><span class="p">,</span> <span class="s2">&quot;B&quot;</span><span class="p">:</span> <span class="mi">4000</span><span class="p">}</span>
+<span class="n">demand</span> <span class="o">=</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="mi">500</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="mi">900</span><span class="p">,</span> <span class="mi">3</span><span class="p">:</span> <span class="mi">1800</span><span class="p">}</span>
+<span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">warehouses</span><span class="p">:</span>
+    <span class="n">prob</span> <span class="o">+=</span> <span class="n">lpSum</span><span class="p">(</span><span class="n">flow</span><span class="p">[</span><span class="n">w</span><span class="p">][</span><span class="n">b</span><span class="p">]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">bars</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">supply</span><span class="p">[</span><span class="n">w</span><span class="p">],</span> <span class="sa">f</span><span class="s2">&quot;supply_</span><span class="si">{</span><span class="n">w</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">bars</span><span class="p">:</span>
+    <span class="n">prob</span> <span class="o">+=</span> <span class="n">lpSum</span><span class="p">(</span><span class="n">flow</span><span class="p">[</span><span class="n">w</span><span class="p">][</span><span class="n">b</span><span class="p">]</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">warehouses</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">demand</span><span class="p">[</span><span class="n">b</span><span class="p">],</span> <span class="sa">f</span><span class="s2">&quot;demand_</span><span class="si">{</span><span class="n">b</span><span class="si">}</span><span class="s2">&quot;</span>
+</pre></div>
+</div>
+<section id="choosing-the-names">
+<h3>Choosing the names<a class="headerlink" href="#choosing-the-names" title="Link to this heading"></a></h3>
+<p>If <code class="docutils literal notranslate"><span class="pre">name</span></code> contains <code class="docutils literal notranslate"><span class="pre">%s</span></code>, PuLP fills in one <code class="docutils literal notranslate"><span class="pre">%s</span></code> per index instead of
+adding <code class="docutils literal notranslate"><span class="pre">_%s</span></code> for each:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">route</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable_dicts</span><span class="p">(</span><span class="s2">&quot;route_</span><span class="si">%s</span><span class="s2">_to_</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">warehouses</span><span class="p">,</span> <span class="n">bars</span><span class="p">))</span>
+<span class="n">route</span><span class="p">[</span><span class="s2">&quot;B&quot;</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">name</span>   <span class="c1"># &#39;route_B_to_3&#39;</span>
+</pre></div>
+</div>
+<p>Index values are converted with <code class="docutils literal notranslate"><span class="pre">str()</span></code>, and characters that LP and MPS files
+cannot hold, such as spaces, are replaced by <code class="docutils literal notranslate"><span class="pre">_</span></code>. For example, the index
+<code class="docutils literal notranslate"><span class="pre">&quot;new</span> <span class="pre">york&quot;</span></code> gives the name <code class="docutils literal notranslate"><span class="pre">ship_new_york</span></code>. Give each family of variables
+its own prefix. Two variables with the same name are accepted, but
+<code class="docutils literal notranslate"><span class="pre">writeLP</span></code>, <code class="docutils literal notranslate"><span class="pre">writeMPS</span></code> and the solvers that go through those files raise
+<code class="docutils literal notranslate"><span class="pre">PulpError:</span> <span class="pre">Repeated</span> <span class="pre">variable</span> <span class="pre">names</span></code>.</p>
+</section>
+<section id="binary-variables">
+<h3>Binary variables<a class="headerlink" href="#binary-variables" title="Link to this heading"></a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">cat=LpBinary</span></code> creates integer variables with bounds 0 and 1 in every level of
+the dictionary:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">is_open</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable_dicts</span><span class="p">(</span><span class="s2">&quot;open&quot;</span><span class="p">,</span> <span class="n">warehouses</span><span class="p">,</span> <span class="n">cat</span><span class="o">=</span><span class="n">LpBinary</span><span class="p">)</span>
+<span class="n">is_open</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">isBinary</span><span class="p">()</span>   <span class="c1"># True</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="other-shapes-add-variable-dict-and-add-variable-matrix">
+<h2><a class="toc-backref" href="#id3" role="doc-backlink">Other shapes: <code class="docutils literal notranslate"><span class="pre">add_variable_dict</span></code> and <code class="docutils literal notranslate"><span class="pre">add_variable_matrix</span></code></a><a class="headerlink" href="#other-shapes-add-variable-dict-and-add-variable-matrix" title="Link to this heading"></a></h2>
+<p>Both take the same arguments as <code class="docutils literal notranslate"><span class="pre">add_variable_dicts</span></code>:</p>
+<ul>
+<li><p><a class="reference internal" href="../technical/pulp.html#pulp.LpProblem.add_variable_dict" title="pulp.LpProblem.add_variable_dict"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_variable_dict()</span></code></a> returns <strong>one flat dictionary</strong>
+keyed by tuples, one key per combination of the indices:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">assign</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable_dict</span><span class="p">(</span><span class="s2">&quot;assign&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">warehouses</span><span class="p">,</span> <span class="n">bars</span><span class="p">),</span> <span class="n">cat</span><span class="o">=</span><span class="n">LpBinary</span><span class="p">)</span>
+<span class="n">assign</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>    <span class="c1"># the variable called assign_A_1</span>
+</pre></div>
+</div>
+</li>
+<li><p><a class="reference internal" href="../technical/pulp.html#pulp.LpProblem.add_variable_matrix" title="pulp.LpProblem.add_variable_matrix"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_variable_matrix()</span></code></a> returns <strong>nested lists</strong>, indexed
+by position instead of by value:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">grid</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable_matrix</span><span class="p">(</span><span class="s2">&quot;grid&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">warehouses</span><span class="p">,</span> <span class="n">bars</span><span class="p">))</span>
+<span class="n">grid</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>        <span class="c1"># the variable called grid_A_2</span>
+</pre></div>
+</div>
+</li>
+</ul>
+<p>Use whichever shape makes your constraints easier to write.
+<code class="docutils literal notranslate"><span class="pre">add_variable_dicts</span></code> is the usual choice.</p>
+</section>
+<section id="changing-a-variable-after-it-is-created">
+<h2><a class="toc-backref" href="#id4" role="doc-backlink">Changing a variable after it is created</a><a class="headerlink" href="#changing-a-variable-after-it-is-created" title="Link to this heading"></a></h2>
+<p>The bounds and the category of a variable can be changed later. This is useful,
+for example, to solve the linear relaxation of a problem and then make it
+integer again:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">x</span><span class="o">.</span><span class="n">lowBound</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="n">x</span><span class="o">.</span><span class="n">upBound</span> <span class="o">=</span> <span class="kc">None</span>        <span class="c1"># no upper bound</span>
+<span class="n">x</span><span class="o">.</span><span class="n">cat</span> <span class="o">=</span> <span class="n">LpInteger</span>
+<span class="n">x</span><span class="o">.</span><span class="n">cat</span> <span class="o">=</span> <span class="s2">&quot;Continuous&quot;</span>    <span class="c1"># relax it</span>
+<span class="n">x</span><span class="o">.</span><span class="n">cat</span> <span class="o">=</span> <span class="n">LpBinary</span>        <span class="c1"># integer with bounds 0 and 1</span>
+</pre></div>
+</div>
+<p>To add a variable to constraints that already exist, see <a class="reference internal" href="how_to_model_column_wise.html#column-wise"><span class="std std-ref">How to model column-wise</span></a>.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="how_to_migrate_to_v4.html" class="btn btn-neutral float-left" title="How to migrate from PuLP 3.x to 4.0" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="how_to_edit_constraints.html" class="btn btn-neutral float-right" title="How to edit constraints" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2009-, pulp documentation team..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

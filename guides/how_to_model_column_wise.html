@@ -1,0 +1,297 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How to model column-wise &mdash; PuLP 4.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=42d1b3bd"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="How to configure a solver in PuLP" href="how_to_configure_solvers.html" />
+    <link rel="prev" title="How to edit constraints" href="how_to_edit_constraints.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            PuLP
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../main/index.html">Main Topics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CaseStudies/index.html">Case Studies</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">User Guides</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="how_to_migrate_to_v4.html">How to migrate from PuLP 3.x to 4.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how_to_create_variables.html">How to create variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how_to_edit_constraints.html">How to edit constraints</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">How to model column-wise</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#adding-a-column">Adding a column</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#setting-one-coefficient">Setting one coefficient</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#removing-columns">Removing columns</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#example-cutting-stock-by-column-generation">Example: cutting stock by column generation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#notes">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="how_to_configure_solvers.html">How to configure a solver in PuLP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how_to_mip_start.html">How to warm-start a solver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how_to_export_models.html">How to import and export models in PuLP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how_to_debug.html">How to debug most errors during solving</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../develop/index.html">Developer Guides</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../technical/index.html">PuLP Internal Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../plugins/index.html">Plugins</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PuLP</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">User Guides</a></li>
+      <li class="breadcrumb-item active">How to model column-wise</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/guides/how_to_model_column_wise.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="how-to-model-column-wise">
+<span id="column-wise"></span><h1>How to model column-wise<a class="headerlink" href="#how-to-model-column-wise" title="Link to this heading"></a></h1>
+<p>Usually a model is written <strong>row by row</strong>: create the variables, then add each
+constraint as an expression over them. Some models are easier to write
+<strong>column by column</strong>: each new variable comes with its coefficient in the
+objective and in the constraints that already exist. The typical case is column
+generation, where a problem is solved, new variables (columns) are priced from
+the dual values, and the problem is solved again with those columns added.</p>
+<p>PuLP supports this on one problem object, without rebuilding it:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="../technical/pulp.html#pulp.LpProblem.add_column" title="pulp.LpProblem.add_column"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_column()</span></code></a> creates a variable together with its
+objective coefficient and its coefficients in existing constraints.</p></li>
+<li><p><a class="reference internal" href="../technical/pulp.html#pulp.LpConstraint.set_coefficient" title="pulp.LpConstraint.set_coefficient"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set_coefficient()</span></code></a> (or <code class="docutils literal notranslate"><span class="pre">con[x]</span> <span class="pre">=</span> <span class="pre">value</span></code>) sets
+one coefficient of an existing constraint.</p></li>
+<li><p><a class="reference internal" href="../technical/pulp.html#pulp.LpProblem.remove_variables" title="pulp.LpProblem.remove_variables"><code class="xref py py-meth docutils literal notranslate"><span class="pre">remove_variables()</span></code></a> takes variables out of the model.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">x.cat</span> <span class="pre">=</span> <span class="pre">...</span></code> changes a variable’s category, for example to make the final
+problem integer.</p></li>
+</ul>
+<nav class="contents local" id="on-this-page">
+<p class="topic-title">On this page</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#adding-a-column" id="id1">Adding a column</a></p></li>
+<li><p><a class="reference internal" href="#setting-one-coefficient" id="id2">Setting one coefficient</a></p></li>
+<li><p><a class="reference internal" href="#removing-columns" id="id3">Removing columns</a></p></li>
+<li><p><a class="reference internal" href="#example-cutting-stock-by-column-generation" id="id4">Example: cutting stock by column generation</a></p></li>
+<li><p><a class="reference internal" href="#notes" id="id5">Notes</a></p></li>
+</ul>
+</nav>
+<section id="adding-a-column">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">Adding a column</a><a class="headerlink" href="#adding-a-column" title="Link to this heading"></a></h2>
+<p>Create the constraints first and keep them; <code class="docutils literal notranslate"><span class="pre">addConstraint</span></code> returns each one
+as stored in the problem. A constraint may start with no terms at all:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pulp</span><span class="w"> </span><span class="kn">import</span> <span class="n">LpProblem</span><span class="p">,</span> <span class="n">LpMinimize</span><span class="p">,</span> <span class="n">lpSum</span>
+
+<span class="n">prob</span> <span class="o">=</span> <span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;column_wise&quot;</span><span class="p">,</span> <span class="n">LpMinimize</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">c1</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">addConstraint</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;c1&quot;</span><span class="p">)</span>
+<span class="n">c2</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">addConstraint</span><span class="p">(</span><span class="n">lpSum</span><span class="p">([])</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;c2&quot;</span><span class="p">)</span>   <span class="c1"># empty for now</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span>
+
+<span class="n">y</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="n">lowBound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upBound</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">obj</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">coefficients</span><span class="o">=</span><span class="p">{</span><span class="n">c1</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">c2</span><span class="p">:</span> <span class="mi">1</span><span class="p">})</span>
+<span class="n">z</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="n">lowBound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upBound</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">obj</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">coefficients</span><span class="o">=</span><span class="p">{</span><span class="n">c2</span><span class="p">:</span> <span class="mi">1</span><span class="p">})</span>
+
+<span class="c1"># c1: x + y &gt;= 1</span>
+<span class="c1"># c2: y + z &gt;= 1</span>
+<span class="c1"># objective: x + 2*y + 3*z</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">add_column</span></code> takes the same <code class="docutils literal notranslate"><span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">lowBound</span></code>, <code class="docutils literal notranslate"><span class="pre">upBound</span></code> and <code class="docutils literal notranslate"><span class="pre">cat</span></code> as
+<a class="reference internal" href="../technical/pulp.html#pulp.LpProblem.add_variable" title="pulp.LpProblem.add_variable"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_variable()</span></code></a>, plus:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">obj</span></code>: the coefficient in the objective (default 0). If the problem has no
+objective yet and <code class="docutils literal notranslate"><span class="pre">obj</span></code> is not 0, one is created.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">coefficients</span></code>: a dict from each <code class="docutils literal notranslate"><span class="pre">LpConstraint</span></code> of this problem to the
+coefficient of the new variable in it. Constraints that are not in the dict do
+not get the variable. A coefficient of 0 is skipped.</p></li>
+</ul>
+<p>Everything is checked before the variable is created. If a coefficient is
+infinite or NaN, <code class="docutils literal notranslate"><span class="pre">add_column</span></code> raises <code class="docutils literal notranslate"><span class="pre">ValueError</span></code> and the problem is left as
+it was.</p>
+<p>The new term goes at the end of each constraint, so a problem built column by
+column writes the same LP and MPS files as the same problem built row by row.</p>
+</section>
+<section id="setting-one-coefficient">
+<h2><a class="toc-backref" href="#id2" role="doc-backlink">Setting one coefficient</a><a class="headerlink" href="#setting-one-coefficient" title="Link to this heading"></a></h2>
+<p>To put an existing variable into a constraint, or change its coefficient, set
+it on the constraint:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c1</span><span class="p">[</span><span class="n">z</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.5</span>        <span class="c1"># c1: x + y + 0.5*z &gt;= 1</span>
+<span class="k">del</span> <span class="n">c1</span><span class="p">[</span><span class="n">x</span><span class="p">]</span>          <span class="c1"># c1: y + 0.5*z &gt;= 1</span>
+</pre></div>
+</div>
+<p>See <a class="reference internal" href="how_to_edit_constraints.html#edit-constraints"><span class="std std-ref">How to edit constraints</span></a> for everything you can change on a constraint.</p>
+</section>
+<section id="removing-columns">
+<h2><a class="toc-backref" href="#id3" role="doc-backlink">Removing columns</a><a class="headerlink" href="#removing-columns" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">prob.remove_variables(variables)</span></code> takes the variables out of every
+constraint, the objective and every SOS group:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">prob</span><span class="o">.</span><span class="n">remove_variables</span><span class="p">([</span><span class="n">z</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>The variables stay valid: you can still read them and put them back with
+<code class="docutils literal notranslate"><span class="pre">c[z]</span> <span class="pre">=</span> <span class="pre">value</span></code>. A variable that no constraint and no objective uses is left
+out of the LP and MPS files and is not sent to the solvers.</p>
+</section>
+<section id="example-cutting-stock-by-column-generation">
+<h2><a class="toc-backref" href="#id4" role="doc-backlink">Example: cutting stock by column generation</a><a class="headerlink" href="#example-cutting-stock-by-column-generation" title="Link to this heading"></a></h2>
+<p>Rolls of width 100 are cut into pieces to meet the demand for four widths. Each
+variable is a <em>pattern</em>: how many pieces of each width are cut from one roll.
+There are too many patterns to list, so the problem starts with one simple
+pattern per width and adds a better pattern while one exists:</p>
+<ol class="arabic simple">
+<li><p>Solve the linear relaxation of the master problem and read the duals
+<code class="docutils literal notranslate"><span class="pre">pi</span></code> of the demand constraints.</p></li>
+<li><p>Solve a knapsack problem to find the pattern with the largest total dual
+value that fits in a roll.</p></li>
+<li><p>If that value is more than 1 (the cost of one roll), the pattern improves the
+master problem: add it with <code class="docutils literal notranslate"><span class="pre">add_column</span></code> and go back to step 1.</p></li>
+<li><p>Otherwise, make the patterns integer and solve once more.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pulp</span><span class="w"> </span><span class="kn">import</span> <span class="n">LpInteger</span><span class="p">,</span> <span class="n">LpMaximize</span><span class="p">,</span> <span class="n">LpMinimize</span><span class="p">,</span> <span class="n">LpProblem</span><span class="p">,</span> <span class="n">getSolver</span><span class="p">,</span> <span class="n">lpSum</span>
+
+<span class="n">roll_width</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="n">orders</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;w45&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">45</span><span class="p">,</span> <span class="mi">97</span><span class="p">),</span> <span class="s2">&quot;w36&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">36</span><span class="p">,</span> <span class="mi">610</span><span class="p">),</span> <span class="s2">&quot;w31&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">31</span><span class="p">,</span> <span class="mi">395</span><span class="p">),</span> <span class="s2">&quot;w14&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">14</span><span class="p">,</span> <span class="mi">211</span><span class="p">)}</span>
+<span class="n">solver</span> <span class="o">=</span> <span class="n">getSolver</span><span class="p">(</span><span class="s2">&quot;HiGHS&quot;</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>   <span class="c1"># any solver that returns duals</span>
+
+<span class="c1"># Master problem: one pattern per width, as many pieces as fit in a roll.</span>
+<span class="n">master</span> <span class="o">=</span> <span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;cutting_stock&quot;</span><span class="p">,</span> <span class="n">LpMinimize</span><span class="p">)</span>
+<span class="n">patterns</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">demand</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="k">for</span> <span class="n">item</span><span class="p">,</span> <span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">quantity</span><span class="p">)</span> <span class="ow">in</span> <span class="n">orders</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">master</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;pattern_</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">patterns</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">lowBound</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">patterns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">demand</span><span class="p">[</span><span class="n">item</span><span class="p">]</span> <span class="o">=</span> <span class="n">master</span><span class="o">.</span><span class="n">addConstraint</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">roll_width</span> <span class="o">//</span> <span class="n">width</span><span class="p">)</span> <span class="o">*</span> <span class="n">x</span> <span class="o">&gt;=</span> <span class="n">quantity</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;demand_</span><span class="si">{</span><span class="n">item</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="p">)</span>
+<span class="n">master</span> <span class="o">+=</span> <span class="n">lpSum</span><span class="p">(</span><span class="n">patterns</span><span class="p">)</span>
+
+<span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+    <span class="n">master</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="p">)</span>
+    <span class="n">duals</span> <span class="o">=</span> <span class="p">{</span><span class="n">item</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">pi</span> <span class="k">for</span> <span class="n">item</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">demand</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+    <span class="c1"># Pricing: the pattern with the largest total dual value.</span>
+    <span class="n">pricing</span> <span class="o">=</span> <span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;pricing&quot;</span><span class="p">,</span> <span class="n">LpMaximize</span><span class="p">)</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">pricing</span><span class="o">.</span><span class="n">add_variable_dicts</span><span class="p">(</span><span class="s2">&quot;n&quot;</span><span class="p">,</span> <span class="n">orders</span><span class="p">,</span> <span class="n">lowBound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">cat</span><span class="o">=</span><span class="n">LpInteger</span><span class="p">)</span>
+    <span class="n">pricing</span> <span class="o">+=</span> <span class="n">lpSum</span><span class="p">(</span><span class="n">duals</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">n</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">orders</span><span class="p">)</span>
+    <span class="n">pricing</span> <span class="o">+=</span> <span class="n">lpSum</span><span class="p">(</span><span class="n">width</span> <span class="o">*</span> <span class="n">n</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">_</span><span class="p">)</span> <span class="ow">in</span> <span class="n">orders</span><span class="o">.</span><span class="n">items</span><span class="p">())</span> <span class="o">&lt;=</span> <span class="n">roll_width</span>
+    <span class="n">pricing</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="p">)</span>
+    <span class="k">if</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">pricing</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">value</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="o">-</span><span class="mf">1e-9</span><span class="p">:</span>
+        <span class="k">break</span>   <span class="c1"># no pattern improves the master problem</span>
+
+    <span class="n">pattern</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">n</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">varValue</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">orders</span><span class="p">}</span>
+    <span class="n">new</span> <span class="o">=</span> <span class="n">master</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;pattern_</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">patterns</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="n">lowBound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">obj</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">coefficients</span><span class="o">=</span><span class="p">{</span><span class="n">demand</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span> <span class="n">k</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">pattern</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span><span class="p">},</span>
+    <span class="p">)</span>
+    <span class="n">patterns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;LP bound:&quot;</span><span class="p">,</span> <span class="n">master</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">value</span><span class="p">())</span>   <span class="c1"># 452.25</span>
+
+<span class="c1"># Make the patterns integer and solve the final problem.</span>
+<span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">patterns</span><span class="p">:</span>
+    <span class="n">x</span><span class="o">.</span><span class="n">cat</span> <span class="o">=</span> <span class="n">LpInteger</span>
+<span class="n">stats</span> <span class="o">=</span> <span class="n">master</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;rolls:&quot;</span><span class="p">,</span> <span class="n">stats</span><span class="o">.</span><span class="n">objective</span><span class="p">)</span>                <span class="c1"># 453.0</span>
+</pre></div>
+</div>
+<p>The loop adds two patterns before no further improvement is possible. The same
+<code class="docutils literal notranslate"><span class="pre">master</span></code> problem is solved each time: it is never rebuilt, and the demand
+constraints found in step 1 are the ones the new columns are added to.</p>
+</section>
+<section id="notes">
+<h2><a class="toc-backref" href="#id5" role="doc-backlink">Notes</a><a class="headerlink" href="#notes" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>The coefficients of <code class="docutils literal notranslate"><span class="pre">add_column</span></code> are given per <code class="docutils literal notranslate"><span class="pre">LpConstraint</span></code>, so keep the
+constraints when you create them (<code class="docutils literal notranslate"><span class="pre">addConstraint</span></code> returns them), or look
+them up with <code class="docutils literal notranslate"><span class="pre">prob.get_constraint_by_name(name)</span></code>.</p></li>
+<li><p>Duals and slacks are only available from solvers that return them, and only
+for linear problems. Solve the relaxation (continuous variables) while
+generating columns, then change the category with <code class="docutils literal notranslate"><span class="pre">x.cat</span> <span class="pre">=</span> <span class="pre">LpInteger</span></code>.</p></li>
+<li><p>Editing a constraint, adding a column or changing a category keeps the
+values (<code class="docutils literal notranslate"><span class="pre">varValue</span></code>, <code class="docutils literal notranslate"><span class="pre">pi</span></code>, <code class="docutils literal notranslate"><span class="pre">slack</span></code>) of the last solve until the next one.</p></li>
+<li><p>In PuLP 3.x column-wise modelling used <code class="docutils literal notranslate"><span class="pre">LpConstraintVar</span></code> and
+<code class="docutils literal notranslate"><span class="pre">LpVariable(...,</span> <span class="pre">e=...)</span></code>. Both were removed in 4.0; <code class="docutils literal notranslate"><span class="pre">add_column</span></code> replaces
+them.</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="how_to_edit_constraints.html" class="btn btn-neutral float-left" title="How to edit constraints" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="how_to_configure_solvers.html" class="btn btn-neutral float-right" title="How to configure a solver in PuLP" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2009-, pulp documentation team..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
