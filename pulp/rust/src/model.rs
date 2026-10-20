@@ -3,6 +3,7 @@
 use std::sync::Arc;
 use std::sync::Mutex;
 
+use indexmap::IndexMap;
 use pyo3::prelude::*;
 
 use crate::affine_expr::AffineExpr;
@@ -74,6 +75,65 @@ impl Model {
             stored.model = Some(Arc::downgrade(&self.core));
         }
         lock_model(&self.core).set_objective(stored);
+    }
+
+    /// Add a variable column-wise: its objective coefficient and its
+    /// coefficients in existing constraints (`entries`, `(constraint id,
+    /// coefficient)` pairs; zeros are skipped). Validates everything before
+    /// changing the model.
+    fn add_column(
+        &mut self,
+        name: String,
+        lb: f64,
+        ub: f64,
+        category: Category,
+        obj_coeff: f64,
+        entries: Vec<(ConstrId, f64)>,
+    ) -> PyResult<Variable> {
+        let mut core = lock_model(&self.core);
+        if !obj_coeff.is_finite() {
+            return Err(pyo3::exceptions::PyValueError::new_err(format!(
+                "Invalid objective coefficient value: {obj_coeff}. Coefficients must be finite."
+            )));
+        }
+        let n = core.constraints.len();
+        for &(cid, coeff) in &entries {
+            if cid >= n {
+                return Err(pyo3::exceptions::PyValueError::new_err(format!(
+                    "Constraint id {cid} is out of range (model has {n} constraints)"
+                )));
+            }
+            if !coeff.is_finite() {
+                return Err(pyo3::exceptions::PyValueError::new_err(format!(
+                    "Invalid coefficient value: {coeff} in constraint id {cid}. Coefficients must be finite."
+                )));
+            }
+        }
+        let id = core.add_variable(name, lb, ub, category);
+        for (cid, coeff) in entries {
+            core.set_coefficient(cid, id, coeff)?;
+        }
+        if obj_coeff != 0.0 {
+            let weak = Arc::downgrade(&self.core);
+            let obj = core.objective.get_or_insert_with(|| AffineExpr {
+                terms: IndexMap::new(),
+                constant: 0.0,
+                sense: None,
+                name: None,
+                model: Some(weak),
+            });
+            obj.terms.insert(id, obj_coeff);
+        }
+        Ok(Variable {
+            id,
+            model: Arc::downgrade(&self.core),
+        })
+    }
+
+    /// Drop the variables `ids` from every constraint, the objective and every
+    /// SOS group (see `ModelCore::remove_variables`).
+    fn remove_variables(&mut self, ids: Vec<VarId>) -> PyResult<()> {
+        lock_model(&self.core).remove_variables(&ids)
     }
 
     fn set_sense(&mut self, sense: ObjSense) {

@@ -3,7 +3,8 @@
 use pyo3::prelude::*;
 
 use crate::format;
-use crate::types::{lock_model, upgrade_model, ConstrId, Sense, WeakModelCore};
+use crate::affine_expr::AffineExpr;
+use crate::types::{get_model_optional, lock_model, upgrade_model, ConstrId, Sense, WeakModelCore};
 use crate::variable::Variable;
 
 /// Handle to a constraint stored inside a `ModelCore`. Only created by the model.
@@ -84,6 +85,47 @@ impl Constraint {
         let core_rc = upgrade_model(&self.model)?;
         let core = lock_model(&core_rc);
         Ok(core.constraints[self.id].rhs)
+    }
+
+    /// Set `var`'s coefficient in this constraint; 0 removes the term.
+    fn set_coefficient(&self, var: &Variable, coeff: f64) -> PyResult<()> {
+        let core_rc = upgrade_model(&self.model)?;
+        let var_rc = upgrade_model(&var.model)?;
+        if !std::sync::Arc::ptr_eq(&core_rc, &var_rc) {
+            return Err(pyo3::exceptions::PyValueError::new_err(
+                "Variable belongs to a different model than the constraint.",
+            ));
+        }
+        let mut core = lock_model(&core_rc);
+        core.set_coefficient(self.id, var.id, coeff)
+    }
+
+    fn set_rhs(&self, rhs: f64) -> PyResult<()> {
+        let core_rc = upgrade_model(&self.model)?;
+        let mut core = lock_model(&core_rc);
+        core.set_rhs(self.id, rhs)
+    }
+
+    fn set_sense(&self, sense: Sense) -> PyResult<()> {
+        let core_rc = upgrade_model(&self.model)?;
+        let mut core = lock_model(&core_rc);
+        core.set_sense(self.id, sense)
+    }
+
+    /// Replace this constraint's terms, rhs (`-expr.constant`) and sense with
+    /// those of `expr`; the name, pi and slack are kept.
+    fn set_expr(&self, expr: &AffineExpr) -> PyResult<()> {
+        let core_rc = upgrade_model(&self.model)?;
+        if expr.model.is_some() {
+            let expr_rc = get_model_optional(&expr.model)?;
+            if !std::sync::Arc::ptr_eq(&core_rc, &expr_rc) {
+                return Err(pyo3::exceptions::PyValueError::new_err(
+                    "Expression is bound to a different model than the constraint.",
+                ));
+            }
+        }
+        let mut core = lock_model(&core_rc);
+        core.set_constraint_expr(self.id, expr)
     }
 
     fn items(&self) -> PyResult<Vec<(Variable, f64)>> {

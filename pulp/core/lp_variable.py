@@ -6,8 +6,9 @@ import re
 from typing import TYPE_CHECKING, Any, Literal
 
 from .. import _rustcore
+from .. import constants as const
 from .. import mps_lp as mpslp
-from ._internal import LpBound, LpNumeric, _rust_cat_to_const
+from ._internal import LpBound, LpNumeric, _const_to_rust_cat, _rust_cat_to_const
 
 if TYPE_CHECKING:
     from .lp_affine_expression import LpAffineExpression
@@ -170,6 +171,16 @@ class LpVariable:
     @property
     def cat(self) -> Literal["Continuous", "Integer"]:
         return _rust_cat_to_const(self._var.category)
+
+    @cat.setter
+    def cat(self, value: Literal["Continuous", "Integer", "Binary"]) -> None:
+        """Change the category (e.g. relax an integer variable, or make one
+        integer); ``Binary`` also sets the bounds to [0, 1]."""
+        if value == const.LpBinary:
+            self._var.set_lb(0.0)
+            self._var.set_ub(1.0)
+            value = const.LpInteger
+        self._var.set_category(_const_to_rust_cat(value))
 
     @property
     def varValue(self) -> float | None:

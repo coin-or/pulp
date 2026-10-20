@@ -1,6 +1,6 @@
 //! Shared types and model core used by Variable, Constraint, AffineExpr, and Model.
 
-use std::collections::{BTreeSet, HashMap};
+use std::collections::{BTreeSet, HashMap, HashSet};
 use std::sync::{Arc, Mutex, MutexGuard, Weak};
 
 use indexmap::IndexMap;
@@ -153,9 +153,10 @@ impl ModelCore {
         id
     }
 
-    /// Add a constraint from a pending `AffineExpr` (must have `sense` set).
-    /// `rhs` in storage is `-expr.constant` (same convention as Python `addConstraint`).
-    pub fn add_constraint(&mut self, expr: &AffineExpr) -> PyResult<ConstrId> {
+    /// Check that `expr` can be stored as a constraint row: it has a sense,
+    /// a finite constant, finite coefficients and known variables. Returns
+    /// its sense.
+    pub fn check_constraint_expr(&self, expr: &AffineExpr) -> PyResult<Sense> {
         let sense = expr.sense.ok_or_else(|| {
             PyValueError::new_err("Cannot add constraint without a sense (<=, >=, ==)")
         })?;
@@ -178,6 +179,13 @@ impl ModelCore {
                 )));
             }
         }
+        Ok(sense)
+    }
+
+    /// Add a constraint from a pending `AffineExpr` (must have `sense` set).
+    /// `rhs` in storage is `-expr.constant` (same convention as Python `addConstraint`).
+    pub fn add_constraint(&mut self, expr: &AffineExpr) -> PyResult<ConstrId> {
+        let sense = self.check_constraint_expr(expr)?;
         let rhs = -expr.constant;
         let coeffs = expr.terms.clone();
         let raw_name = expr
@@ -211,6 +219,95 @@ impl ModelCore {
 
     pub fn set_objective(&mut self, expr: AffineExpr) {
         self.objective = Some(expr);
+    }
+
+    /// Set variable `vid`'s coefficient in constraint `cid`; a coefficient of 0
+    /// removes the term. Other terms keep their order.
+    pub fn set_coefficient(&mut self, cid: ConstrId, vid: VarId, coeff: f64) -> PyResult<()> {
+        if !coeff.is_finite() {
+            return Err(PyValueError::new_err(format!(
+                "Invalid coefficient value: {coeff} for variable id {vid}. Coefficients must be finite."
+            )));
+        }
+        if vid >= self.vars.len() {
+            return Err(PyValueError::new_err(format!(
+                "Variable id {vid} is out of range (model has {} variables)",
+                self.vars.len()
+            )));
+        }
+        let cd = self.constraint_mut(cid)?;
+        if coeff == 0.0 {
+            cd.coeffs.shift_remove(&vid);
+        } else {
+            cd.coeffs.insert(vid, coeff);
+        }
+        Ok(())
+    }
+
+    /// Set the right-hand side of constraint `cid`.
+    pub fn set_rhs(&mut self, cid: ConstrId, rhs: f64) -> PyResult<()> {
+        if !rhs.is_finite() {
+            return Err(PyValueError::new_err(format!(
+                "Invalid constraint RHS value: {rhs}. Coefficients and bounds must be finite."
+            )));
+        }
+        self.constraint_mut(cid)?.rhs = rhs;
+        Ok(())
+    }
+
+    /// Set the sense of constraint `cid`.
+    pub fn set_sense(&mut self, cid: ConstrId, sense: Sense) -> PyResult<()> {
+        self.constraint_mut(cid)?.sense = sense;
+        Ok(())
+    }
+
+    /// Replace the terms, right-hand side and sense of constraint `cid` with
+    /// those of `expr`; the name, `pi` and `slack` are kept. Nothing changes
+    /// if `expr` is not a valid constraint.
+    pub fn set_constraint_expr(&mut self, cid: ConstrId, expr: &AffineExpr) -> PyResult<()> {
+        let sense = self.check_constraint_expr(expr)?;
+        let cd = self.constraint_mut(cid)?;
+        cd.coeffs = expr
+            .terms
+            .iter()
+            .filter(|(_, &c)| c != 0.0)
+            .map(|(&v, &c)| (v, c))
+            .collect();
+        cd.rhs = -expr.constant;
+        cd.sense = sense;
+        Ok(())
+    }
+
+    fn constraint_mut(&mut self, cid: ConstrId) -> PyResult<&mut ConstraintData> {
+        let n = self.constraints.len();
+        self.constraints.get_mut(cid).ok_or_else(|| {
+            PyValueError::new_err(format!(
+                "Constraint id {cid} is out of range (model has {n} constraints)"
+            ))
+        })
+    }
+
+    /// Drop the variables `ids` from every constraint, the objective and every
+    /// SOS group. Their ids stay valid (handles keep working), but they are no
+    /// longer used, so solvers and writers leave them out.
+    pub fn remove_variables(&mut self, ids: &[VarId]) -> PyResult<()> {
+        if let Some(&vid) = ids.iter().find(|&&vid| vid >= self.vars.len()) {
+            return Err(PyValueError::new_err(format!(
+                "Variable id {vid} is out of range (model has {} variables)",
+                self.vars.len()
+            )));
+        }
+        let drop: HashSet<VarId> = ids.iter().copied().collect();
+        for cd in &mut self.constraints {
+            cd.coeffs.retain(|vid, _| !drop.contains(vid));
+        }
+        if let Some(obj) = &mut self.objective {
+            obj.terms.retain(|vid, _| !drop.contains(vid));
+        }
+        for g in &mut self.sos {
+            g.weights.retain(|(vid, _)| !drop.contains(vid));
+        }
+        Ok(())
     }
 
     pub fn clear_objective(&mut self) {
