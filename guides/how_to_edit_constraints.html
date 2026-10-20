@@ -129,7 +129,13 @@ added does not change the problem.</strong></p>
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">prob</span> <span class="pre">+=</span> <span class="pre">x</span> <span class="pre">+</span> <span class="pre">y</span> <span class="pre">&lt;=</span> <span class="pre">5,</span> <span class="pre">&quot;cap&quot;</span></code> adds the constraint too, but returns the problem,
-not the constraint. Use <code class="docutils literal notranslate"><span class="pre">addConstraint</span></code> when you want to keep the constraint.</p>
+not the constraint. Use <code class="docutils literal notranslate"><span class="pre">addConstraint</span></code> when you want to keep the constraint,
+or give it a name and look it up afterwards:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">&quot;cap&quot;</span>
+<span class="n">cap</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">get_constraint_by_name</span><span class="p">(</span><span class="s2">&quot;cap&quot;</span><span class="p">)</span>
+<span class="n">cap</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>              <span class="c1"># the problem now has 2*x + y &lt;= 5</span>
+</pre></div>
+</div>
 <p>All three give an object for the same row of the problem: an edit made through
 one is visible through the others.</p>
 </section>
@@ -201,6 +207,12 @@ then e.g. con[x] = 2 or con.changeRHS(3).
 </div>
 <p>To fix the code, edit the <code class="docutils literal notranslate"><span class="pre">LpConstraint</span></code> instead:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">addConstraint</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">)</span>
+<span class="n">c</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span>               <span class="c1"># the problem now has 3*x + y &lt;= 5</span>
+</pre></div>
+</div>
+<p>or, if the constraint was added with <code class="docutils literal notranslate"><span class="pre">prob</span> <span class="pre">+=</span> <span class="pre">...</span></code>, look it up by name:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">get_constraint_by_name</span><span class="p">(</span><span class="s2">&quot;c&quot;</span><span class="p">)</span>
 <span class="n">c</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span>               <span class="c1"># the problem now has 3*x + y &lt;= 5</span>
 </pre></div>
 </div>

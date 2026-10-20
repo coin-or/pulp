@@ -36,7 +36,14 @@ There are three ways to get the constraint as stored in the problem:
     cap = prob.constraints()[0]
 
 ``prob += x + y <= 5, "cap"`` adds the constraint too, but returns the problem,
-not the constraint. Use ``addConstraint`` when you want to keep the constraint.
+not the constraint. Use ``addConstraint`` when you want to keep the constraint,
+or give it a name and look it up afterwards:
+
+.. code-block:: python
+
+    prob += x + y <= 5, "cap"
+    cap = prob.get_constraint_by_name("cap")
+    cap[x] = 2              # the problem now has 2*x + y <= 5
 
 All three give an object for the same row of the problem: an edit made through
 one is visible through the others.
@@ -125,6 +132,14 @@ To fix the code, edit the ``LpConstraint`` instead:
 .. code-block:: python
 
     c = prob.addConstraint(x + y <= 5, "c")
+    c[x] = 3               # the problem now has 3*x + y <= 5
+
+or, if the constraint was added with ``prob += ...``, look it up by name:
+
+.. code-block:: python
+
+    prob += x + y <= 5, "c"
+    c = prob.get_constraint_by_name("c")
     c[x] = 3               # the problem now has 3*x + y <= 5
 
 The expression does not know whether it was added to a problem, so the warning
