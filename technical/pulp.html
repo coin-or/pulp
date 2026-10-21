@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>pulp: Pulp classes &mdash; PuLP 4.1.1 documentation</title>
+  <title>pulp: Pulp classes &mdash; PuLP 4.2.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=e6a937a4"></script>
+      <script src="../_static/documentation_options.js?v=d0ae6d56"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
@@ -194,12 +194,12 @@ nested levels)</p></li>
 indices, and so on</p>
 </dd>
 </dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">buy</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable_dicts</span><span class="p">(</span><span class="s2">&quot;buy&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="s2">&quot;B&quot;</span><span class="p">],</span> <span class="n">lowBound</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">buy</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">name</span>
-<span class="go">&#39;buy_A&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">flow</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable_dicts</span><span class="p">(</span><span class="s2">&quot;flow&quot;</span><span class="p">,</span> <span class="p">([</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="s2">&quot;B&quot;</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]),</span> <span class="n">cat</span><span class="o">=</span><span class="s2">&quot;Integer&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">flow</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">name</span>
-<span class="go">&#39;flow_A_2&#39;</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">buy</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable_dicts</span><span class="p">(</span><span class="s2">"buy"</span><span class="p">,</span> <span class="p">[</span><span class="s2">"A"</span><span class="p">,</span> <span class="s2">"B"</span><span class="p">],</span> <span class="n">lowBound</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">buy</span><span class="p">[</span><span class="s2">"A"</span><span class="p">]</span><span class="o">.</span><span class="n">name</span>
+<span class="go">'buy_A'</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">flow</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable_dicts</span><span class="p">(</span><span class="s2">"flow"</span><span class="p">,</span> <span class="p">([</span><span class="s2">"A"</span><span class="p">,</span> <span class="s2">"B"</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]),</span> <span class="n">cat</span><span class="o">=</span><span class="s2">"Integer"</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">flow</span><span class="p">[</span><span class="s2">"A"</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">name</span>
+<span class="go">'flow_A_2'</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -210,9 +210,9 @@ indices, and so on</p>
 <dd><p>Create one variable per combination of the indices and return them in
 one flat dictionary keyed by tuples (by value for a single index).
 Takes the same arguments as <a class="reference internal" href="#pulp.LpProblem.add_variable_dicts" title="pulp.LpProblem.add_variable_dicts"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_variable_dicts()</span></code></a>.</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">assign</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable_dict</span><span class="p">(</span><span class="s2">&quot;assign&quot;</span><span class="p">,</span> <span class="p">([</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="s2">&quot;B&quot;</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">assign</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">name</span>
-<span class="go">&#39;assign_A_1&#39;</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">assign</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable_dict</span><span class="p">(</span><span class="s2">"assign"</span><span class="p">,</span> <span class="p">([</span><span class="s2">"A"</span><span class="p">,</span> <span class="s2">"B"</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">assign</span><span class="p">[</span><span class="s2">"A"</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">name</span>
+<span class="go">'assign_A_1'</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -223,9 +223,9 @@ Takes the same arguments as <a class="reference internal" href="#pulp.LpProblem.
 <dd><p>Create one variable per index value and return them in a list, or
 nested lists for several indices, indexed by position. Takes the same
 arguments as <a class="reference internal" href="#pulp.LpProblem.add_variable_dicts" title="pulp.LpProblem.add_variable_dicts"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_variable_dicts()</span></code></a>.</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">grid</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable_matrix</span><span class="p">(</span><span class="s2">&quot;grid&quot;</span><span class="p">,</span> <span class="p">([</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="s2">&quot;B&quot;</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]))</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">grid</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable_matrix</span><span class="p">(</span><span class="s2">"grid"</span><span class="p">,</span> <span class="p">([</span><span class="s2">"A"</span><span class="p">,</span> <span class="s2">"B"</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">grid</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">name</span>
-<span class="go">&#39;grid_A_2&#39;</span>
+<span class="go">'grid_A_2'</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -270,8 +270,8 @@ this problem (<a class="reference internal" href="#pulp.LpConstraint" title="pul
 left unchanged</p>
 </dd>
 </dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">addConstraint</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">y</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">obj</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">coefficients</span><span class="o">=</span><span class="p">{</span><span class="n">c</span><span class="p">:</span> <span class="mi">1</span><span class="p">})</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">addConstraint</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">"c"</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">"y"</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">obj</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">coefficients</span><span class="o">=</span><span class="p">{</span><span class="n">c</span><span class="p">:</span> <span class="mi">1</span><span class="p">})</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -524,9 +524,9 @@ LpProblem.add_variable() or add_variable_dicts/dict/matrix.</p>
 </dd></dl>
 
 <p>Example (variables are created from a problem):</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">prob</span> <span class="o">=</span> <span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;example&quot;</span><span class="p">,</span> <span class="n">LpMinimize</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">lowBound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">cat</span><span class="o">=</span><span class="s1">&#39;Continuous&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">y</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">upBound</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">cat</span><span class="o">=</span><span class="s1">&#39;Integer&#39;</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">prob</span> <span class="o">=</span> <span class="n">LpProblem</span><span class="p">(</span><span class="s2">"example"</span><span class="p">,</span> <span class="n">LpMinimize</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s1">'x'</span><span class="p">,</span> <span class="n">lowBound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">cat</span><span class="o">=</span><span class="s1">'Continuous'</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s1">'y'</span><span class="p">,</span> <span class="n">upBound</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">cat</span><span class="o">=</span><span class="s1">'Integer'</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>gives  <span class="math notranslate nohighlight">\(x \in [0,\infty)\)</span>, <span class="math notranslate nohighlight">\(y \in (-\infty, 5]\)</span>, an
@@ -586,7 +586,7 @@ expressions. Use <a class="reference internal" href="#pulp.LpConstraint.copy" ti
 <p>A constraint of a problem, as returned by <a class="reference internal" href="#pulp.LpProblem.addConstraint" title="pulp.LpProblem.addConstraint"><code class="xref py py-meth docutils literal notranslate"><span class="pre">LpProblem.addConstraint()</span></code></a>,
 <a class="reference internal" href="#pulp.LpProblem.constraints" title="pulp.LpProblem.constraints"><code class="xref py py-meth docutils literal notranslate"><span class="pre">LpProblem.constraints()</span></code></a> and <a class="reference internal" href="#pulp.LpProblem.get_constraint_by_name" title="pulp.LpProblem.get_constraint_by_name"><code class="xref py py-meth docutils literal notranslate"><span class="pre">LpProblem.get_constraint_by_name()</span></code></a>.
 Editing it edits the problem:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">addConstraint</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">addConstraint</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">"c"</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>           <span class="c1"># 2*x + y &lt;= 5</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">changeRHS</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>     <span class="c1"># 2*x + y &lt;= 8</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">+=</span> <span class="mi">3</span>             <span class="c1"># 2*x + y &lt;= 5</span>

@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>How to import and export models in PuLP &mdash; PuLP 4.1.1 documentation</title>
+  <title>How to import and export models in PuLP &mdash; PuLP 4.2.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=e6a937a4"></script>
+      <script src="../_static/documentation_options.js?v=d0ae6d56"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/js/theme.js"></script>
@@ -116,14 +116,14 @@ PuLP offers two ways to export a model: to an mps file or to a dictionary /json 
 <p>A very simple example taken from the internal tests. Imagine the following problem:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pulp</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
 
-<span class="n">prob</span> <span class="o">=</span> <span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;test_export_dict_MIP&quot;</span><span class="p">,</span> <span class="n">LpMinimize</span><span class="p">)</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
-<span class="n">y</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-<span class="n">z</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">LpInteger</span><span class="p">)</span>
-<span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span> <span class="o">+</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">y</span> <span class="o">+</span> <span class="mi">9</span> <span class="o">*</span> <span class="n">z</span><span class="p">,</span> <span class="s2">&quot;obj&quot;</span>
-<span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">&quot;c1&quot;</span>
-<span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">z</span> <span class="o">&gt;=</span> <span class="mi">10</span><span class="p">,</span> <span class="s2">&quot;c2&quot;</span>
-<span class="n">prob</span> <span class="o">+=</span> <span class="o">-</span><span class="n">y</span> <span class="o">+</span> <span class="n">z</span> <span class="o">==</span> <span class="mf">7.5</span><span class="p">,</span> <span class="s2">&quot;c3&quot;</span>
+<span class="n">prob</span> <span class="o">=</span> <span class="n">LpProblem</span><span class="p">(</span><span class="s2">"test_export_dict_MIP"</span><span class="p">,</span> <span class="n">LpMinimize</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">"y"</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">z</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">"z"</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">LpInteger</span><span class="p">)</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span> <span class="o">+</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">y</span> <span class="o">+</span> <span class="mi">9</span> <span class="o">*</span> <span class="n">z</span><span class="p">,</span> <span class="s2">"obj"</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">"c1"</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">z</span> <span class="o">&gt;=</span> <span class="mi">10</span><span class="p">,</span> <span class="s2">"c2"</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="o">-</span><span class="n">y</span> <span class="o">+</span> <span class="n">z</span> <span class="o">==</span> <span class="mf">7.5</span><span class="p">,</span> <span class="s2">"c3"</span>
 </pre></div>
 </div>
 <p>We can now export the problem into a dictionary:</p>
@@ -131,56 +131,56 @@ PuLP offers two ways to export a model: to an mps file or to a dictionary /json 
 </pre></div>
 </div>
 <p>We now have a dictionary with a lot of data:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;constraints&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;coefficients&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
-                                   <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}],</span>
-                  <span class="s1">&#39;constant&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">5</span><span class="p">,</span>
-                  <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;c1&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;pi&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-                  <span class="s1">&#39;sense&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">},</span>
-                 <span class="p">{</span><span class="s1">&#39;coefficients&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
-                                   <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;z&#39;</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}],</span>
-                  <span class="s1">&#39;constant&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">10</span><span class="p">,</span>
-                  <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;c2&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;pi&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-                  <span class="s1">&#39;sense&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
-                 <span class="p">{</span><span class="s1">&#39;coefficients&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">},</span>
-                                   <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;z&#39;</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}],</span>
-                  <span class="s1">&#39;constant&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">7.5</span><span class="p">,</span>
-                  <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;c3&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;pi&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-                  <span class="s1">&#39;sense&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}],</span>
- <span class="s1">&#39;objective&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;coefficients&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
-                                <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">},</span>
-                                <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;z&#39;</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="mi">9</span><span class="p">}],</span>
-               <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;obj&#39;</span><span class="p">},</span>
- <span class="s1">&#39;parameters&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;test_export_dict_MIP&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;sense&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
- <span class="s1">&#39;sos1&#39;</span><span class="p">:</span> <span class="p">{},</span>
- <span class="s1">&#39;sos2&#39;</span><span class="p">:</span> <span class="p">{},</span>
- <span class="s1">&#39;variables&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;cat&#39;</span><span class="p">:</span> <span class="s1">&#39;Continuous&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;dj&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-                <span class="s1">&#39;lowBound&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;x&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;upBound&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
-                <span class="s1">&#39;varValue&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">},</span>
-               <span class="p">{</span><span class="s1">&#39;cat&#39;</span><span class="p">:</span> <span class="s1">&#39;Continuous&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;dj&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-                <span class="s1">&#39;lowBound&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
-                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;upBound&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-                <span class="s1">&#39;varValue&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">},</span>
-               <span class="p">{</span><span class="s1">&#39;cat&#39;</span><span class="p">:</span> <span class="s1">&#39;Integer&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;dj&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-                <span class="s1">&#39;lowBound&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;z&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;upBound&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-                <span class="s1">&#39;varValue&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}]}</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">'constraints'</span><span class="p">:</span> <span class="p">[{</span><span class="s1">'coefficients'</span><span class="p">:</span> <span class="p">[{</span><span class="s1">'name'</span><span class="p">:</span> <span class="s1">'x'</span><span class="p">,</span> <span class="s1">'value'</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
+                                   <span class="p">{</span><span class="s1">'name'</span><span class="p">:</span> <span class="s1">'y'</span><span class="p">,</span> <span class="s1">'value'</span><span class="p">:</span> <span class="mi">1</span><span class="p">}],</span>
+                  <span class="s1">'constant'</span><span class="p">:</span> <span class="o">-</span><span class="mi">5</span><span class="p">,</span>
+                  <span class="s1">'name'</span><span class="p">:</span> <span class="s1">'c1'</span><span class="p">,</span>
+                  <span class="s1">'pi'</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                  <span class="s1">'sense'</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">},</span>
+                 <span class="p">{</span><span class="s1">'coefficients'</span><span class="p">:</span> <span class="p">[{</span><span class="s1">'name'</span><span class="p">:</span> <span class="s1">'x'</span><span class="p">,</span> <span class="s1">'value'</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
+                                   <span class="p">{</span><span class="s1">'name'</span><span class="p">:</span> <span class="s1">'z'</span><span class="p">,</span> <span class="s1">'value'</span><span class="p">:</span> <span class="mi">1</span><span class="p">}],</span>
+                  <span class="s1">'constant'</span><span class="p">:</span> <span class="o">-</span><span class="mi">10</span><span class="p">,</span>
+                  <span class="s1">'name'</span><span class="p">:</span> <span class="s1">'c2'</span><span class="p">,</span>
+                  <span class="s1">'pi'</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                  <span class="s1">'sense'</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
+                 <span class="p">{</span><span class="s1">'coefficients'</span><span class="p">:</span> <span class="p">[{</span><span class="s1">'name'</span><span class="p">:</span> <span class="s1">'y'</span><span class="p">,</span> <span class="s1">'value'</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">},</span>
+                                   <span class="p">{</span><span class="s1">'name'</span><span class="p">:</span> <span class="s1">'z'</span><span class="p">,</span> <span class="s1">'value'</span><span class="p">:</span> <span class="mi">1</span><span class="p">}],</span>
+                  <span class="s1">'constant'</span><span class="p">:</span> <span class="o">-</span><span class="mf">7.5</span><span class="p">,</span>
+                  <span class="s1">'name'</span><span class="p">:</span> <span class="s1">'c3'</span><span class="p">,</span>
+                  <span class="s1">'pi'</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                  <span class="s1">'sense'</span><span class="p">:</span> <span class="mi">0</span><span class="p">}],</span>
+ <span class="s1">'objective'</span><span class="p">:</span> <span class="p">{</span><span class="s1">'coefficients'</span><span class="p">:</span> <span class="p">[{</span><span class="s1">'name'</span><span class="p">:</span> <span class="s1">'x'</span><span class="p">,</span> <span class="s1">'value'</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
+                                <span class="p">{</span><span class="s1">'name'</span><span class="p">:</span> <span class="s1">'y'</span><span class="p">,</span> <span class="s1">'value'</span><span class="p">:</span> <span class="mi">4</span><span class="p">},</span>
+                                <span class="p">{</span><span class="s1">'name'</span><span class="p">:</span> <span class="s1">'z'</span><span class="p">,</span> <span class="s1">'value'</span><span class="p">:</span> <span class="mi">9</span><span class="p">}],</span>
+               <span class="s1">'name'</span><span class="p">:</span> <span class="s1">'obj'</span><span class="p">},</span>
+ <span class="s1">'parameters'</span><span class="p">:</span> <span class="p">{</span><span class="s1">'name'</span><span class="p">:</span> <span class="s1">'test_export_dict_MIP'</span><span class="p">,</span>
+                <span class="s1">'sense'</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
+ <span class="s1">'sos1'</span><span class="p">:</span> <span class="p">{},</span>
+ <span class="s1">'sos2'</span><span class="p">:</span> <span class="p">{},</span>
+ <span class="s1">'variables'</span><span class="p">:</span> <span class="p">[{</span><span class="s1">'cat'</span><span class="p">:</span> <span class="s1">'Continuous'</span><span class="p">,</span>
+                <span class="s1">'dj'</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s1">'lowBound'</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s1">'name'</span><span class="p">:</span> <span class="s1">'x'</span><span class="p">,</span>
+                <span class="s1">'upBound'</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+                <span class="s1">'varValue'</span><span class="p">:</span> <span class="kc">None</span><span class="p">},</span>
+               <span class="p">{</span><span class="s1">'cat'</span><span class="p">:</span> <span class="s1">'Continuous'</span><span class="p">,</span>
+                <span class="s1">'dj'</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s1">'lowBound'</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+                <span class="s1">'name'</span><span class="p">:</span> <span class="s1">'y'</span><span class="p">,</span>
+                <span class="s1">'upBound'</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                <span class="s1">'varValue'</span><span class="p">:</span> <span class="kc">None</span><span class="p">},</span>
+               <span class="p">{</span><span class="s1">'cat'</span><span class="p">:</span> <span class="s1">'Integer'</span><span class="p">,</span>
+                <span class="s1">'dj'</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s1">'lowBound'</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s1">'name'</span><span class="p">:</span> <span class="s1">'z'</span><span class="p">,</span>
+                <span class="s1">'upBound'</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s1">'varValue'</span><span class="p">:</span> <span class="kc">None</span><span class="p">}]}</span>
 </pre></div>
 </div>
 <p>We can now import this dictionary:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">var1</span><span class="p">,</span> <span class="n">prob1</span> <span class="o">=</span> <span class="n">LpProblem</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
 <span class="n">var1</span>
-<span class="c1"># {&#39;x&#39;: x, &#39;y&#39;: y, &#39;z&#39;: z}</span>
+<span class="c1"># {'x': x, 'y': y, 'z': z}</span>
 <span class="n">prob1</span>
 <span class="c1"># test_export_dict_MIP:</span>
 <span class="c1"># MINIMIZE</span>
@@ -200,7 +200,7 @@ PuLP offers two ways to export a model: to an mps file or to a dictionary /json 
 </pre></div>
 </div>
 <p>And the result will be available in our <em>new</em> variables:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">var1</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">()</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">var1</span><span class="p">[</span><span class="s1">'x'</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">()</span>
 <span class="c1"># 3.0</span>
 </pre></div>
 </div>
@@ -209,24 +209,24 @@ PuLP offers two ways to export a model: to an mps file or to a dictionary /json 
 <h2>Example 1: mps<a class="headerlink" href="#example-1-mps" title="Link to this heading"></a></h2>
 <p>The same model:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pulp</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
-<span class="n">prob</span> <span class="o">=</span> <span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;test_export_dict_MIP&quot;</span><span class="p">,</span> <span class="n">LpMinimize</span><span class="p">)</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
-<span class="n">y</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-<span class="n">z</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">LpInteger</span><span class="p">)</span>
-<span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span> <span class="o">+</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">y</span> <span class="o">+</span> <span class="mi">9</span> <span class="o">*</span> <span class="n">z</span><span class="p">,</span> <span class="s2">&quot;obj&quot;</span>
-<span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">&quot;c1&quot;</span>
-<span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">z</span> <span class="o">&gt;=</span> <span class="mi">10</span><span class="p">,</span> <span class="s2">&quot;c2&quot;</span>
-<span class="n">prob</span> <span class="o">+=</span> <span class="o">-</span><span class="n">y</span> <span class="o">+</span> <span class="n">z</span> <span class="o">==</span> <span class="mf">7.5</span><span class="p">,</span> <span class="s2">&quot;c3&quot;</span>
+<span class="n">prob</span> <span class="o">=</span> <span class="n">LpProblem</span><span class="p">(</span><span class="s2">"test_export_dict_MIP"</span><span class="p">,</span> <span class="n">LpMinimize</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">"y"</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">z</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">"z"</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">LpInteger</span><span class="p">)</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span> <span class="o">+</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">y</span> <span class="o">+</span> <span class="mi">9</span> <span class="o">*</span> <span class="n">z</span><span class="p">,</span> <span class="s2">"obj"</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">"c1"</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">z</span> <span class="o">&gt;=</span> <span class="mi">10</span><span class="p">,</span> <span class="s2">"c2"</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="o">-</span><span class="n">y</span> <span class="o">+</span> <span class="n">z</span> <span class="o">==</span> <span class="mf">7.5</span><span class="p">,</span> <span class="s2">"c3"</span>
 </pre></div>
 </div>
 <p>We can now export the problem into an mps file:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">prob</span><span class="o">.</span><span class="n">writeMPS</span><span class="p">(</span><span class="s2">&quot;test.mps&quot;</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">prob</span><span class="o">.</span><span class="n">writeMPS</span><span class="p">(</span><span class="s2">"test.mps"</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>We can now import this file:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">var1</span><span class="p">,</span> <span class="n">prob1</span> <span class="o">=</span> <span class="n">LpProblem</span><span class="o">.</span><span class="n">fromMPS</span><span class="p">(</span><span class="s2">&quot;test.mps&quot;</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">var1</span><span class="p">,</span> <span class="n">prob1</span> <span class="o">=</span> <span class="n">LpProblem</span><span class="o">.</span><span class="n">fromMPS</span><span class="p">(</span><span class="s2">"test.mps"</span><span class="p">)</span>
 <span class="n">var1</span>
-<span class="c1"># {&#39;x&#39;: x, &#39;y&#39;: y, &#39;z&#39;: z}</span>
+<span class="c1"># {'x': x, 'y': y, 'z': z}</span>
 <span class="n">prob1</span>
 <span class="c1"># test_export_dict_MIP:</span>
 <span class="c1"># MINIMIZE</span>
@@ -250,34 +250,34 @@ PuLP offers two ways to export a model: to an mps file or to a dictionary /json 
 
 <span class="n">max_tables</span> <span class="o">=</span> <span class="mi">5</span>
 <span class="n">max_table_size</span> <span class="o">=</span> <span class="mi">4</span>
-<span class="n">guests</span> <span class="o">=</span> <span class="s1">&#39;A B C D E F G I J K L M N O P Q R&#39;</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+<span class="n">guests</span> <span class="o">=</span> <span class="s1">'A B C D E F G I J K L M N O P Q R'</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">happiness</span><span class="p">(</span><span class="n">table</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Find the happiness of the table</span>
 <span class="sd">    - by calculating the maximum distance between the letters</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">return</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">ord</span><span class="p">(</span><span class="n">table</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">-</span> <span class="nb">ord</span><span class="p">(</span><span class="n">table</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
 
 <span class="c1">#create list of all possible tables</span>
 <span class="n">possible_tables</span> <span class="o">=</span> <span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">pulp</span><span class="o">.</span><span class="n">allcombinations</span><span class="p">(</span><span class="n">guests</span><span class="p">,</span>
                                         <span class="n">max_table_size</span><span class="p">)]</span>
 
-<span class="n">seating_model</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;Wedding_Seating_Model&quot;</span><span class="p">,</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
+<span class="n">seating_model</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">"Wedding_Seating_Model"</span><span class="p">,</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
 <span class="c1"># create a binary variable to state that a table setting is used</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">seating_model</span><span class="o">.</span><span class="n">add_variable_dict</span><span class="p">(</span><span class="s1">&#39;table&#39;</span><span class="p">,</span> <span class="n">possible_tables</span><span class="p">,</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">seating_model</span><span class="o">.</span><span class="n">add_variable_dict</span><span class="p">(</span><span class="s1">'table'</span><span class="p">,</span> <span class="n">possible_tables</span><span class="p">,</span>
                                     <span class="n">lowBound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upBound</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">cat</span><span class="o">=</span><span class="n">pulp</span><span class="o">.</span><span class="n">LpInteger</span><span class="p">)</span>
 
 <span class="n">seating_model</span> <span class="o">+=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">lpSum</span><span class="p">([</span><span class="n">happiness</span><span class="p">(</span><span class="n">table</span><span class="p">)</span> <span class="o">*</span> <span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span><span class="p">])</span>
 
 <span class="c1">#specify the maximum number of tables</span>
 <span class="n">seating_model</span> <span class="o">+=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">lpSum</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span><span class="p">])</span> <span class="o">&lt;=</span> <span class="n">max_tables</span><span class="p">,</span> \
-                            <span class="s2">&quot;Maximum_number_of_tables&quot;</span>
+                            <span class="s2">"Maximum_number_of_tables"</span>
 
 <span class="c1">#A guest must seated at one and only one table</span>
 <span class="k">for</span> <span class="n">guest</span> <span class="ow">in</span> <span class="n">guests</span><span class="p">:</span>
     <span class="n">seating_model</span> <span class="o">+=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">lpSum</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span>
-                                <span class="k">if</span> <span class="n">guest</span> <span class="ow">in</span> <span class="n">table</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;Must_seat_</span><span class="si">%s</span><span class="s2">&quot;</span><span class="o">%</span><span class="n">guest</span>
+                                <span class="k">if</span> <span class="n">guest</span> <span class="ow">in</span> <span class="n">table</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">"Must_seat_</span><span class="si">%s</span><span class="s2">"</span><span class="o">%</span><span class="n">guest</span>
 </pre></div>
 </div>
 <p>We <em>could</em> directly solve the model doing:</p>
@@ -285,16 +285,16 @@ PuLP offers two ways to export a model: to an mps file or to a dictionary /json 
 </pre></div>
 </div>
 <p>Instead, we are going to export it to a json file:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">seating_model</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="s2">&quot;seating_model.json&quot;</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">seating_model</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="s2">"seating_model.json"</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>And re-import it:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">wedding_vars</span><span class="p">,</span> <span class="n">wedding_model</span> <span class="o">=</span> <span class="n">LpProblem</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="s2">&quot;seating_model.json&quot;</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">wedding_vars</span><span class="p">,</span> <span class="n">wedding_model</span> <span class="o">=</span> <span class="n">LpProblem</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="s2">"seating_model.json"</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>We inspect the variables:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">wedding_vars</span>
-<span class="p">{</span><span class="s2">&quot;table_(&#39;A&#39;,)&quot;</span><span class="p">:</span> <span class="n">table_</span><span class="p">(</span><span class="s1">&#39;A&#39;</span><span class="p">,),</span> <span class="s2">&quot;table_(&#39;A&#39;,_&#39;B&#39;)&quot;</span><span class="p">:</span> <span class="n">table_</span><span class="p">(</span><span class="s1">&#39;A&#39;</span><span class="p">,</span><span class="n">_</span><span class="s1">&#39;B&#39;</span><span class="p">),</span> <span class="s2">&quot;table_(&#39;A&#39;,_&#39;B&#39;,_&#39;C&#39;)&quot;</span><span class="p">:</span> <span class="n">table_</span><span class="p">(</span><span class="s1">&#39;A&#39;</span><span class="p">,</span><span class="n">_</span><span class="s1">&#39;B&#39;</span><span class="p">,</span><span class="n">_</span><span class="s1">&#39;C&#39;</span><span class="p">),</span> <span class="s2">&quot;table_(&#39;A&#39;,_&#39;B&#39;,_&#39;C&#39;,_&#39;D&#39;)&quot;</span><span class="p">:</span> <span class="n">table_</span><span class="p">(</span><span class="s1">&#39;A&#39;</span><span class="p">,</span><span class="n">_</span><span class="s1">&#39;B&#39;</span><span class="p">,</span><span class="n">_</span><span class="s1">&#39;C&#39;</span><span class="p">,</span><span class="n">_</span><span class="s1">&#39;D&#39;</span><span class="p">),</span> <span class="s2">&quot;table_(&#39;A&#39;,_&#39;B&#39;,_&#39;C&#39;,_&#39;E&#39;)&quot;</span><span class="p">:</span> <span class="n">table_</span><span class="p">(</span><span class="s1">&#39;A&#39;</span><span class="p">,</span><span class="n">_</span><span class="s1">&#39;B&#39;</span><span class="p">,</span><span class="n">_</span><span class="s1">&#39;C&#39;</span><span class="p">,</span><span class="n">_</span><span class="s1">&#39;E&#39;</span><span class="p">),</span> <span class="o">...</span><span class="p">}</span>
+<span class="p">{</span><span class="s2">"table_('A',)"</span><span class="p">:</span> <span class="n">table_</span><span class="p">(</span><span class="s1">'A'</span><span class="p">,),</span> <span class="s2">"table_('A',_'B')"</span><span class="p">:</span> <span class="n">table_</span><span class="p">(</span><span class="s1">'A'</span><span class="p">,</span><span class="n">_</span><span class="s1">'B'</span><span class="p">),</span> <span class="s2">"table_('A',_'B',_'C')"</span><span class="p">:</span> <span class="n">table_</span><span class="p">(</span><span class="s1">'A'</span><span class="p">,</span><span class="n">_</span><span class="s1">'B'</span><span class="p">,</span><span class="n">_</span><span class="s1">'C'</span><span class="p">),</span> <span class="s2">"table_('A',_'B',_'C',_'D')"</span><span class="p">:</span> <span class="n">table_</span><span class="p">(</span><span class="s1">'A'</span><span class="p">,</span><span class="n">_</span><span class="s1">'B'</span><span class="p">,</span><span class="n">_</span><span class="s1">'C'</span><span class="p">,</span><span class="n">_</span><span class="s1">'D'</span><span class="p">),</span> <span class="s2">"table_('A',_'B',_'C',_'E')"</span><span class="p">:</span> <span class="n">table_</span><span class="p">(</span><span class="s1">'A'</span><span class="p">,</span><span class="n">_</span><span class="s1">'B'</span><span class="p">,</span><span class="n">_</span><span class="s1">'C'</span><span class="p">,</span><span class="n">_</span><span class="s1">'E'</span><span class="p">),</span> <span class="o">...</span><span class="p">}</span>
 </pre></div>
 </div>
 <p>As can be seen, it is no longer a dictionary indexed by the original tuples. Unfortunately, it has become a flat dictionary with concatenated names.</p>
@@ -303,7 +303,7 @@ PuLP offers two ways to export a model: to an mps file or to a dictionary /json 
 </pre></div>
 </div>
 <p>And inspect some of the values:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">wedding_vars</span><span class="p">[</span><span class="s2">&quot;table_(&#39;M&#39;,_&#39;N&#39;)&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">()</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">wedding_vars</span><span class="p">[</span><span class="s2">"table_('M',_'N')"</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">()</span>
 <span class="c1"># 1.0</span>
 </pre></div>
 </div>
@@ -328,7 +328,7 @@ PuLP offers two ways to export a model: to an mps file or to a dictionary /json 
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">NpEncoder</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
 
-<span class="n">wedding_model</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="s2">&quot;seating_model.json&quot;</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="n">NpEncoder</span><span class="p">)</span>
+<span class="n">wedding_model</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="s2">"seating_model.json"</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="n">NpEncoder</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Note that this custom encoding class may not work with the <cite>ujson</cite> package. An alternative is to cast all values using <cite>int()</cite> or <cite>float()</cite> before using them in <cite>pulp</cite>.</p>

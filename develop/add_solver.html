@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>How to add a new solver to PuLP &mdash; PuLP 4.1.1 documentation</title>
+  <title>How to add a new solver to PuLP &mdash; PuLP 4.2.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=e6a937a4"></script>
+      <script src="../_static/documentation_options.js?v=d0ae6d56"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/js/theme.js"></script>
@@ -108,7 +108,7 @@
 
 <span class="k">class</span><span class="w"> </span><span class="nc">MIPCL_CMD</span><span class="p">(</span><span class="n">LpSolver_CMD</span><span class="p">):</span>
 
-    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;MIPCL_CMD&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s2">"MIPCL_CMD"</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -153,17 +153,17 @@
 <p>Required by <a class="reference internal" href="../technical/solvers.html#pulp.apis.LpSolver" title="pulp.apis.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.LpSolver</span></code></a> and <a class="reference internal" href="../technical/solvers.html#pulp.apis.LpSolver_CMD" title="pulp.apis.LpSolver_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.LpSolver_CMD</span></code></a>.</p>
 <p>Takes an <code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.pulp.LpProblem</span></code> as argument, solves it, stores the solution, and returns a status code:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">actualSolve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lp</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Solve a well formulated lp problem&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Solve a well formulated lp problem"""</span>
     <span class="n">start</span> <span class="o">=</span> <span class="n">clocks</span><span class="p">()</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">executable</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="n">PulpSolverError</span><span class="p">(</span><span class="s2">&quot;PuLP: cannot execute &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
-    <span class="n">tmpMps</span><span class="p">,</span> <span class="n">tmpSol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_tmp_files</span><span class="p">(</span><span class="n">lp</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;mps&quot;</span><span class="p">,</span> <span class="s2">&quot;sol&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">PulpSolverError</span><span class="p">(</span><span class="s2">"PuLP: cannot execute "</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+    <span class="n">tmpMps</span><span class="p">,</span> <span class="n">tmpSol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_tmp_files</span><span class="p">(</span><span class="n">lp</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">"mps"</span><span class="p">,</span> <span class="s2">"sol"</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">lp</span><span class="o">.</span><span class="n">sense</span> <span class="o">==</span> <span class="n">constants</span><span class="o">.</span><span class="n">LpMaximize</span><span class="p">:</span>
         <span class="c1"># we swap the objectives</span>
         <span class="c1"># because it does not handle maximization.</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-            <span class="s2">&quot;MIPCL_CMD does not allow maximization, &quot;</span>
-            <span class="s2">&quot;we will minimize the inverse of the objective function.&quot;</span>
+            <span class="s2">"MIPCL_CMD does not allow maximization, "</span>
+            <span class="s2">"we will minimize the inverse of the objective function."</span>
         <span class="p">)</span>
         <span class="n">lp</span> <span class="o">+=</span> <span class="o">-</span><span class="n">lp</span><span class="o">.</span><span class="n">objective</span>
     <span class="n">lp</span><span class="o">.</span><span class="n">checkDuplicateVars</span><span class="p">()</span>
@@ -177,26 +177,26 @@
     <span class="k">except</span><span class="p">:</span>
         <span class="k">pass</span>
     <span class="n">cmd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span>
-    <span class="n">cmd</span> <span class="o">+=</span> <span class="s2">&quot; </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">tmpMps</span>
-    <span class="n">cmd</span> <span class="o">+=</span> <span class="s2">&quot; -solfile </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">tmpSol</span>
+    <span class="n">cmd</span> <span class="o">+=</span> <span class="s2">" </span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="n">tmpMps</span>
+    <span class="n">cmd</span> <span class="o">+=</span> <span class="s2">" -solfile </span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="n">tmpSol</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">timeLimit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">cmd</span> <span class="o">+=</span> <span class="s2">&quot; -time </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">timeLimit</span>
+        <span class="n">cmd</span> <span class="o">+=</span> <span class="s2">" -time </span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">timeLimit</span>
     <span class="k">for</span> <span class="n">option</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">:</span>
-        <span class="n">cmd</span> <span class="o">+=</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="n">option</span>
+        <span class="n">cmd</span> <span class="o">+=</span> <span class="s2">" "</span> <span class="o">+</span> <span class="n">option</span>
     <span class="k">if</span> <span class="n">lp</span><span class="o">.</span><span class="n">isMIP</span><span class="p">():</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">mip</span><span class="p">:</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;MIPCL_CMD cannot solve the relaxation of a problem&quot;</span><span class="p">)</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">"MIPCL_CMD cannot solve the relaxation of a problem"</span><span class="p">)</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="p">:</span>
         <span class="n">pipe</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">pipe</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">devnull</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
+        <span class="n">pipe</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">devnull</span><span class="p">,</span> <span class="s2">"w"</span><span class="p">)</span>
 
     <span class="n">return_code</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">cmd</span><span class="o">.</span><span class="n">split</span><span class="p">(),</span> <span class="n">stdout</span><span class="o">=</span><span class="n">pipe</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">pipe</span><span class="p">)</span>
     <span class="c1"># We need to undo the objective swap before finishing</span>
     <span class="k">if</span> <span class="n">lp</span><span class="o">.</span><span class="n">sense</span> <span class="o">==</span> <span class="n">constants</span><span class="o">.</span><span class="n">LpMaximize</span><span class="p">:</span>
         <span class="n">lp</span> <span class="o">+=</span> <span class="o">-</span><span class="n">lp</span><span class="o">.</span><span class="n">objective</span>
     <span class="k">if</span> <span class="n">return_code</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">PulpSolverError</span><span class="p">(</span><span class="s2">&quot;PuLP: Error while trying to execute &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">PulpSolverError</span><span class="p">(</span><span class="s2">"PuLP: Error while trying to execute "</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">tmpSol</span><span class="p">):</span>
         <span class="n">status</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">LpSolveStatus</span><span class="o">.</span><span class="n">NotSolved</span>
         <span class="n">has_solution</span> <span class="o">=</span> <span class="kc">False</span>
@@ -225,7 +225,7 @@ reports one.</p>
 <h2><code class="docutils literal notranslate"><span class="pre">defaultPath</span></code> method<a class="headerlink" href="#defaultpath-method" title="Link to this heading"></a></h2>
 <p>Only required by <a class="reference internal" href="../technical/solvers.html#pulp.apis.LpSolver_CMD" title="pulp.apis.LpSolver_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.LpSolver_CMD</span></code></a>. It returns the default path of the command-line solver:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">defaultPath</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">executableExtension</span><span class="p">(</span><span class="s2">&quot;mps_mipcl&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">executableExtension</span><span class="p">(</span><span class="s2">"mps_mipcl"</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>

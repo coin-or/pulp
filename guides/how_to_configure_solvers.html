@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>How to configure a solver in PuLP &mdash; PuLP 4.1.1 documentation</title>
+  <title>How to configure a solver in PuLP &mdash; PuLP 4.2.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=e6a937a4"></script>
+      <script src="../_static/documentation_options.js?v=d0ae6d56"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/js/theme.js"></script>
@@ -119,20 +119,20 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pulp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
 <span class="n">solver_list</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">listSolvers</span><span class="p">()</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">solver_list</span><span class="p">)</span>
-<span class="c1"># [&#39;GLPK_CMD&#39;, &#39;PYGLPK&#39;, &#39;CPLEX_CMD&#39;, &#39;CPLEX_PY&#39;, &#39;CPLEX_DLL&#39;, &#39;GUROBI&#39;, &#39;GUROBI_CMD&#39;, &#39;MOSEK&#39;, &#39;XPRESS&#39;, &#39;COIN_CMD&#39;, &#39;COINMP_DLL&#39;, &#39;CHOCO_CMD&#39;, &#39;MIPCL_CMD&#39;, &#39;SCIP_CMD&#39;, &#39;CPSAT&#39;, ...]</span>
+<span class="c1"># ['GLPK_CMD', 'PYGLPK', 'CPLEX_CMD', 'CPLEX_PY', 'CPLEX_DLL', 'GUROBI', 'GUROBI_CMD', 'MOSEK', 'XPRESS', 'COIN_CMD', 'COINMP_DLL', 'CHOCO_CMD', 'MIPCL_CMD', 'SCIP_CMD', 'CPSAT', ...]</span>
 </pre></div>
 </div>
 <p>If passed the <cite>onlyAvailable=True</cite> argument, PuLP lists the solvers that are currently available:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pulp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
 <span class="n">solver_list</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">listSolvers</span><span class="p">(</span><span class="n">onlyAvailable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">solver_list</span><span class="p">)</span>
-<span class="c1"># [&#39;GLPK_CMD&#39;, &#39;CPLEX_CMD&#39;, &#39;CPLEX_PY&#39;, &#39;GUROBI&#39;, &#39;GUROBI_CMD&#39;, &#39;COIN_CMD&#39;]</span>
+<span class="c1"># ['GLPK_CMD', 'CPLEX_CMD', 'CPLEX_PY', 'GUROBI', 'GUROBI_CMD', 'COIN_CMD']</span>
 </pre></div>
 </div>
 <p>Also, it’s possible to get a solver object by using the name of the solver. Any arguments passed to this function are passed to the constructor:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pulp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
-<span class="n">solver</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">getSolver</span><span class="p">(</span><span class="s1">&#39;CPLEX_CMD&#39;</span><span class="p">)</span>
-<span class="n">solver</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">getSolver</span><span class="p">(</span><span class="s1">&#39;CPLEX_CMD&#39;</span><span class="p">,</span> <span class="n">timeLimit</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">solver</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">getSolver</span><span class="p">(</span><span class="s1">'CPLEX_CMD'</span><span class="p">)</span>
+<span class="n">solver</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">getSolver</span><span class="p">(</span><span class="s1">'CPLEX_CMD'</span><span class="p">,</span> <span class="n">timeLimit</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>In the next sections, we will explain how to configure a solver to be accessible by PuLP.</p>
@@ -168,7 +168,7 @@ other command-line tool).</p></li>
 </ol>
 <p>You can always pass an explicit path:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pulp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
-<span class="n">solver</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">COIN_CMD</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;C:\path\to\cbc.exe&quot;</span><span class="p">)</span>
+<span class="n">solver</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">COIN_CMD</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="sa">r</span><span class="s2">"C:\path\to\cbc.exe"</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -182,11 +182,11 @@ other command-line tool).</p></li>
 <p><strong>We will do the example for CPLEX in Windows, but the idea is the same for other solvers and other Operating Systems</strong>.</p>
 <p>Both options imply knowing where the solver is. So first we have to go look for it in the pc. Mine is in <code class="docutils literal notranslate"><span class="pre">C:\Program</span> <span class="pre">Files\IBM\ILOG\CPLEX_Studio128\cplex\bin\x64_win64\cplex.exe</span></code>.</p>
 <p>Imagine using the <code class="docutils literal notranslate"><span class="pre">CPLEX_CMD</span></code> solver, the first one is really simple:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">path_to_cplex</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;C:\Program Files\IBM\ILOG\CPLEX_Studio128\cplex\bin\x64_win64\cplex.exe&#39;</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">path_to_cplex</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">'C:\Program Files\IBM\ILOG\CPLEX_Studio128\cplex\bin\x64_win64\cplex.exe'</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pulp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
-<span class="n">model</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;Example&quot;</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
-<span class="n">_var</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)</span>
-<span class="n">_var2</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s1">&#39;a2&#39;</span><span class="p">)</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">"Example"</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
+<span class="n">_var</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s1">'a'</span><span class="p">)</span>
+<span class="n">_var2</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s1">'a2'</span><span class="p">)</span>
 <span class="n">solver</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">CPLEX_CMD</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">path_to_cplex</span><span class="p">)</span>
 <span class="n">model</span> <span class="o">+=</span> <span class="n">_var</span> <span class="o">+</span> <span class="n">_var2</span> <span class="o">==</span> <span class="mi">1</span>
 <span class="n">result</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="p">)</span>
@@ -197,9 +197,9 @@ other command-line tool).</p></li>
 <p>Here is one random guide to editing environment variables in: <a class="reference external" href="https://opentechguides.com/how-to/article/windows-10/113/windows-10-set-path.html">Windows</a> and <a class="reference external" href="https://askubuntu.com/questions/730/how-do-i-set-environment-variables">Linux or Mac</a>. The idea is that once it is correctly configured you can forget about it (until you change pc or solver version).</p>
 <p>Once we have done that, we just do something very similar to the previous example:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pulp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
-<span class="n">model</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;Example&quot;</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
-<span class="n">_var</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)</span>
-<span class="n">_var2</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s1">&#39;a2&#39;</span><span class="p">)</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">"Example"</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
+<span class="n">_var</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s1">'a'</span><span class="p">)</span>
+<span class="n">_var2</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s1">'a2'</span><span class="p">)</span>
 <span class="n">solver</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">CPLEX_CMD</span><span class="p">()</span>
 <span class="n">model</span> <span class="o">+=</span> <span class="n">_var</span> <span class="o">+</span> <span class="n">_var2</span> <span class="o">==</span> <span class="mi">1</span>
 <span class="n">result</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="p">)</span>
@@ -214,11 +214,11 @@ other command-line tool).</p></li>
 <section id="cplex">
 <h3>CPLEX<a class="headerlink" href="#cplex" title="Link to this heading"></a></h3>
 <p><strong>Linux / Mac</strong>: add the following lines to the ~.bashrc (or ~.profile or /etc/profile or /etc/bash.bashrc) file:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">export</span> <span class="n">CPLEX_HOME</span><span class="o">=</span><span class="s2">&quot;/opt/ibm/ILOG/CPLEX_Studio128/cplex&quot;</span>
-<span class="n">export</span> <span class="n">CPO_HOME</span><span class="o">=</span><span class="s2">&quot;/opt/ibm/ILOG/CPLEX_Studio128/cpoptimizer&quot;</span>
-<span class="n">export</span> <span class="n">PATH</span><span class="o">=</span><span class="s2">&quot;$</span><span class="si">{PATH}</span><span class="s2">:$</span><span class="si">{CPLEX_HOME}</span><span class="s2">/bin/x86-64_linux:$</span><span class="si">{CPO_HOME}</span><span class="s2">/bin/x86-64_linux&quot;</span>
-<span class="n">export</span> <span class="n">LD_LIBRARY_PATH</span><span class="o">=</span><span class="s2">&quot;$</span><span class="si">{LD_LIBRARY_PATH}</span><span class="s2">:$</span><span class="si">{CPLEX_HOME}</span><span class="s2">/bin/x86-64_linux:$</span><span class="si">{CPO_HOME}</span><span class="s2">/bin/x86-64_linux&quot;</span>
-<span class="n">export</span> <span class="n">PYTHONPATH</span><span class="o">=</span><span class="s2">&quot;$</span><span class="si">{PYTHONPATH}</span><span class="s2">:/opt/ibm/ILOG/CPLEX_Studio128/cplex/python/3.5/x86-64_linux&quot;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">export</span> <span class="n">CPLEX_HOME</span><span class="o">=</span><span class="s2">"/opt/ibm/ILOG/CPLEX_Studio128/cplex"</span>
+<span class="n">export</span> <span class="n">CPO_HOME</span><span class="o">=</span><span class="s2">"/opt/ibm/ILOG/CPLEX_Studio128/cpoptimizer"</span>
+<span class="n">export</span> <span class="n">PATH</span><span class="o">=</span><span class="s2">"$</span><span class="si">{PATH}</span><span class="s2">:$</span><span class="si">{CPLEX_HOME}</span><span class="s2">/bin/x86-64_linux:$</span><span class="si">{CPO_HOME}</span><span class="s2">/bin/x86-64_linux"</span>
+<span class="n">export</span> <span class="n">LD_LIBRARY_PATH</span><span class="o">=</span><span class="s2">"$</span><span class="si">{LD_LIBRARY_PATH}</span><span class="s2">:$</span><span class="si">{CPLEX_HOME}</span><span class="s2">/bin/x86-64_linux:$</span><span class="si">{CPO_HOME}</span><span class="s2">/bin/x86-64_linux"</span>
+<span class="n">export</span> <span class="n">PYTHONPATH</span><span class="o">=</span><span class="s2">"$</span><span class="si">{PYTHONPATH}</span><span class="s2">:/opt/ibm/ILOG/CPLEX_Studio128/cplex/python/3.5/x86-64_linux"</span>
 </pre></div>
 </div>
 <p><strong>Windows</strong>: add the following environment variables (via the command line or the graphical user interface):</p>
@@ -233,9 +233,9 @@ other command-line tool).</p></li>
 <section id="gurobi">
 <h3>GUROBI<a class="headerlink" href="#gurobi" title="Link to this heading"></a></h3>
 <p><strong>Linux / Mac</strong>: add the following lines to the ~.bashrc (or ~.profile or /etc/profile or /etc/bash.bashrc) file:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">export</span> <span class="n">GUROBI_HOME</span><span class="o">=</span><span class="s2">&quot;/opt/gurobi801/linux64&quot;</span>
-<span class="n">export</span> <span class="n">PATH</span><span class="o">=</span><span class="s2">&quot;$</span><span class="si">{PATH}</span><span class="s2">:$</span><span class="si">{GUROBI_HOME}</span><span class="s2">/bin&quot;</span>
-<span class="n">export</span> <span class="n">LD_LIBRARY_PATH</span><span class="o">=</span><span class="s2">&quot;$</span><span class="si">{LD_LIBRARY_PATH}</span><span class="s2">:$</span><span class="si">{GUROBI_HOME}</span><span class="s2">/lib&quot;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">export</span> <span class="n">GUROBI_HOME</span><span class="o">=</span><span class="s2">"/opt/gurobi801/linux64"</span>
+<span class="n">export</span> <span class="n">PATH</span><span class="o">=</span><span class="s2">"$</span><span class="si">{PATH}</span><span class="s2">:$</span><span class="si">{GUROBI_HOME}</span><span class="s2">/bin"</span>
+<span class="n">export</span> <span class="n">LD_LIBRARY_PATH</span><span class="o">=</span><span class="s2">"$</span><span class="si">{LD_LIBRARY_PATH}</span><span class="s2">:$</span><span class="si">{GUROBI_HOME}</span><span class="s2">/lib"</span>
 </pre></div>
 </div>
 <p><strong>Windows</strong>: add the following environment variables (via the command line or graphical user interface):</p>
@@ -248,9 +248,9 @@ other command-line tool).</p></li>
 <section id="xpress">
 <h3>XPRESS<a class="headerlink" href="#xpress" title="Link to this heading"></a></h3>
 <p><strong>Linux / Mac</strong>: add the following lines to the ~.bashrc (or ~.profile or /etc/profile or /etc/bash.bashrc) file:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">export</span> <span class="n">XPRESSDIR</span><span class="o">=</span><span class="s2">&quot;/opt/xpressmp&quot;</span>
-<span class="n">export</span> <span class="n">PATH</span><span class="o">=</span><span class="s2">&quot;$</span><span class="si">{PATH}</span><span class="s2">:$</span><span class="si">{XPRESSDIR}</span><span class="s2">/bin&quot;</span>
-<span class="n">export</span> <span class="n">XPAUTH_PATH</span><span class="o">=</span><span class="s2">&quot;$</span><span class="si">{XPRESSDIR}</span><span class="s2">/bin/xpauth.xpr&quot;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">export</span> <span class="n">XPRESSDIR</span><span class="o">=</span><span class="s2">"/opt/xpressmp"</span>
+<span class="n">export</span> <span class="n">PATH</span><span class="o">=</span><span class="s2">"$</span><span class="si">{PATH}</span><span class="s2">:$</span><span class="si">{XPRESSDIR}</span><span class="s2">/bin"</span>
+<span class="n">export</span> <span class="n">XPAUTH_PATH</span><span class="o">=</span><span class="s2">"$</span><span class="si">{XPRESSDIR}</span><span class="s2">/bin/xpauth.xpr"</span>
 </pre></div>
 </div>
 <p><strong>Windows</strong>: add the following environment variables (via the command line or graphical user interface):</p>
@@ -266,9 +266,9 @@ other command-line tool).</p></li>
 <p>In the case of solver APIs that use the command line (again, those that end in <code class="docutils literal notranslate"><span class="pre">CMD</span></code>), sometimes a user wants to control where the files are written. There are plenty of options.</p>
 <p>By default, PuLP does not keep the intermediary files (the *.mps, *.lp, *.mst, *.sol) and they are written in a temporary directory of the operating system. PuLP looks for the TEMP, TMP and TMPDIR environment variables to write the file (in that order). After using them, PuLP deletes them. If you change any of these environment variables before solving, you should be able to choose where you want PuLP to write the results.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pulp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
-<span class="n">model</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;Example&quot;</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
-<span class="n">_var</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)</span>
-<span class="n">_var2</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s1">&#39;a2&#39;</span><span class="p">)</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">"Example"</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
+<span class="n">_var</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s1">'a'</span><span class="p">)</span>
+<span class="n">_var2</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s1">'a2'</span><span class="p">)</span>
 <span class="n">model</span> <span class="o">+=</span> <span class="n">_var</span> <span class="o">+</span> <span class="n">_var2</span> <span class="o">==</span> <span class="mi">1</span>
 <span class="n">solver</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">COIN_CMD</span><span class="p">()</span>
 <span class="n">result</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="p">)</span>
@@ -276,9 +276,9 @@ other command-line tool).</p></li>
 </div>
 <p>Another option, is passing the argument <cite>keepFiles=True</cite> to the solver. With this, the solver creates the files in the current directory and they are not deleted (although they will be overwritten if you re-execute).</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pulp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
-<span class="n">model</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;Example&quot;</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
-<span class="n">_var</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)</span>
-<span class="n">_var2</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s1">&#39;a2&#39;</span><span class="p">)</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">"Example"</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
+<span class="n">_var</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s1">'a'</span><span class="p">)</span>
+<span class="n">_var2</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s1">'a2'</span><span class="p">)</span>
 <span class="n">model</span> <span class="o">+=</span> <span class="n">_var</span> <span class="o">+</span> <span class="n">_var2</span> <span class="o">==</span> <span class="mi">1</span>
 <span class="n">solver</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">COIN_CMD</span><span class="p">(</span><span class="n">keepFiles</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">result</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="p">)</span>
@@ -286,12 +286,12 @@ other command-line tool).</p></li>
 </div>
 <p>Finally, one can manually edit the tmpDir attribute of the solver object before actually solving.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pulp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
-<span class="n">model</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;Example&quot;</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
-<span class="n">_var</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)</span>
-<span class="n">_var2</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s1">&#39;a2&#39;</span><span class="p">)</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">"Example"</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
+<span class="n">_var</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s1">'a'</span><span class="p">)</span>
+<span class="n">_var2</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s1">'a2'</span><span class="p">)</span>
 <span class="n">model</span> <span class="o">+=</span> <span class="n">_var</span> <span class="o">+</span> <span class="n">_var2</span> <span class="o">==</span> <span class="mi">1</span>
 <span class="n">solver</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">COIN_CMD</span><span class="p">()</span>
-<span class="n">solver</span><span class="o">.</span><span class="n">tmpDir</span> <span class="o">=</span> <span class="s1">&#39;PUT_SOME_ALTERNATIVE_PATH_HERE&#39;</span>
+<span class="n">solver</span><span class="o">.</span><span class="n">tmpDir</span> <span class="o">=</span> <span class="s1">'PUT_SOME_ALTERNATIVE_PATH_HERE'</span>
 <span class="n">result</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -337,9 +337,9 @@ raise <code class="docutils literal notranslate"><span class="pre">PulpSolverErr
 <p>Example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pulp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
 
-<span class="n">prob</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;cpsat_example&quot;</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="n">cat</span><span class="o">=</span><span class="n">pl</span><span class="o">.</span><span class="n">LpInteger</span><span class="p">)</span>
-<span class="n">y</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="n">cat</span><span class="o">=</span><span class="n">pl</span><span class="o">.</span><span class="n">LpInteger</span><span class="p">)</span>
+<span class="n">prob</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">"cpsat_example"</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="n">cat</span><span class="o">=</span><span class="n">pl</span><span class="o">.</span><span class="n">LpInteger</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">"y"</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="n">cat</span><span class="o">=</span><span class="n">pl</span><span class="o">.</span><span class="n">LpInteger</span><span class="p">)</span>
 <span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">y</span>
 <span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&gt;=</span> <span class="mi">7</span>
 
@@ -365,9 +365,9 @@ talks to GLPK directly through its C API, which avoids the overhead of
 writing files to disk:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pulp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
 
-<span class="n">prob</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;pyglpk_example&quot;</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
-<span class="n">y</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="n">prob</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">"pyglpk_example"</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">"y"</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
 <span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span>
 <span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&gt;=</span> <span class="mi">2</span>
 
@@ -407,7 +407,7 @@ writing files to disk:</p>
 </dl>
 <p>If you plan to work with larger models and acquire an Academic or Commercial License, contact FICO support to obtain a license file, and then set the <cite>XPAUTH_PATH</cite> environment variable to the location of your license file.</p>
 <p><strong>Linux / Mac</strong>: add the following line to the ~.bashrc (or ~.profile or /etc/profile or /etc/bash.bashrc) file:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">export</span> <span class="n">XPAUTH_PATH</span><span class="o">=</span><span class="s2">&quot;/path/to/your/xpauth.xpr&quot;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">export</span> <span class="n">XPAUTH_PATH</span><span class="o">=</span><span class="s2">"/path/to/your/xpauth.xpr"</span>
 </pre></div>
 </div>
 <p><strong>Windows</strong>: add the following environment variable (via the command line or graphical user interface):</p>
@@ -423,8 +423,8 @@ writing files to disk:</p>
 <p>For example, using the <code class="docutils literal notranslate"><span class="pre">CPSAT</span></code> API we can access the OR-Tools <code class="docutils literal notranslate"><span class="pre">CpModel</span></code> after solving:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pulp</span>
 
-<span class="n">prob</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="n">cat</span><span class="o">=</span><span class="n">pulp</span><span class="o">.</span><span class="n">LpInteger</span><span class="p">)</span>
+<span class="n">prob</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">"name"</span><span class="p">,</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="n">cat</span><span class="o">=</span><span class="n">pulp</span><span class="o">.</span><span class="n">LpInteger</span><span class="p">)</span>
 <span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span>
 
 <span class="n">status</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">pulp</span><span class="o">.</span><span class="n">CPSAT</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
@@ -434,8 +434,8 @@ writing files to disk:</p>
 <p>For example, using the <code class="docutils literal notranslate"><span class="pre">CPLEX_PY</span></code> API we can access the api object after the solving is done:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pulp</span>
 
-<span class="n">prob</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">lowBound</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">prob</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s1">'name'</span><span class="p">,</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s1">'x'</span><span class="p">,</span> <span class="n">lowBound</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 <span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span>
 
 <span class="n">solver</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">CPLEX_PY</span><span class="p">()</span>
@@ -447,8 +447,8 @@ writing files to disk:</p>
 <p>Also, you can access the python api object before solving by using the lower-level methods:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pulp</span>
 
-<span class="n">prob</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">lowBound</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">prob</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s1">'name'</span><span class="p">,</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s1">'x'</span><span class="p">,</span> <span class="n">lowBound</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 <span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span>
 
 <span class="n">solver</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">CPLEX_PY</span><span class="p">()</span>
@@ -475,17 +475,17 @@ writing files to disk:</p>
 </pre></div>
 </div>
 <p>The structure of the returned dictionary is quite simple:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;keepFiles&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
- <span class="s1">&#39;mip&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
- <span class="s1">&#39;msg&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
- <span class="s1">&#39;options&#39;</span><span class="p">:</span> <span class="p">[],</span>
- <span class="s1">&#39;solver&#39;</span><span class="p">:</span> <span class="s1">&#39;COIN_CMD&#39;</span><span class="p">,</span>
- <span class="s1">&#39;timeLimit&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
- <span class="s1">&#39;warmStart&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">}</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">'keepFiles'</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+ <span class="s1">'mip'</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+ <span class="s1">'msg'</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+ <span class="s1">'options'</span><span class="p">:</span> <span class="p">[],</span>
+ <span class="s1">'solver'</span><span class="p">:</span> <span class="s1">'COIN_CMD'</span><span class="p">,</span>
+ <span class="s1">'timeLimit'</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+ <span class="s1">'warmStart'</span><span class="p">:</span> <span class="kc">False</span><span class="p">}</span>
 </pre></div>
 </div>
 <p>It’s also possible to export it directly to a json file:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">solver</span><span class="o">.</span><span class="n">toJson</span><span class="p">(</span><span class="s2">&quot;some_file_name.json&quot;</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">solver</span><span class="o">.</span><span class="n">toJson</span><span class="p">(</span><span class="s2">"some_file_name.json"</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>In order to import it, one needs to do:</p>
@@ -495,7 +495,7 @@ writing files to disk:</p>
 </div>
 <p>Or from a file:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pulp</span>
-<span class="n">solver</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">getSolverFromJson</span><span class="p">(</span><span class="s2">&quot;some_file_name.json&quot;</span><span class="p">)</span>
+<span class="n">solver</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">getSolverFromJson</span><span class="p">(</span><span class="s2">"some_file_name.json"</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>For json, we use the base <cite>json</cite> package. But if <cite>ujson</cite> is available, we use that so the import / export can be really fast.</p>

@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>pulp.apis Interface to Solvers &mdash; PuLP 4.1.1 documentation</title>
+  <title>pulp.apis Interface to Solvers &mdash; PuLP 4.2.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=e6a937a4"></script>
+      <script src="../_static/documentation_options.js?v=d0ae6d56"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/js/theme.js"></script>
@@ -165,7 +165,9 @@
 <li class="toctree-l4"><a class="reference internal" href="#pulp.apis.CYLP.available"><code class="docutils literal notranslate"><span class="pre">CYLP.available()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#pulp.apis.CYLP.buildSolverModel"><code class="docutils literal notranslate"><span class="pre">CYLP.buildSolverModel()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#pulp.apis.CYLP.callSolver"><code class="docutils literal notranslate"><span class="pre">CYLP.callSolver()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.CYLP.findBestBound"><code class="docutils literal notranslate"><span class="pre">CYLP.findBestBound()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#pulp.apis.CYLP.findSolutionValues"><code class="docutils literal notranslate"><span class="pre">CYLP.findSolutionValues()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pulp.apis.CYLP.isCbcModel"><code class="docutils literal notranslate"><span class="pre">CYLP.isCbcModel()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#pulp.apis.CYLP.name"><code class="docutils literal notranslate"><span class="pre">CYLP.name</span></code></a></li>
 </ul>
 </li>
@@ -1105,8 +1107,11 @@ them to the lp model which it then solves</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pulp.apis.CYLP">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">CYLP</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gapAbs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gapRel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeLimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">solverParams</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CYLP" title="Link to this definition"></a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pulp.apis.</span></span><span class="sig-name descname"><span class="pre">CYLP</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gapAbs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gapRel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeLimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxNodes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxSolutions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">presolve</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">solverParams</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CYLP" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pulp.apis.LpSolver" title="pulp.apis.core.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpSolver</span></code></a></p>
+<p>The CyLP solver: COIN-OR Clp (LP) and Cbc (MIP) through their cython bindings.</p>
+<p>The CyLP model is available (after a solve) in lp.solverModel: a <code class="docutils literal notranslate"><span class="pre">CyCbcModel</span></code>
+when the problem was solved as a MIP, a <code class="docutils literal notranslate"><span class="pre">CyClpSimplex</span></code> otherwise.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1115,8 +1120,10 @@ them to the lp model which it then solves</p>
 <li><p><strong>gapRel</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – relative gap tolerance for the solver to stop (in fraction)</p></li>
 <li><p><strong>gapAbs</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – absolute gap tolerance for the solver to stop</p></li>
 <li><p><strong>threads</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>) – sets the maximum number of threads</p></li>
-<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – maximum time for solver (in seconds)</p></li>
-<li><p><strong>solverParams</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><em>dict</em></a>) – list of named options to pass directly to the HiGHS solver</p></li>
+<li><p><strong>timeLimit</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – maximum time for solver (in seconds), only used by Cbc</p></li>
+<li><p><strong>maxNodes</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>) – max number of nodes during branching, only used by Cbc</p></li>
+<li><p><strong>maxSolutions</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>) – stop after finding this many solutions, only used by Cbc</p></li>
+<li><p><strong>presolve</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>) – if False, Clp solves without presolve, only used by Clp</p></li>
 </ul>
 </dd>
 </dl>
@@ -1135,18 +1142,37 @@ them to the lp model which it then solves</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.CYLP.buildSolverModel">
-<span class="sig-name descname"><span class="pre">buildSolverModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CYLP.buildSolverModel" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">buildSolverModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="pulp.html#pulp.LpProblem" title="pulp.LpProblem"><span class="pre">LpProblem</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#pulp.apis.CYLP.buildSolverModel" title="Link to this definition"></a></dt>
+<dd><p>Takes the pulp lp model and translates it into a CyLP model, through an mps file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the names of the pulp variables, in the order of the model’s columns</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.CYLP.callSolver">
-<span class="sig-name descname"><span class="pre">callSolver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CYLP.callSolver" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">callSolver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="pulp.html#pulp.LpProblem" title="pulp.LpProblem"><span class="pre">LpProblem</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#pulp.apis.CYLP.callSolver" title="Link to this definition"></a></dt>
+<dd><p>Solves the problem with Cbc if it is a MIP, with Clp otherwise</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulp.apis.CYLP.findBestBound">
+<span class="sig-name descname"><span class="pre">findBestBound</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="pulp.html#pulp.LpProblem" title="pulp.LpProblem"><span class="pre">LpProblem</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#pulp.apis.CYLP.findBestBound" title="Link to this definition"></a></dt>
+<dd><p>The best bound Cbc proved on a MIP, in the problem’s sense, or None.</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pulp.apis.CYLP.findSolutionValues">
-<span class="sig-name descname"><span class="pre">findSolutionValues</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pulp.apis.CYLP.findSolutionValues" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">findSolutionValues</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="pulp.html#pulp.LpProblem" title="pulp.LpProblem"><span class="pre">LpProblem</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">column_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><span class="pre">bool</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#pulp.apis.CYLP.findSolutionValues" title="Link to this definition"></a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulp.apis.CYLP.isCbcModel">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">isCbcModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="pulp.html#pulp.LpProblem" title="pulp.LpProblem"><span class="pre">LpProblem</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><span class="pre">bool</span></a></span></span><a class="headerlink" href="#pulp.apis.CYLP.isCbcModel" title="Link to this definition"></a></dt>
+<dd><p>Whether lp.solverModel is a Cbc (MIP) model rather than a Clp (LP) one</p>
+</dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pulp.apis.CYLP.name">
@@ -1332,9 +1358,9 @@ parameters. The <code class="docutils literal notranslate"><span class="pre">env
 to the Gurobi environment. For example, to connect to a Gurobi
 Cluster Manager:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">options</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;CSManager&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;url&gt;&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;CSAPIAccessID&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;access-id&gt;&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;CSAPISecret&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;api-key&gt;&quot;</span><span class="p">,</span>
+    <span class="s2">"CSManager"</span><span class="p">:</span> <span class="s2">"&lt;url&gt;"</span><span class="p">,</span>
+    <span class="s2">"CSAPIAccessID"</span><span class="p">:</span> <span class="s2">"&lt;access-id&gt;"</span><span class="p">,</span>
+    <span class="s2">"CSAPISecret"</span><span class="p">:</span> <span class="s2">"&lt;api-key&gt;"</span><span class="p">,</span>
 <span class="p">}</span>
 <span class="n">solver</span> <span class="o">=</span> <span class="n">GUROBI</span><span class="p">(</span><span class="n">manageEnv</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">envOptions</span><span class="o">=</span><span class="n">options</span><span class="p">)</span>
 <span class="n">solver</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>

@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>How to warm-start a solver &mdash; PuLP 4.1.1 documentation</title>
+  <title>How to warm-start a solver &mdash; PuLP 4.2.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=e6a937a4"></script>
+      <script src="../_static/documentation_options.js?v=d0ae6d56"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/js/theme.js"></script>
@@ -109,14 +109,14 @@
 <h2>Filling a variable with a value<a class="headerlink" href="#filling-a-variable-with-a-value" title="Link to this heading"></a></h2>
 <p>If a model has been previously solved, each variable has already a value. To check the value of a variable we can do it via the <code class="docutils literal notranslate"><span class="pre">value</span></code> method of the variable.</p>
 <p>In our example, if we solve the problem, we could just do the following afterwards:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">x</span><span class="p">[(</span><span class="s1">&#39;O&#39;</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="s1">&#39;Q&#39;</span><span class="p">,</span> <span class="s1">&#39;R&#39;</span><span class="p">)]</span><span class="o">.</span><span class="n">value</span><span class="p">()</span> <span class="c1"># 1.0</span>
-<span class="n">x</span><span class="p">[(</span><span class="s1">&#39;K&#39;</span><span class="p">,</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span> <span class="s1">&#39;O&#39;</span><span class="p">,</span> <span class="s1">&#39;R&#39;</span><span class="p">)]</span><span class="o">.</span><span class="n">value</span><span class="p">()</span> <span class="c1"># 0.0</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">x</span><span class="p">[(</span><span class="s1">'O'</span><span class="p">,</span> <span class="s1">'P'</span><span class="p">,</span> <span class="s1">'Q'</span><span class="p">,</span> <span class="s1">'R'</span><span class="p">)]</span><span class="o">.</span><span class="n">value</span><span class="p">()</span> <span class="c1"># 1.0</span>
+<span class="n">x</span><span class="p">[(</span><span class="s1">'K'</span><span class="p">,</span> <span class="s1">'N'</span><span class="p">,</span> <span class="s1">'O'</span><span class="p">,</span> <span class="s1">'R'</span><span class="p">)]</span><span class="o">.</span><span class="n">value</span><span class="p">()</span> <span class="c1"># 0.0</span>
 </pre></div>
 </div>
 <p>If we have not yet solved the model, we can use the <code class="docutils literal notranslate"><span class="pre">setInitialValue</span></code> method to assign a value to the variable.</p>
 <p>In our example, if we want to get those two same values, we would do the following:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">x</span><span class="p">[(</span><span class="s1">&#39;O&#39;</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="s1">&#39;Q&#39;</span><span class="p">,</span> <span class="s1">&#39;R&#39;</span><span class="p">)]</span><span class="o">.</span><span class="n">setInitialValue</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">x</span><span class="p">[(</span><span class="s1">&#39;K&#39;</span><span class="p">,</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span> <span class="s1">&#39;O&#39;</span><span class="p">,</span> <span class="s1">&#39;R&#39;</span><span class="p">)]</span><span class="o">.</span><span class="n">setInitialValue</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">x</span><span class="p">[(</span><span class="s1">'O'</span><span class="p">,</span> <span class="s1">'P'</span><span class="p">,</span> <span class="s1">'Q'</span><span class="p">,</span> <span class="s1">'R'</span><span class="p">)]</span><span class="o">.</span><span class="n">setInitialValue</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">x</span><span class="p">[(</span><span class="s1">'K'</span><span class="p">,</span> <span class="s1">'N'</span><span class="p">,</span> <span class="s1">'O'</span><span class="p">,</span> <span class="s1">'R'</span><span class="p">)]</span><span class="o">.</span><span class="n">setInitialValue</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -133,7 +133,7 @@
 <h2>Fixing a variable<a class="headerlink" href="#fixing-a-variable" title="Link to this heading"></a></h2>
 <p>Assigning values to variables also permits fixing those variables to that value. In order to do that, we use the <code class="docutils literal notranslate"><span class="pre">fixValue</span></code> method of the variable.</p>
 <p>For our example, if we know some variable needs to be 1, we can do:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">_variable</span> <span class="o">=</span> <span class="n">x</span><span class="p">[(</span><span class="s1">&#39;O&#39;</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="s1">&#39;Q&#39;</span><span class="p">,</span> <span class="s1">&#39;R&#39;</span><span class="p">)]</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">_variable</span> <span class="o">=</span> <span class="n">x</span><span class="p">[(</span><span class="s1">'O'</span><span class="p">,</span> <span class="s1">'P'</span><span class="p">,</span> <span class="s1">'Q'</span><span class="p">,</span> <span class="s1">'R'</span><span class="p">)]</span>
 <span class="n">_variable</span><span class="o">.</span><span class="n">setInitialValue</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 <span class="n">_variable</span><span class="o">.</span><span class="n">fixValue</span><span class="p">()</span>
 </pre></div>
@@ -143,18 +143,18 @@
 <section id="whole-example">
 <h2>Whole Example<a class="headerlink" href="#whole-example" title="Link to this heading"></a></h2>
 <p>If you want to see the complete code of the warm start version of the example, <a class="reference download internal" download="" href="../_downloads/4de01d450895a988bf8d1ae0c3407a00/wedding_initial.py"><code class="xref download docutils literal notranslate"><span class="pre">click</span> <span class="pre">here</span></code></a> or see below.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="sd">"""</span>
 <span class="sd">A set partitioning model of a wedding seating problem</span>
 <span class="sd">Adaptation where an initial solution is given to solvers: CPLEX_CMD, GUROBI_CMD, COIN_CMD</span>
 
 <span class="sd">Authors: Stuart Mitchell 2009, Franco Peschiera 2019</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">pulp</span>
 
 <span class="n">max_tables</span> <span class="o">=</span> <span class="mi">5</span>
 <span class="n">max_table_size</span> <span class="o">=</span> <span class="mi">4</span>
-<span class="n">guests</span> <span class="o">=</span> <span class="s2">&quot;A B C D E F G I J K L M N O P Q R&quot;</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+<span class="n">guests</span> <span class="o">=</span> <span class="s2">"A B C D E F G I J K L M N O P Q R"</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">happiness</span><span class="p">(</span>
@@ -163,47 +163,47 @@
     <span class="o">|</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
     <span class="o">|</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Find the happiness of the table</span>
 <span class="sd">    - by calculating the maximum distance between the letters</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">return</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">ord</span><span class="p">(</span><span class="n">table</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">-</span> <span class="nb">ord</span><span class="p">(</span><span class="n">table</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
 
 
 <span class="c1"># create list of all possible tables</span>
 <span class="n">possible_tables</span> <span class="o">=</span> <span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">pulp</span><span class="o">.</span><span class="n">allcombinations</span><span class="p">(</span><span class="n">guests</span><span class="p">,</span> <span class="n">max_table_size</span><span class="p">)]</span>
 
-<span class="n">seating_model</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;Wedding Seating Model&quot;</span><span class="p">,</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
+<span class="n">seating_model</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">"Wedding Seating Model"</span><span class="p">,</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
 
 <span class="c1"># create a binary variable to state that a table setting is used</span>
-<span class="n">_table_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">possible_tables</span><span class="p">]</span>
+<span class="n">_table_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"_"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">possible_tables</span><span class="p">]</span>
 <span class="n">vars_by_key</span> <span class="o">=</span> <span class="n">seating_model</span><span class="o">.</span><span class="n">add_variable_dict</span><span class="p">(</span>
-    <span class="s2">&quot;table_</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">_table_keys</span><span class="p">,),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpInteger</span>
+    <span class="s2">"table_</span><span class="si">%s</span><span class="s2">"</span><span class="p">,</span> <span class="p">(</span><span class="n">_table_keys</span><span class="p">,),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpInteger</span>
 <span class="p">)</span>
-<span class="n">x</span> <span class="o">=</span> <span class="p">{</span><span class="n">t</span><span class="p">:</span> <span class="n">vars_by_key</span><span class="p">[</span><span class="s2">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">t</span><span class="p">)]</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">possible_tables</span><span class="p">}</span>
+<span class="n">x</span> <span class="o">=</span> <span class="p">{</span><span class="n">t</span><span class="p">:</span> <span class="n">vars_by_key</span><span class="p">[</span><span class="s2">"_"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">t</span><span class="p">)]</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">possible_tables</span><span class="p">}</span>
 
 <span class="n">seating_model</span> <span class="o">+=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">lpSum</span><span class="p">([</span><span class="n">happiness</span><span class="p">(</span><span class="n">table</span><span class="p">)</span> <span class="o">*</span> <span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span><span class="p">])</span>
 
 <span class="c1"># specify the maximum number of tables</span>
 <span class="n">seating_model</span> <span class="o">+=</span> <span class="p">(</span>
     <span class="n">pulp</span><span class="o">.</span><span class="n">lpSum</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span><span class="p">])</span> <span class="o">&lt;=</span> <span class="n">max_tables</span><span class="p">,</span>
-    <span class="s2">&quot;Maximum_number_of_tables&quot;</span><span class="p">,</span>
+    <span class="s2">"Maximum_number_of_tables"</span><span class="p">,</span>
 <span class="p">)</span>
 
 <span class="c1"># A guest must seated at one and only one table</span>
 <span class="k">for</span> <span class="n">guest</span> <span class="ow">in</span> <span class="n">guests</span><span class="p">:</span>
     <span class="n">seating_model</span> <span class="o">+=</span> <span class="p">(</span>
         <span class="n">pulp</span><span class="o">.</span><span class="n">lpSum</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span> <span class="k">if</span> <span class="n">guest</span> <span class="ow">in</span> <span class="n">table</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span>
-        <span class="sa">f</span><span class="s2">&quot;Must_seat_</span><span class="si">{</span><span class="n">guest</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"Must_seat_</span><span class="si">{</span><span class="n">guest</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
     <span class="p">)</span>
 
-<span class="c1"># I&#39;ve taken the optimal solution from a previous solving. x is the variable dictionary.</span>
+<span class="c1"># I've taken the optimal solution from a previous solving. x is the variable dictionary.</span>
 <span class="n">solution</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="p">(</span><span class="s2">&quot;M&quot;</span><span class="p">,</span> <span class="s2">&quot;N&quot;</span><span class="p">):</span> <span class="mf">1.0</span><span class="p">,</span>
-    <span class="p">(</span><span class="s2">&quot;E&quot;</span><span class="p">,</span> <span class="s2">&quot;F&quot;</span><span class="p">,</span> <span class="s2">&quot;G&quot;</span><span class="p">):</span> <span class="mf">1.0</span><span class="p">,</span>
-    <span class="p">(</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="s2">&quot;B&quot;</span><span class="p">,</span> <span class="s2">&quot;C&quot;</span><span class="p">,</span> <span class="s2">&quot;D&quot;</span><span class="p">):</span> <span class="mf">1.0</span><span class="p">,</span>
-    <span class="p">(</span><span class="s2">&quot;I&quot;</span><span class="p">,</span> <span class="s2">&quot;J&quot;</span><span class="p">,</span> <span class="s2">&quot;K&quot;</span><span class="p">,</span> <span class="s2">&quot;L&quot;</span><span class="p">):</span> <span class="mf">1.0</span><span class="p">,</span>
-    <span class="p">(</span><span class="s2">&quot;O&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;Q&quot;</span><span class="p">,</span> <span class="s2">&quot;R&quot;</span><span class="p">):</span> <span class="mf">1.0</span><span class="p">,</span>
+    <span class="p">(</span><span class="s2">"M"</span><span class="p">,</span> <span class="s2">"N"</span><span class="p">):</span> <span class="mf">1.0</span><span class="p">,</span>
+    <span class="p">(</span><span class="s2">"E"</span><span class="p">,</span> <span class="s2">"F"</span><span class="p">,</span> <span class="s2">"G"</span><span class="p">):</span> <span class="mf">1.0</span><span class="p">,</span>
+    <span class="p">(</span><span class="s2">"A"</span><span class="p">,</span> <span class="s2">"B"</span><span class="p">,</span> <span class="s2">"C"</span><span class="p">,</span> <span class="s2">"D"</span><span class="p">):</span> <span class="mf">1.0</span><span class="p">,</span>
+    <span class="p">(</span><span class="s2">"I"</span><span class="p">,</span> <span class="s2">"J"</span><span class="p">,</span> <span class="s2">"K"</span><span class="p">,</span> <span class="s2">"L"</span><span class="p">):</span> <span class="mf">1.0</span><span class="p">,</span>
+    <span class="p">(</span><span class="s2">"O"</span><span class="p">,</span> <span class="s2">"P"</span><span class="p">,</span> <span class="s2">"Q"</span><span class="p">,</span> <span class="s2">"R"</span><span class="p">):</span> <span class="mf">1.0</span><span class="p">,</span>
 <span class="p">}</span>
 <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">solution</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
     <span class="n">x</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">setInitialValue</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
@@ -216,7 +216,7 @@
 <span class="n">seating_model</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="p">)</span>
 
 
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The chosen tables are out of a total of </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">possible_tables</span><span class="p">)</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"The chosen tables are out of a total of </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">possible_tables</span><span class="p">)</span><span class="si">}</span><span class="s2">:"</span><span class="p">)</span>
 <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">possible_tables</span><span class="p">:</span>
     <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="n">table</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">()</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>

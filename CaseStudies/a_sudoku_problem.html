@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>A Sudoku Problem formulated as an LP &mdash; PuLP 4.1.1 documentation</title>
+  <title>A Sudoku Problem formulated as an LP &mdash; PuLP 4.2.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=e6a937a4"></script>
+      <script src="../_static/documentation_options.js?v=d0ae6d56"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/js/theme.js"></script>
@@ -160,12 +160,12 @@ number of feasible solutions, instead of just one).</p></li>
 <section id="solution">
 <h2>Solution<a class="headerlink" href="#solution" title="Link to this heading"></a></h2>
 <p>The introductory commenting and import statement are entered</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="sd">"""</span>
 <span class="sd">The Sudoku Problem Formulation for the PuLP Modeller</span>
 
 <span class="sd">Authors: Antony Phillips, Dr Stuart Mitchell</span>
 <span class="sd">edited by Nathan Sudermann-Merx</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="c1"># Import PuLP modeler functions</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pulp</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
@@ -188,12 +188,12 @@ number of feasible solutions, instead of just one).</p></li>
 <p>Therefore, Boxes[0] will return a list of tuples containing the locations of each of the 9 squares in the first box.</p>
 <p>The prob variable is created to contain the problem data.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># The prob variable is created to contain the problem data</span>
-<span class="n">prob</span> <span class="o">=</span> <span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;Sudoku Problem&quot;</span><span class="p">)</span>
+<span class="n">prob</span> <span class="o">=</span> <span class="n">LpProblem</span><span class="p">(</span><span class="s2">"Sudoku Problem"</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The 729 problem variables are created since the <cite>(Vals,Rows,Cols)</cite> creates a variable for each combination of value, row and column. An example variable would be: Choice_4_2_9, and it is defined to be a binary variable (able to take only the integers 1 or 0. If Choice_4_2_9 was 1, it would mean the number 4 was present in the square situated in row 2, column 9. (If it was 0, it would mean there was not a 4 there)</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># The decision variables are created</span>
-<span class="n">choices</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable_dict</span><span class="p">(</span><span class="s2">&quot;Choice&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">VALS</span><span class="p">,</span> <span class="n">ROWS</span><span class="p">,</span> <span class="n">COLS</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">LpBinary</span><span class="p">)</span>
+<span class="n">choices</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable_dict</span><span class="p">(</span><span class="s2">"Choice"</span><span class="p">,</span> <span class="p">(</span><span class="n">VALS</span><span class="p">,</span> <span class="n">ROWS</span><span class="p">,</span> <span class="n">COLS</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">LpBinary</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>As explained above, we don’t define an objective function since we are only concerned with any variable combination that can satisfy the constraints.</p>
@@ -260,38 +260,38 @@ number of feasible solutions, instead of just one).</p></li>
 </div>
 <p>The problem is written to an LP file, solved using PuLP’s choice of solver and the solution status is printed to the screen</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># The problem data is written to an .lp file</span>
-<span class="n">prob</span><span class="o">.</span><span class="n">writeLP</span><span class="p">(</span><span class="s2">&quot;Sudoku.lp&quot;</span><span class="p">)</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">writeLP</span><span class="p">(</span><span class="s2">"Sudoku.lp"</span><span class="p">)</span>
 
-<span class="c1"># The problem is solved using PuLP&#39;s choice of Solver</span>
+<span class="c1"># The problem is solved using PuLP's choice of Solver</span>
 <span class="n">stats</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
 
 <span class="c1"># The status of the solution is printed to the screen</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Status:&quot;</span><span class="p">,</span> <span class="n">stats</span><span class="o">.</span><span class="n">status_str</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Status:"</span><span class="p">,</span> <span class="n">stats</span><span class="o">.</span><span class="n">status_str</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Instead of printing out all 729 of the binary problem variables and their respective values, it is more meaningful to draw the solution in a text file. The code also puts lines inbetween every third row and column to make the solution easier to read. The sudokuout.txt file is created in the same folder as the .py file.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># A file called sudokuout.txt is created/overwritten for writing to</span>
-<span class="n">sudokuout</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;sudokuout.txt&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
+<span class="n">sudokuout</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s2">"sudokuout.txt"</span><span class="p">,</span> <span class="s2">"w"</span><span class="p">)</span>
 
 <span class="c1"># The solution is written to the sudokuout.txt file</span>
 <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">ROWS</span><span class="p">:</span>
     <span class="k">if</span> <span class="n">r</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">7</span><span class="p">]:</span>
-        <span class="n">sudokuout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;+-------+-------+-------+</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">sudokuout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">"+-------+-------+-------+</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">COLS</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">VALS</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">value</span><span class="p">(</span><span class="n">choices</span><span class="p">[</span><span class="n">v</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">c</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">7</span><span class="p">]:</span>
-                    <span class="n">sudokuout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;| &quot;</span><span class="p">)</span>
-                <span class="n">sudokuout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span><span class="p">)</span>
+                    <span class="n">sudokuout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">"| "</span><span class="p">)</span>
+                <span class="n">sudokuout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">+</span> <span class="s2">" "</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">c</span> <span class="o">==</span> <span class="mi">9</span><span class="p">:</span>
-                    <span class="n">sudokuout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;|</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="n">sudokuout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;+-------+-------+-------+&quot;</span><span class="p">)</span>
+                    <span class="n">sudokuout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">"|</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
+<span class="n">sudokuout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">"+-------+-------+-------+"</span><span class="p">)</span>
 <span class="n">sudokuout</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </pre></div>
 </div>
 <p>A note of the location of the solution is printed to the solution</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># The location of the solution is give to the user</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Solution Written to sudokuout.txt&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Solution Written to sudokuout.txt"</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The full file above is given provided <a class="reference download internal" download="" href="../_downloads/cacc92c35b26256ba56639fb3468a7ea/Sudoku1.py"><code class="xref download docutils literal notranslate"><span class="pre">Sudoku1.py</span></code></a>
@@ -305,22 +305,22 @@ The final solution should be the following:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
     <span class="n">stats</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
     <span class="c1"># The status of the solution is printed to the screen</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Status:&quot;</span><span class="p">,</span> <span class="n">stats</span><span class="o">.</span><span class="n">status_str</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Status:"</span><span class="p">,</span> <span class="n">stats</span><span class="o">.</span><span class="n">status_str</span><span class="p">)</span>
     <span class="c1"># The solution is printed if the solver found one meeting the constraints</span>
     <span class="k">if</span> <span class="n">stats</span><span class="o">.</span><span class="n">has_solution</span><span class="p">:</span>
         <span class="c1"># The solution is written to the sudokuout.txt file</span>
         <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">ROWS</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">r</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">7</span><span class="p">]:</span>
-                <span class="n">sudokuout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;+-------+-------+-------+</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">sudokuout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">"+-------+-------+-------+</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">COLS</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">VALS</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">value</span><span class="p">(</span><span class="n">choices</span><span class="p">[</span><span class="n">v</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">c</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
                         <span class="k">if</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">7</span><span class="p">]:</span>
-                            <span class="n">sudokuout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;| &quot;</span><span class="p">)</span>
-                        <span class="n">sudokuout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span><span class="p">)</span>
+                            <span class="n">sudokuout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">"| "</span><span class="p">)</span>
+                        <span class="n">sudokuout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">+</span> <span class="s2">" "</span><span class="p">)</span>
                         <span class="k">if</span> <span class="n">c</span> <span class="o">==</span> <span class="mi">9</span><span class="p">:</span>
-                            <span class="n">sudokuout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;|</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">sudokuout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;+-------+-------+-------+</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                            <span class="n">sudokuout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">"|</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
+        <span class="n">sudokuout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">"+-------+-------+-------+</span><span class="se">\n\n</span><span class="s2">"</span><span class="p">)</span>
         <span class="c1"># The constraint is added that the same solution cannot be returned again</span>
         <span class="n">prob</span> <span class="o">+=</span> <span class="p">(</span>
             <span class="n">lpSum</span><span class="p">(</span>

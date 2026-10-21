@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>How to edit constraints &mdash; PuLP 4.1.1 documentation</title>
+  <title>How to edit constraints &mdash; PuLP 4.2.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=e6a937a4"></script>
+      <script src="../_static/documentation_options.js?v=d0ae6d56"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/js/theme.js"></script>
@@ -114,15 +114,15 @@ added does not change the problem.</strong></p>
 <p>There are three ways to get the constraint as stored in the problem:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pulp</span><span class="w"> </span><span class="kn">import</span> <span class="n">LpProblem</span><span class="p">,</span> <span class="n">LpMinimize</span>
 
-<span class="n">prob</span> <span class="o">=</span> <span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;edit&quot;</span><span class="p">,</span> <span class="n">LpMinimize</span><span class="p">)</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
-<span class="n">y</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<span class="n">prob</span> <span class="o">=</span> <span class="n">LpProblem</span><span class="p">(</span><span class="s2">"edit"</span><span class="p">,</span> <span class="n">LpMinimize</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">"y"</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
 
 <span class="c1"># 1. keep the one returned by addConstraint</span>
-<span class="n">cap</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">addConstraint</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">&quot;cap&quot;</span><span class="p">)</span>
+<span class="n">cap</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">addConstraint</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">"cap"</span><span class="p">)</span>
 
 <span class="c1"># 2. look it up by name (None if there is no such constraint)</span>
-<span class="n">cap</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">get_constraint_by_name</span><span class="p">(</span><span class="s2">&quot;cap&quot;</span><span class="p">)</span>
+<span class="n">cap</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">get_constraint_by_name</span><span class="p">(</span><span class="s2">"cap"</span><span class="p">)</span>
 
 <span class="c1"># 3. take it from the list of all constraints, in the order they were added</span>
 <span class="n">cap</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">constraints</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
@@ -131,8 +131,8 @@ added does not change the problem.</strong></p>
 <p><code class="docutils literal notranslate"><span class="pre">prob</span> <span class="pre">+=</span> <span class="pre">x</span> <span class="pre">+</span> <span class="pre">y</span> <span class="pre">&lt;=</span> <span class="pre">5,</span> <span class="pre">&quot;cap&quot;</span></code> adds the constraint too, but returns the problem,
 not the constraint. Use <code class="docutils literal notranslate"><span class="pre">addConstraint</span></code> when you want to keep the constraint,
 or give it a name and look it up afterwards:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">&quot;cap&quot;</span>
-<span class="n">cap</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">get_constraint_by_name</span><span class="p">(</span><span class="s2">&quot;cap&quot;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">"cap"</span>
+<span class="n">cap</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">get_constraint_by_name</span><span class="p">(</span><span class="s2">"cap"</span><span class="p">)</span>
 <span class="n">cap</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>              <span class="c1"># the problem now has 2*x + y &lt;= 5</span>
 </pre></div>
 </div>
@@ -141,7 +141,7 @@ one is visible through the others.</p>
 </section>
 <section id="what-you-can-change">
 <h2><a class="toc-backref" href="#id2" role="doc-backlink">What you can change</a><a class="headerlink" href="#what-you-can-change" title="Link to this heading"></a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">cap</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">addConstraint</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">&quot;cap&quot;</span><span class="p">)</span>   <span class="c1"># x + y &lt;= 5</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">cap</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">addConstraint</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">"cap"</span><span class="p">)</span>   <span class="c1"># x + y &lt;= 5</span>
 
 <span class="n">cap</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>              <span class="c1"># 2*x + y &lt;= 5     set a coefficient</span>
 <span class="k">del</span> <span class="n">cap</span><span class="p">[</span><span class="n">y</span><span class="p">]</span>              <span class="c1"># 2*x &lt;= 5         remove a term</span>
@@ -175,7 +175,7 @@ kept after an edit, and the next solve replaces them.</p>
 <h2><a class="toc-backref" href="#id3" role="doc-backlink">Example: re-solving with new data</a><a class="headerlink" href="#example-re-solving-with-new-data" title="Link to this heading"></a></h2>
 <p>A common use is to solve a model several times with a different right-hand
 side:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">demand</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">addConstraint</span><span class="p">(</span><span class="n">lpSum</span><span class="p">(</span><span class="n">flow</span><span class="p">[</span><span class="n">w</span><span class="p">][</span><span class="s2">&quot;bar_1&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">warehouses</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">500</span><span class="p">,</span> <span class="s2">&quot;demand_bar_1&quot;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">demand</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">addConstraint</span><span class="p">(</span><span class="n">lpSum</span><span class="p">(</span><span class="n">flow</span><span class="p">[</span><span class="n">w</span><span class="p">][</span><span class="s2">"bar_1"</span><span class="p">]</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">warehouses</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">500</span><span class="p">,</span> <span class="s2">"demand_bar_1"</span><span class="p">)</span>
 
 <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="mi">601</span><span class="p">,</span> <span class="mi">10</span><span class="p">):</span>
     <span class="n">demand</span><span class="o">.</span><span class="n">changeRHS</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
@@ -190,7 +190,7 @@ side:</p>
 <p><code class="docutils literal notranslate"><span class="pre">addConstraint</span></code> (and <code class="docutils literal notranslate"><span class="pre">prob</span> <span class="pre">+=</span> <span class="pre">...</span></code>) <strong>copies</strong> the expression into the
 problem. Changing the expression afterwards changes only the expression:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="mi">5</span>
-<span class="n">prob</span> <span class="o">+=</span> <span class="n">c</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">c</span><span class="p">,</span> <span class="s2">"c"</span>
 
 <span class="n">c</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span>               <span class="c1"># UserWarning; the problem still has x + y &lt;= 5</span>
 <span class="n">c</span><span class="o">.</span><span class="n">changeRHS</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>         <span class="c1"># UserWarning; same</span>
@@ -206,13 +206,13 @@ then e.g. con[x] = 2 or con.changeRHS(3).
 </pre></div>
 </div>
 <p>To fix the code, edit the <code class="docutils literal notranslate"><span class="pre">LpConstraint</span></code> instead:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">addConstraint</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">addConstraint</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">"c"</span><span class="p">)</span>
 <span class="n">c</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span>               <span class="c1"># the problem now has 3*x + y &lt;= 5</span>
 </pre></div>
 </div>
 <p>or, if the constraint was added with <code class="docutils literal notranslate"><span class="pre">prob</span> <span class="pre">+=</span> <span class="pre">...</span></code>, look it up by name:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span>
-<span class="n">c</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">get_constraint_by_name</span><span class="p">(</span><span class="s2">&quot;c&quot;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">"c"</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">get_constraint_by_name</span><span class="p">(</span><span class="s2">"c"</span><span class="p">)</span>
 <span class="n">c</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span>               <span class="c1"># the problem now has 3*x + y &lt;= 5</span>
 </pre></div>
 </div>
@@ -225,7 +225,7 @@ also appears when you edit an expression with a sense <strong>before</strong> ad
 <p>Build the whole expression before turning it into a constraint, or edit the
 <code class="docutils literal notranslate"><span class="pre">LpConstraint</span></code> after adding it:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="mi">5</span>                         <span class="c1"># no warning</span>
-<span class="n">c</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">addConstraint</span><span class="p">(</span><span class="n">x</span> <span class="o">&lt;=</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">)</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">addConstraint</span><span class="p">(</span><span class="n">x</span> <span class="o">&lt;=</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">"c"</span><span class="p">)</span>
 <span class="n">c</span> <span class="o">+=</span> <span class="n">y</span>                                 <span class="c1"># no warning: edits the problem</span>
 </pre></div>
 </div>

@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>A Blending Problem &mdash; PuLP 4.1.1 documentation</title>
+  <title>A Blending Problem &mdash; PuLP 4.2.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=e6a937a4"></script>
+      <script src="../_static/documentation_options.js?v=d0ae6d56"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
@@ -203,11 +203,11 @@ call a solver. This will explain step-by-step how to write this Python
 program. It is suggested that you repeat the exercise yourself. The code
 for this example is found in <a class="reference download internal" download="" href="../_downloads/7df62677e035bcd3fecb97adf40042da/WhiskasModel1.py"><code class="xref download docutils literal notranslate"><span class="pre">WhiskasModel1.py</span></code></a></p>
 <p>The start of the your file should then be headed with a short commenting section outlining the purpose of the program. For example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="sd">"""</span>
 <span class="sd">The Simplified Whiskas Model Python Formulation for the PuLP Modeller</span>
 
 <span class="sd">Authors: Antony Phillips, Dr Stuart Mitchell  2007</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 </pre></div>
 </div>
 <p>Then you will import PuLP’s functions for use in your code:</p>
@@ -221,8 +221,8 @@ created using the <a class="reference internal" href="../technical/pulp.html#pul
 being the arbitrary name of this problem (as a string), and the second
 parameter being either <code class="docutils literal notranslate"><span class="pre">LpMinimize</span></code> or <code class="docutils literal notranslate"><span class="pre">LpMaximize</span></code> depending on the
 type of LP you are trying to solve:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create the &#39;prob&#39; variable to contain the problem data</span>
-<span class="n">prob</span> <span class="o">=</span> <span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;The Whiskas Problem&quot;</span><span class="p">,</span> <span class="n">LpMinimize</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create the 'prob' variable to contain the problem data</span>
+<span class="n">prob</span> <span class="o">=</span> <span class="n">LpProblem</span><span class="p">(</span><span class="s2">"The Whiskas Problem"</span><span class="p">,</span> <span class="n">LpMinimize</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The problem variables <code class="docutils literal notranslate"><span class="pre">x1</span></code> and <code class="docutils literal notranslate"><span class="pre">x2</span></code> are created using the
@@ -241,25 +241,25 @@ wish to specify the third parameter, but you want the second to be the
 default value, you will need to specifically set the second parameter as
 it’s default value. i.e you cannot leave a parameter entry blank.
 e.g (variables are created from a problem):</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">&quot;example&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">"example"</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>or:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">&quot;example&quot;</span><span class="p">,</span> <span class="n">upBound</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">"example"</span><span class="p">,</span> <span class="n">upBound</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>To explicitly create the two variables needed for this problem:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># The 2 variables Beef and Chicken are created with a lower limit of zero</span>
-<span class="n">x1</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">&quot;ChickenPercent&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">LpInteger</span><span class="p">)</span>
-<span class="n">x2</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">&quot;BeefPercent&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">LpContinuous</span><span class="p">)</span>
+<span class="n">x1</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">"ChickenPercent"</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">LpInteger</span><span class="p">)</span>
+<span class="n">x2</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">"BeefPercent"</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">LpContinuous</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The variable <code class="docutils literal notranslate"><span class="pre">prob</span></code> now begins collecting problem data with the
 <code class="docutils literal notranslate"><span class="pre">+=</span></code> operator. The objective function is logically entered first, with
 an important comma <code class="docutils literal notranslate"><span class="pre">,</span></code> at the end of the statement and a short string
 explaining what this objective function is:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># The objective function is added to &#39;prob&#39; first</span>
-<span class="n">prob</span> <span class="o">+=</span> <span class="mf">0.013</span> <span class="o">*</span> <span class="n">x1</span> <span class="o">+</span> <span class="mf">0.008</span> <span class="o">*</span> <span class="n">x2</span><span class="p">,</span> <span class="s2">&quot;Total Cost of Ingredients per can&quot;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># The objective function is added to 'prob' first</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="mf">0.013</span> <span class="o">*</span> <span class="n">x1</span> <span class="o">+</span> <span class="mf">0.008</span> <span class="o">*</span> <span class="n">x2</span><span class="p">,</span> <span class="s2">"Total Cost of Ingredients per can"</span>
 </pre></div>
 </div>
 <p>The constraints are now entered (Note: any “non-negative”
@@ -269,11 +269,11 @@ done with the ‘+=’ operator again, since we are adding more data to the
 comma at the end of the constraint equation and a brief description of
 the cause of that constraint:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># The five constraints are entered</span>
-<span class="n">prob</span> <span class="o">+=</span> <span class="n">x1</span> <span class="o">+</span> <span class="n">x2</span> <span class="o">==</span> <span class="mi">100</span><span class="p">,</span> <span class="s2">&quot;PercentagesSum&quot;</span>
-<span class="n">prob</span> <span class="o">+=</span> <span class="mf">0.100</span> <span class="o">*</span> <span class="n">x1</span> <span class="o">+</span> <span class="mf">0.200</span> <span class="o">*</span> <span class="n">x2</span> <span class="o">&gt;=</span> <span class="mf">8.0</span><span class="p">,</span> <span class="s2">&quot;ProteinRequirement&quot;</span>
-<span class="n">prob</span> <span class="o">+=</span> <span class="mf">0.080</span> <span class="o">*</span> <span class="n">x1</span> <span class="o">+</span> <span class="mf">0.100</span> <span class="o">*</span> <span class="n">x2</span> <span class="o">&gt;=</span> <span class="mf">6.0</span><span class="p">,</span> <span class="s2">&quot;FatRequirement&quot;</span>
-<span class="n">prob</span> <span class="o">+=</span> <span class="mf">0.001</span> <span class="o">*</span> <span class="n">x1</span> <span class="o">+</span> <span class="mf">0.005</span> <span class="o">*</span> <span class="n">x2</span> <span class="o">&lt;=</span> <span class="mf">2.0</span><span class="p">,</span> <span class="s2">&quot;FibreRequirement&quot;</span>
-<span class="n">prob</span> <span class="o">+=</span> <span class="mf">0.002</span> <span class="o">*</span> <span class="n">x1</span> <span class="o">+</span> <span class="mf">0.005</span> <span class="o">*</span> <span class="n">x2</span> <span class="o">&lt;=</span> <span class="mf">0.4</span><span class="p">,</span> <span class="s2">&quot;SaltRequirement&quot;</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">x1</span> <span class="o">+</span> <span class="n">x2</span> <span class="o">==</span> <span class="mi">100</span><span class="p">,</span> <span class="s2">"PercentagesSum"</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="mf">0.100</span> <span class="o">*</span> <span class="n">x1</span> <span class="o">+</span> <span class="mf">0.200</span> <span class="o">*</span> <span class="n">x2</span> <span class="o">&gt;=</span> <span class="mf">8.0</span><span class="p">,</span> <span class="s2">"ProteinRequirement"</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="mf">0.080</span> <span class="o">*</span> <span class="n">x1</span> <span class="o">+</span> <span class="mf">0.100</span> <span class="o">*</span> <span class="n">x2</span> <span class="o">&gt;=</span> <span class="mf">6.0</span><span class="p">,</span> <span class="s2">"FatRequirement"</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="mf">0.001</span> <span class="o">*</span> <span class="n">x1</span> <span class="o">+</span> <span class="mf">0.005</span> <span class="o">*</span> <span class="n">x2</span> <span class="o">&lt;=</span> <span class="mf">2.0</span><span class="p">,</span> <span class="s2">"FibreRequirement"</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="mf">0.002</span> <span class="o">*</span> <span class="n">x1</span> <span class="o">+</span> <span class="mf">0.005</span> <span class="o">*</span> <span class="n">x2</span> <span class="o">&lt;=</span> <span class="mf">0.4</span><span class="p">,</span> <span class="s2">"SaltRequirement"</span>
 </pre></div>
 </div>
 <p>Now that all the problem data is entered, the <a class="reference internal" href="../technical/pulp.html#pulp.LpProblem.writeLP" title="pulp.LpProblem.writeLP"><code class="xref py py-meth docutils literal notranslate"><span class="pre">writeLP()</span></code></a> function
@@ -288,13 +288,13 @@ string <code class="docutils literal notranslate"><span class="pre">&quot;Whiska
 between the variable/object and the function/method is important and is
 seen frequently in Object Oriented software (such as this):</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># The problem data is written to an .lp file</span>
-<span class="n">prob</span><span class="o">.</span><span class="n">writeLP</span><span class="p">(</span><span class="s2">&quot;WhiskasModel.lp&quot;</span><span class="p">)</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">writeLP</span><span class="p">(</span><span class="s2">"WhiskasModel.lp"</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The LP is solved using the solver that PuLP chooses. The input brackets after
 <a class="reference internal" href="../technical/pulp.html#pulp.LpProblem.solve" title="pulp.LpProblem.solve"><code class="xref py py-meth docutils literal notranslate"><span class="pre">solve()</span></code></a> are left empty in this case, however they can be
 used to specify which solver to use (e.g <code class="docutils literal notranslate"><span class="pre">prob.solve(CPLEX())</span></code> ):</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># The problem is solved using PuLP&#39;s choice of Solver</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># The problem is solved using PuLP's choice of Solver</span>
 <span class="n">stats</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -305,14 +305,14 @@ solve: <code class="xref py py-attr docutils literal notranslate"><span class="p
 <code class="docutils literal notranslate"><span class="pre">Unbounded</span></code> or <code class="docutils literal notranslate"><span class="pre">TimeLimit</span></code>, and <code class="xref py py-attr docutils literal notranslate"><span class="pre">status_str</span></code> is its
 human-readable name:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># The status of the solution is printed to the screen</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Status:&quot;</span><span class="p">,</span> <span class="n">stats</span><span class="o">.</span><span class="n">status_str</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Status:"</span><span class="p">,</span> <span class="n">stats</span><span class="o">.</span><span class="n">status_str</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The variables and their resolved optimum values can now be printed
 to the screen.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Each of the variables is printed with it&#39;s resolved optimum value</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Each of the variables is printed with it's resolved optimum value</span>
 <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">prob</span><span class="o">.</span><span class="n">variables</span><span class="p">():</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;=&quot;</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">varValue</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">"="</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">varValue</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">for</span></code> loop makes <code class="docutils literal notranslate"><span class="pre">variable</span></code> cycle through all
@@ -327,7 +327,7 @@ using the value function. This ensures that the number is in the right
 format to be displayed. <a class="reference internal" href="../technical/pulp.html#pulp.LpProblem.objective" title="pulp.LpProblem.objective"><code class="xref py py-attr docutils literal notranslate"><span class="pre">objective</span></code></a> is an attribute of the object
 <code class="docutils literal notranslate"><span class="pre">prob</span></code>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># The optimised objective function value is printed to the screen</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Total Cost of Ingredients per can = &quot;</span><span class="p">,</span> <span class="n">value</span><span class="p">(</span><span class="n">prob</span><span class="o">.</span><span class="n">objective</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Total Cost of Ingredients per can = "</span><span class="p">,</span> <span class="n">value</span><span class="p">(</span><span class="n">prob</span><span class="o">.</span><span class="n">objective</span><span class="p">))</span>
 </pre></div>
 </div>
 <p>Running this file should then produce the output to show that
@@ -402,11 +402,11 @@ that you repeat the exercise yourself. The code for this example is
 found in the <a class="reference download internal" download="" href="../_downloads/cdf71aba664f69845db72a5dfe26cbbb/WhiskasModel2.py"><code class="xref download docutils literal notranslate"><span class="pre">WhiskasModel2.py</span></code></a></p>
 <p>As with last time, it is advisable to head your file with commenting on its
 purpose, and the author name and date. Importing of the PuLP functions is also done in the same way:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="sd">"""</span>
 <span class="sd">The Full Whiskas Model Python Formulation for the PuLP Modeller</span>
 
 <span class="sd">Authors: Antony Phillips, Dr Stuart Mitchell  2007</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="c1"># Import PuLP modeler functions</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pulp</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
@@ -421,71 +421,71 @@ out and could easily be changed by someone with little knowledge of
 programming. The ingredients are the reference keys, with the numbers as
 the data.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Creates a list of the Ingredients</span>
-<span class="n">Ingredients</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;CHICKEN&quot;</span><span class="p">,</span> <span class="s2">&quot;BEEF&quot;</span><span class="p">,</span> <span class="s2">&quot;MUTTON&quot;</span><span class="p">,</span> <span class="s2">&quot;RICE&quot;</span><span class="p">,</span> <span class="s2">&quot;WHEAT&quot;</span><span class="p">,</span> <span class="s2">&quot;GEL&quot;</span><span class="p">]</span>
+<span class="n">Ingredients</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"CHICKEN"</span><span class="p">,</span> <span class="s2">"BEEF"</span><span class="p">,</span> <span class="s2">"MUTTON"</span><span class="p">,</span> <span class="s2">"RICE"</span><span class="p">,</span> <span class="s2">"WHEAT"</span><span class="p">,</span> <span class="s2">"GEL"</span><span class="p">]</span>
 
 <span class="c1"># A dictionary of the costs of each of the Ingredients is created</span>
 <span class="n">costs</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;CHICKEN&quot;</span><span class="p">:</span> <span class="mf">0.013</span><span class="p">,</span>
-    <span class="s2">&quot;BEEF&quot;</span><span class="p">:</span> <span class="mf">0.008</span><span class="p">,</span>
-    <span class="s2">&quot;MUTTON&quot;</span><span class="p">:</span> <span class="mf">0.010</span><span class="p">,</span>
-    <span class="s2">&quot;RICE&quot;</span><span class="p">:</span> <span class="mf">0.002</span><span class="p">,</span>
-    <span class="s2">&quot;WHEAT&quot;</span><span class="p">:</span> <span class="mf">0.005</span><span class="p">,</span>
-    <span class="s2">&quot;GEL&quot;</span><span class="p">:</span> <span class="mf">0.001</span><span class="p">,</span>
+    <span class="s2">"CHICKEN"</span><span class="p">:</span> <span class="mf">0.013</span><span class="p">,</span>
+    <span class="s2">"BEEF"</span><span class="p">:</span> <span class="mf">0.008</span><span class="p">,</span>
+    <span class="s2">"MUTTON"</span><span class="p">:</span> <span class="mf">0.010</span><span class="p">,</span>
+    <span class="s2">"RICE"</span><span class="p">:</span> <span class="mf">0.002</span><span class="p">,</span>
+    <span class="s2">"WHEAT"</span><span class="p">:</span> <span class="mf">0.005</span><span class="p">,</span>
+    <span class="s2">"GEL"</span><span class="p">:</span> <span class="mf">0.001</span><span class="p">,</span>
 <span class="p">}</span>
 
 <span class="c1"># A dictionary of the protein percent in each of the Ingredients is created</span>
 <span class="n">proteinPercent</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;CHICKEN&quot;</span><span class="p">:</span> <span class="mf">0.100</span><span class="p">,</span>
-    <span class="s2">&quot;BEEF&quot;</span><span class="p">:</span> <span class="mf">0.200</span><span class="p">,</span>
-    <span class="s2">&quot;MUTTON&quot;</span><span class="p">:</span> <span class="mf">0.150</span><span class="p">,</span>
-    <span class="s2">&quot;RICE&quot;</span><span class="p">:</span> <span class="mf">0.000</span><span class="p">,</span>
-    <span class="s2">&quot;WHEAT&quot;</span><span class="p">:</span> <span class="mf">0.040</span><span class="p">,</span>
-    <span class="s2">&quot;GEL&quot;</span><span class="p">:</span> <span class="mf">0.000</span><span class="p">,</span>
+    <span class="s2">"CHICKEN"</span><span class="p">:</span> <span class="mf">0.100</span><span class="p">,</span>
+    <span class="s2">"BEEF"</span><span class="p">:</span> <span class="mf">0.200</span><span class="p">,</span>
+    <span class="s2">"MUTTON"</span><span class="p">:</span> <span class="mf">0.150</span><span class="p">,</span>
+    <span class="s2">"RICE"</span><span class="p">:</span> <span class="mf">0.000</span><span class="p">,</span>
+    <span class="s2">"WHEAT"</span><span class="p">:</span> <span class="mf">0.040</span><span class="p">,</span>
+    <span class="s2">"GEL"</span><span class="p">:</span> <span class="mf">0.000</span><span class="p">,</span>
 <span class="p">}</span>
 
 <span class="c1"># A dictionary of the fat percent in each of the Ingredients is created</span>
 <span class="n">fatPercent</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;CHICKEN&quot;</span><span class="p">:</span> <span class="mf">0.080</span><span class="p">,</span>
-    <span class="s2">&quot;BEEF&quot;</span><span class="p">:</span> <span class="mf">0.100</span><span class="p">,</span>
-    <span class="s2">&quot;MUTTON&quot;</span><span class="p">:</span> <span class="mf">0.110</span><span class="p">,</span>
-    <span class="s2">&quot;RICE&quot;</span><span class="p">:</span> <span class="mf">0.010</span><span class="p">,</span>
-    <span class="s2">&quot;WHEAT&quot;</span><span class="p">:</span> <span class="mf">0.010</span><span class="p">,</span>
-    <span class="s2">&quot;GEL&quot;</span><span class="p">:</span> <span class="mf">0.000</span><span class="p">,</span>
+    <span class="s2">"CHICKEN"</span><span class="p">:</span> <span class="mf">0.080</span><span class="p">,</span>
+    <span class="s2">"BEEF"</span><span class="p">:</span> <span class="mf">0.100</span><span class="p">,</span>
+    <span class="s2">"MUTTON"</span><span class="p">:</span> <span class="mf">0.110</span><span class="p">,</span>
+    <span class="s2">"RICE"</span><span class="p">:</span> <span class="mf">0.010</span><span class="p">,</span>
+    <span class="s2">"WHEAT"</span><span class="p">:</span> <span class="mf">0.010</span><span class="p">,</span>
+    <span class="s2">"GEL"</span><span class="p">:</span> <span class="mf">0.000</span><span class="p">,</span>
 <span class="p">}</span>
 
 <span class="c1"># A dictionary of the fibre percent in each of the Ingredients is created</span>
 <span class="n">fibrePercent</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;CHICKEN&quot;</span><span class="p">:</span> <span class="mf">0.001</span><span class="p">,</span>
-    <span class="s2">&quot;BEEF&quot;</span><span class="p">:</span> <span class="mf">0.005</span><span class="p">,</span>
-    <span class="s2">&quot;MUTTON&quot;</span><span class="p">:</span> <span class="mf">0.003</span><span class="p">,</span>
-    <span class="s2">&quot;RICE&quot;</span><span class="p">:</span> <span class="mf">0.100</span><span class="p">,</span>
-    <span class="s2">&quot;WHEAT&quot;</span><span class="p">:</span> <span class="mf">0.150</span><span class="p">,</span>
-    <span class="s2">&quot;GEL&quot;</span><span class="p">:</span> <span class="mf">0.000</span><span class="p">,</span>
+    <span class="s2">"CHICKEN"</span><span class="p">:</span> <span class="mf">0.001</span><span class="p">,</span>
+    <span class="s2">"BEEF"</span><span class="p">:</span> <span class="mf">0.005</span><span class="p">,</span>
+    <span class="s2">"MUTTON"</span><span class="p">:</span> <span class="mf">0.003</span><span class="p">,</span>
+    <span class="s2">"RICE"</span><span class="p">:</span> <span class="mf">0.100</span><span class="p">,</span>
+    <span class="s2">"WHEAT"</span><span class="p">:</span> <span class="mf">0.150</span><span class="p">,</span>
+    <span class="s2">"GEL"</span><span class="p">:</span> <span class="mf">0.000</span><span class="p">,</span>
 <span class="p">}</span>
 
 <span class="c1"># A dictionary of the salt percent in each of the Ingredients is created</span>
 <span class="n">saltPercent</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;CHICKEN&quot;</span><span class="p">:</span> <span class="mf">0.002</span><span class="p">,</span>
-    <span class="s2">&quot;BEEF&quot;</span><span class="p">:</span> <span class="mf">0.005</span><span class="p">,</span>
-    <span class="s2">&quot;MUTTON&quot;</span><span class="p">:</span> <span class="mf">0.007</span><span class="p">,</span>
-    <span class="s2">&quot;RICE&quot;</span><span class="p">:</span> <span class="mf">0.002</span><span class="p">,</span>
-    <span class="s2">&quot;WHEAT&quot;</span><span class="p">:</span> <span class="mf">0.008</span><span class="p">,</span>
-    <span class="s2">&quot;GEL&quot;</span><span class="p">:</span> <span class="mf">0.000</span><span class="p">,</span>
+    <span class="s2">"CHICKEN"</span><span class="p">:</span> <span class="mf">0.002</span><span class="p">,</span>
+    <span class="s2">"BEEF"</span><span class="p">:</span> <span class="mf">0.005</span><span class="p">,</span>
+    <span class="s2">"MUTTON"</span><span class="p">:</span> <span class="mf">0.007</span><span class="p">,</span>
+    <span class="s2">"RICE"</span><span class="p">:</span> <span class="mf">0.002</span><span class="p">,</span>
+    <span class="s2">"WHEAT"</span><span class="p">:</span> <span class="mf">0.008</span><span class="p">,</span>
+    <span class="s2">"GEL"</span><span class="p">:</span> <span class="mf">0.000</span><span class="p">,</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">prob</span></code> variable is created to contain the formulation, and the
 usual parameters are passed into <a class="reference internal" href="../technical/pulp.html#pulp.LpProblem" title="pulp.LpProblem"><code class="xref py py-class docutils literal notranslate"><span class="pre">LpProblem</span></code></a>.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create the &#39;prob&#39; variable to contain the problem data</span>
-<span class="n">prob</span> <span class="o">=</span> <span class="n">LpProblem</span><span class="p">(</span><span class="s2">&quot;The Whiskas Problem&quot;</span><span class="p">,</span> <span class="n">LpMinimize</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create the 'prob' variable to contain the problem data</span>
+<span class="n">prob</span> <span class="o">=</span> <span class="n">LpProblem</span><span class="p">(</span><span class="s2">"The Whiskas Problem"</span><span class="p">,</span> <span class="n">LpMinimize</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>A dictionary called <code class="docutils literal notranslate"><span class="pre">ingredient_vars</span></code> is created which contains
 the LP variables, with their defined lower bound of zero. The reference
 keys to the dictionary are the Ingredient names, and the data is
 <code class="docutils literal notranslate"><span class="pre">Ingr_IngredientName</span></code>. (e.g. MUTTON: Ingr_MUTTON)</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># A dictionary called &#39;ingredient_vars&#39; is created to contain the referenced Variables</span>
-<span class="n">ingredient_vars</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable_dict</span><span class="p">(</span><span class="s2">&quot;Ingr&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">Ingredients</span><span class="p">,),</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">LpContinuous</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># A dictionary called 'ingredient_vars' is created to contain the referenced Variables</span>
+<span class="n">ingredient_vars</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable_dict</span><span class="p">(</span><span class="s2">"Ingr"</span><span class="p">,</span> <span class="p">(</span><span class="n">Ingredients</span><span class="p">,),</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">LpContinuous</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Since <code class="docutils literal notranslate"><span class="pre">costs</span></code> and <code class="docutils literal notranslate"><span class="pre">ingredient_vars</span></code> are now dictionaries with the
@@ -493,31 +493,31 @@ reference keys as the Ingredient names, the data can be simply extracted
 with a list comprehension as shown. The <a class="reference internal" href="../technical/pulp.html#pulp.lpSum" title="pulp.lpSum"><code class="xref py py-func docutils literal notranslate"><span class="pre">lpSum()</span></code></a> function will add the
 elements of the resulting list. Thus the objective function is simply
 entered and assigned a name:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># The objective function is added to &#39;prob&#39; first</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># The objective function is added to 'prob' first</span>
 <span class="n">prob</span> <span class="o">+=</span> <span class="p">(</span>
     <span class="n">lpSum</span><span class="p">([</span><span class="n">costs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">ingredient_vars</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">Ingredients</span><span class="p">]),</span>
-    <span class="s2">&quot;Total Cost of Ingredients per can&quot;</span><span class="p">,</span>
+    <span class="s2">"Total Cost of Ingredients per can"</span><span class="p">,</span>
 <span class="p">)</span>
 </pre></div>
 </div>
 <p>Further list comprehensions are used to define the other 5 constraints, which are also each given names describing them.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># The five constraints are added to &#39;prob&#39;</span>
-<span class="n">prob</span> <span class="o">+=</span> <span class="n">lpSum</span><span class="p">([</span><span class="n">ingredient_vars</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">Ingredients</span><span class="p">])</span> <span class="o">==</span> <span class="mi">100</span><span class="p">,</span> <span class="s2">&quot;PercentagesSum&quot;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># The five constraints are added to 'prob'</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">lpSum</span><span class="p">([</span><span class="n">ingredient_vars</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">Ingredients</span><span class="p">])</span> <span class="o">==</span> <span class="mi">100</span><span class="p">,</span> <span class="s2">"PercentagesSum"</span>
 <span class="n">prob</span> <span class="o">+=</span> <span class="p">(</span>
     <span class="n">lpSum</span><span class="p">([</span><span class="n">proteinPercent</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">ingredient_vars</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">Ingredients</span><span class="p">])</span> <span class="o">&gt;=</span> <span class="mf">8.0</span><span class="p">,</span>
-    <span class="s2">&quot;ProteinRequirement&quot;</span><span class="p">,</span>
+    <span class="s2">"ProteinRequirement"</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="n">prob</span> <span class="o">+=</span> <span class="p">(</span>
     <span class="n">lpSum</span><span class="p">([</span><span class="n">fatPercent</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">ingredient_vars</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">Ingredients</span><span class="p">])</span> <span class="o">&gt;=</span> <span class="mf">6.0</span><span class="p">,</span>
-    <span class="s2">&quot;FatRequirement&quot;</span><span class="p">,</span>
+    <span class="s2">"FatRequirement"</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="n">prob</span> <span class="o">+=</span> <span class="p">(</span>
     <span class="n">lpSum</span><span class="p">([</span><span class="n">fibrePercent</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">ingredient_vars</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">Ingredients</span><span class="p">])</span> <span class="o">&lt;=</span> <span class="mf">2.0</span><span class="p">,</span>
-    <span class="s2">&quot;FibreRequirement&quot;</span><span class="p">,</span>
+    <span class="s2">"FibreRequirement"</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="n">prob</span> <span class="o">+=</span> <span class="p">(</span>
     <span class="n">lpSum</span><span class="p">([</span><span class="n">saltPercent</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">ingredient_vars</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">Ingredients</span><span class="p">])</span> <span class="o">&lt;=</span> <span class="mf">0.4</span><span class="p">,</span>
-    <span class="s2">&quot;SaltRequirement&quot;</span><span class="p">,</span>
+    <span class="s2">"SaltRequirement"</span><span class="p">,</span>
 <span class="p">)</span>
 </pre></div>
 </div>

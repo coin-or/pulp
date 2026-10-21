@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Basic Python Coding &mdash; PuLP 4.1.1 documentation</title>
+  <title>Basic Python Coding &mdash; PuLP 4.2.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=e6a937a4"></script>
+      <script src="../_static/documentation_options.js?v=d0ae6d56"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/js/theme.js"></script>
@@ -139,10 +139,10 @@ course. The variable i moves through the string list becoming each string in
 turn. The top section is the code in a .py file and the bottom section shows
 the output</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">#The following code demonstrates a list with strings</span>
-<span class="n">ingredientslist</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Rice&quot;</span><span class="p">,</span><span class="s2">&quot;Water&quot;</span><span class="p">,</span><span class="s2">&quot;Jelly&quot;</span><span class="p">]</span>
+<span class="n">ingredientslist</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"Rice"</span><span class="p">,</span><span class="s2">"Water"</span><span class="p">,</span><span class="s2">"Jelly"</span><span class="p">]</span>
 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ingredientslist</span><span class="p">:</span>
     <span class="nb">print</span> <span class="n">i</span>
-<span class="nb">print</span> <span class="s2">&quot;No longer in the loop&quot;</span>
+<span class="nb">print</span> <span class="s2">"No longer in the loop"</span>
 </pre></div>
 </div>
 <p>gives</p>
@@ -202,9 +202,9 @@ range(start,stop,step). The default for start is 0 and the default for step is
 them or a mix of integers, floats and strings. They can be created by a loop
 (as shown in the next section) or by explicit creation (below). Note that the
 print statement will display a string/variable/list/… to the user</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span><span class="s2">&quot;pt&quot;</span><span class="p">]</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span><span class="s2">"pt"</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">a</span>
-<span class="go">[5,8,&#39;pt&#39;]</span>
+<span class="go">[5,8,'pt']</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 <span class="go">5</span>
 </pre></div>
@@ -214,7 +214,7 @@ print statement will display a string/variable/list/… to the user</p>
 <h3>Tuples<a class="headerlink" href="#tuples" title="Link to this heading"></a></h3>
 <p>Tuples are basically the same as lists, but with the important difference that
 they cannot be modified once they have been created. They are assigned by:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span><span class="s2">&quot;string&quot;</span><span class="p">,[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],(</span><span class="s2">&quot;j&quot;</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="s2">&quot;o&quot;</span><span class="p">),</span><span class="mi">14</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span><span class="s2">"string"</span><span class="p">,[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],(</span><span class="s2">"j"</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="s2">"o"</span><span class="p">),</span><span class="mi">14</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Tuples can have any type of number, strings, lists, other tuples, functions and
@@ -223,7 +223,7 @@ as element “zero”. Accessing this data is done by:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 <span class="go">4</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
-<span class="go">&quot;string&quot;</span>
+<span class="go">"string"</span>
 </pre></div>
 </div>
 </section>
@@ -234,9 +234,9 @@ order does not affect the operation of the dictionary at all. With dictionaries,
 the keys are not consecutive integers (unlike lists), and instead could be
 integers, floats or strings. This will become clear:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="p">{}</span> <span class="c1"># creates a new empty dictionary - note the curly brackets denoting the creation of a dictionary</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;programming&quot;</span> <span class="c1"># the string &quot;programming&quot; is added to the dictionary x, with &quot;4&quot; as it&#39;s reference</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="p">[</span><span class="s2">&quot;games&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">12</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;games&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"programming"</span> <span class="c1"># the string "programming" is added to the dictionary x, with "4" as it's reference</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="p">[</span><span class="s2">"games"</span><span class="p">]</span> <span class="o">=</span> <span class="mi">12</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">x</span><span class="p">[</span><span class="s2">"games"</span><span class="p">]</span>
 <span class="go">12</span>
 </pre></div>
 </div>
@@ -244,13 +244,13 @@ integers, floats or strings. This will become clear:</p>
 input. New dictionary elements are added as they are created (with a list, you
 cannot access or write to a place in the list that exceeds the initially defined
 list dimensions).</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">costs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;CHICKEN&quot;</span><span class="p">:</span> <span class="mf">1.3</span><span class="p">,</span> <span class="s2">&quot;BEEF&quot;</span><span class="p">:</span> <span class="mf">0.8</span><span class="p">,</span> <span class="s2">&quot;MUTTON&quot;</span><span class="p">:</span> <span class="mi">12</span><span class="p">}</span>
-<span class="nb">print</span> <span class="s2">&quot;Cost of Meats&quot;</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">costs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"CHICKEN"</span><span class="p">:</span> <span class="mf">1.3</span><span class="p">,</span> <span class="s2">"BEEF"</span><span class="p">:</span> <span class="mf">0.8</span><span class="p">,</span> <span class="s2">"MUTTON"</span><span class="p">:</span> <span class="mi">12</span><span class="p">}</span>
+<span class="nb">print</span> <span class="s2">"Cost of Meats"</span>
 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">costs</span><span class="p">:</span>
     <span class="nb">print</span> <span class="n">i</span>
     <span class="nb">print</span> <span class="n">costs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-<span class="n">costs</span><span class="p">[</span><span class="s2">&quot;LAMB&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">5</span>
-<span class="nb">print</span> <span class="s2">&quot;Updated Costs of Meats&quot;</span>
+<span class="n">costs</span><span class="p">[</span><span class="s2">"LAMB"</span><span class="p">]</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="nb">print</span> <span class="s2">"Updated Costs of Meats"</span>
 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">costs</span><span class="p">:</span>
     <span class="nb">print</span> <span class="n">i</span>
     <span class="nb">print</span> <span class="n">costs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
@@ -377,12 +377,12 @@ is passed in. The order of the input parameters (in the definition) does not
 matter at all, as long as when the function is called, the positional parameters
 are entered in the corresponding order. If keywords are used the order of the
 parameters does not matter at all:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">string_appender</span><span class="p">(</span><span class="n">head</span><span class="o">=</span><span class="s1">&#39;begin&#39;</span><span class="p">,</span> <span class="n">tail</span><span class="o">=</span><span class="s1">&#39;end&#39;</span><span class="p">,</span> <span class="n">end_message</span><span class="o">=</span><span class="s1">&#39;EOL&#39;</span><span class="p">):</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">string_appender</span><span class="p">(</span><span class="n">head</span><span class="o">=</span><span class="s1">'begin'</span><span class="p">,</span> <span class="n">tail</span><span class="o">=</span><span class="s1">'end'</span><span class="p">,</span> <span class="n">end_message</span><span class="o">=</span><span class="s1">'EOL'</span><span class="p">):</span>
     <span class="n">result</span> <span class="o">=</span> <span class="n">head</span> <span class="o">+</span> <span class="n">tail</span> <span class="o">+</span> <span class="n">end_message</span>
     <span class="k">return</span> <span class="n">result</span>
 </pre></div>
 </div>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">string_appender</span><span class="p">(</span><span class="s1">&#39;newbegin&#39;</span><span class="p">,</span> <span class="n">end_message</span> <span class="o">=</span> <span class="s1">&#39;StringOver&#39;</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">string_appender</span><span class="p">(</span><span class="s1">'newbegin'</span><span class="p">,</span> <span class="n">end_message</span> <span class="o">=</span> <span class="s1">'StringOver'</span><span class="p">)</span>
 <span class="go">newbeginendStringOver</span>
 </pre></div>
 </div>
@@ -408,9 +408,9 @@ self must be in the input brackets.</p>
 </dd>
 </dl>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Pattern</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Information on a specific pattern in the SpongeRoll Problem</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">cost</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="n">trimValue</span> <span class="o">=</span> <span class="mf">0.04</span>
     <span class="n">totalRollLength</span> <span class="o">=</span> <span class="mi">20</span>
@@ -430,11 +430,11 @@ self must be in the input brackets.</p>
 <p>This class could be used as follows:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Pattern</span><span class="o">.</span><span class="n">cost</span> <span class="c1"># The class attributes can be accessed without making an instance of the class</span>
 <span class="go">1</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">Pattern</span><span class="p">(</span><span class="s2">&quot;PatternA&quot;</span><span class="p">,[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">Pattern</span><span class="p">(</span><span class="s2">"PatternA"</span><span class="p">,[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">cost</span> <span class="c1"># a is now an instance of the Pattern class and is associated with Pattern class variables</span>
 <span class="go">1</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">a</span> <span class="c1"># This calls the Pattern.__str__() function</span>
-<span class="go">&quot;PatternA&quot;</span>
+<span class="go">"PatternA"</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">trim</span><span class="p">()</span> <span class="c1"># This calls the Pattern.trim() function. Note that no input is required.</span>
 </pre></div>
 </div>
