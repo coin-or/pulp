@@ -1,6 +1,6 @@
 [project]
 name = "PuLP"
-version = "4.1.0"
+version = "4.1.1"
 description = "PuLP is an LP modeler written in python. PuLP can generate MPS or LP files and call GLPK, COIN CLP/CBC, CPLEX, and GUROBI to solve linear problems."
 authors = [
     {name = 'J.S. Roy'},

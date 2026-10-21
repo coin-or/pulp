@@ -339,8 +339,9 @@ class HiGHS(LpSolver):
             for cb_type in self.callbacksToActivate:
                 lp.solverModel.startCallback(cb_type)
 
+        logPath = self.optionsDict.get("logPath")
         if not self.msg:
-            lp.solverModel.setOptionValue("output_flag", False)
+            lp.solverModel.setOptionValue("log_to_console", False)
 
         if self.gapRel is not None:
             lp.solverModel.setOptionValue("mip_rel_gap", self.gapRel)
@@ -354,13 +355,12 @@ class HiGHS(LpSolver):
         if self.timeLimit is not None:
             lp.solverModel.setOptionValue("time_limit", float(self.timeLimit))
 
-        logPath = self.optionsDict.get("logPath")
         if logPath is not None:
             lp.solverModel.setOptionValue("log_file", logPath)
 
         # set remaining parameter values
         for key, value in self.optionsDict.items():
-            if key == "warmStart":
+            if key in ("warmStart", "logPath"):
                 continue
             lp.solverModel.setOptionValue(key, value)
 
