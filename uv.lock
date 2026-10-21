@@ -54,14 +54,14 @@ wheels = [
 
 [[package]]
 name = "cbcbox"
-version = "2.935"
+version = "2.929"
 source = { registry = "https://pypi.org/simple" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ff/14/ccd694ea778e4416dcfb53adbb5829ea3a490b217bf99b7a2f31a7dc80f4/cbcbox-2.935-py3-none-macosx_15_0_arm64.whl", hash = "sha256:2ab678777e99d1aafeb6a2fb30e1ac918dc97a0f8aa09a47d019d6413d8e8a59", size = 75681259, upload-time = "2026-08-17T02:08:28.297Z" },
-    { url = "https://files.pythonhosted.org/packages/1e/85/6cf10ec73877f8aa2c3dba2ad31b4e4cb5f4decc4fa661ae5f39b4ba92b2/cbcbox-2.935-py3-none-macosx_15_0_x86_64.whl", hash = "sha256:a69aef3fd8f22070021cb2b3893d5a766a9b02457f49693f771d1209820b31f2", size = 94486147, upload-time = "2026-08-17T02:08:42.489Z" },
-    { url = "https://files.pythonhosted.org/packages/97/68/6cede3dbda0bdee4b34a0760deb11faf9b92c93598d9f6b2e3472ba87715/cbcbox-2.935-py3-none-manylinux2014_aarch64.whl", hash = "sha256:2e1d408e6ccab2f96b49a39a2673aae9dd58513544f9b5045430763806520db8", size = 154226982, upload-time = "2026-08-17T02:08:47.728Z" },
-    { url = "https://files.pythonhosted.org/packages/e7/55/e74c197d7ed84de7631947c418952a0241f72f5c4b43c3299aaf7d01ef70/cbcbox-2.935-py3-none-manylinux2014_x86_64.whl", hash = "sha256:c8489e436341aabffb6ee934ed5d1ee996fafb1bf4a9a30e03a41aff2f358e92", size = 191260547, upload-time = "2026-08-17T02:08:53.042Z" },
-    { url = "https://files.pythonhosted.org/packages/1b/f6/ce27fd2093c36bfd24c61fb1f0f9108e64d4c0f887dc2271c48b82c6060b/cbcbox-2.935-py3-none-win_amd64.whl", hash = "sha256:573cc53436fe5e905e387a114cb4ba5acd647998bac9a7b4b3f2513401415139", size = 148940133, upload-time = "2026-08-17T02:08:58.352Z" },
+    { url = "https://files.pythonhosted.org/packages/6a/9e/c41844f3a746500b88982817233f3f2f4fa6d3a554cedb9222bac9efcbea/cbcbox-2.929-py3-none-macosx_15_0_arm64.whl", hash = "sha256:610fd250f737b19f599d56cca299682a4519472b3ff6a13044502eb71e03931e", size = 59626733, upload-time = "2026-03-23T15:28:20.758Z" },
+    { url = "https://files.pythonhosted.org/packages/3f/08/172af0d618ede8668862ae9c83ffcd929bc966610c1ce357b268edb33645/cbcbox-2.929-py3-none-macosx_15_0_x86_64.whl", hash = "sha256:b369071081176fd55ba9d104c2f2330133c36f0264ebe0215c50a366f290a050", size = 87883726, upload-time = "2026-03-23T15:28:24.874Z" },
+    { url = "https://files.pythonhosted.org/packages/d4/c7/a57493dd959a57dcb8dc31aeef468c0e95d066d4bbf8fc59f9dda3a1fd97/cbcbox-2.929-py3-none-manylinux2014_aarch64.whl", hash = "sha256:62841ab4ed4e1c368bcba8d62c66cd7dd03f3dfaf1ecf4a01c6385a122d1946e", size = 145740150, upload-time = "2026-03-23T15:28:29.617Z" },
+    { url = "https://files.pythonhosted.org/packages/4c/86/502b81d060603e1016a8cb471064e4e65d8009c2feed60ea878b8513a728/cbcbox-2.929-py3-none-manylinux2014_x86_64.whl", hash = "sha256:a57a403cc44fb2af0aa53cb790a7642390f1836a5ff6a7a0b31b30eb6597e3e0", size = 181208771, upload-time = "2026-03-23T15:28:35.544Z" },
+    { url = "https://files.pythonhosted.org/packages/0c/85/2fef9c7c3054ebfb9b0e84fabbeac776a18514b025efa5abd768c889f560/cbcbox-2.929-py3-none-win_amd64.whl", hash = "sha256:0a91420befb965ec1763aab62d7908d3a89a51af845e2a4e05c09d99a67f1151", size = 135305901, upload-time = "2026-03-23T15:28:42.021Z" },
 ]
 
 [[package]]
@@ -899,8 +899,8 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "cbcbox", marker = "extra == 'cbc'" },
-    { name = "cbcbox", marker = "extra == 'open-py'" },
+    { name = "cbcbox", marker = "extra == 'cbc'", specifier = "<2.931" },
+    { name = "cbcbox", marker = "extra == 'open-py'", specifier = "<2.931" },
     { name = "coptpy", marker = "python_full_version < '3.14' and extra == 'copt'" },
     { name = "coptpy", marker = "python_full_version < '3.14' and extra == 'public-py'" },
     { name = "cplex", marker = "(platform_machine == 'arm64' and extra == 'cplex') or (sys_platform != 'darwin' and extra == 'cplex')" },

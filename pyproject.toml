@@ -136,11 +136,11 @@ required-environments = [
 
 
 [project.optional-dependencies]
-open_py = ["highspy", "pyscipopt", "cbcbox", "swiglpk"]
+open_py = ["highspy", "pyscipopt", "cbcbox<2.931", "swiglpk"]
 public_py = ["gurobipy", "coptpy; python_full_version < '3.14'", 'xpress', "cplex; sys_platform != 'darwin' or platform_machine == 'arm64'"]
 highs = ["highspy"]
 highs_cmd = ["highsbox"]
-cbc = ["cbcbox"]
+cbc = ["cbcbox<2.931"]
 scip = ["pyscipopt"]
 glpk = ["swiglpk"]
 gurobi = ["gurobipy"]
