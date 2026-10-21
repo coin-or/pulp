@@ -449,7 +449,8 @@ class CPLEX_PY(LpSolver):
             lin_expr=rows, senses=senses, rhs=rhs, names=rownames
         )
         log.debug("set the type of the problem")
-        if not self.mip:
+        # passing ctypes makes cplex treat the model as a MILP, even if all are "C"
+        if not self.mip or "I" not in ctype:
             self.solverModel.set_problem_type(cplex_mod.Cplex.problem_type.LP)
         log.debug("set the logging")
         if not self.msg:

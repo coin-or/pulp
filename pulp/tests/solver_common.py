@@ -105,7 +105,8 @@ def _constraint_named(prob: LpProblem, name: str) -> LpConstraint:
 
 @dataclass(frozen=True)
 class PulpTestConfig:
-    skip: bool = False
+    # None inherits the default; an explicit False re-enables a skipped test
+    skip: bool | None = None
     skip_reason: str | None = None
     okstatus: tuple[const.LpSolveStatus, ...] | None = None
     sol: Any = None
@@ -127,12 +128,10 @@ class PulpTestConfig:
             dv = getattr(self, f)
             if f == "solve_kwargs":
                 merged[f] = {**dv, **ov}
+            elif f in ("skip", "expect_pulp_error", "allow_pulp_error"):
+                merged[f] = ov if ov is not None else dv
             elif ov is not None and ov is not False and ov != () and ov != {}:
                 merged[f] = ov
-            elif f == "skip" and ov:
-                merged[f] = True
-            elif f in ("expect_pulp_error", "allow_pulp_error"):
-                merged[f] = ov if ov is not None else dv
             elif (
                 f
                 in (
