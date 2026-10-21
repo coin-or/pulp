@@ -17,6 +17,7 @@ class HiGHS_PYTest(BaseSolverTest.PuLPTest):
     pulp_test_overrides: ClassVar[dict[str, PulpTestConfig]] = {
         "test_repeated_name": ALLOW_REPEATED_VAR_NAMES,
         "test_initial_value": PulpTestConfig(warm_start=True),
+        "test_logPath": PulpTestConfig(skip=False, check_log_path=True),
     }
 
     def test_best_bound(self):
