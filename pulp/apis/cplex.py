@@ -347,6 +347,7 @@ class CPLEX_PY(LpSolver):
         )
         self.solver_params = solverParams
         self.solverModel = None
+        self._log_file = None
 
     def available(self):
         """True if the solver is available"""
@@ -365,13 +366,27 @@ class CPLEX_PY(LpSolver):
         """
         start = clocks()
         callback: Any = kwargs.get("callback")
-        self.buildSolverModel(lp)
-        # set the initial solution
-        log.debug("Solve the Model using cplex")
-        self.callSolver(lp, callback=callback)
-        # get the solution information
-        status, has_solution = self.findSolutionValues(lp)
+        try:
+            self.buildSolverModel(lp)
+            # set the initial solution
+            log.debug("Solve the Model using cplex")
+            self.callSolver(lp, callback=callback)
+            # get the solution information
+            status, has_solution = self.findSolutionValues(lp)
+        finally:
+            self.closeLogFile()
         return self.buildStats(lp, status, has_solution, start=start)
+
+    def closeLogFile(self):
+        """
+        Detaches cplex from the ``logPath`` file opened by buildSolverModel and closes it
+        """
+        if self._log_file is None:
+            return
+        if self.solverModel is not None:
+            self.setlogfile(None)
+        self._log_file.close()
+        self._log_file = None
 
     @requires("cplex")
     def buildSolverModel(self, lp: LpProblem) -> None:
@@ -449,7 +464,8 @@ class CPLEX_PY(LpSolver):
             lin_expr=rows, senses=senses, rhs=rhs, names=rownames
         )
         log.debug("set the type of the problem")
-        if not self.mip:
+        # passing ctypes makes cplex treat the model as a MILP, even if all are "C"
+        if not self.mip or "I" not in ctype:
             self.solverModel.set_problem_type(cplex_mod.Cplex.problem_type.LP)
         log.debug("set the logging")
         if not self.msg:
@@ -460,7 +476,9 @@ class CPLEX_PY(LpSolver):
                 warnings.warn(
                     "`logPath` argument replaces `msg=1`. The output will be redirected to the log file."
                 )
-            self.setlogfile(open(logPath, "w"))
+            self.closeLogFile()
+            self._log_file = open(logPath, "w")
+            self.setlogfile(self._log_file)
         gapRel = self.optionsDict.get("gapRel")
         if gapRel is not None:
             self.changeEpgap(gapRel)
