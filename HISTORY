@@ -2,6 +2,18 @@
 #       Copyright S.A.Mitchell (s.mitchell@auckland.ac.nz), 2007-
 #       Copyright F.Peschiera (pchtsp@gmail.com), 2019-
 # See the LICENSE file for copyright information.
+4.2.0 2026-10-21
+    column-wise modelling: ``LpProblem.add_column`` and ``LpProblem.remove_variables``
+    editable constraints: set coefficients, constant and sense of an ``LpConstraint`` in the
+        problem; in-place ``+=`` / ``-=``
+    ``LpVariable.cat`` can be changed after creation (``Binary`` also sets bounds to [0, 1])
+    test suite now runs all relevant tests
+    CyLP API completed: Clp for LPs and Cbc for MIPs, duals, reduced costs, slacks and best
+        bound in ``LpSolveStats``; optional ``pip install pulp[cylp]`` (not on Windows)
+    HiGHS: ``logPath`` works
+    CPLEX_PY: log file is closed after solving; LP problem type when there are no integer
+        variables
+    docs: guides on creating variables, editing constraints and column-wise modelling
 4.1.0 2026-10-19
     MPS reader: BV, LI and UI bounds are read as integer variables
     ``add_variable_dicts`` and ``add_variable_matrix`` keep binary bounds in nested structures
