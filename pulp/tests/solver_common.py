@@ -128,12 +128,10 @@ class PulpTestConfig:
             dv = getattr(self, f)
             if f == "solve_kwargs":
                 merged[f] = {**dv, **ov}
-            elif f == "skip":
+            elif f in ("skip", "expect_pulp_error", "allow_pulp_error"):
                 merged[f] = ov if ov is not None else dv
             elif ov is not None and ov is not False and ov != () and ov != {}:
                 merged[f] = ov
-            elif f in ("expect_pulp_error", "allow_pulp_error"):
-                merged[f] = ov if ov is not None else dv
             elif (
                 f
                 in (
