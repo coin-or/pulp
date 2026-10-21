@@ -1,5 +1,8 @@
 """Unit tests for cplex_py solver."""
 
+import os
+import tempfile
+import warnings
 from typing import ClassVar
 
 import pulp.apis as solvers
@@ -148,3 +151,13 @@ class CPLEX_PYTest(BaseSolverTest.PuLPTest):
     def test_dual_variables_reduced_costs_is_not_skipped(self):
         """The skip=False override must win over the default skip=True."""
         self.assertFalse(self._config("test_dual_variables_reduced_costs").skip)
+
+    def test_log_file_is_closed_after_solve(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            log_path = os.path.join(tmp, "cplex.log")
+            solver = self.solveInst(msg=False, logPath=log_path)
+            with warnings.catch_warnings():
+                warnings.simplefilter("error", ResourceWarning)
+                self._small_problem().solve(solver)
+            self.assertIsNone(solver._log_file)
+            self.assertGreater(os.path.getsize(log_path), 0)
