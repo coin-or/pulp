@@ -874,6 +874,13 @@ cylp_mod = import_optional("cylp.cy")
 
 
 class CYLP(LpSolver):
+    """
+    The CyLP solver: COIN-OR Clp (LP) and Cbc (MIP) through their cython bindings.
+
+    The CyLP model is available (after a solve) in lp.solverModel: a ``CyCbcModel``
+    when the problem was solved as a MIP, a ``CyClpSimplex`` otherwise.
+    """
+
     # https://github.com/coin-or/CyLP
     name = "CyLP"
 
@@ -885,6 +892,9 @@ class CYLP(LpSolver):
         gapRel=None,
         threads=None,
         timeLimit=None,
+        maxNodes=None,
+        maxSolutions=None,
+        presolve=None,
         **solverParams,
     ):
         """
@@ -893,100 +903,158 @@ class CYLP(LpSolver):
         :param float gapRel: relative gap tolerance for the solver to stop (in fraction)
         :param float gapAbs: absolute gap tolerance for the solver to stop
         :param int threads: sets the maximum number of threads
-        :param float timeLimit: maximum time for solver (in seconds)
-        :param dict solverParams: list of named options to pass directly to the HiGHS solver
+        :param float timeLimit: maximum time for solver (in seconds), only used by Cbc
+        :param int maxNodes: max number of nodes during branching, only used by Cbc
+        :param int maxSolutions: stop after finding this many solutions, only used by Cbc
+        :param bool presolve: if False, Clp solves without presolve, only used by Clp
         """
-        super().__init__(mip=mip, msg=msg, timeLimit=timeLimit, **solverParams)
+        super().__init__(
+            mip=mip,
+            msg=msg,
+            timeLimit=timeLimit,
+            maxNodes=maxNodes,
+            maxSolutions=maxSolutions,
+            presolve=presolve,
+            **solverParams,
+        )
         self.gapAbs = gapAbs
         self.gapRel = gapRel
         self.threads = threads
 
-    @requires("cylp.cy")
-    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
-        start = clocks()
-        self.buildSolverModel(lp)
-        self.callSolver(lp)
-        # get the solution information
-        self.findSolutionValues(lp)
-
-        sol_stats = lp.solverModel.status
-        print(sol_stats)
-        S = constants.LpSolveStatus
-        my_map_2 = {
-            "linear relaxation unbounded": S.Infeasible,
-            "relaxation infeasible": S.Infeasible,
-            "solution": S.Optimal,
-            "problem proven infeasible": S.Infeasible,
-            "relaxation abandoned": S.Stopped,
-        }
-
-        status = my_map_2.get(sol_stats, S.Undefined)
-        return self.buildStats(lp, status, status == S.Optimal, start=start)
-
-    def findSolutionValues(self, lp):
-        my_vars = lp.exported_variables()
-        my_values = lp.solverModel.primalVariableSolution
-        for var, value in zip(my_vars, my_values):
-            var.varValue = value
-        # status = lp.solverModel.getStatusCode()
-        # -1 - unknown e.g. before solve or if postSolve says not optimal
-
-        # 0 - optimal
-        # 1 - primal infeasible
-        # 2 - dual infeasible
-        # 3 - stopped on iterations or time
-        # 4 - stopped due to errors
-        # 5 - stopped by event handler (virtual int ClpEventHandler::event())
-        # lp.solverModel.primalVariableSolution
-        # variables
-        # solution
-        # reducedCosts
-        pass
-
     def available(self):
         return cylp_mod is not None
 
-    def callSolver(self, lp):
-        self.solveTime = -clock()
-        if self.timeLimit:
-            lp.solverModel.maximumSeconds = self.timeLimit
-        if self.gapRel:
-            lp.solverModel.allowableFractionGap = self.gapRel
-        if self.gapAbs:
-            lp.solverModel.allowableGap = self.gapAbs
-        if self.threads:
-            lp.solverModel.numberThreads = self.threads
+    @requires("cylp.cy")
+    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
+        start = clocks()
+        column_names = self.buildSolverModel(lp)
+        self.callSolver(lp)
+        status, has_solution = self.findSolutionValues(lp, column_names)
+        return self.buildStats(
+            lp,
+            status,
+            has_solution,
+            start=start,
+            best_bound=self.findBestBound(lp) if has_solution else None,
+        )
 
-        if max_nodes := self.optionsDict.get("maxNodes"):
-            lp.solverModel.maximumNodes = max_nodes
-
-        stop_status = lp.solverModel.solve()
-        self.solveTime += clock()
-        return stop_status
+    @staticmethod
+    def isCbcModel(lp: LpProblem) -> bool:
+        """Whether lp.solverModel is a Cbc (MIP) model rather than a Clp (LP) one"""
+        return isinstance(lp.solverModel, cylp_mod.CyCbcModel)
 
     @requires("cylp.cy")
-    def buildSolverModel(self, lp):
+    def buildSolverModel(self, lp: LpProblem) -> list[str]:
+        """
+        Takes the pulp lp model and translates it into a CyLP model, through an mps file
 
-        my_model = cylp_mod.CyClpSimplex()
-        tmpMps = f"{lp.name}-pulp.mps"
-        lp.writeMPS(tmpMps)
-        success = my_model.readMps(tmpMps)
-        try:
-            os.remove(tmpMps)
-        except Exception:
-            pass
-        if success != 0:
-            raise PulpSolverError("Error reading MPS file")
-        cbc_model = my_model.getCbcModel()
-        # my_model.initialSolve()
-        # cbc_model.solve()
-        # cbc_model.status
-        # my_model.primalVariableSolution
-        # my_model.variableNames
-        # my_model.variables
-        # my_model.readMps("test.mps")
-        # my_model.solution
-        # my_model.status
-        # my_model.getStatusCode()
-        # my_model.getStatusString()
-        lp.solverModel = cbc_model
+        :return: the names of the pulp variables, in the order of the model's columns
+        """
+        lp.checkDuplicateVars()
+        model = cylp_mod.CyClpSimplex()
+        if not self.msg:
+            model.logLevel = 0
+        with tempfile.TemporaryDirectory() as tmpDir:
+            tmpMps = os.path.join(tmpDir, "model.mps")
+            # the names in the file are normalized, the solution is read back by position
+            *_, column_names = lp.writeMPS(tmpMps, rename=True, mip=self.mip)
+            if model.readMps(tmpMps) != 0:
+                raise PulpSolverError("CyLP: error reading MPS file")
+        if lp.isMIP() and self.mip:
+            model = model.getCbcModel()
+            if not self.msg:
+                model.logLevel = 0
+        lp.solverModel = model
+        return column_names
+
+    def callSolver(self, lp: LpProblem) -> None:
+        """Solves the problem with Cbc if it is a MIP, with Clp otherwise"""
+        self.solveTime = -clock()
+        model: Any = lp.solverModel
+        if self.isCbcModel(lp):
+            if self.timeLimit is not None:
+                model.maximumSeconds = self.timeLimit
+            if self.gapRel is not None:
+                model.allowableFractionGap = self.gapRel
+            if self.gapAbs is not None:
+                model.allowableGap = self.gapAbs
+            if self.threads is not None:
+                model.numberThreads = self.threads
+            if (max_nodes := self.optionsDict.get("maxNodes")) is not None:
+                model.maximumNodes = max_nodes
+            if (max_solutions := self.optionsDict.get("maxSolutions")) is not None:
+                model.maximumSolutions = max_solutions
+            model.solve()
+        else:
+            presolve = self.optionsDict.get("presolve", True)
+            model.initialSolve(presolve="on" if presolve else "off")
+        self.solveTime += clock()
+
+    def findSolutionValues(
+        self, lp: LpProblem, column_names: list[str]
+    ) -> tuple[int, bool]:
+        S = constants.LpSolveStatus
+        model = lp.solverModel
+        is_mip = self.isCbcModel(lp)
+        # the file was written minimizing, so duals of a maximization have the wrong sign
+        sign = -1 if lp.sense == constants.LpMaximize else 1
+        variables = {v.name: v for v in lp.variables()}
+        if is_mip:
+            status = cylpCbcStatus.get(model.status, S.Undefined)
+            if status == S.Undefined and model.status.startswith("stopped"):
+                status = S.Stopped
+            has_solution = model.solutionCount > 0 and status not in (
+                S.Infeasible,
+                S.Unbounded,
+            )
+            reduced_costs = None
+        else:
+            status = cylpClpStatus.get(model.getStatusCode(), S.Undefined)
+            has_solution = status == S.Optimal
+            reduced_costs = model.dualVariableSolution
+        values = model.primalVariableSolution
+        for i, name in enumerate(column_names):
+            var = variables[name]
+            var.varValue = float(values[i])
+            if reduced_costs is not None:
+                var.dj = sign * float(reduced_costs[i])
+        if not is_mip:
+            duals = model.dualConstraintSolution
+            activities = model.primalConstraintSolution
+            for i, constr in enumerate(lp.constraints()):
+                constr.pi = sign * float(duals[i])
+                constr.slack = -constr.constant - float(activities[i])
+        return status, has_solution
+
+    def findBestBound(self, lp: LpProblem) -> float | None:
+        """The best bound Cbc proved on a MIP, in the problem's sense, or None."""
+        if not self.isCbcModel(lp):
+            return None
+        bound = lp.solverModel.bestPossibleObjValue
+        if not math.isfinite(bound) or abs(bound) >= 1e30:
+            return None
+        # the file was written minimizing and without the objective's constant
+        if lp.sense == constants.LpMaximize:
+            bound = -bound
+        constant = lp.objective.constant if lp.objective is not None else 0
+        return bound + constant
+
+
+cylpClpStatus = {
+    # status codes of ClpSimplex::status()
+    0: constants.LpSolveStatus.Optimal,
+    1: constants.LpSolveStatus.Infeasible,
+    2: constants.LpSolveStatus.Unbounded,
+    3: constants.LpSolveStatus.Stopped,  # on iterations or time
+    5: constants.LpSolveStatus.Stopped,  # by event handler
+}
+
+cylpCbcStatus = {
+    # status strings of CyCbcModel.status
+    "solution": constants.LpSolveStatus.Optimal,
+    "stopped on gap": constants.LpSolveStatus.Optimal,
+    "relaxation infeasible": constants.LpSolveStatus.Infeasible,
+    "problem proven infeasible": constants.LpSolveStatus.Infeasible,
+    "linear relaxation unbounded": constants.LpSolveStatus.Unbounded,
+    "relaxation abandoned": constants.LpSolveStatus.Stopped,
+}
