@@ -125,6 +125,9 @@ class COIN_CMD(LpSolver_CMD):
         :param str timeMode: "elapsed": count wall-time to timeLimit; "cpu": count cpu-time
         :param int maxNodes: max number of nodes during branching. Stops the solving when reached.
         :param int randomSeed: random seed passed to CBC (``-randomSeed``) for reproducible results
+
+        After solving, the raw CBC output is available as a string on
+        ``self.solverOutput``, regardless of ``msg``/``logPath``.
         """
         if warmStart and not keepFiles and operating_system == "win":
             warnings.warn(
@@ -151,6 +154,7 @@ class COIN_CMD(LpSolver_CMD):
             maxNodes=maxNodes,
             randomSeed=randomSeed,
         )
+        self.solverOutput = ""
 
     def copy(self):
         """Make a copy of self"""
@@ -230,38 +234,41 @@ class COIN_CMD(LpSolver_CMD):
         cmds += "-printingOptions all "
         cmds += "-solution " + tmpSol + " "
         logPath = self.optionsDict.get("logPath")
-        if logPath:
-            if self.msg:
-                warnings.warn(
-                    "`logPath` argument replaces `msg=1`. The output will be redirected to the log file."
-                )
-            pipe = open(self.optionsDict["logPath"], "w")
-        else:
-            pipe = self.get_pipe()
+        if logPath and self.msg:
+            warnings.warn(
+                "`logPath` argument replaces `msg=1`. The output will be redirected to the log file."
+            )
         log.debug(self.path + cmds)
         args = []
         args.append(self.path)
         args.extend(cmds[1:].split())
+        popen_kwargs = dict(
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=devnull, text=True
+        )
         if not self.msg and operating_system == "win":
             # Prevent flashing windows if used from a GUI application
             startupinfo = subprocess.STARTUPINFO()
             startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-            cbc = subprocess.Popen(
-                args, stdout=pipe, stderr=pipe, stdin=devnull, startupinfo=startupinfo
-            )
-        else:
-            cbc = subprocess.Popen(args, stdout=pipe, stderr=pipe, stdin=devnull)
+            popen_kwargs["startupinfo"] = startupinfo
+        cbc = subprocess.Popen(args, **popen_kwargs)
+        log_file = open(logPath, "w") if logPath else None
+        output_lines = []
+        try:
+            for line in cbc.stdout:
+                output_lines.append(line)
+                if self.msg and not logPath:
+                    print(line, end="")
+                if log_file:
+                    log_file.write(line)
+        finally:
+            if log_file:
+                log_file.close()
+        self.solverOutput = "".join(output_lines)
         if cbc.wait() != 0:
-            if pipe:
-                pipe.close()
             raise PulpSolverError(
                 "Pulp: Error while trying to execute, use msg=True for more details"
                 + self.path
             )
-        try:
-            pipe.close()
-        except Exception:
-            pass
 
         if not os.path.exists(tmpSol):
             raise PulpSolverError("Pulp: Error while executing " + self.path)
