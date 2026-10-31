@@ -29,7 +29,9 @@ import math
 import os
 from typing import TYPE_CHECKING, Any
 
-from .. import constants
+import numpy as np
+
+from .. import _rustcore, constants
 from .core import (
     LpSolver,
     LpSolver_CMD,
@@ -927,9 +929,9 @@ class CYLP(LpSolver):
     @requires("cylp.cy")
     def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
         start = clocks()
-        column_names = self.buildSolverModel(lp)
+        self.buildSolverModel(lp)
         self.callSolver(lp)
-        status, has_solution = self.findSolutionValues(lp, column_names)
+        status, has_solution = self.findSolutionValues(lp)
         return self.buildStats(
             lp,
             status,
@@ -938,34 +940,173 @@ class CYLP(LpSolver):
             best_bound=self.findBestBound(lp) if has_solution else None,
         )
 
+    @requires("cylp.cy")
+    def actualResolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
+        """Update ``lp.solverModel`` with the edits made since the last solve
+        and solve it again from its current basis; build it from scratch if it
+        cannot be updated (see :meth:`LpSolver._take_changes`).
+
+        Only a Clp (LP) model is updated, and Clp cannot change an entry of
+        the matrix: editing a coefficient of an existing variable in an
+        existing constraint (``remove_variables`` included) rebuilds it.
+        """
+        if self.isCbcModel(lp) or (lp.isMIP() and self.mip):
+            self._stop_tracking(lp)
+        changes = self._take_changes(lp)
+        if changes is None:
+            return self.actualSolve(lp, **kwargs)
+        model: Any = lp.solverModel
+        old_entries, columns = self._split_coefficients(lp, changes, model.nVariables)
+        if old_entries:
+            self._stop_tracking(lp)
+            return self.actualSolve(lp, **kwargs)
+        start = clocks()
+        try:
+            self.applyChanges(lp, changes, columns)
+        except Exception:
+            # the solver model may be half updated: rebuild it next time
+            self._stop_tracking(lp)
+            raise
+        self.solveTime = -clock()
+        # the dual simplex suits a basis made primal infeasible (new rows, new
+        # bounds), the primal simplex one made dual infeasible (new columns, costs)
+        if changes.new_rows or changes.row_bounds or changes.var_bounds:
+            model.dual()
+        else:
+            model.primal()
+        self.solveTime += clock()
+        status, has_solution = self.findSolutionValues(lp)
+        return self.buildStats(lp, status, has_solution, start=start)
+
     @staticmethod
     def isCbcModel(lp: LpProblem) -> bool:
         """Whether lp.solverModel is a Cbc (MIP) model rather than a Clp (LP) one"""
         return isinstance(lp.solverModel, cylp_mod.CyCbcModel)
 
     @requires("cylp.cy")
-    def buildSolverModel(self, lp: LpProblem) -> list[str]:
+    def buildSolverModel(self, lp: LpProblem) -> None:
         """
-        Takes the pulp lp model and translates it into a CyLP model, through an mps file
+        Takes the pulp lp model and translates it into a CyLP model.
 
-        :return: the names of the pulp variables, in the order of the model's columns
+        Every variable is a column, used or not: column j is the variable with
+        id j (as row i is the constraint with id i), so that a resolve only
+        appends.
         """
         lp.checkDuplicateVars()
+        variables = lp.variables()
+        constraints = lp.constraints()
+        rows: list[int] = []
+        cols: list[int] = []
+        elements: list[float] = []
+        for constraint in constraints:
+            for var, coefficient in constraint.items():
+                rows.append(constraint.id)
+                cols.append(var.id)
+                elements.append(coefficient)
+        objective = np.zeros(len(variables))
+        for var, coefficient in lp.objective.items():
+            objective[var.id] = coefficient
+        bounds = [_cylp_row_bounds(c._constr) for c in constraints]
+        matrix = cylp_mod.CyCoinPackedMatrix(
+            True,
+            np.array(rows, dtype=np.int32),
+            np.array(cols, dtype=np.int32),
+            np.array(elements, dtype=np.float64),
+        )
         model = cylp_mod.CyClpSimplex()
         if not self.msg:
             model.logLevel = 0
-        with tempfile.TemporaryDirectory() as tmpDir:
-            tmpMps = os.path.join(tmpDir, "model.mps")
-            # the names in the file are normalized, the solution is read back by position
-            *_, column_names = lp.writeMPS(tmpMps, rename=True, mip=self.mip)
-            if model.readMps(tmpMps) != 0:
-                raise PulpSolverError("CyLP: error reading MPS file")
+        model.loadProblem(
+            matrix,
+            np.array([v.lowBound for v in variables], dtype=np.float64),
+            np.array([v.upBound for v in variables], dtype=np.float64),
+            objective,
+            np.array([lb for lb, _ in bounds], dtype=np.float64),
+            np.array([ub for _, ub in bounds], dtype=np.float64),
+        )
+        # the matrix only spans the rows and columns with entries: add the others
+        model.resize(len(constraints), len(variables))
+        for var in variables[matrix.majorDim :]:
+            model.setColumnLower(var.id, var.lowBound)
+            model.setColumnUpper(var.id, var.upBound)
+            model.setObjectiveCoefficient(var.id, objective[var.id])
+        for i, (lb, ub) in enumerate(bounds[matrix.minorDim :], matrix.minorDim):
+            model.setRowLower(i, lb)
+            model.setRowUpper(i, ub)
+        if lp.sense == constants.LpMaximize:
+            model.optimizationDirection = "max"
         if lp.isMIP() and self.mip:
+            for var in variables:
+                if var.cat == constants.LpInteger:
+                    model.setInteger(var.id)
             model = model.getCbcModel()
             if not self.msg:
                 model.logLevel = 0
         lp.solverModel = model
-        return column_names
+        self._start_tracking(lp)
+
+    def applyChanges(
+        self,
+        lp: LpProblem,
+        changes: _rustcore.ModelChanges,
+        columns: dict[int, tuple[list[int], list[float]]],
+    ) -> None:
+        """Update the Clp model ``lp.solverModel`` with the edits made to ``lp``
+        since it was last solved (``changes``, from :meth:`_take_changes`),
+        keeping the basis.
+
+        :param columns: the entries of each new column in existing rows (see
+            :meth:`_split_coefficients`)
+        """
+        model: Any = lp.solverModel
+        rmodel = lp._model
+
+        if changes.sense_changed:
+            model.optimizationDirection = (
+                "max" if lp.sense == constants.LpMaximize else "min"
+            )
+
+        costs = rmodel.objective_coefficients(changes.new_cols)
+        for j, cost in zip(changes.new_cols, costs):
+            rvar = rmodel.get_variable(j)
+            rows, values = columns.get(j, ([], []))
+            model.CLP_addVariable(
+                len(rows),
+                np.array(rows, dtype=np.int32),
+                np.array(values, dtype=np.float64),
+                rvar.lb,
+                rvar.ub,
+                cost,
+            )
+
+        for i in changes.new_rows:
+            rconstr = rmodel.get_constraint(i)
+            items = rconstr.items()
+            lb, ub = _cylp_row_bounds(rconstr)
+            model.CLP_addConstraint(
+                len(items),
+                np.array([rvar.id() for rvar, _ in items], dtype=np.int32),
+                np.array([a for _, a in items], dtype=np.float64),
+                lb,
+                ub,
+            )
+
+        for i in changes.row_bounds:
+            lb, ub = _cylp_row_bounds(rmodel.get_constraint(i))
+            model.setRowLower(i, lb)
+            model.setRowUpper(i, ub)
+
+        for j in changes.var_bounds:
+            rvar = rmodel.get_variable(j)
+            model.setColumnLower(j, rvar.lb)
+            model.setColumnUpper(j, rvar.ub)
+
+        if changes.objective_replaced:
+            cols = list(range(model.nVariables))
+        else:
+            cols = changes.obj_coeffs
+        for j, cost in zip(cols, rmodel.objective_coefficients(cols)):
+            model.setObjectiveCoefficient(j, cost)
 
     def callSolver(self, lp: LpProblem) -> None:
         """Solves the problem with Cbc if it is a MIP, with Clp otherwise"""
@@ -990,15 +1131,10 @@ class CYLP(LpSolver):
             model.initialSolve(presolve="on" if presolve else "off")
         self.solveTime += clock()
 
-    def findSolutionValues(
-        self, lp: LpProblem, column_names: list[str]
-    ) -> tuple[int, bool]:
+    def findSolutionValues(self, lp: LpProblem) -> tuple[int, bool]:
         S = constants.LpSolveStatus
         model = lp.solverModel
         is_mip = self.isCbcModel(lp)
-        # the file was written minimizing, so duals of a maximization have the wrong sign
-        sign = -1 if lp.sense == constants.LpMaximize else 1
-        variables = {v.name: v for v in lp.variables()}
         if is_mip:
             status = cylpCbcStatus.get(model.status, S.Undefined)
             if status == S.Undefined and model.status.startswith("stopped"):
@@ -1007,23 +1143,22 @@ class CYLP(LpSolver):
                 S.Infeasible,
                 S.Unbounded,
             )
-            reduced_costs = None
         else:
             status = cylpClpStatus.get(model.getStatusCode(), S.Undefined)
             has_solution = status == S.Optimal
-            reduced_costs = model.dualVariableSolution
+        # column j is the variable with id j, row i the constraint with id i
         values = model.primalVariableSolution
-        for i, name in enumerate(column_names):
-            var = variables[name]
-            var.varValue = float(values[i])
-            if reduced_costs is not None:
-                var.dj = sign * float(reduced_costs[i])
+        lp._model.set_variable_values([(j, float(v)) for j, v in enumerate(values)])
         if not is_mip:
+            reduced_costs = model.dualVariableSolution
+            lp._model.set_variable_djs(
+                [(j, float(v)) for j, v in enumerate(reduced_costs)]
+            )
             duals = model.dualConstraintSolution
             activities = model.primalConstraintSolution
-            for i, constr in enumerate(lp.constraints()):
-                constr.pi = sign * float(duals[i])
-                constr.slack = -constr.constant - float(activities[i])
+            for constr in lp.constraints():
+                constr.pi = float(duals[constr.id])
+                constr.slack = -constr.constant - float(activities[constr.id])
         return status, has_solution
 
     def findBestBound(self, lp: LpProblem) -> float | None:
@@ -1033,11 +1168,19 @@ class CYLP(LpSolver):
         bound = lp.solverModel.bestPossibleObjValue
         if not math.isfinite(bound) or abs(bound) >= 1e30:
             return None
-        # the file was written minimizing and without the objective's constant
-        if lp.sense == constants.LpMaximize:
-            bound = -bound
+        # the bound is in the problem's sense, without the objective's constant
         constant = lp.objective.constant if lp.objective is not None else 0
         return bound + constant
+
+
+def _cylp_row_bounds(rconstr: _rustcore.Constraint) -> tuple[float, float]:
+    """``(lower, upper)`` bounds of a row of the Rust model."""
+    rhs = rconstr.rhs
+    if rconstr.sense == _rustcore.Sense.LessEqual:
+        return -math.inf, rhs
+    if rconstr.sense == _rustcore.Sense.GreaterEqual:
+        return rhs, math.inf
+    return rhs, rhs
 
 
 cylpClpStatus = {

@@ -19,9 +19,10 @@ PuLP supports this on one problem object, without rebuilding it:
 * :py:meth:`~pulp.LpProblem.remove_variables` takes variables out of the model.
 * ``x.cat = ...`` changes a variable's category, for example to make the final
   problem integer.
-* :py:meth:`~pulp.LpProblem.resolve` solves the problem again. With HiGHS and
-  GUROBI it updates the solver's model in place and restarts from the previous
-  basis (see :ref:`resolve_in_place`).
+* :py:meth:`~pulp.LpProblem.resolve` solves the problem again. With the solvers
+  that support it (HiGHS, GUROBI, CPLEX_PY, XPRESS_PY, COPT, CyLP, PYGLPK) it
+  updates the solver's model in place and restarts from the previous basis
+  (see :ref:`resolve_in_place`).
 
 .. contents:: On this page
    :local:
@@ -93,9 +94,10 @@ constraint, the objective and every SOS group:
 
 The variables stay valid: you can still read them and put them back with
 ``c[z] = value``. A variable that no constraint and no objective uses is left
-out of the LP and MPS files and is not sent to most solvers. HiGHS and GUROBI
-are the exception: they get every variable, an unused one as an empty column,
-so that :py:meth:`~pulp.LpProblem.resolve` can update their model in place.
+out of the LP and MPS files and is not sent to most solvers. The solvers that
+:py:meth:`~pulp.LpProblem.resolve` updates in place are the exception: they get
+every variable, an unused one as an empty column, so that new ones can be
+appended (see :ref:`resolve_in_place`).
 
 
 Example: cutting stock by column generation
@@ -180,9 +182,10 @@ Re-solving without rebuilding
 
 :py:meth:`~pulp.LpProblem.solve` loads the whole problem into the solver every
 time. :py:meth:`~pulp.LpProblem.resolve` does that too, except with the solvers
-that keep the model in memory and can edit it: **HiGHS** and **GUROBI**. After a
-first solve, they record every edit to the problem, and ``resolve`` sends only
-those edits to the model they hold in ``prob.solverModel``:
+that keep the model in memory and can edit it: **HiGHS**, **GUROBI**,
+**CPLEX_PY**, **XPRESS_PY**, **COPT**, **CyLP** and **PYGLPK**. After a first solve, they
+record every edit to the problem, and ``resolve`` sends only those edits to the
+model they hold in ``prob.solverModel``:
 
 * new variables (from ``add_column`` or ``add_variable``) and new constraints;
 * changed coefficients, right-hand sides and senses of existing constraints;
@@ -209,7 +212,11 @@ update it:
   instance of the same solver);
 * on a copy of the problem (``prob.copy()``): a copy is not tracked;
 * after adding or removing SOS groups;
-* with any other solver, which always rebuilds.
+* with CyLP, after changing a coefficient of an existing variable in an existing
+  constraint (``remove_variables`` included), since Clp cannot change an entry of
+  its matrix, and for a MIP, which Cbc solves;
+* with any other solver, which always rebuilds. MOSEK could update its model
+  too, but does not yet.
 
 The solver's options (time limit, gaps, ``msg``, log file) are applied again on
 every resolve. ``warmStart`` only applies when the model is built: on a resolve

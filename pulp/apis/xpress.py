@@ -32,7 +32,7 @@ import sys
 import warnings
 from typing import TYPE_CHECKING, Any
 
-from .. import constants
+from .. import _rustcore, constants
 from .core import (
     LpSolver,
     LpSolver_CMD,
@@ -54,6 +54,15 @@ def _ismip(lp: LpProblem) -> bool:
     From an XPRESS point of view, a problem is also a MIP if it contains
     SOS constraints."""
     return bool(lp.isMIP() or lp.has_sos())
+
+
+def _row_type(sense: _rustcore.Sense) -> str:
+    """The Xpress row type of a constraint of the Rust model."""
+    if sense == _rustcore.Sense.LessEqual:
+        return "L"
+    if sense == _rustcore.Sense.GreaterEqual:
+        return "G"
+    return "E"
 
 
 class XPRESS(LpSolver_CMD):
@@ -467,9 +476,8 @@ class XPRESS_PY(LpSolver):
             var_handles = list(model.getVariable())
             constr_handles = list(model.getConstraint())
 
-            exported_vars = lp.exported_variables()
-            id_to_col = {v.id: j for j, v in enumerate(exported_vars)}
-            xpress_vars = [(v, var_handles[id_to_col[v.id]]) for v in exported_vars]
+            # column j is the variable with id j, row i the constraint with id i
+            xpress_vars = [(v, var_handles[v.id]) for v in lp.variables()]
             xpress_cons = [
                 (
                     c.name,
@@ -586,6 +594,149 @@ class XPRESS_PY(LpSolver):
         return self.buildStats(lp, status, has_solution, start=start)
 
     @requires("xpress")
+    def actualResolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
+        """Update ``lp.solverModel`` with the edits made since the last solve
+        and solve it again from its current basis; build it from scratch if it
+        cannot be updated (see :meth:`LpSolver._take_changes`)."""
+        # the deprecated API (before Xpress 9) has no batch edits
+        if not hasattr(lp.solverModel, "chgMCoef"):
+            self._stop_tracking(lp)
+        changes = self._take_changes(lp)
+        if changes is None:
+            return self.actualSolve(lp, **kwargs)
+        start = clocks()
+        try:
+            self.applyChanges(lp, changes)
+            self._setControls(lp.solverModel)
+        except Exception:
+            # the solver model may be half updated: rebuild it next time
+            self._stop_tracking(lp)
+            raise
+        self.callSolver(lp, kwargs.get("prepare"))
+        status, has_solution = self.findSolutionValues(lp)
+        return self.buildStats(lp, status, has_solution, start=start)
+
+    @requires("xpress")
+    def applyChanges(self, lp: LpProblem, changes: _rustcore.ModelChanges) -> None:
+        """Update ``lp.solverModel`` with the edits made to ``lp`` since it was
+        last solved (``changes``, from :meth:`_take_changes`), keeping the basis.
+
+        Columns are variable ids and rows constraint ids, so new variables and
+        constraints are appended in id order.
+        """
+        model = lp.solverModel
+        rmodel = lp._model
+        inf = xpress_mod.infinity
+        is_integer = _rustcore.Category.Integer
+
+        def bound(value: float) -> float:
+            return min(max(value, -inf), inf)
+
+        if changes.sense_changed:
+            model.chgObjSense(
+                xpress_mod.maximize
+                if lp.sense == constants.LpMaximize
+                else xpress_mod.minimize
+            )
+
+        # entries of new columns in existing rows go with the columns, the others
+        # are changed one by one
+        old_entries, columns = self._split_coefficients(
+            lp, changes, model.attributes.cols
+        )
+
+        if changes.new_cols:
+            rvars = [rmodel.get_variable(j) for j in changes.new_cols]
+            start: list[int] = []
+            rowind: list[int] = []
+            rowcoef: list[float] = []
+            for j in changes.new_cols:
+                start.append(len(rowind))
+                rows, values = columns.get(j, ([], []))
+                rowind.extend(rows)
+                rowcoef.extend(values)
+            start.append(len(rowind))
+            first = model.attributes.cols
+            model.addCols(
+                rmodel.objective_coefficients(changes.new_cols),
+                start,
+                rowind,
+                rowcoef,
+                [bound(v.lb) for v in rvars],
+                [bound(v.ub) for v in rvars],
+            )
+            model.addNames(
+                xpress_mod.Namespaces.COLUMN,
+                [v.name for v in rvars],
+                first,
+                first + len(rvars) - 1,
+            )
+            integer = [v.id() for v in rvars if v.category == is_integer]
+            if integer:
+                model.chgColType(integer, ["I"] * len(integer))
+
+        if changes.new_rows:
+            rconstrs = [rmodel.get_constraint(i) for i in changes.new_rows]
+            start = []
+            colind: list[int] = []
+            rowcoef = []
+            for rconstr in rconstrs:
+                start.append(len(colind))
+                for rvar, coefficient in rconstr.items():
+                    colind.append(rvar.id())
+                    rowcoef.append(coefficient)
+            start.append(len(colind))
+            first = model.attributes.rows
+            model.addRows(
+                [_row_type(c.sense) for c in rconstrs],
+                [c.rhs for c in rconstrs],
+                None,
+                start,
+                colind,
+                rowcoef,
+            )
+            model.addNames(
+                xpress_mod.Namespaces.ROW,
+                [c.name for c in rconstrs],
+                first,
+                first + len(rconstrs) - 1,
+            )
+
+        if old_entries:
+            model.chgMCoef(
+                [i for i, _, _ in old_entries],
+                [j for _, j, _ in old_entries],
+                [value for _, _, value in old_entries],
+            )
+
+        if changes.row_bounds:
+            rconstrs = [rmodel.get_constraint(i) for i in changes.row_bounds]
+            model.chgRowType(changes.row_bounds, [_row_type(c.sense) for c in rconstrs])
+            model.chgRHS(changes.row_bounds, [c.rhs for c in rconstrs])
+
+        if changes.var_bounds:
+            rvars = [rmodel.get_variable(j) for j in changes.var_bounds]
+            model.chgBounds(
+                changes.var_bounds * 2,
+                ["L"] * len(rvars) + ["U"] * len(rvars),
+                [bound(v.lb) for v in rvars] + [bound(v.ub) for v in rvars],
+            )
+
+        if changes.var_category:
+            rvars = [rmodel.get_variable(j) for j in changes.var_category]
+            model.chgColType(
+                changes.var_category,
+                ["I" if v.category == is_integer else "C" for v in rvars],
+            )
+
+        if changes.objective_replaced:
+            cols = list(range(model.attributes.cols))
+        else:
+            cols = changes.obj_coeffs
+        if cols:
+            model.chgObj(cols, rmodel.objective_coefficients(cols))
+
+    @requires("xpress")
     def buildSolverModel(self, lp):
         """
         Takes the pulp lp model and translates it into an xpress model
@@ -602,52 +753,15 @@ class XPRESS_PY(LpSolver):
             # This also avoids unintended warmstart side effects when callers
             # build and solve in separate steps.
             model = lp.solverModel
-            # Apply controls that were passed to the constructor
-            for key, name in [
-                ("gapRel", "MIPRELSTOP"),
-                ("timeLimit", "MAXTIME"),
-                ("heurFreq", "HEURFREQ"),
-                ("heurStra", "HEURSTRATEGY"),
-                ("coverCuts", "COVERCUTS"),
-                ("preSolve", "PRESOLVE"),
-            ]:
-                value = self.optionsDict.get(key, None)
-                if value is not None:
-                    model.setControl(name, value)
-
-            # Apply any other controls. These overwrite controls that were
-            # passed explicitly into the constructor.
-            for option in self.options:
-                if isinstance(option, tuple):
-                    name = option[0]
-                    value = option[1]
-                else:
-                    fields = option.split("=", 1)
-                    if len(fields) != 2:
-                        raise PulpSolverError("Invalid option " + str(option))
-                    name = fields[0].strip()
-                    value = fields[1].strip()
-                try:
-                    model.setControl(name, int(value))
-                    continue
-                except ValueError:
-                    pass
-                try:
-                    model.setControl(name, float(value))
-                    continue
-                except ValueError:
-                    pass
-                model.setControl(name, value)
+            self._setControls(model)
             # Setup warmstart information
             if self.optionsDict.get("warmStart", False):
                 solval = list()
                 colind = list()
-                exported_vars = lp.exported_variables()
-                id_to_col = {v.id: j for j, v in enumerate(exported_vars)}
-                for v in exported_vars:
+                for v in lp.variables():
                     if v.value() is not None:
                         solval.append(v.value())
-                        colind.append(id_to_col[v.id])
+                        colind.append(v.id)
                 if _ismip(lp) and self.mip:
                     # If we have a value for every variable then use
                     # loadMipSol(), which requires a dense solution. Otherwise
@@ -684,6 +798,47 @@ class XPRESS_PY(LpSolver):
             xpress_mod.SolverError,
         ) as err:
             raise PulpSolverError(str(err))
+        self._start_tracking(lp)
+
+    def _setControls(self, model):
+        """Apply the controls of this solver to ``model``, again on every
+        resolve so that controls changed in between take effect."""
+        # Apply controls that were passed to the constructor
+        for key, name in [
+            ("gapRel", "MIPRELSTOP"),
+            ("timeLimit", "MAXTIME"),
+            ("heurFreq", "HEURFREQ"),
+            ("heurStra", "HEURSTRATEGY"),
+            ("coverCuts", "COVERCUTS"),
+            ("preSolve", "PRESOLVE"),
+        ]:
+            value = self.optionsDict.get(key, None)
+            if value is not None:
+                model.setControl(name, value)
+
+        # Apply any other controls. These overwrite controls that were
+        # passed explicitly into the constructor.
+        for option in self.options:
+            if isinstance(option, tuple):
+                name = option[0]
+                value = option[1]
+            else:
+                fields = option.split("=", 1)
+                if len(fields) != 2:
+                    raise PulpSolverError("Invalid option " + str(option))
+                name = fields[0].strip()
+                value = fields[1].strip()
+            try:
+                model.setControl(name, int(value))
+                continue
+            except ValueError:
+                pass
+            try:
+                model.setControl(name, float(value))
+                continue
+            except ValueError:
+                pass
+            model.setControl(name, value)
 
     def _reset(self, lp):
         """Reset any XPRESS specific information in lp."""
@@ -748,17 +903,17 @@ class XPRESS_PY(LpSolver):
                 except AttributeError:  # Fallback to deprecated API
                     model.chgobjsense(xpress_mod.maximize)
 
-            var_handles = []
-
-            # Create variables (id = position in lp.variables()).
+            # Create variables: every variable is a column, used or not, column j
+            # being the variable with id j (as row i is the constraint with id
+            # i), so that a resolve only appends
             obj = list()
             lb = list()
             ub = list()
             ctype = list()
             names = list()
-            exported_vars = lp.exported_variables()
-            id_to_col = {v.id: j for j, v in enumerate(exported_vars)}
-            for v in exported_vars:
+            variables = lp.variables()
+            objective = {v.id: a for v, a in lp.objective.items()}
+            for v in variables:
                 lb.append(
                     -xpress_mod.infinity
                     if not math.isfinite(v.lowBound)
@@ -767,7 +922,7 @@ class XPRESS_PY(LpSolver):
                 ub.append(
                     xpress_mod.infinity if not math.isfinite(v.upBound) else v.upBound
                 )
-                obj.append(lp.objective.get(v, 0.0))
+                obj.append(objective.get(v.id, 0.0))
                 if v.cat == constants.LpInteger:
                     ctype.append("I")
                 elif v.cat == constants.LpBinary:
@@ -781,14 +936,13 @@ class XPRESS_PY(LpSolver):
                 model.chgColType(range(len(ctype)), ctype)
             except AttributeError:  # Fallback to deprecated API
                 model.addcols(obj, [0] * (len(obj) + 1), [], [], lb, ub, names, ctype)
-            for v, x in zip(exported_vars, model.getVariable()):
-                var_handles.append(x)
+            var_handles = list(model.getVariable())
 
             # Generate constraints in model order (same as lp.constraints() list).
             cons = list()
             for con in lp.constraints():
                 lhs = xpress_mod.Sum(
-                    a * var_handles[id_to_col[x.id]]
+                    a * var_handles[x.id]
                     for x, a in sorted(con.items(), key=lambda item: item[0].name)
                 )
                 rhs = -con.constant
@@ -810,7 +964,7 @@ class XPRESS_PY(LpSolver):
             def addsos(m, sosdict, sostype):
                 soslist = []
                 for name in sorted(sosdict):
-                    indices = [id_to_col[v.id] for v, _ in sosdict[name].items()]
+                    indices = [v.id for v, _ in sosdict[name].items()]
                     weights = [val for _, val in sosdict[name].items()]
                     soslist.append(xpress_mod.sos(indices, weights, sostype, str(name)))
                 if len(soslist):

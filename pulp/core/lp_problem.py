@@ -981,12 +981,14 @@ class LpProblem:
         """
         Solve the problem again, by default with the solver used last.
 
-        Solvers that support it (:class:`~pulp.HiGHS`, :class:`~pulp.GUROBI`)
-        update the model they already hold in :attr:`solverModel` with the
-        edits made since the last solve, instead of building it again, and
-        restart from the previous basis. This makes column generation and
-        cutting planes cheap. Other solvers, and edits that cannot be replayed
-        (SOS groups), build the model from scratch like :meth:`solve`.
+        Solvers that support it (:class:`~pulp.HiGHS`, :class:`~pulp.GUROBI`,
+        :class:`~pulp.CPLEX_PY`, :class:`~pulp.XPRESS_PY`, :class:`~pulp.COPT`, :class:`~pulp.CYLP`,
+        :class:`~pulp.PYGLPK`) update the model they already hold in
+        :attr:`solverModel` with the edits made since the last solve, instead
+        of building it again, and restart from the previous basis. This makes
+        column generation and cutting planes cheap. Other solvers, and edits
+        that cannot be replayed (SOS groups, and some edits for CyLP), build
+        the model from scratch like :meth:`solve`.
         """
         # the solver sets itself as self.solver: until then self.solver says
         # whether it is the one that built solverModel

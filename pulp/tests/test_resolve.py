@@ -49,6 +49,9 @@ class ResolveTests:
     class Base(unittest.TestCase):
         solver_name: str
         presolve_off: dict[str, Any]
+        # edits that this solver replays by building the model again
+        rebuilds_coefficient_edits = False
+        rebuilds_mip = False
 
         def setUp(self):
             self.solver = self.make_solver()
@@ -92,13 +95,14 @@ class ResolveTests:
             cost = {v.id: a for v, a in prob.objective.items()}
             priced = dict.fromkeys(cost, 0.0)
             for c in prob.constraints():
-                pi = c.pi
-                assert pi is not None and c.slack is not None, c.name
+                # activity - rhs, from the values: solvers disagree on slacks
+                pi, gap = c.pi, c.value()
+                assert pi is not None and gap is not None, c.name
                 if c.sense == const.LpConstraintGE:
                     self.assertGreaterEqual(sign * pi, -eps, c.name)
                 elif c.sense == const.LpConstraintLE:
                     self.assertLessEqual(sign * pi, eps, c.name)
-                if abs(c.slack) > eps:
+                if abs(gap) > 1e-6:
                     self.assertAlmostEqual(pi, 0, msg=c.name)
                 for v, a in c.items():
                     priced[v.id] = priced.get(v.id, 0.0) + pi * a
@@ -115,14 +119,19 @@ class ResolveTests:
                 if value < v.upBound - eps:
                     self.assertGreaterEqual(sign * dj, -eps, v.name)
 
-        def solve_then_resolve(self, prob: LpProblem, edit) -> None:
-            """Solve ``prob``, ``edit`` it, resolve it in place and check the result."""
+        def solve_then_resolve(self, prob: LpProblem, edit, in_place=True) -> None:
+            """Solve ``prob``, ``edit`` it, resolve it and check the result.
+
+            :param in_place: the solver must update its model rather than
+                build it again
+            """
             prob.solve(self.solver)
             model = prob.solverModel
             edit(prob)
             stats = prob.resolve()
             self.assertIs(stats.status, const.LpSolveStatus.Optimal)
-            self.assertIs(prob.solverModel, model, "the model was built again")
+            if in_place:
+                self.assertIs(prob.solverModel, model, "the model was built again")
             self.assert_matches_cold(prob)
 
         # hot start
@@ -217,7 +226,9 @@ class ResolveTests:
                 c1.set_coefficient(unused, 1)
                 prob.objective = prob.objective + 1.5 * unused
 
-            self.solve_then_resolve(prob, edit)
+            self.solve_then_resolve(
+                prob, edit, in_place=not self.rebuilds_coefficient_edits
+            )
             # the optimum is unique: w = 1.5 covers c3 and unused = 2.5 the rest of c1
             self.assertAlmostEqual(_num(unused.varValue), 2.5)
 
@@ -239,6 +250,17 @@ class ResolveTests:
                 c2.changeRHS(0.5)
                 c2.sense = const.LpConstraintGE
 
+            self.solve_then_resolve(
+                _base(), edit, in_place=not self.rebuilds_coefficient_edits
+            )
+
+        def test_rhs_and_sense_edits(self):
+            def edit(prob):
+                c1, c2, c3 = prob.constraints()
+                c1.changeRHS(5)
+                c2.sense = const.LpConstraintGE
+                c3.changeRHS(1)
+
             self.solve_then_resolve(_base(), edit)
 
         def test_replace_constraint_expression(self):
@@ -249,7 +271,9 @@ class ResolveTests:
                 del c3[y]
                 c3.constant = -5
 
-            self.solve_then_resolve(_base(), edit)
+            self.solve_then_resolve(
+                _base(), edit, in_place=not self.rebuilds_coefficient_edits
+            )
 
         def test_variable_bounds(self):
             def edit(prob):
@@ -277,7 +301,11 @@ class ResolveTests:
         def test_remove_variables_then_put_back(self):
             prob = _base()
             x, y, w = prob.variables()
-            self.solve_then_resolve(prob, lambda prob: prob.remove_variables([y]))
+            self.solve_then_resolve(
+                prob,
+                lambda prob: prob.remove_variables([y]),
+                in_place=not self.rebuilds_coefficient_edits,
+            )
             self.assertEqual(prob.constraints()[0].items(), [(x, 1.0), (w, 1.0)])
 
             def put_back(prob):
@@ -300,7 +328,7 @@ class ResolveTests:
                 x.upBound = 2
                 prob += x + y <= 4.5, "cut"
 
-            self.solve_then_resolve(prob, branch)
+            self.solve_then_resolve(prob, branch, in_place=not self.rebuilds_mip)
             self.assertEqual((x.varValue, y.varValue), (2, 2))
 
         def test_relax_then_restore_integrality(self):
@@ -439,7 +467,7 @@ class ResolveTests:
             model = prob.solverModel
             solver: Any = self.solver
 
-            def fail(lp, changes):
+            def fail(*args):
                 raise RuntimeError("update failed")
 
             solver.applyChanges = fail
@@ -468,6 +496,61 @@ class GurobiResolveTest(ResolveTests.Base):
     def iterations(self, prob: LpProblem) -> float:
         assert prob.solverModel is not None
         return prob.solverModel.IterCount
+
+
+class XpressResolveTest(ResolveTests.Base):
+    solver_name = "XPRESS_PY"
+    presolve_off = {"preSolve": 0}
+
+    def iterations(self, prob: LpProblem) -> float:
+        assert prob.solverModel is not None
+        return prob.solverModel.attributes.simplexiter
+
+    def test_sos_edit_rebuilds(self):
+        # xpress.sos(), used to build SOS groups, takes other arguments since
+        # Xpress 9.5: XPRESS_PY cannot solve a problem with SOS groups
+        self.skipTest("XPRESS_PY cannot build SOS groups with this Xpress")
+
+
+class CoptResolveTest(ResolveTests.Base):
+    solver_name = "COPT"
+    presolve_off = {"Presolve": 0}
+
+    def iterations(self, prob: LpProblem) -> float:
+        assert prob.solverModel is not None
+        return prob.solverModel.getAttr("SimplexIter")
+
+
+class GlpkResolveTest(ResolveTests.Base):
+    solver_name = "PYGLPK"
+    # GLPK's simplex runs without presolve unless asked for
+    presolve_off: dict[str, Any] = {}
+
+    def iterations(self, prob: LpProblem) -> float:
+        import swiglpk
+
+        return swiglpk.glp_get_it_cnt(prob.solverModel)
+
+
+class CylpResolveTest(ResolveTests.Base):
+    solver_name = "CyLP"
+    presolve_off = {"presolve": False}
+    # Clp cannot change an entry of its matrix, and MIPs are solved by Cbc
+    rebuilds_coefficient_edits = True
+    rebuilds_mip = True
+
+    def iterations(self, prob: LpProblem) -> float:
+        assert prob.solverModel is not None
+        return prob.solverModel.iteration
+
+
+class CplexResolveTest(ResolveTests.Base):
+    solver_name = "CPLEX_PY"
+    presolve_off = {"preprocessing.presolve": 0}
+
+    def iterations(self, prob: LpProblem) -> float:
+        assert prob.solverModel is not None
+        return prob.solverModel.solution.progress.get_num_iterations()
 
 
 if __name__ == "__main__":

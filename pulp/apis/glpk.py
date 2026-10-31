@@ -30,7 +30,7 @@ import math
 import os
 from typing import TYPE_CHECKING, Any
 
-from .. import constants
+from .. import _rustcore, constants
 from .core import (
     LpSolver,
     LpSolver_CMD,
@@ -254,9 +254,9 @@ class PYGLPK(LpSolver):
 
     Copyright Christophe-Marie Duquesne 2012
 
-    After calling solve, the model is in prob.solverModel. GLPK 1-based
-    column/row indices are kept on the solver as ``_var_handles`` /
-    ``_constr_handles``, indexed by ``var.id`` and ``constraint.id``.
+    After calling solve, the model is in prob.solverModel. GLPK indices are
+    1-based: column ``j + 1`` is the variable with id ``j`` and row ``i + 1``
+    the constraint with id ``i``.
     """
 
     name = "PYGLPK"
@@ -277,8 +277,8 @@ class PYGLPK(LpSolver):
 
     def findSolutionValues(self, lp):
         prob = lp.solverModel
-        constr_handles = self._constr_handles
-        if self.mip and self.hasMIPConstraints(lp.solverModel):
+        is_mip = self.mip and self.hasMIPConstraints(lp.solverModel)
+        if is_mip:
             solutionStatus = swiglpk_mod.glp_mip_status(prob)
         else:
             solutionStatus = swiglpk_mod.glp_get_status(prob)
@@ -291,21 +291,20 @@ class PYGLPK(LpSolver):
             swiglpk_mod.GLP_NOFEAS: S.Infeasible,
             swiglpk_mod.GLP_UNBND: S.Unbounded,
         }
-        exported_vars = lp.exported_variables()
-        for var, col in zip(exported_vars, self._var_handles):
-            if self.mip and self.hasMIPConstraints(lp.solverModel):
-                var.varValue = swiglpk_mod.glp_mip_col_val(prob, col)
-            else:
-                var.varValue = swiglpk_mod.glp_get_col_prim(prob, col)
+        col_value = (
+            swiglpk_mod.glp_mip_col_val if is_mip else swiglpk_mod.glp_get_col_prim
+        )
+        for var in lp.variables():
+            col = var.id + 1
+            var.varValue = col_value(prob, col)
             var.dj = swiglpk_mod.glp_get_col_dual(prob, col)
         # put pi and slack variables against the constraints
+        row_value = (
+            swiglpk_mod.glp_mip_row_val if is_mip else swiglpk_mod.glp_get_row_prim
+        )
         for constr in lp.constraints():
-            row = constr_handles[constr.id]
-            if self.mip and self.hasMIPConstraints(lp.solverModel):
-                row_val = swiglpk_mod.glp_mip_row_val(prob, row)
-            else:
-                row_val = swiglpk_mod.glp_get_row_prim(prob, row)
-            constr.slack = -constr.constant - row_val
+            row = constr.id + 1
+            constr.slack = -constr.constant - row_value(prob, row)
             constr.pi = swiglpk_mod.glp_get_row_dual(prob, row)
         status = glpkLpStatus.get(solutionStatus, S.Undefined)
         return status, solutionStatus in (swiglpk_mod.GLP_OPT, swiglpk_mod.GLP_FEAS)
@@ -320,11 +319,25 @@ class PYGLPK(LpSolver):
             or swiglpk_mod.glp_get_num_bin(solverModel) > 0
         )
 
-    def callSolver(self, lp, callback=None):
-        """Solves the problem with glpk"""
+    def callSolver(self, lp, callback=None, warm=False):
+        """Solves the problem with glpk
+
+        :param warm: start from the basis the model holds (on a resolve)
+            instead of building an advanced one
+        """
         self.solveTime = -clock()
-        swiglpk_mod.glp_adv_basis(lp.solverModel, 0)
-        swiglpk_mod.glp_simplex(lp.solverModel, None)
+        # GLPK counts iterations over the model's lifetime: count this solve's
+        swiglpk_mod.glp_set_it_cnt(lp.solverModel, 0)
+        if not warm:
+            swiglpk_mod.glp_adv_basis(lp.solverModel, 0)
+        if swiglpk_mod.glp_simplex(lp.solverModel, None) in (
+            swiglpk_mod.GLP_EBADB,
+            swiglpk_mod.GLP_ESING,
+            swiglpk_mod.GLP_ECOND,
+        ):
+            # the edits left the basis invalid or singular: start over
+            swiglpk_mod.glp_adv_basis(lp.solverModel, 0)
+            swiglpk_mod.glp_simplex(lp.solverModel, None)
         if self.mip and self.hasMIPConstraints(lp.solverModel):
             status = swiglpk_mod.glp_get_status(lp.solverModel)
             if status in (
@@ -340,8 +353,9 @@ class PYGLPK(LpSolver):
         """
         Takes the pulp lp model and translates it into a glpk model.
 
-        Fills ``self._var_handles`` / ``self._constr_handles`` (GLPK 1-based
-        indices, indexed by PuLP ``.id``).
+        Every variable is a column, used or not: column ``j + 1`` is the
+        variable with id ``j`` (as row ``i + 1`` is the constraint with id
+        ``i``), so that a resolve only appends.
         """
         log.debug("create the glpk model")
         prob = swiglpk_mod.glp_create_prob()
@@ -350,83 +364,91 @@ class PYGLPK(LpSolver):
         if lp.sense == constants.LpMaximize:
             swiglpk_mod.glp_set_obj_dir(prob, swiglpk_mod.GLP_MAX)
         log.debug("add the constraints to the problem")
-        var_handles = []
-        constr_handles = []
-        if lp.constraints():
-            swiglpk_mod.glp_add_rows(prob, len(lp.constraints()))
-        for i, constraint in enumerate(lp.constraints(), start=1):
-            name = constraint.name
-            swiglpk_mod.glp_set_row_name(prob, i, name)
-            if constraint.sense == constants.LpConstraintLE:
-                swiglpk_mod.glp_set_row_bnds(
-                    prob, i, swiglpk_mod.GLP_UP, 0.0, -constraint.constant
-                )
-            elif constraint.sense == constants.LpConstraintGE:
-                swiglpk_mod.glp_set_row_bnds(
-                    prob, i, swiglpk_mod.GLP_LO, -constraint.constant, 0.0
-                )
-            elif constraint.sense == constants.LpConstraintEQ:
-                swiglpk_mod.glp_set_row_bnds(
-                    prob,
-                    i,
-                    swiglpk_mod.GLP_FX,
-                    -constraint.constant,
-                    -constraint.constant,
-                )
-            else:
-                raise PulpSolverError("Detected an invalid constraint type")
-            constr_handles.append(i)
+        constraints = lp.constraints()
+        if constraints:
+            swiglpk_mod.glp_add_rows(prob, len(constraints))
+        for constraint in constraints:
+            row = constraint.id + 1
+            swiglpk_mod.glp_set_row_name(prob, row, constraint.name)
+            _set_row_bnds(prob, row, constraint._constr)
         log.debug("add the variables to the problem")
-        exported_vars = lp.exported_variables()
-        id_to_col = {v.id: j for j, v in enumerate(exported_vars, start=1)}
-        if exported_vars:
-            swiglpk_mod.glp_add_cols(prob, len(exported_vars))
-        for j, var in enumerate(exported_vars, start=1):
-            swiglpk_mod.glp_set_col_name(prob, j, var.name)
-            lb = 0.0
-            ub = 0.0
-            t = swiglpk_mod.GLP_FR
-            if math.isfinite(var.lowBound):
-                lb = var.lowBound
-                t = swiglpk_mod.GLP_LO
-            if math.isfinite(var.upBound):
-                ub = var.upBound
-                t = swiglpk_mod.GLP_UP
-            if math.isfinite(var.upBound) and math.isfinite(var.lowBound):
-                if ub == lb:
-                    t = swiglpk_mod.GLP_FX
-                else:
-                    t = swiglpk_mod.GLP_DB
-            swiglpk_mod.glp_set_col_bnds(prob, j, t, lb, ub)
-            if var.cat == constants.LpInteger:
-                swiglpk_mod.glp_set_col_kind(prob, j, swiglpk_mod.GLP_IV)
-                # GLPK reclassifies integer columns bounded to [0, 1] as
-                # GLP_BV (binary) rather than keeping them GLP_IV.
-                assert swiglpk_mod.glp_get_col_kind(prob, j) in (
-                    swiglpk_mod.GLP_IV,
-                    swiglpk_mod.GLP_BV,
-                )
-            var_handles.append(j)
+        variables = lp.variables()
+        if variables:
+            swiglpk_mod.glp_add_cols(prob, len(variables))
+        for var in variables:
+            _set_col(prob, var._var)
         log.debug("set the objective function")
-        for var in exported_vars:
-            value = lp.objective.get(var)
+        for var, value in lp.objective.items():
             if value:
-                swiglpk_mod.glp_set_obj_coef(prob, id_to_col[var.id], value)
+                swiglpk_mod.glp_set_obj_coef(prob, var.id + 1, value)
         log.debug("set the problem matrix")
-        for constraint in lp.constraints():
-            n = len(list(constraint.items()))
-            ind = swiglpk_mod.intArray(n + 1)
-            val = swiglpk_mod.doubleArray(n + 1)
-            for j, (var, value) in enumerate(constraint.items(), start=1):
-                ind[j] = id_to_col[var.id]
-                val[j] = value
-            swiglpk_mod.glp_set_mat_row(
-                prob, constr_handles[constraint.id], n, ind, val
-            )
+        for constraint in constraints:
+            _set_mat_row(prob, constraint._constr)
         lp.solverModel = prob
-        # swiglpk_mod.glp_write_lp(prob, None, "glpk.lp")
-        self._var_handles = var_handles
-        self._constr_handles = constr_handles
+        self._start_tracking(lp)
+
+    @requires("swiglpk")
+    def applyChanges(self, lp: LpProblem, changes: _rustcore.ModelChanges) -> None:
+        """Update ``lp.solverModel`` with the edits made to ``lp`` since it was
+        last solved (``changes``, from :meth:`_take_changes`), keeping the basis.
+
+        Columns are variable ids and rows constraint ids, so new variables and
+        constraints are appended in id order.
+        """
+        prob = lp.solverModel
+        model = lp._model
+
+        if changes.sense_changed:
+            swiglpk_mod.glp_set_obj_dir(
+                prob,
+                swiglpk_mod.GLP_MAX
+                if lp.sense == constants.LpMaximize
+                else swiglpk_mod.GLP_MIN,
+            )
+
+        # entries of new columns in existing rows go with the columns; GLPK
+        # changes a matrix entry only by setting its whole row
+        old_entries, columns = self._split_coefficients(
+            lp, changes, swiglpk_mod.glp_get_num_cols(prob)
+        )
+
+        if changes.new_cols:
+            swiglpk_mod.glp_add_cols(prob, len(changes.new_cols))
+            costs = model.objective_coefficients(changes.new_cols)
+            for j, cost in zip(changes.new_cols, costs):
+                _set_col(prob, model.get_variable(j))
+                swiglpk_mod.glp_set_obj_coef(prob, j + 1, cost)
+                rows, values = columns.get(j, ([], []))
+                ind, val = _arrays([i + 1 for i in rows], values)
+                swiglpk_mod.glp_set_mat_col(prob, j + 1, len(rows), ind, val)
+
+        if changes.new_rows:
+            swiglpk_mod.glp_add_rows(prob, len(changes.new_rows))
+            for i in changes.new_rows:
+                rconstr = model.get_constraint(i)
+                swiglpk_mod.glp_set_row_name(prob, i + 1, rconstr.name)
+                _set_row_bnds(prob, i + 1, rconstr)
+                _set_mat_row(prob, rconstr)
+
+        for i in sorted({i for i, _, _ in old_entries}):
+            _set_mat_row(prob, model.get_constraint(i))
+
+        for i in changes.row_bounds:
+            _set_row_bnds(prob, i + 1, model.get_constraint(i))
+
+        for j in sorted(set(changes.var_bounds) | set(changes.var_category)):
+            _set_col(prob, model.get_variable(j))
+
+        if changes.objective_replaced:
+            cols = list(range(swiglpk_mod.glp_get_num_cols(prob)))
+            objective = lp.objective
+            swiglpk_mod.glp_set_obj_coef(
+                prob, 0, 0.0 if objective is None else objective.constant
+            )
+        else:
+            cols = changes.obj_coeffs
+        for j, cost in zip(cols, model.objective_coefficients(cols)):
+            swiglpk_mod.glp_set_obj_coef(prob, j + 1, cost)
 
     @requires("swiglpk")
     def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
@@ -445,3 +467,71 @@ class PYGLPK(LpSolver):
         # get the solution information
         status, has_solution = self.findSolutionValues(lp)
         return self.buildStats(lp, status, has_solution, start=start)
+
+    @requires("swiglpk")
+    def actualResolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
+        """Update ``lp.solverModel`` with the edits made since the last solve
+        and solve it again from its current basis; build it from scratch if it
+        cannot be updated (see :meth:`LpSolver._take_changes`)."""
+        changes = self._take_changes(lp)
+        if changes is None:
+            return self.actualSolve(lp, **kwargs)
+        start = clocks()
+        try:
+            self.applyChanges(lp, changes)
+        except Exception:
+            # the solver model may be half updated: rebuild it next time
+            self._stop_tracking(lp)
+            raise
+        self.callSolver(lp, callback=kwargs.get("callback"), warm=True)
+        status, has_solution = self.findSolutionValues(lp)
+        return self.buildStats(lp, status, has_solution, start=start)
+
+
+def _arrays(indices: list[int], values: list[float]) -> tuple[Any, Any]:
+    """GLPK (1-based) index and value arrays for ``indices`` and ``values``."""
+    ind = swiglpk_mod.intArray(len(indices) + 1)
+    val = swiglpk_mod.doubleArray(len(values) + 1)
+    for k, (index, value) in enumerate(zip(indices, values), start=1):
+        ind[k] = index
+        val[k] = value
+    return ind, val
+
+
+def _set_col(prob: Any, rvar: _rustcore.Variable) -> None:
+    """Set the name, bounds and kind of the column of a variable of the Rust model."""
+    j = rvar.id() + 1
+    swiglpk_mod.glp_set_col_name(prob, j, rvar.name)
+    lb, ub = rvar.lb, rvar.ub
+    if math.isfinite(lb) and math.isfinite(ub):
+        t = swiglpk_mod.GLP_FX if lb == ub else swiglpk_mod.GLP_DB
+    elif math.isfinite(lb):
+        t, ub = swiglpk_mod.GLP_LO, 0.0
+    elif math.isfinite(ub):
+        t, lb = swiglpk_mod.GLP_UP, 0.0
+    else:
+        t, lb, ub = swiglpk_mod.GLP_FR, 0.0, 0.0
+    swiglpk_mod.glp_set_col_bnds(prob, j, t, lb, ub)
+    # GLPK reclassifies integer columns bounded to [0, 1] as GLP_BV (binary)
+    integer = rvar.category == _rustcore.Category.Integer
+    swiglpk_mod.glp_set_col_kind(
+        prob, j, swiglpk_mod.GLP_IV if integer else swiglpk_mod.GLP_CV
+    )
+
+
+def _set_row_bnds(prob: Any, row: int, rconstr: _rustcore.Constraint) -> None:
+    """Set the bounds of ``row`` from a constraint of the Rust model."""
+    rhs = rconstr.rhs
+    if rconstr.sense == _rustcore.Sense.LessEqual:
+        swiglpk_mod.glp_set_row_bnds(prob, row, swiglpk_mod.GLP_UP, 0.0, rhs)
+    elif rconstr.sense == _rustcore.Sense.GreaterEqual:
+        swiglpk_mod.glp_set_row_bnds(prob, row, swiglpk_mod.GLP_LO, rhs, 0.0)
+    else:
+        swiglpk_mod.glp_set_row_bnds(prob, row, swiglpk_mod.GLP_FX, rhs, rhs)
+
+
+def _set_mat_row(prob: Any, rconstr: _rustcore.Constraint) -> None:
+    """Set the whole matrix row of a constraint of the Rust model."""
+    items = rconstr.items()
+    ind, val = _arrays([rvar.id() + 1 for rvar, _ in items], [a for _, a in items])
+    swiglpk_mod.glp_set_mat_row(prob, rconstr.id() + 1, len(items), ind, val)

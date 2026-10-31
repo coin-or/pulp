@@ -5,7 +5,7 @@ import os
 import warnings
 from typing import TYPE_CHECKING, Any, Iterable
 
-from .. import constants
+from .. import _rustcore, constants
 from .core import (
     LpSolver,
     LpSolver_CMD,
@@ -26,6 +26,22 @@ if TYPE_CHECKING:
     from ..core.lp_variable import LpVariable
 
 cplex_mod = import_optional("cplex")
+
+
+def _bound(value: float) -> float:
+    """A pulp bound as CPLEX takes it: infinite bounds as ``cplex.infinity``."""
+    if math.isfinite(value):
+        return float(value)
+    return cplex_mod.infinity if value > 0 else -cplex_mod.infinity
+
+
+def _sense(sense: _rustcore.Sense) -> str:
+    """The CPLEX sense of a constraint of the Rust model."""
+    if sense == _rustcore.Sense.LessEqual:
+        return "L"
+    if sense == _rustcore.Sense.GreaterEqual:
+        return "G"
+    return "E"
 
 
 class CPLEX_CMD(LpSolver_CMD):
@@ -389,13 +405,44 @@ class CPLEX_PY(LpSolver):
         self._log_file = None
 
     @requires("cplex")
+    def actualResolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
+        """Update ``lp.solverModel`` with the edits made since the last solve
+        and solve it again from its current basis; build it from scratch if it
+        cannot be updated (see :meth:`LpSolver._take_changes`)."""
+        # this solver keeps the model it built last: solving another problem
+        # replaced it
+        if self.solverModel is not lp.solverModel:
+            self._stop_tracking(lp)
+        changes = self._take_changes(lp)
+        if changes is None:
+            return self.actualSolve(lp, **kwargs)
+        start = clocks()
+        callback: Any = kwargs.get("callback")
+        try:
+            try:
+                self.applyChanges(lp, changes)
+            except Exception:
+                # the solver model may be half updated: rebuild it next time
+                self._stop_tracking(lp)
+                raise
+            self.setParams()
+            self.callSolver(lp, callback=callback)
+            status, has_solution = self.findSolutionValues(lp)
+        finally:
+            self.closeLogFile()
+        return self.buildStats(lp, status, has_solution, start=start)
+
+    @requires("cplex")
     def buildSolverModel(self, lp: LpProblem) -> None:
         """
         Takes the pulp lp model and translates it into a cplex model.
+
+        Every variable is a column, used or not: column j is the variable with
+        id j (as row i is the constraint with id i), so that a resolve only
+        appends.
         """
-        model_variables = lp.exported_variables()
-        self.n2v = {var.name: var for var in model_variables}
-        if len(self.n2v) != len(model_variables):
+        variables = lp.variables()
+        if len({var.name for var in variables}) != len(variables):
             raise PulpSolverError("Variables must have unique names for cplex solver")
         log.debug("create the cplex model")
         self.solverModel = lp.solverModel = cplex_mod.Cplex()
@@ -407,66 +454,52 @@ class CPLEX_PY(LpSolver):
             lp.solverModel.objective.set_sense(lp.solverModel.objective.sense.maximize)
         if lp.objective is None:
             raise PulpSolverError("No objective set")
-        obj = [
-            float(0.0 if (c := lp.objective.get(var, 0.0)) is None else c)
-            for var in model_variables
-        ]
-
-        def cplex_var_lb(var):
-            if math.isfinite(var.lowBound):
-                return float(var.lowBound)
-            else:
-                return -cplex_mod.infinity
-
-        lb = [cplex_var_lb(var) for var in model_variables]
-
-        def cplex_var_ub(var):
-            if math.isfinite(var.upBound):
-                return float(var.upBound)
-            else:
-                return cplex_mod.infinity
-
-        ub = [cplex_var_ub(var) for var in model_variables]
-        colnames = [var.name for var in model_variables]
-
-        def cplex_var_types(var):
-            if var.cat == constants.LpInteger:
-                return "I"
-            else:
-                return "C"
-
-        ctype = [cplex_var_types(var) for var in model_variables]
-        ctype = "".join(ctype)
-        lp.solverModel.variables.add(obj=obj, lb=lb, ub=ub, types=ctype, names=colnames)
-        rows = []
-        senses = []
-        rhs = []
-        rownames = [c.name for c in lp.constraints()]
-        for constraint in lp.constraints():
-            # build the expression
-            if len(constraint) == 0:
-                # if the constraint is empty
-                rows.append(([], []))
-            else:
-                expr1 = [var.name for var in constraint.keys()]
-                expr2 = [float(coeff) for coeff in constraint.values()]
-                rows.append((expr1, expr2))
-            if constraint.sense == constants.LpConstraintLE:
-                senses.append("L")
-            elif constraint.sense == constants.LpConstraintGE:
-                senses.append("G")
-            elif constraint.sense == constants.LpConstraintEQ:
-                senses.append("E")
-            else:
-                raise PulpSolverError("Detected an invalid constraint type")
-            rhs.append(float(-constraint.constant))
+        objective = {var.id: c for var, c in lp.objective.items()}
+        ctype = "".join(
+            "I" if var.cat == constants.LpInteger else "C" for var in variables
+        )
+        lp.solverModel.variables.add(
+            obj=[float(objective.get(var.id, 0.0)) for var in variables],
+            lb=[_bound(var.lowBound) for var in variables],
+            ub=[_bound(var.upBound) for var in variables],
+            types=ctype,
+            names=[var.name for var in variables],
+        )
+        constraints = lp.constraints()
         lp.solverModel.linear_constraints.add(
-            lin_expr=rows, senses=senses, rhs=rhs, names=rownames
+            lin_expr=[
+                cplex_mod.SparsePair(
+                    ind=[var.id for var in c.keys()],
+                    val=[float(a) for a in c.values()],
+                )
+                for c in constraints
+            ],
+            senses=[_sense(c._constr.sense) for c in constraints],
+            rhs=[float(-c.constant) for c in constraints],
+            names=[c.name for c in constraints],
         )
         log.debug("set the type of the problem")
         # passing ctypes makes cplex treat the model as a MILP, even if all are "C"
         if not self.mip or "I" not in ctype:
             self.solverModel.set_problem_type(cplex_mod.Cplex.problem_type.LP)
+        self.setParams()
+        if self.optionsDict.get("warmStart", False):
+            # We assume "auto" for the effort_level
+            effort = self.solverModel.MIP_starts.effort_level.auto
+            start = [(v.id, v.value()) for v in variables if v.value() is not None]
+            if not start:
+                warnings.warn("No variable with value found: mipStart aborted")
+            else:
+                ind, val = zip(*start)
+                self.solverModel.MIP_starts.add(
+                    cplex_mod.SparsePair(ind=ind, val=val), effort, "1"
+                )
+        self._start_tracking(lp)
+
+    def setParams(self) -> None:
+        """Apply the logging, gap, time limit, threads and solver parameters to
+        ``self.solverModel``, again on every resolve so that options changed in
+        between take effect."""
         log.debug("set the logging")
         if not self.msg:
             self.setlogfile(None)
@@ -485,21 +518,111 @@ class CPLEX_PY(LpSolver):
         if self.timeLimit is not None:
             self.setTimeLimit(self.timeLimit)
         self.setThreads(self.optionsDict.get("threads", None))
-        if self.optionsDict.get("warmStart", False):
-            # We assume "auto" for the effort_level
-            effort = self.solverModel.MIP_starts.effort_level.auto
-            start = [
-                (k, v.value()) for k, v in self.n2v.items() if v.value() is not None
-            ]
-            if not start:
-                warnings.warn("No variable with value found: mipStart aborted")
-            else:
-                ind, val = zip(*start)
-                self.solverModel.MIP_starts.add(
-                    cplex_mod.SparsePair(ind=ind, val=val), effort, "1"
-                )
         for param, value in self.solver_params.items():
             self.set_param(param, value)
+
+    @requires("cplex")
+    def applyChanges(self, lp: LpProblem, changes: _rustcore.ModelChanges) -> None:
+        """Update ``lp.solverModel`` with the edits made to ``lp`` since it was
+        last solved (``changes``, from :meth:`_take_changes`), keeping the basis.
+
+        Columns are variable ids and rows constraint ids, so new variables and
+        constraints are appended in id order.
+        """
+        m: Any = lp.solverModel
+        model = lp._model
+        is_integer = _rustcore.Category.Integer
+
+        if changes.sense_changed:
+            m.objective.set_sense(
+                m.objective.sense.maximize
+                if lp.sense == constants.LpMaximize
+                else m.objective.sense.minimize
+            )
+
+        # entries of new columns in existing rows go with the columns
+        old_entries, columns = self._split_coefficients(
+            lp, changes, m.variables.get_num()
+        )
+
+        if changes.new_cols:
+            rvars = [model.get_variable(j) for j in changes.new_cols]
+            # continuous for now: the types are set below, with the problem type
+            m.variables.add(
+                obj=model.objective_coefficients(changes.new_cols),
+                lb=[_bound(v.lb) for v in rvars],
+                ub=[_bound(v.ub) for v in rvars],
+                names=[v.name for v in rvars],
+                columns=[
+                    cplex_mod.SparsePair(*columns.get(j, ([], [])))
+                    for j in changes.new_cols
+                ],
+            )
+
+        if changes.new_rows:
+            rconstrs = [model.get_constraint(i) for i in changes.new_rows]
+            lin_expr = []
+            for rconstr in rconstrs:
+                items = rconstr.items()
+                lin_expr.append(
+                    cplex_mod.SparsePair(
+                        ind=[rvar.id() for rvar, _ in items], val=[a for _, a in items]
+                    )
+                )
+            m.linear_constraints.add(
+                lin_expr=lin_expr,
+                senses=[_sense(c.sense) for c in rconstrs],
+                rhs=[c.rhs for c in rconstrs],
+                names=[c.name for c in rconstrs],
+            )
+
+        if old_entries:
+            m.linear_constraints.set_coefficients(old_entries)
+
+        if changes.row_bounds:
+            rconstrs = [model.get_constraint(i) for i in changes.row_bounds]
+            m.linear_constraints.set_senses(
+                list(zip(changes.row_bounds, [_sense(c.sense) for c in rconstrs]))
+            )
+            m.linear_constraints.set_rhs(
+                list(zip(changes.row_bounds, [c.rhs for c in rconstrs]))
+            )
+
+        if changes.var_bounds:
+            rvars = [model.get_variable(j) for j in changes.var_bounds]
+            m.variables.set_lower_bounds(
+                list(zip(changes.var_bounds, [_bound(v.lb) for v in rvars]))
+            )
+            m.variables.set_upper_bounds(
+                list(zip(changes.var_bounds, [_bound(v.ub) for v in rvars]))
+            )
+
+        if changes.objective_replaced:
+            cols = list(range(m.variables.get_num()))
+        else:
+            cols = changes.obj_coeffs
+        if cols:
+            m.objective.set_linear(list(zip(cols, model.objective_coefficients(cols))))
+
+        # the problem type follows the categories: an LP has no column types, so
+        # an LP that becomes a MILP gets the types of all its columns
+        lp_type = cplex_mod.Cplex.problem_type.LP
+        is_lp = m.get_problem_type() == lp_type
+        if self.mip and lp.isMIP():
+            if is_lp:
+                typed = list(range(m.variables.get_num()))
+            else:
+                typed = sorted(set(changes.new_cols) | set(changes.var_category))
+            if typed:
+                rvars = [model.get_variable(j) for j in typed]
+                m.variables.set_types(
+                    [
+                        (j, "I" if v.category == is_integer else "C")
+                        for j, v in zip(typed, rvars)
+                    ]
+                )
+        elif not is_lp:
+            m.set_problem_type(lp_type)
 
     def set_param(self, name: str, value):
         """
@@ -590,9 +713,6 @@ class CPLEX_PY(LpSolver):
 
     @check_solverModel
     def findSolutionValues(self, lp: LpProblem) -> tuple[constants.LpSolveStatus, bool]:
-        model_variables = lp.exported_variables()
-        var_names = [var.name for var in model_variables]
-        con_names = [c.name for c in lp.constraints()]
         my_solution: cplex_t.solution.Solution = lp.solverModel.solution
         cplexstatus: cplex_t.solution.status = my_solution.status
         S = constants.LpSolveStatus
@@ -641,27 +761,20 @@ class CPLEX_PY(LpSolver):
         try:
             my_solution.get_objective_value()
             has_solution = True
-            variablevalues = dict(zip(var_names, my_solution.get_values(var_names)))
-            lp.assignVarsVals(variablevalues)
-            constraintslackvalues = dict(
-                zip(con_names, my_solution.get_linear_slacks(con_names))
-            )
-            lp.assignConsSlack(constraintslackvalues)
+            # column j is the variable with id j, row i the constraint with id i
+            lp._model.set_variable_values(list(enumerate(my_solution.get_values())))
+            if lp.numConstraints():
+                lp._model.set_constraint_slacks(
+                    list(enumerate(my_solution.get_linear_slacks()))
+                )
             if lp.solverModel.get_problem_type() == cplex_mod.Cplex.problem_type.LP:
-                variabledjvalues = dict(
-                    zip(
-                        var_names,
-                        my_solution.get_reduced_costs(var_names),
-                    )
+                lp._model.set_variable_djs(
+                    list(enumerate(my_solution.get_reduced_costs()))
                 )
-                lp.assignVarsDj(variabledjvalues)
-                constraintpivalues = dict(
-                    zip(
-                        con_names,
-                        my_solution.get_dual_values(con_names),
+                if lp.numConstraints():
+                    lp._model.set_constraint_pis(
+                        list(enumerate(my_solution.get_dual_values()))
                     )
-                )
-                lp.assignConsPi(constraintpivalues)
         except cplex_mod.exceptions.CplexSolverError:
             # raises this error when there is no solution
             pass

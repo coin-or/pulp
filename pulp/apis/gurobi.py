@@ -412,23 +412,15 @@ class GUROBI(LpSolver):
 
         gvars = m.getVars()
         gconstrs = m.getConstrs()
-        num_cols = len(gvars)
-        # (row, column) entries edited in existing rows: those of new columns go
-        # with the columns, the others are changed one by one
-        new_entries = [(i, j) for i, j in changes.coeffs if j >= num_cols]
-        old_entries = [(i, j) for i, j in changes.coeffs if j < num_cols]
+        # entries of new columns in existing rows go with the columns, the others
+        # are changed one by one
+        old_entries, columns = self._split_coefficients(lp, changes, len(gvars))
 
         if changes.new_cols:
-            columns: dict[int, tuple[list[float], list[Any]]] = {}
-            for (i, j), value in zip(new_entries, model.coefficients_at(new_entries)):
-                if value != 0:
-                    coefficients, constrs = columns.setdefault(j, ([], []))
-                    coefficients.append(value)
-                    constrs.append(gconstrs[i])
             costs = model.objective_coefficients(changes.new_cols)
             for j, cost in zip(changes.new_cols, costs):
                 rvar = model.get_variable(j)
-                coefficients, constrs = columns.get(j, ([], []))
+                rows, coefficients = columns.get(j, ([], []))
                 gvars.append(
                     m.addVar(
                         _bound(rvar.lb),
@@ -436,7 +428,9 @@ class GUROBI(LpSolver):
                         obj=cost,
                         vtype=self._vtype(rvar.category == is_integer),
                         name=rvar.name,
-                        column=gurobipy_mod.Column(coefficients, constrs),
+                        column=gurobipy_mod.Column(
+                            coefficients, [gconstrs[i] for i in rows]
+                        ),
                     )
                 )
 
@@ -449,7 +443,7 @@ class GUROBI(LpSolver):
             )
             m.addLConstr(expr, _sense(rconstr.sense), rconstr.rhs, name=rconstr.name)
 
-        for (i, j), value in zip(old_entries, model.coefficients_at(old_entries)):
+        for i, j, value in old_entries:
             m.chgCoeff(gconstrs[i], gvars[j], value)
 
         if changes.row_bounds:

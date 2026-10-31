@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from ..core.lp_problem import LpProblem
     from ..core.lp_stats import LpSolveStats
 
+from .. import _rustcore
 from ..constants import (
     LpBinary,
     LpConstraintEQ,
@@ -50,6 +51,33 @@ else:
 byref = ctypes.byref
 
 coptpy_mod = import_optional("coptpy")
+
+
+def _bound(value: float) -> float:
+    """A pulp bound as COPT takes it: infinite bounds as ``COPT.INFINITY``."""
+    if math.isfinite(value):
+        return value
+    return coptpy_mod.COPT.INFINITY if value > 0 else -coptpy_mod.COPT.INFINITY
+
+
+def _sense(sense: _rustcore.Sense) -> str:
+    """The COPT sense of a constraint of the Rust model."""
+    COPT = coptpy_mod.COPT
+    if sense == _rustcore.Sense.LessEqual:
+        return COPT.LESS_EQUAL
+    if sense == _rustcore.Sense.GreaterEqual:
+        return COPT.GREATER_EQUAL
+    return COPT.EQUAL
+
+
+def _row_bounds(rconstr: _rustcore.Constraint) -> tuple[float, float]:
+    """``(lower, upper)`` bounds of a row of the Rust model, as COPT takes them."""
+    inf = coptpy_mod.COPT.INFINITY
+    if rconstr.sense == _rustcore.Sense.LessEqual:
+        return -inf, rconstr.rhs
+    if rconstr.sense == _rustcore.Sense.GreaterEqual:
+        return rconstr.rhs, inf
+    return rconstr.rhs, rconstr.rhs
 
 
 class COPT_CMD(LpSolver_CMD):
@@ -899,17 +927,34 @@ class COPT(LpSolver):
             logPath=logPath,
             warmStart=warmStart,
         )
+        self.solverParams = solverParams
         self.coptenv: Any = None
         self.coptmdl: Any = None
         if coptpy_mod is None:
             return
         self.coptenv = coptpy_mod.Envr()
-        self.coptmdl = self.coptenv.createModel()
+        self.coptmdl = self.createModel()
 
+    def createModel(self):
+        """A new, empty COPT model with the solver parameters set."""
+        model = self.coptenv.createModel()
         if not self.msg:
-            self.coptmdl.setParam("Logging", 0)
-        for key, value in solverParams.items():
-            self.coptmdl.setParam(key, value)
+            model.setParam("Logging", 0)
+        for key, value in self.solverParams.items():
+            model.setParam(key, value)
+        return model
+
+    def setParams(self, model):
+        """Apply the time limit, gap and log file to ``model``, again on every
+        resolve so that options changed in between take effect."""
+        if self.timeLimit:
+            model.setParam("TimeLimit", self.timeLimit)
+        gapRel = self.optionsDict.get("gapRel")
+        logPath = self.optionsDict.get("logPath")
+        if gapRel:
+            model.setParam("RelGap", gapRel)
+        if logPath:
+            model.setLogFile(logPath)
 
     def findSolutionValues(self, lp):
         model = lp.solverModel
@@ -938,26 +983,22 @@ class COPT(LpSolver):
         if not has_solution:
             return status, has_solution
 
+        # column j is the variable with id j, row i the constraint with id i
         values = model.getInfo("Value", model.getVars())
-        exported_vars = lp.exported_variables()
-        for var, value in zip(exported_vars, values):
-            var.varValue = value
+        lp._model.set_variable_values(list(enumerate(values)))
 
         if not model.ismip:
             # COPT returns an error with an empty model
             try:
                 # NOTE: slacks in COPT are activities of rows
                 slacks = model.getInfo("Slack", model.getConstrs())
-                for constr, value in zip(lp.constraints(), slacks):
-                    constr.slack = value
+                lp._model.set_constraint_slacks(list(enumerate(slacks)))
 
                 redcosts = model.getInfo("RedCost", model.getVars())
-                for var, value in zip(exported_vars, redcosts):
-                    var.dj = value
+                lp._model.set_variable_djs(list(enumerate(redcosts)))
 
                 duals = model.getInfo("Dual", model.getConstrs())
-                for constr, value in zip(lp.constraints(), duals):
-                    constr.pi = value
+                lp._model.set_constraint_pis(list(enumerate(duals)))
             except coptpy_mod.CoptError:
                 # sometimes the model is not solved, and thus these infos are not available
                 pass
@@ -984,50 +1025,38 @@ class COPT(LpSolver):
         """
         Takes the pulp lp model and translates it into a COPT model
         """
+        # a new model: the previous one may hold another problem, or this one
+        self.coptmdl = self.createModel()
         lp.solverModel = self.coptmdl
 
         if lp.sense == LpMaximize:
             lp.solverModel.objsense = coptpy_mod.COPT.MAXIMIZE
-        if self.timeLimit:
-            lp.solverModel.setParam("TimeLimit", self.timeLimit)
+        self.setParams(lp.solverModel)
 
-        gapRel = self.optionsDict.get("gapRel")
-        logPath = self.optionsDict.get("logPath")
-        if gapRel:
-            lp.solverModel.setParam("RelGap", gapRel)
-        if logPath:
-            lp.solverModel.setLogFile(logPath)
-
-        var_handles = []
-        exported_vars = lp.exported_variables()
-        id_to_col = {v.id: j for j, v in enumerate(exported_vars)}
-        for var in exported_vars:
-            lowBound = var.lowBound
-            if not math.isfinite(lowBound):
-                lowBound = -coptpy_mod.COPT.INFINITY
-            upBound = var.upBound
-            if not math.isfinite(upBound):
-                upBound = coptpy_mod.COPT.INFINITY
-            obj = lp.objective.get(var, 0.0)
-            varType = coptpy_mod.COPT.CONTINUOUS
-            if var.cat == LpInteger and self.mip:
-                varType = coptpy_mod.COPT.INTEGER
-            cvar = lp.solverModel.addVar(
-                lowBound, upBound, vtype=varType, obj=obj, name=var.name
+        # every variable is a column, used or not: column j is the variable with
+        # id j (as row i is the constraint with id i), so a resolve only appends
+        variables = lp.variables()
+        objective = {var.id: a for var, a in lp.objective.items()}
+        var_handles = [
+            lp.solverModel.addVar(
+                _bound(var.lowBound),
+                _bound(var.upBound),
+                vtype=self._vtype(var.cat == LpInteger),
+                obj=objective.get(var.id, 0.0),
+                name=var.name,
             )
-            var_handles.append(cvar)
+            for var in variables
+        ]
 
         if self.optionsDict.get("warmStart", False):
-            for var in exported_vars:
+            for var in variables:
                 if var.varValue is not None:
-                    lp.solverModel.setMipStart(
-                        var_handles[id_to_col[var.id]], var.varValue
-                    )
+                    lp.solverModel.setMipStart(var_handles[var.id], var.varValue)
             lp.solverModel.loadMipStart()
 
         for constraint in lp.constraints():
             name = constraint.name
-            solver_vars = [var_handles[id_to_col[v.id]] for v in constraint.keys()]
+            solver_vars = [var_handles[v.id] for v in constraint.keys()]
             expr = coptpy_mod.LinExpr(solver_vars, list(constraint.values()))
             if constraint.sense == LpConstraintLE:
                 relation = coptpy_mod.COPT.LESS_EQUAL
@@ -1038,6 +1067,112 @@ class COPT(LpSolver):
             else:
                 raise PulpSolverError("Detected an invalid constraint type")
             lp.solverModel.addConstr(expr, relation, -constraint.constant, name)
+        self._start_tracking(lp)
+
+    def _vtype(self, integer: bool) -> str:
+        COPT = coptpy_mod.COPT
+        return COPT.INTEGER if integer and self.mip else COPT.CONTINUOUS
+
+    @requires("coptpy")
+    def applyChanges(self, lp: LpProblem, changes: _rustcore.ModelChanges) -> None:
+        """Update ``lp.solverModel`` with the edits made to ``lp`` since it was
+        last solved (``changes``, from :meth:`_take_changes`), keeping the basis.
+
+        Columns are variable ids and rows constraint ids, so new variables and
+        constraints are appended in id order.
+        """
+        m = lp.solverModel
+        model = lp._model
+        COPT = coptpy_mod.COPT
+        is_integer = _rustcore.Category.Integer
+
+        if changes.sense_changed:
+            m.setObjSense(COPT.MAXIMIZE if lp.sense == LpMaximize else COPT.MINIMIZE)
+
+        cvars = list(m.getVars())
+        cconstrs = list(m.getConstrs())
+        # entries of new columns in existing rows go with the columns, the others
+        # are changed one by one
+        old_entries, columns = self._split_coefficients(lp, changes, len(cvars))
+
+        if changes.new_cols:
+            costs = model.objective_coefficients(changes.new_cols)
+            for j, cost in zip(changes.new_cols, costs):
+                rvar = model.get_variable(j)
+                rows, coefficients = columns.get(j, ([], []))
+                cvars.append(
+                    m.addVar(
+                        _bound(rvar.lb),
+                        _bound(rvar.ub),
+                        cost,
+                        self._vtype(rvar.category == is_integer),
+                        rvar.name,
+                        coptpy_mod.Column([cconstrs[i] for i in rows], coefficients),
+                    )
+                )
+
+        for i in changes.new_rows:
+            rconstr = model.get_constraint(i)
+            items = rconstr.items()
+            expr = coptpy_mod.LinExpr(
+                [cvars[rvar.id()] for rvar, _ in items],
+                [coefficient for _, coefficient in items],
+            )
+            m.addConstr(expr, _sense(rconstr.sense), rconstr.rhs, rconstr.name)
+
+        for i, j, value in old_entries:
+            m.setCoeff(cconstrs[i], cvars[j], value)
+
+        if changes.row_bounds:
+            constrs = [cconstrs[i] for i in changes.row_bounds]
+            bounds = [_row_bounds(model.get_constraint(i)) for i in changes.row_bounds]
+            m.setInfo("LB", constrs, [lb for lb, _ in bounds])
+            m.setInfo("UB", constrs, [ub for _, ub in bounds])
+
+        if changes.var_bounds:
+            rvars = [model.get_variable(j) for j in changes.var_bounds]
+            handles = [cvars[j] for j in changes.var_bounds]
+            m.setInfo("LB", handles, [_bound(v.lb) for v in rvars])
+            m.setInfo("UB", handles, [_bound(v.ub) for v in rvars])
+
+        if changes.var_category:
+            rvars = [model.get_variable(j) for j in changes.var_category]
+            m.setVarType(
+                [cvars[j] for j in changes.var_category],
+                [self._vtype(v.category == is_integer) for v in rvars],
+            )
+
+        if changes.objective_replaced:
+            cols = list(range(len(cvars)))
+        else:
+            cols = changes.obj_coeffs
+        if cols:
+            m.setInfo(
+                "Obj", [cvars[j] for j in cols], model.objective_coefficients(cols)
+            )
+
+    @requires("coptpy")
+    def actualResolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
+        """Update ``lp.solverModel`` with the edits made since the last solve
+        and solve it again from its current basis; build it from scratch if it
+        cannot be updated (see :meth:`LpSolver._take_changes`)."""
+        # this solver keeps a single model: solving another problem replaced it
+        if self.coptmdl is not lp.solverModel:
+            self._stop_tracking(lp)
+        changes = self._take_changes(lp)
+        if changes is None:
+            return self.actualSolve(lp, **kwargs)
+        start = clocks()
+        try:
+            self.applyChanges(lp, changes)
+        except Exception:
+            # the solver model may be half updated: rebuild it next time
+            self._stop_tracking(lp)
+            raise
+        self.setParams(lp.solverModel)
+        self.callSolver(lp, callback=kwargs.get("callback"))
+        status, has_solution = self.findSolutionValues(lp)
+        return self.buildStats(lp, status, has_solution, start=start)
 
     @requires("coptpy")
     def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:

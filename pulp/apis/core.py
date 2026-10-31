@@ -281,6 +281,30 @@ class LpSolver:
         """``lp.solverModel`` can no longer be updated in place."""
         lp._model.stop_tracking()
 
+    @staticmethod
+    def _split_coefficients(
+        lp: LpProblem, changes: _rustcore.ModelChanges, num_cols: int
+    ) -> tuple[list[tuple[int, int, float]], dict[int, tuple[list[int], list[float]]]]:
+        """Split the entries edited in existing rows (``changes.coeffs``) by
+        column, with their current values.
+
+        :param num_cols: the columns the solver holds; higher ids are new
+        :return: ``[(row, column, value)]`` for existing columns (a 0 value
+            removes the entry), and ``{column: (rows, values)}`` for each new
+            column that has entries in existing rows (zeros left out)
+        """
+        old: list[tuple[int, int, float]] = []
+        new: dict[int, tuple[list[int], list[float]]] = {}
+        values = lp._model.coefficients_at(changes.coeffs)
+        for (i, j), value in zip(changes.coeffs, values):
+            if j < num_cols:
+                old.append((i, j, value))
+            elif value != 0:
+                rows, row_values = new.setdefault(j, ([], []))
+                rows.append(i)
+                row_values.append(value)
+        return old, new
+
     def buildStats(
         self,
         lp: LpProblem,

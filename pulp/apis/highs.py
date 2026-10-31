@@ -478,27 +478,20 @@ class HiGHS(LpSolver):
             )
 
         new_cols = changes.new_cols
-        num_cols = h.getNumCol()
-        # (row, column) entries edited in existing rows: those of new columns go
-        # with the columns, the others are changed one by one
-        new_entries = [(i, j) for i, j in changes.coeffs if j >= num_cols]
-        old_entries = [(i, j) for i, j in changes.coeffs if j < num_cols]
+        # entries of new columns in existing rows go with the columns, the others
+        # are changed one by one
+        old_entries, columns = self._split_coefficients(lp, changes, h.getNumCol())
 
         if new_cols:
             rvars = [model.get_variable(j) for j in new_cols]
-            new_entries.sort(key=lambda entry: (entry[1], entry[0]))
-            values = model.coefficients_at(new_entries)
             starts: list[int] = []
             indices: list[int] = []
             coefficients: list[float] = []
-            k = 0
             for j in new_cols:
                 starts.append(len(indices))
-                while k < len(new_entries) and new_entries[k][1] == j:
-                    if values[k] != 0:
-                        indices.append(new_entries[k][0])
-                        coefficients.append(values[k])
-                    k += 1
+                rows, values = columns.get(j, ([], []))
+                indices.extend(rows)
+                coefficients.extend(values)
             h.addCols(
                 len(new_cols),
                 np.array(model.objective_coefficients(new_cols), dtype=np.float64),
@@ -545,7 +538,7 @@ class HiGHS(LpSolver):
                 np.array(coefficients, dtype=np.float64),
             )
 
-        for (i, j), value in zip(old_entries, model.coefficients_at(old_entries)):
+        for i, j, value in old_entries:
             h.changeCoeff(i, j, value)
 
         if changes.row_bounds:
