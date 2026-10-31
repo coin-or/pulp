@@ -14,7 +14,7 @@ mod io;
 
 use affine_expr::AffineExpr;
 use constraint::Constraint;
-use model::Model;
+use model::{Model, ModelChanges};
 use types::{Category, ObjSense, Sense, SosKind};
 use variable::Variable;
 
@@ -22,6 +22,7 @@ use variable::Variable;
 #[pymodule]
 fn _rustcore(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<Model>()?;
+    m.add_class::<ModelChanges>()?;
     m.add_class::<Variable>()?;
     m.add_class::<Constraint>()?;
     m.add_class::<AffineExpr>()?;

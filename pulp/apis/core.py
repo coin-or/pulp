@@ -95,6 +95,7 @@ from .. import constants as const
 from .. import sparse
 
 if TYPE_CHECKING:
+    from .. import _rustcore
     from ..core.lp_stats import LpSolveStats
     from ..pulp import LpProblem
 
@@ -228,6 +229,8 @@ class LpSolver:
 
     def solve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
         """Solve the problem lp and describe how it went."""
+        # a full solve replaces lp.solverModel: whatever was tracking it is stale
+        self._stop_tracking(lp)
         wasNone, dummyVar = lp.fixObjective()
         try:
             # the log only lives until the block ends; actualSolve reads it in
@@ -236,6 +239,47 @@ class LpSolver:
                 return self.actualSolve(lp, **kwargs)
         finally:
             lp.restoreObjective(wasNone, dummyVar)
+
+    def resolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
+        """Solve ``lp`` again, updating the model the solver already holds when
+        it can (see :meth:`actualResolve`), and describe how it went."""
+        wasNone, dummyVar = lp.fixObjective()
+        try:
+            with self.capture_log():
+                return self.actualResolve(lp, **kwargs)
+        finally:
+            lp.restoreObjective(wasNone, dummyVar)
+
+    def actualResolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
+        """Solve ``lp`` again. Solvers that can update ``lp.solverModel`` in
+        place, keeping its basis for a hot start, override this using
+        :meth:`_take_changes`; by default the model is built from scratch."""
+        self._stop_tracking(lp)
+        lp.solver = self
+        return self.actualSolve(lp, **kwargs)
+
+    def _start_tracking(self, lp: LpProblem) -> None:
+        """Record edits to ``lp`` from now on: its whole model was just loaded
+        into ``lp.solverModel``, which :meth:`actualResolve` may then update.
+        ``lp.solver`` is set to this solver, which is how it is recognised."""
+        lp.solver = self
+        lp._model.track_changes()
+
+    def _take_changes(self, lp: LpProblem) -> _rustcore.ModelChanges | None:
+        """The edits to replay on ``lp.solverModel``, or None if it has to be
+        rebuilt: this solver did not build it, or an edit cannot be replayed."""
+        if lp.solver is not self or not lp._model.tracking_changes:
+            self._stop_tracking(lp)
+            return None
+        changes = lp._model.take_changes()
+        if changes.unsupported:
+            self._stop_tracking(lp)
+            return None
+        return changes
+
+    def _stop_tracking(self, lp: LpProblem) -> None:
+        """``lp.solverModel`` can no longer be updated in place."""
+        lp._model.stop_tracking()
 
     def buildStats(
         self,

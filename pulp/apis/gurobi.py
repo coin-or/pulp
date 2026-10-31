@@ -30,7 +30,7 @@ import math
 import os
 from typing import TYPE_CHECKING, Any
 
-from .. import constants
+from .. import _rustcore, constants
 from .core import (
     LpSolver,
     LpSolver_CMD,
@@ -182,7 +182,7 @@ class GUROBI(LpSolver):
         if self.manage_env:
             self.env.dispose()
 
-    def findSolutionValues(self, lp: LpProblem, var_handles, constr_handles):
+    def findSolutionValues(self, lp: LpProblem):
         model = lp.solverModel
         solutionStatus = model.Status
         GRB = gurobipy_mod.GRB
@@ -219,42 +219,23 @@ class GUROBI(LpSolver):
         status = gurobiLpStatus.get(solutionStatus, S.Undefined)
         has_solution = model.SolCount >= 1
         if has_solution:
-            exported_vars = lp.exported_variables()
-            for var, value in zip(
-                exported_vars,
-                model.getAttr(
-                    GRB.Attr.X, [var_handles[j] for j in range(len(exported_vars))]
-                ),
-            ):
-                var.varValue = value
-            # populate pulp constraints slack (constraints.items() in id order)
-            for constr, value in zip(
-                lp.constraints(),
-                model.getAttr(
-                    GRB.Attr.Slack,
-                    [constr_handles[c.id] for c in lp.constraints()],
-                ),
-            ):
-                constr.slack = value
+            # column j is the variable with id j, row i the constraint with id i
+            gvars = model.getVars()
+            gconstrs = model.getConstrs()
+            lp._model.set_variable_values(
+                list(enumerate(model.getAttr(GRB.Attr.X, gvars)))
+            )
+            lp._model.set_constraint_slacks(
+                list(enumerate(model.getAttr(GRB.Attr.Slack, gconstrs)))
+            )
             # put pi and slack variables against the constraints
             if not model.IsMIP:
-                for var, value in zip(
-                    exported_vars,
-                    model.getAttr(
-                        GRB.Attr.RC,
-                        [var_handles[j] for j in range(len(exported_vars))],
-                    ),
-                ):
-                    var.dj = value
-
-                for constr, value in zip(
-                    lp.constraints(),
-                    model.getAttr(
-                        GRB.Attr.Pi,
-                        [constr_handles[c.id] for c in lp.constraints()],
-                    ),
-                ):
-                    constr.pi = value
+                lp._model.set_variable_djs(
+                    list(enumerate(model.getAttr(GRB.Attr.RC, gvars)))
+                )
+                lp._model.set_constraint_pis(
+                    list(enumerate(model.getAttr(GRB.Attr.Pi, gconstrs)))
+                )
         return status, has_solution
 
     def available(self):
@@ -351,12 +332,8 @@ class GUROBI(LpSolver):
         log.debug("add the variables to the problem")
         lp.solverModel.update()
         nvars = lp.solverModel.NumVars
-        var_handles = []
-        constr_handles = []
-        exported_vars = lp.exported_variables()
-        id_to_col = {v.id: j for j, v in enumerate(exported_vars)}
         if nvars > 0:
-            # Variable compression changes column order vs. var.id; rebuild from scratch.
+            # the model holds another problem (or an older version of this one)
             lp.solverModel.dispose()
             self.init_gurobi = False
             self.initGurobi()
@@ -367,54 +344,147 @@ class GUROBI(LpSolver):
             if lp.sense == constants.LpMaximize:
                 lp.solverModel.setAttr("ModelSense", -1)
             self._set_params(lp.solverModel)
-            nvars = 0
 
-        if nvars == 0:
-            for var in exported_vars:
-                lowBound = var.lowBound
-                if not math.isfinite(lowBound):
-                    lowBound = -gurobipy_mod.GRB.INFINITY
-                upBound = var.upBound
-                if not math.isfinite(upBound):
-                    upBound = gurobipy_mod.GRB.INFINITY
-                obj = lp.objective.get(var, 0.0)
-                varType = gurobipy_mod.GRB.CONTINUOUS
-                if var.cat == constants.LpInteger and self.mip:
-                    varType = gurobipy_mod.GRB.INTEGER
-                gvar = lp.solverModel.addVar(
-                    lowBound, upBound, vtype=varType, obj=obj, name=var.name
-                )
-                var_handles.append(gvar)
+        # every variable is a column, used or not: column j is the variable with
+        # id j (as row i is the constraint with id i), so a resolve only appends
+        variables = lp.variables()
+        objective = {var.id: coefficient for var, coefficient in lp.objective.items()}
+        var_handles = [
+            lp.solverModel.addVar(
+                _bound(var.lowBound),
+                _bound(var.upBound),
+                vtype=self._vtype(var.cat == constants.LpInteger),
+                obj=objective.get(var.id, 0.0),
+                name=var.name,
+            )
+            for var in variables
+        ]
         if self.optionsDict.get("warmStart", False):
-            for var in exported_vars:
+            for var in variables:
                 if var.varValue is not None:
-                    var_handles[id_to_col[var.id]].start = var.varValue
+                    var_handles[var.id].start = var.varValue
 
+        log.debug("add the Constraints to the problem")
+        constr_handles = []
+        for constraint in lp.constraints():
+            expr = gurobipy_mod.LinExpr(
+                list(constraint.values()),
+                [var_handles[v.id] for v in constraint.keys()],
+            )
+            if constraint.sense == constants.LpConstraintLE:
+                gconstr = lp.solverModel.addConstr(
+                    expr <= -constraint.constant, name=constraint.name
+                )
+            elif constraint.sense == constants.LpConstraintGE:
+                gconstr = lp.solverModel.addConstr(
+                    expr >= -constraint.constant, name=constraint.name
+                )
+            elif constraint.sense == constants.LpConstraintEQ:
+                gconstr = lp.solverModel.addConstr(
+                    expr == -constraint.constant, name=constraint.name
+                )
+            else:
+                raise PulpSolverError("Detected an invalid constraint type")
+            constr_handles.append(gconstr)
         lp.solverModel.update()
-        if nvars == 0:
-            log.debug("add the Constraints to the problem")
-            for constraint in lp.constraints():
-                # build the expression (id = index in var_handles)
-                name = constraint.name
-                solver_vars = [var_handles[id_to_col[v.id]] for v in constraint.keys()]
-                expr = gurobipy_mod.LinExpr(list(constraint.values()), solver_vars)
-                if constraint.sense == constants.LpConstraintLE:
-                    gconstr = lp.solverModel.addConstr(
-                        expr <= -constraint.constant, name=name
-                    )
-                elif constraint.sense == constants.LpConstraintGE:
-                    gconstr = lp.solverModel.addConstr(
-                        expr >= -constraint.constant, name=name
-                    )
-                elif constraint.sense == constants.LpConstraintEQ:
-                    gconstr = lp.solverModel.addConstr(
-                        expr == -constraint.constant, name=name
-                    )
-                else:
-                    raise PulpSolverError("Detected an invalid constraint type")
-                constr_handles.append(gconstr)
-        lp.solverModel.update()
+        self._start_tracking(lp)
         return var_handles, constr_handles
+
+    def _vtype(self, integer: bool) -> str:
+        GRB = gurobipy_mod.GRB
+        return GRB.INTEGER if integer and self.mip else GRB.CONTINUOUS
+
+    @requires("gurobipy")
+    def applyChanges(self, lp: LpProblem, changes: _rustcore.ModelChanges) -> None:
+        """Update ``lp.solverModel`` with the edits made to ``lp`` since it was
+        last solved (``changes``, from :meth:`_take_changes`), keeping the basis.
+
+        Columns are variable ids and rows constraint ids, so new variables and
+        constraints are appended in id order.
+        """
+        m: Any = lp.solverModel
+        model = lp._model
+        GRB = gurobipy_mod.GRB
+        is_integer = _rustcore.Category.Integer
+
+        if changes.sense_changed:
+            m.ModelSense = -1 if lp.sense == constants.LpMaximize else 1
+
+        gvars = m.getVars()
+        gconstrs = m.getConstrs()
+        num_cols = len(gvars)
+        # (row, column) entries edited in existing rows: those of new columns go
+        # with the columns, the others are changed one by one
+        new_entries = [(i, j) for i, j in changes.coeffs if j >= num_cols]
+        old_entries = [(i, j) for i, j in changes.coeffs if j < num_cols]
+
+        if changes.new_cols:
+            columns: dict[int, tuple[list[float], list[Any]]] = {}
+            for (i, j), value in zip(new_entries, model.coefficients_at(new_entries)):
+                if value != 0:
+                    coefficients, constrs = columns.setdefault(j, ([], []))
+                    coefficients.append(value)
+                    constrs.append(gconstrs[i])
+            costs = model.objective_coefficients(changes.new_cols)
+            for j, cost in zip(changes.new_cols, costs):
+                rvar = model.get_variable(j)
+                coefficients, constrs = columns.get(j, ([], []))
+                gvars.append(
+                    m.addVar(
+                        _bound(rvar.lb),
+                        _bound(rvar.ub),
+                        obj=cost,
+                        vtype=self._vtype(rvar.category == is_integer),
+                        name=rvar.name,
+                        column=gurobipy_mod.Column(coefficients, constrs),
+                    )
+                )
+
+        for i in changes.new_rows:
+            rconstr = model.get_constraint(i)
+            items = rconstr.items()
+            expr = gurobipy_mod.LinExpr(
+                [coefficient for _, coefficient in items],
+                [gvars[rvar.id()] for rvar, _ in items],
+            )
+            m.addLConstr(expr, _sense(rconstr.sense), rconstr.rhs, name=rconstr.name)
+
+        for (i, j), value in zip(old_entries, model.coefficients_at(old_entries)):
+            m.chgCoeff(gconstrs[i], gvars[j], value)
+
+        if changes.row_bounds:
+            rconstrs = [model.get_constraint(i) for i in changes.row_bounds]
+            constrs = [gconstrs[i] for i in changes.row_bounds]
+            m.setAttr(GRB.Attr.RHS, constrs, [c.rhs for c in rconstrs])
+            m.setAttr(GRB.Attr.Sense, constrs, [_sense(c.sense) for c in rconstrs])
+
+        if changes.var_bounds:
+            rvars = [model.get_variable(j) for j in changes.var_bounds]
+            handles = [gvars[j] for j in changes.var_bounds]
+            m.setAttr(GRB.Attr.LB, handles, [_bound(v.lb) for v in rvars])
+            m.setAttr(GRB.Attr.UB, handles, [_bound(v.ub) for v in rvars])
+
+        if changes.var_category:
+            rvars = [model.get_variable(j) for j in changes.var_category]
+            m.setAttr(
+                GRB.Attr.VType,
+                [gvars[j] for j in changes.var_category],
+                [self._vtype(v.category == is_integer) for v in rvars],
+            )
+
+        if changes.objective_replaced:
+            cols = list(range(len(gvars)))
+            objective = lp.objective
+            m.ObjCon = 0.0 if objective is None else objective.constant
+        else:
+            cols = changes.obj_coeffs
+        if cols:
+            m.setAttr(
+                GRB.Attr.Obj,
+                [gvars[j] for j in cols],
+                model.objective_coefficients(cols),
+            )
+        m.update()
 
     @requires("gurobipy")
     def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
@@ -426,13 +496,55 @@ class GUROBI(LpSolver):
         """
         start = clocks()
         callback = kwargs.get("callback")
-        var_handles, constr_handles = self.buildSolverModel(lp)
+        self.buildSolverModel(lp)
         # set the initial solution
         log.debug("Solve the Model using gurobi")
         self.callSolver(lp, callback=callback)
         # get the solution information
-        status, has_solution = self.findSolutionValues(lp, var_handles, constr_handles)
+        status, has_solution = self.findSolutionValues(lp)
         return self.buildStats(lp, status, has_solution, start=start)
+
+    @requires("gurobipy")
+    def actualResolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
+        """Update ``lp.solverModel`` with the edits made since the last solve
+        and solve it again from its current basis; build it from scratch if it
+        cannot be updated (see :meth:`LpSolver._take_changes`)."""
+        # this solver keeps a single model: solving another problem replaced it
+        if self.model is not lp.solverModel:
+            self._stop_tracking(lp)
+        changes = self._take_changes(lp)
+        if changes is None:
+            return self.actualSolve(lp, **kwargs)
+        start = clocks()
+        try:
+            self.applyChanges(lp, changes)
+        except Exception:
+            # the solver model may be half updated: rebuild it next time
+            self._stop_tracking(lp)
+            raise
+        self._silence(lp.solverModel)
+        self._set_params(lp.solverModel)
+        log.debug("Solve the Model using gurobi")
+        self.callSolver(lp, callback=kwargs.get("callback"))
+        status, has_solution = self.findSolutionValues(lp)
+        return self.buildStats(lp, status, has_solution, start=start)
+
+
+def _bound(value: float) -> float:
+    """A pulp bound as Gurobi takes it: infinite bounds as ``GRB.INFINITY``."""
+    if math.isfinite(value):
+        return value
+    return gurobipy_mod.GRB.INFINITY if value > 0 else -gurobipy_mod.GRB.INFINITY
+
+
+def _sense(sense: _rustcore.Sense) -> str:
+    """The Gurobi sense character of a constraint of the Rust model."""
+    GRB = gurobipy_mod.GRB
+    if sense == _rustcore.Sense.LessEqual:
+        return GRB.LESS_EQUAL
+    if sense == _rustcore.Sense.GreaterEqual:
+        return GRB.GREATER_EQUAL
+    return GRB.EQUAL
 
 
 class GUROBI_CMD(LpSolver_CMD):
