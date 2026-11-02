@@ -26,6 +26,8 @@ from .. import constants as const
 #: ``None`` for them and :func:`parse_logs` then skips parsing entirely.
 LOG_DIALECTS: dict[str, str] = {
     "COIN_CMD": "CBC",
+    # Cbc's log, through its bindings; Clp's (an LP) has little orloge reads
+    "CyLP": "CBC",
     "CPLEX_CMD": "CPLEX",
     "CPLEX_PY": "CPLEX",
     "GUROBI": "GUROBI",

@@ -3,9 +3,10 @@ from __future__ import annotations
 
 import collections
 import itertools
+from collections.abc import Iterator
 from itertools import combinations as combination
 from itertools import permutations as permutation
-from typing import Any, Iterator
+from typing import Any
 
 
 def resource_clock() -> float:

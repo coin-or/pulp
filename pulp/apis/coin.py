@@ -25,9 +25,12 @@
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."""
 from __future__ import annotations
 
+import contextlib
 import math
 import os
-from typing import TYPE_CHECKING, Any
+import sys
+from collections.abc import Iterable, Iterator
+from typing import IO, TYPE_CHECKING, Any
 
 import numpy as np
 
@@ -885,6 +888,8 @@ class CYLP(LpSolver):
 
     # https://github.com/coin-or/CyLP
     name = "CyLP"
+    # the log goes to the file instead of the console (see :meth:`_logging`)
+    logPathSilencesMsg = True
 
     def __init__(
         self,
@@ -897,6 +902,7 @@ class CYLP(LpSolver):
         maxNodes=None,
         maxSolutions=None,
         presolve=None,
+        logPath=None,
         **solverParams,
     ):
         """
@@ -909,6 +915,8 @@ class CYLP(LpSolver):
         :param int maxNodes: max number of nodes during branching, only used by Cbc
         :param int maxSolutions: stop after finding this many solutions, only used by Cbc
         :param bool presolve: if False, Clp solves without presolve, only used by Clp
+        :param str logPath: path to the log file; the log goes there instead of
+            the console
         """
         super().__init__(
             mip=mip,
@@ -917,6 +925,7 @@ class CYLP(LpSolver):
             maxNodes=maxNodes,
             maxSolutions=maxSolutions,
             presolve=presolve,
+            logPath=logPath,
             **solverParams,
         )
         self.gapAbs = gapAbs
@@ -968,12 +977,13 @@ class CYLP(LpSolver):
             self._stop_tracking(lp)
             raise
         self.solveTime = -clock()
-        # the dual simplex suits a basis made primal infeasible (new rows, new
-        # bounds), the primal simplex one made dual infeasible (new columns, costs)
-        if changes.new_rows or changes.row_bounds or changes.var_bounds:
-            model.dual()
-        else:
-            model.primal()
+        with self._logging(model):
+            # the dual simplex suits a basis made primal infeasible (new rows, new
+            # bounds), the primal one a basis made dual infeasible (new columns)
+            if changes.new_rows or changes.row_bounds or changes.var_bounds:
+                model.dual()
+            else:
+                model.primal()
         self.solveTime += clock()
         status, has_solution = self.findSolutionValues(lp)
         return self.buildStats(lp, status, has_solution, start=start)
@@ -995,44 +1005,25 @@ class CYLP(LpSolver):
         lp.checkDuplicateVars()
         variables = lp.variables()
         constraints = lp.constraints()
-        rows: list[int] = []
-        cols: list[int] = []
-        elements: list[float] = []
+        # the rows first, empty: the columns are added with their entries in them
+        columns: list[tuple[list[int], list[float]]] = [([], []) for _ in variables]
         for constraint in constraints:
             for var, coefficient in constraint.items():
+                rows, values = columns[var.id]
                 rows.append(constraint.id)
-                cols.append(var.id)
-                elements.append(coefficient)
+                values.append(coefficient)
         objective = np.zeros(len(variables))
         for var, coefficient in lp.objective.items():
             objective[var.id] = coefficient
-        bounds = [_cylp_row_bounds(c._constr) for c in constraints]
-        matrix = cylp_mod.CyCoinPackedMatrix(
-            True,
-            np.array(rows, dtype=np.int32),
-            np.array(cols, dtype=np.int32),
-            np.array(elements, dtype=np.float64),
-        )
         model = cylp_mod.CyClpSimplex()
-        if not self.msg:
-            model.logLevel = 0
-        model.loadProblem(
-            matrix,
-            np.array([v.lowBound for v in variables], dtype=np.float64),
-            np.array([v.upBound for v in variables], dtype=np.float64),
+        _add_rows(model, [c._constr for c in constraints], with_entries=False)
+        _add_columns(
+            model,
+            [v.lowBound for v in variables],
+            [v.upBound for v in variables],
             objective,
-            np.array([lb for lb, _ in bounds], dtype=np.float64),
-            np.array([ub for _, ub in bounds], dtype=np.float64),
+            columns,
         )
-        # the matrix only spans the rows and columns with entries: add the others
-        model.resize(len(constraints), len(variables))
-        for var in variables[matrix.majorDim :]:
-            model.setColumnLower(var.id, var.lowBound)
-            model.setColumnUpper(var.id, var.upBound)
-            model.setObjectiveCoefficient(var.id, objective[var.id])
-        for i, (lb, ub) in enumerate(bounds[matrix.minorDim :], matrix.minorDim):
-            model.setRowLower(i, lb)
-            model.setRowUpper(i, ub)
         if lp.sense == constants.LpMaximize:
             model.optimizationDirection = "max"
         if lp.isMIP() and self.mip:
@@ -1040,8 +1031,6 @@ class CYLP(LpSolver):
                 if var.cat == constants.LpInteger:
                     model.setInteger(var.id)
             model = model.getCbcModel()
-            if not self.msg:
-                model.logLevel = 0
         lp.solverModel = model
         self._start_tracking(lp)
 
@@ -1066,30 +1055,18 @@ class CYLP(LpSolver):
                 "max" if lp.sense == constants.LpMaximize else "min"
             )
 
-        costs = rmodel.objective_coefficients(changes.new_cols)
-        for j, cost in zip(changes.new_cols, costs):
-            rvar = rmodel.get_variable(j)
-            rows, values = columns.get(j, ([], []))
-            model.CLP_addVariable(
-                len(rows),
-                np.array(rows, dtype=np.int32),
-                np.array(values, dtype=np.float64),
-                rvar.lb,
-                rvar.ub,
-                cost,
+        if changes.new_cols:
+            rvars = [rmodel.get_variable(j) for j in changes.new_cols]
+            _add_columns(
+                model,
+                [v.lb for v in rvars],
+                [v.ub for v in rvars],
+                rmodel.objective_coefficients(changes.new_cols),
+                [columns.get(j, ([], [])) for j in changes.new_cols],
             )
 
-        for i in changes.new_rows:
-            rconstr = rmodel.get_constraint(i)
-            items = rconstr.items()
-            lb, ub = _cylp_row_bounds(rconstr)
-            model.CLP_addConstraint(
-                len(items),
-                np.array([rvar.id() for rvar, _ in items], dtype=np.int32),
-                np.array([a for _, a in items], dtype=np.float64),
-                lb,
-                ub,
-            )
+        if changes.new_rows:
+            _add_rows(model, [rmodel.get_constraint(i) for i in changes.new_rows])
 
         for i in changes.row_bounds:
             lb, ub = _cylp_row_bounds(rmodel.get_constraint(i))
@@ -1125,11 +1102,34 @@ class CYLP(LpSolver):
                 model.maximumNodes = max_nodes
             if (max_solutions := self.optionsDict.get("maxSolutions")) is not None:
                 model.maximumSolutions = max_solutions
-            model.solve()
+            with self._logging(model):
+                model.solve()
         else:
             presolve = self.optionsDict.get("presolve", True)
-            model.initialSolve(presolve="on" if presolve else "off")
+            with self._logging(model):
+                model.initialSolve(presolve="on" if presolve else "off")
         self.solveTime += clock()
+
+    @contextlib.contextmanager
+    def _logging(self, model: Any) -> Iterator[None]:
+        """Send the log of a solve inside the block where it is asked for.
+
+        Clp and Cbc print to the process's standard output and the bindings
+        offer no log file, so with ``logPath`` the file descriptor of standard
+        output itself points to that file during the block. ``msg=False``
+        without ``logPath`` silences them.
+        """
+        logPath = self.optionsDict.get("logPath")
+        model.logLevel = 1 if self.msg or logPath else 0
+        if not logPath:
+            yield
+            return
+        if self.msg:
+            warnings.warn(
+                "`logPath` argument replaces `msg=1`. The output will be redirected to the log file."
+            )
+        with open(logPath, "w") as log_file, _redirect_c_stdout(log_file):
+            yield
 
     def findSolutionValues(self, lp: LpProblem) -> tuple[int, bool]:
         S = constants.LpSolveStatus
@@ -1171,6 +1171,77 @@ class CYLP(LpSolver):
         # the bound is in the problem's sense, without the objective's constant
         constant = lp.objective.constant if lp.objective is not None else 0
         return bound + constant
+
+
+def _flush_c_stdout() -> None:
+    """Flush the C library's buffer of standard output, where Clp and Cbc print."""
+    ctypes.CDLL(None).fflush(None)
+
+
+@contextlib.contextmanager
+def _redirect_c_stdout(file: IO[str]) -> Iterator[None]:
+    """Point the process's standard output (the file descriptor, where Clp and
+    Cbc print) to ``file`` during the block."""
+    sys.stdout.flush()
+    _flush_c_stdout()
+    saved = os.dup(1)
+    try:
+        os.dup2(file.fileno(), 1)
+        yield
+    finally:
+        _flush_c_stdout()
+        os.dup2(saved, 1)
+        os.close(saved)
+
+
+def _add_columns(
+    model: Any,
+    lower: Iterable[float],
+    upper: Iterable[float],
+    objective: Iterable[float],
+    columns: list[tuple[list[int], list[float]]],
+) -> None:
+    """Append columns to a Clp model in one call; ``columns`` holds the
+    ``(rows, values)`` entries of each one, in existing rows."""
+    starts = [0]
+    for rows, _ in columns:
+        starts.append(starts[-1] + len(rows))
+    model.addVariables(
+        len(columns),
+        np.array(list(lower), dtype=np.float64),
+        np.array(list(upper), dtype=np.float64),
+        np.array(list(objective), dtype=np.float64),
+        np.array(starts, dtype=np.int32),
+        np.array([i for rows, _ in columns for i in rows], dtype=np.int32),
+        np.array([a for _, values in columns for a in values], dtype=np.float64),
+    )
+
+
+def _add_rows(
+    model: Any, rconstrs: list[_rustcore.Constraint], with_entries: bool = True
+) -> None:
+    """Append constraints of the Rust model to a Clp model in one call.
+
+    :param with_entries: also add their entries, in existing columns
+    """
+    bounds = [_cylp_row_bounds(c) for c in rconstrs]
+    starts = [0]
+    columns: list[int] = []
+    values: list[float] = []
+    for rconstr in rconstrs:
+        if with_entries:
+            for rvar, coefficient in rconstr.items():
+                columns.append(rvar.id())
+                values.append(coefficient)
+        starts.append(len(columns))
+    model.addConstraints(
+        len(rconstrs),
+        np.array([lb for lb, _ in bounds], dtype=np.float64),
+        np.array([ub for _, ub in bounds], dtype=np.float64),
+        np.array(starts, dtype=np.int32),
+        np.array(columns, dtype=np.int32),
+        np.array(values, dtype=np.float64),
+    )
 
 
 def _cylp_row_bounds(rconstr: _rustcore.Constraint) -> tuple[float, float]:

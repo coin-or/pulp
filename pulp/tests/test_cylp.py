@@ -1,5 +1,8 @@
 """Unit tests for cylp solver."""
 
+import contextlib
+import os
+import tempfile
 from typing import ClassVar
 
 import pulp.apis as solvers
@@ -15,6 +18,7 @@ class CYLPTest(BaseSolverTest.PuLPTest):
     pulp_test_overrides: ClassVar[dict[str, PulpTestConfig]] = {
         "test_dual_variables_reduced_costs": PulpTestConfig(skip=False),
         "test_sequential_solve": PulpTestConfig(skip=False),
+        "test_logPath": PulpTestConfig(skip=False, check_log_path=True),
     }
 
     def test_best_bound(self):
@@ -68,3 +72,57 @@ class CYLPTest(BaseSolverTest.PuLPTest):
         self.assertIs(stats.status, LpSolveStatus.Optimal)
         assert stats.objective is not None
         self.assertAlmostEqual(stats.objective, 8)
+
+    @contextlib.contextmanager
+    def _console(self):
+        """Collect what is written to the process's standard output (the file
+        descriptor, where Clp and Cbc print) during the block."""
+        with tempfile.TemporaryFile("w+") as console:
+            text: list[str] = []
+            with solvers.coin._redirect_c_stdout(console):
+                yield text
+            console.seek(0)
+            text.append(console.read())
+
+    def _lp(self) -> LpProblem:
+        prob = LpProblem("log", LpMinimize)
+        x = prob.add_variable("x", 0, 4)
+        y = prob.add_variable("y", 0, 4)
+        prob += 2 * x + 3 * y
+        prob += x + y >= 3, "c1"
+        return prob
+
+    def test_log_goes_to_the_file_not_the_console(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            log_path = os.path.join(tmp, "cylp.log")
+            prob = self._lp()
+            with self._console() as console:
+                stats = prob.solve(solvers.CYLP(msg=False, logPath=log_path))
+            self.assertIs(stats.status, LpSolveStatus.Optimal)
+            self.assertEqual(console[0], "")
+            with open(log_path) as f:
+                self.assertIn("Clp0000I Optimal", f.read())
+        # standard output works again after the solve
+        print("", end="", flush=True)
+
+    def test_no_msg_prints_nothing(self):
+        prob = self._lp()
+        with self._console() as console:
+            prob.solve(solvers.CYLP(msg=False))
+        self.assertEqual(console[0], "")
+
+    def test_resolve_writes_its_log(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            log_path = os.path.join(tmp, "cylp.log")
+            prob = self._lp()
+            solver = solvers.CYLP(msg=False, logPath=log_path)
+            prob.solve(solver)
+            model = prob.solverModel
+            prob += prob.variables()[0] <= 1, "cut"
+            prob.resolve()
+            self.assertIs(prob.solverModel, model)
+            with open(log_path) as f:
+                # the log of the resolve (a dual simplex), not of the first solve
+                log = f.read()
+            self.assertIn("Clp", log)
+            self.assertNotIn("Presolve", log)
