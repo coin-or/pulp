@@ -8,9 +8,9 @@ from typing import TYPE_CHECKING, Any, Iterable
 from .. import _rustcore, constants
 from .core import (
     LpSolver,
+    LpSolver_API,
     LpSolver_CMD,
     PulpSolverError,
-    clock,
     clocks,
     import_optional,
     log,
@@ -308,7 +308,7 @@ def check_solverModel(func):
     return wrapper
 
 
-class CPLEX_PY(LpSolver):
+class CPLEX_PY(LpSolver_API):
     """
     The CPLEX LP/MIP solver (via a Python Binding)
 
@@ -369,33 +369,27 @@ class CPLEX_PY(LpSolver):
         """True if the solver is available"""
         return cplex_mod is not None
 
-    @requires("cplex")
     def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
         """
         Solve a well formulated lp problem
 
-        creates a cplex model, variables and constraints and attaches
-        them to the lp model which it then solves
-
         :param kwargs: Optional ``callback`` — iterable of CPLEX callback classes to
-            register during solve (same as the former ``callback`` argument).
+            register during solve.
         """
-        start = clocks()
-        callback: Any = kwargs.get("callback")
         try:
-            self.buildSolverModel(lp)
-            # set the initial solution
-            log.debug("Solve the Model using cplex")
-            self.callSolver(lp, callback=callback)
-            # get the solution information
-            status, has_solution = self.findSolutionValues(lp)
+            return super().actualSolve(lp, **kwargs)
         finally:
             self.closeLogFile()
-        return self.buildStats(lp, status, has_solution, start=start)
+
+    def actualResolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
+        try:
+            return super().actualResolve(lp, **kwargs)
+        finally:
+            self.closeLogFile()
 
     def closeLogFile(self):
         """
-        Detaches cplex from the ``logPath`` file opened by buildSolverModel and closes it
+        Detaches cplex from the ``logPath`` file opened by configureSolver and closes it
         """
         if self._log_file is None:
             return
@@ -404,33 +398,10 @@ class CPLEX_PY(LpSolver):
         self._log_file.close()
         self._log_file = None
 
-    @requires("cplex")
-    def actualResolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
-        """Update ``lp.solverModel`` with the edits made since the last solve
-        and solve it again from its current basis; build it from scratch if it
-        cannot be updated (see :meth:`LpSolver._take_changes`)."""
+    def canUpdate(self, lp: LpProblem) -> bool:
         # this solver keeps the model it built last: solving another problem
         # replaced it
-        if self.solverModel is not lp.solverModel:
-            self._stop_tracking(lp)
-        changes = self._take_changes(lp)
-        if changes is None:
-            return self.actualSolve(lp, **kwargs)
-        start = clocks()
-        callback: Any = kwargs.get("callback")
-        try:
-            try:
-                self.applyChanges(lp, changes)
-            except Exception:
-                # the solver model may be half updated: rebuild it next time
-                self._stop_tracking(lp)
-                raise
-            self.setParams()
-            self.callSolver(lp, callback=callback)
-            status, has_solution = self.findSolutionValues(lp)
-        finally:
-            self.closeLogFile()
-        return self.buildStats(lp, status, has_solution, start=start)
+        return self.solverModel is lp.solverModel
 
     @requires("cplex")
     def buildSolverModel(self, lp: LpProblem) -> None:
@@ -482,7 +453,7 @@ class CPLEX_PY(LpSolver):
         # passing ctypes makes cplex treat the model as a MILP, even if all are "C"
         if not self.mip or "I" not in ctype:
             self.solverModel.set_problem_type(cplex_mod.Cplex.problem_type.LP)
-        self.setParams()
+        self.configureSolver(lp)
         if self.optionsDict.get("warmStart", False):
             # We assume "auto" for the effort_level
             effort = self.solverModel.MIP_starts.effort_level.auto
@@ -496,9 +467,9 @@ class CPLEX_PY(LpSolver):
                 )
         self._start_tracking(lp)
 
-    def setParams(self) -> None:
+    def configureSolver(self, lp: LpProblem) -> None:
         """Apply the logging, gap, time limit, threads and solver parameters to
-        ``self.solverModel``, again on every resolve so that options changed in
+        ``lp.solverModel``, again on every resolve so that options changed in
         between take effect."""
         log.debug("set the logging")
         if not self.msg:
@@ -696,23 +667,28 @@ class CPLEX_PY(LpSolver):
     def callSolver(
         self,
         lp: LpProblem,
-        callback: Iterable[type[cplex_t.callbacks.Callback]] | None = None,
-    ):
+        *,
+        changes: _rustcore.ModelChanges | None = None,
+        **kwargs: Any,
+    ) -> None:
         """
         Solves the problem with cplex
 
-        :param callback: Optional list of CPLEX callback classes to register during solve
+        :param kwargs: Optional ``callback`` — iterable of CPLEX callback classes
+            to register during solve
         """
-        # solve the problem
+        callback: Iterable[type[cplex_t.callbacks.Callback]] | None = kwargs.get(
+            "callback"
+        )
         if callback is not None:
             for call in callback:
                 self.solverModel.register_callback(call)
-        self.solveTime = -clock()
         self.solverModel.solve()
-        self.solveTime += clock()
 
     @check_solverModel
-    def findSolutionValues(self, lp: LpProblem) -> tuple[constants.LpSolveStatus, bool]:
+    def findSolutionValues(
+        self, lp: LpProblem, result: Any = None
+    ) -> tuple[constants.LpSolveStatus, bool]:
         my_solution: cplex_t.solution.Solution = lp.solverModel.solution
         cplexstatus: cplex_t.solution.status = my_solution.status
         S = constants.LpSolveStatus

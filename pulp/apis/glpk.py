@@ -33,6 +33,7 @@ from typing import TYPE_CHECKING, Any
 from .. import _rustcore, constants
 from .core import (
     LpSolver,
+    LpSolver_API,
     LpSolver_CMD,
     PulpSolverError,
     clock,
@@ -248,7 +249,7 @@ GLPK = GLPK_CMD
 swiglpk_mod = import_optional("swiglpk")
 
 
-class PYGLPK(LpSolver):
+class PYGLPK(LpSolver_API):
     """
     The glpk LP/MIP solver (via its python interface)
 
@@ -275,7 +276,7 @@ class PYGLPK(LpSolver):
         if not self.msg and swiglpk_mod is not None:
             swiglpk_mod.glp_term_out(swiglpk_mod.GLP_OFF)
 
-    def findSolutionValues(self, lp):
+    def findSolutionValues(self, lp, result=None):
         prob = lp.solverModel
         is_mip = self.mip and self.hasMIPConstraints(lp.solverModel)
         if is_mip:
@@ -319,16 +320,15 @@ class PYGLPK(LpSolver):
             or swiglpk_mod.glp_get_num_bin(solverModel) > 0
         )
 
-    def callSolver(self, lp, callback=None, warm=False):
+    def callSolver(self, lp, *, changes=None, **kwargs):
         """Solves the problem with glpk
 
-        :param warm: start from the basis the model holds (on a resolve)
+        :param changes: on a resolve, start from the basis the model holds
             instead of building an advanced one
         """
-        self.solveTime = -clock()
         # GLPK counts iterations over the model's lifetime: count this solve's
         swiglpk_mod.glp_set_it_cnt(lp.solverModel, 0)
-        if not warm:
+        if changes is None:
             swiglpk_mod.glp_adv_basis(lp.solverModel, 0)
         if swiglpk_mod.glp_simplex(lp.solverModel, None) in (
             swiglpk_mod.GLP_EBADB,
@@ -346,7 +346,9 @@ class PYGLPK(LpSolver):
                 swiglpk_mod.GLP_FEAS,
             ):
                 swiglpk_mod.glp_intopt(lp.solverModel, None)
-        self.solveTime += clock()
+
+    def canUpdate(self, lp):
+        return True
 
     @requires("swiglpk")
     def buildSolverModel(self, lp):
@@ -449,43 +451,6 @@ class PYGLPK(LpSolver):
             cols = changes.obj_coeffs
         for j, cost in zip(cols, model.objective_coefficients(cols)):
             swiglpk_mod.glp_set_obj_coef(prob, j + 1, cost)
-
-    @requires("swiglpk")
-    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
-        """
-        Solve a well formulated lp problem
-
-        creates a glpk model, variables and constraints and attaches
-        them to the lp model which it then solves
-        """
-        start = clocks()
-        callback = kwargs.get("callback")
-        self.buildSolverModel(lp)
-        # set the initial solution
-        log.debug("Solve the Model using glpk")
-        self.callSolver(lp, callback=callback)
-        # get the solution information
-        status, has_solution = self.findSolutionValues(lp)
-        return self.buildStats(lp, status, has_solution, start=start)
-
-    @requires("swiglpk")
-    def actualResolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
-        """Update ``lp.solverModel`` with the edits made since the last solve
-        and solve it again from its current basis; build it from scratch if it
-        cannot be updated (see :meth:`LpSolver._take_changes`)."""
-        changes = self._take_changes(lp)
-        if changes is None:
-            return self.actualSolve(lp, **kwargs)
-        start = clocks()
-        try:
-            self.applyChanges(lp, changes)
-        except Exception:
-            # the solver model may be half updated: rebuild it next time
-            self._stop_tracking(lp)
-            raise
-        self.callSolver(lp, callback=kwargs.get("callback"), warm=True)
-        status, has_solution = self.findSolutionValues(lp)
-        return self.buildStats(lp, status, has_solution, start=start)
 
 
 def _arrays(indices: list[int], values: list[float]) -> tuple[Any, Any]:

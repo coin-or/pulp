@@ -12,7 +12,7 @@ import numpy as np
 
 from .. import _rustcore, constants
 from .core import (
-    LpSolver,
+    LpSolver_API,
     LpSolver_CMD,
     PulpSolverError,
     clocks,
@@ -286,7 +286,7 @@ def _row_bounds(rconstr: _rustcore.Constraint, inf: float) -> tuple[float, float
     return rhs, rhs
 
 
-class HiGHS(LpSolver):
+class HiGHS(LpSolver_API):
     name = "HiGHS"
 
     hscb = highspy_mod.cb if highspy_mod is not None else None
@@ -335,25 +335,16 @@ class HiGHS(LpSolver):
     def available(self):
         return highspy_mod is not None
 
-    def callSolver(self, lp):
+    def callSolver(self, lp, *, changes=None, **kwargs):
         lp.solverModel.run()
 
-    @requires("highspy")
-    def createAndConfigureSolver(self, lp):
-        lp.solverModel = highspy_mod.Highs()
+    def canUpdate(self, lp):
+        return True
 
-        if self.callbackTuple:
-            lp.solverModel.setCallback(*self.callbackTuple)
-
-        if self.callbacksToActivate:
-            for cb_type in self.callbacksToActivate:
-                lp.solverModel.startCallback(cb_type)
-
-        self.configureSolver(lp.solverModel)
-
-    def configureSolver(self, solverModel):
-        """Apply the solver options to ``solverModel``, again on every resolve
-        so that options changed in between take effect."""
+    def configureSolver(self, lp):
+        """Apply the solver options to ``lp.solverModel``, again on every
+        resolve so that options changed in between take effect."""
+        solverModel = lp.solverModel
         logPath = self.optionsDict.get("logPath")
         if not self.msg:
             solverModel.setOptionValue("log_to_console", False)
@@ -381,6 +372,18 @@ class HiGHS(LpSolver):
 
     @requires("highspy")
     def buildSolverModel(self, lp):
+        lp.solverModel = highspy_mod.Highs()
+
+        if self.callbackTuple:
+            lp.solverModel.setCallback(*self.callbackTuple)
+
+        if self.callbacksToActivate:
+            for cb_type in self.callbacksToActivate:
+                lp.solverModel.startCallback(cb_type)
+
+        # configured first, so that msg=False also silences the model loading
+        self.configureSolver(lp)
+
         inf = highspy_mod.kHighsInf
 
         # every variable is a column, used or not: column j is the variable with
@@ -589,7 +592,7 @@ class HiGHS(LpSolver):
                 np.array(model.objective_coefficients(cols), dtype=np.float64),
             )
 
-    def findSolutionValues(self, lp):
+    def findSolutionValues(self, lp, result=None):
         status = lp.solverModel.getModelStatus()
         obj_value = lp.solverModel.getObjectiveValue()
         solution = lp.solverModel.getSolution()
@@ -649,41 +652,6 @@ class HiGHS(LpSolver):
             status in stopped_early and isfinite(obj_value)
         )
         return status_dict.get(status, S.Undefined), has_solution
-
-    @requires("highspy")
-    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
-        start = clocks()
-        self.createAndConfigureSolver(lp)
-        self.buildSolverModel(lp)
-        self.callSolver(lp)
-
-        status, has_solution = self.findSolutionValues(lp)
-        return self.buildStats(
-            lp, status, has_solution, start=start, best_bound=self.findBestBound(lp)
-        )
-
-    @requires("highspy")
-    def actualResolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
-        """Update ``lp.solverModel`` with the edits made since the last solve
-        and solve it again from its current basis; build it from scratch if it
-        cannot be updated (see :meth:`LpSolver._take_changes`)."""
-        changes = self._take_changes(lp)
-        if changes is None:
-            return self.actualSolve(lp, **kwargs)
-        start = clocks()
-        try:
-            self.applyChanges(lp, changes)
-        except Exception:
-            # the solver model may be half updated: rebuild it next time
-            self._stop_tracking(lp)
-            raise
-        self.configureSolver(lp.solverModel)
-        self.callSolver(lp)
-
-        status, has_solution = self.findSolutionValues(lp)
-        return self.buildStats(
-            lp, status, has_solution, start=start, best_bound=self.findBestBound(lp)
-        )
 
     def findBestBound(self, lp: LpProblem) -> float | None:
         """The best bound HiGHS proved on a MIP, in the problem's sense, or None."""

@@ -395,9 +395,11 @@ Also, you can access the python api object before solving by using the lower-lev
     # for example, load a MIP_START file for CPLEX_PY:
     solver.solverModel.MIP_starts.read(SOME_MST_FILE)
     # the, you can call the solver to solve the problem
-    solver.callSolver(prob)
+    result = solver.callSolver(prob)
     # finally, you fill the PuLP variables with the solution
-    status, has_solution = solver.findSolutionValues(prob)
+    status, has_solution = solver.findSolutionValues(prob, result)
+
+These three steps work the same way for every solver that uses an official python interface (the subclasses of ``LpSolver_API``).
 
 For more information on how to use the `solverModel`, one needs to check the official documentation depending on the solver.
 

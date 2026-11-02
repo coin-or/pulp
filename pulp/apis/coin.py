@@ -37,8 +37,10 @@ import numpy as np
 from .. import _rustcore, constants
 from .core import (
     LpSolver,
+    LpSolver_API,
     LpSolver_CMD,
     PulpSolverError,
+    _RebuildNeeded,
     clock,
     clocks,
     devnull,
@@ -719,7 +721,7 @@ if COINMP_DLL.available():
 yaposib_mod = import_optional("yaposib")
 
 
-class YAPOSIB(LpSolver):
+class YAPOSIB(LpSolver_API):
     """
     COIN OSI (via its python interface)
 
@@ -760,7 +762,7 @@ class YAPOSIB(LpSolver):
         else:
             self.solverName = None
 
-    def findSolutionValues(self, lp):
+    def findSolutionValues(self, lp, result=None):
         model = lp.solverModel
         solutionStatus = model.status
         S = constants.LpSolveStatus
@@ -788,7 +790,7 @@ class YAPOSIB(LpSolver):
         """True if the solver is available"""
         return yaposib_mod is not None
 
-    def callSolver(self, lp, callback=None):
+    def callSolver(self, lp, *, changes=None, **kwargs):
         """Solves the problem with yaposib"""
         savestdout = None
         tmp = None
@@ -799,9 +801,7 @@ class YAPOSIB(LpSolver):
             os.close(1)
             if os.dup(tmp.fileno()) != 1:
                 raise PulpSolverError("couldn't redirect stdout - dup() error")
-        self.solveTime = -clock()
         lp.solverModel.solve(self.mip)
-        self.solveTime += clock()
         if not self.msg and savestdout is not None:
             # reopen stdout
             os.close(1)
@@ -856,29 +856,11 @@ class YAPOSIB(LpSolver):
             row.name = constraint.name
             constraint.solverConstraint = row
 
-    @requires("yaposib")
-    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
-        """
-        Solve a well formulated lp problem
-
-        creates a yaposib model, variables and constraints and attaches
-        them to the lp model which it then solves
-        """
-        start = clocks()
-        callback = kwargs.get("callback")
-        self.buildSolverModel(lp)
-        # set the initial solution
-        log.debug("Solve the model using yaposib")
-        self.callSolver(lp, callback=callback)
-        # get the solution information
-        status, has_solution = self.findSolutionValues(lp)
-        return self.buildStats(lp, status, has_solution, start=start)
-
 
 cylp_mod = import_optional("cylp.cy")
 
 
-class CYLP(LpSolver):
+class CYLP(LpSolver_API):
     """
     The CyLP solver: COIN-OR Clp (LP) and Cbc (MIP) through their cython bindings.
 
@@ -936,57 +918,9 @@ class CYLP(LpSolver):
         return cylp_mod is not None
 
     @requires("cylp.cy")
-    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
-        start = clocks()
-        self.buildSolverModel(lp)
-        self.callSolver(lp)
-        status, has_solution = self.findSolutionValues(lp)
-        return self.buildStats(
-            lp,
-            status,
-            has_solution,
-            start=start,
-            best_bound=self.findBestBound(lp) if has_solution else None,
-        )
-
-    @requires("cylp.cy")
-    def actualResolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
-        """Update ``lp.solverModel`` with the edits made since the last solve
-        and solve it again from its current basis; build it from scratch if it
-        cannot be updated (see :meth:`LpSolver._take_changes`).
-
-        Only a Clp (LP) model is updated, and Clp cannot change an entry of
-        the matrix: editing a coefficient of an existing variable in an
-        existing constraint (``remove_variables`` included) rebuilds it.
-        """
-        if self.isCbcModel(lp) or (lp.isMIP() and self.mip):
-            self._stop_tracking(lp)
-        changes = self._take_changes(lp)
-        if changes is None:
-            return self.actualSolve(lp, **kwargs)
-        model: Any = lp.solverModel
-        old_entries, columns = self._split_coefficients(lp, changes, model.nVariables)
-        if old_entries:
-            self._stop_tracking(lp)
-            return self.actualSolve(lp, **kwargs)
-        start = clocks()
-        try:
-            self.applyChanges(lp, changes, columns)
-        except Exception:
-            # the solver model may be half updated: rebuild it next time
-            self._stop_tracking(lp)
-            raise
-        self.solveTime = -clock()
-        with self._logging(model):
-            # the dual simplex suits a basis made primal infeasible (new rows, new
-            # bounds), the primal one a basis made dual infeasible (new columns)
-            if changes.new_rows or changes.row_bounds or changes.var_bounds:
-                model.dual()
-            else:
-                model.primal()
-        self.solveTime += clock()
-        status, has_solution = self.findSolutionValues(lp)
-        return self.buildStats(lp, status, has_solution, start=start)
+    def canUpdate(self, lp: LpProblem) -> bool:
+        """Only a Clp (LP) model is updated; Cbc (MIP) ones are built again."""
+        return not self.isCbcModel(lp) and not (lp.isMIP() and self.mip)
 
     @staticmethod
     def isCbcModel(lp: LpProblem) -> bool:
@@ -1034,21 +968,20 @@ class CYLP(LpSolver):
         lp.solverModel = model
         self._start_tracking(lp)
 
-    def applyChanges(
-        self,
-        lp: LpProblem,
-        changes: _rustcore.ModelChanges,
-        columns: dict[int, tuple[list[int], list[float]]],
-    ) -> None:
+    def applyChanges(self, lp: LpProblem, changes: _rustcore.ModelChanges) -> None:
         """Update the Clp model ``lp.solverModel`` with the edits made to ``lp``
         since it was last solved (``changes``, from :meth:`_take_changes`),
         keeping the basis.
 
-        :param columns: the entries of each new column in existing rows (see
-            :meth:`_split_coefficients`)
+        Clp cannot change an entry of the matrix: editing a coefficient of an
+        existing variable in an existing constraint (``remove_variables``
+        included) rebuilds it.
         """
         model: Any = lp.solverModel
         rmodel = lp._model
+        old_entries, columns = self._split_coefficients(lp, changes, model.nVariables)
+        if old_entries:
+            raise _RebuildNeeded
 
         if changes.sense_changed:
             model.optimizationDirection = (
@@ -1085,11 +1018,25 @@ class CYLP(LpSolver):
         for j, cost in zip(cols, rmodel.objective_coefficients(cols)):
             model.setObjectiveCoefficient(j, cost)
 
-    def callSolver(self, lp: LpProblem) -> None:
+    def callSolver(
+        self,
+        lp: LpProblem,
+        *,
+        changes: _rustcore.ModelChanges | None = None,
+        **kwargs: Any,
+    ) -> None:
         """Solves the problem with Cbc if it is a MIP, with Clp otherwise"""
-        self.solveTime = -clock()
         model: Any = lp.solverModel
-        if self.isCbcModel(lp):
+        if changes is not None:
+            with self._logging(model):
+                # the dual simplex suits a basis made primal infeasible (new rows,
+                # new bounds), the primal one a basis made dual infeasible (new
+                # columns)
+                if changes.new_rows or changes.row_bounds or changes.var_bounds:
+                    model.dual()
+                else:
+                    model.primal()
+        elif self.isCbcModel(lp):
             if self.timeLimit is not None:
                 model.maximumSeconds = self.timeLimit
             if self.gapRel is not None:
@@ -1108,7 +1055,6 @@ class CYLP(LpSolver):
             presolve = self.optionsDict.get("presolve", True)
             with self._logging(model):
                 model.initialSolve(presolve="on" if presolve else "off")
-        self.solveTime += clock()
 
     @contextlib.contextmanager
     def _logging(self, model: Any) -> Iterator[None]:
@@ -1131,7 +1077,9 @@ class CYLP(LpSolver):
         with open(logPath, "w") as log_file, _redirect_c_stdout(log_file):
             yield
 
-    def findSolutionValues(self, lp: LpProblem) -> tuple[int, bool]:
+    def findSolutionValues(
+        self, lp: LpProblem, result: Any = None
+    ) -> tuple[constants.LpSolveStatus, bool]:
         S = constants.LpSolveStatus
         model = lp.solverModel
         is_mip = self.isCbcModel(lp)
@@ -1162,8 +1110,9 @@ class CYLP(LpSolver):
         return status, has_solution
 
     def findBestBound(self, lp: LpProblem) -> float | None:
-        """The best bound Cbc proved on a MIP, in the problem's sense, or None."""
-        if not self.isCbcModel(lp):
+        """The best bound Cbc proved on a MIP with a solution, in the problem's
+        sense, or None."""
+        if not self.isCbcModel(lp) or lp.solverModel.solutionCount == 0:
             return None
         bound = lp.solverModel.bestPossibleObjValue
         if not math.isfinite(bound) or abs(bound) >= 1e30:

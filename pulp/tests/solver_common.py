@@ -450,6 +450,24 @@ class BaseSolverTest:
                 {x: 4, y: -1, z: 6, w: 0},
             )
 
+        def test_api_steps(self):
+            """An API solver solves step by step: build, call and find."""
+            if not isinstance(self.solver, solvers.LpSolver_API):
+                self.skipTest("not an API solver")
+            prob = LpProblem(self._testMethodName, const.LpMaximize)
+            x = prob.add_variable("x", 0, 4, cat=const.LpInteger)
+            y = prob.add_variable("y", 0, 3, cat=const.LpInteger)
+            prob += x + 2 * y, "obj"
+            prob += x + y <= 5, "c1"
+            self.solver.buildSolverModel(prob)
+            self.assertIsNotNone(prob.solverModel)
+            result = self.solver.callSolver(prob)
+            status, has_solution = self.solver.findSolutionValues(prob, result)
+            self.assertEqual(status, const.LpSolveStatus.Optimal)
+            self.assertTrue(has_solution)
+            # None (no value) rounds to 0, which fails too
+            self.assertEqual([round(v.value() or 0) for v in (x, y)], [2, 3])
+
         def test_continuous_max(self):
             prob = LpProblem(self._testMethodName, const.LpMaximize)
             x = prob.add_variable("x", 0, 4)

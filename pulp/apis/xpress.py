@@ -35,6 +35,7 @@ from typing import TYPE_CHECKING, Any
 from .. import _rustcore, constants
 from .core import (
     LpSolver,
+    LpSolver_API,
     LpSolver_CMD,
     PulpSolverError,
     clocks,
@@ -360,7 +361,7 @@ if xpress_mod is not None:
         pass
 
 
-class XPRESS_PY(LpSolver):
+class XPRESS_PY(LpSolver_API):
     """The XPRESS LP solver that uses XPRESS Python API"""
 
     name = "XPRESS_PY"
@@ -425,13 +426,14 @@ class XPRESS_PY(LpSolver):
         """True if the solver is available"""
         return xpress_mod is not None
 
-    def callSolver(self, lp, prepare=None):
+    def callSolver(self, lp, *, changes=None, **kwargs):
         """Run the low-level XPRESS solve (used from :meth:`actualSolve`).
 
-        :param prepare:  a function that is called with `lp` as argument
-                         and allows final tweaks to `lp.solverModel` before
-                         the low level solve is started.
+        :param kwargs: an optional ``prepare``, a function that is called with
+                       `lp` as argument and allows final tweaks to
+                       `lp.solverModel` before the low level solve is started.
         """
+        prepare = kwargs.get("prepare")
         try:
             model = lp.solverModel
             if self._export is not None:
@@ -466,7 +468,7 @@ class XPRESS_PY(LpSolver):
         ) as err:
             raise PulpSolverError(str(err))
 
-    def findSolutionValues(self, lp):
+    def findSolutionValues(self, lp, result=None):
         try:
             model = lp.solverModel
             if model is None:
@@ -583,38 +585,13 @@ class XPRESS_PY(LpSolver):
         ) as err:
             raise PulpSolverError(str(err))
 
-    @requires("xpress")
-    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
-        """Solve a well formulated lp problem."""
-        start = clocks()
-        prepare = kwargs.get("prepare")
-        self.buildSolverModel(lp)
-        self.callSolver(lp, prepare)
-        status, has_solution = self.findSolutionValues(lp)
-        return self.buildStats(lp, status, has_solution, start=start)
-
-    @requires("xpress")
-    def actualResolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
-        """Update ``lp.solverModel`` with the edits made since the last solve
-        and solve it again from its current basis; build it from scratch if it
-        cannot be updated (see :meth:`LpSolver._take_changes`)."""
+    def canUpdate(self, lp: LpProblem) -> bool:
         # the deprecated API (before Xpress 9) has no batch edits
-        if not hasattr(lp.solverModel, "chgMCoef"):
-            self._stop_tracking(lp)
-        changes = self._take_changes(lp)
-        if changes is None:
-            return self.actualSolve(lp, **kwargs)
-        start = clocks()
         try:
-            self.applyChanges(lp, changes)
-            self._setControls(lp.solverModel)
-        except Exception:
-            # the solver model may be half updated: rebuild it next time
-            self._stop_tracking(lp)
-            raise
-        self.callSolver(lp, kwargs.get("prepare"))
-        status, has_solution = self.findSolutionValues(lp)
-        return self.buildStats(lp, status, has_solution, start=start)
+            lp.solverModel.chgMCoef
+        except AttributeError:
+            return False
+        return True
 
     @requires("xpress")
     def applyChanges(self, lp: LpProblem, changes: _rustcore.ModelChanges) -> None:
@@ -753,7 +730,7 @@ class XPRESS_PY(LpSolver):
             # This also avoids unintended warmstart side effects when callers
             # build and solve in separate steps.
             model = lp.solverModel
-            self._setControls(model)
+            self.configureSolver(lp)
             # Setup warmstart information
             if self.optionsDict.get("warmStart", False):
                 solval = list()
@@ -800,9 +777,10 @@ class XPRESS_PY(LpSolver):
             raise PulpSolverError(str(err))
         self._start_tracking(lp)
 
-    def _setControls(self, model):
-        """Apply the controls of this solver to ``model``, again on every
-        resolve so that controls changed in between take effect."""
+    def configureSolver(self, lp: LpProblem) -> None:
+        """Apply the controls of this solver to ``lp.solverModel``, again on
+        every resolve so that controls changed in between take effect."""
+        model = lp.solverModel
         # Apply controls that were passed to the constructor
         for key, name in [
             ("gapRel", "MIPRELSTOP"),

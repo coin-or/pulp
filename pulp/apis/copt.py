@@ -27,9 +27,9 @@ from ..constants import (
 )
 from .core import (
     LpSolver,
+    LpSolver_API,
     LpSolver_CMD,
     PulpSolverError,
-    clock,
     clocks,
     ctypesArrayFill,
     import_optional,
@@ -888,7 +888,7 @@ class COPT_DLL(LpSolver):
             return retval
 
 
-class COPT(LpSolver):
+class COPT(LpSolver_API):
     """
     The COPT Optimizer via its python interface
 
@@ -944,9 +944,10 @@ class COPT(LpSolver):
             model.setParam(key, value)
         return model
 
-    def setParams(self, model):
-        """Apply the time limit, gap and log file to ``model``, again on every
-        resolve so that options changed in between take effect."""
+    def configureSolver(self, lp: LpProblem) -> None:
+        """Apply the time limit, gap and log file to ``lp.solverModel``, again
+        on every resolve so that options changed in between take effect."""
+        model = lp.solverModel
         if self.timeLimit:
             model.setParam("TimeLimit", self.timeLimit)
         gapRel = self.optionsDict.get("gapRel")
@@ -956,7 +957,7 @@ class COPT(LpSolver):
         if logPath:
             model.setLogFile(logPath)
 
-    def findSolutionValues(self, lp):
+    def findSolutionValues(self, lp, result=None):
         model = lp.solverModel
         solutionStatus = model.status
 
@@ -1009,16 +1010,19 @@ class COPT(LpSolver):
         """True if the solver is available"""
         return coptpy_mod is not None
 
-    def callSolver(self, lp, callback=None):
-        """Solves the problem with COPT"""
-        self.solveTime = -clock()
+    def callSolver(self, lp, *, changes=None, **kwargs):
+        """Solves the problem with COPT, with the ``callback`` given to solve"""
+        callback = kwargs.get("callback")
         if callback is not None:
             lp.solverModel.setCallback(
                 callback,
                 coptpy_mod.COPT.CBCONTEXT_MIPRELAX | coptpy_mod.COPT.CBCONTEXT_MIPSOL,
             )
         lp.solverModel.solve()
-        self.solveTime += clock()
+
+    def canUpdate(self, lp):
+        # this solver keeps a single model: solving another problem replaced it
+        return self.coptmdl is lp.solverModel
 
     @requires("coptpy")
     def buildSolverModel(self, lp):
@@ -1031,7 +1035,6 @@ class COPT(LpSolver):
 
         if lp.sense == LpMaximize:
             lp.solverModel.objsense = coptpy_mod.COPT.MAXIMIZE
-        self.setParams(lp.solverModel)
 
         # every variable is a column, used or not: column j is the variable with
         # id j (as row i is the constraint with id i), so a resolve only appends
@@ -1067,6 +1070,7 @@ class COPT(LpSolver):
             else:
                 raise PulpSolverError("Detected an invalid constraint type")
             lp.solverModel.addConstr(expr, relation, -constraint.constant, name)
+        self.configureSolver(lp)
         self._start_tracking(lp)
 
     def _vtype(self, integer: bool) -> str:
@@ -1150,42 +1154,3 @@ class COPT(LpSolver):
             m.setInfo(
                 "Obj", [cvars[j] for j in cols], model.objective_coefficients(cols)
             )
-
-    @requires("coptpy")
-    def actualResolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
-        """Update ``lp.solverModel`` with the edits made since the last solve
-        and solve it again from its current basis; build it from scratch if it
-        cannot be updated (see :meth:`LpSolver._take_changes`)."""
-        # this solver keeps a single model: solving another problem replaced it
-        if self.coptmdl is not lp.solverModel:
-            self._stop_tracking(lp)
-        changes = self._take_changes(lp)
-        if changes is None:
-            return self.actualSolve(lp, **kwargs)
-        start = clocks()
-        try:
-            self.applyChanges(lp, changes)
-        except Exception:
-            # the solver model may be half updated: rebuild it next time
-            self._stop_tracking(lp)
-            raise
-        self.setParams(lp.solverModel)
-        self.callSolver(lp, callback=kwargs.get("callback"))
-        status, has_solution = self.findSolutionValues(lp)
-        return self.buildStats(lp, status, has_solution, start=start)
-
-    @requires("coptpy")
-    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
-        """
-        Solve a well formulated lp problem
-
-        creates a COPT model, variables and constraints and attaches
-        them to the lp model which it then solves
-        """
-        start = clocks()
-        callback = kwargs.get("callback")
-        self.buildSolverModel(lp)
-        self.callSolver(lp, callback=callback)
-
-        status, has_solution = self.findSolutionValues(lp)
-        return self.buildStats(lp, status, has_solution, start=start)

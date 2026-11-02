@@ -5,7 +5,7 @@ from typing import Type
 from .choco import CHOCO_CMD
 from .coin import COIN_CMD, COINMP_DLL, CYLP, YAPOSIB
 from .copt import COPT, COPT_CMD, COPT_DLL
-from .core import LpSolver, LpSolver_CMD, PulpSolverError
+from .core import LpSolver, LpSolver_API, LpSolver_CMD, PulpSolverError
 from .cplex import CPLEX, CPLEX_CMD, CPLEX_PY
 from .cuopt import CUOPT
 from .glpk import GLPK, GLPK_CMD, PYGLPK
@@ -28,6 +28,7 @@ __all__ = [
     "COPT_CMD",
     "COPT_DLL",
     "LpSolver",
+    "LpSolver_API",
     "LpSolver_CMD",
     "PulpSolverError",
     "CPLEX",

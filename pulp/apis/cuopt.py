@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import math
-from typing import TYPE_CHECKING, Any
 
 from ..constants import (
     LpBinary,
@@ -14,16 +13,11 @@ from ..constants import (
 )
 from .core import (
     LpSolver,
+    LpSolver_API,
     PulpSolverError,
-    clock,
-    clocks,
     import_optional,
     requires,
 )
-
-if TYPE_CHECKING:
-    from ..core.lp_problem import LpProblem
-    from ..core.lp_stats import LpSolveStats
 
 cuopt_mod = import_optional("cuopt")
 numpy_mod = import_optional("numpy")
@@ -36,7 +30,7 @@ sense_conv = {
 }
 
 
-class CUOPT(LpSolver):
+class CUOPT(LpSolver_API):
     """
     The CUOPT Optimizer via its python interface
     """
@@ -83,7 +77,9 @@ class CUOPT(LpSolver):
         self.var_list = None
         self.solver_params = solverParams
 
-    def findSolutionValues(self, lp, solution):
+    def findSolutionValues(self, lp, result=None):
+        """:param result: the solution that :meth:`callSolver` returned"""
+        solution = result
         solutionStatus = solution.get_termination_status()
         if self.msg:
             print("CUOPT status=", solution.get_termination_reason())
@@ -135,14 +131,13 @@ class CUOPT(LpSolver):
         return cuopt_mod is not None and numpy_mod is not None
 
     @requires("cuopt", "numpy")
-    def callSolver(self, lp, callback=None):
-        """Solves the problem with CUOPT"""
+    def callSolver(self, lp, *, changes=None, **kwargs):
+        """Solves the problem with CUOPT and returns its solution"""
         from cuopt.linear_programming import (  # type: ignore[import-not-found, import-untyped]
             solver,
             solver_settings,
         )
 
-        self.solveTime = -clock()
         # TODO: Add callback
         log_file = self.optionsDict.get("logPath") or ""
 
@@ -159,10 +154,7 @@ class CUOPT(LpSolver):
         gapRel = self.optionsDict.get("gapRel")
         if gapRel:
             settings.set_parameter("relative_gap_tolerance", gapRel)
-        solution = solver.Solve(lp.solverModel, settings)
-
-        self.solveTime += clock()
-        return solution
+        return solver.Solve(lp.solverModel, settings)
 
     @requires("cuopt", "numpy")
     def buildSolverModel(self, lp):
@@ -227,19 +219,3 @@ class CUOPT(LpSolver):
 
         lp.solverModel.set_objective_coefficients(numpy_mod.array(obj_coeff))
         lp.solverModel.set_objective_offset(lp.objective.constant)
-
-    @requires("cuopt", "numpy")
-    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
-        """
-        Solve a well formulated lp problem
-
-        creates a COPT model, variables and constraints and attaches
-        them to the lp model which it then solves
-        """
-        start = clocks()
-        callback = kwargs.get("callback")
-        self.buildSolverModel(lp)
-        solution = self.callSolver(lp, callback=callback)
-
-        status, has_solution = self.findSolutionValues(lp, solution)
-        return self.buildStats(lp, status, has_solution, start=start)

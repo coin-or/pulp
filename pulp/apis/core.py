@@ -641,6 +641,119 @@ class LpSolver:
     to_json = toJson
 
 
+class _RebuildNeeded(Exception):
+    """Raised by :meth:`LpSolver_API.applyChanges`, before it touches the
+    solver model, when an edit cannot be replayed: the model is built again."""
+
+
+class LpSolver_API(LpSolver):
+    """A generic LP Solver driven through its python interface.
+
+    A solve goes through three steps, which can also be called one by one to
+    reach the solver's own model in between::
+
+        solver.buildSolverModel(lp)  # fills lp.solverModel
+        result = solver.callSolver(lp)
+        status, has_solution = solver.findSolutionValues(lp, result)
+
+    A solver that can update ``lp.solverModel`` in place on a resolve also
+    implements :meth:`applyChanges` and :meth:`canUpdate`.
+    """
+
+    name = "LpSolver_API"
+
+    def buildSolverModel(self, lp: LpProblem) -> None:
+        """Translate ``lp`` into the solver's model, stored in ``lp.solverModel``,
+        and configure it (see :meth:`configureSolver`)."""
+        raise NotImplementedError
+
+    def configureSolver(self, lp: LpProblem) -> None:
+        """Apply the solver options to ``lp.solverModel``, again on every
+        resolve so that options changed in between take effect."""
+
+    def callSolver(
+        self,
+        lp: LpProblem,
+        *,
+        changes: _rustcore.ModelChanges | None = None,
+        **kwargs: Any,
+    ) -> Any:
+        """Solve ``lp.solverModel``.
+
+        :param changes: the edits just replayed on the model by a resolve, None
+            when it was built from scratch
+        :param kwargs: the arguments given to ``solve``, e.g. ``callback``
+        :return: whatever :meth:`findSolutionValues` needs besides the model
+        """
+        raise NotImplementedError
+
+    def findSolutionValues(
+        self, lp: LpProblem, result: Any = None
+    ) -> tuple[const.LpSolveStatus, bool]:
+        """Write the solution back into ``lp``.
+
+        :param result: what :meth:`callSolver` returned
+        :return: ``(status, has_solution)``
+        """
+        raise NotImplementedError
+
+    def findBestBound(self, lp: LpProblem) -> float | None:
+        """The best bound the solver proved, in the problem's sense, or None."""
+        return None
+
+    def canUpdate(self, lp: LpProblem) -> bool:
+        """Whether :meth:`actualResolve` may update ``lp.solverModel`` in place
+        with :meth:`applyChanges` instead of building it again."""
+        return False
+
+    def applyChanges(self, lp: LpProblem, changes: _rustcore.ModelChanges) -> None:
+        """Update ``lp.solverModel`` with the edits made to ``lp`` since it was
+        last solved (``changes``, from :meth:`_take_changes`), keeping its basis.
+
+        Raises :class:`_RebuildNeeded` before touching the model if an edit
+        cannot be replayed.
+        """
+        raise NotImplementedError
+
+    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
+        """Build the solver model, solve it and read the solution back."""
+        start = clocks()
+        self.buildSolverModel(lp)
+        result = self.callSolver(lp, **kwargs)
+        return self._finish(lp, result, start)
+
+    def actualResolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
+        """Update ``lp.solverModel`` with the edits made since the last solve
+        and solve it again from its current basis; build it from scratch if it
+        cannot be updated (see :meth:`canUpdate` and :meth:`_take_changes`)."""
+        if not self.canUpdate(lp):
+            self._stop_tracking(lp)
+        changes = self._take_changes(lp)
+        if changes is None:
+            return self.actualSolve(lp, **kwargs)
+        start = clocks()
+        try:
+            self.applyChanges(lp, changes)
+        except _RebuildNeeded:
+            self._stop_tracking(lp)
+            return self.actualSolve(lp, **kwargs)
+        except Exception:
+            # the solver model may be half updated: rebuild it next time
+            self._stop_tracking(lp)
+            raise
+        self.configureSolver(lp)
+        result = self.callSolver(lp, changes=changes, **kwargs)
+        return self._finish(lp, result, start)
+
+    def _finish(
+        self, lp: LpProblem, result: Any, start: tuple[float, float]
+    ) -> LpSolveStats:
+        status, has_solution = self.findSolutionValues(lp, result)
+        return self.buildStats(
+            lp, status, has_solution, start=start, best_bound=self.findBestBound(lp)
+        )
+
+
 class LpSolver_CMD(LpSolver):
     """A generic command line LP Solver"""
 

@@ -494,6 +494,21 @@ If you wrote your own solver class by subclassing ``LpSolver`` or
   ``(status, has_solution)`` tuple instead of a status.
 * Register the class with ``pulp.apis.addSolver(MySolver)`` so that
   ``getSolver("MY_SOLVER")`` and ``listSolvers()`` can find it.
+* Since 4.3, the solvers that use an official python interface inherit
+  ``LpSolver_API`` and share the signatures ``buildSolverModel(lp)``,
+  ``callSolver(lp, **kwargs)`` and ``findSolutionValues(lp, result=None)``, where
+  ``result`` is what ``callSolver`` returned. If you call these steps yourself:
+
+  * ``SCIP_PY`` and ``CPSAT``: ``buildSolverModel`` returns None, and
+    ``findSolutionValues(lp, result)`` takes no handles.
+  * ``CPSAT``, ``CUOPT`` and ``MOSEK``: pass the ``result`` of ``callSolver`` to
+    ``findSolutionValues``. ``MOSEK`` now has a ``callSolver``, and its task is in
+    ``lp.solverModel``.
+  * ``PYGLPK``: ``callSolver`` takes ``changes`` instead of ``warm``.
+  * ``XPRESS_PY``: ``prepare`` is a keyword argument of ``callSolver``.
+  * ``HiGHS``: ``createAndConfigureSolver`` is part of ``buildSolverModel``.
+  * The ``setParams`` / ``_set_params`` / ``_setControls`` methods are now
+    ``configureSolver(lp)``.
 
 See :doc:`../develop/add_solver` for a complete example.
 

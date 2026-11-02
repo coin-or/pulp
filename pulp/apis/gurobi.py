@@ -33,9 +33,9 @@ from typing import TYPE_CHECKING, Any
 from .. import _rustcore, constants
 from .core import (
     LpSolver,
+    LpSolver_API,
     LpSolver_CMD,
     PulpSolverError,
-    clock,
     clocks,
     import_optional,
     log,
@@ -52,7 +52,7 @@ import warnings
 gurobipy_mod = import_optional("gurobipy")
 
 
-class GUROBI(LpSolver):
+class GUROBI(LpSolver_API):
     """
     The Gurobi LP/MIP solver (via its python interface)
 
@@ -182,7 +182,7 @@ class GUROBI(LpSolver):
         if self.manage_env:
             self.env.dispose()
 
-    def findSolutionValues(self, lp: LpProblem):
+    def findSolutionValues(self, lp: LpProblem, result: Any = None):
         model = lp.solverModel
         solutionStatus = model.Status
         GRB = gurobipy_mod.GRB
@@ -268,12 +268,13 @@ class GUROBI(LpSolver):
         except gurobipy_mod.GurobiError as e:
             raise e
 
-    def callSolver(self, lp, callback=None):
-        """Solves the problem with gurobi"""
-        # solve the problem
-        self.solveTime = -clock()
-        lp.solverModel.optimize(callback=callback)
-        self.solveTime += clock()
+    def callSolver(self, lp, *, changes=None, **kwargs):
+        """Solves the problem with gurobi, with the ``callback`` given to solve"""
+        lp.solverModel.optimize(callback=kwargs.get("callback"))
+
+    def canUpdate(self, lp: LpProblem) -> bool:
+        # this solver keeps a single model: solving another problem replaced it
+        return self.model is lp.solverModel
 
     def _silence(self, solverModel):
         """Apply ``msg=False``, without also emptying the log file.
@@ -302,8 +303,10 @@ class GUROBI(LpSolver):
         if console:
             solverModel.setParam("LogToConsole", console)
 
-    def _set_params(self, solverModel):
-        """Apply the time limit, gap tolerances and log file to the model."""
+    def configureSolver(self, lp: LpProblem) -> None:
+        """Apply msg, the time limit, gap tolerances and log file to the model."""
+        solverModel = lp.solverModel
+        self._silence(solverModel)
         if self.timeLimit:
             solverModel.setParam("TimeLimit", self.timeLimit)
         for option, param in [("gapRel", "MIPGap"), ("gapAbs", "MIPGapAbs")]:
@@ -323,11 +326,9 @@ class GUROBI(LpSolver):
         assert self.model is not None
         self.model.ModelName = lp.name
         lp.solverModel = self.model
-        self._silence(lp.solverModel)
         log.debug("set the sense of the problem")
         if lp.sense == constants.LpMaximize:
             lp.solverModel.setAttr("ModelSense", -1)
-        self._set_params(lp.solverModel)
 
         log.debug("add the variables to the problem")
         lp.solverModel.update()
@@ -340,10 +341,8 @@ class GUROBI(LpSolver):
             assert self.model is not None
             self.model.ModelName = lp.name
             lp.solverModel = self.model
-            self._silence(lp.solverModel)
             if lp.sense == constants.LpMaximize:
                 lp.solverModel.setAttr("ModelSense", -1)
-            self._set_params(lp.solverModel)
 
         # every variable is a column, used or not: column j is the variable with
         # id j (as row i is the constraint with id i), so a resolve only appends
@@ -365,30 +364,28 @@ class GUROBI(LpSolver):
                     var_handles[var.id].start = var.varValue
 
         log.debug("add the Constraints to the problem")
-        constr_handles = []
         for constraint in lp.constraints():
             expr = gurobipy_mod.LinExpr(
                 list(constraint.values()),
                 [var_handles[v.id] for v in constraint.keys()],
             )
             if constraint.sense == constants.LpConstraintLE:
-                gconstr = lp.solverModel.addConstr(
+                lp.solverModel.addConstr(
                     expr <= -constraint.constant, name=constraint.name
                 )
             elif constraint.sense == constants.LpConstraintGE:
-                gconstr = lp.solverModel.addConstr(
+                lp.solverModel.addConstr(
                     expr >= -constraint.constant, name=constraint.name
                 )
             elif constraint.sense == constants.LpConstraintEQ:
-                gconstr = lp.solverModel.addConstr(
+                lp.solverModel.addConstr(
                     expr == -constraint.constant, name=constraint.name
                 )
             else:
                 raise PulpSolverError("Detected an invalid constraint type")
-            constr_handles.append(gconstr)
         lp.solverModel.update()
+        self.configureSolver(lp)
         self._start_tracking(lp)
-        return var_handles, constr_handles
 
     def _vtype(self, integer: bool) -> str:
         GRB = gurobipy_mod.GRB
@@ -479,49 +476,6 @@ class GUROBI(LpSolver):
                 model.objective_coefficients(cols),
             )
         m.update()
-
-    @requires("gurobipy")
-    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
-        """
-        Solve a well formulated lp problem
-
-        creates a gurobi model, variables and constraints and attaches
-        them to the lp model which it then solves
-        """
-        start = clocks()
-        callback = kwargs.get("callback")
-        self.buildSolverModel(lp)
-        # set the initial solution
-        log.debug("Solve the Model using gurobi")
-        self.callSolver(lp, callback=callback)
-        # get the solution information
-        status, has_solution = self.findSolutionValues(lp)
-        return self.buildStats(lp, status, has_solution, start=start)
-
-    @requires("gurobipy")
-    def actualResolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
-        """Update ``lp.solverModel`` with the edits made since the last solve
-        and solve it again from its current basis; build it from scratch if it
-        cannot be updated (see :meth:`LpSolver._take_changes`)."""
-        # this solver keeps a single model: solving another problem replaced it
-        if self.model is not lp.solverModel:
-            self._stop_tracking(lp)
-        changes = self._take_changes(lp)
-        if changes is None:
-            return self.actualSolve(lp, **kwargs)
-        start = clocks()
-        try:
-            self.applyChanges(lp, changes)
-        except Exception:
-            # the solver model may be half updated: rebuild it next time
-            self._stop_tracking(lp)
-            raise
-        self._silence(lp.solverModel)
-        self._set_params(lp.solverModel)
-        log.debug("Solve the Model using gurobi")
-        self.callSolver(lp, callback=kwargs.get("callback"))
-        status, has_solution = self.findSolutionValues(lp)
-        return self.buildStats(lp, status, has_solution, start=start)
 
 
 def _bound(value: float) -> float:
