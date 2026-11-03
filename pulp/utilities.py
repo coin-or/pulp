@@ -22,7 +22,11 @@ def isNumber(x: object) -> bool:
 
 
 def value(x: Any) -> float | None:
-    """Returns the value of the variable/expression x, or x if it is a number"""
+    """Returns the value of the variable/expression x, or x if it is a number
+
+    A numeric argument (int, float or Decimal) is returned unchanged,
+    keeping its own type.
+    """
     if isNumber(x):
         return x
     else:
@@ -31,6 +35,9 @@ def value(x: Any) -> float | None:
 
 def valueOrDefault(x: Any) -> float:
     """Returns the value of the variable/expression x, or x if it is a number
+
+    A numeric argument (int, float or Decimal) is returned unchanged,
+    keeping its own type.
     Variable without value (None) are affected a possible value (within their
     bounds)."""
     if isNumber(x):
