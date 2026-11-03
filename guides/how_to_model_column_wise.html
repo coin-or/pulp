@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>How to model column-wise &mdash; PuLP 4.2.0 documentation</title>
+  <title>How to model column-wise &mdash; PuLP 4.3.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=d0ae6d56"></script>
+      <script src="../_static/documentation_options.js?v=a17b270f"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/js/theme.js"></script>
@@ -54,6 +54,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#setting-one-coefficient">Setting one coefficient</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#removing-columns">Removing columns</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#example-cutting-stock-by-column-generation">Example: cutting stock by column generation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#re-solving-without-rebuilding">Re-solving without rebuilding</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#notes">Notes</a></li>
 </ul>
 </li>
@@ -110,6 +111,10 @@ one coefficient of an existing constraint.</p></li>
 <li><p><a class="reference internal" href="../technical/pulp.html#pulp.LpProblem.remove_variables" title="pulp.LpProblem.remove_variables"><code class="xref py py-meth docutils literal notranslate"><span class="pre">remove_variables()</span></code></a> takes variables out of the model.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">x.cat</span> <span class="pre">=</span> <span class="pre">...</span></code> changes a variable’s category, for example to make the final
 problem integer.</p></li>
+<li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">resolve()</span></code> solves the problem again. With the solvers
+that support it (HiGHS, GUROBI, CPLEX_PY, XPRESS_PY, COPT, CyLP, PYGLPK) it
+updates the solver’s model in place and restarts from the previous basis
+(see <a class="reference internal" href="#resolve-in-place"><span class="std std-ref">Re-solving without rebuilding</span></a>).</p></li>
 </ul>
 <nav class="contents local" id="on-this-page">
 <p class="topic-title">On this page</p>
@@ -118,7 +123,8 @@ problem integer.</p></li>
 <li><p><a class="reference internal" href="#setting-one-coefficient" id="id2">Setting one coefficient</a></p></li>
 <li><p><a class="reference internal" href="#removing-columns" id="id3">Removing columns</a></p></li>
 <li><p><a class="reference internal" href="#example-cutting-stock-by-column-generation" id="id4">Example: cutting stock by column generation</a></p></li>
-<li><p><a class="reference internal" href="#notes" id="id5">Notes</a></p></li>
+<li><p><a class="reference internal" href="#re-solving-without-rebuilding" id="id5">Re-solving without rebuilding</a></p></li>
+<li><p><a class="reference internal" href="#notes" id="id6">Notes</a></p></li>
 </ul>
 </nav>
 <section id="adding-a-column">
@@ -175,7 +181,10 @@ constraint, the objective and every SOS group:</p>
 </div>
 <p>The variables stay valid: you can still read them and put them back with
 <code class="docutils literal notranslate"><span class="pre">c[z]</span> <span class="pre">=</span> <span class="pre">value</span></code>. A variable that no constraint and no objective uses is left
-out of the LP and MPS files and is not sent to the solvers.</p>
+out of the LP and MPS files and is not sent to most solvers. The solvers that
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">resolve()</span></code> updates in place are the exception: they get
+every variable, an unused one as an empty column, so that new ones can be
+appended (see <a class="reference internal" href="#resolve-in-place"><span class="std std-ref">Re-solving without rebuilding</span></a>).</p>
 </section>
 <section id="example-cutting-stock-by-column-generation">
 <h2><a class="toc-backref" href="#id4" role="doc-backlink">Example: cutting stock by column generation</a><a class="headerlink" href="#example-cutting-stock-by-column-generation" title="Link to this heading"></a></h2>
@@ -210,8 +219,8 @@ master problem: add it with <code class="docutils literal notranslate"><span cla
     <span class="p">)</span>
 <span class="n">master</span> <span class="o">+=</span> <span class="n">lpSum</span><span class="p">(</span><span class="n">patterns</span><span class="p">)</span>
 
+<span class="n">master</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="p">)</span>
 <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
-    <span class="n">master</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="p">)</span>
     <span class="n">duals</span> <span class="o">=</span> <span class="p">{</span><span class="n">item</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">pi</span> <span class="k">for</span> <span class="n">item</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">demand</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
 
     <span class="c1"># Pricing: the pattern with the largest total dual value.</span>
@@ -231,6 +240,7 @@ master problem: add it with <code class="docutils literal notranslate"><span cla
         <span class="n">coefficients</span><span class="o">=</span><span class="p">{</span><span class="n">demand</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span> <span class="n">k</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">pattern</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span><span class="p">},</span>
     <span class="p">)</span>
     <span class="n">patterns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new</span><span class="p">)</span>
+    <span class="n">master</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>   <span class="c1"># only the new column is sent to the solver</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="s2">"LP bound:"</span><span class="p">,</span> <span class="n">master</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">value</span><span class="p">())</span>   <span class="c1"># 452.25</span>
 
@@ -243,10 +253,56 @@ master problem: add it with <code class="docutils literal notranslate"><span cla
 </div>
 <p>The loop adds two patterns before no further improvement is possible. The same
 <code class="docutils literal notranslate"><span class="pre">master</span></code> problem is solved each time: it is never rebuilt, and the demand
-constraints found in step 1 are the ones the new columns are added to.</p>
+constraints found in step 1 are the ones the new columns are added to.
+<code class="docutils literal notranslate"><span class="pre">master.resolve()</span></code> hands HiGHS only the new column and lets it start from the
+previous optimal basis. The final <code class="docutils literal notranslate"><span class="pre">master.solve(solver)</span></code> builds the model
+again, which is what you want once the categories have changed.</p>
+</section>
+<section id="re-solving-without-rebuilding">
+<span id="resolve-in-place"></span><h2><a class="toc-backref" href="#id5" role="doc-backlink">Re-solving without rebuilding</a><a class="headerlink" href="#re-solving-without-rebuilding" title="Link to this heading"></a></h2>
+<p><a class="reference internal" href="../technical/pulp.html#pulp.LpProblem.solve" title="pulp.LpProblem.solve"><code class="xref py py-meth docutils literal notranslate"><span class="pre">solve()</span></code></a> loads the whole problem into the solver every
+time. <code class="xref py py-meth docutils literal notranslate"><span class="pre">resolve()</span></code> does that too, except with the solvers
+that keep the model in memory and can edit it: <strong>HiGHS</strong>, <strong>GUROBI</strong>,
+<strong>CPLEX_PY</strong>, <strong>XPRESS_PY</strong>, <strong>COPT</strong>, <strong>CyLP</strong> and <strong>PYGLPK</strong>. After a first solve, they
+record every edit to the problem, and <code class="docutils literal notranslate"><span class="pre">resolve</span></code> sends only those edits to the
+model they hold in <code class="docutils literal notranslate"><span class="pre">prob.solverModel</span></code>:</p>
+<ul class="simple">
+<li><p>new variables (from <code class="docutils literal notranslate"><span class="pre">add_column</span></code> or <code class="docutils literal notranslate"><span class="pre">add_variable</span></code>) and new constraints;</p></li>
+<li><p>changed coefficients, right-hand sides and senses of existing constraints;</p></li>
+<li><p>changed bounds and categories of variables, and removed variables;</p></li>
+<li><p>a changed objective or objective sense.</p></li>
+</ul>
+<p>The solver keeps its basis, so after adding a few columns or a cut it usually
+needs only a few simplex iterations, and none if the old solution is still
+optimal. The duals, reduced costs and values are read back as after <code class="docutils literal notranslate"><span class="pre">solve</span></code>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">getSolver</span><span class="p">(</span><span class="s2">"HiGHS"</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>   <span class="c1"># builds the model</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">solverModel</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">"y"</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">obj</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">coefficients</span><span class="o">=</span><span class="p">{</span><span class="n">c1</span><span class="p">:</span> <span class="mi">1</span><span class="p">})</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">"cut"</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>                               <span class="c1"># updates it in place</span>
+<span class="k">assert</span> <span class="n">prob</span><span class="o">.</span><span class="n">solverModel</span> <span class="ow">is</span> <span class="n">model</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">resolve</span></code> builds the model from scratch, like <code class="docutils literal notranslate"><span class="pre">solve</span></code>, when it cannot
+update it:</p>
+<ul class="simple">
+<li><p>on the first solve, or when the last solve used another solver (or another
+instance of the same solver);</p></li>
+<li><p>on a copy of the problem (<code class="docutils literal notranslate"><span class="pre">prob.copy()</span></code>): a copy is not tracked;</p></li>
+<li><p>after adding or removing SOS groups;</p></li>
+<li><p>with CyLP, after changing a coefficient of an existing variable in an existing
+constraint (<code class="docutils literal notranslate"><span class="pre">remove_variables</span></code> included), since Clp cannot change an entry of
+its matrix, and for a MIP, which Cbc solves;</p></li>
+<li><p>with any other solver, which always rebuilds. MOSEK could update its model
+too, but does not yet.</p></li>
+</ul>
+<p>The solver’s options (time limit, gaps, <code class="docutils literal notranslate"><span class="pre">msg</span></code>, log file) are applied again on
+every resolve. <code class="docutils literal notranslate"><span class="pre">warmStart</span></code> only applies when the model is built: on a resolve
+the previous basis is the warm start. A degenerate LP has several optimal bases,
+so a resolve can return other (equally valid) duals than a solve from scratch.</p>
 </section>
 <section id="notes">
-<h2><a class="toc-backref" href="#id5" role="doc-backlink">Notes</a><a class="headerlink" href="#notes" title="Link to this heading"></a></h2>
+<h2><a class="toc-backref" href="#id6" role="doc-backlink">Notes</a><a class="headerlink" href="#notes" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p>The coefficients of <code class="docutils literal notranslate"><span class="pre">add_column</span></code> are given per <code class="docutils literal notranslate"><span class="pre">LpConstraint</span></code>, so keep the
 constraints when you create them (<code class="docutils literal notranslate"><span class="pre">addConstraint</span></code> returns them), or look

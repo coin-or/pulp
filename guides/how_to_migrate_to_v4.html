@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>How to migrate from PuLP 3.x to 4.0 &mdash; PuLP 4.2.0 documentation</title>
+  <title>How to migrate from PuLP 3.x to 4.0 &mdash; PuLP 4.3.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=d0ae6d56"></script>
+      <script src="../_static/documentation_options.js?v=a17b270f"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/js/theme.js"></script>
@@ -621,6 +621,31 @@ import from the solver modules, drop the <code class="docutils literal notransla
 <code class="docutils literal notranslate"><span class="pre">(status,</span> <span class="pre">has_solution)</span></code> tuple instead of a status.</p></li>
 <li><p>Register the class with <code class="docutils literal notranslate"><span class="pre">pulp.apis.addSolver(MySolver)</span></code> so that
 <code class="docutils literal notranslate"><span class="pre">getSolver(&quot;MY_SOLVER&quot;)</span></code> and <code class="docutils literal notranslate"><span class="pre">listSolvers()</span></code> can find it.</p></li>
+<li><p>Since 4.3, the solvers that use an official python interface inherit
+<code class="docutils literal notranslate"><span class="pre">LpSolver_API</span></code> and share the signatures <code class="docutils literal notranslate"><span class="pre">buildSolverModel(lp)</span></code>,
+<code class="docutils literal notranslate"><span class="pre">callSolver(lp,</span> <span class="pre">**kwargs)</span></code> and <code class="docutils literal notranslate"><span class="pre">findSolutionValues(lp,</span> <span class="pre">result=None)</span></code>, where
+<code class="docutils literal notranslate"><span class="pre">result</span></code> is what <code class="docutils literal notranslate"><span class="pre">callSolver</span></code> returned. If you call these steps yourself:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">SCIP_PY</span></code> and <code class="docutils literal notranslate"><span class="pre">CPSAT</span></code>: <code class="docutils literal notranslate"><span class="pre">buildSolverModel</span></code> returns None, and
+<code class="docutils literal notranslate"><span class="pre">findSolutionValues(lp,</span> <span class="pre">result)</span></code> takes no handles.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">CPSAT</span></code>, <code class="docutils literal notranslate"><span class="pre">CUOPT</span></code> and <code class="docutils literal notranslate"><span class="pre">MOSEK</span></code>: pass the <code class="docutils literal notranslate"><span class="pre">result</span></code> of <code class="docutils literal notranslate"><span class="pre">callSolver</span></code> to
+<code class="docutils literal notranslate"><span class="pre">findSolutionValues</span></code>. <code class="docutils literal notranslate"><span class="pre">MOSEK</span></code> now has a <code class="docutils literal notranslate"><span class="pre">callSolver</span></code>, and its task is in
+<code class="docutils literal notranslate"><span class="pre">lp.solverModel</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">PYGLPK</span></code>: <code class="docutils literal notranslate"><span class="pre">callSolver</span></code> takes <code class="docutils literal notranslate"><span class="pre">changes</span></code> instead of <code class="docutils literal notranslate"><span class="pre">warm</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">XPRESS_PY</span></code>: <code class="docutils literal notranslate"><span class="pre">prepare</span></code> is a keyword argument of <code class="docutils literal notranslate"><span class="pre">callSolver</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">HiGHS</span></code>: <code class="docutils literal notranslate"><span class="pre">createAndConfigureSolver</span></code> is part of <code class="docutils literal notranslate"><span class="pre">buildSolverModel</span></code>.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">setParams</span></code> / <code class="docutils literal notranslate"><span class="pre">_set_params</span></code> / <code class="docutils literal notranslate"><span class="pre">_setControls</span></code> methods are now
+<code class="docutils literal notranslate"><span class="pre">configureSolver(lp)</span></code>.</p></li>
+</ul>
+</li>
+<li><p>Since 4.3, a solver parameter that the solver does not accept raises the
+solver library’s own error in every solver that uses an official python
+interface (<code class="docutils literal notranslate"><span class="pre">HiGHS</span></code>, whose library only reports a status, raises
+<code class="docutils literal notranslate"><span class="pre">PulpSolverError</span></code>). Before, <code class="docutils literal notranslate"><span class="pre">HiGHS</span></code>, <code class="docutils literal notranslate"><span class="pre">CPSAT</span></code> and <code class="docutils literal notranslate"><span class="pre">CUOPT</span></code> ignored it
+silently, and <code class="docutils literal notranslate"><span class="pre">XPRESS_PY</span></code> raised <code class="docutils literal notranslate"><span class="pre">PulpSolverError</span></code>. <code class="docutils literal notranslate"><span class="pre">CYLP</span></code> and
+<code class="docutils literal notranslate"><span class="pre">PYGLPK</span></code>, which dropped their extra keyword arguments, now set them: as
+attributes of the Clp or Cbc model (<code class="docutils literal notranslate"><span class="pre">CYLP</span></code>), or as fields of GLPK’s
+<code class="docutils literal notranslate"><span class="pre">glp_smcp</span></code> and <code class="docutils literal notranslate"><span class="pre">glp_iocp</span></code> control parameters (<code class="docutils literal notranslate"><span class="pre">PYGLPK</span></code>).</p></li>
 </ul>
 <p>See <a class="reference internal" href="../develop/add_solver.html"><span class="doc">How to add a new solver to PuLP</span></a> for a complete example.</p>
 </section>

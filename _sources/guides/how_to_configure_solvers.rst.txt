@@ -230,12 +230,19 @@ PuLP has the integrations with the official python API solvers for the following
 * XPRESS (XPRESS_PY)
 * COPT (COPT)
 * OR-Tools CP-SAT (CPSAT)
+* OR-Tools GLOP (GLOP)
+* Clarabel (CLARABEL)
 * GLPK (PYGLPK)
 
 These API offer a series of advantages over using the command line option:
 
 * They are usually faster to initialize a problem (they do not involve writing files to disk).
 * They offer a lot more functionality and information (extreme rays, dual prices, reduced costs).
+
+Keyword arguments that a solver does not name itself are handed to the solver
+as its own parameters. A parameter the solver does not accept raises the error
+of the solver's library (``PulpSolverError`` for ``HiGHS``, whose library only
+reports it by a status).
 
 Installing CPSAT (OR-Tools CP-SAT)
 *************************************
@@ -272,6 +279,112 @@ Example::
 Optional arguments include ``warmStart=True`` (pass current ``varValue`` hints),
 ``timeLimit`` (seconds), and any ``CpSolver.parameters`` names as keyword
 arguments (for example ``num_search_workers=8``).
+
+Installing GLOP (OR-Tools GLOP)
+*******************************
+
+The ``GLOP`` solver is Google's simplex LP solver, driven through OR-Tools'
+MathOpt API (``ortools.math_opt.python.mathopt``). It comes with the same extra
+as ``CPSAT``::
+
+    python -m pip install pulp[ortools]
+
+GLOP solves linear programs only. A problem with integer variables (or SOS
+groups) raises ``PulpSolverError`` unless the solver is created with
+``mip=False``, which solves its LP relaxation.
+
+Besides the variable values, a solve sets the dual values (``constraint.pi``),
+slacks (``constraint.slack``) and reduced costs (``variable.dj``). GLOP keeps
+the model between solves, so ``prob.resolve()`` updates it with the edits made
+since the last solve (new columns and rows, coefficients, bounds, objective)
+and restarts from the previous basis: column generation and cutting planes
+need few pivots per round.
+
+``prob.solverModel`` holds the MathOpt ``Model`` (``.model``), the incremental
+solver (``.solver``), the parameters of the next solve (``.params``) and the
+``SolveResult`` of the last one (``.result``: basis, solve statistics, primal
+and dual rays...).
+
+Example::
+
+    import pulp as pl
+
+    prob = pl.LpProblem("glop_example", pl.LpMaximize)
+    x = prob.add_variable("x", 0, 4)
+    y = prob.add_variable("y", 0)
+    prob += 3 * x + 2 * y
+    prob += x + y <= 5, "c1"
+
+    stats = prob.solve(pl.GLOP(msg=False, timeLimit=60))
+    print(stats.status_str, x.value(), prob.constraints()[0].pi)
+
+    prob += y <= 0.5, "cut"
+    stats = prob.resolve()  # starts from the previous basis
+
+Optional arguments:
+
+* ``timeLimit`` (seconds), ``threads`` and ``logPath``.
+* ``interrupter``: an ``ortools.util.python.solve_interrupter.SolveInterrupter``.
+  Calling its ``interrupt()`` (from another thread, or from the ``callback``)
+  stops the solve with status ``Interrupted``.
+
+``prob.solve(solver, callback=...)`` calls the callback with each batch of log
+lines (a list of ``str``). GLOP has no other callbacks: MathOpt rejects every
+callback event for it.
+* Any field of MathOpt's ``SolveParameters`` (for example
+  ``iteration_limit=1000``, ``presolve=False``, ``lp_algorithm="dual_simplex"``)
+  or of ``GlopParameters`` (for example ``use_dual_simplex=True``,
+  ``primal_feasibility_tolerance=1e-9``) as keyword arguments.
+
+.. note::
+
+   OR-Tools ships its own HiGHS library under the same name as the one in the
+   ``highspy`` package. When their versions differ, only the first one loaded
+   in a process works: PuLP loads ``highspy`` first, so ``GLOP`` is not
+   available alongside a ``highspy`` built on another HiGHS version.
+
+Installing CLARABEL
+*******************
+
+The ``CLARABEL`` solver is the `Clarabel <https://clarabel.org>`_ interior
+point solver, driven through its python package::
+
+    python -m pip install pulp[clarabel]
+
+Clarabel solves linear programs only. A problem with integer variables raises
+``PulpSolverError`` unless the solver is created with ``mip=False``, which
+solves its LP relaxation.
+
+Besides the variable values, a solve sets the dual values (``constraint.pi``),
+slacks (``constraint.slack``) and reduced costs (``variable.dj``). Being an
+interior point method, when the optimum is not unique Clarabel returns a point
+inside the optimal face rather than a vertex. It has no warm start, so
+``prob.resolve()`` builds the model again. ``prob.solverModel`` holds the
+Clarabel ``DefaultSolver``.
+
+Example::
+
+    import pulp as pl
+
+    prob = pl.LpProblem("clarabel_example", pl.LpMaximize)
+    x = prob.add_variable("x", 0, 4)
+    y = prob.add_variable("y", 0)
+    prob += 3 * x + 2 * y
+    prob += x + y <= 5, "c1"
+
+    stats = prob.solve(pl.CLARABEL(msg=False, timeLimit=60))
+    print(stats.status_str, x.value(), prob.constraints()[0].pi)
+
+Optional arguments:
+
+* ``timeLimit`` (seconds), ``threads`` and ``logPath`` (the log goes to the
+  file instead of the console).
+* Any field of Clarabel's ``DefaultSettings`` (for example ``max_iter=500``,
+  ``tol_gap_rel=1e-6``, ``presolve_enable=False``) as keyword arguments.
+
+``prob.solve(solver, callback=...)`` calls the callback with Clarabel's
+``DefaultInfo`` on every iteration; returning ``True`` stops the solve with
+status ``Interrupted``.
 
 Installing PYGLPK
 ***********************
@@ -395,9 +508,11 @@ Also, you can access the python api object before solving by using the lower-lev
     # for example, load a MIP_START file for CPLEX_PY:
     solver.solverModel.MIP_starts.read(SOME_MST_FILE)
     # the, you can call the solver to solve the problem
-    solver.callSolver(prob)
+    result = solver.callSolver(prob)
     # finally, you fill the PuLP variables with the solution
-    status, has_solution = solver.findSolutionValues(prob)
+    status, has_solution = solver.findSolutionValues(prob, result)
+
+These three steps work the same way for every solver that uses an official python interface (the subclasses of ``LpSolver_API``).
 
 For more information on how to use the `solverModel`, one needs to check the official documentation depending on the solver.
 
@@ -437,4 +552,4 @@ Or from a file::
     import pulp
     solver = pulp.getSolverFromJson("some_file_name.json")
 
-For json, we use the base `json` package. But if `ujson` is available, we use that so the import / export can be really fast.
+For json, we use the base `json` package.

@@ -73,8 +73,8 @@ gemstoneprob += (
             pscenario[j] * (price_dict[(j, i)] * production_vars[j, i])
             for (j, i) in production
         ]
-        - steelpurchase * steelprice
-    ),
+    )
+    - steelpurchase * steelprice,
     "Total cost",
 )
 

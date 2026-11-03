@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>How to import and export models in PuLP &mdash; PuLP 4.2.0 documentation</title>
+  <title>How to import and export models in PuLP &mdash; PuLP 4.3.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=d0ae6d56"></script>
+      <script src="../_static/documentation_options.js?v=a17b270f"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/js/theme.js"></script>
@@ -108,7 +108,7 @@ PuLP offers two ways to export a model: to an mps file or to a dictionary /json 
 <li><p>Variable names need to be unique. PuLP permits having variable names because it uses an internal code for each one. But we do not export that code. So we identify variables by their name only.</p></li>
 <li><p>Variables are not exported in a grouped way. This means that if you have several <cite>dictionaries of many variables each</cite> you will end up with a very long list of variables. This can be seen in the Example 2.</p></li>
 <li><p>Output information is also written to the json format: the values of variables and shadow prices / reduced costs are exported too, so a solved model can be read back to see those values. The solve outcome itself (status, timings, …) is not part of the model – it lives on the <code class="xref py py-class docutils literal notranslate"><span class="pre">LpSolveStats</span></code> each solve returns, not on the exported model.</p></li>
-<li><p>For json, we use the base <cite>json</cite> package. But if <cite>ujson</cite> is available, we use that so the import / export can be really fast.</p></li>
+<li><p>For json, we use the base <cite>json</cite> package.</p></li>
 </ol>
 </section>
 <section id="example-1-json">
@@ -331,7 +331,7 @@ PuLP offers two ways to export a model: to an mps file or to a dictionary /json 
 <span class="n">wedding_model</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="s2">"seating_model.json"</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="n">NpEncoder</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Note that this custom encoding class may not work with the <cite>ujson</cite> package. An alternative is to cast all values using <cite>int()</cite> or <cite>float()</cite> before using them in <cite>pulp</cite>.</p>
+<p>An alternative is to cast all values using <cite>int()</cite> or <cite>float()</cite> before using them in <cite>pulp</cite>.</p>
 </section>
 </section>
 

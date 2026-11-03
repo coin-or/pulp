@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>How to add a new solver to PuLP &mdash; PuLP 4.2.0 documentation</title>
+  <title>How to add a new solver to PuLP &mdash; PuLP 4.3.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=d0ae6d56"></script>
+      <script src="../_static/documentation_options.js?v=a17b270f"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/js/theme.js"></script>
@@ -100,7 +100,7 @@
 </section>
 <section id="inheriting-base-classes">
 <h2>Inheriting base classes<a class="headerlink" href="#inheriting-base-classes" title="Link to this heading"></a></h2>
-<p>The solver needs to inherit one of two classes:  <a class="reference internal" href="../technical/solvers.html#pulp.apis.LpSolver" title="pulp.apis.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.LpSolver</span></code></a> or  <a class="reference internal" href="../technical/solvers.html#pulp.apis.LpSolver_CMD" title="pulp.apis.LpSolver_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.LpSolver_CMD</span></code></a> located in <code class="docutils literal notranslate"><span class="pre">pulp.apis.core.py</span></code>. The first one is a generic class. The second one is used for command-line based APIs to solvers. This is the one used for the example:</p>
+<p>The solver needs to inherit one of three classes:  <a class="reference internal" href="../technical/solvers.html#pulp.apis.LpSolver" title="pulp.apis.LpSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.LpSolver</span></code></a>, <a class="reference internal" href="../technical/solvers.html#pulp.apis.LpSolver_API" title="pulp.apis.LpSolver_API"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.LpSolver_API</span></code></a> or <a class="reference internal" href="../technical/solvers.html#pulp.apis.LpSolver_CMD" title="pulp.apis.LpSolver_CMD"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.LpSolver_CMD</span></code></a> located in <code class="docutils literal notranslate"><span class="pre">pulp.apis.core.py</span></code>. The first one is a generic class. The second one is used for solvers driven through their official python interface (see <a class="reference internal" href="#solver-api"><span class="std std-ref">below</span></a>). The third one is used for command-line based APIs to solvers. This is the one used for the example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">LpSolver_CMD</span><span class="p">,</span> <span class="n">subprocess</span><span class="p">,</span> <span class="n">PulpSolverError</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">..</span><span class="w"> </span><span class="kn">import</span> <span class="n">constants</span>
@@ -253,19 +253,36 @@ reports one.</p>
 <p>Add <code class="docutils literal notranslate"><span class="pre">pulp_test_overrides</span></code> in that file when the solver’s acceptable statuses or results differ from the defaults in <code class="docutils literal notranslate"><span class="pre">solver_common.py</span></code>.</p>
 </section>
 <section id="extra-adding-a-official-solver-api">
-<h2>Extra: adding a official solver API<a class="headerlink" href="#extra-adding-a-official-solver-api" title="Link to this heading"></a></h2>
-<p>There are additional best practices to take into account with these solvers. The <code class="docutils literal notranslate"><span class="pre">actualSolve</span></code> method has the following structure:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">actualSolve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lp</span><span class="p">):</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">buildSolverModel</span><span class="p">(</span><span class="n">lp</span><span class="p">)</span>
-    <span class="c1"># set the initial solution</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">callSolver</span><span class="p">(</span><span class="n">lp</span><span class="p">)</span>
-    <span class="c1"># get the solution information</span>
-    <span class="n">solutionStatus</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">findSolutionValues</span><span class="p">(</span><span class="n">lp</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">solutionStatus</span>
+<span id="solver-api"></span><h2>Extra: adding a official solver API<a class="headerlink" href="#extra-adding-a-official-solver-api" title="Link to this heading"></a></h2>
+<p>A solver driven through its official python interface inherits <a class="reference internal" href="../technical/solvers.html#pulp.apis.LpSolver_API" title="pulp.apis.LpSolver_API"><code class="xref py py-class docutils literal notranslate"><span class="pre">pulp.apis.LpSolver_API</span></code></a>. Instead of <code class="docutils literal notranslate"><span class="pre">actualSolve</span></code>, it implements three steps, which <code class="docutils literal notranslate"><span class="pre">LpSolver_API.actualSolve</span></code> calls in order:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">MY_SOLVER</span><span class="p">(</span><span class="n">LpSolver_API</span><span class="p">):</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="s2">"MY_SOLVER"</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">buildSolverModel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lp</span><span class="p">):</span>
+        <span class="c1"># create the solver's model, store it in lp.solverModel, load the problem</span>
+        <span class="c1"># and apply the options</span>
+        <span class="o">...</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">configureSolver</span><span class="p">(</span><span class="n">lp</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">configureSolver</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lp</span><span class="p">):</span>
+        <span class="c1"># apply msg, timeLimit, gapRel, logPath, etc. to lp.solverModel</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">callSolver</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lp</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">changes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c1"># solve lp.solverModel; kwargs are the arguments given to solve,</span>
+        <span class="c1"># e.g. a callback</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">findSolutionValues</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lp</span><span class="p">,</span> <span class="n">result</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="c1"># write the values back into lp; result is what callSolver returned</span>
+        <span class="o">...</span>
+        <span class="k">return</span> <span class="n">status</span><span class="p">,</span> <span class="n">has_solution</span>
 </pre></div>
 </div>
-<p>In addition to this, the <code class="docutils literal notranslate"><span class="pre">buildSolverModel</span></code> method fills a property named <cite>lp.solverModel</cite> in the LP problem. This property will include a pointer to the model object from the official solver API (e.g., <code class="docutils literal notranslate"><span class="pre">gurobipy.Model</span></code> for GUROBI).</p>
-<p>These considerations will permit a consistent, more standard way to call official solvers. In particular, they allow for detailed configuration, such as the one explained <a class="reference internal" href="../guides/how_to_configure_solvers.html#solver-specific-config"><span class="std std-ref">here</span></a>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">buildSolverModel</span></code> fills the property <code class="docutils literal notranslate"><span class="pre">lp.solverModel</span></code> of the LP problem with the model object from the official solver API (e.g., <code class="docutils literal notranslate"><span class="pre">gurobipy.Model</span></code> for GUROBI). Anything <code class="docutils literal notranslate"><span class="pre">findSolutionValues</span></code> needs besides that model (e.g., a solution object) is returned by <code class="docutils literal notranslate"><span class="pre">callSolver</span></code>, which <code class="docutils literal notranslate"><span class="pre">actualSolve</span></code> hands over as <code class="docutils literal notranslate"><span class="pre">result</span></code>. A solver that proves a bound can also implement <code class="docutils literal notranslate"><span class="pre">findBestBound(lp)</span></code>.</p>
+<p>These steps permit a consistent, more standard way to call official solvers. In particular, they allow for detailed configuration, such as the one explained <a class="reference internal" href="../guides/how_to_configure_solvers.html#solver-specific-config"><span class="std std-ref">here</span></a>.</p>
+<p>To support <code class="docutils literal notranslate"><span class="pre">LpProblem.resolve</span></code>, updating <code class="docutils literal notranslate"><span class="pre">lp.solverModel</span></code> in place instead of building it again, a solver also implements <code class="docutils literal notranslate"><span class="pre">canUpdate(lp)</span></code> (return True when <code class="docutils literal notranslate"><span class="pre">lp.solverModel</span></code> can be updated) and <code class="docutils literal notranslate"><span class="pre">applyChanges(lp,</span> <span class="pre">changes)</span></code>, which replays the edits made to the problem since the last solve. <code class="docutils literal notranslate"><span class="pre">LpSolver_API.actualResolve</span></code> then calls <code class="docutils literal notranslate"><span class="pre">applyChanges</span></code>, <code class="docutils literal notranslate"><span class="pre">configureSolver</span></code> and <code class="docutils literal notranslate"><span class="pre">callSolver(lp,</span> <span class="pre">changes=changes)</span></code>. When an edit cannot be replayed, <code class="docutils literal notranslate"><span class="pre">applyChanges</span></code> raises <code class="docutils literal notranslate"><span class="pre">pulp.apis.core._RebuildNeeded</span></code> before touching the model, and the model is built again.</p>
 </section>
 </section>
 

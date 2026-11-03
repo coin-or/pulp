@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>A Two Stage Production Planning Problem &mdash; PuLP 4.2.0 documentation</title>
+  <title>A Two Stage Production Planning Problem &mdash; PuLP 4.3.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=d0ae6d56"></script>
+      <script src="../_static/documentation_options.js?v=a17b270f"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/js/theme.js"></script>
@@ -170,8 +170,8 @@ that it is added to the problem using <cite>+=</cite>.</p>
             <span class="n">pscenario</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">price_dict</span><span class="p">[(</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">)]</span> <span class="o">*</span> <span class="n">production_vars</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">])</span>
             <span class="k">for</span> <span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="ow">in</span> <span class="n">production</span>
         <span class="p">]</span>
-        <span class="o">-</span> <span class="n">steelpurchase</span> <span class="o">*</span> <span class="n">steelprice</span>
-    <span class="p">),</span>
+    <span class="p">)</span>
+    <span class="o">-</span> <span class="n">steelpurchase</span> <span class="o">*</span> <span class="n">steelprice</span><span class="p">,</span>
     <span class="s2">"Total cost"</span><span class="p">,</span>
 <span class="p">)</span>
 </pre></div>
@@ -275,8 +275,8 @@ scenario or product the constraint applies to.</p>
             <span class="n">pscenario</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">price_dict</span><span class="p">[(</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">)]</span> <span class="o">*</span> <span class="n">production_vars</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">])</span>
             <span class="k">for</span> <span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="ow">in</span> <span class="n">production</span>
         <span class="p">]</span>
-        <span class="o">-</span> <span class="n">steelpurchase</span> <span class="o">*</span> <span class="n">steelprice</span>
-    <span class="p">),</span>
+    <span class="p">)</span>
+    <span class="o">-</span> <span class="n">steelpurchase</span> <span class="o">*</span> <span class="n">steelprice</span><span class="p">,</span>
     <span class="s2">"Total cost"</span><span class="p">,</span>
 <span class="p">)</span>
 
