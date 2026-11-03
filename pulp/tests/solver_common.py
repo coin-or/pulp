@@ -306,6 +306,10 @@ class BaseSolverTest:
                 self.solver = self.solveInst(msg=False)
             if not self.solver.available():
                 self.skipTest(f"solver {self.solveInst.name} not available")
+            # skip before the test body runs: not every test goes through _apply_pulp_check
+            cfg = self._config(self._testMethodName)
+            if cfg.skip:
+                self.skipTest(cfg.skip_reason or self._testMethodName)
 
         def tearDown(self):
             for ext in ["mst", "log", "lp", "mps", "sol", "out"]:
