@@ -15,9 +15,11 @@ from ..apis.core import LpSolver
 from ..utilities import value
 from ._internal import (
     LpBound,
+    LpNumeric,
     _const_to_rust_cat,
     _const_to_rust_sense,
     _is_finite_numeric,
+    _is_numeric_scalar,
     _is_numpy_bool,
 )
 from .lp_affine_expression import LpAffineExpression
@@ -678,7 +680,7 @@ class LpProblem:
                 raise const.PulpError(msg) from err
             raise
 
-    def setObjective(self, obj: LpAffineExpression | LpVariable | int | float) -> None:
+    def setObjective(self, obj: LpAffineExpression | LpVariable | LpNumeric) -> None:
         """
         Sets the objective function.
 
@@ -689,17 +691,16 @@ class LpProblem:
         """
         if isinstance(obj, LpVariable):
             self.objective = LpAffineExpression.from_variable(obj)
-        elif isinstance(obj, (int, float)):
+        elif _is_numeric_scalar(obj):
             self.objective = LpAffineExpression.from_constant(float(obj))
         else:
-            self.objective = obj
+            self.objective = cast(LpAffineExpression, obj)
 
     def __iadd__(
         self,
         other: LpAffineExpression
         | LpVariable
-        | int
-        | float
+        | LpNumeric
         | bool
         | tuple[Any, str | None],
     ) -> LpProblem:
@@ -708,7 +709,7 @@ class LpProblem:
             other_val = other[0]
             name = str(other[1]) if other[1] is not None else None
             other = cast(
-                LpAffineExpression | LpVariable | int | float | tuple[Any, str | None],
+                LpAffineExpression | LpVariable | LpNumeric | tuple[Any, str | None],
                 other_val,
             )
         if other is True:
@@ -733,7 +734,7 @@ class LpProblem:
             if self.objective is not None:
                 warnings.warn("Overwriting previously set objective.")
             self.objective = LpAffineExpression.from_variable(other, name=name)
-        elif isinstance(other, (int, float)):
+        elif _is_numeric_scalar(other):
             if self.objective is not None:
                 warnings.warn("Overwriting previously set objective.")
             self.objective = LpAffineExpression.from_constant(float(other), name=name)
