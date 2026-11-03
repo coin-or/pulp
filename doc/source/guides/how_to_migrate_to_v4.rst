@@ -510,6 +510,15 @@ If you wrote your own solver class by subclassing ``LpSolver`` or
   * The ``setParams`` / ``_set_params`` / ``_setControls`` methods are now
     ``configureSolver(lp)``.
 
+* Since 4.3, a solver parameter that the solver does not accept raises the
+  solver library's own error in every solver that uses an official python
+  interface (``HiGHS``, whose library only reports a status, raises
+  ``PulpSolverError``). Before, ``HiGHS``, ``CPSAT`` and ``CUOPT`` ignored it
+  silently, and ``XPRESS_PY`` raised ``PulpSolverError``. ``CYLP`` and
+  ``PYGLPK``, which dropped their extra keyword arguments, now set them: as
+  attributes of the Clp or Cbc model (``CYLP``), or as fields of GLPK's
+  ``glp_smcp`` and ``glp_iocp`` control parameters (``PYGLPK``).
+
 See :doc:`../develop/add_solver` for a complete example.
 
 

@@ -1,6 +1,20 @@
 #!/usr/bin/env python
 
-from matplotlib import rc  # type: ignore[import-not-found]
+from matplotlib import rc
+from matplotlib.patches import Arrow
+from matplotlib.pyplot import (
+    axis,
+    figure,
+    gca,
+    plot,
+    savefig,
+    subplot,
+    subplots_adjust,
+    text,
+    title,
+    yticks,
+)
+from numpy import arange
 
 rc("text", usetex=True)
 rc("font", family="serif")

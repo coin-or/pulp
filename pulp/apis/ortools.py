@@ -27,7 +27,6 @@ if TYPE_CHECKING:
 cp_model_mod = import_optional("ortools.sat.python.cp_model")
 mathopt_mod = import_optional("ortools.math_opt.python.mathopt")
 model_pb2_mod = import_optional("ortools.math_opt.model_pb2")
-glop_parameters_pb2_mod = import_optional("ortools.glop.parameters_pb2")
 
 
 def _decimal_places(value: float) -> int:
@@ -234,10 +233,9 @@ class CPSAT(LpSolver_API):
         if "threads" in self.optionsDict:
             solver.parameters.num_search_workers = int(self.optionsDict["threads"])
         for param, value in self.optionsDict.items():
-            try:
-                setattr(solver.parameters, param, value)
-            except AttributeError:  # not a CP-SAT parameter
-                pass
+            if param in ("warmStart", "logPath", "threads"):
+                continue
+            setattr(solver.parameters, param, value)
 
         try:
             status = solver.Solve(lp.solverModel)
@@ -387,7 +385,6 @@ class GLOP(LpSolver_API):
         threads=None,
         logPath=None,
         warmStart=False,
-        msgCallback: Callable[[list[str]], None] | None = None,
         interrupter: Any = None,
         **solverParams,
     ):
@@ -400,11 +397,9 @@ class GLOP(LpSolver_API):
         :param str logPath: path to write the solver log to
         :param bool warmStart: ignored, GLOP takes no starting solution; use
             ``prob.resolve`` to restart from the previous basis
-        :param msgCallback: called with each batch of log lines (a list of
-            str) as the solver writes them. GLOP has no other callbacks.
         :param interrupter: an ``ortools.util.python.solve_interrupter.SolveInterrupter``;
-            calling its ``interrupt()`` (e.g. from another thread or from
-            ``msgCallback``) stops the solve
+            calling its ``interrupt()`` (e.g. from another thread or from the
+            ``callback`` given to solve) stops the solve
         :param dict solverParams: fields of MathOpt's ``SolveParameters``
             (e.g. ``iteration_limit``, ``presolve=False``,
             ``lp_algorithm="dual_simplex"``) or of ``GlopParameters`` (e.g.
@@ -420,7 +415,6 @@ class GLOP(LpSolver_API):
             warmStart=warmStart,
             **solverParams,
         )
-        self.msgCallback = msgCallback
         self.interrupter = interrupter
 
     def available(self) -> bool:
@@ -503,7 +497,6 @@ class GLOP(LpSolver_API):
         if self.timeLimit is not None:
             params.time_limit = datetime.timedelta(seconds=self.timeLimit)
         param_fields = {field.name for field in dataclasses.fields(params)}
-        glop_fields = glop_parameters_pb2_mod.GlopParameters.DESCRIPTOR.fields_by_name
         for key, value in self.optionsDict.items():
             if key in ("warmStart", "logPath"):
                 continue
@@ -516,10 +509,8 @@ class GLOP(LpSolver_API):
                     value = enum[value.upper()]
             if key in param_fields:
                 setattr(params, key, value)
-            elif key in glop_fields:
-                setattr(params.glop, key, value)
             else:
-                raise PulpSolverError(f"GLOP: unknown parameter {key!r}")
+                setattr(params.glop, key, value)
         glop = lp.solverModel
         assert glop is not None
         glop.params = params
@@ -532,23 +523,28 @@ class GLOP(LpSolver_API):
         changes: _rustcore.ModelChanges | None = None,
         **kwargs: Any,
     ) -> None:
-        """Solves the problem with GLOP; the result is kept in ``lp.solverModel``."""
+        """Solves the problem with GLOP; the result is kept in ``lp.solverModel``.
+
+        The ``callback`` given to solve is called with each batch of log lines
+        (a list of str) as the solver writes them. GLOP has no other callbacks.
+        """
         glop = lp.solverModel
         assert glop is not None
         log_path = self.optionsDict.get("logPath")
         log_file = open(log_path, "w") if log_path else None
+        callback: Callable[[list[str]], None] | None = kwargs.get("callback")
         msg_cb = None
         # the solver stops printing its log once it is handed a message
         # callback, which then prints it with msg=True
-        if log_file is not None or self.msgCallback is not None:
+        if log_file is not None or callback is not None:
 
             def msg_cb(lines: list[str]) -> None:
                 if log_file is not None:
                     log_file.writelines(line + "\n" for line in lines)
                 if self.msg:
                     sys.stdout.writelines(line + "\n" for line in lines)
-                if self.msgCallback is not None:
-                    self.msgCallback(lines)
+                if callback is not None:
+                    callback(lines)
 
         # a model just built has no result yet, so it starts without a basis
         basis = _warm_basis(glop)

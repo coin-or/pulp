@@ -15,7 +15,6 @@ from pulp import (
     LpInteger,
     LpMinimize,
     LpProblem,
-    LpVariable,
     lpSum,
     value,
 )

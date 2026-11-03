@@ -68,14 +68,14 @@ for b in bars:
 prob.writeLP("BeerDistributionProblem.lp")
 
 # The problem is solved using PuLP's choice of Solver
-prob.solve()
+stats = prob.solve()
 
 # The status of the solution is printed to the screen
-print("Status:", pulp.LpStatus[prob.status])
+print("Status:", stats.status_str)
 
 # Each of the variables is printed with it's resolved optimum value
 for v in prob.variables():
     print(v.name, "=", v.varValue)
 
 # The optimised objective function value is printed to the screen
-print("Total Cost of Transportation = ", prob.objective.value())  # type: ignore[union-attr]
+print("Total Cost of Transportation = ", pulp.value(prob.objective))

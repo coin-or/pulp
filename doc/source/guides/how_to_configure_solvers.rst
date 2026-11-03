@@ -231,12 +231,18 @@ PuLP has the integrations with the official python API solvers for the following
 * COPT (COPT)
 * OR-Tools CP-SAT (CPSAT)
 * OR-Tools GLOP (GLOP)
+* Clarabel (CLARABEL)
 * GLPK (PYGLPK)
 
 These API offer a series of advantages over using the command line option:
 
 * They are usually faster to initialize a problem (they do not involve writing files to disk).
 * They offer a lot more functionality and information (extreme rays, dual prices, reduced costs).
+
+Keyword arguments that a solver does not name itself are handed to the solver
+as its own parameters. A parameter the solver does not accept raises the error
+of the solver's library (``PulpSolverError`` for ``HiGHS``, whose library only
+reports it by a status).
 
 Installing CPSAT (OR-Tools CP-SAT)
 *************************************
@@ -318,11 +324,13 @@ Example::
 Optional arguments:
 
 * ``timeLimit`` (seconds), ``threads`` and ``logPath``.
-* ``msgCallback``: called with each batch of log lines (a list of ``str``).
-  GLOP has no other callbacks: MathOpt rejects every callback event for it.
 * ``interrupter``: an ``ortools.util.python.solve_interrupter.SolveInterrupter``.
-  Calling its ``interrupt()`` (from another thread, or from ``msgCallback``)
+  Calling its ``interrupt()`` (from another thread, or from the ``callback``)
   stops the solve with status ``Interrupted``.
+
+``prob.solve(solver, callback=...)`` calls the callback with each batch of log
+lines (a list of ``str``). GLOP has no other callbacks: MathOpt rejects every
+callback event for it.
 * Any field of MathOpt's ``SolveParameters`` (for example
   ``iteration_limit=1000``, ``presolve=False``, ``lp_algorithm="dual_simplex"``)
   or of ``GlopParameters`` (for example ``use_dual_simplex=True``,
@@ -334,6 +342,49 @@ Optional arguments:
    ``highspy`` package. When their versions differ, only the first one loaded
    in a process works: PuLP loads ``highspy`` first, so ``GLOP`` is not
    available alongside a ``highspy`` built on another HiGHS version.
+
+Installing CLARABEL
+*******************
+
+The ``CLARABEL`` solver is the `Clarabel <https://clarabel.org>`_ interior
+point solver, driven through its python package::
+
+    python -m pip install pulp[clarabel]
+
+Clarabel solves linear programs only. A problem with integer variables raises
+``PulpSolverError`` unless the solver is created with ``mip=False``, which
+solves its LP relaxation.
+
+Besides the variable values, a solve sets the dual values (``constraint.pi``),
+slacks (``constraint.slack``) and reduced costs (``variable.dj``). Being an
+interior point method, when the optimum is not unique Clarabel returns a point
+inside the optimal face rather than a vertex. It has no warm start, so
+``prob.resolve()`` builds the model again. ``prob.solverModel`` holds the
+Clarabel ``DefaultSolver``.
+
+Example::
+
+    import pulp as pl
+
+    prob = pl.LpProblem("clarabel_example", pl.LpMaximize)
+    x = prob.add_variable("x", 0, 4)
+    y = prob.add_variable("y", 0)
+    prob += 3 * x + 2 * y
+    prob += x + y <= 5, "c1"
+
+    stats = prob.solve(pl.CLARABEL(msg=False, timeLimit=60))
+    print(stats.status_str, x.value(), prob.constraints()[0].pi)
+
+Optional arguments:
+
+* ``timeLimit`` (seconds), ``threads`` and ``logPath`` (the log goes to the
+  file instead of the console).
+* Any field of Clarabel's ``DefaultSettings`` (for example ``max_iter=500``,
+  ``tol_gap_rel=1e-6``, ``presolve_enable=False``) as keyword arguments.
+
+``prob.solve(solver, callback=...)`` calls the callback with Clarabel's
+``DefaultInfo`` on every iteration; returning ``True`` stops the solve with
+status ``Interrupted``.
 
 Installing PYGLPK
 ***********************
@@ -501,4 +552,4 @@ Or from a file::
     import pulp
     solver = pulp.getSolverFromJson("some_file_name.json")
 
-For json, we use the base `json` package. But if `ujson` is available, we use that so the import / export can be really fast.
+For json, we use the base `json` package.

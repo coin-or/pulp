@@ -1,15 +1,11 @@
 from __future__ import annotations
 
 import dataclasses
+import json
 import math
 import warnings
 from collections.abc import Iterable, Mapping
 from typing import Any, Literal, cast
-
-try:
-    import ujson as json  # type: ignore[import-untyped]
-except ImportError:
-    import json
 
 from .. import _rustcore
 from .. import constants as const
@@ -248,7 +244,7 @@ class LpProblem:
         if len(indices) > 1:
             res = []
             while lists:
-                first = cast(Iterable[Any], lists[-1])
+                first = list(cast(Iterable[Any], lists[-1]))
                 nres = []
                 if res:
                     if first:

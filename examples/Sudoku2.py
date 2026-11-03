@@ -13,7 +13,7 @@ VALS = ROWS = COLS = range(1, 10)
 
 # The boxes list is created, with the row and column index of each square in each box
 Boxes = [
-    [(3 * i + k + 1, 3 * j + l + 1) for k in range(3) for l in range(3)]
+    [(3 * i + k + 1, 3 * j + m + 1) for k in range(3) for m in range(3)]
     for i in range(3)
     for j in range(3)
 ]

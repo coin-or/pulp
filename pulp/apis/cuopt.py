@@ -151,6 +151,8 @@ class CUOPT(LpSolver_API):
         for key, value in self.solver_params.items():
             if key == "optimality_tolerance":
                 settings.set_optimality_tolerance(value)
+            else:
+                settings.set_parameter(key, value)
         gapRel = self.optionsDict.get("gapRel")
         if gapRel:
             settings.set_parameter("relative_gap_tolerance", gapRel)

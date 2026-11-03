@@ -270,9 +270,11 @@ class PYGLPK(LpSolver_API):
         @param msg: displays information from the solver to stdout
         @param timeLimit: not handled
         @param gapRel: not handled
-        @param solverParams: not handled
+        @param solverParams: fields of GLPK's simplex (``glp_smcp``) or MIP
+            (``glp_iocp``) control parameters, e.g. ``it_lim``, ``meth`` or
+            ``mip_gap``
         """
-        LpSolver.__init__(self, mip, msg)
+        LpSolver.__init__(self, mip, msg, **solverParams)
         if not self.msg and swiglpk_mod is not None:
             swiglpk_mod.glp_term_out(swiglpk_mod.GLP_OFF)
 
@@ -326,18 +328,32 @@ class PYGLPK(LpSolver_API):
         :param changes: on a resolve, start from the basis the model holds
             instead of building an advanced one
         """
+        smcp = swiglpk_mod.glp_smcp()
+        swiglpk_mod.glp_init_smcp(smcp)
+        iocp = swiglpk_mod.glp_iocp()
+        swiglpk_mod.glp_init_iocp(iocp)
+        for key, value in self.optionsDict.items():
+            if key in ("warmStart", "logPath"):
+                continue
+            structs = [parm for parm in (smcp, iocp) if hasattr(type(parm), key)]
+            if not structs:
+                # SWIG sets any attribute, but raises AttributeError on getting
+                # an unknown one
+                getattr(smcp, key)
+            for parm in structs:
+                setattr(parm, key, value)
         # GLPK counts iterations over the model's lifetime: count this solve's
         swiglpk_mod.glp_set_it_cnt(lp.solverModel, 0)
         if changes is None:
             swiglpk_mod.glp_adv_basis(lp.solverModel, 0)
-        if swiglpk_mod.glp_simplex(lp.solverModel, None) in (
+        if swiglpk_mod.glp_simplex(lp.solverModel, smcp) in (
             swiglpk_mod.GLP_EBADB,
             swiglpk_mod.GLP_ESING,
             swiglpk_mod.GLP_ECOND,
         ):
             # the edits left the basis invalid or singular: start over
             swiglpk_mod.glp_adv_basis(lp.solverModel, 0)
-            swiglpk_mod.glp_simplex(lp.solverModel, None)
+            swiglpk_mod.glp_simplex(lp.solverModel, smcp)
         if self.mip and self.hasMIPConstraints(lp.solverModel):
             status = swiglpk_mod.glp_get_status(lp.solverModel)
             if status in (
@@ -345,7 +361,7 @@ class PYGLPK(LpSolver_API):
                 swiglpk_mod.GLP_UNDEF,
                 swiglpk_mod.GLP_FEAS,
             ):
-                swiglpk_mod.glp_intopt(lp.solverModel, None)
+                swiglpk_mod.glp_intopt(lp.solverModel, iocp)
 
     def canUpdate(self, lp):
         return True

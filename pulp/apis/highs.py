@@ -8,8 +8,6 @@ import warnings
 from math import isfinite
 from typing import TYPE_CHECKING, Any
 
-import numpy as np
-
 from .. import _rustcore, constants
 from .core import (
     LpSolver_API,
@@ -275,6 +273,7 @@ class HiGHS_CMD(LpSolver_CMD):
 
 
 highspy_mod = import_optional("highspy")
+np = import_optional("numpy")
 
 
 class HiGHS(LpSolver_API):
@@ -324,7 +323,7 @@ class HiGHS(LpSolver_API):
         self.threads = threads
 
     def available(self):
-        return highspy_mod is not None
+        return highspy_mod is not None and np is not None
 
     def callSolver(self, lp, *, changes=None, **kwargs):
         lp.solverModel.run()
@@ -359,9 +358,13 @@ class HiGHS(LpSolver_API):
         for key, value in self.optionsDict.items():
             if key in ("warmStart", "logPath"):
                 continue
-            solverModel.setOptionValue(key, value)
+            # highspy reports an unknown option or a bad value by its status
+            # alone: raise, as other solvers' libraries do
+            status = solverModel.setOptionValue(key, value)
+            if status != highspy_mod.HighsStatus.kOk:
+                raise PulpSolverError(f"HiGHS: cannot set option {key!r} to {value!r}")
 
-    @requires("highspy")
+    @requires("highspy", "numpy")
     def buildSolverModel(self, lp):
         lp.solverModel = highspy_mod.Highs()
 
@@ -450,7 +453,7 @@ class HiGHS(LpSolver_API):
                 return
             lp.solverModel.setSolution(len(indices), indices, values)
 
-    @requires("highspy")
+    @requires("highspy", "numpy")
     def applyChanges(self, lp, changes):
         """Update ``lp.solverModel`` with the edits made to ``lp`` since it was
         last solved (``changes``, from :meth:`_take_changes`), keeping the basis.

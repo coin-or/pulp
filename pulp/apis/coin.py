@@ -32,8 +32,6 @@ import sys
 from collections.abc import Iterable, Iterator
 from typing import IO, TYPE_CHECKING, Any
 
-import numpy as np
-
 from .. import _rustcore, constants
 from .core import (
     LpSolver,
@@ -858,6 +856,7 @@ class YAPOSIB(LpSolver_API):
 
 
 cylp_mod = import_optional("cylp.cy")
+np = import_optional("numpy")
 
 
 class CYLP(LpSolver_API):
@@ -902,6 +901,8 @@ class CYLP(LpSolver_API):
         :param bool presolve: if False, Clp solves without presolve, only used by Clp
         :param str logPath: path to the log file; the log goes there instead of
             the console
+        :param dict solverParams: attributes of the Clp or Cbc model being
+            solved, e.g. ``primalTolerance`` (Clp) or ``allowableGap`` (Cbc)
         """
         super().__init__(
             mip=mip,
@@ -919,7 +920,7 @@ class CYLP(LpSolver_API):
         self.threads = threads
 
     def available(self):
-        return cylp_mod is not None
+        return cylp_mod is not None and np is not None
 
     @requires("cylp.cy")
     def canUpdate(self, lp: LpProblem) -> bool:
@@ -931,7 +932,7 @@ class CYLP(LpSolver_API):
         """Whether lp.solverModel is a Cbc (MIP) model rather than a Clp (LP) one"""
         return isinstance(lp.solverModel, cylp_mod.CyCbcModel)
 
-    @requires("cylp.cy")
+    @requires("cylp.cy", "numpy")
     def buildSolverModel(self, lp: LpProblem) -> None:
         """
         Takes the pulp lp model and translates it into a CyLP model.
@@ -972,6 +973,7 @@ class CYLP(LpSolver_API):
         lp.solverModel = model
         self._start_tracking(lp)
 
+    @requires("cylp.cy", "numpy")
     def applyChanges(self, lp: LpProblem, changes: _rustcore.ModelChanges) -> None:
         """Update the Clp model ``lp.solverModel`` with the edits made to ``lp``
         since it was last solved (``changes``, from :meth:`_take_changes`),
@@ -1036,6 +1038,11 @@ class CYLP(LpSolver_API):
             model.maxNumIteration = self.optionsDict.get(
                 "maxIterations", _CLP_MAX_ITERATIONS
             )
+        # the other options are attributes of the Clp or Cbc model, e.g.
+        # primalTolerance or allowableGap; an unknown one raises AttributeError
+        for key, value in self.optionsDict.items():
+            if key not in _CYLP_OPTIONS:
+                setattr(model, key, value)
         if changes is not None:
             with self._logging(model):
                 # the dual simplex suits a basis made primal infeasible (new rows,
@@ -1214,6 +1221,16 @@ def _cylp_row_bounds(rconstr: _rustcore.Constraint) -> tuple[float, float]:
 
 # the default of ClpSimplex::maximumIterations(), i.e. no limit
 _CLP_MAX_ITERATIONS = 2147483647
+
+# the options of CYLP that pulp reads itself, rather than model attributes
+_CYLP_OPTIONS = (
+    "maxNodes",
+    "maxSolutions",
+    "maxIterations",
+    "presolve",
+    "logPath",
+    "warmStart",
+)
 
 cylpClpStatus = {
     # status codes of ClpSimplex::status()

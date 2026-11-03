@@ -26,7 +26,7 @@ alwaysApply: true
 ## Type checking
 
 - Use **ty** for type checking (not mypy or pyright).
-- Run type checks via: `uv run ty check pulp`
+- Run type checks via: `uv run ty check`
 
 ## Rust / Cargo
 
@@ -45,7 +45,7 @@ alwaysApply: true
 After making any code change to the repo, run all three checks before considering the task done:
 
 1. **Unit tests**: `uv run --all-extras --no-extra mosek python -m unittest discover -s pulp/tests`
-2. **Type checking**: `uv run ty check pulp`
-3. **Linting and formatting**: `uv run ruff check pulp` and `uv run ruff format pulp --check`
+2. **Type checking**: `uv run ty check`
+3. **Linting and formatting**: `uv run ruff check` and `uv run ruff format --check`
 
 If any check fails, fix the issues before proceeding. If Rust source files (`pulp/rust/src/`) were modified, run `uv run cargo check --manifest-path pulp/rust/Cargo.toml` and rebuild with `uv run maturin develop`.

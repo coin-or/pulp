@@ -9,13 +9,9 @@ detail read back out of that log.
 from __future__ import annotations
 
 import dataclasses
+import json
 import os
 from typing import Any
-
-try:
-    import ujson as json  # type: ignore[import-untyped]
-except ImportError:
-    import json
 
 import orloge
 

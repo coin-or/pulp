@@ -150,7 +150,7 @@ class GLOPTest(BaseSolverTest.PuLPTest):
     def test_msg_callback(self):
         lines: list[str] = []
         prob = _random_lp()
-        stats = prob.solve(solvers.GLOP(msg=False, msgCallback=lines.extend))
+        stats = prob.solve(solvers.GLOP(msg=False), callback=lines.extend)
         self.assertIs(stats.status, LpSolveStatus.Optimal)
         self.assertTrue(lines)
         self.assertTrue(all(isinstance(line, str) for line in lines))
@@ -160,7 +160,7 @@ class GLOPTest(BaseSolverTest.PuLPTest):
         with tempfile.TemporaryDirectory() as tmp:
             path = os.path.join(tmp, "glop.log")
             _random_lp().solve(
-                solvers.GLOP(msg=False, logPath=path, msgCallback=lines.extend)
+                solvers.GLOP(msg=False, logPath=path), callback=lines.extend
             )
             with open(path) as f:
                 self.assertEqual(f.read().splitlines(), lines)
@@ -181,7 +181,7 @@ class GLOPTest(BaseSolverTest.PuLPTest):
         self.assertTrue(params.glop.use_dual_simplex)
         self.assertEqual(params.threads, 1)
 
-        with self.assertRaises(PulpSolverError):
+        with self.assertRaises(AttributeError):
             prob.solve(solvers.GLOP(msg=False, not_a_parameter=1))
 
     def test_result_and_basis(self):

@@ -29,11 +29,11 @@ def calculatePatterns(
         opt = lenOpts[0]
         for rep in range(int(totalRollLength / opt) + 1):
             # reduce the length
-            l = totalRollLength - rep * opt
+            remaining = totalRollLength - rep * opt
             h = head[:]
             h.append(rep)
 
-            patterns.extend(calculatePatterns(l, lenOpts[1:], h))
+            patterns.extend(calculatePatterns(remaining, lenOpts[1:], h))
     else:
         # end of the recursion
         patterns = [head]
@@ -66,8 +66,8 @@ def makePatterns(
     trim = {}
     for name, pattern in zip(PatternNames, patterns):
         ssum = 0
-        for rep, l in zip(pattern, lenOpts):
-            ssum += rep * l
+        for rep, length in zip(pattern, lenOpts):
+            ssum += rep * length
         trim[name] = totalRollLength - ssum
     # The different cutting lengths are printed, and the number of each roll of that length in each
     # pattern is printed below. This is so the user can see what each pattern contains.
@@ -103,7 +103,7 @@ rollData = {  # Length Demand SalePrice
 # is created as a dictionary. The inputs are the total roll length and the list (as integers) of
 # cutting options.
 (PatternNames, patterns, trim) = makePatterns(
-    totalRollLength, [int(l) for l in LenOpts]
+    totalRollLength, [int(length) for length in LenOpts]
 )
 
 # The RollData is made into separate dictionaries

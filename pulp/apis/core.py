@@ -87,6 +87,7 @@ operating_system = get_operating_system()
 arch = get_arch()
 
 import contextlib
+import json
 import logging
 from collections.abc import Callable, Iterator
 from typing import TYPE_CHECKING, Any
@@ -97,11 +98,6 @@ from .. import constants as const
 if TYPE_CHECKING:
     from ..core.lp_stats import LpSolveStats
     from ..pulp import LpProblem
-
-try:
-    import ujson as json  # type: ignore[import-untyped]
-except ImportError:
-    import json
 
 log = logging.getLogger(__name__)
 

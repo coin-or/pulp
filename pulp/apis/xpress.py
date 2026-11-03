@@ -719,18 +719,20 @@ class XPRESS_PY(LpSolver_API):
         Takes the pulp lp model and translates it into an xpress model
         """
         self._extract(lp)
+        # Apply controls, warmstart etc. We do this here rather than in
+        # callSolver() so that the caller has a chance to overwrite things
+        # either using the `prepare` argument to callSolver() or by
+        # explicitly calling
+        #   self.buildSolverModel()
+        #   self.callSolver()
+        #   self.findSolutionValues()
+        # This also avoids unintended warmstart side effects when callers
+        # build and solve in separate steps.
+        # Controls are set outside the try below: an unknown one raises the
+        # xpress error itself, as other solvers raise theirs
+        self.configureSolver(lp)
         try:
-            # Apply controls, warmstart etc. We do this here rather than in
-            # callSolver() so that the caller has a chance to overwrite things
-            # either using the `prepare` argument to callSolver() or by
-            # explicitly calling
-            #   self.buildSolverModel()
-            #   self.callSolver()
-            #   self.findSolutionValues()
-            # This also avoids unintended warmstart side effects when callers
-            # build and solve in separate steps.
             model = lp.solverModel
-            self.configureSolver(lp)
             # Setup warmstart information
             if self.optionsDict.get("warmStart", False):
                 solval = list()

@@ -95,6 +95,29 @@ class CYLPTest(BaseSolverTest.PuLPTest):
         self.assertIs(stats.status, LpSolveStatus.Optimal)
         self.assertTrue(stats.has_solution)
 
+    def test_solver_params(self):
+        # the extra options are attributes of the Clp (LP) or Cbc (MIP) model
+        prob = LpProblem("params", LpMinimize)
+        x = prob.add_variable("x", 0, 4)
+        prob += x
+        prob += x >= 1, "c1"
+        stats = prob.solve(solvers.CYLP(msg=False, primalTolerance=1e-9))
+        self.assertIs(stats.status, LpSolveStatus.Optimal)
+        model = prob.solverModel
+        assert model is not None
+        self.assertEqual(model.primalTolerance, 1e-9)
+
+        y = prob.add_variable("y", 0, 4, cat=const.LpInteger)
+        prob += y >= 1.5, "c2"
+        stats = prob.solve(solvers.CYLP(msg=False, allowableGap=0.5))
+        self.assertIs(stats.status, LpSolveStatus.Optimal)
+        model = prob.solverModel
+        assert model is not None
+        self.assertEqual(model.allowableGap, 0.5)
+
+        with self.assertRaises(AttributeError):
+            prob.solve(solvers.CYLP(msg=False, not_a_param=1))
+
     @contextlib.contextmanager
     def _console(self):
         """Collect what is written to the process's standard output (the file

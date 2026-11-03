@@ -18,7 +18,7 @@ The following considerations need to be taken into account:
 #. Variable names need to be unique. PuLP permits having variable names because it uses an internal code for each one. But we do not export that code. So we identify variables by their name only.
 #. Variables are not exported in a grouped way. This means that if you have several `dictionaries of many variables each` you will end up with a very long list of variables. This can be seen in the Example 2.
 #. Output information is also written to the json format: the values of variables and shadow prices / reduced costs are exported too, so a solved model can be read back to see those values. The solve outcome itself (status, timings, ...) is not part of the model -- it lives on the :class:`~pulp.LpSolveStats` each solve returns, not on the exported model.
-#. For json, we use the base `json` package. But if `ujson` is available, we use that so the import / export can be really fast.
+#. For json, we use the base `json` package.
 
 Example 1: json
 ----------------
@@ -246,4 +246,4 @@ The `json` module in python has some issues transforming numpy data types (e.g.,
 
     wedding_model.to_json("seating_model.json", cls=NpEncoder)
 
-Note that this custom encoding class may not work with the `ujson` package. An alternative is to cast all values using `int()` or `float()` before using them in `pulp`.
+An alternative is to cast all values using `int()` or `float()` before using them in `pulp`.
