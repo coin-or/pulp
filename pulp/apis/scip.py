@@ -51,6 +51,23 @@ pyscipopt_mod = import_optional("pyscipopt")
 scip_path = "scip"
 fscip_path = "fscip"
 
+# SCIP only gives correct duals for the original problem without presolving and propagation
+_NO_PRESOLVE_OPTIONS = [
+    "presolving/maxrounds=0",
+    "propagating/maxrounds=0",
+    "propagating/maxroundsroot=0",
+]
+
+
+def _want_duals(solver: LpSolver, lp: LpProblem) -> bool:
+    """True if the duals were requested and can be computed for ``lp``."""
+    if not solver.optionsDict.get("duals", False):
+        return False
+    if lp.isMIP():
+        warnings.warn(f"{solver.name} can only compute duals for pure LP problems")
+        return False
+    return True
+
 
 class SCIP_CMD(LpSolver_CMD):
     """The SCIP optimization solver"""
@@ -70,6 +87,7 @@ class SCIP_CMD(LpSolver_CMD):
         maxNodes=None,
         logPath=None,
         threads=None,
+        duals=False,
     ):
         """
         :param bool mip: if False, assume LP even if integer variables
@@ -83,6 +101,8 @@ class SCIP_CMD(LpSolver_CMD):
         :param int maxNodes: max number of nodes during branching. Stops the solving when reached.
         :param int threads: sets the maximum number of threads
         :param str logPath: path to the log file
+        :param bool duals: if True and the problem is a pure LP, disable presolving and
+            propagation so that dual values and reduced costs can be retrieved
         """
         LpSolver_CMD.__init__(
             self,
@@ -97,6 +117,7 @@ class SCIP_CMD(LpSolver_CMD):
             maxNodes=maxNodes,
             threads=threads,
             logPath=logPath,
+            duals=duals,
         )
 
     SCIP_STATUSES = {
@@ -130,8 +151,15 @@ class SCIP_CMD(LpSolver_CMD):
         if not self.executable(self.path):
             raise PulpSolverError("PuLP: cannot execute " + self.path)
 
-        tmpLp, tmpSol, tmpOptions = self.create_tmp_files(lp.name, "lp", "sol", "set")
+        tmpLp, tmpSol, tmpOptions, tmpLog = self.create_tmp_files(
+            lp.name, "lp", "sol", "set", "log"
+        )
         lp.writeLP(tmpLp)
+        want_duals = _want_duals(self, lp)
+        logPath = self.optionsDict.get("logPath")
+        if want_duals and logPath is None:
+            # the dual solution can only be read from the log
+            logPath = tmpLog
 
         file_options: list[str] = []
         if self.timeLimit is not None:
@@ -148,14 +176,16 @@ class SCIP_CMD(LpSolver_CMD):
             )
         if not self.mip:
             warnings.warn(f"{self.name} does not allow a problem to be relaxed")
+        if want_duals:
+            file_options.extend(_NO_PRESOLVE_OPTIONS)
 
         command: list[str] = []
         command.append(self.path)
         command.extend(["-s", tmpOptions])
         if not self.msg:
             command.append("-q")
-        if "logPath" in self.optionsDict:
-            command.extend(["-l", self.optionsDict["logPath"]])
+        if logPath is not None:
+            command.extend(["-l", logPath])
 
         options = iter(self.options)
         for option in options:
@@ -175,6 +205,8 @@ class SCIP_CMD(LpSolver_CMD):
         command.extend(["-c", f'read "{tmpLp}"'])
         command.extend(["-c", "optimize"])
         command.extend(["-c", f'write solution "{tmpSol}"'])
+        if want_duals:
+            command.extend(["-c", "display dualsolution"])
         command.extend(["-c", "quit"])
 
         with open(tmpOptions, "w") as options_file:
@@ -195,7 +227,24 @@ class SCIP_CMD(LpSolver_CMD):
         finalVals = {v.name: values.get(v.name, 0.0) for v in exported}
 
         lp.assignVarsVals(finalVals)
-        self.delete_tmp_files(tmpLp, tmpSol, tmpOptions)
+        if has_solution:
+            for constraint in lp.constraints():
+                slack = constraint.valueOrDefault()
+                if constraint.sense == constants.LpConstraintLE:
+                    slack *= -1.0
+                constraint.slack = slack
+        if want_duals and has_solution and logPath is not None:
+            # SCIP omits zero duals and has no command to show reduced costs
+            duals = self.readduals(logPath, tmpSol)
+            reducedCosts = {v.name: lp.objective.get(v, 0.0) for v in exported}
+            for constraint in lp.constraints():
+                pi = duals.get(constraint.name, 0.0)
+                constraint.pi = pi
+                for var, coefficient in constraint.items():
+                    reducedCosts[var.name] -= coefficient * pi
+            for var in exported:
+                var.dj = reducedCosts[var.name]
+        self.delete_tmp_files(tmpLp, tmpSol, tmpOptions, tmpLog)
         return self.buildStats(lp, status, has_solution, start=start)
 
     @staticmethod
@@ -239,6 +288,33 @@ class SCIP_CMD(LpSolver_CMD):
                     raise PulpSolverError(f"Can't read SCIP solver output: {line!r}")
 
             return status, values, True
+
+    @staticmethod
+    def readduals(logFile, solFile):
+        """Read the output of ``display dualsolution`` from a SCIP log file.
+
+        The duals are printed right after the solution file is written. Returns
+        a dict of non-zero duals by constraint name (SCIP omits the zero ones).
+        """
+        marker = f"written solution information to file <{solFile}>"
+        with open(logFile) as f:
+            lines = f.read().splitlines()
+        # the log file may be appended to by several runs: keep the last one
+        starts = [i for i, line in enumerate(lines) if line.strip() == marker]
+        if not starts:
+            return {}
+        duals = {}
+        for line in lines[starts[-1] + 1 :]:
+            comps = line.split()
+            if not comps:
+                continue
+            if len(comps) != 2:
+                break
+            try:
+                duals[comps[0]] = float(comps[1])
+            except ValueError:
+                break
+        return duals
 
 
 SCIP = SCIP_CMD
@@ -494,6 +570,7 @@ class SCIP_PY(LpSolver_API):
         logPath=None,
         threads=None,
         warmStart=False,
+        duals=False,
     ):
         """
         :param bool mip: if False, assume LP even if integer variables
@@ -506,6 +583,8 @@ class SCIP_PY(LpSolver_API):
         :param str logPath: path to the log file
         :param int threads: sets the maximum number of threads
         :param bool warmStart: if True, the solver will use the current value of variables as a start
+        :param bool duals: if True and the problem is a pure LP, disable presolving and
+            propagation so that dual values and reduced costs can be retrieved
         """
         super().__init__(
             mip=mip,
@@ -518,7 +597,9 @@ class SCIP_PY(LpSolver_API):
             logPath=logPath,
             threads=threads,
             warmStart=warmStart,
+            duals=duals,
         )
+        self._want_duals = False
 
     def findSolutionValues(self, lp, result=None):
         solutionStatus = lp.solverModel.getStatus()
@@ -562,6 +643,15 @@ class SCIP_PY(LpSolver_API):
                         constr_handles[constraint.id], solution
                     )
                 has_solution = True
+                if self._want_duals:
+                    # SCIP reports duals for the minimization problem
+                    sign = -1 if lp.sense == constants.LpMaximize else 1
+                    for j, var in enumerate(exported_vars):
+                        var.dj = lp.solverModel.getVarRedcost(var_handles[j])
+                    for constraint in lp.constraints():
+                        constraint.pi = sign * lp.solverModel.getDualsolLinear(
+                            constr_handles[constraint.id]
+                        )
             except Exception:  # No solution found
                 pass
         return status, has_solution
@@ -593,6 +683,10 @@ class SCIP_PY(LpSolver_API):
             warnings.warn(f"The solver {self.name} can only run with a single thread")
         if not self.mip:
             warnings.warn(f"{self.name} does not allow a problem to be relaxed")
+        self._want_duals = _want_duals(self, lp)
+        if self._want_duals:
+            lp.solverModel.setPresolve(pyscipopt_mod.SCIP_PARAMSETTING.OFF)
+            lp.solverModel.disablePropagation()
 
         options = iter(self.options)
         for option in options:
