@@ -3,6 +3,7 @@ import warnings
 from typing import Type
 
 from .choco import CHOCO_CMD
+from .clarabel import CLARABEL
 from .coin import COIN_CMD, COINMP_DLL, CYLP, YAPOSIB
 from .copt import COPT, COPT_CMD, COPT_DLL
 from .core import LpSolver, LpSolver_API, LpSolver_CMD, PulpSolverError
@@ -20,6 +21,7 @@ from .xpress import XPRESS, XPRESS_CMD, XPRESS_PY
 
 __all__ = [
     "CHOCO_CMD",
+    "CLARABEL",
     "COIN_CMD",
     "COINMP_DLL",
     "CYLP",
@@ -75,6 +77,7 @@ _all_solvers: list[Type[LpSolver]] = [
     MOSEK,
     CPSAT,
     GLOP,
+    CLARABEL,
     XPRESS,
     XPRESS_CMD,
     XPRESS_PY,

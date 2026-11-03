@@ -84,7 +84,6 @@ allowed-unresolved-imports = [
     "ortools", "ortools.**",
     "elementtree.ElementTree", "elementtree.**",
     "yaposib", "yaposib.**",
-    "ujson", "ujson.**",
     "swiglpk", "swiglpk.**",
     "mosek", "mosek.**",
     "saspy", "saspy.**",
@@ -92,6 +91,9 @@ allowed-unresolved-imports = [
     "coptpy", "coptpy.**",
     "highspy", "highspy.**",
     "pyscipopt", "pyscipopt.**",
+    "clarabel", "clarabel.**",
+    "scipy", "scipy.**",
+    "matplotlib", "matplotlib.**",
 ]
 [tool.ty.rules]
 possibly-missing-attribute = "warn"
@@ -136,9 +138,10 @@ required-environments = [
 
 
 [project.optional-dependencies]
-open_py = ["highspy", "pyscipopt", "cbcbox<2.931", "swiglpk"]
+# numpy and scipy: pulp itself uses them to build the HiGHS, CyLP and Clarabel models
+open_py = ["highspy", "pyscipopt", "cbcbox<2.931", "swiglpk", "clarabel", "numpy", "scipy"]
 public_py = ["gurobipy", "coptpy; python_full_version < '3.14'", 'xpress', "cplex; sys_platform != 'darwin' or platform_machine == 'arm64'"]
-highs = ["highspy"]
+highs = ["highspy", "numpy"]
 highs_cmd = ["highsbox"]
 cbc = ["cbcbox<2.931"]
 scip = ["pyscipopt"]
@@ -149,4 +152,5 @@ copt = ["coptpy; python_full_version < '3.14'"]
 cplex = ["cplex; sys_platform != 'darwin' or platform_machine == 'arm64'"]
 mosek = ["mosek"]
 ortools = ["ortools"]
-cylp = ["cylp; sys_platform != 'win32'"]
+clarabel = ["clarabel", "numpy", "scipy"]
+cylp = ["cylp; sys_platform != 'win32'", "numpy; sys_platform != 'win32'"]
