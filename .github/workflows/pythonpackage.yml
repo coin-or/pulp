@@ -36,10 +36,10 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         uses: supplypike/setup-bin@v5
         with:
-          uri: 'https://www.scipopt.org/download/release/SCIPOptSuite-9.2.1-Linux-ubuntu24.deb'
-          name: 'SCIPOptSuite-9.2.1-Linux-ubuntu24.deb'
-          version: '9.2.1'
-          command: "sudo apt install -qq ./SCIPOptSuite-9.2.1-Linux-ubuntu24.deb"
+          uri: 'https://www.scipopt.org/download/release/scipoptsuite_10.1.0-1+resolute_amd64.deb'
+          name: 'scipoptsuite_10.1.0-1+resolute_amd64.deb'
+          version: '10.1.0-1'
+          command: "sudo apt install -qq ./scipoptsuite_10.1.0-1+resolute_amd64.deb"
       - name: Test with pulptest
         env:
           PYTHONPATH: .
