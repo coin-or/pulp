@@ -1297,6 +1297,39 @@ class PuLPModelTest(unittest.TestCase):
         second_expression_2 = x * m2 - 6 - y
         self.assertEqual(str(second_expression_2), "8.1*x - y - 6")
 
+    def test_decimal_815_numeric_dispatch(self):
+        # See: https://github.com/coin-or/pulp/issues/815
+        # Decimal is part of LpNumeric, so it must be accepted everywhere
+        # int/float are: LpVariable.__eq__, LpProblem.__iadd__/setObjective
+        # and pulp.value/valueOrDefault.
+        from pulp import value, valueOrDefault
+
+        prob = LpProblem(self._testMethodName, const.LpMinimize)
+        x = prob.add_variable("x", lowBound=0, upBound=50, cat=const.LpContinuous)
+
+        # x == Decimal builds an equality constraint, like x == 5 does
+        con = x == Decimal("5")
+        self.assertNotIsInstance(con, bool)
+        self.assertEqual(con.sense, const.LpConstraintEQ)
+        self.assertEqual(con.constant, -5.0)
+        self.assertEqual((x == 5).constant, con.constant)
+
+        # a bare Decimal added to a problem is a constant objective
+        prob += Decimal("5")
+        objective = prob.objective
+        assert objective is not None
+        self.assertEqual(objective.constant, 5.0)
+
+        prob2 = LpProblem("decimal_objective", const.LpMinimize)
+        prob2.setObjective(Decimal("5"))
+        objective2 = prob2.objective
+        assert objective2 is not None
+        self.assertEqual(objective2.constant, 5.0)
+
+        # value()/valueOrDefault() return a Decimal unchanged, as numbers
+        self.assertEqual(value(Decimal("5")), Decimal("5"))
+        self.assertEqual(valueOrDefault(Decimal("5")), Decimal("5"))
+
     def test_mps_output_unbounded_variable(self):
         prob = LpProblem(self._testMethodName, const.LpMinimize)
         x = prob.add_variable("x", lowBound=0, upBound=None)

@@ -4,6 +4,7 @@ from __future__ import annotations
 import collections
 import itertools
 from collections.abc import Iterator
+from decimal import Decimal
 from itertools import combinations as combination
 from itertools import permutations as permutation
 from typing import Any
@@ -16,8 +17,8 @@ def resource_clock() -> float:
 
 
 def isNumber(x: object) -> bool:
-    """Returns true if x is an int or a float"""
-    return isinstance(x, (int, float))
+    """Returns true if x is an int, a float or a Decimal"""
+    return isinstance(x, (int, float, Decimal))
 
 
 def value(x: Any) -> float | None:
