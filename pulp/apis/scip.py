@@ -33,6 +33,7 @@ from typing import TYPE_CHECKING, Any
 
 from .. import constants
 from .core import (
+    LpSolver,
     LpSolver_API,
     LpSolver_CMD,
     PulpSolverError,
@@ -646,7 +647,7 @@ class SCIP_PY(LpSolver_API):
                 if self._want_duals:
                     # SCIP reports duals for the minimization problem
                     sign = -1 if lp.sense == constants.LpMaximize else 1
-                    for j, var in enumerate(exported_vars):
+                    for j, var in enumerate(lp.exported_variables()):
                         var.dj = lp.solverModel.getVarRedcost(var_handles[j])
                     for constraint in lp.constraints():
                         constraint.pi = sign * lp.solverModel.getDualsolLinear(
