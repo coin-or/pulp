@@ -969,17 +969,17 @@ copt = [
     { name = "coptpy", marker = "python_full_version < '3.14'" },
 ]
 cplex = [
-    { name = "cplex", marker = "platform_machine == 'arm64' or sys_platform != 'darwin'" },
+    { name = "cplex", marker = "(python_full_version < '3.15' and platform_machine == 'arm64') or (python_full_version < '3.15' and sys_platform != 'darwin')" },
 ]
 cylp = [
     { name = "cylp", marker = "sys_platform != 'win32'" },
     { name = "numpy", marker = "sys_platform != 'win32'" },
 ]
 glpk = [
-    { name = "swiglpk" },
+    { name = "swiglpk", marker = "python_full_version < '3.15'" },
 ]
 gurobi = [
-    { name = "gurobipy" },
+    { name = "gurobipy", marker = "python_full_version < '3.15'" },
 ]
 highs = [
     { name = "highspy" },
@@ -998,15 +998,15 @@ open-py = [
     { name = "numpy" },
     { name = "pyscipopt" },
     { name = "scipy" },
-    { name = "swiglpk" },
+    { name = "swiglpk", marker = "python_full_version < '3.15'" },
 ]
 ortools = [
-    { name = "ortools" },
+    { name = "ortools", marker = "python_full_version < '3.15'" },
 ]
 public-py = [
     { name = "coptpy", marker = "python_full_version < '3.14'" },
-    { name = "cplex", marker = "platform_machine == 'arm64' or sys_platform != 'darwin'" },
-    { name = "gurobipy" },
+    { name = "cplex", marker = "(python_full_version < '3.15' and platform_machine == 'arm64') or (python_full_version < '3.15' and sys_platform != 'darwin')" },
+    { name = "gurobipy", marker = "python_full_version < '3.15'" },
     { name = "xpress" },
 ]
 scip = [
@@ -1035,11 +1035,11 @@ requires-dist = [
     { name = "clarabel", marker = "extra == 'open-py'" },
     { name = "coptpy", marker = "python_full_version < '3.14' and extra == 'copt'" },
     { name = "coptpy", marker = "python_full_version < '3.14' and extra == 'public-py'" },
-    { name = "cplex", marker = "(platform_machine == 'arm64' and extra == 'cplex') or (sys_platform != 'darwin' and extra == 'cplex')" },
-    { name = "cplex", marker = "(platform_machine == 'arm64' and extra == 'public-py') or (sys_platform != 'darwin' and extra == 'public-py')" },
+    { name = "cplex", marker = "(python_full_version < '3.15' and platform_machine == 'arm64' and extra == 'cplex') or (python_full_version < '3.15' and sys_platform != 'darwin' and extra == 'cplex')" },
+    { name = "cplex", marker = "(python_full_version < '3.15' and platform_machine == 'arm64' and extra == 'public-py') or (python_full_version < '3.15' and sys_platform != 'darwin' and extra == 'public-py')" },
     { name = "cylp", marker = "sys_platform != 'win32' and extra == 'cylp'" },
-    { name = "gurobipy", marker = "extra == 'gurobi'" },
-    { name = "gurobipy", marker = "extra == 'public-py'" },
+    { name = "gurobipy", marker = "python_full_version < '3.15' and extra == 'gurobi'" },
+    { name = "gurobipy", marker = "python_full_version < '3.15' and extra == 'public-py'" },
     { name = "highsbox", marker = "extra == 'highs-cmd'" },
     { name = "highspy", marker = "extra == 'highs'" },
     { name = "highspy", marker = "extra == 'open-py'" },
@@ -1049,13 +1049,13 @@ requires-dist = [
     { name = "numpy", marker = "extra == 'highs'" },
     { name = "numpy", marker = "extra == 'open-py'" },
     { name = "orloge", specifier = ">=1.0.0" },
-    { name = "ortools", marker = "extra == 'ortools'" },
+    { name = "ortools", marker = "python_full_version < '3.15' and extra == 'ortools'" },
     { name = "pyscipopt", marker = "extra == 'open-py'" },
     { name = "pyscipopt", marker = "extra == 'scip'" },
     { name = "scipy", marker = "extra == 'clarabel'" },
     { name = "scipy", marker = "extra == 'open-py'" },
-    { name = "swiglpk", marker = "extra == 'glpk'" },
-    { name = "swiglpk", marker = "extra == 'open-py'" },
+    { name = "swiglpk", marker = "python_full_version < '3.15' and extra == 'glpk'" },
+    { name = "swiglpk", marker = "python_full_version < '3.15' and extra == 'open-py'" },
     { name = "xpress", marker = "extra == 'public-py'" },
     { name = "xpress", marker = "extra == 'xpress'" },
 ]
