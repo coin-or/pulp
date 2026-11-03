@@ -19,7 +19,7 @@ PuLP is an linear and mixed integer programming modeler written in Python.
 With PuLP, it is simple to create MILP optimisation problems and solve them with the
 latest open-source (or proprietary) solvers.  PuLP can generate MPS or LP files and
 call solvers such as GLPK_, COIN-OR CLP/`CBC`_, CPLEX_, GUROBI_, MOSEK_, XPRESS_,
-CHOCO_, MIPCL_, HiGHS_, SCIP_/FSCIP_, and OR-Tools `CP-SAT`_ (via the ``CPSAT`` API).
+CHOCO_, MIPCL_, HiGHS_, SCIP_/FSCIP_, Clarabel_, and OR-Tools `CP-SAT`_ and `GLOP`_ (via the ``CPSAT`` and ``GLOP`` APIs).
 
 Here are some ways to get started using PuLP:
 
@@ -63,3 +63,5 @@ The authors of this documentation (the pulp documentation team) include:
 .. _HiGHS: https://highs.dev
 .. _FSCIP: https://ug.zib.de
 .. _CP-SAT: https://developers.google.com/optimization/cp/cp_solver
+.. _GLOP: https://developers.google.com/optimization/lp/glop
+.. _Clarabel: https://clarabel.org

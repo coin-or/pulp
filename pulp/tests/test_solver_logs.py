@@ -119,6 +119,13 @@ class CBCLogsTest(_SolverLogsTests):
     row_class = MIPProgressRow
 
 
+class CyLPLogsTest(_SolverLogsTests):
+    # Cbc through its bindings writes the log of the cbc command line
+    solver_class = solvers.CYLP
+    dialect = "CBC"
+    row_class = MIPProgressRow
+
+
 class CPLEXCmdLogsTest(_SolverLogsTests):
     solver_class = solvers.CPLEX_CMD
     dialect = "CPLEX"

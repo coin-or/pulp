@@ -25,15 +25,20 @@
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."""
 from __future__ import annotations
 
+import contextlib
 import math
 import os
-from typing import TYPE_CHECKING, Any
+import sys
+from collections.abc import Iterable, Iterator
+from typing import IO, TYPE_CHECKING, Any
 
-from .. import constants
+from .. import _rustcore, constants
 from .core import (
     LpSolver,
+    LpSolver_API,
     LpSolver_CMD,
     PulpSolverError,
+    _RebuildNeeded,
     clock,
     clocks,
     devnull,
@@ -714,7 +719,7 @@ if COINMP_DLL.available():
 yaposib_mod = import_optional("yaposib")
 
 
-class YAPOSIB(LpSolver):
+class YAPOSIB(LpSolver_API):
     """
     COIN OSI (via its python interface)
 
@@ -755,7 +760,7 @@ class YAPOSIB(LpSolver):
         else:
             self.solverName = None
 
-    def findSolutionValues(self, lp):
+    def findSolutionValues(self, lp, result=None):
         model = lp.solverModel
         solutionStatus = model.status
         S = constants.LpSolveStatus
@@ -783,7 +788,7 @@ class YAPOSIB(LpSolver):
         """True if the solver is available"""
         return yaposib_mod is not None
 
-    def callSolver(self, lp, callback=None):
+    def callSolver(self, lp, *, changes=None, **kwargs):
         """Solves the problem with yaposib"""
         savestdout = None
         tmp = None
@@ -794,9 +799,7 @@ class YAPOSIB(LpSolver):
             os.close(1)
             if os.dup(tmp.fileno()) != 1:
                 raise PulpSolverError("couldn't redirect stdout - dup() error")
-        self.solveTime = -clock()
         lp.solverModel.solve(self.mip)
-        self.solveTime += clock()
         if not self.msg and savestdout is not None:
             # reopen stdout
             os.close(1)
@@ -851,29 +854,12 @@ class YAPOSIB(LpSolver):
             row.name = constraint.name
             constraint.solverConstraint = row
 
-    @requires("yaposib")
-    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
-        """
-        Solve a well formulated lp problem
-
-        creates a yaposib model, variables and constraints and attaches
-        them to the lp model which it then solves
-        """
-        start = clocks()
-        callback = kwargs.get("callback")
-        self.buildSolverModel(lp)
-        # set the initial solution
-        log.debug("Solve the model using yaposib")
-        self.callSolver(lp, callback=callback)
-        # get the solution information
-        status, has_solution = self.findSolutionValues(lp)
-        return self.buildStats(lp, status, has_solution, start=start)
-
 
 cylp_mod = import_optional("cylp.cy")
+np = import_optional("numpy")
 
 
-class CYLP(LpSolver):
+class CYLP(LpSolver_API):
     """
     The CyLP solver: COIN-OR Clp (LP) and Cbc (MIP) through their cython bindings.
 
@@ -883,6 +869,8 @@ class CYLP(LpSolver):
 
     # https://github.com/coin-or/CyLP
     name = "CyLP"
+    # the log goes to the file instead of the console (see :meth:`_logging`)
+    logPathSilencesMsg = True
 
     def __init__(
         self,
@@ -894,7 +882,9 @@ class CYLP(LpSolver):
         timeLimit=None,
         maxNodes=None,
         maxSolutions=None,
+        maxIterations=None,
         presolve=None,
+        logPath=None,
         **solverParams,
     ):
         """
@@ -903,10 +893,16 @@ class CYLP(LpSolver):
         :param float gapRel: relative gap tolerance for the solver to stop (in fraction)
         :param float gapAbs: absolute gap tolerance for the solver to stop
         :param int threads: sets the maximum number of threads
-        :param float timeLimit: maximum time for solver (in seconds), only used by Cbc
+        :param float timeLimit: maximum time for solver (in seconds), only used by
+            Cbc: CyLP offers no time limit for Clp
         :param int maxNodes: max number of nodes during branching, only used by Cbc
         :param int maxSolutions: stop after finding this many solutions, only used by Cbc
+        :param int maxIterations: max number of simplex iterations, only used by Clp
         :param bool presolve: if False, Clp solves without presolve, only used by Clp
+        :param str logPath: path to the log file; the log goes there instead of
+            the console
+        :param dict solverParams: attributes of the Clp or Cbc model being
+            solved, e.g. ``primalTolerance`` (Clp) or ``allowableGap`` (Cbc)
         """
         super().__init__(
             mip=mip,
@@ -914,7 +910,9 @@ class CYLP(LpSolver):
             timeLimit=timeLimit,
             maxNodes=maxNodes,
             maxSolutions=maxSolutions,
+            maxIterations=maxIterations,
             presolve=presolve,
+            logPath=logPath,
             **solverParams,
         )
         self.gapAbs = gapAbs
@@ -922,56 +920,139 @@ class CYLP(LpSolver):
         self.threads = threads
 
     def available(self):
-        return cylp_mod is not None
+        return cylp_mod is not None and np is not None
 
     @requires("cylp.cy")
-    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
-        start = clocks()
-        column_names = self.buildSolverModel(lp)
-        self.callSolver(lp)
-        status, has_solution = self.findSolutionValues(lp, column_names)
-        return self.buildStats(
-            lp,
-            status,
-            has_solution,
-            start=start,
-            best_bound=self.findBestBound(lp) if has_solution else None,
-        )
+    def canUpdate(self, lp: LpProblem) -> bool:
+        """Only a Clp (LP) model is updated; Cbc (MIP) ones are built again."""
+        return not self.isCbcModel(lp) and not (lp.isMIP() and self.mip)
 
     @staticmethod
     def isCbcModel(lp: LpProblem) -> bool:
         """Whether lp.solverModel is a Cbc (MIP) model rather than a Clp (LP) one"""
         return isinstance(lp.solverModel, cylp_mod.CyCbcModel)
 
-    @requires("cylp.cy")
-    def buildSolverModel(self, lp: LpProblem) -> list[str]:
+    @requires("cylp.cy", "numpy")
+    def buildSolverModel(self, lp: LpProblem) -> None:
         """
-        Takes the pulp lp model and translates it into a CyLP model, through an mps file
+        Takes the pulp lp model and translates it into a CyLP model.
 
-        :return: the names of the pulp variables, in the order of the model's columns
+        Every variable is a column, used or not: column j is the variable with
+        id j (as row i is the constraint with id i), so that a resolve only
+        appends.
         """
         lp.checkDuplicateVars()
+        variables = lp.variables()
+        constraints = lp.constraints()
+        # the rows first, empty: the columns are added with their entries in them
+        columns: list[tuple[list[int], list[float]]] = [([], []) for _ in variables]
+        for constraint in constraints:
+            for var, coefficient in constraint.items():
+                rows, values = columns[var.id]
+                rows.append(constraint.id)
+                values.append(coefficient)
+        objective = np.zeros(len(variables))
+        for var, coefficient in lp.objective.items():
+            objective[var.id] = coefficient
         model = cylp_mod.CyClpSimplex()
-        if not self.msg:
-            model.logLevel = 0
-        with tempfile.TemporaryDirectory() as tmpDir:
-            tmpMps = os.path.join(tmpDir, "model.mps")
-            # the names in the file are normalized, the solution is read back by position
-            *_, column_names = lp.writeMPS(tmpMps, rename=True, mip=self.mip)
-            if model.readMps(tmpMps) != 0:
-                raise PulpSolverError("CyLP: error reading MPS file")
+        _add_rows(model, [c._constr for c in constraints], with_entries=False)
+        _add_columns(
+            model,
+            [v.lowBound for v in variables],
+            [v.upBound for v in variables],
+            objective,
+            columns,
+        )
+        if lp.sense == constants.LpMaximize:
+            model.optimizationDirection = "max"
         if lp.isMIP() and self.mip:
+            for var in variables:
+                if var.cat == constants.LpInteger:
+                    model.setInteger(var.id)
             model = model.getCbcModel()
-            if not self.msg:
-                model.logLevel = 0
         lp.solverModel = model
-        return column_names
+        self._start_tracking(lp)
 
-    def callSolver(self, lp: LpProblem) -> None:
-        """Solves the problem with Cbc if it is a MIP, with Clp otherwise"""
-        self.solveTime = -clock()
+    @requires("cylp.cy", "numpy")
+    def applyChanges(self, lp: LpProblem, changes: _rustcore.ModelChanges) -> None:
+        """Update the Clp model ``lp.solverModel`` with the edits made to ``lp``
+        since it was last solved (``changes``, from :meth:`_take_changes`),
+        keeping the basis.
+
+        Clp cannot change an entry of the matrix: editing a coefficient of an
+        existing variable in an existing constraint (``remove_variables``
+        included) rebuilds it.
+        """
         model: Any = lp.solverModel
-        if self.isCbcModel(lp):
+        rmodel = lp._model
+        old_entries, columns = self._split_coefficients(lp, changes, model.nVariables)
+        if old_entries:
+            raise _RebuildNeeded
+
+        if changes.sense_changed:
+            model.optimizationDirection = (
+                "max" if lp.sense == constants.LpMaximize else "min"
+            )
+
+        if changes.new_cols:
+            rvars = [rmodel.get_variable(j) for j in changes.new_cols]
+            _add_columns(
+                model,
+                [v.lb for v in rvars],
+                [v.ub for v in rvars],
+                rmodel.objective_coefficients(changes.new_cols),
+                [columns.get(j, ([], [])) for j in changes.new_cols],
+            )
+
+        if changes.new_rows:
+            _add_rows(model, [rmodel.get_constraint(i) for i in changes.new_rows])
+
+        for i in changes.row_bounds:
+            lb, ub = _cylp_row_bounds(rmodel.get_constraint(i))
+            model.setRowLower(i, lb)
+            model.setRowUpper(i, ub)
+
+        for j in changes.var_bounds:
+            rvar = rmodel.get_variable(j)
+            model.setColumnLower(j, rvar.lb)
+            model.setColumnUpper(j, rvar.ub)
+
+        if changes.objective_replaced:
+            cols = list(range(model.nVariables))
+        else:
+            cols = changes.obj_coeffs
+        for j, cost in zip(cols, rmodel.objective_coefficients(cols)):
+            model.setObjectiveCoefficient(j, cost)
+
+    def callSolver(
+        self,
+        lp: LpProblem,
+        *,
+        changes: _rustcore.ModelChanges | None = None,
+        **kwargs: Any,
+    ) -> None:
+        """Solves the problem with Cbc if it is a MIP, with Clp otherwise"""
+        model: Any = lp.solverModel
+        if not self.isCbcModel(lp):
+            # set on every solve: a resolve keeps the model, and its last limit
+            model.maxNumIteration = self.optionsDict.get(
+                "maxIterations", _CLP_MAX_ITERATIONS
+            )
+        # the other options are attributes of the Clp or Cbc model, e.g.
+        # primalTolerance or allowableGap; an unknown one raises AttributeError
+        for key, value in self.optionsDict.items():
+            if key not in _CYLP_OPTIONS:
+                setattr(model, key, value)
+        if changes is not None:
+            with self._logging(model):
+                # the dual simplex suits a basis made primal infeasible (new rows,
+                # new bounds), the primal one a basis made dual infeasible (new
+                # columns)
+                if changes.new_rows or changes.row_bounds or changes.var_bounds:
+                    model.dual()
+                else:
+                    model.primal()
+        elif self.isCbcModel(lp):
             if self.timeLimit is not None:
                 model.maximumSeconds = self.timeLimit
             if self.gapRel is not None:
@@ -984,21 +1065,40 @@ class CYLP(LpSolver):
                 model.maximumNodes = max_nodes
             if (max_solutions := self.optionsDict.get("maxSolutions")) is not None:
                 model.maximumSolutions = max_solutions
-            model.solve()
+            with self._logging(model):
+                model.solve()
         else:
             presolve = self.optionsDict.get("presolve", True)
-            model.initialSolve(presolve="on" if presolve else "off")
-        self.solveTime += clock()
+            with self._logging(model):
+                model.initialSolve(presolve="on" if presolve else "off")
+
+    @contextlib.contextmanager
+    def _logging(self, model: Any) -> Iterator[None]:
+        """Send the log of a solve inside the block where it is asked for.
+
+        Clp and Cbc print to the process's standard output and the bindings
+        offer no log file, so with ``logPath`` the file descriptor of standard
+        output itself points to that file during the block. ``msg=False``
+        without ``logPath`` silences them.
+        """
+        logPath = self.optionsDict.get("logPath")
+        model.logLevel = 1 if self.msg or logPath else 0
+        if not logPath:
+            yield
+            return
+        if self.msg:
+            warnings.warn(
+                "`logPath` argument replaces `msg=1`. The output will be redirected to the log file."
+            )
+        with open(logPath, "w") as log_file, _redirect_c_stdout(log_file):
+            yield
 
     def findSolutionValues(
-        self, lp: LpProblem, column_names: list[str]
-    ) -> tuple[int, bool]:
+        self, lp: LpProblem, result: Any = None
+    ) -> tuple[constants.LpSolveStatus, bool]:
         S = constants.LpSolveStatus
         model = lp.solverModel
         is_mip = self.isCbcModel(lp)
-        # the file was written minimizing, so duals of a maximization have the wrong sign
-        sign = -1 if lp.sense == constants.LpMaximize else 1
-        variables = {v.name: v for v in lp.variables()}
         if is_mip:
             status = cylpCbcStatus.get(model.status, S.Undefined)
             if status == S.Undefined and model.status.startswith("stopped"):
@@ -1007,45 +1107,138 @@ class CYLP(LpSolver):
                 S.Infeasible,
                 S.Unbounded,
             )
-            reduced_costs = None
         else:
             status = cylpClpStatus.get(model.getStatusCode(), S.Undefined)
             has_solution = status == S.Optimal
-            reduced_costs = model.dualVariableSolution
+        # column j is the variable with id j, row i the constraint with id i
         values = model.primalVariableSolution
-        for i, name in enumerate(column_names):
-            var = variables[name]
-            var.varValue = float(values[i])
-            if reduced_costs is not None:
-                var.dj = sign * float(reduced_costs[i])
+        lp._model.set_variable_values([(j, float(v)) for j, v in enumerate(values)])
         if not is_mip:
+            reduced_costs = model.dualVariableSolution
+            lp._model.set_variable_djs(
+                [(j, float(v)) for j, v in enumerate(reduced_costs)]
+            )
             duals = model.dualConstraintSolution
             activities = model.primalConstraintSolution
-            for i, constr in enumerate(lp.constraints()):
-                constr.pi = sign * float(duals[i])
-                constr.slack = -constr.constant - float(activities[i])
+            for constr in lp.constraints():
+                constr.pi = float(duals[constr.id])
+                constr.slack = -constr.constant - float(activities[constr.id])
         return status, has_solution
 
     def findBestBound(self, lp: LpProblem) -> float | None:
-        """The best bound Cbc proved on a MIP, in the problem's sense, or None."""
-        if not self.isCbcModel(lp):
+        """The best bound Cbc proved on a MIP with a solution, in the problem's
+        sense, or None."""
+        if not self.isCbcModel(lp) or lp.solverModel.solutionCount == 0:
             return None
         bound = lp.solverModel.bestPossibleObjValue
         if not math.isfinite(bound) or abs(bound) >= 1e30:
             return None
-        # the file was written minimizing and without the objective's constant
-        if lp.sense == constants.LpMaximize:
-            bound = -bound
+        # the bound is in the problem's sense, without the objective's constant
         constant = lp.objective.constant if lp.objective is not None else 0
         return bound + constant
 
+
+def _flush_c_stdout() -> None:
+    """Flush the C library's buffer of standard output, where Clp and Cbc print."""
+    ctypes.CDLL(None).fflush(None)
+
+
+@contextlib.contextmanager
+def _redirect_c_stdout(file: IO[str]) -> Iterator[None]:
+    """Point the process's standard output (the file descriptor, where Clp and
+    Cbc print) to ``file`` during the block."""
+    sys.stdout.flush()
+    _flush_c_stdout()
+    saved = os.dup(1)
+    try:
+        os.dup2(file.fileno(), 1)
+        yield
+    finally:
+        _flush_c_stdout()
+        os.dup2(saved, 1)
+        os.close(saved)
+
+
+def _add_columns(
+    model: Any,
+    lower: Iterable[float],
+    upper: Iterable[float],
+    objective: Iterable[float],
+    columns: list[tuple[list[int], list[float]]],
+) -> None:
+    """Append columns to a Clp model in one call; ``columns`` holds the
+    ``(rows, values)`` entries of each one, in existing rows."""
+    starts = [0]
+    for rows, _ in columns:
+        starts.append(starts[-1] + len(rows))
+    model.addVariables(
+        len(columns),
+        np.array(list(lower), dtype=np.float64),
+        np.array(list(upper), dtype=np.float64),
+        np.array(list(objective), dtype=np.float64),
+        np.array(starts, dtype=np.int32),
+        np.array([i for rows, _ in columns for i in rows], dtype=np.int32),
+        np.array([a for _, values in columns for a in values], dtype=np.float64),
+    )
+
+
+def _add_rows(
+    model: Any, rconstrs: list[_rustcore.Constraint], with_entries: bool = True
+) -> None:
+    """Append constraints of the Rust model to a Clp model in one call.
+
+    :param with_entries: also add their entries, in existing columns
+    """
+    bounds = [_cylp_row_bounds(c) for c in rconstrs]
+    starts = [0]
+    columns: list[int] = []
+    values: list[float] = []
+    for rconstr in rconstrs:
+        if with_entries:
+            for rvar, coefficient in rconstr.items():
+                columns.append(rvar.id())
+                values.append(coefficient)
+        starts.append(len(columns))
+    model.addConstraints(
+        len(rconstrs),
+        np.array([lb for lb, _ in bounds], dtype=np.float64),
+        np.array([ub for _, ub in bounds], dtype=np.float64),
+        np.array(starts, dtype=np.int32),
+        np.array(columns, dtype=np.int32),
+        np.array(values, dtype=np.float64),
+    )
+
+
+def _cylp_row_bounds(rconstr: _rustcore.Constraint) -> tuple[float, float]:
+    """``(lower, upper)`` bounds of a row of the Rust model."""
+    rhs = rconstr.rhs
+    if rconstr.sense == _rustcore.Sense.LessEqual:
+        return -math.inf, rhs
+    if rconstr.sense == _rustcore.Sense.GreaterEqual:
+        return rhs, math.inf
+    return rhs, rhs
+
+
+# the default of ClpSimplex::maximumIterations(), i.e. no limit
+_CLP_MAX_ITERATIONS = 2147483647
+
+# the options of CYLP that pulp reads itself, rather than model attributes
+_CYLP_OPTIONS = (
+    "maxNodes",
+    "maxSolutions",
+    "maxIterations",
+    "presolve",
+    "logPath",
+    "warmStart",
+)
 
 cylpClpStatus = {
     # status codes of ClpSimplex::status()
     0: constants.LpSolveStatus.Optimal,
     1: constants.LpSolveStatus.Infeasible,
     2: constants.LpSolveStatus.Unbounded,
-    3: constants.LpSolveStatus.Stopped,  # on iterations or time
+    # on iterations or time, and CyLP offers no time limit for Clp
+    3: constants.LpSolveStatus.IterationLimit,
     5: constants.LpSolveStatus.Stopped,  # by event handler
 }
 

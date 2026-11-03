@@ -314,7 +314,7 @@ class LpAffineExpression:
                 self._add_in_place(cast(Any, e), sign=sign)
         elif isinstance(other, Iterable) and not isinstance(other, str):
             for e in other:
-                self._add_in_place(cast(Any, e), sign=sign)
+                self._add_in_place(e, sign=sign)
         elif _is_numeric_scalar(other):
             if not _is_finite_numeric(other):
                 raise const.PulpError("Cannot add/subtract NaN/inf values")

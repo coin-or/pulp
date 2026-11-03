@@ -26,7 +26,7 @@ for i in patternslist:
     Patterns += [Pattern("P" + str(len(Patterns)), i)]
 
 # This loop will be repeated until morePatterns is set to False
-while morePatterns == True:
+while morePatterns:
     # Solve the problem as a Relaxed LP
     duals = masterSolve(Patterns, rollData)
     assert isinstance(duals, dict)

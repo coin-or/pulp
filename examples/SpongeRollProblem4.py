@@ -25,11 +25,11 @@ def calculatePatterns(totalRollLength, lenOpts, head):
         opt = lenOpts[0]
         for rep in range(int(totalRollLength / opt) + 1):
             # reduce the length
-            l = totalRollLength - rep * opt
+            remaining = totalRollLength - rep * opt
             h = head[:]
             h.append(rep)
 
-            patterns.extend(calculatePatterns(l, lenOpts[1:], h))
+            patterns.extend(calculatePatterns(remaining, lenOpts[1:], h))
     else:
         # end of the recursion
         patterns = [head]

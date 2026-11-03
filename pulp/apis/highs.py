@@ -8,13 +8,12 @@ import warnings
 from math import isfinite
 from typing import TYPE_CHECKING, Any
 
-import numpy as np
-
-from .. import constants
+from .. import _rustcore, constants
 from .core import (
-    LpSolver,
+    LpSolver_API,
     LpSolver_CMD,
     PulpSolverError,
+    _row_bounds,
     clocks,
     import_optional,
     requires,
@@ -274,9 +273,10 @@ class HiGHS_CMD(LpSolver_CMD):
 
 
 highspy_mod = import_optional("highspy")
+np = import_optional("numpy")
 
 
-class HiGHS(LpSolver):
+class HiGHS(LpSolver_API):
     name = "HiGHS"
 
     hscb = highspy_mod.cb if highspy_mod is not None else None
@@ -323,13 +323,49 @@ class HiGHS(LpSolver):
         self.threads = threads
 
     def available(self):
-        return highspy_mod is not None
+        return highspy_mod is not None and np is not None
 
-    def callSolver(self, lp):
+    def callSolver(self, lp, *, changes=None, **kwargs):
         lp.solverModel.run()
 
-    @requires("highspy")
-    def createAndConfigureSolver(self, lp):
+    def canUpdate(self, lp):
+        return True
+
+    def configureSolver(self, lp):
+        """Apply the solver options to ``lp.solverModel``, again on every
+        resolve so that options changed in between take effect."""
+        solverModel = lp.solverModel
+        logPath = self.optionsDict.get("logPath")
+        if not self.msg:
+            solverModel.setOptionValue("log_to_console", False)
+
+        if self.gapRel is not None:
+            solverModel.setOptionValue("mip_rel_gap", self.gapRel)
+
+        if self.gapAbs is not None:
+            solverModel.setOptionValue("mip_abs_gap", self.gapAbs)
+
+        if self.threads is not None:
+            solverModel.setOptionValue("threads", self.threads)
+
+        if self.timeLimit is not None:
+            solverModel.setOptionValue("time_limit", float(self.timeLimit))
+
+        if logPath is not None:
+            solverModel.setOptionValue("log_file", logPath)
+
+        # set remaining parameter values
+        for key, value in self.optionsDict.items():
+            if key in ("warmStart", "logPath"):
+                continue
+            # highspy reports an unknown option or a bad value by its status
+            # alone: raise, as other solvers' libraries do
+            status = solverModel.setOptionValue(key, value)
+            if status != highspy_mod.HighsStatus.kOk:
+                raise PulpSolverError(f"HiGHS: cannot set option {key!r} to {value!r}")
+
+    @requires("highspy", "numpy")
+    def buildSolverModel(self, lp):
         lp.solverModel = highspy_mod.Highs()
 
         if self.callbackTuple:
@@ -339,66 +375,32 @@ class HiGHS(LpSolver):
             for cb_type in self.callbacksToActivate:
                 lp.solverModel.startCallback(cb_type)
 
-        logPath = self.optionsDict.get("logPath")
-        if not self.msg:
-            lp.solverModel.setOptionValue("log_to_console", False)
+        # configured first, so that msg=False also silences the model loading
+        self.configureSolver(lp)
 
-        if self.gapRel is not None:
-            lp.solverModel.setOptionValue("mip_rel_gap", self.gapRel)
-
-        if self.gapAbs is not None:
-            lp.solverModel.setOptionValue("mip_abs_gap", self.gapAbs)
-
-        if self.threads is not None:
-            lp.solverModel.setOptionValue("threads", self.threads)
-
-        if self.timeLimit is not None:
-            lp.solverModel.setOptionValue("time_limit", float(self.timeLimit))
-
-        if logPath is not None:
-            lp.solverModel.setOptionValue("log_file", logPath)
-
-        # set remaining parameter values
-        for key, value in self.optionsDict.items():
-            if key in ("warmStart", "logPath"):
-                continue
-            lp.solverModel.setOptionValue(key, value)
-
-    @requires("highspy")
-    def buildSolverModel(self, lp):
         inf = highspy_mod.kHighsInf
 
-        exported_vars = lp.exported_variables()
-        id_to_col = {v.id: j for j, v in enumerate(exported_vars)}
+        # every variable is a column, used or not: column j is the variable with
+        # id j (as row i is the constraint with id i), so a resolve only appends
+        variables = lp.variables()
 
         # one addCols and one addRows call: per-column and per-row calls cost more
         # than the solve itself on models that resolve in a few milliseconds, and the
         # objective and constraint lookups are done once rather than once per column
-        cost = np.zeros(len(exported_vars))
+        cost = np.zeros(len(variables))
         for var, coefficient in lp.objective.items():
-            j = id_to_col.get(var.id)
-            if j is not None:
-                cost[j] = coefficient
-        lower = np.full(len(exported_vars), -inf)
-        upper = np.full(len(exported_vars), inf)
-        for j, var in enumerate(exported_vars):
-            if var.lowBound is not None:
-                lower[j] = var.lowBound
-            if var.upBound is not None:
-                upper[j] = var.upBound
+            cost[var.id] = coefficient
+        lower = np.array([var.lowBound for var in variables], dtype=np.float64)
+        upper = np.array([var.upBound for var in variables], dtype=np.float64)
 
         empty = np.zeros(0, dtype=np.int32)
         lp.solverModel.addCols(
-            len(exported_vars), cost, lower, upper, 0, empty, empty, np.zeros(0)
+            len(variables), cost, lower, upper, 0, empty, empty, np.zeros(0)
         )
 
         if self.mip:
             integer = np.fromiter(
-                (
-                    j
-                    for j, var in enumerate(exported_vars)
-                    if var.cat == constants.LpInteger
-                ),
+                (var.id for var in variables if var.cat == constants.LpInteger),
                 dtype=np.int32,
             )
             if len(integer):
@@ -422,7 +424,7 @@ class HiGHS(LpSolver):
             starts.append(len(indices))
             for var, coefficient in constraint.items():
                 if coefficient != 0:
-                    indices.append(id_to_col[var.id])
+                    indices.append(var.id)
                     coefficients.append(coefficient)
             lb = constraint.getLb()
             ub = constraint.getUb()
@@ -438,19 +440,153 @@ class HiGHS(LpSolver):
             np.array(indices, dtype=np.int32),
             np.array(coefficients, dtype=np.float64),
         )
+        self._start_tracking(lp)
         if self.optionsDict.get("warmStart", False):
             indices: list[int] = []
             values: list[float] = []
-            for j, var in enumerate(exported_vars):
+            for var in variables:
                 if var.varValue is not None:
-                    indices.append(j)
+                    indices.append(var.id)
                     values.append(var.varValue)
             if not indices:
                 warnings.warn("No variable with value found: warmStart aborted")
                 return
             lp.solverModel.setSolution(len(indices), indices, values)
 
-    def findSolutionValues(self, lp):
+    @requires("highspy", "numpy")
+    def applyChanges(self, lp, changes):
+        """Update ``lp.solverModel`` with the edits made to ``lp`` since it was
+        last solved (``changes``, from :meth:`_take_changes`), keeping the basis.
+
+        Columns are variable ids and rows constraint ids, so new variables and
+        constraints are appended in id order.
+        """
+        h = lp.solverModel
+        model = lp._model
+        inf = highspy_mod.kHighsInf
+        kInteger = highspy_mod.HighsVarType.kInteger
+        kContinuous = highspy_mod.HighsVarType.kContinuous
+
+        if changes.sense_changed:
+            h.changeObjectiveSense(
+                highspy_mod.ObjSense.kMaximize
+                if lp.sense == constants.LpMaximize
+                else highspy_mod.ObjSense.kMinimize
+            )
+
+        new_cols = changes.new_cols
+        # entries of new columns in existing rows go with the columns, the others
+        # are changed one by one
+        old_entries, columns = self._split_coefficients(lp, changes, h.getNumCol())
+
+        if new_cols:
+            rvars = [model.get_variable(j) for j in new_cols]
+            starts: list[int] = []
+            indices: list[int] = []
+            coefficients: list[float] = []
+            for j in new_cols:
+                starts.append(len(indices))
+                rows, values = columns.get(j, ([], []))
+                indices.extend(rows)
+                coefficients.extend(values)
+            h.addCols(
+                len(new_cols),
+                np.array(model.objective_coefficients(new_cols), dtype=np.float64),
+                np.array([v.lb for v in rvars], dtype=np.float64),
+                np.array([v.ub for v in rvars], dtype=np.float64),
+                len(indices),
+                np.array(starts, dtype=np.int32),
+                np.array(indices, dtype=np.int32),
+                np.array(coefficients, dtype=np.float64),
+            )
+            if self.mip:
+                integer = np.array(
+                    [v.id() for v in rvars if v.category == _rustcore.Category.Integer],
+                    dtype=np.int32,
+                )
+                if len(integer):
+                    h.changeColsIntegrality(
+                        len(integer), integer, np.full(len(integer), kInteger)
+                    )
+
+        if changes.new_rows:
+            starts = []
+            indices = []
+            coefficients = []
+            row_lower: list[float] = []
+            row_upper: list[float] = []
+            for i in changes.new_rows:
+                rconstr = model.get_constraint(i)
+                starts.append(len(indices))
+                for rvar, coefficient in rconstr.items():
+                    if coefficient != 0:
+                        indices.append(rvar.id())
+                        coefficients.append(coefficient)
+                lb, ub = _row_bounds(rconstr, inf)
+                row_lower.append(lb)
+                row_upper.append(ub)
+            h.addRows(
+                len(changes.new_rows),
+                np.array(row_lower, dtype=np.float64),
+                np.array(row_upper, dtype=np.float64),
+                len(indices),
+                np.array(starts, dtype=np.int32),
+                np.array(indices, dtype=np.int32),
+                np.array(coefficients, dtype=np.float64),
+            )
+
+        for i, j, value in old_entries:
+            h.changeCoeff(i, j, value)
+
+        if changes.row_bounds:
+            bounds = [
+                _row_bounds(model.get_constraint(i), inf) for i in changes.row_bounds
+            ]
+            h.changeRowsBounds(
+                len(bounds),
+                np.array(changes.row_bounds, dtype=np.int32),
+                np.array([lb for lb, _ in bounds], dtype=np.float64),
+                np.array([ub for _, ub in bounds], dtype=np.float64),
+            )
+
+        if changes.var_bounds:
+            rvars = [model.get_variable(j) for j in changes.var_bounds]
+            h.changeColsBounds(
+                len(rvars),
+                np.array(changes.var_bounds, dtype=np.int32),
+                np.array([v.lb for v in rvars], dtype=np.float64),
+                np.array([v.ub for v in rvars], dtype=np.float64),
+            )
+
+        if changes.var_category and self.mip:
+            rvars = [model.get_variable(j) for j in changes.var_category]
+            h.changeColsIntegrality(
+                len(rvars),
+                np.array(changes.var_category, dtype=np.int32),
+                np.array(
+                    [
+                        kInteger
+                        if v.category == _rustcore.Category.Integer
+                        else kContinuous
+                        for v in rvars
+                    ]
+                ),
+            )
+
+        if changes.objective_replaced:
+            cols = list(range(h.getNumCol()))
+            objective = lp.objective
+            h.changeObjectiveOffset(0.0 if objective is None else objective.constant)
+        else:
+            cols = changes.obj_coeffs
+        if cols:
+            h.changeColsCost(
+                len(cols),
+                np.array(cols, dtype=np.int32),
+                np.array(model.objective_coefficients(cols), dtype=np.float64),
+            )
+
+    def findSolutionValues(self, lp, result=None):
         status = lp.solverModel.getModelStatus()
         obj_value = lp.solverModel.getObjectiveValue()
         solution = lp.solverModel.getSolution()
@@ -488,13 +624,9 @@ class HiGHS(LpSolver):
             HighsModelStatus.kMemoryLimit,
         )
 
-        col_values = list(solution.col_value)
-        col_duals = list(solution.col_dual)
-
-        exported_vars = lp.exported_variables()
-        for j, var in enumerate(exported_vars):
-            var.varValue = col_values[j]
-            var.dj = col_duals[j]
+        # column j is the variable with id j
+        lp._model.set_variable_values(list(enumerate(solution.col_value)))
+        lp._model.set_variable_djs(list(enumerate(solution.col_dual)))
 
         row_values = list(solution.row_value)
         row_duals = list(solution.row_dual)
@@ -514,18 +646,6 @@ class HiGHS(LpSolver):
             status in stopped_early and isfinite(obj_value)
         )
         return status_dict.get(status, S.Undefined), has_solution
-
-    @requires("highspy")
-    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
-        start = clocks()
-        self.createAndConfigureSolver(lp)
-        self.buildSolverModel(lp)
-        self.callSolver(lp)
-
-        status, has_solution = self.findSolutionValues(lp)
-        return self.buildStats(
-            lp, status, has_solution, start=start, best_bound=self.findBestBound(lp)
-        )
 
     def findBestBound(self, lp: LpProblem) -> float | None:
         """The best bound HiGHS proved on a MIP, in the problem's sense, or None."""

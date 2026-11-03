@@ -3,9 +3,10 @@ import warnings
 from typing import Type
 
 from .choco import CHOCO_CMD
+from .clarabel import CLARABEL
 from .coin import COIN_CMD, COINMP_DLL, CYLP, YAPOSIB
 from .copt import COPT, COPT_CMD, COPT_DLL
-from .core import LpSolver, LpSolver_CMD, PulpSolverError
+from .core import LpSolver, LpSolver_API, LpSolver_CMD, PulpSolverError
 from .cplex import CPLEX, CPLEX_CMD, CPLEX_PY
 from .cuopt import CUOPT
 from .glpk import GLPK, GLPK_CMD, PYGLPK
@@ -13,13 +14,14 @@ from .gurobi import GUROBI, GUROBI_CMD
 from .highs import HiGHS, HiGHS_CMD
 from .mipcl import MIPCL_CMD
 from .mosek import MOSEK
-from .ortools import CPSAT
+from .ortools import CPSAT, GLOP
 from .sas import SAS94, SASCAS, SASsolver
 from .scip import FSCIP, FSCIP_CMD, SCIP, SCIP_CMD, SCIP_PY
 from .xpress import XPRESS, XPRESS_CMD, XPRESS_PY
 
 __all__ = [
     "CHOCO_CMD",
+    "CLARABEL",
     "COIN_CMD",
     "COINMP_DLL",
     "CYLP",
@@ -28,6 +30,7 @@ __all__ = [
     "COPT_CMD",
     "COPT_DLL",
     "LpSolver",
+    "LpSolver_API",
     "LpSolver_CMD",
     "PulpSolverError",
     "CPLEX",
@@ -44,6 +47,7 @@ __all__ = [
     "MIPCL_CMD",
     "MOSEK",
     "CPSAT",
+    "GLOP",
     "SAS94",
     "SASCAS",
     "SASsolver",
@@ -72,6 +76,8 @@ _all_solvers: list[Type[LpSolver]] = [
     GUROBI_CMD,
     MOSEK,
     CPSAT,
+    GLOP,
+    CLARABEL,
     XPRESS,
     XPRESS_CMD,
     XPRESS_PY,

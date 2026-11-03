@@ -1,15 +1,11 @@
 from __future__ import annotations
 
 import dataclasses
+import json
 import math
 import warnings
 from collections.abc import Iterable, Mapping
 from typing import Any, Literal, cast
-
-try:
-    import ujson as json  # type: ignore[import-untyped]
-except ImportError:
-    import json
 
 from .. import _rustcore
 from .. import constants as const
@@ -50,7 +46,7 @@ class LpProblem:
             name = name.replace(" ", "_")
         self.name = name
         self._sense = sense
-        self.solver = None
+        self._solver: LpSolver | None = None
         self.dummyVar = None
 
         self._model: _rustcore.Model = _rustcore.Model(self.name)
@@ -248,7 +244,7 @@ class LpProblem:
         if len(indices) > 1:
             res = []
             while lists:
-                first = cast(Iterable[Any], lists[-1])
+                first = list(cast(Iterable[Any], lists[-1]))
                 nres = []
                 if res:
                     if first:
@@ -348,6 +344,19 @@ class LpProblem:
         self._model.set_objective(value._expr)
 
     @property
+    def solver(self) -> LpSolver | None:
+        """The solver used last. While edits are tracked (see :meth:`resolve`),
+        it is the solver whose model :attr:`solverModel` is."""
+        return self._solver
+
+    @solver.setter
+    def solver(self, value: LpSolver | None) -> None:
+        # another solver cannot update the model this one built
+        if value is not self._solver:
+            self._model.stop_tracking()
+        self._solver = value
+
+    @property
     def sense(self) -> int:
         return self._sense
 
@@ -384,8 +393,9 @@ class LpProblem:
         p = object.__new__(cls)
         p.name = source.name
         p._sense = source._sense
+        # the copy's edits are not tracked: its first resolve builds a new model
         p._model = source._model.copy_model()
-        p.solver = source.solver
+        p._solver = source._solver
         p.solverModel = source.solverModel
         p.dummyVar = source.dummyVar
         return p
@@ -965,9 +975,20 @@ class LpProblem:
 
     def resolve(self, solver: LpSolver | None = None, **kwargs: Any) -> LpSolveStats:
         """
-        Re-solves the problem using the same solver as previously.
+        Solve the problem again, by default with the solver used last.
+
+        Solvers that support it (:class:`~pulp.HiGHS`, :class:`~pulp.GUROBI`,
+        :class:`~pulp.CPLEX_PY`, :class:`~pulp.XPRESS_PY`, :class:`~pulp.COPT`, :class:`~pulp.CYLP`,
+        :class:`~pulp.PYGLPK`) update the model they already hold in
+        :attr:`solverModel` with the edits made since the last solve, instead
+        of building it again, and restart from the previous basis. This makes
+        column generation and cutting planes cheap. Other solvers, and edits
+        that cannot be replayed (SOS groups, and some edits for CyLP), build
+        the model from scratch like :meth:`solve`.
         """
-        return self.solve(solver=solver, **kwargs)
+        # the solver sets itself as self.solver: until then self.solver says
+        # whether it is the one that built solverModel
+        return self._pick_solver(solver).resolve(self, **kwargs)
 
     def setSolver(self, solver: LpSolver | None = LpSolverDefault) -> None:
         """Sets the Solver for this problem useful if you are using

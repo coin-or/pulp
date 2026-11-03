@@ -126,3 +126,15 @@ class CPSATUnitTest(unittest.TestCase):
         status = prob.solve(self.solver).status
         self.assertEqual(status, LpSolveStatus.Optimal)
         self.assertEqual(x.value(), 7)
+
+    def test_solver_params(self):
+        prob = LpProblem("params", LpMinimize)
+        x = prob.add_variable("x", 0, 10, cat=const.LpInteger)
+        prob += x
+        prob += x >= 3
+        x.setInitialValue(5)
+        solver = CPSAT(msg=False, threads=1, warmStart=True, random_seed=1)
+        self.assertEqual(prob.solve(solver).status, LpSolveStatus.Optimal)
+
+        with self.assertRaises(AttributeError):
+            prob.solve(CPSAT(msg=False, not_a_param=1))

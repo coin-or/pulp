@@ -34,6 +34,7 @@ from typing import TYPE_CHECKING, Any
 from .. import constants
 from .core import (
     LpSolver,
+    LpSolver_API,
     LpSolver_CMD,
     PulpSolverError,
     clocks,
@@ -547,14 +548,13 @@ class FSCIP_CMD(LpSolver_CMD):
 FSCIP = FSCIP_CMD
 
 
-class SCIP_PY(LpSolver):
+class SCIP_PY(LpSolver_API):
     """
     The SCIP Optimization Suite (via its python interface)
 
-    After calling solve, the model is in ``problem.solverModel``. PySCIPOpt
-    variable and constraint objects returned from :meth:`buildSolverModel`
-    are indexed by ``var.id`` and ``constraint.id`` when reading the solution
-    in :meth:`findSolutionValues`.
+    After calling solve, the model is in ``problem.solverModel``. Its
+    variables, by index, follow ``problem.exported_variables()`` and its
+    original constraints follow ``problem.constraints()``.
     """
 
     name = "SCIP_PY"
@@ -602,7 +602,7 @@ class SCIP_PY(LpSolver):
         )
         self._want_duals = False
 
-    def findSolutionValues(self, lp, var_handles, constr_handles, exported_vars):
+    def findSolutionValues(self, lp, result=None):
         solutionStatus = lp.solverModel.getStatus()
         S = constants.LpSolveStatus
         scip_to_pulp_status = {
@@ -631,7 +631,13 @@ class SCIP_PY(LpSolver):
         if status not in (S.Infeasible, S.Unbounded, S.Undefined):
             try:  # Feasible solution found
                 solution = lp.solverModel.getBestSol()
-                for j, var in enumerate(exported_vars):
+                # the original variables and constraints, in creation order: SCIP
+                # keeps its variables sorted by type, their index is the order
+                var_handles = sorted(
+                    lp.solverModel.getVars(), key=lambda v: v.getIndex()
+                )
+                constr_handles = lp.solverModel.getConss(transformed=False)
+                for j, var in enumerate(lp.exported_variables()):
                     var.varValue = solution[var_handles[j]]
                 for constraint in lp.constraints():
                     constraint.slack = lp.solverModel.getSlack(
@@ -641,7 +647,7 @@ class SCIP_PY(LpSolver):
                 if self._want_duals:
                     # SCIP reports duals for the minimization problem
                     sign = -1 if lp.sense == constants.LpMaximize else 1
-                    for j, var in enumerate(exported_vars):
+                    for j, var in enumerate(lp.exported_variables()):
                         var.dj = lp.solverModel.getVarRedcost(var_handles[j])
                     for constraint in lp.constraints():
                         constraint.pi = sign * lp.solverModel.getDualsolLinear(
@@ -656,27 +662,12 @@ class SCIP_PY(LpSolver):
         # if pyscipopt can be installed (and therefore imported) it has access to scip
         return pyscipopt_mod is not None
 
-    def callSolver(self, lp):
+    def callSolver(self, lp, *, changes=None, **kwargs):
         """Solves the problem with scip"""
         lp.solverModel.optimize()
 
-    @requires("pyscipopt")
-    def buildSolverModel(self, lp):
-        """
-        Takes the pulp lp model and translates it into a scip model
-        """
-        ##################################################
-        # create model
-        ##################################################
-        lp.solverModel = pyscipopt_mod.Model(lp.name)
-        if lp.sense == constants.LpMaximize:
-            lp.solverModel.setMaximize()
-        else:
-            lp.solverModel.setMinimize()
-
-        ##################################################
-        # add options
-        ##################################################
+    def configureSolver(self, lp):
+        """Apply the solver options to ``lp.solverModel``"""
         if not self.msg:
             lp.solverModel.hideOutput()
         if self.timeLimit is not None:
@@ -707,11 +698,26 @@ class SCIP_PY(LpSolver):
                 name, value = option, next(options)
             lp.solverModel.setParam(name, value)
 
+    @requires("pyscipopt")
+    def buildSolverModel(self, lp):
+        """
+        Takes the pulp lp model and translates it into a scip model
+        """
+        ##################################################
+        # create model
+        ##################################################
+        lp.solverModel = pyscipopt_mod.Model(lp.name)
+        if lp.sense == constants.LpMaximize:
+            lp.solverModel.setMaximize()
+        else:
+            lp.solverModel.setMinimize()
+
+        self.configureSolver(lp)
+
         ##################################################
         # add variables
         ##################################################
         var_handles = []
-        constr_handles = []
         category_to_vtype = {
             constants.LpBinary: "B",
             constants.LpContinuous: "C",
@@ -739,7 +745,7 @@ class SCIP_PY(LpSolver):
         }
         for constraint in lp.constraints():
             name = constraint.name
-            ccon = lp.solverModel.addCons(
+            lp.solverModel.addCons(
                 cons=sense_to_operator[constraint.sense](
                     pyscipopt_mod.quicksum(
                         coefficient * var_handles[id_to_col[variable.id]]
@@ -749,7 +755,6 @@ class SCIP_PY(LpSolver):
                 ),
                 name=name,
             )
-            constr_handles.append(ccon)
 
         ##################################################
         # add warm start
@@ -762,20 +767,3 @@ class SCIP_PY(LpSolver):
                         s, var_handles[id_to_col[var.id]], var.varValue
                     )
             lp.solverModel.addSol(s)
-        return var_handles, constr_handles, exported_vars
-
-    @requires("pyscipopt")
-    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
-        """
-        Solve a well formulated lp problem
-
-        creates a scip model, variables and constraints and attaches
-        them to the lp model which it then solves
-        """
-        start = clocks()
-        var_handles, constr_handles, exported_vars = self.buildSolverModel(lp)
-        self.callSolver(lp)
-        status, has_solution = self.findSolutionValues(
-            lp, var_handles, constr_handles, exported_vars
-        )
-        return self.buildStats(lp, status, has_solution, start=start)

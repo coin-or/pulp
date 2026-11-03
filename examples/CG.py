@@ -35,7 +35,7 @@ def masterSolve(
     Patterns: list[Pattern],
     rollData: dict[str, list[float | int]],
     relax: bool = True,
-) -> dict[str, float | None] | tuple[float, dict[str, int]]:
+) -> dict[str, float] | tuple[float, dict[str, int]]:
     # The rollData is made into separate dictionaries
     (rollDemand, surplusPrice) = splitDict(rollData)
 
@@ -82,6 +82,7 @@ def masterSolve(
         for name, i in zip(["Min5", "Min7", "Min9"], Pattern.lenOpts):
             for c in prob.constraints():
                 if c.name == name:
+                    assert c.pi is not None
                     duals[i] = c.pi
                     break
             else:
@@ -101,12 +102,13 @@ def masterSolve(
         # The number of rolls of each length in each pattern is printed
         for p in Patterns:
             print(p, " = %s" % [p.lengthsdict[j] for j in Pattern.lenOpts])
-        my_value: float = value(prob.objective)
+        my_value = value(prob.objective)
+        assert my_value is not None
         return my_value, varsdict
 
 
 def subSolve(
-    Patterns: list[Pattern], duals: dict[str, float | None]
+    Patterns: list[Pattern], duals: dict[str, float]
 ) -> tuple[list[Pattern], bool]:
     # The variable 'prob' is created
     prob = LpProblem("SubProb", LpMinimize)
@@ -152,7 +154,9 @@ def subSolve(
         newPattern[i] = varsdict[j]
 
     # Check if there are more patterns which would reduce the master LP objective function further
-    if value(prob.objective) < -(10**-5):
+    objective = value(prob.objective)
+    assert objective is not None
+    if objective < -(10**-5):
         morePatterns = True  # continue adding patterns
         Patterns += [
             Pattern("P" + str(len(Patterns)), [newPattern[i] for i in ["5", "7", "9"]])

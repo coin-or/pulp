@@ -87,21 +87,17 @@ operating_system = get_operating_system()
 arch = get_arch()
 
 import contextlib
+import json
 import logging
 from collections.abc import Callable, Iterator
 from typing import TYPE_CHECKING, Any
 
+from .. import _rustcore, sparse
 from .. import constants as const
-from .. import sparse
 
 if TYPE_CHECKING:
     from ..core.lp_stats import LpSolveStats
     from ..pulp import LpProblem
-
-try:
-    import ujson as json  # type: ignore[import-untyped]
-except ImportError:
-    import json
 
 log = logging.getLogger(__name__)
 
@@ -228,6 +224,8 @@ class LpSolver:
 
     def solve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
         """Solve the problem lp and describe how it went."""
+        # a full solve replaces lp.solverModel: whatever was tracking it is stale
+        self._stop_tracking(lp)
         wasNone, dummyVar = lp.fixObjective()
         try:
             # the log only lives until the block ends; actualSolve reads it in
@@ -236,6 +234,71 @@ class LpSolver:
                 return self.actualSolve(lp, **kwargs)
         finally:
             lp.restoreObjective(wasNone, dummyVar)
+
+    def resolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
+        """Solve ``lp`` again, updating the model the solver already holds when
+        it can (see :meth:`actualResolve`), and describe how it went."""
+        wasNone, dummyVar = lp.fixObjective()
+        try:
+            with self.capture_log():
+                return self.actualResolve(lp, **kwargs)
+        finally:
+            lp.restoreObjective(wasNone, dummyVar)
+
+    def actualResolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
+        """Solve ``lp`` again. Solvers that can update ``lp.solverModel`` in
+        place, keeping its basis for a hot start, override this using
+        :meth:`_take_changes`; by default the model is built from scratch."""
+        self._stop_tracking(lp)
+        lp.solver = self
+        return self.actualSolve(lp, **kwargs)
+
+    def _start_tracking(self, lp: LpProblem) -> None:
+        """Record edits to ``lp`` from now on: its whole model was just loaded
+        into ``lp.solverModel``, which :meth:`actualResolve` may then update.
+        ``lp.solver`` is set to this solver, which is how it is recognised."""
+        lp.solver = self
+        lp._model.track_changes()
+
+    def _take_changes(self, lp: LpProblem) -> _rustcore.ModelChanges | None:
+        """The edits to replay on ``lp.solverModel``, or None if it has to be
+        rebuilt: this solver did not build it, or an edit cannot be replayed."""
+        if lp.solver is not self or not lp._model.tracking_changes:
+            self._stop_tracking(lp)
+            return None
+        changes = lp._model.take_changes()
+        if changes.unsupported:
+            self._stop_tracking(lp)
+            return None
+        return changes
+
+    def _stop_tracking(self, lp: LpProblem) -> None:
+        """``lp.solverModel`` can no longer be updated in place."""
+        lp._model.stop_tracking()
+
+    @staticmethod
+    def _split_coefficients(
+        lp: LpProblem, changes: _rustcore.ModelChanges, num_cols: int
+    ) -> tuple[list[tuple[int, int, float]], dict[int, tuple[list[int], list[float]]]]:
+        """Split the entries edited in existing rows (``changes.coeffs``) by
+        column, with their current values.
+
+        :param num_cols: the columns the solver holds; higher ids are new
+        :return: ``[(row, column, value)]`` for existing columns (a 0 value
+            removes the entry), and ``{column: (rows, values)}`` for each new
+            column that has entries in existing rows (zeros left out)
+        """
+        old: list[tuple[int, int, float]] = []
+        new: dict[int, tuple[list[int], list[float]]] = {}
+        values = lp._model.coefficients_at(changes.coeffs)
+        for (i, j), value in zip(changes.coeffs, values):
+            if j < num_cols:
+                old.append((i, j, value))
+            elif value != 0:
+                rows, row_values = new.setdefault(j, ([], []))
+                rows.append(i)
+                row_values.append(value)
+        return old, new
 
     def buildStats(
         self,
@@ -573,6 +636,119 @@ class LpSolver:
     to_json = toJson
 
 
+class _RebuildNeeded(Exception):
+    """Raised by :meth:`LpSolver_API.applyChanges`, before it touches the
+    solver model, when an edit cannot be replayed: the model is built again."""
+
+
+class LpSolver_API(LpSolver):
+    """A generic LP Solver driven through its python interface.
+
+    A solve goes through three steps, which can also be called one by one to
+    reach the solver's own model in between::
+
+        solver.buildSolverModel(lp)  # fills lp.solverModel
+        result = solver.callSolver(lp)
+        status, has_solution = solver.findSolutionValues(lp, result)
+
+    A solver that can update ``lp.solverModel`` in place on a resolve also
+    implements :meth:`applyChanges` and :meth:`canUpdate`.
+    """
+
+    name = "LpSolver_API"
+
+    def buildSolverModel(self, lp: LpProblem) -> None:
+        """Translate ``lp`` into the solver's model, stored in ``lp.solverModel``,
+        and configure it (see :meth:`configureSolver`)."""
+        raise NotImplementedError
+
+    def configureSolver(self, lp: LpProblem) -> None:
+        """Apply the solver options to ``lp.solverModel``, again on every
+        resolve so that options changed in between take effect."""
+
+    def callSolver(
+        self,
+        lp: LpProblem,
+        *,
+        changes: _rustcore.ModelChanges | None = None,
+        **kwargs: Any,
+    ) -> Any:
+        """Solve ``lp.solverModel``.
+
+        :param changes: the edits just replayed on the model by a resolve, None
+            when it was built from scratch
+        :param kwargs: the arguments given to ``solve``, e.g. ``callback``
+        :return: whatever :meth:`findSolutionValues` needs besides the model
+        """
+        raise NotImplementedError
+
+    def findSolutionValues(
+        self, lp: LpProblem, result: Any = None
+    ) -> tuple[const.LpSolveStatus, bool]:
+        """Write the solution back into ``lp``.
+
+        :param result: what :meth:`callSolver` returned
+        :return: ``(status, has_solution)``
+        """
+        raise NotImplementedError
+
+    def findBestBound(self, lp: LpProblem) -> float | None:
+        """The best bound the solver proved, in the problem's sense, or None."""
+        return None
+
+    def canUpdate(self, lp: LpProblem) -> bool:
+        """Whether :meth:`actualResolve` may update ``lp.solverModel`` in place
+        with :meth:`applyChanges` instead of building it again."""
+        return False
+
+    def applyChanges(self, lp: LpProblem, changes: _rustcore.ModelChanges) -> None:
+        """Update ``lp.solverModel`` with the edits made to ``lp`` since it was
+        last solved (``changes``, from :meth:`_take_changes`), keeping its basis.
+
+        Raises :class:`_RebuildNeeded` before touching the model if an edit
+        cannot be replayed.
+        """
+        raise NotImplementedError
+
+    def actualSolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
+        """Build the solver model, solve it and read the solution back."""
+        start = clocks()
+        self.buildSolverModel(lp)
+        result = self.callSolver(lp, **kwargs)
+        return self._finish(lp, result, start)
+
+    def actualResolve(self, lp: LpProblem, **kwargs: Any) -> LpSolveStats:
+        """Update ``lp.solverModel`` with the edits made since the last solve
+        and solve it again from its current basis; build it from scratch if it
+        cannot be updated (see :meth:`canUpdate` and :meth:`_take_changes`)."""
+        if not self.canUpdate(lp):
+            self._stop_tracking(lp)
+        changes = self._take_changes(lp)
+        if changes is None:
+            return self.actualSolve(lp, **kwargs)
+        start = clocks()
+        try:
+            self.applyChanges(lp, changes)
+        except _RebuildNeeded:
+            self._stop_tracking(lp)
+            return self.actualSolve(lp, **kwargs)
+        except Exception:
+            # the solver model may be half updated: rebuild it next time
+            self._stop_tracking(lp)
+            raise
+        self.configureSolver(lp)
+        result = self.callSolver(lp, changes=changes, **kwargs)
+        return self._finish(lp, result, start)
+
+    def _finish(
+        self, lp: LpProblem, result: Any, start: tuple[float, float]
+    ) -> LpSolveStats:
+        status, has_solution = self.findSolutionValues(lp, result)
+        return self.buildStats(
+            lp, status, has_solution, start=start, best_bound=self.findBestBound(lp)
+        )
+
+
 class LpSolver_CMD(LpSolver):
     """A generic command line LP Solver"""
 
@@ -678,3 +854,15 @@ def ctypesArrayFill(myList: list[Any], type: Any = ctypes.c_double) -> Any:
     for i, elem in enumerate(myList):
         cList[i] = elem
     return cList
+
+
+def _row_bounds(
+    rconstr: _rustcore.Constraint, inf: float = math.inf
+) -> tuple[float, float]:
+    """``(lower, upper)`` bounds of a row of the Rust model."""
+    rhs = rconstr.rhs
+    if rconstr.sense == _rustcore.Sense.LessEqual:
+        return -inf, rhs
+    if rconstr.sense == _rustcore.Sense.GreaterEqual:
+        return rhs, inf
+    return rhs, rhs

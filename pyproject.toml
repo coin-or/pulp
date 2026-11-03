@@ -1,6 +1,6 @@
 [project]
 name = "PuLP"
-version = "4.2.0"
+version = "4.3.0"
 description = "PuLP is an LP modeler written in python. PuLP can generate MPS or LP files and call GLPK, COIN CLP/CBC, CPLEX, and GUROBI to solve linear problems."
 authors = [
     {name = 'J.S. Roy'},
@@ -26,6 +26,7 @@ classifiers=[
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
     "Topic :: Scientific/Engineering :: Mathematics",
 ]
 urls= {source= "https://github.com/coin-or/pulp", download="https://github.com/coin-or/pulp/archive/master.zip", forum="https://groups.google.com/g/pulp-or-discuss"}
@@ -84,7 +85,6 @@ allowed-unresolved-imports = [
     "ortools", "ortools.**",
     "elementtree.ElementTree", "elementtree.**",
     "yaposib", "yaposib.**",
-    "ujson", "ujson.**",
     "swiglpk", "swiglpk.**",
     "mosek", "mosek.**",
     "saspy", "saspy.**",
@@ -92,6 +92,9 @@ allowed-unresolved-imports = [
     "coptpy", "coptpy.**",
     "highspy", "highspy.**",
     "pyscipopt", "pyscipopt.**",
+    "clarabel", "clarabel.**",
+    "scipy", "scipy.**",
+    "matplotlib", "matplotlib.**",
 ]
 [tool.ty.rules]
 possibly-missing-attribute = "warn"
@@ -136,17 +139,19 @@ required-environments = [
 
 
 [project.optional-dependencies]
-open_py = ["highspy", "pyscipopt", "cbcbox<2.931", "swiglpk"]
-public_py = ["gurobipy", "coptpy; python_full_version < '3.14'", 'xpress', "cplex; sys_platform != 'darwin' or platform_machine == 'arm64'"]
-highs = ["highspy"]
+# numpy and scipy: pulp itself uses them to build the HiGHS, CyLP and Clarabel models
+open_py = ["highspy", "pyscipopt", "cbcbox<2.931", "swiglpk; python_full_version < '3.15'", "clarabel", "numpy", "scipy"]
+public_py = ["gurobipy; python_full_version < '3.15'", "coptpy; python_full_version < '3.14'", 'xpress', "cplex; python_full_version < '3.15' and (sys_platform != 'darwin' or platform_machine == 'arm64')"]
+highs = ["highspy", "numpy"]
 highs_cmd = ["highsbox"]
 cbc = ["cbcbox<2.931"]
 scip = ["pyscipopt"]
-glpk = ["swiglpk"]
-gurobi = ["gurobipy"]
+glpk = ["swiglpk; python_full_version < '3.15'"]
+gurobi = ["gurobipy; python_full_version < '3.15'"]
 xpress = ["xpress"]
 copt = ["coptpy; python_full_version < '3.14'"]
-cplex = ["cplex; sys_platform != 'darwin' or platform_machine == 'arm64'"]
+cplex = ["cplex; python_full_version < '3.15' and (sys_platform != 'darwin' or platform_machine == 'arm64')"]
 mosek = ["mosek"]
-ortools = ["ortools"]
-cylp = ["cylp; sys_platform != 'win32'"]
+ortools = ["ortools; python_full_version < '3.15'"]
+clarabel = ["clarabel", "numpy", "scipy"]
+cylp = ["cylp; sys_platform != 'win32'", "numpy; sys_platform != 'win32'"]

@@ -11,11 +11,8 @@ from math import *
 from pulp import (
     LpInteger,
     LpMaximize,
-    LpMinimize,
     LpProblem,
-    LpVariable,
     lpDot,
-    lpSum,
     value,
 )
 

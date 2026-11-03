@@ -8,7 +8,7 @@ jobs:
     strategy:
       max-parallel: 21
       matrix:
-        python-version: ['3.12', '3.13', '3.14']
+        python-version: ['3.12', '3.13', '3.14', '3.15']
         os: [ubuntu-latest, macOS-latest, windows-latest]
 
     steps:
@@ -40,6 +40,10 @@ jobs:
           name: 'scipoptsuite_10.1.0-1+resolute_amd64.deb'
           version: '10.1.0-1'
           command: "sudo apt install -qq ./scipoptsuite_10.1.0-1+resolute_amd64.deb"
+      - name: Remove FSCIP
+        # fscip segfaults intermittently (race in UG), so its tests are skipped in CI
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo rm -f /usr/bin/fscip
       - name: Test with pulptest
         env:
           PYTHONPATH: .

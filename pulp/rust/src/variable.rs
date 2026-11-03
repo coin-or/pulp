@@ -86,6 +86,7 @@ impl Variable {
         let mut core = lock_model(&core_rc);
         if let Some(var) = core.vars.get_mut(self.id) {
             var.lb = lb;
+            core.changes.var_bounds(self.id);
         }
         Ok(())
     }
@@ -95,6 +96,7 @@ impl Variable {
         let mut core = lock_model(&core_rc);
         if let Some(var) = core.vars.get_mut(self.id) {
             var.ub = ub;
+            core.changes.var_bounds(self.id);
         }
         Ok(())
     }
@@ -104,6 +106,7 @@ impl Variable {
         let mut core = lock_model(&core_rc);
         if let Some(var) = core.vars.get_mut(self.id) {
             var.category = category;
+            core.changes.var_category(self.id);
         }
         Ok(())
     }

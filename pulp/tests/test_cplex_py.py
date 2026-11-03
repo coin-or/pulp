@@ -33,7 +33,7 @@ class CPLEX_PYTest(BaseSolverTest.PuLPTest):
         Builds and returns a solver instance after creating and initializing a bin packing problem.
         """
         problem = create_bin_packing_problem(bins=40, seed=99)
-        solver = self.solveInst(**kwargs)
+        solver = solvers.CPLEX_PY(**kwargs)
         solver.buildSolverModel(lp=problem)
         return solver
 
@@ -42,7 +42,7 @@ class CPLEX_PYTest(BaseSolverTest.PuLPTest):
         Tests the behavior of the `search_param` method when invoked without a `solverModel`
         initialized. Validates that an appropriate error is raised under these conditions.
         """
-        solver = self.solveInst()
+        solver = solvers.CPLEX_PY()
         with self.assertRaises(PulpSolverError):
             solver.search_param("barrier.algorithm")
 
@@ -112,7 +112,7 @@ class CPLEX_PYTest(BaseSolverTest.PuLPTest):
         return prob
 
     def _problem_type(self, prob, **kwargs):
-        solver = self.solveInst(msg=False, **kwargs)
+        solver = solvers.CPLEX_PY(msg=False, **kwargs)
         solver.buildSolverModel(prob)
         model = prob.solverModel
         return model.problem_type[model.get_problem_type()]
@@ -138,7 +138,7 @@ class CPLEX_PYTest(BaseSolverTest.PuLPTest):
         of the shared test_dual_variables_reduced_costs configuration.
         """
         prob = self._small_problem()
-        prob.solve(self.solveInst(msg=False))
+        prob.solve(solvers.CPLEX_PY(msg=False))
         dj = {v.name: v.dj for v in prob.variables()}
         pi = {c.name: c.pi for c in prob.constraints()}
         for name, value in {"x": 0, "y": 12, "z": 0}.items():
@@ -155,7 +155,7 @@ class CPLEX_PYTest(BaseSolverTest.PuLPTest):
     def test_log_file_is_closed_after_solve(self):
         with tempfile.TemporaryDirectory() as tmp:
             log_path = os.path.join(tmp, "cplex.log")
-            solver = self.solveInst(msg=False, logPath=log_path)
+            solver = solvers.CPLEX_PY(msg=False, logPath=log_path)
             with warnings.catch_warnings():
                 warnings.simplefilter("error", ResourceWarning)
                 self._small_problem().solve(solver)

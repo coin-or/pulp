@@ -14,7 +14,7 @@ The smallest api for a solver can be found in the file :py:class:`pulp.apis.mipc
 Inheriting base classes
 ------------------------------
 
-The solver needs to inherit one of two classes:  :py:class:`pulp.apis.LpSolver` or  :py:class:`pulp.apis.LpSolver_CMD` located in ``pulp.apis.core.py``. The first one is a generic class. The second one is used for command-line based APIs to solvers. This is the one used for the example::
+The solver needs to inherit one of three classes:  :py:class:`pulp.apis.LpSolver`, :py:class:`pulp.apis.LpSolver_API` or :py:class:`pulp.apis.LpSolver_CMD` located in ``pulp.apis.core.py``. The first one is a generic class. The second one is used for solvers driven through their official python interface (see :ref:`below <solver-api>`). The third one is used for command-line based APIs to solvers. This is the one used for the example::
 
     from .core import LpSolver_CMD, subprocess, PulpSolverError
     import os
@@ -172,19 +172,39 @@ Include the solver in PuLP's test suite by creating ``pulp/tests/test_<solver>.p
 Add ``pulp_test_overrides`` in that file when the solver's acceptable statuses or results differ from the defaults in ``solver_common.py``.
 
 
+.. _solver-api:
+
 Extra: adding a official solver API
 ---------------------------------------------
 
-There are additional best practices to take into account with these solvers. The ``actualSolve`` method has the following structure::
+A solver driven through its official python interface inherits :py:class:`pulp.apis.LpSolver_API`. Instead of ``actualSolve``, it implements three steps, which ``LpSolver_API.actualSolve`` calls in order::
 
-    def actualSolve(self, lp):
-        self.buildSolverModel(lp)
-        # set the initial solution
-        self.callSolver(lp)
-        # get the solution information
-        solutionStatus = self.findSolutionValues(lp)
-        return solutionStatus
+    class MY_SOLVER(LpSolver_API):
 
-In addition to this, the ``buildSolverModel`` method fills a property named `lp.solverModel` in the LP problem. This property will include a pointer to the model object from the official solver API (e.g., ``gurobipy.Model`` for GUROBI).
+        name = "MY_SOLVER"
 
-These considerations will permit a consistent, more standard way to call official solvers. In particular, they allow for detailed configuration, such as the one explained :ref:`here <solver-specific-config>`.
+        def buildSolverModel(self, lp):
+            # create the solver's model, store it in lp.solverModel, load the problem
+            # and apply the options
+            ...
+            self.configureSolver(lp)
+
+        def configureSolver(self, lp):
+            # apply msg, timeLimit, gapRel, logPath, etc. to lp.solverModel
+            ...
+
+        def callSolver(self, lp, *, changes=None, **kwargs):
+            # solve lp.solverModel; kwargs are the arguments given to solve,
+            # e.g. a callback
+            ...
+
+        def findSolutionValues(self, lp, result=None):
+            # write the values back into lp; result is what callSolver returned
+            ...
+            return status, has_solution
+
+``buildSolverModel`` fills the property ``lp.solverModel`` of the LP problem with the model object from the official solver API (e.g., ``gurobipy.Model`` for GUROBI). Anything ``findSolutionValues`` needs besides that model (e.g., a solution object) is returned by ``callSolver``, which ``actualSolve`` hands over as ``result``. A solver that proves a bound can also implement ``findBestBound(lp)``.
+
+These steps permit a consistent, more standard way to call official solvers. In particular, they allow for detailed configuration, such as the one explained :ref:`here <solver-specific-config>`.
+
+To support ``LpProblem.resolve``, updating ``lp.solverModel`` in place instead of building it again, a solver also implements ``canUpdate(lp)`` (return True when ``lp.solverModel`` can be updated) and ``applyChanges(lp, changes)``, which replays the edits made to the problem since the last solve. ``LpSolver_API.actualResolve`` then calls ``applyChanges``, ``configureSolver`` and ``callSolver(lp, changes=changes)``. When an edit cannot be replayed, ``applyChanges`` raises ``pulp.apis.core._RebuildNeeded`` before touching the model, and the model is built again.

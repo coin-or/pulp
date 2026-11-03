@@ -4,6 +4,7 @@ from typing import ClassVar
 
 import pulp.apis as solvers
 from pulp import LpMaximize, LpMinimize, LpProblem, LpSolveStatus, const
+from pulp.apis.core import PulpSolverError
 from pulp.tests.bin_packing_problem import create_bin_packing_problem
 from pulp.tests.solver_common import (
     ALLOW_REPEATED_VAR_NAMES,
@@ -124,3 +125,19 @@ class HiGHS_PYTest(BaseSolverTest.PuLPTest):
             ],
         )
         prob.solve(solver)
+
+    def test_solver_params(self):
+        prob = LpProblem("params", LpMinimize)
+        x = prob.add_variable("x", 0, 4)
+        prob += x
+        prob += x >= 1, "c1"
+        stats = prob.solve(solvers.HiGHS(msg=False, presolve="off"))
+        self.assertIs(stats.status, LpSolveStatus.Optimal)
+        # highspy only reports a rejected option by its status
+        for solver in (
+            solvers.HiGHS(msg=False, not_a_param=1),
+            solvers.HiGHS(msg=False, presolve="not_a_value"),
+        ):
+            with self.subTest(params=solver.optionsDict):
+                with self.assertRaises(PulpSolverError):
+                    prob.solve(solver)

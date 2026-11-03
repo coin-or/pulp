@@ -10,7 +10,8 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys, os
+import os
+import sys
 from typing import Any
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -112,7 +113,6 @@ pygments_style = "sphinx"
 
 # The theme to use for HTML and HTML Help pages.  Major themes that come with
 # Sphinx are currently 'default' and 'sphinxdoc'.
-import sphinx_rtd_theme  # type: ignore[import-untyped]
 
 html_theme = "sphinx_rtd_theme"
 

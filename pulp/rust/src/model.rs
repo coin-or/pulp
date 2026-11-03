@@ -9,8 +9,8 @@ use pyo3::prelude::*;
 use crate::affine_expr::AffineExpr;
 use crate::constraint::Constraint;
 use crate::types::{
-    get_model_optional, lock_model, upgrade_model, Category, ConstrId, ModelCore, ObjSense,
-    SharedModelCore, SosGroup, SosKind, VarId,
+    get_model_optional, lock_model, upgrade_model, Category, ChangeLog, ConstrId, ModelCore,
+    ObjSense, SharedModelCore, SosGroup, SosKind, VarId,
 };
 use crate::variable::Variable;
 
@@ -124,6 +124,7 @@ impl Model {
             });
             obj.terms.insert(id, obj_coeff);
         }
+        core.changes.obj_coeff(id);
         Ok(Variable {
             id,
             model: Arc::downgrade(&self.core),
@@ -137,7 +138,77 @@ impl Model {
     }
 
     fn set_sense(&mut self, sense: ObjSense) {
-        lock_model(&self.core).sense = sense;
+        let mut core = lock_model(&self.core);
+        if core.sense != sense {
+            core.changes.sense_changed = true;
+        }
+        core.sense = sense;
+    }
+
+    /// Start recording edits for a solver that has just loaded the whole
+    /// model; collect them with [`take_changes`](Self::take_changes).
+    fn track_changes(&mut self) {
+        let mut core = lock_model(&self.core);
+        let (cols, rows) = (core.vars.len(), core.constraints.len());
+        core.changes.start(cols, rows);
+    }
+
+    /// Stop recording edits (the solver's copy can no longer be updated).
+    fn stop_tracking(&mut self) {
+        lock_model(&self.core).changes = ChangeLog::default();
+    }
+
+    /// The current coefficient of each `(constraint id, variable id)` entry,
+    /// 0 where the variable is not in the constraint.
+    fn coefficients_at(&self, entries: Vec<(ConstrId, VarId)>) -> PyResult<Vec<f64>> {
+        let core = lock_model(&self.core);
+        let n = core.constraints.len();
+        entries
+            .into_iter()
+            .map(|(cid, vid)| {
+                let cd = core.constraints.get(cid).ok_or_else(|| {
+                    pyo3::exceptions::PyIndexError::new_err(format!(
+                        "Constraint id {cid} is out of range (model has {n} constraints)"
+                    ))
+                })?;
+                Ok(cd.coeffs.get(&vid).copied().unwrap_or(0.0))
+            })
+            .collect()
+    }
+
+    /// The objective coefficient of each variable id, 0 where it is not in
+    /// the objective.
+    fn objective_coefficients(&self, ids: Vec<VarId>) -> Vec<f64> {
+        let core = lock_model(&self.core);
+        match &core.objective {
+            None => vec![0.0; ids.len()],
+            Some(obj) => ids
+                .iter()
+                .map(|vid| obj.terms.get(vid).copied().unwrap_or(0.0))
+                .collect(),
+        }
+    }
+
+    /// Whether edits are being recorded (see [`track_changes`](Self::track_changes)).
+    #[getter]
+    fn tracking_changes(&self) -> bool {
+        lock_model(&self.core).changes.enabled
+    }
+
+    /// The edits recorded since [`track_changes`](Self::track_changes) or the
+    /// previous call, which the solver is expected to apply now: recording
+    /// starts over with the model as it is.
+    fn take_changes(&mut self) -> PyResult<ModelChanges> {
+        let mut core = lock_model(&self.core);
+        if !core.changes.enabled {
+            return Err(pyo3::exceptions::PyRuntimeError::new_err(
+                "Changes are not being tracked; call track_changes() first.",
+            ));
+        }
+        let (cols, rows) = (core.vars.len(), core.constraints.len());
+        let log = std::mem::take(&mut core.changes);
+        core.changes.start(cols, rows);
+        Ok(ModelChanges::from_log(log, cols, rows))
     }
 
     fn clear_objective(&mut self) {
@@ -253,6 +324,19 @@ impl Model {
             weights,
         });
         Ok(())
+    }
+
+    fn get_constraint(&self, id: ConstrId) -> PyResult<Constraint> {
+        let n = lock_model(&self.core).constraints.len();
+        if id >= n {
+            return Err(pyo3::exceptions::PyIndexError::new_err(format!(
+                "Constraint id {id} is out of range (model has {n} constraints)"
+            )));
+        }
+        Ok(Constraint {
+            id,
+            model: Arc::downgrade(&self.core),
+        })
     }
 
     fn list_constraints(&self) -> Vec<Constraint> {
@@ -490,6 +574,7 @@ impl Model {
             sense: core.sense,
             next_auto_constraint_id: core.next_auto_constraint_id,
             sos: core.sos.clone(),
+            changes: ChangeLog::default(),
         };
         let new_rc = Arc::new(Mutex::new(new_core));
         {
@@ -499,5 +584,64 @@ impl Model {
             }
         }
         Self { core: new_rc }
+    }
+}
+
+/// Edits to a model since a solver last loaded it (see `Model.take_changes`).
+#[pyclass(frozen, get_all)]
+pub struct ModelChanges {
+    /// A change the solver cannot replay: it must rebuild its model.
+    pub unsupported: bool,
+    pub sense_changed: bool,
+    /// The objective was replaced or cleared: send every cost again.
+    pub objective_replaced: bool,
+    /// Variable ids added since: new solver columns, in order.
+    pub new_cols: Vec<VarId>,
+    /// Constraint ids added since: new solver rows, in order.
+    pub new_rows: Vec<ConstrId>,
+    /// Objective coefficients changed on existing columns.
+    pub obj_coeffs: Vec<VarId>,
+    /// Edited `(constraint id, variable id)` entries in existing rows. Entries
+    /// with a new variable id belong to that new column.
+    pub coeffs: Vec<(ConstrId, VarId)>,
+    /// Existing rows whose right-hand side or sense changed.
+    pub row_bounds: Vec<ConstrId>,
+    /// Existing columns whose bounds changed.
+    pub var_bounds: Vec<VarId>,
+    /// Existing columns whose category changed.
+    pub var_category: Vec<VarId>,
+}
+
+impl ModelChanges {
+    fn from_log(log: ChangeLog, cols: usize, rows: usize) -> Self {
+        Self {
+            unsupported: log.unsupported,
+            sense_changed: log.sense_changed,
+            objective_replaced: log.objective_replaced,
+            new_cols: (log.cols_synced..cols).collect(),
+            new_rows: (log.rows_synced..rows).collect(),
+            obj_coeffs: log.obj_coeffs.into_iter().collect(),
+            coeffs: log.coeffs.into_iter().collect(),
+            row_bounds: log.row_bounds.into_iter().collect(),
+            var_bounds: log.var_bounds.into_iter().collect(),
+            var_category: log.var_category.into_iter().collect(),
+        }
+    }
+}
+
+#[pymethods]
+impl ModelChanges {
+    /// True when nothing changed.
+    fn is_empty(&self) -> bool {
+        !self.unsupported
+            && !self.sense_changed
+            && !self.objective_replaced
+            && self.new_cols.is_empty()
+            && self.new_rows.is_empty()
+            && self.obj_coeffs.is_empty()
+            && self.coeffs.is_empty()
+            && self.row_bounds.is_empty()
+            && self.var_bounds.is_empty()
+            && self.var_category.is_empty()
     }
 }

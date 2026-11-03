@@ -19,6 +19,10 @@ PuLP supports this on one problem object, without rebuilding it:
 * :py:meth:`~pulp.LpProblem.remove_variables` takes variables out of the model.
 * ``x.cat = ...`` changes a variable's category, for example to make the final
   problem integer.
+* :py:meth:`~pulp.LpProblem.resolve` solves the problem again. With the solvers
+  that support it (HiGHS, GUROBI, CPLEX_PY, XPRESS_PY, COPT, CyLP, PYGLPK) it
+  updates the solver's model in place and restarts from the previous basis
+  (see :ref:`resolve_in_place`).
 
 .. contents:: On this page
    :local:
@@ -90,7 +94,10 @@ constraint, the objective and every SOS group:
 
 The variables stay valid: you can still read them and put them back with
 ``c[z] = value``. A variable that no constraint and no objective uses is left
-out of the LP and MPS files and is not sent to the solvers.
+out of the LP and MPS files and is not sent to most solvers. The solvers that
+:py:meth:`~pulp.LpProblem.resolve` updates in place are the exception: they get
+every variable, an unused one as an empty column, so that new ones can be
+appended (see :ref:`resolve_in_place`).
 
 
 Example: cutting stock by column generation
@@ -129,8 +136,8 @@ pattern per width and adds a better pattern while one exists:
         )
     master += lpSum(patterns)
 
+    master.solve(solver)
     while True:
-        master.solve(solver)
         duals = {item: c.pi for item, c in demand.items()}
 
         # Pricing: the pattern with the largest total dual value.
@@ -150,6 +157,7 @@ pattern per width and adds a better pattern while one exists:
             coefficients={demand[i]: k for i, k in pattern.items() if k},
         )
         patterns.append(new)
+        master.resolve()   # only the new column is sent to the solver
 
     print("LP bound:", master.objective.value())   # 452.25
 
@@ -162,6 +170,58 @@ pattern per width and adds a better pattern while one exists:
 The loop adds two patterns before no further improvement is possible. The same
 ``master`` problem is solved each time: it is never rebuilt, and the demand
 constraints found in step 1 are the ones the new columns are added to.
+``master.resolve()`` hands HiGHS only the new column and lets it start from the
+previous optimal basis. The final ``master.solve(solver)`` builds the model
+again, which is what you want once the categories have changed.
+
+
+.. _resolve_in_place:
+
+Re-solving without rebuilding
+------------------------------
+
+:py:meth:`~pulp.LpProblem.solve` loads the whole problem into the solver every
+time. :py:meth:`~pulp.LpProblem.resolve` does that too, except with the solvers
+that keep the model in memory and can edit it: **HiGHS**, **GUROBI**,
+**CPLEX_PY**, **XPRESS_PY**, **COPT**, **CyLP** and **PYGLPK**. After a first solve, they
+record every edit to the problem, and ``resolve`` sends only those edits to the
+model they hold in ``prob.solverModel``:
+
+* new variables (from ``add_column`` or ``add_variable``) and new constraints;
+* changed coefficients, right-hand sides and senses of existing constraints;
+* changed bounds and categories of variables, and removed variables;
+* a changed objective or objective sense.
+
+The solver keeps its basis, so after adding a few columns or a cut it usually
+needs only a few simplex iterations, and none if the old solution is still
+optimal. The duals, reduced costs and values are read back as after ``solve``.
+
+.. code-block:: python
+
+    prob.solve(getSolver("HiGHS", msg=False))   # builds the model
+    model = prob.solverModel
+    prob.add_column("y", 0, 1, obj=2, coefficients={c1: 1})
+    prob += x + y <= 1, "cut"
+    prob.resolve()                               # updates it in place
+    assert prob.solverModel is model
+
+``resolve`` builds the model from scratch, like ``solve``, when it cannot
+update it:
+
+* on the first solve, or when the last solve used another solver (or another
+  instance of the same solver);
+* on a copy of the problem (``prob.copy()``): a copy is not tracked;
+* after adding or removing SOS groups;
+* with CyLP, after changing a coefficient of an existing variable in an existing
+  constraint (``remove_variables`` included), since Clp cannot change an entry of
+  its matrix, and for a MIP, which Cbc solves;
+* with any other solver, which always rebuilds. MOSEK could update its model
+  too, but does not yet.
+
+The solver's options (time limit, gaps, ``msg``, log file) are applied again on
+every resolve. ``warmStart`` only applies when the model is built: on a resolve
+the previous basis is the warm start. A degenerate LP has several optimal bases,
+so a resolve can return other (equally valid) duals than a solve from scratch.
 
 
 Notes

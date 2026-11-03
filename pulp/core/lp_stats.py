@@ -9,13 +9,9 @@ detail read back out of that log.
 from __future__ import annotations
 
 import dataclasses
+import json
 import os
 from typing import Any
-
-try:
-    import ujson as json  # type: ignore[import-untyped]
-except ImportError:
-    import json
 
 import orloge
 
@@ -26,6 +22,8 @@ from .. import constants as const
 #: ``None`` for them and :func:`parse_logs` then skips parsing entirely.
 LOG_DIALECTS: dict[str, str] = {
     "COIN_CMD": "CBC",
+    # Cbc's log, through its bindings; Clp's (an LP) has little orloge reads
+    "CyLP": "CBC",
     "CPLEX_CMD": "CPLEX",
     "CPLEX_PY": "CPLEX",
     "GUROBI": "GUROBI",

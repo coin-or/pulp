@@ -88,6 +88,76 @@ pub struct ModelCore {
     pub next_auto_constraint_id: usize,
     /// Special ordered sets (SOS1 / SOS2) in CPLEX LP sense.
     pub sos: Vec<SosGroup>,
+    /// Edits since a solver last loaded the model (see [`ChangeLog`]).
+    pub changes: ChangeLog,
+}
+
+/// What changed since a solver last loaded the model, so that it can update
+/// its copy in place instead of rebuilding it. It only records *which*
+/// columns, rows and entries changed; the solver reads their current values.
+///
+/// Columns `>= cols_synced` and rows `>= rows_synced` are new: the solver
+/// sends them whole, so edits touching them are not recorded here.
+#[derive(Clone, Debug, Default)]
+pub struct ChangeLog {
+    pub enabled: bool,
+    pub cols_synced: usize,
+    pub rows_synced: usize,
+    /// A change the solver cannot replay (an SOS edit): it must rebuild.
+    pub unsupported: bool,
+    pub sense_changed: bool,
+    /// The objective was replaced or cleared: every cost must be sent again.
+    pub objective_replaced: bool,
+    pub obj_coeffs: BTreeSet<VarId>,
+    /// Edited `(row, column)` entries in rows `< rows_synced`; entries of new
+    /// columns are found here too.
+    pub coeffs: BTreeSet<(ConstrId, VarId)>,
+    /// Rows whose right-hand side or sense changed.
+    pub row_bounds: BTreeSet<ConstrId>,
+    pub var_bounds: BTreeSet<VarId>,
+    pub var_category: BTreeSet<VarId>,
+}
+
+impl ChangeLog {
+    /// Start recording, with the model's current `cols` and `rows` loaded.
+    pub fn start(&mut self, cols: usize, rows: usize) {
+        *self = ChangeLog {
+            enabled: true,
+            cols_synced: cols,
+            rows_synced: rows,
+            ..ChangeLog::default()
+        };
+    }
+
+    pub fn coeff(&mut self, cid: ConstrId, vid: VarId) {
+        if self.enabled && cid < self.rows_synced {
+            self.coeffs.insert((cid, vid));
+        }
+    }
+
+    pub fn row_bounds(&mut self, cid: ConstrId) {
+        if self.enabled && cid < self.rows_synced {
+            self.row_bounds.insert(cid);
+        }
+    }
+
+    pub fn obj_coeff(&mut self, vid: VarId) {
+        if self.enabled && vid < self.cols_synced {
+            self.obj_coeffs.insert(vid);
+        }
+    }
+
+    pub fn var_bounds(&mut self, vid: VarId) {
+        if self.enabled && vid < self.cols_synced {
+            self.var_bounds.insert(vid);
+        }
+    }
+
+    pub fn var_category(&mut self, vid: VarId) {
+        if self.enabled && vid < self.cols_synced {
+            self.var_category.insert(vid);
+        }
+    }
 }
 
 impl ModelCore {
@@ -100,6 +170,7 @@ impl ModelCore {
             sense: ObjSense::Minimize,
             next_auto_constraint_id: 0,
             sos: Vec::new(),
+            changes: ChangeLog::default(),
         }
     }
 
@@ -126,10 +197,12 @@ impl ModelCore {
 
     pub fn clear_sos(&mut self) {
         self.sos.clear();
+        self.changes.unsupported = true;
     }
 
     pub fn push_sos_group(&mut self, group: SosGroup) {
         self.sos.push(group);
+        self.changes.unsupported = true;
     }
 
     pub fn add_variable(
@@ -219,6 +292,7 @@ impl ModelCore {
 
     pub fn set_objective(&mut self, expr: AffineExpr) {
         self.objective = Some(expr);
+        self.changes.objective_replaced = true;
     }
 
     /// Set variable `vid`'s coefficient in constraint `cid`; a coefficient of 0
@@ -241,6 +315,7 @@ impl ModelCore {
         } else {
             cd.coeffs.insert(vid, coeff);
         }
+        self.changes.coeff(cid, vid);
         Ok(())
     }
 
@@ -252,12 +327,14 @@ impl ModelCore {
             )));
         }
         self.constraint_mut(cid)?.rhs = rhs;
+        self.changes.row_bounds(cid);
         Ok(())
     }
 
     /// Set the sense of constraint `cid`.
     pub fn set_sense(&mut self, cid: ConstrId, sense: Sense) -> PyResult<()> {
         self.constraint_mut(cid)?.sense = sense;
+        self.changes.row_bounds(cid);
         Ok(())
     }
 
@@ -267,6 +344,7 @@ impl ModelCore {
     pub fn set_constraint_expr(&mut self, cid: ConstrId, expr: &AffineExpr) -> PyResult<()> {
         let sense = self.check_constraint_expr(expr)?;
         let cd = self.constraint_mut(cid)?;
+        let old: Vec<VarId> = cd.coeffs.keys().copied().collect();
         cd.coeffs = expr
             .terms
             .iter()
@@ -275,6 +353,10 @@ impl ModelCore {
             .collect();
         cd.rhs = -expr.constant;
         cd.sense = sense;
+        for vid in old.into_iter().chain(expr.terms.keys().copied()) {
+            self.changes.coeff(cid, vid);
+        }
+        self.changes.row_bounds(cid);
         Ok(())
     }
 
@@ -298,20 +380,38 @@ impl ModelCore {
             )));
         }
         let drop: HashSet<VarId> = ids.iter().copied().collect();
-        for cd in &mut self.constraints {
-            cd.coeffs.retain(|vid, _| !drop.contains(vid));
+        let changes = &mut self.changes;
+        for (cid, cd) in self.constraints.iter_mut().enumerate() {
+            cd.coeffs.retain(|vid, _| {
+                let keep = !drop.contains(vid);
+                if !keep {
+                    changes.coeff(cid, *vid);
+                }
+                keep
+            });
         }
         if let Some(obj) = &mut self.objective {
-            obj.terms.retain(|vid, _| !drop.contains(vid));
+            obj.terms.retain(|vid, _| {
+                let keep = !drop.contains(vid);
+                if !keep {
+                    changes.obj_coeff(*vid);
+                }
+                keep
+            });
         }
         for g in &mut self.sos {
+            let before = g.weights.len();
             g.weights.retain(|(vid, _)| !drop.contains(vid));
+            if g.weights.len() != before {
+                changes.unsupported = true;
+            }
         }
         Ok(())
     }
 
     pub fn clear_objective(&mut self) {
         self.objective = None;
+        self.changes.objective_replaced = true;
     }
 
     /// At least two variables share the same name (invalid for LP/MPS export).
