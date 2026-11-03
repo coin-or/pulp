@@ -100,7 +100,10 @@ Takes an :py:class:`pulp.pulp.LpProblem` as argument, solves it, stores the solu
         if self.timeLimit is not None:
             cmd.extend(["-time", f"{self.timeLimit}"])
         for option in self.options:
-            cmd.append(option)
+            # options are fragments (e.g. "-threads 4") that the solver
+            # expects as separate tokens, as when the command was built as
+            # one string; only the file paths above stay single arguments
+            cmd.extend(option.split())
         if lp.isMIP():
             if not self.mip:
                 warnings.warn("MIPCL_CMD cannot solve the relaxation of a problem")

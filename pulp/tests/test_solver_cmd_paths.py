@@ -122,8 +122,10 @@ class SolverCmdPathsWithSpacesTest(unittest.TestCase):
     def assert_paths_not_split(self, argv):
         # every temporary-file argument must be one whole spaced path;
         # a fragmented path shows up as an element that is only part of it
-        # "LogFile=" is excluded: that path comes from tempfile.mkstemp in
-        # LpSolver_CMD, not from the solver tmpDir these tests exercise
+        # "LogFile=" is excluded here: that path is minted by
+        # tempfile.mkstemp in LpSolver_CMD.capture_log, not from the solver
+        # tmpDir these tests exercise, so it is not asserted to live under
+        # the spaced dir (test_gurobi_cmd checks it arrives whole instead)
         tmp_args = [a for a in argv if "-pulp." in a and not a.startswith("LogFile=")]
         self.assertTrue(tmp_args, f"no temporary paths in argv: {argv}")
         for arg in tmp_args:
@@ -142,11 +144,35 @@ class SolverCmdPathsWithSpacesTest(unittest.TestCase):
         self.assert_paths_not_split(argv)
         self.assertTrue(argv[-1].endswith("-pulp.lp"))
         self.assertIn(f"ResultFile={argv[-1].replace('.lp', '.sol')}", argv)
+        # the capture log path (from LpSolver_CMD.capture_log) is not under
+        # the spaced dir, but it must still arrive as one whole element
+        log_args = [a for a in argv if a.startswith("LogFile=")]
+        self.assertEqual(len(log_args), 1)
+        self.assertTrue(log_args[0].endswith("-pulp.log"))
+        # with a time limit and a warm start, TimeLimit is a single
+        # "key=value" token and InputFile= carries the whole spaced path
+        prob = self.build_problem()
+        prob.variables()[0].setInitialValue(1)
+        stats = prob.solve(
+            solvers.GUROBI_CMD(path=fake, msg=False, timeLimit=99, warmStart=True)
+        )
+        self.assertEqual(stats.status, const.LpSolveStatus.Optimal)
+        argv = self.recorded_argv()[1]
+        self.assert_paths_not_split(argv)
+        self.assertIn("TimeLimit=99", argv)
+        input_args = [a for a in argv if a.startswith("InputFile=")]
+        self.assertEqual(len(input_args), 1)
+        self.assertTrue(input_args[0].split("=", 1)[1].startswith(self.spaced))
+        self.assertTrue(input_args[0].endswith("-pulp.mst"))
 
     def test_mipcl_cmd(self):
         fake = _write_executable(self.spaced, "mipcl", FAKE_MIPCL)
         prob = self.build_problem()
-        stats = prob.solve(solvers.MIPCL_CMD(path=fake, msg=False))
+        stats = prob.solve(
+            solvers.MIPCL_CMD(
+                path=fake, msg=False, timeLimit=30, options=["-threads 4"]
+            )
+        )
         # MIPCL solution files do not state optimality, so a completed
         # solve with a solution reads back as Stopped (see MIPCL_CMD.readsol)
         self.assertEqual(stats.status, const.LpSolveStatus.Stopped)
@@ -155,6 +181,11 @@ class SolverCmdPathsWithSpacesTest(unittest.TestCase):
         self.assertTrue(argv[0].endswith("-pulp.mps"))
         sol = argv[argv.index("-solfile") + 1]
         self.assertTrue(sol.endswith("-pulp.sol"))
+        self.assertEqual(argv[argv.index("-time") + 1], "30")
+        # a multi-word option fragment keeps its historical tokenisation:
+        # "-threads" and "4" are separate tokens, not one "-threads 4"
+        self.assertNotIn("-threads 4", argv)
+        self.assertEqual(argv[argv.index("-threads") + 1], "4")
 
     def test_coin_cmd(self):
         fake = _write_executable(self.spaced, "cbc", FAKE_CBC)
@@ -166,6 +197,24 @@ class SolverCmdPathsWithSpacesTest(unittest.TestCase):
         self.assertTrue(argv[0].endswith("-pulp.mps"))
         sol = argv[argv.index("-solution") + 1]
         self.assertTrue(sol.endswith("-pulp.sol"))
+        # warm start, presolve and cuts: the -mips path is one whole spaced
+        # argument and the switches arrive as separate tokens
+        prob = self.build_problem()
+        for var in prob.variables():
+            var.setInitialValue(0)
+        stats = prob.solve(
+            solvers.COIN_CMD(
+                path=fake, msg=False, warmStart=True, presolve=True, cuts=False
+            )
+        )
+        self.assertEqual(stats.status, const.LpSolveStatus.Optimal)
+        argv = self.recorded_argv()[1]
+        self.assert_paths_not_split(argv)
+        mips = argv[argv.index("-mips") + 1]
+        self.assertTrue(mips.startswith(self.spaced))
+        self.assertTrue(mips.endswith("-pulp.mst"))
+        self.assertEqual(argv[argv.index("-presolve") + 1], "on")
+        self.assertEqual(argv[argv.index("-cuts") + 1], "off")
 
     def test_choco_cmd(self):
         _write_executable(self.spaced, "java", FAKE_JAVA)
@@ -176,12 +225,20 @@ class SolverCmdPathsWithSpacesTest(unittest.TestCase):
         with mock.patch.dict(
             os.environ, {"PATH": self.spaced + os.pathsep + os.environ["PATH"]}
         ):
-            stats = prob.solve(solvers.CHOCO_CMD(path=jar, msg=False))
+            stats = prob.solve(
+                solvers.CHOCO_CMD(
+                    path=jar, msg=False, timeLimit=60, options=[("-fs", "1")]
+                )
+            )
         self.assertEqual(stats.status, const.LpSolveStatus.Optimal)
         (argv,) = self.recorded_argv()
         self.assert_paths_not_split(argv)
         self.assertEqual(argv[argv.index("-cp") + 1], jar)
         self.assertTrue(argv[-1].endswith("-pulp.mps"))
+        # the time limit is the token after -limit, and each option
+        # key/value pair arrives as two separate tokens
+        self.assertEqual(argv[argv.index("-limit") + 1], "[-60s]")
+        self.assertEqual(argv[argv.index("-fs") + 1], "1")
 
 
 if __name__ == "__main__":

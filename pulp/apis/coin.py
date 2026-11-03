@@ -227,9 +227,13 @@ class COIN_CMD(LpSolver_CMD):
                 args.extend(["-cuts", "off"])
         options = self.options + self.getOptions()
         for option in options:
-            # options are pulp-controlled fragments (e.g. "threads 4" from
-            # getOptions) that the solver expects as separate tokens; only
-            # file paths must reach the solver as single arguments
+            # Option fragments (the user-supplied `options` and the
+            # getOptions() output, e.g. "threads 4") are tokenised on
+            # whitespace, as they were when the whole command was one
+            # string: the solver expects them as separate tokens. The file
+            # paths pulp generates (model, warm-start and solution files)
+            # are added to `args` directly and always reach the solver as
+            # single arguments.
             args.extend(("-" + option).split())
         if self.mip:
             args.append("-solve")
