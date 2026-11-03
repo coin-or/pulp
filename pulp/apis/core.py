@@ -91,11 +91,10 @@ import logging
 from collections.abc import Callable, Iterator
 from typing import TYPE_CHECKING, Any
 
+from .. import _rustcore, sparse
 from .. import constants as const
-from .. import sparse
 
 if TYPE_CHECKING:
-    from .. import _rustcore
     from ..core.lp_stats import LpSolveStats
     from ..pulp import LpProblem
 
@@ -859,3 +858,15 @@ def ctypesArrayFill(myList: list[Any], type: Any = ctypes.c_double) -> Any:
     for i, elem in enumerate(myList):
         cList[i] = elem
     return cList
+
+
+def _row_bounds(
+    rconstr: _rustcore.Constraint, inf: float = math.inf
+) -> tuple[float, float]:
+    """``(lower, upper)`` bounds of a row of the Rust model."""
+    rhs = rconstr.rhs
+    if rconstr.sense == _rustcore.Sense.LessEqual:
+        return -inf, rhs
+    if rconstr.sense == _rustcore.Sense.GreaterEqual:
+        return rhs, inf
+    return rhs, rhs

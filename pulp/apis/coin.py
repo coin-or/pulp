@@ -883,6 +883,7 @@ class CYLP(LpSolver_API):
         timeLimit=None,
         maxNodes=None,
         maxSolutions=None,
+        maxIterations=None,
         presolve=None,
         logPath=None,
         **solverParams,
@@ -893,9 +894,11 @@ class CYLP(LpSolver_API):
         :param float gapRel: relative gap tolerance for the solver to stop (in fraction)
         :param float gapAbs: absolute gap tolerance for the solver to stop
         :param int threads: sets the maximum number of threads
-        :param float timeLimit: maximum time for solver (in seconds), only used by Cbc
+        :param float timeLimit: maximum time for solver (in seconds), only used by
+            Cbc: CyLP offers no time limit for Clp
         :param int maxNodes: max number of nodes during branching, only used by Cbc
         :param int maxSolutions: stop after finding this many solutions, only used by Cbc
+        :param int maxIterations: max number of simplex iterations, only used by Clp
         :param bool presolve: if False, Clp solves without presolve, only used by Clp
         :param str logPath: path to the log file; the log goes there instead of
             the console
@@ -906,6 +909,7 @@ class CYLP(LpSolver_API):
             timeLimit=timeLimit,
             maxNodes=maxNodes,
             maxSolutions=maxSolutions,
+            maxIterations=maxIterations,
             presolve=presolve,
             logPath=logPath,
             **solverParams,
@@ -1027,6 +1031,11 @@ class CYLP(LpSolver_API):
     ) -> None:
         """Solves the problem with Cbc if it is a MIP, with Clp otherwise"""
         model: Any = lp.solverModel
+        if not self.isCbcModel(lp):
+            # set on every solve: a resolve keeps the model, and its last limit
+            model.maxNumIteration = self.optionsDict.get(
+                "maxIterations", _CLP_MAX_ITERATIONS
+            )
         if changes is not None:
             with self._logging(model):
                 # the dual simplex suits a basis made primal infeasible (new rows,
@@ -1203,12 +1212,16 @@ def _cylp_row_bounds(rconstr: _rustcore.Constraint) -> tuple[float, float]:
     return rhs, rhs
 
 
+# the default of ClpSimplex::maximumIterations(), i.e. no limit
+_CLP_MAX_ITERATIONS = 2147483647
+
 cylpClpStatus = {
     # status codes of ClpSimplex::status()
     0: constants.LpSolveStatus.Optimal,
     1: constants.LpSolveStatus.Infeasible,
     2: constants.LpSolveStatus.Unbounded,
-    3: constants.LpSolveStatus.Stopped,  # on iterations or time
+    # on iterations or time, and CyLP offers no time limit for Clp
+    3: constants.LpSolveStatus.IterationLimit,
     5: constants.LpSolveStatus.Stopped,  # by event handler
 }
 

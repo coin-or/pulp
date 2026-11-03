@@ -230,6 +230,7 @@ PuLP has the integrations with the official python API solvers for the following
 * XPRESS (XPRESS_PY)
 * COPT (COPT)
 * OR-Tools CP-SAT (CPSAT)
+* OR-Tools GLOP (GLOP)
 * GLPK (PYGLPK)
 
 These API offer a series of advantages over using the command line option:
@@ -272,6 +273,67 @@ Example::
 Optional arguments include ``warmStart=True`` (pass current ``varValue`` hints),
 ``timeLimit`` (seconds), and any ``CpSolver.parameters`` names as keyword
 arguments (for example ``num_search_workers=8``).
+
+Installing GLOP (OR-Tools GLOP)
+*******************************
+
+The ``GLOP`` solver is Google's simplex LP solver, driven through OR-Tools'
+MathOpt API (``ortools.math_opt.python.mathopt``). It comes with the same extra
+as ``CPSAT``::
+
+    python -m pip install pulp[ortools]
+
+GLOP solves linear programs only. A problem with integer variables (or SOS
+groups) raises ``PulpSolverError`` unless the solver is created with
+``mip=False``, which solves its LP relaxation.
+
+Besides the variable values, a solve sets the dual values (``constraint.pi``),
+slacks (``constraint.slack``) and reduced costs (``variable.dj``). GLOP keeps
+the model between solves, so ``prob.resolve()`` updates it with the edits made
+since the last solve (new columns and rows, coefficients, bounds, objective)
+and restarts from the previous basis: column generation and cutting planes
+need few pivots per round.
+
+``prob.solverModel`` holds the MathOpt ``Model`` (``.model``), the incremental
+solver (``.solver``), the parameters of the next solve (``.params``) and the
+``SolveResult`` of the last one (``.result``: basis, solve statistics, primal
+and dual rays...).
+
+Example::
+
+    import pulp as pl
+
+    prob = pl.LpProblem("glop_example", pl.LpMaximize)
+    x = prob.add_variable("x", 0, 4)
+    y = prob.add_variable("y", 0)
+    prob += 3 * x + 2 * y
+    prob += x + y <= 5, "c1"
+
+    stats = prob.solve(pl.GLOP(msg=False, timeLimit=60))
+    print(stats.status_str, x.value(), prob.constraints()[0].pi)
+
+    prob += y <= 0.5, "cut"
+    stats = prob.resolve()  # starts from the previous basis
+
+Optional arguments:
+
+* ``timeLimit`` (seconds), ``threads`` and ``logPath``.
+* ``msgCallback``: called with each batch of log lines (a list of ``str``).
+  GLOP has no other callbacks: MathOpt rejects every callback event for it.
+* ``interrupter``: an ``ortools.util.python.solve_interrupter.SolveInterrupter``.
+  Calling its ``interrupt()`` (from another thread, or from ``msgCallback``)
+  stops the solve with status ``Interrupted``.
+* Any field of MathOpt's ``SolveParameters`` (for example
+  ``iteration_limit=1000``, ``presolve=False``, ``lp_algorithm="dual_simplex"``)
+  or of ``GlopParameters`` (for example ``use_dual_simplex=True``,
+  ``primal_feasibility_tolerance=1e-9``) as keyword arguments.
+
+.. note::
+
+   OR-Tools ships its own HiGHS library under the same name as the one in the
+   ``highspy`` package. When their versions differ, only the first one loaded
+   in a process works: PuLP loads ``highspy`` first, so ``GLOP`` is not
+   available alongside a ``highspy`` built on another HiGHS version.
 
 Installing PYGLPK
 ***********************

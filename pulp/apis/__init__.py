@@ -13,7 +13,7 @@ from .gurobi import GUROBI, GUROBI_CMD
 from .highs import HiGHS, HiGHS_CMD
 from .mipcl import MIPCL_CMD
 from .mosek import MOSEK
-from .ortools import CPSAT
+from .ortools import CPSAT, GLOP
 from .sas import SAS94, SASCAS, SASsolver
 from .scip import FSCIP, FSCIP_CMD, SCIP, SCIP_CMD, SCIP_PY
 from .xpress import XPRESS, XPRESS_CMD, XPRESS_PY
@@ -45,6 +45,7 @@ __all__ = [
     "MIPCL_CMD",
     "MOSEK",
     "CPSAT",
+    "GLOP",
     "SAS94",
     "SASCAS",
     "SASsolver",
@@ -73,6 +74,7 @@ _all_solvers: list[Type[LpSolver]] = [
     GUROBI_CMD,
     MOSEK,
     CPSAT,
+    GLOP,
     XPRESS,
     XPRESS_CMD,
     XPRESS_PY,

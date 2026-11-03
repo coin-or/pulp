@@ -73,6 +73,28 @@ class CYLPTest(BaseSolverTest.PuLPTest):
         assert stats.objective is not None
         self.assertAlmostEqual(stats.objective, 8)
 
+    def test_iteration_limit(self):
+        # several pivots are needed: one iteration stops Clp short of the optimum
+        prob = LpProblem("iterations", LpMaximize)
+        xs = [prob.add_variable(f"x{i}", 0, 10) for i in range(6)]
+        prob += sum((i + 1) * x for i, x in enumerate(xs)), "obj"
+        for k in range(4):
+            prob += sum((i + k) % 3 * x for i, x in enumerate(xs)) <= 10 + k, f"c{k}"
+        solver = solvers.CYLP(msg=False, maxIterations=1)
+        stats = prob.solve(solver)
+        self.assertIs(stats.status, LpSolveStatus.IterationLimit)
+        self.assertFalse(stats.has_solution)
+        model = prob.solverModel
+        assert model is not None
+        self.assertEqual(model.maxNumIteration, 1)
+        # a resolve without the limit lifts it from the model it keeps
+        del solver.optionsDict["maxIterations"]
+        prob += xs[0] <= 9, "cut"
+        stats = prob.resolve()
+        self.assertIs(prob.solverModel, model)
+        self.assertIs(stats.status, LpSolveStatus.Optimal)
+        self.assertTrue(stats.has_solution)
+
     @contextlib.contextmanager
     def _console(self):
         """Collect what is written to the process's standard output (the file

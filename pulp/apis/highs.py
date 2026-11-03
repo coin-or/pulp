@@ -15,6 +15,7 @@ from .core import (
     LpSolver_API,
     LpSolver_CMD,
     PulpSolverError,
+    _row_bounds,
     clocks,
     import_optional,
     requires,
@@ -274,16 +275,6 @@ class HiGHS_CMD(LpSolver_CMD):
 
 
 highspy_mod = import_optional("highspy")
-
-
-def _row_bounds(rconstr: _rustcore.Constraint, inf: float) -> tuple[float, float]:
-    """``(lower, upper)`` bounds of a row of the Rust model."""
-    rhs = rconstr.rhs
-    if rconstr.sense == _rustcore.Sense.LessEqual:
-        return -inf, rhs
-    if rconstr.sense == _rustcore.Sense.GreaterEqual:
-        return rhs, inf
-    return rhs, rhs
 
 
 class HiGHS(LpSolver_API):

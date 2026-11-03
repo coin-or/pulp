@@ -163,6 +163,22 @@ class ResolveTests:
             self.assertGreater(self.iterations(cold), 0)
             self.assert_matches_cold(prob)
 
+        def test_satisfied_row_needs_no_pivots(self):
+            # a new row the old optimum satisfies (with a non-improving column, as
+            # column generation adds them) leaves that optimum optimal: a resolve
+            # that keeps the basis, the new row basic, needs no pivots
+            self.solver = self.make_solver(presolve=False)
+            prob = _base()
+            prob.solve(self.solver)
+            c1 = prob.constraints()[0]
+            assert c1.pi is not None
+            x, y, _ = prob.variables()
+            v = prob.add_column("v", 0, 10, obj=c1.pi + 1, coefficients={c1: 1})
+            prob += x + y + v <= 8, "loose"  # the old optimum has x + y = 3
+            prob.resolve()
+            self.assertEqual(self.iterations(prob), 0)
+            self.assert_matches_cold(prob)
+
         def test_column_generation_cutting_stock(self):
             roll, widths, demands = 100, [45, 36, 31, 14], [97, 610, 395, 211]
             prob = LpProblem("cutting_stock", const.LpMinimize)
@@ -551,6 +567,24 @@ class CplexResolveTest(ResolveTests.Base):
     def iterations(self, prob: LpProblem) -> float:
         assert prob.solverModel is not None
         return prob.solverModel.solution.progress.get_num_iterations()
+
+
+class GlopResolveTest(ResolveTests.Base):
+    solver_name = "GLOP"
+    presolve_off = {"presolve": False}
+
+    def setUp(self):
+        if self._testMethodName in (
+            "test_mip_branching",
+            "test_relax_then_restore_integrality",
+            "test_sos_edit_rebuilds",
+        ):
+            self.skipTest("GLOP solves LPs only")
+        super().setUp()
+
+    def iterations(self, prob: LpProblem) -> float:
+        assert prob.solverModel is not None
+        return prob.solverModel.result.solve_stats.simplex_iterations
 
 
 if __name__ == "__main__":
