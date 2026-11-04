@@ -1,5 +1,7 @@
 # Build wheels with maturin and publish to PyPI when a GitHub Release is published.
-# Runs only on ``release`` (published), not on branch/tag push or pull requests.
+# Runs on ``release`` (published), not on branch/tag push or pull requests.
+# It can also be run manually (workflow_dispatch) to check the wheels; only a
+# release publishes them.
 # Generated from maturin generate-ci github, merged with Test PyPI + PyPI publish.
 # To refresh the build matrix, run: maturin generate-ci github
 name: CI
@@ -8,6 +10,7 @@ on:
   release:
     types:
       - published
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -40,7 +43,10 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out dist --find-interpreter
+          maturin-version: v1.16.0
+          # CPython only: when cross-compiling, --find-interpreter also picks
+          # PyPy 3.12, which pyo3-ffi 0.29 does not build for
+          args: --release --out dist -i python3.12 python3.13 python3.14 python3.15 python3.14t python3.15t
           sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
           manylinux: auto
       - name: Upload wheels
@@ -71,7 +77,10 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out dist --find-interpreter
+          maturin-version: v1.16.0
+          # CPython only: when cross-compiling, --find-interpreter also picks
+          # PyPy 3.12, which pyo3-ffi 0.29 does not build for
+          args: --release --out dist -i python3.12 python3.13 python3.14 python3.15 python3.14t python3.15t
           sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
           manylinux: musllinux_1_2
       - name: Upload wheels
@@ -104,6 +113,7 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
+          maturin-version: v1.16.0
           args: --release --out dist --find-interpreter
           sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
       - name: Upload wheels
@@ -130,6 +140,7 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
+          maturin-version: v1.16.0
           args: --release --out dist --find-interpreter
           sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
       - name: Upload wheels
@@ -146,6 +157,7 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           command: sdist
+          maturin-version: v1.16.0
           args: --out dist
       - name: Upload sdist
         uses: actions/upload-artifact@v7
@@ -155,6 +167,7 @@ jobs:
 
   release:
     name: Publish to PyPI
+    if: github.event_name == 'release'
     runs-on: ubuntu-latest
     needs: [linux, musllinux, windows, macos, sdist]
     permissions:
