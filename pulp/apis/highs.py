@@ -631,15 +631,19 @@ class HiGHS(LpSolver_API):
         row_values = list(solution.row_value)
         row_duals = list(solution.row_dual)
         for constraint in lp.constraints():
-            # PuLP returns LpConstraint.constant as if it were on the
-            # left-hand side, which means the signs on the following line
-            # are correct
-            # We need to flip the sign for slacks for LE constraints
             row_idx = constraint.id
-            constraint.slack = constraint.constant + row_values[row_idx]
-            if constraint.sense == constants.LpConstraintLE:
-                constraint.slack *= -1.0
-            constraint.pi = row_duals[row_idx]
+            # HiGHS can return a solution without row values or duals, e.g. when
+            # it stops early: leave slack and pi unset instead of failing the solve
+            if row_idx < len(row_values):
+                # PuLP returns LpConstraint.constant as if it were on the
+                # left-hand side, which means the signs on the following line
+                # are correct
+                # We need to flip the sign for slacks for LE constraints
+                constraint.slack = constraint.constant + row_values[row_idx]
+                if constraint.sense == constants.LpConstraintLE:
+                    constraint.slack *= -1.0
+            if row_idx < len(row_duals):
+                constraint.pi = row_duals[row_idx]
 
         # a solver that stopped early without an incumbent reports an infinite objective
         has_solution = status == HighsModelStatus.kOptimal or (

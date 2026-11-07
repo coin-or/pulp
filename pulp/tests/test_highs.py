@@ -91,6 +91,37 @@ class HiGHS_PYTest(BaseSolverTest.PuLPTest):
         self.assertEqual(list(lp.a_matrix_.index_), [0, 0, 1, 1])
         self.assertEqual(list(lp.a_matrix_.value_), [1, 2, -1, 1])
 
+    def test_solution_without_rows(self):
+        # HiGHS can hand back column values without row values or duals: the solve
+        # reports its result and leaves slack and pi unset rather than failing
+        import highspy
+
+        class Model:
+            def __init__(self, highs):
+                self.highs = highs
+
+            def __getattr__(self, name):
+                return getattr(self.highs, name)
+
+            def getSolution(self):
+                solution = highspy.HighsSolution()
+                solution.col_value = self.highs.getSolution().col_value
+                return solution
+
+        class HiGHS(solvers.HiGHS):
+            def callSolver(self, lp, **kwargs):
+                super().callSolver(lp, **kwargs)
+                lp.solverModel = Model(lp.solverModel)
+
+        prob = LpProblem("no_rows", LpMaximize)
+        x = prob.add_variable("x", 0, 4)
+        prob += x, "obj"
+        prob += x <= 3, "c1"
+        stats = prob.solve(HiGHS(msg=False))
+        self.assertIs(stats.status, LpSolveStatus.Optimal)
+        self.assertEqual(x.value(), 3)
+        self.assertIsNone(prob.constraints()[0].pi)
+
     def test_callback(self):
         prob = create_bin_packing_problem(bins=40, seed=99)
 
