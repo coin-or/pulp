@@ -276,6 +276,15 @@ highspy_mod = import_optional("highspy")
 np = import_optional("numpy")
 
 
+def _check(status, what):
+    # HiGHS rejects a whole batch on an error, e.g. a coefficient of at least
+    # large_matrix_value, and would then solve the model without it
+    if status == highspy_mod.HighsStatus.kError:
+        raise PulpSolverError(
+            f"HiGHS: cannot add the {what}, check for very large coefficients"
+        )
+
+
 class HiGHS(LpSolver_API):
     name = "HiGHS"
 
@@ -394,8 +403,11 @@ class HiGHS(LpSolver_API):
         upper = np.array([var.upBound for var in variables], dtype=np.float64)
 
         empty = np.zeros(0, dtype=np.int32)
-        lp.solverModel.addCols(
-            len(variables), cost, lower, upper, 0, empty, empty, np.zeros(0)
+        _check(
+            lp.solverModel.addCols(
+                len(variables), cost, lower, upper, 0, empty, empty, np.zeros(0)
+            ),
+            "variables",
         )
 
         if self.mip:
@@ -431,14 +443,17 @@ class HiGHS(LpSolver_API):
             row_lower.append(-inf if lb is None else lb)
             row_upper.append(inf if ub is None else ub)
 
-        lp.solverModel.addRows(
-            len(constraints),
-            np.array(row_lower, dtype=np.float64),
-            np.array(row_upper, dtype=np.float64),
-            len(indices),
-            np.array(starts, dtype=np.int32),
-            np.array(indices, dtype=np.int32),
-            np.array(coefficients, dtype=np.float64),
+        _check(
+            lp.solverModel.addRows(
+                len(constraints),
+                np.array(row_lower, dtype=np.float64),
+                np.array(row_upper, dtype=np.float64),
+                len(indices),
+                np.array(starts, dtype=np.int32),
+                np.array(indices, dtype=np.int32),
+                np.array(coefficients, dtype=np.float64),
+            ),
+            "constraints",
         )
         self._start_tracking(lp)
         if self.optionsDict.get("warmStart", False):
@@ -489,15 +504,18 @@ class HiGHS(LpSolver_API):
                 rows, values = columns.get(j, ([], []))
                 indices.extend(rows)
                 coefficients.extend(values)
-            h.addCols(
-                len(new_cols),
-                np.array(model.objective_coefficients(new_cols), dtype=np.float64),
-                np.array([v.lb for v in rvars], dtype=np.float64),
-                np.array([v.ub for v in rvars], dtype=np.float64),
-                len(indices),
-                np.array(starts, dtype=np.int32),
-                np.array(indices, dtype=np.int32),
-                np.array(coefficients, dtype=np.float64),
+            _check(
+                h.addCols(
+                    len(new_cols),
+                    np.array(model.objective_coefficients(new_cols), dtype=np.float64),
+                    np.array([v.lb for v in rvars], dtype=np.float64),
+                    np.array([v.ub for v in rvars], dtype=np.float64),
+                    len(indices),
+                    np.array(starts, dtype=np.int32),
+                    np.array(indices, dtype=np.int32),
+                    np.array(coefficients, dtype=np.float64),
+                ),
+                "variables",
             )
             if self.mip:
                 integer = np.array(
@@ -525,18 +543,21 @@ class HiGHS(LpSolver_API):
                 lb, ub = _row_bounds(rconstr, inf)
                 row_lower.append(lb)
                 row_upper.append(ub)
-            h.addRows(
-                len(changes.new_rows),
-                np.array(row_lower, dtype=np.float64),
-                np.array(row_upper, dtype=np.float64),
-                len(indices),
-                np.array(starts, dtype=np.int32),
-                np.array(indices, dtype=np.int32),
-                np.array(coefficients, dtype=np.float64),
+            _check(
+                h.addRows(
+                    len(changes.new_rows),
+                    np.array(row_lower, dtype=np.float64),
+                    np.array(row_upper, dtype=np.float64),
+                    len(indices),
+                    np.array(starts, dtype=np.int32),
+                    np.array(indices, dtype=np.int32),
+                    np.array(coefficients, dtype=np.float64),
+                ),
+                "constraints",
             )
 
         for i, j, value in old_entries:
-            h.changeCoeff(i, j, value)
+            _check(h.changeCoeff(i, j, value), "constraints")
 
         if changes.row_bounds:
             bounds = [
@@ -631,19 +652,15 @@ class HiGHS(LpSolver_API):
         row_values = list(solution.row_value)
         row_duals = list(solution.row_dual)
         for constraint in lp.constraints():
+            # PuLP returns LpConstraint.constant as if it were on the
+            # left-hand side, which means the signs on the following line
+            # are correct
+            # We need to flip the sign for slacks for LE constraints
             row_idx = constraint.id
-            # HiGHS can return a solution without row values or duals, e.g. when
-            # it stops early: leave slack and pi unset instead of failing the solve
-            if row_idx < len(row_values):
-                # PuLP returns LpConstraint.constant as if it were on the
-                # left-hand side, which means the signs on the following line
-                # are correct
-                # We need to flip the sign for slacks for LE constraints
-                constraint.slack = constraint.constant + row_values[row_idx]
-                if constraint.sense == constants.LpConstraintLE:
-                    constraint.slack *= -1.0
-            if row_idx < len(row_duals):
-                constraint.pi = row_duals[row_idx]
+            constraint.slack = constraint.constant + row_values[row_idx]
+            if constraint.sense == constants.LpConstraintLE:
+                constraint.slack *= -1.0
+            constraint.pi = row_duals[row_idx]
 
         # a solver that stopped early without an incumbent reports an infinite objective
         has_solution = status == HighsModelStatus.kOptimal or (
