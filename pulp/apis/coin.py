@@ -199,41 +199,48 @@ class COIN_CMD(LpSolver_CMD):
                 objectiveName,
                 pulp_names_in_column_order,
             ) = lp.writeMPS(tmpMps, rename=True)
-            cmds = " " + tmpMps + " "
+            args = [self.path, tmpMps]
         else:
             written_vars = lp.writeLP(tmpLp)
             var_names_list = [v.name for v in written_vars]
             constr_names_list = [c.name for c in lp.constraints()]
             pulp_names_in_column_order = None
-            cmds = " " + tmpLp + " "
+            args = [self.path, tmpLp]
         if self.optionsDict.get("warmStart", False):
             self.writesol(tmpMst, lp, var_names_list, constr_names_list)
-            cmds += f"-mips {tmpMst} "
+            args.extend(["-mips", tmpMst])
         if self.timeLimit is not None:
-            cmds += f"-sec {self.timeLimit} "
+            args.extend(["-sec", f"{self.timeLimit}"])
         if self.optionsDict.get("presolve") is not None:
             if self.optionsDict["presolve"]:
                 # presolve is True: add 'presolve on'
-                cmds += "-presolve on "
+                args.extend(["-presolve", "on"])
             else:
                 # presolve is False: add 'presolve off'
-                cmds += "-presolve off "
+                args.extend(["-presolve", "off"])
         if self.optionsDict.get("cuts") is not None:
             if self.optionsDict["cuts"]:
                 # activate gomory, knapsack, and probing cuts
-                cmds += "-gomory on knapsack on probing on "
+                args.extend(["-gomory", "on", "knapsack", "on", "probing", "on"])
             else:
                 # turn off all cuts
-                cmds += "-cuts off "
+                args.extend(["-cuts", "off"])
         options = self.options + self.getOptions()
         for option in options:
-            cmds += "-" + option + " "
+            # Option fragments (the user-supplied `options` and the
+            # getOptions() output, e.g. "threads 4") are tokenised on
+            # whitespace, as they were when the whole command was one
+            # string: the solver expects them as separate tokens. The file
+            # paths pulp generates (model, warm-start and solution files)
+            # are added to `args` directly and always reach the solver as
+            # single arguments.
+            args.extend(("-" + option).split())
         if self.mip:
-            cmds += "-solve "
+            args.append("-solve")
         else:
-            cmds += "-initialSolve "
-        cmds += "-printingOptions all "
-        cmds += "-solution " + tmpSol + " "
+            args.append("-initialSolve")
+        args.extend(["-printingOptions", "all"])
+        args.extend(["-solution", tmpSol])
         logPath = self.optionsDict.get("logPath")
         if logPath:
             if self.msg:
@@ -243,10 +250,7 @@ class COIN_CMD(LpSolver_CMD):
             pipe = open(self.optionsDict["logPath"], "w")
         else:
             pipe = self.get_pipe()
-        log.debug(self.path + cmds)
-        args = []
-        args.append(self.path)
-        args.extend(cmds[1:].split())
+        log.debug(" ".join(args))
         if not self.msg and operating_system == "win":
             # Prevent flashing windows if used from a GUI application
             startupinfo = subprocess.STARTUPINFO()

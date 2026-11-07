@@ -3,11 +3,17 @@ Shared solver test infrastructure for pulp unit tests.
 """
 
 import functools
+import json
 import os
+import stat
+import sys
+import tempfile
+import textwrap
 import unittest
 from dataclasses import dataclass, field
 from decimal import Decimal
 from typing import Any, ClassVar, Type
+from unittest import mock
 
 import pulp.apis as solvers
 from pulp import (
@@ -952,6 +958,87 @@ class BaseSolverTest:
                 self.solver,
                 [const.LpSolveStatus.Optimal],
                 {x: 4, y: -1, z: 6, w: 0},
+            )
+
+
+FAKE_SOLVER_ARGV_PREAMBLE = """\
+import json
+import os
+import sys
+
+with open(os.environ["FAKE_ARGV_LOG"], "a") as f:
+    f.write(json.dumps(sys.argv[1:]) + "\\n")
+"""
+
+
+def write_fake_executable(directory, name, source):
+    """Write ``source`` as executable script ``name`` inside ``directory``."""
+    path = os.path.join(directory, name)
+    with open(path, "w") as f:
+        f.write("#!" + sys.executable + "\n")
+        f.write(textwrap.dedent(source))
+    os.chmod(path, os.stat(path).st_mode | stat.S_IEXEC)
+    return path
+
+
+@unittest.skipUnless(os.name == "posix", "fake executables need a POSIX shell")
+class SolverCmdPathsWithSpacesTestCase(unittest.TestCase):
+    """Shared fixture for the per-solver "paths with spaces" CMD tests.
+
+    Issue #811: ``GUROBI_CMD``, ``MIPCL_CMD``, ``CHOCO_CMD`` and
+    ``COIN_CMD`` built their command line as one string and split it on
+    whitespace before calling the solver, so a ``TMPDIR`` (or solver
+    path) containing a space broke every file path into fragments and
+    the solve failed.
+
+    Each solver's test lives in that solver's own test module and runs
+    the solver against a fake executable that records the ``argv`` it
+    receives and writes a minimal valid solution file, with the
+    temporary directory (and the fake executables themselves) placed
+    under a directory whose name contains spaces. No real solver is
+    needed.
+    """
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self._tmp.cleanup)
+        # the whole point: every path below lives under a spaced directory
+        self.spaced = os.path.join(self._tmp.name, "dir with spaces")
+        os.makedirs(self.spaced)
+        self.argv_log = os.path.join(self.spaced, "argv.log")
+        env = mock.patch.dict(
+            os.environ,
+            {"TMPDIR": self.spaced, "FAKE_ARGV_LOG": self.argv_log},
+        )
+        env.start()
+        self.addCleanup(env.stop)
+
+    def build_problem(self):
+        prob = LpProblem("test_spaces", const.LpMinimize)
+        x = prob.add_variable("x", 0, 4)
+        y = prob.add_variable("y", -1, 1)
+        prob += x + 4 * y
+        prob += x + y <= 5
+        return prob
+
+    def recorded_argv(self):
+        with open(self.argv_log) as f:
+            return [json.loads(line) for line in f]
+
+    def assert_paths_not_split(self, argv):
+        # every temporary-file argument must be one whole spaced path;
+        # a fragmented path shows up as an element that is only part of it
+        # "LogFile=" is excluded here: that path is minted by
+        # tempfile.mkstemp in LpSolver_CMD.capture_log, not from the solver
+        # tmpDir these tests exercise, so it is not asserted to live under
+        # the spaced dir (test_gurobi_cmd checks it arrives whole instead)
+        tmp_args = [a for a in argv if "-pulp." in a and not a.startswith("LogFile=")]
+        self.assertTrue(tmp_args, f"no temporary paths in argv: {argv}")
+        for arg in tmp_args:
+            path = arg.split("=", 1)[-1]  # strip a leading "ResultFile=" etc.
+            self.assertTrue(
+                path.startswith(self.spaced),
+                f"path argument was split: {arg!r} not under {self.spaced!r}",
             )
 
 
