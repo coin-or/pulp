@@ -348,7 +348,7 @@ class COIN_CMD(LpSolver_CMD):
         reducedCosts: dict[str, float] = {}
         shadowPrices: dict[str, float] = {}
         slacks: dict[str, float] = {}
-        status, has_solution = self.get_status(filename)
+        status, has_solution = self.get_status(filename, is_mip=lp.isMIP() and self.mip)
         with open(filename) as f:
             for line in f:
                 if len(line) <= 2:
@@ -418,7 +418,9 @@ class COIN_CMD(LpSolver_CMD):
         constraintNames = [c.name for c in lp.constraints()]
         return self.readsol_MPS(filename, lp, variableNames, constraintNames)
 
-    def get_status(self, filename: str) -> tuple[constants.LpSolveStatus, bool]:
+    def get_status(
+        self, filename: str, is_mip: bool = False
+    ) -> tuple[constants.LpSolveStatus, bool]:
         """Read why CBC stopped, and whether it has a solution, off the first line
         of its solution file, e.g. ``Stopped on time - objective value 12``."""
         with open(filename) as f:
@@ -431,7 +433,9 @@ class COIN_CMD(LpSolver_CMD):
         if line.startswith(("Infeasible", "Integer infeasible")):
             return S.Infeasible, False
         if line.startswith("Unbounded"):
-            return S.Unbounded, False
+            # for a MIP the word is the relaxation's: the problem may as well
+            # have no integer point at all
+            return (S.Undefined if is_mip else S.Unbounded), False
         if line.startswith("Stopped"):
             has_solution = "no integer solution" not in line
             # "iterations" also covers the node and solution limits, so it says

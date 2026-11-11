@@ -288,6 +288,28 @@ class COIN_CMDTest(BaseSolverTest.PuLPTest):
         prob += w >= 0, "c4"
         self._apply_pulp_check(prob, sol={x: 4, y: -1, z: 6, w: 0})
 
+    def test_integer_unbounded(self):
+        """CBC writes ``Unbounded`` when the relaxation is; for a MIP that does
+        not tell unbounded from infeasible."""
+        prob = LpProblem(self._testMethodName, const.LpMaximize)
+        x = prob.add_variable("x", 0, 10, const.LpInteger)
+        y = prob.add_variable("y", 0, None, const.LpInteger)
+        prob += 3 * x + 2 * y
+        prob += 2 * x + 2 * y >= 7, "c1"
+        prob += x - y <= 1, "c2"
+        pulpTestCheck(prob, self.solver, [const.LpSolveStatus.Undefined])
+
+    def test_integer_infeasible_unbounded_relaxation(self):
+        """No integer point, while the relaxation grows along x = y + 0.5:
+        CBC writes ``Unbounded`` here too."""
+        prob = LpProblem(self._testMethodName, const.LpMaximize)
+        x = prob.add_variable("x", 0, None, const.LpInteger)
+        y = prob.add_variable("y", 0, None, const.LpInteger)
+        prob += 3 * x + 2 * y
+        prob += 2 * x - 2 * y == 1, "c1"
+        prob += x - y <= 1, "c2"
+        pulpTestCheck(prob, self.solver, [const.LpSolveStatus.Undefined])
+
     def test_add_variable_dicts_tuple_indices_mps_path(self):
         """Tuple keys from a list of indices build names with punctuation/spaces; CBC MPS path must run."""
         prob = LpProblem(self._testMethodName, const.LpMinimize)
