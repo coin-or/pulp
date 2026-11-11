@@ -156,6 +156,35 @@ class CYLPTest(BaseSolverTest.PuLPTest):
             prob.solve(solvers.CYLP(msg=False))
         self.assertEqual(console[0], "")
 
+    def test_resolve_method(self):
+        # either simplex, forced or chosen from the changes, re-solves to the optimum
+        for method in (None, "dual", "primal"):
+            with self.subTest(method=method):
+                prob = self._lp()
+                options = {} if method is None else {"resolveMethod": method}
+                prob.solve(solvers.CYLP(msg=False, **options))
+                model = prob.solverModel
+                prob += prob.variables()[0] <= 1, "cut"
+                stats = prob.resolve()
+                self.assertIs(prob.solverModel, model)
+                self.assertEqual(stats.status, LpSolveStatus.Optimal)
+                self.assertAlmostEqual(prob.objective.value(), 8)
+        prob = self._lp()
+        prob.solve(solvers.CYLP(msg=False, resolveMethod="barrier"))
+        prob += prob.variables()[0] <= 1, "cut"
+        with self.assertRaises(ValueError):
+            prob.resolve()
+
+    def test_perturbation(self):
+        # passed to Clp (which has no getter for it) on the solve and the resolve,
+        # not set as a model attribute; the optimum is the same
+        prob = self._lp()
+        stats = prob.solve(solvers.CYLP(msg=False, perturbation=50))
+        self.assertEqual(stats.status, LpSolveStatus.Optimal)
+        prob += prob.variables()[0] <= 1, "cut"
+        self.assertEqual(prob.resolve().status, LpSolveStatus.Optimal)
+        self.assertAlmostEqual(prob.objective.value(), 8)
+
     def test_resolve_writes_its_log(self):
         with tempfile.TemporaryDirectory() as tmp:
             log_path = os.path.join(tmp, "cylp.log")

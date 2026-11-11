@@ -50,6 +50,9 @@ if TYPE_CHECKING:
 import warnings
 
 gurobipy_mod = import_optional("gurobipy")
+# optional: used to add all the rows of a model in one call
+np = import_optional("numpy")
+sparse = import_optional("scipy.sparse")
 
 
 class GUROBI(LpSolver_API):
@@ -344,48 +347,93 @@ class GUROBI(LpSolver_API):
             if lp.sense == constants.LpMaximize:
                 lp.solverModel.setAttr("ModelSense", -1)
 
+        m = lp.solverModel
         # every variable is a column, used or not: column j is the variable with
-        # id j (as row i is the constraint with id i), so a resolve only appends
+        # id j (as row i is the constraint with id i), so a resolve only appends.
+        # Columns and rows are added in one call each: one call per column or row
+        # costs more than the solve itself on large, easy models
         variables = lp.variables()
-        objective = {var.id: coefficient for var, coefficient in lp.objective.items()}
-        var_handles = [
-            lp.solverModel.addVar(
-                _bound(var.lowBound),
-                _bound(var.upBound),
-                vtype=self._vtype(var.cat == constants.LpInteger),
-                obj=objective.get(var.id, 0.0),
-                name=var.name,
-            )
-            for var in variables
-        ]
+        obj = [0.0] * len(variables)
+        for var, coefficient in lp.objective.items():
+            obj[var.id] = coefficient
+        var_handles: list[Any] = list(
+            m.addVars(
+                len(variables),
+                lb=[_bound(var.lowBound) for var in variables],
+                ub=[_bound(var.upBound) for var in variables],
+                obj=obj,
+                vtype=[
+                    self._vtype(var.cat == constants.LpInteger) for var in variables
+                ],
+                name=[var.name for var in variables],
+            ).values()
+        )
         if self.optionsDict.get("warmStart", False):
-            for var in variables:
-                if var.varValue is not None:
-                    var_handles[var.id].start = var.varValue
+            started = [var for var in variables if var.varValue is not None]
+            if started:
+                m.setAttr(
+                    "Start",
+                    [var_handles[var.id] for var in started],
+                    [var.varValue for var in started],
+                )
 
         log.debug("add the Constraints to the problem")
-        for constraint in lp.constraints():
-            expr = gurobipy_mod.LinExpr(
-                list(constraint.values()),
-                [var_handles[v.id] for v in constraint.keys()],
-            )
-            if constraint.sense == constants.LpConstraintLE:
-                lp.solverModel.addConstr(
-                    expr <= -constraint.constant, name=constraint.name
-                )
-            elif constraint.sense == constants.LpConstraintGE:
-                lp.solverModel.addConstr(
-                    expr >= -constraint.constant, name=constraint.name
-                )
-            elif constraint.sense == constants.LpConstraintEQ:
-                lp.solverModel.addConstr(
-                    expr == -constraint.constant, name=constraint.name
-                )
-            else:
-                raise PulpSolverError("Detected an invalid constraint type")
-        lp.solverModel.update()
+        constraints = lp.constraints()
+        if constraints:
+            self._add_rows(m, var_handles, constraints)
+        m.update()
         self.configureSolver(lp)
         self._start_tracking(lp)
+
+    def _add_rows(self, m: Any, var_handles: list[Any], constraints: list) -> None:
+        """Add the constraints to the Gurobi model, in one ``addMConstr`` call if
+        numpy and scipy are installed, else with one ``addLConstr`` call per row."""
+        senses = {
+            constants.LpConstraintLE: gurobipy_mod.GRB.LESS_EQUAL,
+            constants.LpConstraintGE: gurobipy_mod.GRB.GREATER_EQUAL,
+            constants.LpConstraintEQ: gurobipy_mod.GRB.EQUAL,
+        }
+        sense: list[str] = []
+        rhs: list[float] = []
+        names: list[str] = []
+        indptr = [0]
+        indices: list[int] = []
+        data: list[float] = []
+        for constraint in constraints:
+            try:
+                sense.append(senses[constraint.sense])
+            except KeyError:
+                raise PulpSolverError("Detected an invalid constraint type") from None
+            rhs.append(-constraint.constant)
+            names.append(constraint.name)
+            for var, coefficient in constraint.items():
+                if coefficient != 0:
+                    indices.append(var.id)
+                    data.append(coefficient)
+            indptr.append(len(indices))
+
+        if np is None or sparse is None:
+            LinExpr = gurobipy_mod.LinExpr
+            for i, name in enumerate(names):
+                start, end = indptr[i], indptr[i + 1]
+                expr = LinExpr(
+                    data[start:end], [var_handles[j] for j in indices[start:end]]
+                )
+                m.addLConstr(expr, sense[i], rhs[i], name=name)
+            return
+
+        A = sparse.csr_matrix(
+            (
+                np.array(data, dtype=np.float64),
+                np.array(indices, dtype=np.int64),
+                np.array(indptr, dtype=np.int64),
+            ),
+            shape=(len(names), len(var_handles)),
+        )
+        x = gurobipy_mod.MVar.fromlist(var_handles)
+        constrs = m.addMConstr(A, x, np.array(sense), np.array(rhs, dtype=np.float64))
+        m.update()
+        m.setAttr("ConstrName", constrs.tolist(), names)
 
     def _vtype(self, integer: bool) -> str:
         GRB = gurobipy_mod.GRB

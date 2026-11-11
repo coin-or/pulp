@@ -433,6 +433,19 @@ Following my installation paths it would be (Linux)::
 
 As you can see, it is necessary to have admin rights to install it.
 
+The ``gurobipy`` package is also available from PyPI (it includes a size-limited
+license)::
+
+    python -m pip install pulp[gurobi]
+
+To build large models faster, also install SciPy (it installs NumPy too)::
+
+    python -m pip install pulp[gurobi] scipy
+
+With SciPy, ``GUROBI`` adds all the constraints to the Gurobi model in a single
+call. Without it, the constraints are added one by one, which is slower on
+large models but gives the same model.
+
 Installing XPRESS_PY
 ***********************
 

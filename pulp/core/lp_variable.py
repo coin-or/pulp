@@ -188,8 +188,7 @@ class LpVariable:
 
     @varValue.setter
     def varValue(self, v: float | None) -> None:
-        if v is not None:
-            self._var.set_value(v)
+        self._var.set_value(v)
 
     @property
     def _lowbound_original(self) -> float | None:

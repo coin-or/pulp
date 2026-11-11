@@ -902,7 +902,10 @@ class CYLP(LpSolver_API):
         :param str logPath: path to the log file; the log goes there instead of
             the console
         :param dict solverParams: attributes of the Clp or Cbc model being
-            solved, e.g. ``primalTolerance`` (Clp) or ``allowableGap`` (Cbc)
+            solved, e.g. ``primalTolerance`` (Clp) or ``allowableGap`` (Cbc);
+            ``resolveMethod`` (``"primal"`` or ``"dual"``) forces Clp's simplex
+            on a resolve, chosen from the changes otherwise; ``perturbation`` is
+            Clp's (``setPerturbation``, e.g. 50: always perturb), on every solve
         """
         super().__init__(
             mip=mip,
@@ -1038,17 +1041,25 @@ class CYLP(LpSolver_API):
             model.maxNumIteration = self.optionsDict.get(
                 "maxIterations", _CLP_MAX_ITERATIONS
             )
+            if (perturbation := self.optionsDict.get("perturbation")) is not None:
+                model.setPerturbation(perturbation)
         # the other options are attributes of the Clp or Cbc model, e.g.
         # primalTolerance or allowableGap; an unknown one raises AttributeError
         for key, value in self.optionsDict.items():
             if key not in _CYLP_OPTIONS:
                 setattr(model, key, value)
         if changes is not None:
+            # the dual simplex suits a basis made primal infeasible (new rows,
+            # new bounds), the primal one a basis made dual infeasible (new
+            # columns); ``resolveMethod`` ("primal" or "dual") forces one
+            method = self.optionsDict.get("resolveMethod")
+            if method is None:
+                dual = changes.new_rows or changes.row_bounds or changes.var_bounds
+                method = "dual" if dual else "primal"
+            if method not in ("primal", "dual"):
+                raise ValueError(f"unknown resolveMethod {method!r}")
             with self._logging(model):
-                # the dual simplex suits a basis made primal infeasible (new rows,
-                # new bounds), the primal one a basis made dual infeasible (new
-                # columns)
-                if changes.new_rows or changes.row_bounds or changes.var_bounds:
+                if method == "dual":
                     model.dual()
                 else:
                     model.primal()
@@ -1230,6 +1241,8 @@ _CYLP_OPTIONS = (
     "presolve",
     "logPath",
     "warmStart",
+    "resolveMethod",
+    "perturbation",
 )
 
 cylpClpStatus = {
