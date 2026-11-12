@@ -195,8 +195,11 @@ class HiGHS_CMD(LpSolver_CMD):
             model_status = " ".join(model_line[0][3:])  # Model status: ...
         else:
             # ILP
-            model_line = [line for line in lines if "Status" in line][0]
-            model_status = " ".join(model_line[1:])
+            status_lines = [line for line in lines if "Status" in line]
+            if len(status_lines) > 0:
+                model_status = " ".join(status_lines[0][1:])
+            else:
+                model_status = ""
         sol_line = [line for line in lines if line[:2] == ["Solution", "status"]]
         sol_line = sol_line[0] if len(sol_line) > 0 else ["Not solved"]
         sol_status = sol_line[-1]
