@@ -52,9 +52,11 @@
 <li class="toctree-l2"><a class="reference internal" href="how_to_model_column_wise.html">How to model column-wise</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">How to configure a solver in PuLP</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#checking-which-solvers-pulp-has-access-to">Checking which solvers PuLP has access to</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#solvers-supported-by-pulp">Solvers supported by PuLP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#what-is-an-environment-variable">What is an environment variable</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#types-of-pulp-integrations-api-to-solvers">Types of PuLP integrations (API) to solvers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#coin-or-cbc-coin-cmd">COIN-OR CBC (<code class="docutils literal notranslate"><span class="pre">COIN_CMD</span></code>)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#highs-highs-cmd">HiGHS (<code class="docutils literal notranslate"><span class="pre">HiGHS_CMD</span></code>)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#configuring-the-path-to-the-solver">Configuring the path to the solver</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#additional-environment-variables-per-solver">Additional environment variables per solver</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#cplex">CPLEX</a></li>
@@ -67,9 +69,12 @@
 <li class="toctree-l4"><a class="reference internal" href="#installing-cpsat-or-tools-cp-sat">Installing CPSAT (OR-Tools CP-SAT)</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#installing-glop-or-tools-glop">Installing GLOP (OR-Tools GLOP)</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#installing-clarabel">Installing CLARABEL</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#installing-cylp">Installing CYLP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#installing-cuopt">Installing CUOPT</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#installing-pyglpk">Installing PYGLPK</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#installing-cplex-py">Installing CPLEX_PY</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#installing-gurobi">Installing GUROBI</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#installing-sas94-and-sascas">Installing SAS94 and SASCAS</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#installing-xpress-py">Installing XPRESS_PY</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#using-solver-specific-functionality">Using solver-specific functionality</a></li>
 </ul>
@@ -113,7 +118,7 @@
            <div itemprop="articleBody">
              
   <section id="how-to-configure-a-solver-in-pulp">
-<h1>How to configure a solver in PuLP<a class="headerlink" href="#how-to-configure-a-solver-in-pulp" title="Link to this heading"></a></h1>
+<span id="how-to-configure-solvers"></span><h1>How to configure a solver in PuLP<a class="headerlink" href="#how-to-configure-a-solver-in-pulp" title="Link to this heading"></a></h1>
 <p>A typical problem PuLP users have is trying to connect to a solver that is installed in their pc. Here, we show the main concepts and ways to be sure PuLP can talk to the solver in question.</p>
 <section id="checking-which-solvers-pulp-has-access-to">
 <h2>Checking which solvers PuLP has access to<a class="headerlink" href="#checking-which-solvers-pulp-has-access-to" title="Link to this heading"></a></h2>
@@ -121,14 +126,17 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pulp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
 <span class="n">solver_list</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">listSolvers</span><span class="p">()</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">solver_list</span><span class="p">)</span>
-<span class="c1"># ['GLPK_CMD', 'PYGLPK', 'CPLEX_CMD', 'CPLEX_PY', 'CPLEX_DLL', 'GUROBI', 'GUROBI_CMD', 'MOSEK', 'XPRESS', 'COIN_CMD', 'COINMP_DLL', 'CHOCO_CMD', 'MIPCL_CMD', 'SCIP_CMD', 'CPSAT', ...]</span>
+<span class="c1"># ['CyLP', 'GLPK_CMD', 'PYGLPK', 'CPLEX_CMD', 'CPLEX_PY', 'GUROBI', 'GUROBI_CMD',</span>
+<span class="c1">#  'MOSEK', 'CPSAT', 'GLOP', 'CLARABEL', 'XPRESS', 'XPRESS_PY', 'COIN_CMD',</span>
+<span class="c1">#  'COINMP_DLL', 'CHOCO_CMD', 'MIPCL_CMD', 'SCIP_CMD', 'FSCIP_CMD', 'SCIP_PY',</span>
+<span class="c1">#  'HiGHS', 'HiGHS_CMD', 'COPT', 'COPT_DLL', 'COPT_CMD', 'SAS94', 'SASCAS', 'CUOPT']</span>
 </pre></div>
 </div>
 <p>If passed the <cite>onlyAvailable=True</cite> argument, PuLP lists the solvers that are currently available:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pulp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
 <span class="n">solver_list</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">listSolvers</span><span class="p">(</span><span class="n">onlyAvailable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">solver_list</span><span class="p">)</span>
-<span class="c1"># ['GLPK_CMD', 'CPLEX_CMD', 'CPLEX_PY', 'GUROBI', 'GUROBI_CMD', 'COIN_CMD']</span>
+<span class="c1"># ['CyLP', 'GLPK_CMD', 'PYGLPK', 'GUROBI', 'CLARABEL', 'COIN_CMD', 'SCIP_PY', 'HiGHS']</span>
 </pre></div>
 </div>
 <p>Also, it’s possible to get a solver object by using the name of the solver. Any arguments passed to this function are passed to the constructor:</p>
@@ -138,6 +146,107 @@
 </pre></div>
 </div>
 <p>In the next sections, we will explain how to configure a solver to be accessible by PuLP.</p>
+</section>
+<section id="solvers-supported-by-pulp">
+<h2>Solvers supported by PuLP<a class="headerlink" href="#solvers-supported-by-pulp" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Solver</p></th>
+<th class="head"><p>PuLP API(s)</p></th>
+<th class="head"><p>Problems</p></th>
+<th class="head"><p>How to get it</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>COIN-OR CBC</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">COIN_CMD</span></code></p></td>
+<td><p>LP, MIP</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">pulp[cbc]</span></code> or <code class="docutils literal notranslate"><span class="pre">cbc</span></code> on <code class="docutils literal notranslate"><span class="pre">PATH</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>COIN-OR Clp / Cbc (CyLP)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">CYLP</span></code></p></td>
+<td><p>LP, MIP</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">pulp[cylp]</span></code> (not on Windows)</p></td>
+</tr>
+<tr class="row-even"><td><p>GLPK</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GLPK_CMD</span></code>, <code class="docutils literal notranslate"><span class="pre">PYGLPK</span></code></p></td>
+<td><p>LP, MIP</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">glpsol</span></code> on <code class="docutils literal notranslate"><span class="pre">PATH</span></code> / <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">pulp[glpk]</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>HiGHS</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">HiGHS</span></code>, <code class="docutils literal notranslate"><span class="pre">HiGHS_CMD</span></code></p></td>
+<td><p>LP, MIP</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">pulp[highs]</span></code> / <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">pulp[highs_cmd]</span></code> or <code class="docutils literal notranslate"><span class="pre">highs</span></code> on <code class="docutils literal notranslate"><span class="pre">PATH</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>SCIP / FSCIP</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SCIP_PY</span></code>, <code class="docutils literal notranslate"><span class="pre">SCIP_CMD</span></code>, <code class="docutils literal notranslate"><span class="pre">FSCIP_CMD</span></code></p></td>
+<td><p>LP, MIP</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">pulp[scip]</span></code> / <code class="docutils literal notranslate"><span class="pre">scip</span></code> or <code class="docutils literal notranslate"><span class="pre">fscip</span></code> on <code class="docutils literal notranslate"><span class="pre">PATH</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>OR-Tools CP-SAT</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">CPSAT</span></code></p></td>
+<td><p>bounded integer models</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">pulp[ortools]</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>OR-Tools GLOP</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GLOP</span></code></p></td>
+<td><p>LP</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">pulp[ortools]</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Clarabel</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">CLARABEL</span></code></p></td>
+<td><p>LP</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">pulp[clarabel]</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>CHOCO</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">CHOCO_CMD</span></code></p></td>
+<td><p>MIP (constraint programming)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">choco-parsers-with-dependencies.jar</span></code> on <code class="docutils literal notranslate"><span class="pre">PATH</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>MIPCL</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">MIPCL_CMD</span></code></p></td>
+<td><p>LP, MIP</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">mps_mipcl</span></code> on <code class="docutils literal notranslate"><span class="pre">PATH</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>NVIDIA cuOpt</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">CUOPT</span></code></p></td>
+<td><p>LP, MIP (GPU)</p></td>
+<td><p>the <code class="docutils literal notranslate"><span class="pre">cuopt</span></code> Python package from NVIDIA</p></td>
+</tr>
+<tr class="row-odd"><td><p>Gurobi</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GUROBI</span></code>, <code class="docutils literal notranslate"><span class="pre">GUROBI_CMD</span></code></p></td>
+<td><p>LP, MIP</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">pulp[gurobi]</span></code> (license needed for large models)</p></td>
+</tr>
+<tr class="row-even"><td><p>CPLEX</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">CPLEX_PY</span></code>, <code class="docutils literal notranslate"><span class="pre">CPLEX_CMD</span></code></p></td>
+<td><p>LP, MIP</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">pulp[cplex]</span></code> (license needed for large models)</p></td>
+</tr>
+<tr class="row-odd"><td><p>FICO Xpress</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">XPRESS_PY</span></code>, <code class="docutils literal notranslate"><span class="pre">XPRESS_CMD</span></code></p></td>
+<td><p>LP, MIP</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">pulp[xpress]</span></code> (license needed for large models)</p></td>
+</tr>
+<tr class="row-even"><td><p>COPT</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">COPT</span></code>, <code class="docutils literal notranslate"><span class="pre">COPT_DLL</span></code>, <code class="docutils literal notranslate"><span class="pre">COPT_CMD</span></code></p></td>
+<td><p>LP, MIP</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">pulp[copt]</span></code> (license needed for large models)</p></td>
+</tr>
+<tr class="row-odd"><td><p>MOSEK</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">MOSEK</span></code></p></td>
+<td><p>LP, MIP</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">pulp[mosek]</span></code> (license required)</p></td>
+</tr>
+<tr class="row-even"><td><p>SAS</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SAS94</span></code>, <code class="docutils literal notranslate"><span class="pre">SASCAS</span></code></p></td>
+<td><p>LP, MIP</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">saspy</span></code> / <code class="docutils literal notranslate"><span class="pre">swat</span></code> and access to a SAS installation</p></td>
+</tr>
+</tbody>
+</table>
+<p>The <code class="docutils literal notranslate"><span class="pre">open_py</span></code> extra installs HiGHS, SCIP, CBC, GLPK and Clarabel at once; the
+<code class="docutils literal notranslate"><span class="pre">public_py</span></code> extra installs the PyPI packages of Gurobi, COPT, Xpress and CPLEX.</p>
 </section>
 <section id="what-is-an-environment-variable">
 <h2>What is an environment variable<a class="headerlink" href="#what-is-an-environment-variable" title="Link to this heading"></a></h2>
@@ -173,6 +282,16 @@ other command-line tool).</p></li>
 <span class="n">solver</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">COIN_CMD</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="sa">r</span><span class="s2">"C:\path\to\cbc.exe"</span><span class="p">)</span>
 </pre></div>
 </div>
+</section>
+<section id="highs-highs-cmd">
+<h2>HiGHS (<code class="docutils literal notranslate"><span class="pre">HiGHS_CMD</span></code>)<a class="headerlink" href="#highs-highs-cmd" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">HiGHS_CMD</span></code> runs the <code class="docutils literal notranslate"><span class="pre">highs</span></code> executable found on your <code class="docutils literal notranslate"><span class="pre">PATH</span></code> (or the one
+given with <code class="docutils literal notranslate"><span class="pre">path=</span></code>). The optional <code class="docutils literal notranslate"><span class="pre">highsbox</span></code> package provides one:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">pulp</span><span class="p">[</span><span class="n">highs_cmd</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>To use HiGHS without an executable, install <code class="docutils literal notranslate"><span class="pre">pulp[highs]</span></code> and use the
+<code class="docutils literal notranslate"><span class="pre">HiGHS</span></code> API instead.</p>
 </section>
 <section id="configuring-the-path-to-the-solver">
 <h2>Configuring the path to the solver<a class="headerlink" href="#configuring-the-path-to-the-solver" title="Link to this heading"></a></h2>
@@ -308,12 +427,13 @@ other command-line tool).</p></li>
 <li><p>Xpress (XPRESS_PY)</p></li>
 <li><p>HiGHS (HiGHS)</p></li>
 <li><p>SCIP (SCIP_PY)</p></li>
-<li><p>XPRESS (XPRESS_PY)</p></li>
 <li><p>COPT (COPT)</p></li>
 <li><p>OR-Tools CP-SAT (CPSAT)</p></li>
 <li><p>OR-Tools GLOP (GLOP)</p></li>
 <li><p>Clarabel (CLARABEL)</p></li>
 <li><p>GLPK (PYGLPK)</p></li>
+<li><p>COIN-OR Clp / Cbc (CYLP)</p></li>
+<li><p>NVIDIA cuOpt (CUOPT)</p></li>
 </ul>
 <p>These API offer a series of advantages over using the command line option:</p>
 <ul class="simple">
@@ -402,16 +522,14 @@ and dual rays…).</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">interrupter</span></code>: an <code class="docutils literal notranslate"><span class="pre">ortools.util.python.solve_interrupter.SolveInterrupter</span></code>.
 Calling its <code class="docutils literal notranslate"><span class="pre">interrupt()</span></code> (from another thread, or from the <code class="docutils literal notranslate"><span class="pre">callback</span></code>)
 stops the solve with status <code class="docutils literal notranslate"><span class="pre">Interrupted</span></code>.</p></li>
+<li><p>Any field of MathOpt’s <code class="docutils literal notranslate"><span class="pre">SolveParameters</span></code> (for example
+<code class="docutils literal notranslate"><span class="pre">iteration_limit=1000</span></code>, <code class="docutils literal notranslate"><span class="pre">presolve=False</span></code>, <code class="docutils literal notranslate"><span class="pre">lp_algorithm=&quot;dual_simplex&quot;</span></code>)
+or of <code class="docutils literal notranslate"><span class="pre">GlopParameters</span></code> (for example <code class="docutils literal notranslate"><span class="pre">use_dual_simplex=True</span></code>,
+<code class="docutils literal notranslate"><span class="pre">primal_feasibility_tolerance=1e-9</span></code>) as keyword arguments.</p></li>
 </ul>
 <p><code class="docutils literal notranslate"><span class="pre">prob.solve(solver,</span> <span class="pre">callback=...)</span></code> calls the callback with each batch of log
 lines (a list of <code class="docutils literal notranslate"><span class="pre">str</span></code>). GLOP has no other callbacks: MathOpt rejects every
-callback event for it.
-* Any field of MathOpt’s <code class="docutils literal notranslate"><span class="pre">SolveParameters</span></code> (for example</p>
-<blockquote>
-<div><p><code class="docutils literal notranslate"><span class="pre">iteration_limit=1000</span></code>, <code class="docutils literal notranslate"><span class="pre">presolve=False</span></code>, <code class="docutils literal notranslate"><span class="pre">lp_algorithm=&quot;dual_simplex&quot;</span></code>)
-or of <code class="docutils literal notranslate"><span class="pre">GlopParameters</span></code> (for example <code class="docutils literal notranslate"><span class="pre">use_dual_simplex=True</span></code>,
-<code class="docutils literal notranslate"><span class="pre">primal_feasibility_tolerance=1e-9</span></code>) as keyword arguments.</p>
-</div></blockquote>
+callback event for it.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>OR-Tools ships its own HiGHS library under the same name as the one in the
@@ -460,6 +578,70 @@ file instead of the console).</p></li>
 <code class="docutils literal notranslate"><span class="pre">DefaultInfo</span></code> on every iteration; returning <code class="docutils literal notranslate"><span class="pre">True</span></code> stops the solve with
 status <code class="docutils literal notranslate"><span class="pre">Interrupted</span></code>.</p>
 </section>
+<section id="installing-cylp">
+<h3>Installing CYLP<a class="headerlink" href="#installing-cylp" title="Link to this heading"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">CYLP</span></code> solver drives COIN-OR Clp (LP) and Cbc (MIP) through the
+<a class="reference external" href="https://github.com/coin-or/CyLP">CyLP</a> cython bindings, without writing
+files to disk. Install PuLP with the optional extra (not available on
+Windows):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">pulp</span><span class="p">[</span><span class="n">cylp</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>A problem with integer variables is solved by Cbc, unless the solver is created
+with <code class="docutils literal notranslate"><span class="pre">mip=False</span></code>, which solves its LP relaxation with Clp. After the solve,
+<code class="docutils literal notranslate"><span class="pre">prob.solverModel</span></code> holds a <code class="docutils literal notranslate"><span class="pre">CyCbcModel</span></code> (MIP) or a <code class="docutils literal notranslate"><span class="pre">CyClpSimplex</span></code> (LP).
+For LPs, Clp keeps the model between solves, so <code class="docutils literal notranslate"><span class="pre">prob.resolve()</span></code> only applies
+the changes made since the last solve and starts from the previous basis; MIPs
+are built again.</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pulp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
+
+<span class="n">prob</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">"cylp_example"</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="n">cat</span><span class="o">=</span><span class="n">pl</span><span class="o">.</span><span class="n">LpInteger</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">"y"</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">y</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&gt;=</span> <span class="mf">7.5</span>
+
+<span class="n">stats</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">CYLP</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">timeLimit</span><span class="o">=</span><span class="mi">60</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">stats</span><span class="o">.</span><span class="n">status_str</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">(),</span> <span class="n">y</span><span class="o">.</span><span class="n">value</span><span class="p">())</span>
+</pre></div>
+</div>
+<p>Optional arguments:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">gapRel</span></code>, <code class="docutils literal notranslate"><span class="pre">gapAbs</span></code>, <code class="docutils literal notranslate"><span class="pre">threads</span></code>, <code class="docutils literal notranslate"><span class="pre">timeLimit</span></code>, <code class="docutils literal notranslate"><span class="pre">maxNodes</span></code> and
+<code class="docutils literal notranslate"><span class="pre">maxSolutions</span></code> (used by Cbc).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">maxIterations</span></code> and <code class="docutils literal notranslate"><span class="pre">presolve</span></code> (used by Clp).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">logPath</span></code>: the log goes to that file instead of the console.</p></li>
+<li><p>Any attribute of the Clp or Cbc model as a keyword argument (for example
+<code class="docutils literal notranslate"><span class="pre">primalTolerance=1e-9</span></code> for Clp, <code class="docutils literal notranslate"><span class="pre">allowableGap=0.1</span></code> for Cbc).
+<code class="docutils literal notranslate"><span class="pre">resolveMethod=&quot;primal&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;dual&quot;</span></code> forces the simplex used by Clp on a
+resolve, and <code class="docutils literal notranslate"><span class="pre">perturbation</span></code> sets Clp’s perturbation.</p></li>
+</ul>
+</section>
+<section id="installing-cuopt">
+<h3>Installing CUOPT<a class="headerlink" href="#installing-cuopt" title="Link to this heading"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">CUOPT</span></code> solver uses <a class="reference external" href="https://github.com/NVIDIA/cuopt">NVIDIA cuOpt</a>,
+a GPU-accelerated LP and MIP solver. It needs an NVIDIA GPU and the <code class="docutils literal notranslate"><span class="pre">cuopt</span></code>
+Python package, which is distributed by NVIDIA (it is not a PuLP extra): follow
+the <a class="reference external" href="https://docs.nvidia.com/cuopt/">cuOpt installation instructions</a> for
+your CUDA version, and also install <code class="docutils literal notranslate"><span class="pre">numpy</span></code>.</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pulp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
+
+<span class="n">prob</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s2">"cuopt_example"</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="n">cat</span><span class="o">=</span><span class="n">pl</span><span class="o">.</span><span class="n">LpInteger</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">add_variable</span><span class="p">(</span><span class="s2">"y"</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">y</span>
+<span class="n">prob</span> <span class="o">+=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&gt;=</span> <span class="mf">7.5</span>
+
+<span class="n">stats</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">CUOPT</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">timeLimit</span><span class="o">=</span><span class="mi">60</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">stats</span><span class="o">.</span><span class="n">status_str</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">(),</span> <span class="n">y</span><span class="o">.</span><span class="n">value</span><span class="p">())</span>
+</pre></div>
+</div>
+<p>Optional arguments include <code class="docutils literal notranslate"><span class="pre">timeLimit</span></code>, <code class="docutils literal notranslate"><span class="pre">gapRel</span></code>, <code class="docutils literal notranslate"><span class="pre">warmStart=True</span></code>
+(passes the current variable values as a start), <code class="docutils literal notranslate"><span class="pre">logPath</span></code>, and any cuOpt
+solver setting as a keyword argument.</p>
+</section>
 <section id="installing-pyglpk">
 <h3>Installing PYGLPK<a class="headerlink" href="#installing-pyglpk" title="Link to this heading"></a></h3>
 <p>The <code class="docutils literal notranslate"><span class="pre">PYGLPK</span></code> solver uses the <a class="reference external" href="https://pypi.org/project/swiglpk/">swiglpk</a>
@@ -503,6 +685,33 @@ writing files to disk:</p>
 </pre></div>
 </div>
 <p>As you can see, it is necessary to have admin rights to install it.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">gurobipy</span></code> package is also available from PyPI (it includes a size-limited
+license):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">pulp</span><span class="p">[</span><span class="n">gurobi</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>To build large models faster, also install SciPy (it installs NumPy too):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">pulp</span><span class="p">[</span><span class="n">gurobi</span><span class="p">]</span> <span class="n">scipy</span>
+</pre></div>
+</div>
+<p>With SciPy, <code class="docutils literal notranslate"><span class="pre">GUROBI</span></code> adds all the constraints to the Gurobi model in a single
+call. Without it, the constraints are added one by one, which is slower on
+large models but gives the same model.</p>
+</section>
+<section id="installing-sas94-and-sascas">
+<h3>Installing SAS94 and SASCAS<a class="headerlink" href="#installing-sas94-and-sascas" title="Link to this heading"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">SAS94</span></code> and <code class="docutils literal notranslate"><span class="pre">SASCAS</span></code> solvers send the model to the SAS Optimization
+procedures, on a SAS 9.4 server through <a class="reference external" href="https://pypi.org/project/saspy/">saspy</a>
+or on SAS Viya (CAS) through <a class="reference external" href="https://pypi.org/project/swat/">swat</a>. Both need
+access to a licensed SAS installation; install the package that matches it:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">saspy</span>   <span class="c1"># SAS94</span>
+<span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">swat</span>    <span class="c1"># SASCAS</span>
+</pre></div>
+</div>
+<p>The connection is configured as usual for <code class="docutils literal notranslate"><span class="pre">saspy</span></code> / <code class="docutils literal notranslate"><span class="pre">swat</span></code> (configuration
+file, or keyword arguments: <code class="docutils literal notranslate"><span class="pre">cfgname</span></code> / <code class="docutils literal notranslate"><span class="pre">cfgfile</span></code> for <code class="docutils literal notranslate"><span class="pre">SAS94</span></code>, and
+connection options such as <code class="docutils literal notranslate"><span class="pre">hostname</span></code>, <code class="docutils literal notranslate"><span class="pre">port</span></code>, <code class="docutils literal notranslate"><span class="pre">username</span></code> and <code class="docutils literal notranslate"><span class="pre">password</span></code>
+for <code class="docutils literal notranslate"><span class="pre">SASCAS</span></code>).</p>
 </section>
 <section id="installing-xpress-py">
 <h3>Installing XPRESS_PY<a class="headerlink" href="#installing-xpress-py" title="Link to this heading"></a></h3>

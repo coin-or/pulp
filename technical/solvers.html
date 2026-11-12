@@ -1319,7 +1319,10 @@ Cbc: CyLP offers no time limit for Clp</p></li>
 <li><p><strong>logPath</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a>) – path to the log file; the log goes there instead of
 the console</p></li>
 <li><p><strong>solverParams</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><em>dict</em></a>) – attributes of the Clp or Cbc model being
-solved, e.g. <code class="docutils literal notranslate"><span class="pre">primalTolerance</span></code> (Clp) or <code class="docutils literal notranslate"><span class="pre">allowableGap</span></code> (Cbc)</p></li>
+solved, e.g. <code class="docutils literal notranslate"><span class="pre">primalTolerance</span></code> (Clp) or <code class="docutils literal notranslate"><span class="pre">allowableGap</span></code> (Cbc);
+<code class="docutils literal notranslate"><span class="pre">resolveMethod</span></code> (<code class="docutils literal notranslate"><span class="pre">&quot;primal&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;dual&quot;</span></code>) forces Clp’s simplex
+on a resolve, chosen from the changes otherwise; <code class="docutils literal notranslate"><span class="pre">perturbation</span></code> is
+Clp’s (<code class="docutils literal notranslate"><span class="pre">setPerturbation</span></code>, e.g. 50: always perturb), on every solve</p></li>
 </ul>
 </dd>
 </dl>

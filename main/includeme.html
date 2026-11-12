@@ -52,6 +52,7 @@
 <li class="toctree-l2 current"><a class="current reference internal" href="#">README</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#installation">Installation</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#installing-solvers">Installing solvers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#available-solvers">Available solvers</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#quickstart">Quickstart</a><ul>
@@ -111,7 +112,7 @@
 </a>
 <a class="reference external image-reference" href="https://pypi.org/project/PuLP/"><img alt="PyPI - Downloads" src="https://img.shields.io/pypi/dm/pulp" />
 </a>
-<p>PuLP is an linear and mixed integer programming modeler written in Python. With PuLP, it is simple to create MILP optimisation problems and solve them with the latest open-source (or proprietary) solvers.  PuLP can generate MPS or LP files and call solvers such as <a class="reference external" href="http://www.gnu.org/software/glpk/glpk.html">GLPK</a>, COIN-OR CLP/<a class="reference external" href="https://github.com/coin-or/Cbc">CBC</a>, <a class="reference external" href="http://www.cplex.com/">CPLEX</a>, <a class="reference external" href="http://www.gurobi.com/">GUROBI</a>, <a class="reference external" href="https://www.mosek.com/">MOSEK</a>, <a class="reference external" href="https://www.fico.com/es/products/fico-xpress-solver">XPRESS</a>, <a class="reference external" href="https://choco-solver.org/">CHOCO</a>, <a class="reference external" href="http://mipcl-cpp.appspot.com/">MIPCL</a>, <a class="reference external" href="https://highs.dev">HiGHS</a>, <a class="reference external" href="https://www.scipopt.org/">SCIP</a>/<a class="reference external" href="https://ug.zib.de">FSCIP</a>, and OR-Tools <a class="reference external" href="https://developers.google.com/optimization/cp/cp_solver">CP-SAT</a> (via the <code class="docutils literal notranslate"><span class="pre">CPSAT</span></code> API).</p>
+<p>PuLP is an linear and mixed integer programming modeler written in Python. With PuLP, it is simple to create MILP optimisation problems and solve them with the latest open-source (or proprietary) solvers.  PuLP can generate MPS or LP files and call solvers such as <a class="reference external" href="http://www.gnu.org/software/glpk/glpk.html">GLPK</a>, COIN-OR CLP/<a class="reference external" href="https://github.com/coin-or/Cbc">CBC</a> (also through <a class="reference external" href="https://github.com/coin-or/CyLP">CyLP</a>), <a class="reference external" href="http://www.cplex.com/">CPLEX</a>, <a class="reference external" href="http://www.gurobi.com/">GUROBI</a>, <a class="reference external" href="https://www.mosek.com/">MOSEK</a>, <a class="reference external" href="https://www.fico.com/es/products/fico-xpress-solver">XPRESS</a>, <a class="reference external" href="https://www.shanshu.ai/copt">COPT</a>, <a class="reference external" href="https://choco-solver.org/">CHOCO</a>, <a class="reference external" href="http://mipcl-cpp.appspot.com/">MIPCL</a>, <a class="reference external" href="https://highs.dev">HiGHS</a>, <a class="reference external" href="https://www.scipopt.org/">SCIP</a>/<a class="reference external" href="https://ug.zib.de">FSCIP</a>, <a class="reference external" href="https://clarabel.org">Clarabel</a>, NVIDIA <a class="reference external" href="https://github.com/NVIDIA/cuopt">cuOpt</a>, <a class="reference external" href="https://www.sas.com/en_us/software/optimization.html">SAS</a>, and OR-Tools <a class="reference external" href="https://developers.google.com/optimization/cp/cp_solver">CP-SAT</a> and <a class="reference external" href="https://developers.google.com/optimization/lp/glop">GLOP</a> (via the <code class="docutils literal notranslate"><span class="pre">CPSAT</span></code> and <code class="docutils literal notranslate"><span class="pre">GLOP</span></code> APIs).</p>
 <p>The documentation for PuLP can be <a class="reference external" href="https://coin-or.github.io/pulp/">found here</a>.</p>
 <p>PuLP is part of the <a class="reference external" href="https://www.coin-or.org/">COIN-OR project</a>.</p>
 <div class="admonition note">
@@ -164,14 +165,121 @@ optional PyPI extras (some require a commercial license for running or for large
 <span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">pulp</span><span class="p">[</span><span class="n">mosek</span><span class="p">]</span>
 <span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">pulp</span><span class="p">[</span><span class="n">ortools</span><span class="p">]</span>
 <span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">pulp</span><span class="p">[</span><span class="n">cylp</span><span class="p">]</span>
+<span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">pulp</span><span class="p">[</span><span class="n">clarabel</span><span class="p">]</span>
 <span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">pulp</span><span class="p">[</span><span class="n">cbc</span><span class="p">]</span>
 <span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">pulp</span><span class="p">[</span><span class="n">glpk</span><span class="p">]</span>
+<span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">pulp</span><span class="p">[</span><span class="n">highs_cmd</span><span class="p">]</span>
 </pre></div>
 </div>
-<dl class="simple">
-<dt>If you want to install all open source solvers (scip, highs, cbc, glpk), you can use the shortcut::</dt><dd><p>python -m pip install pulp[open_py]</p>
-</dd>
-</dl>
+<p>If you want to install all open source solvers (scip, highs, cbc, glpk, clarabel), you can use the shortcut:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">pulp</span><span class="p">[</span><span class="n">open_py</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">public_py</span></code> extra installs the PyPI packages of the commercial solvers
+(gurobi, copt, xpress, cplex), which include size-limited licenses.</p>
+</section>
+<section id="available-solvers">
+<h3>Available solvers<a class="headerlink" href="#available-solvers" title="Link to this heading"></a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">pulp.listSolvers()</span></code> returns every solver API PuLP knows about, and
+<code class="docutils literal notranslate"><span class="pre">pulp.listSolvers(onlyAvailable=True)</span></code> the ones that can run on your machine.
+APIs whose name ends in <code class="docutils literal notranslate"><span class="pre">_CMD</span></code> run the solver’s executable; the others use
+its Python library.</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Solver</p></th>
+<th class="head"><p>PuLP API(s)</p></th>
+<th class="head"><p>Problems</p></th>
+<th class="head"><p>How to get it</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>COIN-OR CBC</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">COIN_CMD</span></code></p></td>
+<td><p>LP, MIP</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pulp[cbc]</span></code> or <code class="docutils literal notranslate"><span class="pre">cbc</span></code> on <code class="docutils literal notranslate"><span class="pre">PATH</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>COIN-OR Clp / Cbc (CyLP)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">CYLP</span></code></p></td>
+<td><p>LP, MIP</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pulp[cylp]</span></code> (not on Windows)</p></td>
+</tr>
+<tr class="row-even"><td><p>GLPK</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GLPK_CMD</span></code>, <code class="docutils literal notranslate"><span class="pre">PYGLPK</span></code></p></td>
+<td><p>LP, MIP</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">glpsol</span></code> on <code class="docutils literal notranslate"><span class="pre">PATH</span></code> / <code class="docutils literal notranslate"><span class="pre">pulp[glpk]</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>HiGHS</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">HiGHS</span></code>, <code class="docutils literal notranslate"><span class="pre">HiGHS_CMD</span></code></p></td>
+<td><p>LP, MIP</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pulp[highs]</span></code> / <code class="docutils literal notranslate"><span class="pre">pulp[highs_cmd]</span></code> or <code class="docutils literal notranslate"><span class="pre">highs</span></code> on <code class="docutils literal notranslate"><span class="pre">PATH</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>SCIP / FSCIP</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SCIP_PY</span></code>, <code class="docutils literal notranslate"><span class="pre">SCIP_CMD</span></code>, <code class="docutils literal notranslate"><span class="pre">FSCIP_CMD</span></code></p></td>
+<td><p>LP, MIP</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pulp[scip]</span></code> / <code class="docutils literal notranslate"><span class="pre">scip</span></code> or <code class="docutils literal notranslate"><span class="pre">fscip</span></code> on <code class="docutils literal notranslate"><span class="pre">PATH</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>OR-Tools CP-SAT</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">CPSAT</span></code></p></td>
+<td><p>bounded integer models</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pulp[ortools]</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>OR-Tools GLOP</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GLOP</span></code></p></td>
+<td><p>LP</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pulp[ortools]</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Clarabel</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">CLARABEL</span></code></p></td>
+<td><p>LP</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pulp[clarabel]</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>CHOCO</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">CHOCO_CMD</span></code></p></td>
+<td><p>MIP (constraint programming)</p></td>
+<td><p>CHOCO jar on <code class="docutils literal notranslate"><span class="pre">PATH</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>MIPCL</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">MIPCL_CMD</span></code></p></td>
+<td><p>LP, MIP</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">mps_mipcl</span></code> on <code class="docutils literal notranslate"><span class="pre">PATH</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>NVIDIA cuOpt</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">CUOPT</span></code></p></td>
+<td><p>LP, MIP (GPU)</p></td>
+<td><p>the <code class="docutils literal notranslate"><span class="pre">cuopt</span></code> Python package from NVIDIA</p></td>
+</tr>
+<tr class="row-odd"><td><p>Gurobi</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GUROBI</span></code>, <code class="docutils literal notranslate"><span class="pre">GUROBI_CMD</span></code></p></td>
+<td><p>LP, MIP</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pulp[gurobi]</span></code> (license needed for large models)</p></td>
+</tr>
+<tr class="row-even"><td><p>CPLEX</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">CPLEX_PY</span></code>, <code class="docutils literal notranslate"><span class="pre">CPLEX_CMD</span></code></p></td>
+<td><p>LP, MIP</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pulp[cplex]</span></code> (license needed for large models)</p></td>
+</tr>
+<tr class="row-odd"><td><p>FICO Xpress</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">XPRESS_PY</span></code>, <code class="docutils literal notranslate"><span class="pre">XPRESS_CMD</span></code></p></td>
+<td><p>LP, MIP</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pulp[xpress]</span></code> (license needed for large models)</p></td>
+</tr>
+<tr class="row-even"><td><p>COPT</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">COPT</span></code>, <code class="docutils literal notranslate"><span class="pre">COPT_DLL</span></code>, <code class="docutils literal notranslate"><span class="pre">COPT_CMD</span></code></p></td>
+<td><p>LP, MIP</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pulp[copt]</span></code> (license needed for large models)</p></td>
+</tr>
+<tr class="row-odd"><td><p>MOSEK</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">MOSEK</span></code></p></td>
+<td><p>LP, MIP</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pulp[mosek]</span></code> (license required)</p></td>
+</tr>
+<tr class="row-even"><td><p>SAS</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SAS94</span></code>, <code class="docutils literal notranslate"><span class="pre">SASCAS</span></code></p></td>
+<td><p>LP, MIP</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">saspy</span></code> / <code class="docutils literal notranslate"><span class="pre">swat</span></code> and a SAS installation</p></td>
+</tr>
+</tbody>
+</table>
 <p>For more information on how to install solvers, see the <a class="reference external" href="https://coin-or.github.io/pulp/guides/how_to_configure_solvers.html">guide on configuring solvers</a>.</p>
 </section>
 </section>
