@@ -68,3 +68,28 @@ class CPLEX_CMDTest(BaseSolverTest.PuLPTest):
         )
         self.assertTrue(all(c is None for c in reducedCosts.values()))
         self.assertTrue(all(c is None for c in shadowPrices.values()))
+
+    def test_mip_start_leaves_out_a_cleared_variable(self):
+        """A variable whose ``varValue`` was cleared (``None``) is not in
+        the MIP start file: CPLEX gets a partial start to complete."""
+        import os
+        import tempfile
+        import xml.etree.ElementTree as et
+
+        from pulp import LpProblem, const
+
+        prob = LpProblem("partial_start", const.LpMinimize)
+        x = prob.add_variable("x", 0, 1, cat=const.LpInteger)
+        y = prob.add_variable("y", 0, 10)
+        prob += x + y
+        x.setInitialValue(1)
+        y.varValue = 4.0
+        y.varValue = None
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, "start.mst")
+            solvers.CPLEX_CMD(msg=False).writesol(path, [x, y])
+            written = {
+                v.get("name"): float(v.get("value"))
+                for v in et.parse(path).getroot().iter("variable")
+            }
+        self.assertEqual(written, {"x": 1.0})

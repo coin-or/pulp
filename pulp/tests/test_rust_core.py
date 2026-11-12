@@ -21,6 +21,19 @@ class RustCoreSmokeTest(unittest.TestCase):
         self.assertIn("vars=2", summary)
         self.assertIn("constraints=1", summary)
 
+    def test_var_value_none_clears_the_value(self):
+        """Setting ``varValue`` to ``None`` clears it, so a warm start leaves
+        the variable out."""
+        prob = LpProblem("clear_value", const.LpMinimize)
+        x = prob.add_variable("x", 0, 10)
+        x.varValue = 3.0
+        self.assertEqual(x.varValue, 3.0)
+        x.varValue = None
+        self.assertIsNone(x.varValue)
+        self.assertIsNone(x.value())
+        x.setInitialValue(2.0)
+        self.assertEqual(x.varValue, 2.0)
+
 
 def _tracked() -> LpProblem:
     """min x + y  s.t.  c: x + y >= 1, d: x <= 1, with its edits tracked."""
