@@ -8,7 +8,13 @@ from typing import TYPE_CHECKING, Any, Literal
 from .. import _rustcore
 from .. import constants as const
 from .. import mps_lp as mpslp
-from ._internal import LpBound, LpNumeric, _const_to_rust_cat, _rust_cat_to_const
+from ._internal import (
+    LpBound,
+    LpNumeric,
+    _const_to_rust_cat,
+    _is_numeric_scalar,
+    _rust_cat_to_const,
+)
 
 if TYPE_CHECKING:
     from .lp_affine_expression import LpAffineExpression
@@ -136,7 +142,7 @@ class LpVariable:
         if isinstance(other, LpVariable):
             return self._var.id() == other._var.id()
         AE = _affine_expr_cls()
-        if isinstance(other, (int, float, AE)):
+        if _is_numeric_scalar(other) or isinstance(other, AE):
             return AE.from_variable(self) == other
         return NotImplemented
 
