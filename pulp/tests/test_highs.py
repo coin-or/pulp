@@ -91,6 +91,28 @@ class HiGHS_PYTest(BaseSolverTest.PuLPTest):
         self.assertEqual(list(lp.a_matrix_.index_), [0, 0, 1, 1])
         self.assertEqual(list(lp.a_matrix_.value_), [1, 2, -1, 1])
 
+    def test_rejected_coefficient(self):
+        # HiGHS rejects every row of the batch on a coefficient of at least
+        # large_matrix_value (1e15): raise rather than solve the model without rows
+        prob = LpProblem("large", LpMaximize)
+        x = prob.add_variable("x", 0, 10)
+        y = prob.add_variable("y", 0, 10, cat=const.LpInteger)
+        prob += x + y, "obj"
+        prob += x <= 3, "c1"
+        prob += 1e16 * x + y <= 5, "c2"
+        with self.assertRaises(PulpSolverError):
+            prob.solve(self.solver)
+
+        # the same on a resolve that adds the row
+        prob = LpProblem("large_resolve", LpMaximize)
+        x = prob.add_variable("x", 0, 10)
+        prob += x, "obj"
+        prob += x <= 3, "c1"
+        prob.solve(self.solver)
+        prob += 1e16 * x <= 5, "c2"
+        with self.assertRaises(PulpSolverError):
+            prob.solve(self.solver)
+
     def test_callback(self):
         prob = create_bin_packing_problem(bins=40, seed=99)
 
