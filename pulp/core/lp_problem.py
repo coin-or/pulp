@@ -853,11 +853,11 @@ class LpProblem:
     def assignConsSlack(self, values: dict[str, float], activity: bool = False) -> None:
         if activity:
             slack_vals: dict[str, float] = {}
-            for name, val in values.items():
-                rust_c = self._model.get_constraint_by_name(name)
-                if rust_c is not None:
-                    c = LpConstraint(rust_c)
-                    slack_vals[name] = -1 * (c.constant + float(val))
+            # single pass over the constraints: get_constraint_by_name is O(n)
+            for c in self.constraints():
+                val = values.get(c.name)
+                if val is not None:
+                    slack_vals[c.name] = -1 * (c.constant + float(val))
             self._model.set_constraint_slacks_by_name(slack_vals)
         else:
             self._model.set_constraint_slacks_by_name(
