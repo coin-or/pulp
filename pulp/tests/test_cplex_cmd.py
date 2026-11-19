@@ -89,7 +89,7 @@ class CPLEX_CMDTest(BaseSolverTest.PuLPTest):
             path = os.path.join(tmp, "start.mst")
             solvers.CPLEX_CMD(msg=False).writesol(path, [x, y])
             written = {
-                v.get("name"): float(v.get("value"))
+                v.get("name"): float(v.attrib["value"])
                 for v in et.parse(path).getroot().iter("variable")
             }
         self.assertEqual(written, {"x": 1.0})

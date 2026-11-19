@@ -963,10 +963,10 @@ class SASTest:
         prob += -2 * X[2] - 3 * X[3] >= -5, "R1"
         prob += X[1] + X[2] + 2 * X[3] <= 4, "R2"
         prob += X[1] + 2 * X[2] + 3 * X[3] <= 7, "R3"
-        self.solver.optionsDict["with"] = "lp"  # ty: ignore[unresolved-attribute]
+        self.solver.optionsDict["with"] = "lp"  # ty: ignore[missing-attribute]
         pulpTestCheck(
             prob,
-            self.solver,  # ty: ignore[unresolved-attribute]
+            self.solver,  # ty: ignore[missing-attribute]
             [const.LpSolveStatus.Optimal],
             {X[1]: 0.0, X[2]: 2.5, X[3]: 0.0},
         )

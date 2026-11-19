@@ -168,7 +168,8 @@ class CYLPTest(BaseSolverTest.PuLPTest):
                 stats = prob.resolve()
                 self.assertIs(prob.solverModel, model)
                 self.assertEqual(stats.status, LpSolveStatus.Optimal)
-                self.assertAlmostEqual(prob.objective.value(), 8)
+                assert stats.objective is not None
+                self.assertAlmostEqual(stats.objective, 8)
         prob = self._lp()
         prob.solve(solvers.CYLP(msg=False, resolveMethod="barrier"))
         prob += prob.variables()[0] <= 1, "cut"
@@ -182,8 +183,10 @@ class CYLPTest(BaseSolverTest.PuLPTest):
         stats = prob.solve(solvers.CYLP(msg=False, perturbation=50))
         self.assertEqual(stats.status, LpSolveStatus.Optimal)
         prob += prob.variables()[0] <= 1, "cut"
-        self.assertEqual(prob.resolve().status, LpSolveStatus.Optimal)
-        self.assertAlmostEqual(prob.objective.value(), 8)
+        stats = prob.resolve()
+        self.assertEqual(stats.status, LpSolveStatus.Optimal)
+        assert stats.objective is not None
+        self.assertAlmostEqual(stats.objective, 8)
 
     def test_resolve_writes_its_log(self):
         with tempfile.TemporaryDirectory() as tmp:
