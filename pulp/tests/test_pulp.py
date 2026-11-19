@@ -1242,14 +1242,14 @@ class PuLPModelTest(unittest.TestCase):
 
             self.assertIsInstance(rhs, LpAffineExpression)
             self.assertIsInstance(expr, LpAffineExpression)
-            self.assertIsNotNone(expr.sense)  # ty: ignore[unresolved-attribute]
+            self.assertIsNotNone(expr.sense)  # ty: ignore[missing-union-attribute]
 
             if t == 1:
                 self.assertEqual(str(rhs), f"x_{t} + {stock[t - 1] - demands[t - 1]}")
-                self.assertEqual(expr.constant, -rhs.constant + lhs)  # ty: ignore[unresolved-attribute]
+                self.assertEqual(expr.constant, -rhs.constant + lhs)  # ty: ignore[missing-union-attribute]
             else:
                 self.assertEqual(str(rhs), f"s_{t - 1} + x_{t} - {demands[t - 1]}")
-                self.assertEqual(expr.constant, -rhs.constant)  # ty: ignore[unresolved-attribute]
+                self.assertEqual(expr.constant, -rhs.constant)  # ty: ignore[missing-union-attribute]
 
     def test_regression_805(self):
         # See: https://github.com/coin-or/pulp/issues/805

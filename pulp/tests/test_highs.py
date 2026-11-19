@@ -125,7 +125,7 @@ class HiGHS_PYTest(BaseSolverTest.PuLPTest):
             #
             if (
                 callback_type
-                == solvers.HiGHS.hscb.HighsCallbackType.kCallbackMipInterrupt  # ty: ignore[unresolved-attribute]
+                == solvers.HiGHS.hscb.HighsCallbackType.kCallbackMipInterrupt  # ty: ignore[missing-union-attribute]
             ):
                 print(
                     f"userInterruptCallback(type {callback_type}); "
@@ -143,7 +143,7 @@ class HiGHS_PYTest(BaseSolverTest.PuLPTest):
         solver = solvers.HiGHS(
             callbackTuple=(user_callback, []),
             callbacksToActivate=[
-                solvers.HiGHS.hscb.HighsCallbackType.kCallbackMipInterrupt  # ty: ignore[unresolved-attribute]
+                solvers.HiGHS.hscb.HighsCallbackType.kCallbackMipInterrupt  # ty: ignore[missing-union-attribute]
             ],
         )
         prob.solve(solver)
