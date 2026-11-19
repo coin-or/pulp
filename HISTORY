@@ -2,6 +2,15 @@
 #       Copyright S.A.Mitchell (s.mitchell@auckland.ac.nz), 2007-
 #       Copyright F.Peschiera (pchtsp@gmail.com), 2019-
 # See the LICENSE file for copyright information.
+4.3.0 2026-11-12
+    ``LpProblem.resolve`` updates the solver's model in place (HiGHS, GUROBI, CPLEX_PY,
+        XPRESS_PY, COPT, CYLP, PYGLPK)
+    new solvers: GLOP and CLARABEL
+    common ``LpSolver_API`` for python solvers; unknown solver parameters raise
+    SCIP returns duals; faster GUROBI model build; CYLP logging and extra parameters
+    ``LpVariable.varValue`` can be set to None
+    compatible with Python 3.15
+    fix in O(n**2) assignConsSlack
 4.2.0 2026-10-21
     column-wise modelling: ``LpProblem.add_column`` and ``LpProblem.remove_variables``
     editable constraints: set coefficients, constant and sense of an ``LpConstraint`` in the
