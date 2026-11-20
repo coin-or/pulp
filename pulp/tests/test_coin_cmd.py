@@ -321,3 +321,22 @@ class COIN_CMDTest(BaseSolverTest.PuLPTest):
             {y[(1, "east")]: 1.0, y[(2, "west")]: 0.0},
             objective=1.0,
         )
+
+    def test_solver_output_captured_as_string(self):
+        """solverOutput should hold CBC's raw log as a string after solving,
+        regardless of msg/logPath, and match the logPath file when both are used."""
+        prob = LpProblem(self._testMethodName, const.LpMinimize)
+        x = prob.add_variable("x", 0, 10)
+        y = prob.add_variable("y", 0, 10)
+        prob += x + y
+        prob += x + 2 * y >= 3
+        pulpTestCheck(prob, self.solver, [const.LpStatusOptimal])
+        self.assertIsInstance(self.solver.solverOutput, str)
+        self.assertGreater(len(self.solver.solverOutput), 0)
+
+        logFilename = self._testMethodName + ".log"
+        self.solver.optionsDict["logPath"] = logFilename
+        pulpTestCheck(prob, self.solver, [const.LpStatusOptimal])
+        with open(logFilename) as fp:
+            file_content = fp.read()
+        self.assertEqual(file_content, self.solver.solverOutput)
