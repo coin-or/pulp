@@ -1297,6 +1297,114 @@ class PuLPModelTest(unittest.TestCase):
         second_expression_2 = x * m2 - 6 - y
         self.assertEqual(str(second_expression_2), "8.1*x - y - 6")
 
+    def test_decimal_815_numeric_dispatch(self):
+        # See: https://github.com/coin-or/pulp/issues/815
+        # Decimal is part of LpNumeric, so it must be accepted everywhere
+        # int/float are: LpVariable.__eq__, LpProblem.__iadd__/setObjective
+        # and pulp.value/valueOrDefault.
+        from pulp import value, valueOrDefault
+
+        prob = LpProblem(self._testMethodName, const.LpMinimize)
+        x = prob.add_variable("x", lowBound=0, upBound=50, cat=const.LpContinuous)
+
+        # x == Decimal builds an equality constraint, like x == 5 does
+        con = x == Decimal("5")
+        self.assertNotIsInstance(con, bool)
+        self.assertEqual(con.sense, const.LpConstraintEQ)
+        self.assertEqual(con.constant, -5.0)
+        self.assertEqual((x == 5).constant, con.constant)
+
+        # a bare Decimal added to a problem is a constant objective
+        prob += Decimal("5")
+        objective = prob.objective
+        assert objective is not None
+        self.assertEqual(objective.constant, 5.0)
+
+        prob2 = LpProblem("decimal_objective", const.LpMinimize)
+        prob2.setObjective(Decimal("5"))
+        objective2 = prob2.objective
+        assert objective2 is not None
+        self.assertEqual(objective2.constant, 5.0)
+
+        # value()/valueOrDefault() return a Decimal unchanged, as numbers,
+        # keeping its type (not just a numerically equal float)
+        self.assertEqual(value(Decimal("5")), Decimal("5"))
+        self.assertEqual(valueOrDefault(Decimal("5")), Decimal("5"))
+        self.assertIsInstance(value(Decimal("5")), Decimal)
+        self.assertIsInstance(valueOrDefault(Decimal("5")), Decimal)
+
+        # once added, the constraint keeps coefficient 1 on x
+        prob += con
+        stored = prob.constraints()
+        self.assertEqual(len(stored), 1)
+        self.assertEqual(stored[0][x], 1.0)
+        self.assertEqual(stored[0].constant, -5.0)
+        self.assertEqual(stored[0].sense, const.LpConstraintEQ)
+
+        # the (value, name) tuple form of __iadd__ accepts a Decimal too
+        prob3 = LpProblem("decimal_tuple_objective", const.LpMinimize)
+        prob3 += (Decimal("5"), "decimal_objective")
+        objective3 = prob3.objective
+        assert objective3 is not None
+        self.assertEqual(objective3.constant, 5.0)
+        self.assertEqual(objective3.name, "decimal_objective")
+
+        # downstream consumers see the Decimal-built model: the constraint
+        # serializes to LP and the constant objective evaluates
+        prob4 = LpProblem("decimal_downstream", const.LpMinimize)
+        z = prob4.add_variable("z", lowBound=0, upBound=10, cat=const.LpContinuous)
+        prob4 += z == Decimal("5")
+        prob4.setObjective(Decimal("7"))
+        objective4 = prob4.objective
+        assert objective4 is not None
+        self.assertEqual(objective4.value(), 7.0)
+        with tempfile.TemporaryDirectory() as td:
+            lp_path = os.path.join(td, "decimal_downstream.lp")
+            prob4.writeLP(lp_path)
+            with open(lp_path) as f:
+                self.assertIn("z = 5", f.read())
+
+        # Non-finite Decimals behave exactly like float nan/inf at the same
+        # dispatch points (parity with the pre-existing float behaviour):
+        # they go through the same float() conversion and are stored as
+        # nan/inf constants instead of being rejected.
+        import math
+
+        for i, (text, expected) in enumerate(
+            [
+                ("NaN", float("nan")),
+                ("Infinity", float("inf")),
+                ("-Infinity", float("-inf")),
+                # a finite Decimal too large for a float overflows to inf,
+                # exactly like float(Decimal("1e10000")) does
+                ("1e10000", float("inf")),
+            ]
+        ):
+            prob_nf = LpProblem(f"decimal_non_finite_{i}", const.LpMinimize)
+            prob_nf.setObjective(Decimal(text))
+            objective_nf = prob_nf.objective
+            assert objective_nf is not None
+            if math.isnan(expected):
+                self.assertTrue(math.isnan(objective_nf.constant))
+            else:
+                self.assertEqual(objective_nf.constant, expected)
+
+        prob_inf = LpProblem("decimal_non_finite_iadd", const.LpMinimize)
+        prob_inf += Decimal("Infinity")
+        objective_inf = prob_inf.objective
+        assert objective_inf is not None
+        self.assertEqual(objective_inf.constant, float("inf"))
+
+        con_inf = x == Decimal("Infinity")
+        self.assertNotIsInstance(con_inf, bool)
+        self.assertEqual(con_inf.constant, float("-inf"))
+        self.assertEqual((x == float("inf")).constant, con_inf.constant)
+
+        nan_value = value(Decimal("NaN"))
+        self.assertIsInstance(nan_value, Decimal)
+        assert isinstance(nan_value, Decimal)
+        self.assertTrue(nan_value.is_nan())
+
     def test_mps_output_unbounded_variable(self):
         prob = LpProblem(self._testMethodName, const.LpMinimize)
         x = prob.add_variable("x", lowBound=0, upBound=None)
