@@ -9,10 +9,13 @@ from pulp import LpProblem, lpSum
 from pulp import constants as const
 from pulp.constants import PulpError
 from pulp.tests.solver_common import (
+    FAKE_SOLVER_ARGV_PREAMBLE,
     BaseSolverTest,
     PulpTestConfig,
+    SolverCmdPathsWithSpacesTestCase,
     _status,
     pulpTestCheck,
+    write_fake_executable,
 )
 
 
@@ -321,3 +324,58 @@ class COIN_CMDTest(BaseSolverTest.PuLPTest):
             {y[(1, "east")]: 1.0, y[(2, "west")]: 0.0},
             objective=1.0,
         )
+
+
+FAKE_CBC = FAKE_SOLVER_ARGV_PREAMBLE + """\
+
+model = sys.argv[1]
+names = []
+in_columns = False
+with open(model) as f:
+    for line in f:
+        if line.startswith("COLUMNS"):
+            in_columns = True
+            continue
+        if in_columns:
+            if not line.startswith(" "):
+                break
+            tokens = line.split()
+            if tokens and tokens[0] != "MARKER" and tokens[0] not in names:
+                names.append(tokens[0])
+sol = sys.argv[sys.argv.index("-solution") + 1]
+with open(sol, "w") as f:
+    f.write("Optimal - objective value    -4.00000000\\n")
+    for i, name in enumerate(names):
+        f.write(f"{i:>7} {name} {0:>15} {0:>23}\\n")
+"""
+
+
+class COIN_CMDPathsWithSpacesTest(SolverCmdPathsWithSpacesTestCase):
+    def test_paths_with_spaces(self):
+        fake = write_fake_executable(self.spaced, "cbc", FAKE_CBC)
+        prob = self.build_problem()
+        stats = prob.solve(solvers.COIN_CMD(path=fake, msg=False))
+        self.assertEqual(stats.status, const.LpSolveStatus.Optimal)
+        (argv,) = self.recorded_argv()
+        self.assert_paths_not_split(argv)
+        self.assertTrue(argv[0].endswith("-pulp.mps"))
+        sol = argv[argv.index("-solution") + 1]
+        self.assertTrue(sol.endswith("-pulp.sol"))
+        # warm start, presolve and cuts: the -mips path is one whole spaced
+        # argument and the switches arrive as separate tokens
+        prob = self.build_problem()
+        for var in prob.variables():
+            var.setInitialValue(0)
+        stats = prob.solve(
+            solvers.COIN_CMD(
+                path=fake, msg=False, warmStart=True, presolve=True, cuts=False
+            )
+        )
+        self.assertEqual(stats.status, const.LpSolveStatus.Optimal)
+        argv = self.recorded_argv()[1]
+        self.assert_paths_not_split(argv)
+        mips = argv[argv.index("-mips") + 1]
+        self.assertTrue(mips.startswith(self.spaced))
+        self.assertTrue(mips.endswith("-pulp.mst"))
+        self.assertEqual(argv[argv.index("-presolve") + 1], "on")
+        self.assertEqual(argv[argv.index("-cuts") + 1], "off")
