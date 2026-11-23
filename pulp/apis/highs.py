@@ -154,17 +154,49 @@ class HiGHS_CMD(LpSolver_CMD):
             self.writesol(tmpMst, lp)
             command.append(f"--read_solution_file={tmpMst}")
 
+        # These settings are managed by PuLP to retrieve solver results.
+        reserved_options = {
+            "solution_file",
+            "log_file",
+            "write_solution_to_file",
+            "write_solution_style",
+            "output_flag",
+        }
+
         options = iter(self.options)
         for option in options:
-            # assumption: all cli and file options require an argument which is provided after the equal sign (=)
             if "=" not in option:
                 option += f"={next(options)}"
 
-            # identify cli options by a leading dash (-) and treat other options as file options
-            if option.startswith("-"):
-                command.append(option)
+            if option.startswith(("--options_file=", "-options_file=")):
+                external_path = option.split("=", 1)[1]
+                try:
+                    with open(external_path, encoding="utf-8") as external_file:
+                        for line in external_file:
+                            stripped = line.strip()
+                            if stripped and not stripped.startswith("#"):
+                                key = stripped.split("=", 1)[0].strip()
+                                if key in reserved_options:
+                                    raise PulpSolverError(
+                                        f"PuLP: HiGHS option {key!r} is managed "
+                                        "internally and cannot be overridden"
+                                    )
+                            file_options.append(line.rstrip("\n"))
+                except OSError as exc:
+                    raise PulpSolverError(
+                        f"PuLP: cannot read HiGHS options file {external_path!r}"
+                    ) from exc
             else:
-                file_options.append(option)
+                key = option.split("=", 1)[0].lstrip("-")
+                if key in reserved_options:
+                    raise PulpSolverError(
+                        f"PuLP: HiGHS option {key!r} is managed "
+                        "internally and cannot be overridden"
+                    )
+                if option.startswith("-"):
+                    command.append(option)
+                else:
+                    file_options.append(option)
 
         with open(tmpOptions, "w") as options_file:
             options_file.write("\n".join(file_options))
