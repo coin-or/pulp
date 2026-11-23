@@ -12,7 +12,7 @@ on:
   pull_request:
     paths:
       - ".github/workflows/CI.yml"
-      - "pulp/rust/**"
+      - "rust/**"
       - "pyproject.toml"
 
 permissions:
