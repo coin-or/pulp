@@ -331,7 +331,7 @@ pub fn write_mps_bound_lines<W: Write>(
     if lb == Some(0.0)
         && ub == Some(1.0)
         && mip
-        && (category == Category::Integer || category == Category::Binary)
+        && category == Category::Integer
     {
         return writeln!(buf, " BV BND       {:<8}", name);
     }
@@ -339,7 +339,7 @@ pub fn write_mps_bound_lines<W: Write>(
         Some(low) => {
             if low != 0.0
                 || (mip
-                    && (category == Category::Integer || category == Category::Binary)
+                    && category == Category::Integer
                     && ub.is_none())
             {
                 write!(buf, " LO BND       {:<8}  ", name)?;
@@ -415,8 +415,8 @@ mod write_mps_format_tests {
     fn write_mps_bound_lines_matches_legacy() {
         let scenarios: [(&str, Option<f64>, Option<f64>, Category, bool); 10] = [
             ("x", Some(2.0), Some(2.0), Category::Continuous, false),
-            ("b", Some(0.0), Some(1.0), Category::Binary, true),
-            ("i", Some(0.0), Some(1.0), Category::Integer, true),
+            ("b", Some(0.0), Some(1.0), Category::Integer, true),
+            ("i", Some(0.0), Some(2.0), Category::Integer, true),
             ("y", Some(-1.0), Some(1.0), Category::Continuous, false),
             ("z", Some(0.0), None, Category::Integer, true),
             ("w", None, Some(5.0), Category::Continuous, false),
