@@ -50,7 +50,6 @@ class HiGHS_CMDTest(BaseSolverTest.PuLPTest):
             self.assertTrue(result.has_solution)
             self.assertAlmostEqual(x.varValue, 1.0)
 
-
     def test_external_options_file_rejects_output_override(self):
         """External files cannot override PuLP-managed output settings."""
         reserved_options = (
@@ -78,7 +77,5 @@ class HiGHS_CMDTest(BaseSolverTest.PuLPTest):
 
                     self.solver.options = [f"--options_file={path}"]
 
-                    with self.assertRaisesRegex(
-                        PulpSolverError, "managed internally"
-                    ):
+                    with self.assertRaisesRegex(PulpSolverError, "managed internally"):
                         problem.solve(self.solver)
