@@ -1,7 +1,5 @@
 # Build wheels with maturin and publish to PyPI when a GitHub Release is published.
-# Runs on ``release`` (published), not on branch/tag push or pull requests.
-# It can also be run manually (workflow_dispatch) to check the wheels; only a
-# release publishes them.
+# Also builds (without publishing) on manual dispatch and on PRs touching the build.
 # Generated from maturin generate-ci github, merged with Test PyPI + PyPI publish.
 # To refresh the build matrix, run: maturin generate-ci github
 name: CI
@@ -11,6 +9,11 @@ on:
     types:
       - published
   workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/CI.yml"
+      - "rust/**"
+      - "pyproject.toml"
 
 permissions:
   contents: read

@@ -30,13 +30,13 @@ pub struct SosGroup {
     pub weights: Vec<(VarId, f64)>,
 }
 
-/// Variable category: continuous, integer, or binary.
+/// Variable category: continuous or integer.
+/// Binary variables are represented as integers with bounds [0, 1].
 #[pyclass(from_py_object)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Category {
     Continuous,
     Integer,
-    Binary,
 }
 
 /// Constraint sense: <=, ==, >=.
@@ -555,15 +555,13 @@ impl Category {
         match self {
             Category::Continuous => "Continuous",
             Category::Integer => "Integer",
-            Category::Binary => "Binary",
         }
     }
 }
 
 impl VariableData {
     pub fn is_binary(&self) -> bool {
-        self.category == Category::Binary
-            || (self.category == Category::Integer && self.lb == 0.0 && self.ub == 1.0)
+        self.category == Category::Integer && self.lb == 0.0 && self.ub == 1.0
     }
 
     pub fn is_integer(&self) -> bool {

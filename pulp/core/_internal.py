@@ -45,15 +45,11 @@ def _rust_cat_to_const(
         return const.LpContinuous
     if rust_cat == _rustcore.Category.Integer:
         return const.LpInteger
-    if rust_cat == _rustcore.Category.Binary:
-        return const.LpInteger  # Binary as Integer 0-1
     return const.LpContinuous
 
 
 def _const_to_rust_cat(const_str: str) -> _rustcore.Category:
-    if const_str == const.LpBinary:
-        return _rustcore.Category.Binary
-    if const_str == const.LpInteger:
+    if const_str in (const.LpBinary, const.LpInteger):
         return _rustcore.Category.Integer
     return _rustcore.Category.Continuous
 

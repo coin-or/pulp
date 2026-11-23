@@ -367,7 +367,7 @@ fn emit_mps_into<W: Write>(
         let vd = &core.vars[vi];
         let cat = vd.category;
         let vname = &var_names[j];
-        if params.mip && (cat == Category::Integer || cat == Category::Binary) {
+        if params.mip && cat == Category::Integer {
             writeln_mps!(
                 &mut *w,
                 "    MARK      {}                 {}",
@@ -382,7 +382,7 @@ fn emit_mps_into<W: Write>(
         if let Some(obj_coeff) = obj_map[vi] {
             w.write_column_entry(vname, file_obj_name, obj_coeff)?;
         }
-        if params.mip && (cat == Category::Integer || cat == Category::Binary) {
+        if params.mip && cat == Category::Integer {
             writeln_mps!(
                 &mut *w,
                 "    MARK      {}                 {}",
@@ -1369,8 +1369,8 @@ mod write_mps_buffer_tests {
             f64::INFINITY,
             Category::Continuous,
         );
-        let c1 = core.add_variable("c1".to_string(), 0.0, 1.0, Category::Binary);
-        let c2 = core.add_variable("c2".to_string(), 0.0, 1.0, Category::Binary);
+        let c1 = core.add_variable("c1".to_string(), 0.0, 1.0, Category::Integer);
+        let c2 = core.add_variable("c2".to_string(), 0.0, 1.0, Category::Integer);
         core.set_objective(AffineExpr {
             terms: IndexMap::from([(dummy, 1.0)]),
             constant: 0.0,

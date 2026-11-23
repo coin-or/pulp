@@ -1,3 +1,5 @@
+.. _how_to_configure_solvers:
+
 How to configure a solver in PuLP
 ======================================
 
@@ -13,14 +15,17 @@ PuLP has some helper functions that permit a user to query which solvers are ava
     import pulp as pl
     solver_list = pl.listSolvers()
     print(solver_list)
-    # ['GLPK_CMD', 'PYGLPK', 'CPLEX_CMD', 'CPLEX_PY', 'CPLEX_DLL', 'GUROBI', 'GUROBI_CMD', 'MOSEK', 'XPRESS', 'COIN_CMD', 'COINMP_DLL', 'CHOCO_CMD', 'MIPCL_CMD', 'SCIP_CMD', 'CPSAT', ...]
+    # ['CyLP', 'GLPK_CMD', 'PYGLPK', 'CPLEX_CMD', 'CPLEX_PY', 'GUROBI', 'GUROBI_CMD',
+    #  'MOSEK', 'CPSAT', 'GLOP', 'CLARABEL', 'XPRESS', 'XPRESS_PY', 'COIN_CMD',
+    #  'COINMP_DLL', 'CHOCO_CMD', 'MIPCL_CMD', 'SCIP_CMD', 'FSCIP_CMD', 'SCIP_PY',
+    #  'HiGHS', 'HiGHS_CMD', 'COPT', 'COPT_DLL', 'COPT_CMD', 'SAS94', 'SASCAS', 'CUOPT']
 
 If passed the `onlyAvailable=True` argument, PuLP lists the solvers that are currently available::
 
     import pulp as pl
     solver_list = pl.listSolvers(onlyAvailable=True)
     print(solver_list)
-    # ['GLPK_CMD', 'CPLEX_CMD', 'CPLEX_PY', 'GUROBI', 'GUROBI_CMD', 'COIN_CMD']
+    # ['CyLP', 'GLPK_CMD', 'PYGLPK', 'GUROBI', 'CLARABEL', 'COIN_CMD', 'SCIP_PY', 'HiGHS']
 
 Also, it's possible to get a solver object by using the name of the solver. Any arguments passed to this function are passed to the constructor:
 
@@ -31,6 +36,88 @@ Also, it's possible to get a solver object by using the name of the solver. Any 
     solver = pl.getSolver('CPLEX_CMD', timeLimit=10)
 
 In the next sections, we will explain how to configure a solver to be accessible by PuLP.
+
+Solvers supported by PuLP
+--------------------------------
+
+.. list-table::
+   :header-rows: 1
+
+   * - Solver
+     - PuLP API(s)
+     - Problems
+     - How to get it
+   * - COIN-OR CBC
+     - ``COIN_CMD``
+     - LP, MIP
+     - ``pip install pulp[cbc]`` or ``cbc`` on ``PATH``
+   * - COIN-OR Clp / Cbc (CyLP)
+     - ``CYLP``
+     - LP, MIP
+     - ``pip install pulp[cylp]`` (not on Windows)
+   * - GLPK
+     - ``GLPK_CMD``, ``PYGLPK``
+     - LP, MIP
+     - ``glpsol`` on ``PATH`` / ``pip install pulp[glpk]``
+   * - HiGHS
+     - ``HiGHS``, ``HiGHS_CMD``
+     - LP, MIP
+     - ``pip install pulp[highs]`` / ``pip install pulp[highs_cmd]`` or ``highs`` on ``PATH``
+   * - SCIP / FSCIP
+     - ``SCIP_PY``, ``SCIP_CMD``, ``FSCIP_CMD``
+     - LP, MIP
+     - ``pip install pulp[scip]`` / ``scip`` or ``fscip`` on ``PATH``
+   * - OR-Tools CP-SAT
+     - ``CPSAT``
+     - bounded integer models
+     - ``pip install pulp[ortools]``
+   * - OR-Tools GLOP
+     - ``GLOP``
+     - LP
+     - ``pip install pulp[ortools]``
+   * - Clarabel
+     - ``CLARABEL``
+     - LP
+     - ``pip install pulp[clarabel]``
+   * - CHOCO
+     - ``CHOCO_CMD``
+     - MIP (constraint programming)
+     - ``choco-parsers-with-dependencies.jar`` on ``PATH``
+   * - MIPCL
+     - ``MIPCL_CMD``
+     - LP, MIP
+     - ``mps_mipcl`` on ``PATH``
+   * - NVIDIA cuOpt
+     - ``CUOPT``
+     - LP, MIP (GPU)
+     - the ``cuopt`` Python package from NVIDIA
+   * - Gurobi
+     - ``GUROBI``, ``GUROBI_CMD``
+     - LP, MIP
+     - ``pip install pulp[gurobi]`` (license needed for large models)
+   * - CPLEX
+     - ``CPLEX_PY``, ``CPLEX_CMD``
+     - LP, MIP
+     - ``pip install pulp[cplex]`` (license needed for large models)
+   * - FICO Xpress
+     - ``XPRESS_PY``, ``XPRESS_CMD``
+     - LP, MIP
+     - ``pip install pulp[xpress]`` (license needed for large models)
+   * - COPT
+     - ``COPT``, ``COPT_DLL``, ``COPT_CMD``
+     - LP, MIP
+     - ``pip install pulp[copt]`` (license needed for large models)
+   * - MOSEK
+     - ``MOSEK``
+     - LP, MIP
+     - ``pip install pulp[mosek]`` (license required)
+   * - SAS
+     - ``SAS94``, ``SASCAS``
+     - LP, MIP
+     - ``saspy`` / ``swat`` and access to a SAS installation
+
+The ``open_py`` extra installs HiGHS, SCIP, CBC, GLPK and Clarabel at once; the
+``public_py`` extra installs the PyPI packages of Gurobi, COPT, Xpress and CPLEX.
 
 What is an environment variable
 --------------------------------------
@@ -69,6 +156,17 @@ You can always pass an explicit path::
 
     import pulp as pl
     solver = pl.COIN_CMD(path=r"C:\path\to\cbc.exe")
+
+HiGHS (``HiGHS_CMD``)
+----------------------------
+
+``HiGHS_CMD`` runs the ``highs`` executable found on your ``PATH`` (or the one
+given with ``path=``). The optional ``highsbox`` package provides one::
+
+    python -m pip install pulp[highs_cmd]
+
+To use HiGHS without an executable, install ``pulp[highs]`` and use the
+``HiGHS`` API instead.
 
 Configuring the path to the solver
 --------------------------------------------
@@ -227,12 +325,13 @@ PuLP has the integrations with the official python API solvers for the following
 * Xpress (XPRESS_PY)
 * HiGHS (HiGHS)
 * SCIP (SCIP_PY)
-* XPRESS (XPRESS_PY)
 * COPT (COPT)
 * OR-Tools CP-SAT (CPSAT)
 * OR-Tools GLOP (GLOP)
 * Clarabel (CLARABEL)
 * GLPK (PYGLPK)
+* COIN-OR Clp / Cbc (CYLP)
+* NVIDIA cuOpt (CUOPT)
 
 These API offer a series of advantages over using the command line option:
 
@@ -327,14 +426,14 @@ Optional arguments:
 * ``interrupter``: an ``ortools.util.python.solve_interrupter.SolveInterrupter``.
   Calling its ``interrupt()`` (from another thread, or from the ``callback``)
   stops the solve with status ``Interrupted``.
-
-``prob.solve(solver, callback=...)`` calls the callback with each batch of log
-lines (a list of ``str``). GLOP has no other callbacks: MathOpt rejects every
-callback event for it.
 * Any field of MathOpt's ``SolveParameters`` (for example
   ``iteration_limit=1000``, ``presolve=False``, ``lp_algorithm="dual_simplex"``)
   or of ``GlopParameters`` (for example ``use_dual_simplex=True``,
   ``primal_feasibility_tolerance=1e-9``) as keyword arguments.
+
+``prob.solve(solver, callback=...)`` calls the callback with each batch of log
+lines (a list of ``str``). GLOP has no other callbacks: MathOpt rejects every
+callback event for it.
 
 .. note::
 
@@ -386,6 +485,73 @@ Optional arguments:
 ``DefaultInfo`` on every iteration; returning ``True`` stops the solve with
 status ``Interrupted``.
 
+Installing CYLP
+***********************
+
+The ``CYLP`` solver drives COIN-OR Clp (LP) and Cbc (MIP) through the
+`CyLP <https://github.com/coin-or/CyLP>`_ cython bindings, without writing
+files to disk. Install PuLP with the optional extra (not available on
+Windows)::
+
+    python -m pip install pulp[cylp]
+
+A problem with integer variables is solved by Cbc, unless the solver is created
+with ``mip=False``, which solves its LP relaxation with Clp. After the solve,
+``prob.solverModel`` holds a ``CyCbcModel`` (MIP) or a ``CyClpSimplex`` (LP).
+For LPs, Clp keeps the model between solves, so ``prob.resolve()`` only applies
+the changes made since the last solve and starts from the previous basis; MIPs
+are built again.
+
+Example::
+
+    import pulp as pl
+
+    prob = pl.LpProblem("cylp_example", pl.LpMinimize)
+    x = prob.add_variable("x", 0, 10, cat=pl.LpInteger)
+    y = prob.add_variable("y", 0, 10)
+    prob += x + 2 * y
+    prob += x + y >= 7.5
+
+    stats = prob.solve(pl.CYLP(msg=False, timeLimit=60))
+    print(stats.status_str, x.value(), y.value())
+
+Optional arguments:
+
+* ``gapRel``, ``gapAbs``, ``threads``, ``timeLimit``, ``maxNodes`` and
+  ``maxSolutions`` (used by Cbc).
+* ``maxIterations`` and ``presolve`` (used by Clp).
+* ``logPath``: the log goes to that file instead of the console.
+* Any attribute of the Clp or Cbc model as a keyword argument (for example
+  ``primalTolerance=1e-9`` for Clp, ``allowableGap=0.1`` for Cbc).
+  ``resolveMethod="primal"`` or ``"dual"`` forces the simplex used by Clp on a
+  resolve, and ``perturbation`` sets Clp's perturbation.
+
+Installing CUOPT
+***********************
+
+The ``CUOPT`` solver uses `NVIDIA cuOpt <https://github.com/NVIDIA/cuopt>`_,
+a GPU-accelerated LP and MIP solver. It needs an NVIDIA GPU and the ``cuopt``
+Python package, which is distributed by NVIDIA (it is not a PuLP extra): follow
+the `cuOpt installation instructions <https://docs.nvidia.com/cuopt/>`_ for
+your CUDA version, and also install ``numpy``.
+
+Example::
+
+    import pulp as pl
+
+    prob = pl.LpProblem("cuopt_example", pl.LpMinimize)
+    x = prob.add_variable("x", 0, 10, cat=pl.LpInteger)
+    y = prob.add_variable("y", 0, 10)
+    prob += x + 2 * y
+    prob += x + y >= 7.5
+
+    stats = prob.solve(pl.CUOPT(msg=False, timeLimit=60))
+    print(stats.status_str, x.value(), y.value())
+
+Optional arguments include ``timeLimit``, ``gapRel``, ``warmStart=True``
+(passes the current variable values as a start), ``logPath``, and any cuOpt
+solver setting as a keyword argument.
+
 Installing PYGLPK
 ***********************
 
@@ -432,6 +598,35 @@ Following my installation paths it would be (Linux)::
      sudo python3 setup.py install
 
 As you can see, it is necessary to have admin rights to install it.
+
+The ``gurobipy`` package is also available from PyPI (it includes a size-limited
+license)::
+
+    python -m pip install pulp[gurobi]
+
+To build large models faster, also install SciPy (it installs NumPy too)::
+
+    python -m pip install pulp[gurobi] scipy
+
+With SciPy, ``GUROBI`` adds all the constraints to the Gurobi model in a single
+call. Without it, the constraints are added one by one, which is slower on
+large models but gives the same model.
+
+Installing SAS94 and SASCAS
+*****************************
+
+The ``SAS94`` and ``SASCAS`` solvers send the model to the SAS Optimization
+procedures, on a SAS 9.4 server through `saspy <https://pypi.org/project/saspy/>`_
+or on SAS Viya (CAS) through `swat <https://pypi.org/project/swat/>`_. Both need
+access to a licensed SAS installation; install the package that matches it::
+
+    python -m pip install saspy   # SAS94
+    python -m pip install swat    # SASCAS
+
+The connection is configured as usual for ``saspy`` / ``swat`` (configuration
+file, or keyword arguments: ``cfgname`` / ``cfgfile`` for ``SAS94``, and
+connection options such as ``hostname``, ``port``, ``username`` and ``password``
+for ``SASCAS``).
 
 Installing XPRESS_PY
 ***********************

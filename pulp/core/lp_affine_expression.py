@@ -455,7 +455,7 @@ class LpAffineExpression:
             return result
         return NotImplemented
 
-    def __eq__(self, other: object) -> LpAffineExpression:  # type: ignore[override, ty:invalid-method-override]
+    def __eq__(self, other: object) -> LpAffineExpression:  # type: ignore[override, ty:incompatible-method-override]
         if _is_numeric_scalar(other):
             result = self.copy()
             result._expr.set_constant(result.constant - _numeric_to_float(other))
