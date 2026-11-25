@@ -10,6 +10,7 @@ import tempfile
 import unittest
 from decimal import Decimal
 from importlib.util import find_spec
+from typing import Any
 
 import pulp.apis as solvers
 import pulp.mps_lp as mps_lp
@@ -1328,6 +1329,110 @@ class PuLPModelTest(unittest.TestCase):
         model += var >= float(34.5)
 
         model.solve()
+
+    # Non-float64 numpy scalars, see https://github.com/coin-or/pulp/issues/987
+
+    def _numpy_scalars(self) -> list[Any]:
+        if find_spec("numpy") is None:
+            self.skipTest("numpy not available")
+        import numpy as np
+
+        return [
+            np.float16(2.5),
+            np.float32(2.5),
+            np.float64(2.5),
+            np.int8(2),
+            np.int32(2),
+            np.int64(2),
+            np.uint32(2),
+        ]
+
+    def test_numpy_scalar_add_sub(self):
+        prob = LpProblem(self._testMethodName, const.LpMinimize)
+        x = prob.add_variable("x")
+        for v in self._numpy_scalars():
+            with self.subTest(dtype=type(v).__name__):
+                c = float(v)
+                self.assertEqual((x + v).constant, c)
+                self.assertEqual((v + x).constant, c)
+                self.assertEqual((x - v).constant, -c)
+                self.assertEqual((v - x).constant, c)
+                self.assertEqual((v - x)[x], -1)
+                e = 2 * x
+                e += v
+                self.assertEqual(e.constant, c)
+                e -= v
+                self.assertEqual(e.constant, 0)
+                self.assertEqual(lpSum([x, v]).constant, c)
+
+    def test_numpy_scalar_comparisons(self):
+        prob = LpProblem(self._testMethodName, const.LpMinimize)
+        x = prob.add_variable("x")
+        cases = [
+            (lambda v: x <= v, const.LpConstraintLE),
+            (lambda v: x >= v, const.LpConstraintGE),
+            (lambda v: x == v, const.LpConstraintEQ),
+            (lambda v: 2 * x + 1 <= v, const.LpConstraintLE),
+            (lambda v: 2 * x + 1 >= v, const.LpConstraintGE),
+            (lambda v: 2 * x + 1 == v, const.LpConstraintEQ),
+        ]
+        for v in self._numpy_scalars():
+            for i, (build, sense) in enumerate(cases):
+                with self.subTest(dtype=type(v).__name__, case=i):
+                    c = build(v)
+                    self.assertIsInstance(c, LpAffineExpression)
+                    self.assertEqual(c.sense, sense)
+                    expected_rhs = float(v) - (1 if i >= 3 else 0)
+                    self.assertEqual(-c.constant, expected_rhs)
+
+    def test_numpy_scalar_constraint_added_to_problem(self):
+        np_scalars = self._numpy_scalars()
+        prob = LpProblem(self._testMethodName, const.LpMinimize)
+        x = prob.add_variable("x")
+        for i, v in enumerate(np_scalars):
+            prob += x + v <= 10 * v, f"c{i}"
+        self.assertEqual(len(prob.constraints()), len(np_scalars))
+        for i, v in enumerate(np_scalars):
+            c = _constraint_named(prob, f"c{i}")
+            self.assertEqual(c.sense, const.LpConstraintLE)
+            self.assertAlmostEqual(-c.constant, 9 * float(v))
+
+    def test_numpy_scalar_objective_constant(self):
+        np_scalars = self._numpy_scalars()
+        for v in np_scalars:
+            with self.subTest(dtype=type(v).__name__):
+                prob = LpProblem(self._testMethodName, const.LpMinimize)
+                prob += v
+                objective = prob.objective
+                assert objective is not None
+                self.assertEqual(objective.constant, float(v))
+
+    def test_numpy_scalar_non_finite_rejected(self):
+        if find_spec("numpy") is None:
+            self.skipTest("numpy not available")
+        import numpy as np
+
+        prob = LpProblem(self._testMethodName, const.LpMinimize)
+        x = prob.add_variable("x")
+        non_finite: list[Any] = [
+            np.float32("nan"),
+            np.float32("inf"),
+            np.float16("-inf"),
+        ]
+        for v in non_finite:
+            with self.subTest(value=repr(v)):
+                with self.assertRaises(PulpError):
+                    x + v
+                with self.assertRaises(PulpError):
+                    x - v
+
+    def test_variable_eq_decimal_builds_constraint(self):
+        prob = LpProblem(self._testMethodName, const.LpMinimize)
+        x = prob.add_variable("x")
+        c = x == Decimal("1.5")
+        self.assertIsInstance(c, LpAffineExpression)
+        self.assertEqual(c.sense, const.LpConstraintEQ)
+        self.assertEqual(-c.constant, 1.5)
 
     def test_export_dict_LP(self):
         prob = LpProblem(self._testMethodName, const.LpMinimize)

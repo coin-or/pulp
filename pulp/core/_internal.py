@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import math
+import numbers
 from decimal import Decimal
 from typing import Literal, TypeGuard
 
@@ -17,7 +18,10 @@ LpBound = LpNumeric | None
 
 
 def _is_numeric_scalar(value: object) -> TypeGuard[LpNumeric]:
-    return isinstance(value, (int, float, Decimal))
+    # numbers.Real also covers numpy integer and floating scalars (np.float32,
+    # np.int64, ...), which are registered with the numbers ABCs but, apart from
+    # np.float64, do not subclass int or float.
+    return isinstance(value, (numbers.Real, Decimal))
 
 
 def _is_finite_numeric(value: LpNumeric) -> bool:

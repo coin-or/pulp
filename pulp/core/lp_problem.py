@@ -18,6 +18,7 @@ from ._internal import (
     _const_to_rust_cat,
     _const_to_rust_sense,
     _is_finite_numeric,
+    _is_numeric_scalar,
     _is_numpy_bool,
 )
 from .lp_affine_expression import LpAffineExpression
@@ -733,7 +734,7 @@ class LpProblem:
             if self.objective is not None:
                 warnings.warn("Overwriting previously set objective.")
             self.objective = LpAffineExpression.from_variable(other, name=name)
-        elif isinstance(other, (int, float)):
+        elif _is_numeric_scalar(other):
             if self.objective is not None:
                 warnings.warn("Overwriting previously set objective.")
             self.objective = LpAffineExpression.from_constant(float(other), name=name)
