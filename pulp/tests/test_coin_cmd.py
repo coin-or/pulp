@@ -326,7 +326,9 @@ class COIN_CMDTest(BaseSolverTest.PuLPTest):
         )
 
 
-FAKE_CBC = FAKE_SOLVER_ARGV_PREAMBLE + """\
+FAKE_CBC = (
+    FAKE_SOLVER_ARGV_PREAMBLE
+    + """\
 
 model = sys.argv[1]
 names = []
@@ -348,13 +350,17 @@ with open(sol, "w") as f:
     for i, name in enumerate(names):
         f.write(f"{i:>7} {name} {0:>15} {0:>23}\\n")
 """
+)
 
 
 class COIN_CMDPathsWithSpacesTest(SolverCmdPathsWithSpacesTestCase):
+    def setUp(self):
+        super().setUp()
+        self.fake = write_fake_executable(self.spaced, "cbc", FAKE_CBC)
+
     def test_paths_with_spaces(self):
-        fake = write_fake_executable(self.spaced, "cbc", FAKE_CBC)
         prob = self.build_problem()
-        stats = prob.solve(solvers.COIN_CMD(path=fake, msg=False))
+        stats = prob.solve(solvers.COIN_CMD(path=self.fake, msg=False))
         self.assertEqual(stats.status, const.LpSolveStatus.Optimal)
         (argv,) = self.recorded_argv()
         self.assert_paths_not_split(argv)
@@ -368,7 +374,7 @@ class COIN_CMDPathsWithSpacesTest(SolverCmdPathsWithSpacesTestCase):
             var.setInitialValue(0)
         stats = prob.solve(
             solvers.COIN_CMD(
-                path=fake, msg=False, warmStart=True, presolve=True, cuts=False
+                path=self.fake, msg=False, warmStart=True, presolve=True, cuts=False
             )
         )
         self.assertEqual(stats.status, const.LpSolveStatus.Optimal)

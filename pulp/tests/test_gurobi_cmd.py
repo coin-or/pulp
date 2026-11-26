@@ -46,7 +46,9 @@ class GUROBI_CMDTest(BaseSolverTest.PuLPTest):
         self._apply_pulp_check(prob, sol={x: 3.0, y: -0.5, z: 7})
 
 
-FAKE_GUROBI = FAKE_SOLVER_ARGV_PREAMBLE + """\
+FAKE_GUROBI = (
+    FAKE_SOLVER_ARGV_PREAMBLE
+    + """\
 
 sol = next(a.split("=", 1)[1] for a in sys.argv[1:] if a.startswith("ResultFile="))
 with open(sol, "w") as f:
@@ -54,13 +56,17 @@ with open(sol, "w") as f:
     f.write("x 0\\n")
     f.write("y -1\\n")
 """
+)
 
 
 class GUROBI_CMDPathsWithSpacesTest(SolverCmdPathsWithSpacesTestCase):
+    def setUp(self):
+        super().setUp()
+        self.fake = write_fake_executable(self.spaced, "gurobi_cl", FAKE_GUROBI)
+
     def test_paths_with_spaces(self):
-        fake = write_fake_executable(self.spaced, "gurobi_cl", FAKE_GUROBI)
         prob = self.build_problem()
-        stats = prob.solve(solvers.GUROBI_CMD(path=fake, msg=False))
+        stats = prob.solve(solvers.GUROBI_CMD(path=self.fake, msg=False))
         self.assertEqual(stats.status, const.LpSolveStatus.Optimal)
         (argv,) = self.recorded_argv()
         self.assert_paths_not_split(argv)
@@ -76,7 +82,7 @@ class GUROBI_CMDPathsWithSpacesTest(SolverCmdPathsWithSpacesTestCase):
         prob = self.build_problem()
         prob.variables()[0].setInitialValue(1)
         stats = prob.solve(
-            solvers.GUROBI_CMD(path=fake, msg=False, timeLimit=99, warmStart=True)
+            solvers.GUROBI_CMD(path=self.fake, msg=False, timeLimit=99, warmStart=True)
         )
         self.assertEqual(stats.status, const.LpSolveStatus.Optimal)
         argv = self.recorded_argv()[1]

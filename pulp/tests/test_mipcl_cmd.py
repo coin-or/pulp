@@ -27,7 +27,9 @@ class MIPCL_CMDTest(BaseSolverTest.PuLPTest):
     }
 
 
-FAKE_MIPCL = FAKE_SOLVER_ARGV_PREAMBLE + """\
+FAKE_MIPCL = (
+    FAKE_SOLVER_ARGV_PREAMBLE
+    + """\
 
 sol = sys.argv[sys.argv.index("-solfile") + 1]
 with open(sol, "w") as f:
@@ -35,15 +37,19 @@ with open(sol, "w") as f:
     f.write("x 0\\n")
     f.write("y -1\\n")
 """
+)
 
 
 class MIPCL_CMDPathsWithSpacesTest(SolverCmdPathsWithSpacesTestCase):
+    def setUp(self):
+        super().setUp()
+        self.fake = write_fake_executable(self.spaced, "mipcl", FAKE_MIPCL)
+
     def test_paths_with_spaces(self):
-        fake = write_fake_executable(self.spaced, "mipcl", FAKE_MIPCL)
         prob = self.build_problem()
         stats = prob.solve(
             solvers.MIPCL_CMD(
-                path=fake, msg=False, timeLimit=30, options=["-threads 4"]
+                path=self.fake, msg=False, timeLimit=30, options=["-threads 4"]
             )
         )
         # MIPCL solution files do not state optimality, so a completed

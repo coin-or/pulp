@@ -31,33 +31,43 @@ class CHOCO_CMDTest(BaseSolverTest.PuLPTest):
     }
 
 
-FAKE_JAVA = FAKE_SOLVER_ARGV_PREAMBLE + """\
+FAKE_JAVA = (
+    FAKE_SOLVER_ARGV_PREAMBLE
+    + """\
 
 print("s OPTIMUM FOUND")
 print("x 0")
 print("y -1")
 """
+)
 
 
 class CHOCO_CMDPathsWithSpacesTest(SolverCmdPathsWithSpacesTestCase):
-    def test_paths_with_spaces(self):
+    def setUp(self):
+        super().setUp()
         write_fake_executable(self.spaced, "java", FAKE_JAVA)
-        jar = os.path.join(self.spaced, "choco parser.jar")
-        with open(jar, "w") as f:
+        self.jar = os.path.join(self.spaced, "choco parser.jar")
+        with open(self.jar, "w") as f:
             f.write("")
-        prob = self.build_problem()
-        with mock.patch.dict(
+        # CHOCO_CMD invokes plain "java", so the fake executable must be
+        # findable on PATH
+        path_env = mock.patch.dict(
             os.environ, {"PATH": self.spaced + os.pathsep + os.environ["PATH"]}
-        ):
-            stats = prob.solve(
-                solvers.CHOCO_CMD(
-                    path=jar, msg=False, timeLimit=60, options=[("-fs", "1")]
-                )
+        )
+        path_env.start()
+        self.addCleanup(path_env.stop)
+
+    def test_paths_with_spaces(self):
+        prob = self.build_problem()
+        stats = prob.solve(
+            solvers.CHOCO_CMD(
+                path=self.jar, msg=False, timeLimit=60, options=[("-fs", "1")]
             )
+        )
         self.assertEqual(stats.status, const.LpSolveStatus.Optimal)
         (argv,) = self.recorded_argv()
         self.assert_paths_not_split(argv)
-        self.assertEqual(argv[argv.index("-cp") + 1], jar)
+        self.assertEqual(argv[argv.index("-cp") + 1], self.jar)
         self.assertTrue(argv[-1].endswith("-pulp.mps"))
         # the time limit is the token after -limit, and each option
         # key/value pair arrives as two separate tokens
