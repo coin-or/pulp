@@ -411,6 +411,8 @@ class FSCIP_CMD(LpSolver_CMD):
         file_parameters: list[str] = []
         # disable presolving in the LoadCoordinator to make sure a solution file is always written
         file_parameters.append("NoPreprocessingInLC = TRUE")
+        if self.timeLimit is not None:
+            file_parameters.append(f"TimeLimit = {self.timeLimit}")
 
         command: list[str] = []
         command.append(self.path)
