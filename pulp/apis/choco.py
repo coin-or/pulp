@@ -101,13 +101,14 @@ class CHOCO_CMD(LpSolver_CMD):
             os.remove(tmpSol)
         except Exception:
             pass
-        cmd = java_path + ' -cp "' + self.path + '" org.chocosolver.parser.mps.ChocoMPS'
+        cmd = [java_path, "-cp", self.path, "org.chocosolver.parser.mps.ChocoMPS"]
         if self.timeLimit is not None:
-            cmd += f" -limit [-{self.timeLimit}s]"
-        cmd += " " + " ".join([f"{key} {value}" for key, value in self.options])
-        cmd += f" {tmpMps}"
+            cmd.extend(["-limit", f"[-{self.timeLimit}s]"])
+        for key, value in self.options:
+            cmd.extend([f"{key}", f"{value}"])
+        cmd.append(tmpMps)
         if lp.sense == constants.LpMaximize:
-            cmd += " -max"
+            cmd.append("-max")
         if lp.isMIP():
             if not self.mip:
                 warnings.warn("CHOCO_CMD cannot solve the relaxation of a problem")
@@ -116,7 +117,7 @@ class CHOCO_CMD(LpSolver_CMD):
         # (we thus ignore the self.msg parameter)
         pipe = open(tmpSol, "w")
 
-        return_code = subprocess.call(cmd, stdout=pipe, stderr=pipe, shell=True)
+        return_code = subprocess.call(cmd, stdout=pipe, stderr=pipe)
 
         if return_code != 0:
             raise PulpSolverError("PuLP: Error while trying to execute " + self.path)
