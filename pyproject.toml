@@ -1,6 +1,6 @@
 [project]
 name = "PuLP"
-version = "4.3.0"
+version = "4.3.1"
 description = "PuLP is an LP modeler written in python. PuLP can generate MPS or LP files and call GLPK, COIN CLP/CBC, CPLEX, and GUROBI to solve linear problems."
 authors = [
     {name = 'J.S. Roy'},
@@ -50,7 +50,7 @@ dev = [
 bindings = "pyo3"
 module-name = "pulp._rustcore"
 python-packages = ["pulp"]
-manifest-path = "pulp/rust/Cargo.toml"
+manifest-path = "rust/Cargo.toml"
 # *.mps is gitignored, so the test fixtures have to be included explicitly
 include = [{ path = "pulp/tests/fixtures/**/*", format = ["sdist", "wheel"] }]
 
@@ -98,8 +98,9 @@ allowed-unresolved-imports = [
 ]
 [tool.ty.rules]
 possibly-missing-attribute = "warn"
-invalid-method-override = "warn"
-unresolved-attribute = "warn"
+incompatible-method-override = "warn"
+missing-attribute = "warn"
+missing-union-attribute = "warn"
 unused-type-ignore-comment = "warn"
 deprecated = "warn"
 
@@ -108,7 +109,8 @@ include = ["pulp/apis/*.py"]
 [tool.ty.overrides.rules]
 unresolved-reference = "warn"
 possibly-missing-attribute = "ignore"
-unresolved-attribute = "ignore"
+missing-attribute = "ignore"
+missing-union-attribute = "ignore"
 unresolved-global = "ignore"
 deprecated = "ignore"
 invalid-argument-type = "ignore"
@@ -119,8 +121,9 @@ too-many-positional-arguments = "ignore"
 [[tool.ty.overrides]]
 include = ["pulp/tests/**"]
 [tool.ty.overrides.rules]
-unresolved-import = "warn"
-unresolved-attribute = "warn"
+import-not-found = "warn"
+missing-attribute = "warn"
+missing-union-attribute = "warn"
 unresolved-reference = "warn"
 invalid-argument-type = "warn"
 unsupported-operator = "warn"
@@ -128,7 +131,7 @@ no-matching-overload = "warn"
 too-many-positional-arguments = "warn"
 missing-argument = "warn"
 unknown-argument = "warn"
-call-non-callable = "warn"
+not-callable = "warn"
 invalid-assignment = "warn"
 not-iterable = "warn"
 

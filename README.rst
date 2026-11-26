@@ -10,7 +10,7 @@ pulp
     :target: https://pypi.org/project/PuLP/
     :alt: PyPI - Downloads
 
-PuLP is an linear and mixed integer programming modeler written in Python. With PuLP, it is simple to create MILP optimisation problems and solve them with the latest open-source (or proprietary) solvers.  PuLP can generate MPS or LP files and call solvers such as GLPK_, COIN-OR CLP/`CBC`_, CPLEX_, GUROBI_, MOSEK_, XPRESS_, CHOCO_, MIPCL_, HiGHS_, SCIP_/FSCIP_, and OR-Tools `CP-SAT`_ (via the ``CPSAT`` API).
+PuLP is an linear and mixed integer programming modeler written in Python. With PuLP, it is simple to create MILP optimisation problems and solve them with the latest open-source (or proprietary) solvers.  PuLP can generate MPS or LP files and call solvers such as GLPK_, COIN-OR CLP/`CBC`_ (also through CyLP_), CPLEX_, GUROBI_, MOSEK_, XPRESS_, COPT_, CHOCO_, MIPCL_, HiGHS_, SCIP_/FSCIP_, Clarabel_, NVIDIA cuOpt_, SAS_, and OR-Tools `CP-SAT`_ and GLOP_ (via the ``CPSAT`` and ``GLOP`` APIs).
 
 The documentation for PuLP can be `found here <https://coin-or.github.io/pulp/>`_.
 
@@ -74,11 +74,101 @@ optional PyPI extras (some require a commercial license for running or for large
     python -m pip install pulp[mosek]
     python -m pip install pulp[ortools]
     python -m pip install pulp[cylp]
+    python -m pip install pulp[clarabel]
     python -m pip install pulp[cbc]
     python -m pip install pulp[glpk]
+    python -m pip install pulp[highs_cmd]
 
-If you want to install all open source solvers (scip, highs, cbc, glpk), you can use the shortcut::
+If you want to install all open source solvers (scip, highs, cbc, glpk, clarabel), you can use the shortcut::
+
     python -m pip install pulp[open_py]
+
+The ``public_py`` extra installs the PyPI packages of the commercial solvers
+(gurobi, copt, xpress, cplex), which include size-limited licenses.
+
+Available solvers
+----------------------
+
+``pulp.listSolvers()`` returns every solver API PuLP knows about, and
+``pulp.listSolvers(onlyAvailable=True)`` the ones that can run on your machine.
+APIs whose name ends in ``_CMD`` run the solver's executable; the others use
+its Python library.
+
+.. list-table::
+   :header-rows: 1
+
+   * - Solver
+     - PuLP API(s)
+     - Problems
+     - How to get it
+   * - COIN-OR CBC
+     - ``COIN_CMD``
+     - LP, MIP
+     - ``pulp[cbc]`` or ``cbc`` on ``PATH``
+   * - COIN-OR Clp / Cbc (CyLP)
+     - ``CYLP``
+     - LP, MIP
+     - ``pulp[cylp]`` (not on Windows)
+   * - GLPK
+     - ``GLPK_CMD``, ``PYGLPK``
+     - LP, MIP
+     - ``glpsol`` on ``PATH`` / ``pulp[glpk]``
+   * - HiGHS
+     - ``HiGHS``, ``HiGHS_CMD``
+     - LP, MIP
+     - ``pulp[highs]`` / ``pulp[highs_cmd]`` or ``highs`` on ``PATH``
+   * - SCIP / FSCIP
+     - ``SCIP_PY``, ``SCIP_CMD``, ``FSCIP_CMD``
+     - LP, MIP
+     - ``pulp[scip]`` / ``scip`` or ``fscip`` on ``PATH``
+   * - OR-Tools CP-SAT
+     - ``CPSAT``
+     - bounded integer models
+     - ``pulp[ortools]``
+   * - OR-Tools GLOP
+     - ``GLOP``
+     - LP
+     - ``pulp[ortools]``
+   * - Clarabel
+     - ``CLARABEL``
+     - LP
+     - ``pulp[clarabel]``
+   * - CHOCO
+     - ``CHOCO_CMD``
+     - MIP (constraint programming)
+     - CHOCO jar on ``PATH``
+   * - MIPCL
+     - ``MIPCL_CMD``
+     - LP, MIP
+     - ``mps_mipcl`` on ``PATH``
+   * - NVIDIA cuOpt
+     - ``CUOPT``
+     - LP, MIP (GPU)
+     - the ``cuopt`` Python package from NVIDIA
+   * - Gurobi
+     - ``GUROBI``, ``GUROBI_CMD``
+     - LP, MIP
+     - ``pulp[gurobi]`` (license needed for large models)
+   * - CPLEX
+     - ``CPLEX_PY``, ``CPLEX_CMD``
+     - LP, MIP
+     - ``pulp[cplex]`` (license needed for large models)
+   * - FICO Xpress
+     - ``XPRESS_PY``, ``XPRESS_CMD``
+     - LP, MIP
+     - ``pulp[xpress]`` (license needed for large models)
+   * - COPT
+     - ``COPT``, ``COPT_DLL``, ``COPT_CMD``
+     - LP, MIP
+     - ``pulp[copt]`` (license needed for large models)
+   * - MOSEK
+     - ``MOSEK``
+     - LP, MIP
+     - ``pulp[mosek]`` (license required)
+   * - SAS
+     - ``SAS94``, ``SASCAS``
+     - LP, MIP
+     - ``saspy`` / ``swat`` and a SAS installation
 
 For more information on how to install solvers, see the `guide on configuring solvers <https://coin-or.github.io/pulp/guides/how_to_configure_solvers.html>`_.
 
@@ -252,3 +342,9 @@ PuLP is distributed under an MIT license.
 .. _HiGHS: https://highs.dev
 .. _FSCIP: https://ug.zib.de
 .. _CP-SAT: https://developers.google.com/optimization/cp/cp_solver
+.. _GLOP: https://developers.google.com/optimization/lp/glop
+.. _Clarabel: https://clarabel.org
+.. _CyLP: https://github.com/coin-or/CyLP
+.. _COPT: https://www.shanshu.ai/copt
+.. _cuOpt: https://github.com/NVIDIA/cuopt
+.. _SAS: https://www.sas.com/en_us/software/optimization.html

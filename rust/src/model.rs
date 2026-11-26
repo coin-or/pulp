@@ -503,12 +503,12 @@ impl Model {
 
     // ── Phase 3 methods ──
 
-    /// Whether any variable is Integer or Binary.
+    /// Whether any variable is integer (including binary variables).
     fn is_mip(&self) -> bool {
         let core = lock_model(&self.core);
         core.vars
             .iter()
-            .any(|v| v.category == Category::Integer || v.category == Category::Binary)
+            .any(|v| v.category == Category::Integer)
     }
 
     /// Round all variable values to bounds and integrality.
